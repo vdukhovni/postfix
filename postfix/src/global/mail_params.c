@@ -142,6 +142,8 @@
 /*	int	warn_compat_break_relay_domains;
 /*	int	warn_compat_break_flush_domains;
 /*	int	warn_compat_break_mynetworks_style;
+/*
+/*	char	*var_dnssec_probe;
 /* DESCRIPTION
 /*	This module (actually the associated include file) defines
 /*	the names and defaults of all mail configuration parameters.
@@ -342,6 +344,8 @@ char   *var_smtputf8_autoclass;
 int     var_idna2003_compat;
 int     var_compat_level;
 char   *var_drop_hdrs;
+
+char   *var_dnssec_probe;
 
 const char null_format_string[1] = "";
 
@@ -649,6 +653,7 @@ void    mail_params_init()
 	/* multi_instance_wrapper may have dependencies but not dependents. */
 	VAR_MULTI_GROUP, DEF_MULTI_GROUP, &var_multi_group, 0, 0,
 	VAR_MULTI_NAME, DEF_MULTI_NAME, &var_multi_name, 0, 0,
+	VAR_DNSSEC_PROBE, DEF_DNSSEC_PROBE, &var_dnssec_probe, 0, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE first_bool_defaults[] = {

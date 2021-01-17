@@ -303,6 +303,13 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#smtp_dns_reply_filter">smtp_dns_reply_filter</a> (empty)</b>
               Optional filter for Postfix SMTP client DNS lookup results.
 
+       Available in Postfix 3.2.21 and later:
+
+       <b><a href="postconf.5.html#dnssec_probe">dnssec_probe</a> (ns:.)</b>
+              The DNS query type (default: "ns") and DNS query name  (default:
+              ".") that Postfix may use to determine whether DNSSEC validation
+              is available.
+
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:
 

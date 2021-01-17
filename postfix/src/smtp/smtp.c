@@ -263,6 +263,12 @@
 /*	deliveries.
 /* .IP "\fBsmtp_dns_reply_filter (empty)\fR"
 /*	Optional filter for Postfix SMTP client DNS lookup results.
+/* .PP
+/*	Available in Postfix 3.2.21 and later:
+/* .IP "\fBdnssec_probe (ns:.)\fR"
+/*	The DNS query type (default: "ns") and DNS query name (default:
+/*	".") that Postfix may use to determine whether DNSSEC validation
+/*	is available.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi

@@ -1591,7 +1591,7 @@ extern bool var_smtp_tls_force_tlsa;
 
  /* SMTP only */
 #define VAR_SMTP_TLS_INSECURE_MX_POLICY "smtp_tls_dane_insecure_mx_policy"
-#define DEF_SMTP_TLS_INSECURE_MX_POLICY "dane"
+#define DEF_SMTP_TLS_INSECURE_MX_POLICY "${{$smtp_tls_security_level} == {dane} ? {dane} : {may}}"
 extern char *var_smtp_tls_insecure_mx_policy;
 
  /*
@@ -4041,6 +4041,13 @@ extern int var_idna2003_compat;
 #define VAR_DNS_NCACHE_TTL_FIX		"dns_ncache_ttl_fix_enable"
 #define DEF_DNS_NCACHE_TTL_FIX		0
 extern bool var_dns_ncache_ttl_fix;
+
+ /*
+  * DNSSEC probing, to find out if DNSSEC validation is available.
+  */
+#define VAR_DNSSEC_PROBE	"dnssec_probe"
+#define DEF_DNSSEC_PROBE	"ns:."
+extern char *var_dnssec_probe;
 
 /* LICENSE
 /* .ad
