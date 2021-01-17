@@ -171,6 +171,12 @@
 /*	Pointer to storage for the reply RCODE value. This gives
 /*	more detailed information than DNS_FAIL, DNS_RETRY, etc.
 /* DIAGNOSTICS
+/*	If DNSSEC validation is requested but the response is not
+/*	DNSSEC validated, dns_lookup() will send a one-time probe
+/*	query as configured with the \fBdnssec_probe\fR configuration
+/*	parameter, and will log a warning when the probe response
+/*	was not DNSSEC validated.
+/* .PP
 /*	dns_lookup() returns one of the following codes and sets the
 /*	\fIwhy\fR argument accordingly:
 /* .IP DNS_OK
@@ -463,7 +469,7 @@ static int dns_query(const char *name, int type, unsigned flags,
      */
 #define XTRA_FLAGS (RES_USE_EDNS0 | RES_TRUSTAD)
 
-    if (flags & RES_USE_DNSSEC)
+    if (DNS_WANT_DNSSEC_VALIDATION(flags))
 	flags |= (RES_USE_EDNS0 | RES_TRUSTAD);
 
     /*
@@ -510,6 +516,8 @@ static int dns_query(const char *name, int type, unsigned flags,
 	_res.options |= saved_options;
 	reply_header = (HEADER *) reply->buf;
 	reply->rcode = reply_header->rcode;
+	if ((reply->dnssec_ad = !!reply_header->ad) != 0)
+	    DNS_SEC_STATS_SET(DNS_SEC_FLAG_AVAILABLE);
 	if (h_errno != 0) {
 	    if (why)
 		vstring_sprintf(why, "Host or domain name not found. "
@@ -561,13 +569,8 @@ static int dns_query(const char *name, int type, unsigned flags,
 
     /*
      * Initialize the reply structure. Some structure members are filled on
-     * the fly while the reply is being parsed.  Coerce AD bit to boolean.
+     * the fly while the reply is being parsed.
      */
-#if RES_USE_DNSSEC != 0
-    reply->dnssec_ad = (flags & RES_USE_DNSSEC) ? !!reply_header->ad : 0;
-#else
-    reply->dnssec_ad = 0;
-#endif
     SET_HAVE_DNS_REPLY_PACKET(reply, len);
     reply->query_start = reply->buf + sizeof(HEADER);
     reply->answer_start = 0;
@@ -885,7 +888,9 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 	    CORRUPT(DNS_RETRY);
 	if ((status = dns_get_fixed(pos, &fixed)) != DNS_OK)
 	    CORRUPT(status);
-	if (!valid_rr_name(rr_name, "resource name", fixed.type, reply))
+	if (strcmp(orig_name, ".") == 0 && *rr_name == 0)
+	     /* Allow empty response name for root queries. */ ;
+	else if (!valid_rr_name(rr_name, "resource name", fixed.type, reply))
 	    CORRUPT(DNS_INVAL);
 	if (fqdn)
 	    vstring_strcpy(fqdn, rr_name);
@@ -973,7 +978,7 @@ int     dns_lookup_x(const char *name, unsigned type, unsigned flags,
     /*
      * The Linux resolver misbehaves when given an invalid domain name.
      */
-    if (!valid_hostname(name, DONT_GRIPE)) {
+    if (strcmp(name, ".") && !valid_hostname(name, DONT_GRIPE)) {
 	if (why)
 	    vstring_sprintf(why,
 		   "Name service error for %s: invalid host or domain name",
@@ -1010,6 +1015,10 @@ int     dns_lookup_x(const char *name, unsigned type, unsigned flags,
 		(void) dns_get_answer(orig_name, &reply, T_SOA, rrlist, fqdn,
 				      cname, c_len, &maybe_secure);
 	    }
+	    if (DNS_WANT_DNSSEC_VALIDATION(flags)
+		&& !DNS_SEC_STATS_TEST(DNS_SEC_FLAG_AVAILABLE | \
+				       DNS_SEC_FLAG_DONT_PROBE))
+		dns_sec_probe(flags);		/* XXX Clobbers 'reply' */
 	    return (status);
 	}
 
@@ -1019,6 +1028,10 @@ int     dns_lookup_x(const char *name, unsigned type, unsigned flags,
 	 */
 	status = dns_get_answer(orig_name, &reply, type, rrlist, fqdn,
 				cname, c_len, &maybe_secure);
+	if (DNS_WANT_DNSSEC_VALIDATION(flags)
+	    && !DNS_SEC_STATS_TEST(DNS_SEC_FLAG_AVAILABLE | \
+				   DNS_SEC_FLAG_DONT_PROBE))
+	    dns_sec_probe(flags);		/* XXX Clobbers 'reply' */
 	switch (status) {
 	default:
 	    if (why)
