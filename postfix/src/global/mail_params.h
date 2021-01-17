@@ -1617,7 +1617,7 @@ extern bool var_smtp_tls_force_tlsa;
 
  /* SMTP only */
 #define VAR_SMTP_TLS_INSECURE_MX_POLICY "smtp_tls_dane_insecure_mx_policy"
-#define DEF_SMTP_TLS_INSECURE_MX_POLICY "dane"
+#define DEF_SMTP_TLS_INSECURE_MX_POLICY "${{$smtp_tls_security_level} == {dane} ? {dane} : {may}}"
 extern char *var_smtp_tls_insecure_mx_policy;
 
  /*
@@ -4188,6 +4188,13 @@ extern char *var_postlog_service;
 #define VAR_POSTLOGD_WATCHDOG	"postlogd_watchdog_timeout"
 #define DEF_POSTLOGD_WATCHDOG	"10s"
 extern int var_postlogd_watchdog;
+
+ /*
+  * DNSSEC probing, to find out if DNSSEC validation is available.
+  */
+#define VAR_DNSSEC_PROBE	"dnssec_probe"
+#define DEF_DNSSEC_PROBE	"ns:."
+extern char *var_dnssec_probe;
 
 /* LICENSE
 /* .ad

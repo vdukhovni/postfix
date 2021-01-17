@@ -24549,3 +24549,26 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: Postfix 2.3): static maps did not free
 	their casefolding buffer. File: util/dict_static.c.
+
+20210116
+
+	Feature: when a Postfix program makes a DNS query that
+	requests DNSSEC validation (usually for Postfix DANE support)
+	but the DNS response is not DNSSEC validated, Postfix will
+	send a DNS query configured with the "dnssec_probe" parameter
+	to determine if DNSSEC support is available, and logs a
+	warning if it is not. By default, the probe has type "ns"
+	and domain name ".". The probe is sent once per process
+	lifetime. Files: dns/dns.h, dns/dns_lookup.c, dns/dns_sec.c,
+	test_dns_lookup.c, global/mail_params.[hc], mantools/postlink.
+
+	The makedefs script no longer disables DNSSEC when Postfix
+	is built with libc-musl. Instead Postfix will rely on the
+	new dnssec_probe feature, and will log a warning when Postfix
+	requests DNSSEC validation, but the infrastructure does not
+	validate DNSSEC signatures. File: makedefs.
+
+        The default "smtp_tls_dane_insecure_mx_policy = dane" was
+        causing unnecessary dnssec_probe activity. The default is now
+        "dane" when smtp_tls_security_level is "dane", otherwise it is
+        "may". File: global/mail_params.h.

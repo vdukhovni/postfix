@@ -695,6 +695,7 @@ while (<>) {
     s;\bsmtp_per_record_deadline\b;<a href="postconf.5.html#smtp_per_record_deadline">$&</a>;g;
     s;\bsmtp_send_dummy_mail_auth\b;<a href="postconf.5.html#smtp_send_dummy_mail_auth">$&</a>;g;
     s;\bsmtp_balance_inet_protocols\b;<a href="postconf.5.html#smtp_balance_inet_protocols">$&</a>;g;
+    s;\bdnssec_probe\b;<a href="postconf.5.html#dnssec_probe">$&</a>;g;
     s;\bsmtp_tls_connection_reuse\b;<a href="postconf.5.html#smtp_tls_connection_reuse">$&</a>;g;
     s;\blmtp_tls_connection_reuse\b;<a href="postconf.5.html#lmtp_tls_connection_reuse">$&</a>;g;
     s;\bsmtpd_enforce_tls\b;<a href="postconf.5.html#smtpd_enforce_tls">$&</a>;g;
