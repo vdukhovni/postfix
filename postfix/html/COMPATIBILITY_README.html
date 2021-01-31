@@ -61,7 +61,7 @@ default setting append_dot_mydomain=yes </a> </p>
 chroot=y</a> </p>
 
 <li><p> <a href="#relay_restrictions"> Using backwards-compatible
-default setting smtpd_relay_restrictions = (empty)</a> </p>
+default setting "smtpd_relay_restrictions = (empty)"</a> </p>
 
 <li> <p> <a href="#mynetworks_style"> Using backwards-compatible
 default setting mynetworks_style=subnet </a> </p>
@@ -80,6 +80,9 @@ default setting smtp_tls_fingerprint_digest=md5</a> </p>
 
 <li> <p> <a href="#smtp_digest"> Using backwards-compatible
 default setting lmtp_tls_fingerprint_digest=md5</a> </p>
+
+<li> <p> <a href="#relay_before_rcpt"> Using backwards-compatible
+default setting smtpd_relay_before_recipient_restrictions=no</a> </p>
 
 </ul>
 
@@ -458,6 +461,45 @@ warnings, you can <a href="#turnoff">update</a> your compatibility level.
 # <b>postconf '<a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a> = md5' \
     '<a href="postconf.5.html#lmtp_tls_fingerprint_digest">lmtp_tls_fingerprint_digest</a> = md5' </b>
 # <b>postfix reload</b>
+</pre>
+</blockquote>
+
+<h2> <a name="relay_before_rcpt"> Using backwards-compatible
+default setting smtpd_relay_before_recipient_restrictions=no</a> </h2>
+
+<p> The <a href="postconf.5.html#smtpd_relay_before_recipient_restrictions">smtpd_relay_before_recipient_restrictions</a> feature was
+introduced in Postfix version 3.6, to evaluate <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>
+before <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>. Historically, <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>
+was evaluated after <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>, contradicting
+documented behavior. </p>
+
+<blockquote> <p> Background: <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> is
+primarily designed to enforce a mail relaying policy, while
+<a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> is primarily designed to enforce spam
+blocking policy. Both are evaluated while replying to the RCPT TO
+command, and both support the same features. </p> </blockquote>
+
+<p> When the <a href="postconf.5.html#compatibility_level">compatibility_level</a> less than 3.6, and the
+<a href="postconf.5.html#smtpd_relay_before_recipient_restrictions">smtpd_relay_before_recipient_restrictions</a> parameter is left at its
+implicit default setting, Postfix may log the following message: </p>
+
+<blockquote>
+<pre>
+postfix/smtpd[54696]: using backwards-compatible default setting
+    <a href="postconf.5.html#smtpd_relay_before_recipient_restrictions">smtpd_relay_before_recipient_restrictions</a>=no to reject recipient
+    "user@example.com" from client "host.example.net[10.0.0.2]"
+</pre>
+</blockquote>
+
+<p> If Postfix should keep evaluating <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>
+before <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>, then the system
+administrator should make the backwards-compatible setting
+"<a href="postconf.5.html#smtpd_relay_before_recipient_restrictions">smtpd_relay_before_recipient_restrictions</a>=no" permanent in <a href="postconf.5.html">main.cf</a>: </p>
+
+<blockquote>
+<pre>
+# <b> postconf <a href="postconf.5.html#smtpd_relay_before_recipient_restrictions">smtpd_relay_before_recipient_restrictions</a>=no </b>
+# <b> postfix reload </b>
 </pre>
 </blockquote>
 

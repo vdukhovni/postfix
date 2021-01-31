@@ -1,5 +1,9 @@
 Wish list:
 
+	http://www.postfix.org/postconf.5.html#inet_protocols default
+	differs from http://www.postfix.org/IPV6_README.html
+	and it's compile-time dependent.
+
 	Eliminate duplicate user_acl check from sendmail, and pass
 	the result through the postdrop-to-sendmail protocol. This
 	requires that postdrop reads all inputs before responding.

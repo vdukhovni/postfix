@@ -33,8 +33,8 @@ The following messages may be logged:
 
   * Using backwards-compatible default setting chroot=y
 
-  * Using backwards-compatible default setting smtpd_relay_restrictions =
-    (empty)
+  * Using backwards-compatible default setting "smtpd_relay_restrictions =
+    (empty)"
 
   * Using backwards-compatible default setting mynetworks_style=subnet
 
@@ -47,6 +47,9 @@ The following messages may be logged:
   * Using backwards-compatible default setting smtp_tls_fingerprint_digest=md5
 
   * Using backwards-compatible default setting lmtp_tls_fingerprint_digest=md5
+
+  * Using backwards-compatible default setting
+    smtpd_relay_before_recipient_restrictions=no
 
 If such a message is logged in the context of a legitimate request, the system
 administrator should make the backwards-compatible setting permanent in main.cf
@@ -305,6 +308,36 @@ update your compatibility level.
     # ppoossttccoonnff ''ssmmttpp__ttllss__ffiinnggeerrpprriinntt__ddiiggeesstt == mmdd55'' \\
         ''llmmttpp__ttllss__ffiinnggeerrpprriinntt__ddiiggeesstt == mmdd55''
     # ppoossttffiixx rreellooaadd
+
+UUssiinngg bbaacckkwwaarrddss--ccoommppaattiibbllee ddeeffaauulltt sseettttiinngg
+ssmmttppdd__rreellaayy__bbeeffoorree__rreecciippiieenntt__rreessttrriiccttiioonnss==nnoo
+
+The smtpd_relay_before_recipient_restrictions feature was introduced in Postfix
+version 3.6, to evaluate smtpd_relay_restrictions before
+smtpd_recipient_restrictions. Historically, smtpd_relay_restrictions was
+evaluated after smtpd_recipient_restrictions, contradicting documented
+behavior.
+
+    Background: smtpd_relay_restrictions is primarily designed to enforce a
+    mail relaying policy, while smtpd_recipient_restrictions is primarily
+    designed to enforce spam blocking policy. Both are evaluated while replying
+    to the RCPT TO command, and both support the same features.
+
+When the compatibility_level less than 3.6, and the
+smtpd_relay_before_recipient_restrictions parameter is left at its implicit
+default setting, Postfix may log the following message:
+
+    postfix/smtpd[54696]: using backwards-compatible default setting
+        smtpd_relay_before_recipient_restrictions=no to reject recipient
+        "user@example.com" from client "host.example.net[10.0.0.2]"
+
+If Postfix should keep evaluating smtpd_recipient_restrictions before
+smtpd_relay_restrictions, then the system administrator should make the
+backwards-compatible setting "smtpd_relay_before_recipient_restrictions=no"
+permanent in main.cf:
+
+    #  ppoossttccoonnff ssmmttppdd__rreellaayy__bbeeffoorree__rreecciippiieenntt__rreessttrriiccttiioonnss==nnoo
+    #  ppoossttffiixx rreellooaadd
 
 TTuurrnniinngg ooffff tthhee bbaacckkwwaarrddss--ccoommppaattiibbiilliittyy ssaaffeettyy nneett
 

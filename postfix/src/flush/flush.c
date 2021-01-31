@@ -229,7 +229,7 @@ static DOMAIN_LIST *flush_domains;
   * Silly little macros.
   */
 #define STR(x)			vstring_str(x)
-#define STREQ(x,y)		((x) == (y) || strcmp(x,y) == 0)
+#define STREQ(x,y)		(STRREF(x) == STRREF(y) || strcmp(x,y) == 0)
 
  /*
   * Forward declarations resulting from breaking up routines according to

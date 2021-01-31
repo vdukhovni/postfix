@@ -335,7 +335,7 @@ const char *dns_str_resflags(unsigned long);
 #define DNS_SEC_STATS_SET(flags) (dns_sec_stats |= (flags))
 #define DNS_SEC_STATS_TEST(flags) (dns_sec_stats & (flags))
 
-extern int dns_sec_stats;		/* See flags below */
+extern int dns_sec_stats;		/* See DNS_SEC_FLAG_XXX above */
 extern void dns_sec_probe(int);
 
 /* LICENSE

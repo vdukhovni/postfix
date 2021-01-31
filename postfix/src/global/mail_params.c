@@ -152,6 +152,7 @@
 /*	int	warn_compat_break_smtpd_tls_fpt_dgst;
 /*	int	warn_compat_break_smtp_tls_fpt_dgst;
 /*	int	warn_compat_break_lmtp_tls_fpt_dgst;
+/*	int	warn_compat_relay_before_rcpt_checks;
 /*
 /*	char	*var_maillog_file;
 /*	char	*var_maillog_file_pfxs;
@@ -160,6 +161,7 @@
 /*	char	*var_postlog_service;
 /*
 /*	char	*var_dnssec_probe;
+/*	bool	var_relay_before_rcpt_checks;
 /* DESCRIPTION
 /*	This module (actually the associated include file) defines
 /*	the names and defaults of all mail configuration parameters.
@@ -372,15 +374,17 @@ char   *var_maillog_file_stamp;
 char   *var_postlog_service;
 
 char   *var_dnssec_probe;
+bool    var_relay_before_rcpt_checks;
 
 const char null_format_string[1] = "";
 
  /*
-  * Compatibility level 3.
+  * Compatibility level 3.6.
   */
 int     warn_compat_break_smtpd_tls_fpt_dgst;
 int     warn_compat_break_smtp_tls_fpt_dgst;
 int     warn_compat_break_lmtp_tls_fpt_dgst;
+int     warn_compat_relay_before_rcpt_checks;
 
  /*
   * Compatibility level 2.
@@ -652,10 +656,13 @@ static void check_legacy_defaults(void)
 	    warn_compat_break_smtp_tls_fpt_dgst = 1;
 	if (mail_conf_lookup(VAR_LMTP_TLS_FPT_DGST) == 0)
 	    warn_compat_break_lmtp_tls_fpt_dgst = 1;
+	if (mail_conf_lookup(VAR_RELAY_BEFORE_RCPT_CHECKS) == 0)
+	    warn_compat_relay_before_rcpt_checks = 1;
     } else {
 	warn_compat_break_smtpd_tls_fpt_dgst = 0;
 	warn_compat_break_smtp_tls_fpt_dgst = 0;
 	warn_compat_break_lmtp_tls_fpt_dgst = 0;
+	warn_compat_relay_before_rcpt_checks = 0;
     }
 
     /*
@@ -742,6 +749,7 @@ void    mail_params_init()
 	/* read and process the following before opening tables. */
 	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
 	VAR_IDNA2003_COMPAT, DEF_IDNA2003_COMPAT, &var_idna2003_compat,
+	VAR_RELAY_BEFORE_RCPT_CHECKS, DEF_RELAY_BEFORE_RCPT_CHECKS, &var_relay_before_rcpt_checks,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults[] = {

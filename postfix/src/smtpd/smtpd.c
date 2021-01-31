@@ -144,6 +144,10 @@
 /*	Available in Postfix version 3.0 and later:
 /* .IP "\fBsmtpd_dns_reply_filter (empty)\fR"
 /*	Optional filter for Postfix SMTP server DNS lookup results.
+/* .PP
+/*	Available in Postfix version 3.6 and later:
+/* .IP "\fBsmtpd_relay_before_recipient_restrictions (see 'postconf -d' output)\fR"
+/*	Evaluate smtpd_relay_restrictions before smtpd_recipient_restrictions.
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi
@@ -6408,6 +6412,7 @@ int     main(int argc, char **argv)
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {
 	VAR_SMTPD_REC_DEADLINE, DEF_SMTPD_REC_DEADLINE, &var_smtpd_rec_deadline,
+	VAR_RELAY_BEFORE_RCPT_CHECKS, DEF_RELAY_BEFORE_RCPT_CHECKS, &var_relay_before_rcpt_checks,
 	0,
     };
     static const CONFIG_STR_TABLE str_table[] = {

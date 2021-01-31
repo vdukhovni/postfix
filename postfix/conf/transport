@@ -91,7 +91,7 @@
 # 
 #        The  pattern specifies an email address, a domain name, or
 #        a domain name hierarchy, as described  in  section  "TABLE
-#        LOOKUP".
+#        SEARCH ORDER".
 # 
 #        The  result is of the form transport:nexthop and specifies
 #        how or where to deliver mail. This is described in section

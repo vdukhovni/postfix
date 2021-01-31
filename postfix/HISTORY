@@ -25353,3 +25353,33 @@ Apologies for any names omitted.
 
 	Bugfix: the 20210109 change broke 'postfix reload' for the
 	master daemon. File: global/mail_params.c.
+
+20210111
+
+	Cleanup: compiler warning for casting '0' to the wrong type
+	(zero impact). File: dns/dns_sec.c .
+
+	Cleanup: after back-porting the dnssec_probe implementation
+	to Postfix 3.5 and earlier versions, forward-ported some
+	comment and documentation changes to the 3.6 releases.
+	Files: proto/postconf.proto, RELEASE_NOTES, dns/dns.h.
+
+20210113
+
+	Workaround: STRREF() macro to shut up compiler warnings for
+	legitimate expressions involving string constants. Files:
+	util.stringops.h, flush/flush.c.
+
+20210130
+
+	Feature: with smtpd_relay_before_recipient_restrictions=yes,
+	the Postfix SMTP server will evaluate smtpd_relay_restrictions
+	before smtpd_recipient_restrictions. This is the default
+	behavior with compatibility_level >= 3.6. This makes the
+	implemented behavior consistent with existing documentation.
+	There is a backwards-compatibility warning that allows users
+	to freeze historical behavior. Files: mantools/postlink,
+	proto/COMPATIBILITY_README.html, proto/postconf.proto,
+	global/mail_params.c, global/mail_params.h, smtpd/smtpd.c,
+	smtpd/smtpd_check.c.
+

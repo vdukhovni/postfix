@@ -336,10 +336,9 @@ int     rec_goto(VSTREAM *stream, const char *buf)
      * is likely to insert 10000 message headers, but someone might append
      * 10000 recipients.
      */
-#define STREQ(x,y) ((x) == (y) && strcmp((x), (y)) == 0)
 #define REVERSE_JUMP_LIMIT	10000
 
-    if (!STREQ(saved_path, VSTREAM_PATH(stream))) {
+    if (saved_path != VSTREAM_PATH(stream)) {
 	saved_path = VSTREAM_PATH(stream);
 	reverse_count = 0;
 	saved_offset = 0;

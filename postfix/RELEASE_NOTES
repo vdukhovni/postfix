@@ -102,7 +102,7 @@ implementation.
 Major changes with snapshot 20200930
 ====================================
 
-When a Postfix process requires DNSSEC support (typically, for
+When a Postfix process requests DNSSEC support (typically, for
 Postfix DANE support), the process may do a one-time test to determine
 if DNSSEC validation is available. DNSSEC support may be broken
 because of local configuration, libc incompatibility, or network

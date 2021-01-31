@@ -16983,8 +16983,10 @@ authentication succeeds, it will be logged only as "Trusted", not
 </dl>
 
 <p> The default setting for Postfix &ge; 3.6 is "dane" with
-"smtp_tls_security_level = dane", otherwise "may".  With earlier
-Postfix versions the defauult setting was always "dane". </p>
+"smtp_tls_security_level = dane", otherwise "may". This behavior
+was backported to Postfix versions 3.5.9, 3.4.19, 3.3.16. 3.2.21.
+With earlier Postfix versions the default setting was always "dane".
+</p>
 
 <p> Though with "insecure" MX records an active attacker can
 compromise SMTP transport security by returning forged MX records,
@@ -17923,7 +17925,8 @@ cached. If Postfix runs on a network where the DNS root zone is not
 reachable, specify a different probe, or specify an empty dnssec_probe
 value to disable the feature. </p>
 
-<p> This feature is available in Postfix 3.6 and later. </p>
+<p> This feature is available in Postfix 3.6 and later. It was backported
+to Postfix versions 3.5.9, 3.4.19, 3.3.16. 3.2.21. </p>
 
 %PARAM local_login_sender_maps static:*
 
@@ -18005,5 +18008,19 @@ mistakenly delete the whole email thread (all related messages),
 instead of deleting only the non-delivery notification. </dd>
 
 </dl>
+
+<p> This feature is available in Postfix 3.6 and later. </p>
+
+%PARAM smtpd_relay_before_recipient_restrictions see "postconf -d" output
+
+<p> Evaluate smtpd_relay_restrictions before smtpd_recipient_restrictions.
+Historically, smtpd_relay_restrictions was evaluated after
+smtpd_recipient_restrictions, contradicting documented behavior. </p>
+
+<p> Background: the smtpd_relay_restrictions feature is primarily
+designed to enforce a mail relaying policy, while
+smtpd_recipient_restrictions is primarily designed to enforce spam
+blocking policy. Both are evaluated while replying to the RCPT TO
+command, and both support the same features. </p>
 
 <p> This feature is available in Postfix 3.6 and later. </p>

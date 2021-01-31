@@ -160,6 +160,10 @@ line, SMTP message content line, or TLS protocol message).
 Available in Postfix version 3.0 and later:
 .IP "\fBsmtpd_dns_reply_filter (empty)\fR"
 Optional filter for Postfix SMTP server DNS lookup results.
+.PP
+Available in Postfix version 3.6 and later:
+.IP "\fBsmtpd_relay_before_recipient_restrictions (see 'postconf -d' output)\fR"
+Evaluate smtpd_relay_restrictions before smtpd_recipient_restrictions.
 .SH "ADDRESS REWRITING CONTROLS"
 .na
 .nf

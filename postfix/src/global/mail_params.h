@@ -72,6 +72,7 @@ extern int warn_compat_break_mynetworks_style;
 extern int warn_compat_break_smtpd_tls_fpt_dgst;
 extern int warn_compat_break_smtp_tls_fpt_dgst;
 extern int warn_compat_break_lmtp_tls_fpt_dgst;
+extern int warn_compat_relay_before_rcpt_checks;
 
 extern long compat_level;
 
@@ -2173,6 +2174,11 @@ extern char *var_relay_checks;
 #define VAR_RCPT_CHECKS		"smtpd_recipient_restrictions"
 #define DEF_RCPT_CHECKS		""
 extern char *var_rcpt_checks;
+
+#define VAR_RELAY_BEFORE_RCPT_CHECKS "smtpd_relay_before_recipient_restrictions"
+#define DEF_RELAY_BEFORE_RCPT_CHECKS "${{$compatibility_level} <level {3.6} ?" \
+				" {no} : {yes}}"
+extern bool var_relay_before_rcpt_checks;
 
 #define VAR_ETRN_CHECKS		"smtpd_etrn_restrictions"
 #define DEF_ETRN_CHECKS		""

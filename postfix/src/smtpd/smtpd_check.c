@@ -5039,6 +5039,8 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     char   *err;
     ARGV   *restrctions[2];
     int     n;
+    int     rcpt_index;
+    int     relay_index;
 
     /*
      * Initialize.
@@ -5098,17 +5100,28 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      * permit_sasl_authenticated, permit_auth_destination) and log a warning
      * if the result is DUNNO instead of OK, i.e. a reject_unauth_destinatin
      * at the end would have blocked the request.
+     * 
+     * If warn_compat_break_relay_restrictions is true, always evaluate
+     * smtpd_relay_restrictions last (rcpt_index == 1). The backwards
+     * compatibility warning says that it avoids blocking a recipient (with
+     * "Relay access denied"); that is not useful information when moments
+     * later, smtpd_recipient_restrictions blocks the recipient anyway (with
+     * 'Relay access denied' or some other cause).
      */
     SMTPD_CHECK_RESET();
-    restrctions[0] = rcpt_restrctions;
-    restrctions[1] = warn_compat_break_relay_restrictions ?
+    rcpt_index = (var_relay_before_rcpt_checks
+		  || warn_compat_break_relay_restrictions);
+    relay_index = !rcpt_index;
+
+    restrctions[rcpt_index] = rcpt_restrctions;
+    restrctions[relay_index] = warn_compat_break_relay_restrictions ?
 	fake_relay_restrctions : relay_restrctions;
     for (n = 0; n < 2; n++) {
 	status = setjmp(smtpd_check_buf);
 	if (status == 0 && restrctions[n]->argc)
 	    status = generic_checks(state, restrctions[n],
 			  recipient, SMTPD_NAME_RECIPIENT, CHECK_RECIP_ACL);
-	if (n == 1 && warn_compat_break_relay_restrictions
+	if (n == relay_index && warn_compat_break_relay_restrictions
 	    && status == SMTPD_CHECK_DUNNO) {
 	    msg_info("using backwards-compatible default setting \""
 		     VAR_RELAY_CHECKS " = (empty)\" to avoid \"Relay "
@@ -5118,6 +5131,12 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
 	if (status == SMTPD_CHECK_REJECT)
 	    break;
     }
+    if (status == SMTPD_CHECK_REJECT
+	&& warn_compat_relay_before_rcpt_checks && n == 0)
+	msg_info("using backwards-compatible default setting "
+		 VAR_RELAY_BEFORE_RCPT_CHECKS "=no to reject "
+		 "recipient \"%s\" from client \"%s\"",
+		 state->recipient, state->namaddr);
 
     /*
      * Force permission into deferral when some earlier temporary error may

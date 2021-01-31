@@ -3102,7 +3102,8 @@ cached. If Postfix runs on a network where the DNS root zone is not
 reachable, specify a different probe, or specify an empty <a href="postconf.5.html#dnssec_probe">dnssec_probe</a>
 value to disable the feature. </p>
 
-<p> This feature is available in Postfix 3.6 and later. </p>
+<p> This feature is available in Postfix 3.6 and later. It was backported
+to Postfix versions 3.5.9, 3.4.19, 3.3.16. 3.2.21. </p>
 
 
 </DD>
@@ -12589,8 +12590,10 @@ authentication succeeds, it will be logged only as "Trusted", not
 </dl>
 
 <p> The default setting for Postfix &ge; 3.6 is "dane" with
-"<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = dane", otherwise "may".  With earlier
-Postfix versions the defauult setting was always "dane". </p>
+"<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = dane", otherwise "may". This behavior
+was backported to Postfix versions 3.5.9, 3.4.19, 3.3.16. 3.2.21.
+With earlier Postfix versions the default setting was always "dane".
+</p>
 
 <p> Though with "insecure" MX records an active attacker can
 compromise SMTP transport security by returning forged MX records,
@@ -16279,6 +16282,24 @@ not null.
 <p>
 This feature is available in Postfix 2.1 and later.
 </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_relay_before_recipient_restrictions">smtpd_relay_before_recipient_restrictions</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> Evaluate <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> before <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>.
+Historically, <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> was evaluated after
+<a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>, contradicting documented behavior. </p>
+
+<p> Background: the <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> feature is primarily
+designed to enforce a mail relaying policy, while
+<a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> is primarily designed to enforce spam
+blocking policy. Both are evaluated while replying to the RCPT TO
+command, and both support the same features. </p>
+
+<p> This feature is available in Postfix 3.6 and later. </p>
 
 
 </DD>

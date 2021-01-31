@@ -117,7 +117,7 @@ void    dns_sec_probe(int rflags)
 		  VAR_DNSSEC_PROBE, var_dnssec_probe);
 
     why = vstring_alloc(100);
-    dns_status = dns_lookup(qname, qtype, rflags, &rrlist, (char) 0, why);
+    dns_status = dns_lookup(qname, qtype, rflags, &rrlist, (VSTRING *) 0, why);
     if (!DNS_SEC_STATS_TEST(DNS_SEC_FLAG_AVAILABLE))
 	msg_warn("DNSSEC validation may be unavailable");
     else if (msg_verbose)
