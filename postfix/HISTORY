@@ -25383,3 +25383,8 @@ Apologies for any names omitted.
 	global/mail_params.c, global/mail_params.h, smtpd/smtpd.c,
 	smtpd/smtpd_check.c.
 
+20210201
+
+	Flipped a bit in the smtpd_relay_before_recipient_restrictions
+	implementation. File: smtpd/smtpd_check.c.
+

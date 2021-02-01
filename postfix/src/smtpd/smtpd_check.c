@@ -5102,7 +5102,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      * at the end would have blocked the request.
      * 
      * If warn_compat_break_relay_restrictions is true, always evaluate
-     * smtpd_relay_restrictions last (rcpt_index == 1). The backwards
+     * smtpd_relay_restrictions last (rcpt_index == 0). The backwards
      * compatibility warning says that it avoids blocking a recipient (with
      * "Relay access denied"); that is not useful information when moments
      * later, smtpd_recipient_restrictions blocks the recipient anyway (with
@@ -5110,7 +5110,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      */
     SMTPD_CHECK_RESET();
     rcpt_index = (var_relay_before_rcpt_checks
-		  || warn_compat_break_relay_restrictions);
+		  && !warn_compat_break_relay_restrictions);
     relay_index = !rcpt_index;
 
     restrctions[rcpt_index] = rcpt_restrctions;
