@@ -44,6 +44,15 @@ POSTSUPER(1)                                                      POSTSUPER(1)
               input.  For example, to delete all mail with exactly one recipi-
               ent <b>user@example.com</b>:
 
+              postqueue -j | jq '
+                  # See JSON OBJECT FORMAT section in the <a href="postqueue.1.html">postqueue(1)</a> manpage
+                  select(.recipients[0].address == "user@example.com")
+                  | select(.recipients[1].address == null)
+                  | .queue_id
+               ' | postsuper -d -
+
+              Or the historical form:
+
               mailq | tail -n +2 | grep -v '^ *(' | awk  'BEGIN { RS = "" }
                   # $7=sender, $8=recipient1, $9=recipient2
                   { if ($8 == "user@example.com" &amp;&amp; $9 == "")

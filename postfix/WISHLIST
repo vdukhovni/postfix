@@ -1,8 +1,16 @@
 Wish list:
 
-	http://www.postfix.org/postconf.5.html#inet_protocols default
-	differs from http://www.postfix.org/IPV6_README.html
-	and it's compile-time dependent.
+	Try to make the master throttle more distrusting. Currently,
+	the master throttles a service after a child process cannot be
+	created (fork() fails), or if a child process fails upon its
+	first use. The master always unthrottles the service if a process
+	handles a client successfully. This is sufficient to mitigate
+	local configuration errors. It also slows down stupid remote
+	attacks as long as malicious traffic dominates benign traffic.
+	Perhaps monitor a crashing percentage?
+
+	More accurate address verification: do a quota check before
+	reporting that a local(8) or virtual(8) recipient is deliverable.
 
 	Eliminate duplicate user_acl check from sendmail, and pass
 	the result through the postdrop-to-sendmail protocol. This
@@ -54,9 +62,6 @@ Wish list:
 	idiosyncracies of stub resolvers. Handle differences in
 	resolver feature sets gracefully: an unsupported request
 	will result in an error status, not program termination.
-
-	DNSSEC end-to-end test, probing a configurable zone (".")
-	and resource type (default: NS).
 
 	When a secondary instance has no multi_instance_name set,
 `	postmulti -i won't be able to find it.

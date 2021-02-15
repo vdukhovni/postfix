@@ -25388,3 +25388,13 @@ Apologies for any names omitted.
 	Flipped a bit in the smtpd_relay_before_recipient_restrictions
 	implementation. File: smtpd/smtpd_check.c.
 
+20210206
+
+	Documentation: the inet_protocols default setting is compile-time
+	dependent. Files: proto/postconf.proto, proto/IPV6_README.html,
+	and documentation in smtpd/smtpd.c, smtp/smtp.c, master/master.c.
+
+20210212
+
+	Documentation: added a jq example to the postsuper(1) manpage.
+	File: postsuper/postsuper.c.

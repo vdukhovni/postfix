@@ -46,6 +46,17 @@ from standard input. For example, to delete all mail
 with exactly one recipient \fBuser@example.com\fR:
 .sp
 .nf
+postqueue \-j | jq '
+    # See JSON OBJECT FORMAT section in the postqueue(1) manpage
+    select(.recipients[0].address == "user@example.com")
+    | select(.recipients[1].address == null)
+    | .queue_id
+ ' | postsuper \-d \-
+.fi
+.sp
+Or the historical form:
+.sp
+.nf
 mailq | tail \-n +2 | grep \-v '^ *(' | awk  'BEGIN { RS = "" }
     # $7=sender, $8=recipient1, $9=recipient2
     { if ($8 == "user@example.com" && $9 == "")

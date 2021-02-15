@@ -323,7 +323,7 @@ behavior.
     designed to enforce spam blocking policy. Both are evaluated while replying
     to the RCPT TO command, and both support the same features.
 
-When the compatibility_level less than 3.6, and the
+When the compatibility_level is less than 3.6, and the
 smtpd_relay_before_recipient_restrictions parameter is left at its implicit
 default setting, Postfix may log the following message:
 

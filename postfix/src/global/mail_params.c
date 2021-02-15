@@ -374,7 +374,6 @@ char   *var_maillog_file_stamp;
 char   *var_postlog_service;
 
 char   *var_dnssec_probe;
-bool    var_relay_before_rcpt_checks;
 
 const char null_format_string[1] = "";
 
@@ -749,7 +748,6 @@ void    mail_params_init()
 	/* read and process the following before opening tables. */
 	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
 	VAR_IDNA2003_COMPAT, DEF_IDNA2003_COMPAT, &var_idna2003_compat,
-	VAR_RELAY_BEFORE_RCPT_CHECKS, DEF_RELAY_BEFORE_RCPT_CHECKS, &var_relay_before_rcpt_checks,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults[] = {

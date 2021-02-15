@@ -642,7 +642,7 @@
 /* .IP "\fBproxy_interfaces (empty)\fR"
 /*	The network interface addresses that this mail system receives mail
 /*	on by way of a proxy or network address translation unit.
-/* .IP "\fBinet_protocols (all)\fR"
+/* .IP "\fBinet_protocols (see 'postconf -d output')\fR"
 /*	The Internet protocols Postfix will attempt to use when making
 /*	or accepting connections.
 /* .IP "\fBlocal_recipient_maps (proxy:unix:passwd.byname $alias_maps)\fR"
@@ -1462,6 +1462,7 @@ char   *var_tlsproxy_service;
 
 char   *var_smtpd_uproxy_proto;
 int     var_smtpd_uproxy_tmout;
+bool    var_relay_before_rcpt_checks;
 
  /*
   * Silly little macros.
