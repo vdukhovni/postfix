@@ -156,7 +156,7 @@ typedef struct {
 #define PSC_STATE_FLAG_SHIFT_BYFNAME(fname) (PSC_STATE_FLAG_SHIFT_ ## fname)
 
  /*
-  * Indexable per-test flags. These are used for DNS whitelisting multiple
+  * Indexable per-test flags. These are used for DNS allowlisting multiple
   * tests, without needing per-test ad-hoc code.
   */
 #define PSC_STATE_FLAG_BYTINDX_FNAME(tindx, fname) \

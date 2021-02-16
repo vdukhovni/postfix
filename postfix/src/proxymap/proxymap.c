@@ -719,7 +719,7 @@ static void post_jail_init(char *service_name, char **unused_argv)
 	    && htable_locate(proxy_auth_maps, type_name) == 0) {
 	    (void) htable_enter(proxy_auth_maps, type_name, (void *) 0);
 	    if (msg_verbose)
-		msg_info("whitelisting %s from %s", type_name,
+		msg_info("allowlisting %s from %s", type_name,
 			 PROXY_MAP_PARAM_NAME(proxy_writer));
 	}
     }

@@ -332,7 +332,7 @@ static struct __res_state dns_res_state;
 #endif
 
  /*
-  * To improve postscreen's whitelisting support, we need to know how long a
+  * To improve postscreen's allowlisting support, we need to know how long a
   * DNSBL "not found" answer is valid. The 2010 implementation assumed it was
   * valid for 3600 seconds. That is too long by 2015 standards.
   * 

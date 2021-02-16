@@ -397,7 +397,7 @@ static STRING_LIST *smtpd_acl_perm_log;
   * restriction must defer immediately when lookup fails, otherwise incorrect
   * results happen with:
   * 
-  * reject_unknown_client, hostname-based white-list, reject
+  * reject_unknown_client, hostname-based allow-list, reject
   * 
   * XXX With warn_if_reject, don't raise the defer_if_permit flag when a
   * reject-style restriction fails. Instead, log the warning for the
@@ -3678,7 +3678,7 @@ static const SMTPD_RBL_STATE *find_dnsxl_addr(SMTPD_STATE *state,
     return (rbl);
 }
 
-/* reject_rbl_addr - reject address in real-time blackhole list */
+/* reject_rbl_addr - reject address in DNS deny list */
 
 static int reject_rbl_addr(SMTPD_STATE *state, const char *rbl_domain,
 			           const char *addr, const char *reply_class)
@@ -3708,7 +3708,7 @@ static int permit_dnswl_addr(SMTPD_STATE *state, const char *dnswl_domain,
     if (msg_verbose)
 	msg_info("%s: %s", myname, addr);
 
-    /* Safety: don't whitelist unauthorized recipients. */
+    /* Safety: don't allowlist unauthorized recipients. */
     if (strcmp(state->where, SMTPD_CMD_RCPT) == 0 && state->recipient != 0
       && permit_auth_destination(state, state->recipient) != SMTPD_CHECK_OK)
 	return (SMTPD_CHECK_DUNNO);
@@ -3732,7 +3732,7 @@ static int permit_dnswl_addr(SMTPD_STATE *state, const char *dnswl_domain,
     }
 }
 
-/* find_dnsxl_domain - reject if domain in real-time blackhole list */
+/* find_dnsxl_domain - reject if domain in DNS deny list */
 
 static const SMTPD_RBL_STATE *find_dnsxl_domain(SMTPD_STATE *state,
 			           const char *rbl_domain, const char *what)
@@ -3797,7 +3797,7 @@ static const SMTPD_RBL_STATE *find_dnsxl_domain(SMTPD_STATE *state,
     return (rbl);
 }
 
-/* reject_rbl_domain - reject if domain in real-time blackhole list */
+/* reject_rbl_domain - reject if domain in DNS deny list */
 
 static int reject_rbl_domain(SMTPD_STATE *state, const char *rbl_domain,
 			          const char *what, const char *reply_class)
@@ -3827,7 +3827,7 @@ static int permit_dnswl_domain(SMTPD_STATE *state, const char *dnswl_domain,
     if (msg_verbose)
 	msg_info("%s: %s", myname, what);
 
-    /* Safety: don't whitelist unauthorized recipients. */
+    /* Safety: don't allowlist unauthorized recipients. */
     if (strcmp(state->where, SMTPD_CMD_RCPT) == 0 && state->recipient != 0
       && permit_auth_destination(state, state->recipient) != SMTPD_CHECK_OK)
 	return (SMTPD_CHECK_DUNNO);
@@ -3851,7 +3851,7 @@ static int permit_dnswl_domain(SMTPD_STATE *state, const char *dnswl_domain,
     }
 }
 
-/* reject_maps_rbl - reject if client address in real-time blackhole list */
+/* reject_maps_rbl - reject if client address in DNS deny list */
 
 static int reject_maps_rbl(SMTPD_STATE *state)
 {
@@ -4171,9 +4171,9 @@ static int is_map_command(SMTPD_STATE *state, const char *name,
     }
 }
 
-/* forbid_whitelist - disallow whitelisting */
+/* forbid_allowlist - disallow allowlisting */
 
-static void forbid_whitelist(SMTPD_STATE *state, const char *name,
+static void forbid_allowlist(SMTPD_STATE *state, const char *name,
 			             int status, const char *target)
 {
     if (state->discard == 0 && status == SMTPD_CHECK_OK) {
@@ -4318,7 +4318,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    status = check_namadr_access(state, *cpp, state->reverse_name, state->addr,
 					 FULL, &found, state->reverse_name,
 					 SMTPD_NAME_REV_CLIENT, def_acl);
-	    forbid_whitelist(state, name, status, state->reverse_name);
+	    forbid_allowlist(state, name, status, state->reverse_name);
 	} else if (strcasecmp(name, REJECT_MAPS_RBL) == 0) {
 	    status = reject_maps_rbl(state);
 	} else if (strcasecmp(name, REJECT_RBL_CLIENT) == 0
@@ -4387,42 +4387,42 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = check_server_access(state, *cpp, state->name,
 					     T_NS, state->namaddr,
 					     SMTPD_NAME_CLIENT, def_acl);
-		forbid_whitelist(state, name, status, state->name);
+		forbid_allowlist(state, name, status, state->name);
 	    }
 	} else if (is_map_command(state, name, CHECK_CLIENT_MX_ACL, &cpp)) {
 	    if (strcasecmp(state->name, "unknown") != 0) {
 		status = check_server_access(state, *cpp, state->name,
 					     T_MX, state->namaddr,
 					     SMTPD_NAME_CLIENT, def_acl);
-		forbid_whitelist(state, name, status, state->name);
+		forbid_allowlist(state, name, status, state->name);
 	    }
 	} else if (is_map_command(state, name, CHECK_CLIENT_A_ACL, &cpp)) {
 	    if (strcasecmp(state->name, "unknown") != 0) {
 		status = check_server_access(state, *cpp, state->name,
 					     T_A, state->namaddr,
 					     SMTPD_NAME_CLIENT, def_acl);
-		forbid_whitelist(state, name, status, state->name);
+		forbid_allowlist(state, name, status, state->name);
 	    }
 	} else if (is_map_command(state, name, CHECK_REVERSE_CLIENT_NS_ACL, &cpp)) {
 	    if (strcasecmp(state->reverse_name, "unknown") != 0) {
 		status = check_server_access(state, *cpp, state->reverse_name,
 					     T_NS, state->reverse_name,
 					     SMTPD_NAME_REV_CLIENT, def_acl);
-		forbid_whitelist(state, name, status, state->reverse_name);
+		forbid_allowlist(state, name, status, state->reverse_name);
 	    }
 	} else if (is_map_command(state, name, CHECK_REVERSE_CLIENT_MX_ACL, &cpp)) {
 	    if (strcasecmp(state->reverse_name, "unknown") != 0) {
 		status = check_server_access(state, *cpp, state->reverse_name,
 					     T_MX, state->reverse_name,
 					     SMTPD_NAME_REV_CLIENT, def_acl);
-		forbid_whitelist(state, name, status, state->reverse_name);
+		forbid_allowlist(state, name, status, state->reverse_name);
 	    }
 	} else if (is_map_command(state, name, CHECK_REVERSE_CLIENT_A_ACL, &cpp)) {
 	    if (strcasecmp(state->reverse_name, "unknown") != 0) {
 		status = check_server_access(state, *cpp, state->reverse_name,
 					     T_A, state->reverse_name,
 					     SMTPD_NAME_REV_CLIENT, def_acl);
-		forbid_whitelist(state, name, status, state->reverse_name);
+		forbid_allowlist(state, name, status, state->reverse_name);
 	    }
 	}
 
@@ -4469,21 +4469,21 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = check_server_access(state, *cpp, state->helo_name,
 					     T_NS, state->helo_name,
 					     SMTPD_NAME_HELO, def_acl);
-		forbid_whitelist(state, name, status, state->helo_name);
+		forbid_allowlist(state, name, status, state->helo_name);
 	    }
 	} else if (is_map_command(state, name, CHECK_HELO_MX_ACL, &cpp)) {
 	    if (state->helo_name) {
 		status = check_server_access(state, *cpp, state->helo_name,
 					     T_MX, state->helo_name,
 					     SMTPD_NAME_HELO, def_acl);
-		forbid_whitelist(state, name, status, state->helo_name);
+		forbid_allowlist(state, name, status, state->helo_name);
 	    }
 	} else if (is_map_command(state, name, CHECK_HELO_A_ACL, &cpp)) {
 	    if (state->helo_name) {
 		status = check_server_access(state, *cpp, state->helo_name,
 					     T_A, state->helo_name,
 					     SMTPD_NAME_HELO, def_acl);
-		forbid_whitelist(state, name, status, state->helo_name);
+		forbid_allowlist(state, name, status, state->helo_name);
 	    }
 	} else if (strcasecmp(name, REJECT_NON_FQDN_HELO_HOSTNAME) == 0
 		   || strcasecmp(name, REJECT_NON_FQDN_HOSTNAME) == 0) {
@@ -4573,21 +4573,21 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = check_server_access(state, *cpp, state->sender,
 					     T_NS, state->sender,
 					     SMTPD_NAME_SENDER, def_acl);
-		forbid_whitelist(state, name, status, state->sender);
+		forbid_allowlist(state, name, status, state->sender);
 	    }
 	} else if (is_map_command(state, name, CHECK_SENDER_MX_ACL, &cpp)) {
 	    if (state->sender && *state->sender) {
 		status = check_server_access(state, *cpp, state->sender,
 					     T_MX, state->sender,
 					     SMTPD_NAME_SENDER, def_acl);
-		forbid_whitelist(state, name, status, state->sender);
+		forbid_allowlist(state, name, status, state->sender);
 	    }
 	} else if (is_map_command(state, name, CHECK_SENDER_A_ACL, &cpp)) {
 	    if (state->sender && *state->sender) {
 		status = check_server_access(state, *cpp, state->sender,
 					     T_A, state->sender,
 					     SMTPD_NAME_SENDER, def_acl);
-		forbid_whitelist(state, name, status, state->sender);
+		forbid_allowlist(state, name, status, state->sender);
 	    }
 	} else if (strcasecmp(name, REJECT_RHSBL_SENDER) == 0) {
 	    if (cpp[1] == 0)
@@ -4677,21 +4677,21 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = check_server_access(state, *cpp, state->recipient,
 					     T_NS, state->recipient,
 					     SMTPD_NAME_RECIPIENT, def_acl);
-		forbid_whitelist(state, name, status, state->recipient);
+		forbid_allowlist(state, name, status, state->recipient);
 	    }
 	} else if (is_map_command(state, name, CHECK_RECIP_MX_ACL, &cpp)) {
 	    if (state->recipient && *state->recipient) {
 		status = check_server_access(state, *cpp, state->recipient,
 					     T_MX, state->recipient,
 					     SMTPD_NAME_RECIPIENT, def_acl);
-		forbid_whitelist(state, name, status, state->recipient);
+		forbid_allowlist(state, name, status, state->recipient);
 	    }
 	} else if (is_map_command(state, name, CHECK_RECIP_A_ACL, &cpp)) {
 	    if (state->recipient && *state->recipient) {
 		status = check_server_access(state, *cpp, state->recipient,
 					     T_A, state->recipient,
 					     SMTPD_NAME_RECIPIENT, def_acl);
-		forbid_whitelist(state, name, status, state->recipient);
+		forbid_allowlist(state, name, status, state->recipient);
 	    }
 	} else if (strcasecmp(name, REJECT_RHSBL_RECIPIENT) == 0) {
 	    if (cpp[1] == 0)

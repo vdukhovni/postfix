@@ -25398,3 +25398,21 @@ Apologies for any names omitted.
 
 	Documentation: added a jq example to the postsuper(1) manpage.
 	File: postsuper/postsuper.c.
+
+20210216
+
+	Documentation: replaced white/blacklist with allow/denylist,
+	except in parameter names and lopging. Those will need a
+	compatibilty safety net to avoid breaking log analysis tools.
+	proto/ADDRESS_VERIFICATION_README.html, proto/cidr_table,
+	proto/OVERVIEW.html, proto/postconf.proto,
+	proto/POSTSCREEN_README.html, proto/SMTPD_ACCESS_README.html,
+	proto/SMTPD_POLICY_README.html, proto/STRESS_README.html,
+	dns/dns_lookup.c, dnsblog/dnsblog.c, global/server_acl.c,
+	postfix/postfix.c, postscreen/postscreen.c,
+	postscreen/postscreen_dnsbl.c, postscreen/postscreen_early.c,
+	postscreen/postscreen.h, postscreen/postscreen_misc.c,
+	postscreen/postscreen_smtpd.c, postscreen/postscreen_tests.c,
+	proxymap/proxymap.c, smtpd/smtpd.c, smtpd/smtpd_check.c,
+	smtpd/smtpd_dnswl.in, smtpd/smtpd_dnswl.ref, tlsproxy/tlsproxy.c,
+	verify/verify.c.

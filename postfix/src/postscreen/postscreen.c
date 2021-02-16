@@ -23,9 +23,9 @@
 /*	"port 25" server that provides \fBsubmission\fR service and
 /*	client authentication, but no MX service.
 /*
-/*	\fBpostscreen\fR(8) maintains a temporary whitelist for
+/*	\fBpostscreen\fR(8) maintains a temporary allowlist for
 /*	clients that have passed a number of tests.  When an SMTP
-/*	client IP address is whitelisted, \fBpostscreen\fR(8) hands
+/*	client IP address is allowlisted, \fBpostscreen\fR(8) hands
 /*	off the connection immediately to a Postfix SMTP server
 /*	process. This minimizes the overhead for legitimate mail.
 /*
@@ -147,23 +147,23 @@
 /* .IP "\fBpostscreen_upstream_proxy_timeout (5s)\fR"
 /*	The time limit for the proxy protocol specified with the
 /*	postscreen_upstream_proxy_protocol parameter.
-/* PERMANENT WHITE/BLACKLIST TEST
+/* PERMANENT ALLOW/DENYLIST TEST
 /* .ad
 /* .fi
 /*	This test is executed immediately after a remote SMTP client
-/*	connects. If a client is permanently whitelisted, the client
+/*	connects. If a client is permanently allowlisted, the client
 /*	will be handed off immediately to a Postfix SMTP server
 /*	process.
 /* .IP "\fBpostscreen_access_list (permit_mynetworks)\fR"
-/*	Permanent white/blacklist for remote SMTP client IP addresses.
+/*	Permanent allow/denylist for remote SMTP client IP addresses.
 /* .IP "\fBpostscreen_blacklist_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when a remote SMTP client is
-/*	permanently blacklisted with the postscreen_access_list parameter.
+/*	permanently denylisted with the postscreen_access_list parameter.
 /* MAIL EXCHANGER POLICY TESTS
 /* .ad
 /* .fi
 /*	When \fBpostscreen\fR(8) is configured to monitor all primary
-/*	and backup MX addresses, it can refuse to whitelist clients
+/*	and backup MX addresses, it can refuse to allowlist clients
 /*	that connect to a backup MX address only. For small sites,
 /*	this requires configuring primary and backup MX addresses
 /*	on the same MTA. Larger sites would have to share the
@@ -171,8 +171,8 @@
 /*	which would introduce a common point of failure.
 /* .IP "\fBpostscreen_whitelist_interfaces (static:all)\fR"
 /*	A list of local \fBpostscreen\fR(8) server IP addresses where a
-/*	non-whitelisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
-/*	whitelist status.
+/*	non-allowlisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
+/*	allowlist status.
 /* BEFORE 220 GREETING TESTS
 /* .ad
 /* .fi
@@ -193,7 +193,7 @@
 /*	password, to the DNSBL domain name that postscreen will reply with
 /*	when it rejects mail.
 /* .IP "\fBpostscreen_dnsbl_sites (empty)\fR"
-/*	Optional list of DNS white/blacklist domains, filters and weight
+/*	Optional list of DNS allow/denylist domains, filters and weight
 /*	factors.
 /* .IP "\fBpostscreen_dnsbl_threshold (1)\fR"
 /*	The inclusive lower bound for blocking a remote SMTP client, based on
@@ -274,7 +274,7 @@
 /*	Persistent storage for the \fBpostscreen\fR(8) server decisions.
 /* .IP "\fBpostscreen_cache_retention_time (7d)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will cache an expired
-/*	temporary whitelist entry before it is removed.
+/*	temporary allowlist entry before it is removed.
 /* .IP "\fBpostscreen_bare_newline_ttl (30d)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will use the result from
 /*	a successful "bare newline" SMTP protocol test.
@@ -315,7 +315,7 @@
 /*	The number of clients that can be waiting for service from a
 /*	real Postfix SMTP server process.
 /* .IP "\fBpostscreen_pre_queue_limit ($default_process_limit)\fR"
-/*	The number of non-whitelisted clients that can be waiting for
+/*	The number of non-allowlisted clients that can be waiting for
 /*	a decision whether they will receive service from a real Postfix
 /*	SMTP server
 /*	process.
@@ -378,7 +378,7 @@
 /* SEE ALSO
 /*	smtpd(8), Postfix SMTP server
 /*	tlsproxy(8), Postfix TLS proxy server
-/*	dnsblog(8), DNS black/whitelist logger
+/*	dnsblog(8), DNS allow/denylist logger
 /*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* README FILES
@@ -563,9 +563,9 @@ HTABLE *psc_client_concurrency;		/* per-client concurrency */
  /*
   * Local variables and functions.
   */
-static ARGV *psc_acl;			/* permanent white/backlist */
+static ARGV *psc_acl;			/* permanent allow/denylist */
 static int psc_blist_action;		/* PSC_ACT_DROP/ENFORCE/etc */
-static ADDR_MATCH_LIST *psc_wlist_if;	/* whitelist interfaces */
+static ADDR_MATCH_LIST *psc_wlist_if;	/* allowlist interfaces */
 
 static void psc_endpt_lookup_done(int, VSTREAM *,
 			             MAI_HOSTADDR_STR *, MAI_SERVPORT_STR *,
@@ -730,13 +730,13 @@ static void psc_endpt_lookup_done(int endpt_status,
     }
 
     /*
-     * The permanent white/blacklist has highest precedence.
+     * The permanent allow/denylist has highest precedence.
      */
     if (psc_acl != 0) {
 	switch (psc_acl_eval(state, psc_acl, VAR_PSC_ACL)) {
 
 	    /*
-	     * Permanently blacklisted.
+	     * Permanently denylisted.
 	     */
 	case PSC_ACL_ACT_BLACKLIST:
 	    msg_info("BLACKLISTED [%s]:%s", PSC_CLIENT_ADDR_PORT(state));
@@ -759,13 +759,13 @@ static void psc_endpt_lookup_done(int endpt_status,
 		 */
 		break;
 	    default:
-		msg_panic("%s: unknown blacklist action value %d",
+		msg_panic("%s: unknown denylist action value %d",
 			  myname, psc_blist_action);
 	    }
 	    break;
 
 	    /*
-	     * Permanently whitelisted.
+	     * Permanently allowlisted.
 	     */
 	case PSC_ACL_ACT_WHITELIST:
 	    msg_info("WHITELISTED [%s]:%s", PSC_CLIENT_ADDR_PORT(state));
@@ -781,9 +781,9 @@ static void psc_endpt_lookup_done(int endpt_status,
     }
 
     /*
-     * The temporary whitelist (i.e. the postscreen cache) has the lowest
+     * The temporary allowlist (i.e. the postscreen cache) has the lowest
      * precedence. This cache contains information about the results of prior
-     * tests. Whitelist the client when all enabled test results are still
+     * tests. Allowlist the client when all enabled test results are still
      * valid.
      */
     if ((state->flags & PSC_STATE_MASK_ANY_FAIL) == 0
@@ -818,7 +818,7 @@ static void psc_endpt_lookup_done(int endpt_status,
     }
 
     /*
-     * Don't whitelist clients that connect to backup MX addresses. Fail
+     * Don't allowlist clients that connect to backup MX addresses. Fail
      * "closed" on error.
      */
     if (addr_match_list_match(psc_wlist_if, smtp_server_addr->buf) == 0) {

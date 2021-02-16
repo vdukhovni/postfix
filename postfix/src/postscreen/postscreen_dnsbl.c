@@ -150,7 +150,7 @@ typedef struct {
 typedef struct {
     const char *dnsbl_name;		/* DNSBL with largest contribution */
     int     dnsbl_weight;		/* weight of largest contribution */
-    int     total;			/* combined white+blocklist score */
+    int     total;			/* combined allow+denylist score */
     int     fail_ttl;			/* combined reply TTL */
     int     pass_ttl;			/* combined reply TTL */
     int     refcount;			/* score reference count */
@@ -239,7 +239,7 @@ static void psc_dnsbl_add_site(const char *site)
      */
 #define DO_GRIPE	1
 
-    /* Negative weight means whitelist. */
+    /* Negative weight means allowlist. */
     if ((weight_text = split_at(saved_site, '*')) != 0) {
 	if (sscanf(weight_text, "%d%c", &weight, &junk) != 1)
 	    msg_fatal("bad DNSBL weight factor \"%s\" in \"%s\"",

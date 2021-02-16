@@ -19,7 +19,7 @@
 /*	SERVER_ACL *intern_acl;
 /*	const char *param_name;
 /* DESCRIPTION
-/*	This module implements a permanent black/whitelist that
+/*	This module implements a permanent allow/denylist that
 /*	is meant to be evaluated immediately after a client connects
 /*	to a server.
 /*

@@ -1602,7 +1602,7 @@ See reject_unknown_reverse_client_hostname for more details.
 The hostname given in HELO or EHLO command or empty string.
 .br
 .IP "\fB$rbl_class\fR"
-The blacklisted entity type: Client host, Helo command, Sender
+The denylisted entity type: Client host, Helo command, Sender
 address, or Recipient address.
 .br
 .IP "\fB$rbl_code\fR"
@@ -1613,14 +1613,14 @@ reply. With Postfix version 2.3 and later this information may be followed
 by an RFC 3463 enhanced status code.
 .br
 .IP "\fB$rbl_domain\fR"
-The RBL domain where $rbl_what is blacklisted.
+The RBL domain where $rbl_what is denylisted.
 .br
 .IP "\fB$rbl_reason\fR"
-The reason why $rbl_what is blacklisted, or an empty string.
+The reason why $rbl_what is denylisted, or an empty string.
 .br
 .IP "\fB$rbl_what\fR"
-The entity that is blacklisted (an IP address, a hostname, a domain
-name, or an email address whose domain was blacklisted).
+The entity that is denylisted (an IP address, a hostname, a domain
+name, or an email address whose domain was denylisted).
 .br
 .IP "\fB$recipient\fR"
 The recipient address or <> in case of the null address.
@@ -1910,7 +1910,7 @@ A debugging aid to artificially delay DNS responses.
 This feature is available in Postfix 2.8.
 .SH dnsblog_service_name (default: dnsblog)
 The name of the \fBdnsblog\fR(8) service entry in master.cf. This
-service performs DNS white/blacklist lookups.
+service performs DNS allow/denylist lookups.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH dnssec_probe (default: ns:.)
@@ -4348,7 +4348,7 @@ by default.
 .ft R
 .PP
 The milter_header_checks mechanism could also be used for
-whitelisting. For example it could be used to skip heavy content
+allowlisting. For example it could be used to skip heavy content
 inspection for DKIM\-signed mail from known friendly domains.
 .PP
 This feature is available in Postfix 2.7, and as an optional
@@ -4919,13 +4919,13 @@ and enabled instances are processed in reverse order.
 .PP
 This feature is available in Postfix 2.6 and later.
 .SH postscreen_access_list (default: permit_mynetworks)
-Permanent white/blacklist for remote SMTP client IP addresses.
+Permanent allow/denylist for remote SMTP client IP addresses.
 \fBpostscreen\fR(8) searches this list immediately after a remote SMTP
 client connects.  Specify a comma\- or whitespace\-separated list of
 commands (in upper or lower case) or lookup tables. The search stops
 upon the first command that fires for the client IP address.
 .IP "\fB permit_mynetworks \fR"
-Whitelist the client and
+Allowlist the client and
 terminate the search if the client IP address matches $mynetworks.
 Do not subject the client to any before/after 220 greeting tests.
 Pass the connection immediately to a Postfix SMTP server process.
@@ -4944,13 +4944,13 @@ support for substring matching like \fBsmtpd\fR(8). Use CIDR tables
 instead.
 .br
 .IP "\fB permit \fR"
-Whitelist the client and terminate
+Allowlist the client and terminate
 the search. Do not subject the client to any before/after 220
 greeting tests. Pass the connection immediately to a Postfix SMTP
 server process.
 .br
 .IP "\fB reject \fR"
-Blacklist the client and terminate
+Denylist the client and terminate
 the search. Subject the client to the action configured with the
 postscreen_blacklist_action configuration parameter.
 .br
@@ -4986,7 +4986,7 @@ Example:
 .ft C
 /etc/postfix/postscreen_access.cidr:
     # Rules are evaluated in the order as specified.
-    # Blacklist 192.168.* except 192.168.0.1.
+    # Denylist 192.168.* except 192.168.0.1.
     192.168.0.1         dunno
     192.168.0.0/16      reject
 .fi
@@ -5039,7 +5039,7 @@ one\-letter suffix that specifies the time unit).  Time units: s
 This feature is available in Postfix 2.8.
 .SH postscreen_blacklist_action (default: ignore)
 The action that \fBpostscreen\fR(8) takes when a remote SMTP client is
-permanently blacklisted with the postscreen_access_list parameter.
+permanently denylisted with the postscreen_access_list parameter.
 Specify one of the following:
 .IP "\fBignore\fR (default)"
 Ignore  this result. Allow other tests to complete.  Repeat
@@ -5088,7 +5088,7 @@ approach see the \fBmemcache_table\fR(5) manpage.
 This feature is available in Postfix 2.8.
 .SH postscreen_cache_retention_time (default: 7d)
 The amount of time that \fBpostscreen\fR(8) will cache an expired
-temporary whitelist entry before it is removed. This prevents clients
+temporary allowlist entry before it is removed. This prevents clients
 from being logged as "NEW" just because their cache entry expired
 an hour ago. It also prevents the cache from filling up with clients
 that passed some deep protocol test once and never came back.
@@ -5227,7 +5227,7 @@ Example:
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_dnsbl_sites (default: empty)
-Optional list of DNS white/blacklist domains, filters and weight
+Optional list of DNS allow/denylist domains, filters and weight
 factors. When the list is non\-empty, the \fBdnsblog\fR(8) daemon will
 query these domains with the IP addresses of remote SMTP clients,
 and \fBpostscreen\fR(8) will update an SMTP client's DNSBL score with
@@ -5254,7 +5254,7 @@ When no "*weight" is specified, \fBpostscreen\fR(8) increments
 the remote SMTP client's DNSBL score by 1.  Otherwise, the weight must be
 an integral number, and \fBpostscreen\fR(8) adds the specified weight to
 the remote SMTP client's DNSBL score.  Specify a negative number for
-whitelisting.
+allowlisting.
 .IP \(bu
 When one postscreen_dnsbl_sites entry produces multiple
 DNSBL responses, \fBpostscreen\fR(8) applies the weight at most once.
@@ -5361,7 +5361,7 @@ this test the next time the client connects.
 .br
 .br
 .PP
-In either case, \fBpostscreen\fR(8) will not whitelist the remote SMTP client
+In either case, \fBpostscreen\fR(8) will not allowlist the remote SMTP client
 IP address.
 .PP
 This feature is available in Postfix 2.8.
@@ -5497,10 +5497,10 @@ receive a 421 response.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_pre_queue_limit (default: $default_process_limit)
-The number of non\-whitelisted clients that can be waiting for
+The number of non\-allowlisted clients that can be waiting for
 a decision whether they will receive service from a real Postfix
 SMTP server
-process. When this queue is full, all non\-whitelisted clients will
+process. When this queue is full, all non\-allowlisted clients will
 receive a 421 response.
 .PP
 This feature is available in Postfix 2.8.
@@ -5558,18 +5558,18 @@ one\-letter suffix that specifies the time unit).  Time units: s
 This feature is available in Postfix 2.8.
 .SH postscreen_whitelist_interfaces (default: static:all)
 A list of local \fBpostscreen\fR(8) server IP addresses where a
-non\-whitelisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
-whitelist status. This status is required before the client can
+non\-allowlisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
+allowlist status. This status is required before the client can
 talk to a Postfix SMTP server process.  By default, a client can
-obtain \fBpostscreen\fR(8)'s whitelist status on any local \fBpostscreen\fR(8)
+obtain \fBpostscreen\fR(8)'s allowlist status on any local \fBpostscreen\fR(8)
 server IP address.
 .PP
 When \fBpostscreen\fR(8) listens on both primary and backup MX
 addresses, the postscreen_whitelist_interfaces parameter can be
-configured to give the temporary whitelist status only when a client
-connects to a primary MX address. Once a client is whitelisted it
+configured to give the temporary allowlist status only when a client
+connects to a primary MX address. Once a client is allowlisted it
 can talk to a Postfix SMTP server on any address. Thus, clients
-that connect only to backup MX addresses will never become whitelisted,
+that connect only to backup MX addresses will never become allowlisted,
 and will never be allowed to talk to a Postfix SMTP server process.
 .PP
 Specify a list of network addresses or network/netmask patterns,
@@ -5598,7 +5598,7 @@ Example:
 .na
 .ft C
 /etc/postfix/main.cf:
-    # Don't whitelist connections to the backup IP address.
+    # Don't allowlist connections to the backup IP address.
     postscreen_whitelist_interfaces = !168.100.189.8, static:all
 .fi
 .ad
@@ -9761,7 +9761,7 @@ least significant octets. See the \fBaccess\fR(5) manual page for details.
 Search the specified \fBaccess\fR(5) database for the IP addresses for the
 client hostname, and execute the corresponding action.  Note: a result
 of "OK" is not allowed for safety reasons. Instead, use DUNNO in order
-to exclude specific hosts from blacklists.  This feature is available
+to exclude specific hosts from denylists.  This feature is available
 in Postfix 3.0 and later.
 .br
 .IP "\fBcheck_client_mx_access \fItype:table\fR\fR"
@@ -9770,14 +9770,14 @@ client hostname, and execute the corresponding action.  If no MX
 record is found, look up A or AAAA records, just like the Postfix
 SMTP client would. Note: a result
 of "OK" is not allowed for safety reasons. Instead, use DUNNO in order
-to exclude specific hosts from blacklists.  This feature is available
+to exclude specific hosts from denylists.  This feature is available
 in Postfix 2.7 and later.
 .br
 .IP "\fBcheck_client_ns_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the DNS servers for
 the client hostname, and execute the corresponding action.  Note: a
 result of "OK" is not allowed for safety reasons. Instead, use DUNNO
-in order to exclude specific hosts from blacklists.  This feature is
+in order to exclude specific hosts from denylists.  This feature is
 available in Postfix 2.7 and later.
 .br
 .IP "\fBcheck_reverse_client_hostname_access \fItype:table\fR\fR"
@@ -9786,14 +9786,14 @@ client hostname, parent domains, client IP address, or networks
 obtained by stripping least significant octets. See the \fBaccess\fR(5)
 manual page for details.  Note: a result of "OK" is not allowed for
 safety reasons.  Instead, use DUNNO in order to exclude specific
-hosts from blacklists.  This feature is available in Postfix 2.6
+hosts from denylists.  This feature is available in Postfix 2.6
 and later.
 .br
 .IP "\fBcheck_reverse_client_hostname_a_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the IP addresses for the
 unverified reverse client hostname, and execute the corresponding
 action.  Note: a result of "OK" is not allowed for safety reasons.
-Instead, use DUNNO in order to exclude specific hosts from blacklists.
+Instead, use DUNNO in order to exclude specific hosts from denylists.
 This feature is available in Postfix 3.0 and later.
 .br
 .IP "\fBcheck_reverse_client_hostname_mx_access \fItype:table\fR\fR"
@@ -9802,14 +9802,14 @@ unverified reverse client hostname, and execute the corresponding
 action.  If no MX record is found, look up A or AAAA records, just
 like the Postfix SMTP client would.
 Note: a result of "OK" is not allowed for safety reasons.
-Instead, use DUNNO in order to exclude specific hosts from blacklists.
+Instead, use DUNNO in order to exclude specific hosts from denylists.
 This feature is available in Postfix 2.7 and later.
 .br
 .IP "\fBcheck_reverse_client_hostname_ns_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the DNS servers for
 the unverified reverse client hostname, and execute the corresponding
 action.  Note: a result of "OK" is not allowed for safety reasons.
-Instead, use DUNNO in order to exclude specific hosts from blacklists.
+Instead, use DUNNO in order to exclude specific hosts from denylists.
 This feature is available in Postfix 2.7 and later.
 .br
 .IP "\fBcheck_sasl_access \fItype:table\fR\fR"
@@ -9889,7 +9889,7 @@ reversed client network address is listed with any A record under
 .br
 For safety, permit_dnswl_client is silently
 ignored when it would override reject_unauth_destination.  The
-result is DEFER_IF_REJECT when whitelist lookup fails.  This feature
+result is DEFER_IF_REJECT when allowlist lookup fails.  This feature
 is available in Postfix 2.8 and later.
 .br
 .IP "\fBreject_rhsbl_client \fIrbl_domain=d.d.d.d\fR\fR"
@@ -9914,14 +9914,14 @@ is a number, or a pattern inside "[]" that contains one or more
 "\fI=d.d.d.d\fR" is specified, accept the request when the client
 hostname is listed with any A record under \fIrhswl_domain\fR.
 .br
-Caution: client name whitelisting is fragile, since the client
+Caution: client name allowlisting is fragile, since the client
 name lookup can fail due to temporary outages.  Client name
-whitelisting should be used only to reduce false positives in e.g.
+allowlisting should be used only to reduce false positives in e.g.
 DNS\-based blocklists, and not for making access rule exceptions.
 .br
 For safety, permit_rhswl_client is silently ignored when it
 would override reject_unauth_destination.  The result is DEFER_IF_REJECT
-when whitelist lookup fails.  This feature is available in Postfix
+when allowlist lookup fails.  This feature is available in Postfix
 2.8 and later.
 .br
 .IP "\fBreject_rhsbl_reverse_client \fIrbl_domain=d.d.d.d\fR\fR"
@@ -9987,7 +9987,7 @@ the SMTP server reply code (default: 450).
 .br
 .IP "\fBdefer_if_permit\fR"
 Defer the request if some later restriction would result in an
-explicit or implicit PERMIT action.  This is useful when a blacklisting
+explicit or implicit PERMIT action.  This is useful when a denylisting
 feature fails due to a temporary problem.  This feature is available
 in Postfix version 2.1 and later.
 .br
@@ -10429,7 +10429,7 @@ simply skip check_helo_access by not sending HELO or EHLO).
 Search the specified \fBaccess\fR(5) database for the IP addresses for
 the HELO or EHLO hostname, and execute the corresponding action.
 Note 1: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  Note
+use DUNNO in order to exclude specific hosts from denylists.  Note
 2: specify "smtpd_helo_required = yes" to fully enforce this
 restriction (without "smtpd_helo_required = yes", a client can
 simply skip check_helo_a_access by not sending HELO or EHLO).  This
@@ -10441,7 +10441,7 @@ the HELO or EHLO hostname, and execute the corresponding action.
 If no MX record is found, look up A or AAAA records, just like the
 Postfix SMTP client would.
 Note 1: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  Note
+use DUNNO in order to exclude specific hosts from denylists.  Note
 2: specify "smtpd_helo_required = yes" to fully enforce this
 restriction (without "smtpd_helo_required = yes", a client can
 simply skip check_helo_mx_access by not sending HELO or EHLO).  This
@@ -10451,7 +10451,7 @@ feature is available in Postfix 2.1 and later.
 Search the specified \fBaccess\fR(5) database for the DNS servers
 for the HELO or EHLO hostname, and execute the corresponding action.
 Note 1: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  Note
+use DUNNO in order to exclude specific hosts from denylists.  Note
 2: specify "smtpd_helo_required = yes" to fully enforce this
 restriction (without "smtpd_helo_required = yes", a client can
 simply skip check_helo_ns_access by not sending HELO or EHLO). This
@@ -10835,7 +10835,7 @@ corresponding action.
 Search the specified \fBaccess\fR(5) database for the IP addresses for
 the RCPT TO domain, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
-DUNNO in order to exclude specific hosts from blacklists.  This
+DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 3.0 and later.
 .br
 .IP "\fBcheck_recipient_mx_access \fItype:table\fR\fR"
@@ -10844,14 +10844,14 @@ the RCPT TO domain, and execute the corresponding action.  If no
 MX record is found, look up A or AAAA records, just like the Postfix
 SMTP client would. Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
-DUNNO in order to exclude specific hosts from blacklists.  This
+DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 2.1 and later.
 .br
 .IP "\fBcheck_recipient_ns_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the DNS servers
 for the RCPT TO domain, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  This
+use DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 2.1 and later.
 .br
 .IP "\fBpermit_auth_destination\fR"
@@ -11518,7 +11518,7 @@ corresponding action.
 Search the specified \fBaccess\fR(5) database for the IP addresses for
 the MAIL FROM domain, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
-DUNNO in order to exclude specific hosts from blacklists.  This
+DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 3.0 and later.
 .br
 .IP "\fBcheck_sender_mx_access \fItype:table\fR\fR"
@@ -11527,14 +11527,14 @@ the MAIL FROM domain, and execute the corresponding action.  If no
 MX record is found, look up A or AAAA records, just like the Postfix
 SMTP client would. Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
-DUNNO in order to exclude specific hosts from blacklists.  This
+DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 2.1 and later.
 .br
 .IP "\fBcheck_sender_ns_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the DNS servers
 for the MAIL FROM domain, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  This
+use DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 2.1 and later.
 .br
 .IP "\fBreject_authenticated_sender_login_mismatch\fR"

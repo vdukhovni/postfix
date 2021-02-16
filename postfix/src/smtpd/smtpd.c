@@ -6035,7 +6035,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 {
 
     /*
-     * Initialize blacklist/etc. patterns before entering the chroot jail, in
+     * Initialize denylist/etc. patterns before entering the chroot jail, in
      * case they specify a filename pattern.
      */
     smtpd_noop_cmds = string_list_init(VAR_SMTPD_NOOP_CMDS, MATCH_FLAG_RETURN,

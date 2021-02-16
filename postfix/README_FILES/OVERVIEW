@@ -367,12 +367,12 @@ queues.
     While postscreen(8) keeps the zombies away, more smtpd(8) processes remain
     available for legitimate clients.
 
-    postscreen(8) maintains a temporary whitelist for clients that pass its
-    tests; by allowing whitelisted clients to skip tests, postscreen(8)
+    postscreen(8) maintains a temporary allowlist for clients that pass its
+    tests; by allowing allowlisted clients to skip tests, postscreen(8)
     minimizes its impact on legitimate email traffic.
 
     The postscreen(8) server is available with Postfix 2.8 and later. To keep
-    the implementation simple, postscreen(8) delegates DNS white/blacklist
+    the implementation simple, postscreen(8) delegates DNS allow/denylist
     lookups to dnsblog(8) server processes, and delegates TLS encryption/
     decryption to tlsproxy(8) server processes. This delegation is invisible to
     the remote SMTP client, and is not shown in the diagram below.

@@ -104,8 +104,8 @@
 #	    smtpd_client_restrictions = ... cidr:/etc/postfix/client.cidr ...
 #
 #	/etc/postfix/client.cidr:
-#	    # Rule order matters. Put more specific whitelist entries
-#	    # before more general blacklist entries.
+#	    # Rule order matters. Put more specific allowlist entries
+#	    # before more general denylist entries.
 #	    192.168.1.1             OK
 #	    192.168.0.0/16          REJECT
 #	    2001:db8::1             OK

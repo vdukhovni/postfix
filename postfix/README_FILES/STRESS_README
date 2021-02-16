@@ -259,7 +259,7 @@ to Postfix.
     maps. The Postfix SMTP server will reject mail and disconnect without
     waiting for the remote SMTP client to send a QUIT command.
 
-  * To hang up connections from blacklisted zombies, you can set specific
+  * To hang up connections from denylisted zombies, you can set specific
     Postfix SMTP server reject codes for specific RBLs, and for individual
     responses from specific RBLs. We'll use zen.spamhaus.org as an example; by
     the time you read this document, details may have changed. Right now, their

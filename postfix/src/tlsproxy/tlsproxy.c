@@ -8,8 +8,8 @@
 /* DESCRIPTION
 /*	The \fBtlsproxy\fR(8) server implements a two-way TLS proxy. It
 /*	is used by the \fBpostscreen\fR(8) server to talk SMTP-over-TLS
-/*	with remote SMTP clients that are not whitelisted (including
-/*	clients whose whitelist status has expired), and by the
+/*	with remote SMTP clients that are not allowlisted (including
+/*	clients whose allowlist status has expired), and by the
 /*	\fBsmtp\fR(8) client to support TLS connection reuse, but it
 /*	should also work for non-SMTP protocols.
 /*
@@ -1065,7 +1065,7 @@ static int tlsp_server_start_pre_handshake(TLSP_STATE *state)
     /*
      * XXX Do we care about TLS session rate limits? Good postscreen(8)
      * clients will occasionally require the tlsproxy to renew their
-     * whitelist status, but bad clients hammering the server can suck up
+     * allowlist status, but bad clients hammering the server can suck up
      * lots of CPU cycles. Per-client concurrency limits in postscreen(8)
      * will divert only naive security "researchers".
      */

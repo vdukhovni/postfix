@@ -259,7 +259,7 @@ void    psc_todo_tests(PSC_STATE *state, time_t time_value)
      * enabled pre-handshake tests when any pre-handshake test is turned on.
      * 
      * XXX Don't enable PREGREET gratuitously before the test expires. With a
-     * short TTL for DNSBL whitelisting, turning on PREGREET would force a
+     * short TTL for DNSBL allowlisting, turning on PREGREET would force a
      * full postscreen_greet_wait too frequently.
      */
 #if 0

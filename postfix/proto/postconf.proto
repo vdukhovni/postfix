@@ -1166,7 +1166,7 @@ See reject_unknown_reverse_client_hostname for more details. </dd>
 
 <dt><b>$rbl_class</b></dt>
 
-<dd>The blacklisted entity type: Client host, Helo command, Sender
+<dd>The denylisted entity type: Client host, Helo command, Sender
 address, or Recipient address. </dd>
 
 <dt><b>$rbl_code</b></dt>
@@ -1179,16 +1179,16 @@ by an RFC 3463 enhanced status code. </dd>
 
 <dt><b>$rbl_domain</b></dt>
 
-<dd>The RBL domain where $rbl_what is blacklisted. </dd>
+<dd>The RBL domain where $rbl_what is denylisted. </dd>
 
 <dt><b>$rbl_reason</b></dt>
 
-<dd>The reason why $rbl_what is blacklisted, or an empty string. </dd>
+<dd>The reason why $rbl_what is denylisted, or an empty string. </dd>
 
 <dt><b>$rbl_what</b></dt>
 
-<dd>The entity that is blacklisted (an IP address, a hostname, a domain
-name, or an email address whose domain was blacklisted). </dd>
+<dd>The entity that is denylisted (an IP address, a hostname, a domain
+name, or an email address whose domain was denylisted). </dd>
 
 <dt><b>$recipient</b></dt>
 
@@ -5151,7 +5151,7 @@ least significant octets. See the access(5) manual page for details. </dd>
 <dd>Search the specified access(5) database for the IP addresses for the
 client hostname, and execute the corresponding action.  Note: a result
 of "OK" is not allowed for safety reasons. Instead, use DUNNO in order
-to exclude specific hosts from blacklists.  This feature is available
+to exclude specific hosts from denylists.  This feature is available
 in Postfix 3.0 and later.  </dd>
 
 <dt><b><a name="check_client_mx_access">check_client_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -5161,7 +5161,7 @@ client hostname, and execute the corresponding action.  If no MX
 record is found, look up A or AAAA records, just like the Postfix
 SMTP client would. Note: a result
 of "OK" is not allowed for safety reasons. Instead, use DUNNO in order
-to exclude specific hosts from blacklists.  This feature is available
+to exclude specific hosts from denylists.  This feature is available
 in Postfix 2.7 and later.  </dd>
 
 <dt><b><a name="check_client_ns_access">check_client_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -5169,7 +5169,7 @@ in Postfix 2.7 and later.  </dd>
 <dd>Search the specified access(5) database for the DNS servers for
 the client hostname, and execute the corresponding action.  Note: a
 result of "OK" is not allowed for safety reasons. Instead, use DUNNO
-in order to exclude specific hosts from blacklists.  This feature is
+in order to exclude specific hosts from denylists.  This feature is
 available in Postfix 2.7 and later.  </dd>
 
 <dt><b><a name="check_reverse_client_hostname_access">check_reverse_client_hostname_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -5179,7 +5179,7 @@ client hostname, parent domains, client IP address, or networks
 obtained by stripping least significant octets. See the access(5)
 manual page for details.  Note: a result of "OK" is not allowed for
 safety reasons.  Instead, use DUNNO in order to exclude specific
-hosts from blacklists.  This feature is available in Postfix 2.6
+hosts from denylists.  This feature is available in Postfix 2.6
 and later.</dd>
 
 <dt><b><a name="check_reverse_client_hostname_a_access">check_reverse_client_hostname_a_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -5187,7 +5187,7 @@ and later.</dd>
 <dd>Search the specified access(5) database for the IP addresses for the
 unverified reverse client hostname, and execute the corresponding
 action.  Note: a result of "OK" is not allowed for safety reasons.
-Instead, use DUNNO in order to exclude specific hosts from blacklists.
+Instead, use DUNNO in order to exclude specific hosts from denylists.
 This feature is available in Postfix 3.0 and later.  </dd>
 
 <dt><b><a name="check_reverse_client_hostname_mx_access">check_reverse_client_hostname_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -5197,7 +5197,7 @@ unverified reverse client hostname, and execute the corresponding
 action.  If no MX record is found, look up A or AAAA records, just
 like the Postfix SMTP client would.
 Note: a result of "OK" is not allowed for safety reasons.
-Instead, use DUNNO in order to exclude specific hosts from blacklists.
+Instead, use DUNNO in order to exclude specific hosts from denylists.
 This feature is available in Postfix 2.7 and later.  </dd>
 
 <dt><b><a name="check_reverse_client_hostname_ns_access">check_reverse_client_hostname_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -5205,7 +5205,7 @@ This feature is available in Postfix 2.7 and later.  </dd>
 <dd>Search the specified access(5) database for the DNS servers for
 the unverified reverse client hostname, and execute the corresponding
 action.  Note: a result of "OK" is not allowed for safety reasons.
-Instead, use DUNNO in order to exclude specific hosts from blacklists.
+Instead, use DUNNO in order to exclude specific hosts from denylists.
 This feature is available in Postfix 2.7 and later.  </dd>
 
 <dt><b><a name="check_sasl_access">check_sasl_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -5291,7 +5291,7 @@ If no "<i>=d.d.d.d</i>" is specified, accept the request when the
 reversed client network address is listed with any A record under
 <i>dnswl_domain</i>. <br> For safety, permit_dnswl_client is silently
 ignored when it would override reject_unauth_destination.  The
-result is DEFER_IF_REJECT when whitelist lookup fails.  This feature
+result is DEFER_IF_REJECT when allowlist lookup fails.  This feature
 is available in Postfix 2.8 and later.  </dd>
 
 <dt><b><a name="reject_rhsbl_client">reject_rhsbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
@@ -5317,13 +5317,13 @@ is a number, or a pattern inside "[]" that contains one or more
 ";"-separated numbers or number..number ranges. If no
 "<i>=d.d.d.d</i>" is specified, accept the request when the client
 hostname is listed with any A record under <i>rhswl_domain</i>.
-<br> Caution: client name whitelisting is fragile, since the client
+<br> Caution: client name allowlisting is fragile, since the client
 name lookup can fail due to temporary outages.  Client name
-whitelisting should be used only to reduce false positives in e.g.
+allowlisting should be used only to reduce false positives in e.g.
 DNS-based blocklists, and not for making access rule exceptions.
 <br> For safety, permit_rhswl_client is silently ignored when it
 would override reject_unauth_destination.  The result is DEFER_IF_REJECT
-when whitelist lookup fails.  This feature is available in Postfix
+when allowlist lookup fails.  This feature is available in Postfix
 2.8 and later.  </dd>
 
 <dt><b><a name="reject_rhsbl_reverse_client">reject_rhsbl_reverse_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
@@ -5402,7 +5402,7 @@ the SMTP server reply code (default: 450).</dd>
 <dt><b><a name="defer_if_permit">defer_if_permit</a></b></dt>
 
 <dd>Defer the request if some later restriction would result in an
-explicit or implicit PERMIT action.  This is useful when a blacklisting
+explicit or implicit PERMIT action.  This is useful when a denylisting
 feature fails due to a temporary problem.  This feature is available
 in Postfix version 2.1 and later.  </dd>
 
@@ -5754,7 +5754,7 @@ simply skip check_helo_access by not sending HELO or EHLO).  </dd>
 <dd>Search the specified access(5) database for the IP addresses for
 the HELO or EHLO hostname, and execute the corresponding action.
 Note 1: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  Note
+use DUNNO in order to exclude specific hosts from denylists.  Note
 2: specify "smtpd_helo_required = yes" to fully enforce this
 restriction (without "smtpd_helo_required = yes", a client can
 simply skip check_helo_a_access by not sending HELO or EHLO).  This
@@ -5768,7 +5768,7 @@ the HELO or EHLO hostname, and execute the corresponding action.
 If no MX record is found, look up A or AAAA records, just like the
 Postfix SMTP client would.
 Note 1: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  Note
+use DUNNO in order to exclude specific hosts from denylists.  Note
 2: specify "smtpd_helo_required = yes" to fully enforce this
 restriction (without "smtpd_helo_required = yes", a client can
 simply skip check_helo_mx_access by not sending HELO or EHLO).  This
@@ -5780,7 +5780,7 @@ feature is available in Postfix 2.1 and later.
 <dd>Search the specified access(5) database for the DNS servers
 for the HELO or EHLO hostname, and execute the corresponding action.
 Note 1: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  Note
+use DUNNO in order to exclude specific hosts from denylists.  Note
 2: specify "smtpd_helo_required = yes" to fully enforce this
 restriction (without "smtpd_helo_required = yes", a client can
 simply skip check_helo_ns_access by not sending HELO or EHLO). This
@@ -6047,7 +6047,7 @@ corresponding action.  </dd>
 <dd>Search the specified access(5) database for the IP addresses for
 the RCPT TO domain, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
-DUNNO in order to exclude specific hosts from blacklists.  This
+DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 3.0 and later. </dd>
 
 <dt><b><a name="check_recipient_mx_access">check_recipient_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -6057,7 +6057,7 @@ the RCPT TO domain, and execute the corresponding action.  If no
 MX record is found, look up A or AAAA records, just like the Postfix
 SMTP client would. Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
-DUNNO in order to exclude specific hosts from blacklists.  This
+DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 2.1 and later. </dd>
 
 <dt><b><a name="check_recipient_ns_access">check_recipient_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -6065,7 +6065,7 @@ feature is available in Postfix 2.1 and later. </dd>
 <dd>Search the specified access(5) database for the DNS servers
 for the RCPT TO domain, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  This
+use DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 2.1 and later.  </dd>
 
 <dt><b><a name="permit_auth_destination">permit_auth_destination</a></b></dt>
@@ -6560,7 +6560,7 @@ corresponding action. </dd>
 <dd>Search the specified access(5) database for the IP addresses for
 the MAIL FROM domain, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
-DUNNO in order to exclude specific hosts from blacklists.  This
+DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 3.0 and later. </dd>
 
 <dt><b><a name="check_sender_mx_access">check_sender_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -6570,7 +6570,7 @@ the MAIL FROM domain, and execute the corresponding action.  If no
 MX record is found, look up A or AAAA records, just like the Postfix
 SMTP client would. Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
-DUNNO in order to exclude specific hosts from blacklists.  This
+DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 2.1 and later. </dd>
 
 <dt><b><a name="check_sender_ns_access">check_sender_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -6578,7 +6578,7 @@ feature is available in Postfix 2.1 and later. </dd>
 <dd>Search the specified access(5) database for the DNS servers
 for the MAIL FROM domain, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
-use DUNNO in order to exclude specific hosts from blacklists.  This
+use DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 2.1 and later.  </dd>
 
 <dt><b><a name="reject_authenticated_sender_login_mismatch">reject_authenticated_sender_login_mismatch</a></b></dt>
@@ -14028,7 +14028,7 @@ by default. </p>
 </pre>
 
 <p> The milter_header_checks mechanism could also be used for
-whitelisting. For example it could be used to skip heavy content
+allowlisting. For example it could be used to skip heavy content
 inspection for DKIM-signed mail from known friendly domains. </p>
 
 <p> This feature is available in Postfix 2.7, and as an optional
@@ -14065,10 +14065,10 @@ receive a 421 response. </p>
 
 %PARAM postscreen_pre_queue_limit $default_process_limit
 
-<p> The number of non-whitelisted clients that can be waiting for
+<p> The number of non-allowlisted clients that can be waiting for
 a decision whether they will receive service from a real Postfix
 SMTP server
-process. When this queue is full, all non-whitelisted clients will
+process. When this queue is full, all non-allowlisted clients will
 receive a 421 response. </p>
 
 <p> This feature is available in Postfix 2.8. </p>
@@ -14089,7 +14089,7 @@ one-letter suffix that specifies the time unit).  Time units: s
 %PARAM postscreen_cache_retention_time 7d
 
 <p> The amount of time that postscreen(8) will cache an expired
-temporary whitelist entry before it is removed. This prevents clients
+temporary allowlist entry before it is removed. This prevents clients
 from being logged as "NEW" just because their cache entry expired
 an hour ago. It also prevents the cache from filling up with clients
 that passed some deep protocol test once and never came back. </p>
@@ -14135,7 +14135,7 @@ one-letter suffix that specifies the time unit).  </p>
 
 %PARAM postscreen_dnsbl_sites
 
-<p>Optional list of DNS white/blacklist domains, filters and weight
+<p>Optional list of DNS allow/denylist domains, filters and weight
 factors. When the list is non-empty, the dnsblog(8) daemon will
 query these domains with the IP addresses of remote SMTP clients,
 and postscreen(8) will update an SMTP client's DNSBL score with
@@ -14164,7 +14164,7 @@ or more ";"-separated numbers or number..number ranges.  </p>
 the remote SMTP client's DNSBL score by 1.  Otherwise, the weight must be
 an integral number, and postscreen(8) adds the specified weight to
 the remote SMTP client's DNSBL score.  Specify a negative number for
-whitelisting.  </p>
+allowlisting.  </p>
 
 <li> <p> When one postscreen_dnsbl_sites entry produces multiple
 DNSBL responses, postscreen(8) applies the weight at most once.
@@ -14250,7 +14250,7 @@ this test the next time the client connects. </dd>
 
 </dl>
 
-<p> In either case, postscreen(8) will not whitelist the remote SMTP client
+<p> In either case, postscreen(8) will not allowlist the remote SMTP client
 IP address. </p>
 
 <p> This feature is available in Postfix 2.8. </p>
@@ -14276,7 +14276,7 @@ IP address. </p>
 
 %PARAM postscreen_access_list permit_mynetworks
 
-<p> Permanent white/blacklist for remote SMTP client IP addresses.
+<p> Permanent allow/denylist for remote SMTP client IP addresses.
 postscreen(8) searches this list immediately after a remote SMTP
 client connects.  Specify a comma- or whitespace-separated list of
 commands (in upper or lower case) or lookup tables. The search stops
@@ -14284,7 +14284,7 @@ upon the first command that fires for the client IP address. </p>
 
 <dl>
 
-<dt> <b> permit_mynetworks </b> </dt> <dd> Whitelist the client and
+<dt> <b> permit_mynetworks </b> </dt> <dd> Allowlist the client and
 terminate the search if the client IP address matches $mynetworks.
 Do not subject the client to any before/after 220 greeting tests.
 Pass the connection immediately to a Postfix SMTP server process.
@@ -14299,12 +14299,12 @@ To discourage the use of hash, btree, etc. tables, there is no
 support for substring matching like smtpd(8). Use CIDR tables
 instead.  </dd>
 
-<dt> <b> permit </b> </dt> <dd> Whitelist the client and terminate
+<dt> <b> permit </b> </dt> <dd> Allowlist the client and terminate
 the search. Do not subject the client to any before/after 220
 greeting tests. Pass the connection immediately to a Postfix SMTP
 server process. </dd>
 
-<dt> <b> reject </b> </dt> <dd> Blacklist the client and terminate
+<dt> <b> reject </b> </dt> <dd> Denylist the client and terminate
 the search. Subject the client to the action configured with the
 postscreen_blacklist_action configuration parameter. </dd>
 
@@ -14329,7 +14329,7 @@ to the configured before/after 220 greeting tests. </dd>
 <pre>
 /etc/postfix/postscreen_access.cidr:
     # Rules are evaluated in the order as specified.
-    # Blacklist 192.168.* except 192.168.0.1.
+    # Denylist 192.168.* except 192.168.0.1.
     192.168.0.1         dunno
     192.168.0.0/16      reject
 </pre>
@@ -14350,7 +14350,7 @@ value to disable this feature.  </p>
 %PARAM postscreen_blacklist_action ignore
 
 <p> The action that postscreen(8) takes when a remote SMTP client is
-permanently blacklisted with the postscreen_access_list parameter.
+permanently denylisted with the postscreen_access_list parameter.
 Specify one of the following: </p>
 
 <dl>
@@ -15617,7 +15617,7 @@ See smtpd_command_filter for further details. </p>
 %PARAM dnsblog_service_name dnsblog
 
 <p> The name of the dnsblog(8) service entry in master.cf. This
-service performs DNS white/blacklist lookups. </p>
+service performs DNS allow/denylist lookups. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
@@ -15677,18 +15677,18 @@ configuration parameter.  See there for details. </p>
 %PARAM postscreen_whitelist_interfaces static:all
 
 <p> A list of local postscreen(8) server IP addresses where a
-non-whitelisted remote SMTP client can obtain postscreen(8)'s temporary
-whitelist status. This status is required before the client can
+non-allowlisted remote SMTP client can obtain postscreen(8)'s temporary
+allowlist status. This status is required before the client can
 talk to a Postfix SMTP server process.  By default, a client can
-obtain postscreen(8)'s whitelist status on any local postscreen(8)
+obtain postscreen(8)'s allowlist status on any local postscreen(8)
 server IP address. </p>
 
 <p> When postscreen(8) listens on both primary and backup MX
 addresses, the postscreen_whitelist_interfaces parameter can be
-configured to give the temporary whitelist status only when a client
-connects to a primary MX address. Once a client is whitelisted it
+configured to give the temporary allowlist status only when a client
+connects to a primary MX address. Once a client is allowlisted it
 can talk to a Postfix SMTP server on any address. Thus, clients
-that connect only to backup MX addresses will never become whitelisted,
+that connect only to backup MX addresses will never become allowlisted,
 and will never be allowed to talk to a Postfix SMTP server process.
 </p>
 
@@ -15716,7 +15716,7 @@ pattern. </p>
 
 <pre>
 /etc/postfix/main.cf:
-    # Don't whitelist connections to the backup IP address.
+    # Don't allowlist connections to the backup IP address.
     postscreen_whitelist_interfaces = !168.100.189.8, static:all
 </pre>
 

@@ -64,7 +64,7 @@
 /*	down-stream servers in the case of a dictionary attack or
 /*	a flood of backscatter bounces.
 /*	Sender address verification may cause your site to be
-/*	blacklisted by some providers.
+/*	denylisted by some providers.
 /*
 /*	If the persistent database ever gets corrupted then the world
 /*	comes to an end and human intervention is needed. This violates

@@ -40,7 +40,7 @@
 /*	at any stage.
 /*
 /*	No support is announced for AUTH, XCLIENT or XFORWARD.
-/*	Clients that need this should be whitelisted or should talk
+/*	Clients that need this should be allowlisted or should talk
 /*	directly to the submission service.
 /*
 /*	The engine rejects RCPT TO and VRFY commands with the
@@ -902,7 +902,7 @@ static void psc_smtpd_read_event(int event, void *context)
 		    case PSC_ACT_IGNORE:
 			PSC_UNFAIL_SESSION_STATE(state,
 						 PSC_STATE_FLAG_BARLF_FAIL);
-			/* Temporarily whitelist until something expires. */
+			/* Temporarily allowlist until something expires. */
 			PSC_PASS_SESSION_STATE(state, "bare newline test",
 					       PSC_STATE_FLAG_BARLF_PASS);
 			expire_time[PSC_TINDX_BARLF] = event_time() + psc_min_ttl;
@@ -1028,7 +1028,7 @@ static void psc_smtpd_read_event(int event, void *context)
 	    case PSC_ACT_IGNORE:
 		PSC_UNFAIL_SESSION_STATE(state,
 					 PSC_STATE_FLAG_NSMTP_FAIL);
-		/* Temporarily whitelist until something else expires. */
+		/* Temporarily allowlist until something else expires. */
 		PSC_PASS_SESSION_STATE(state, "non-smtp test",
 				       PSC_STATE_FLAG_NSMTP_PASS);
 		expire_time[PSC_TINDX_NSMTP] = event_time() + psc_min_ttl;
@@ -1066,7 +1066,7 @@ static void psc_smtpd_read_event(int event, void *context)
 	    case PSC_ACT_IGNORE:
 		PSC_UNFAIL_SESSION_STATE(state,
 					 PSC_STATE_FLAG_PIPEL_FAIL);
-		/* Temporarily whitelist until something else expires. */
+		/* Temporarily allowlist until something else expires. */
 		PSC_PASS_SESSION_STATE(state, "pipelining test",
 				       PSC_STATE_FLAG_PIPEL_PASS);
 		expire_time[PSC_TINDX_PIPEL] = event_time() + psc_min_ttl;
