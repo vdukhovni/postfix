@@ -153,6 +153,7 @@
 /*	int	warn_compat_break_smtp_tls_fpt_dgst;
 /*	int	warn_compat_break_lmtp_tls_fpt_dgst;
 /*	int	warn_compat_relay_before_rcpt_checks;
+/*	int	warn_compat_respectful_logging;
 /*
 /*	char	*var_maillog_file;
 /*	char	*var_maillog_file_pfxs;
@@ -162,6 +163,7 @@
 /*
 /*	char	*var_dnssec_probe;
 /*	bool	var_relay_before_rcpt_checks;
+/*	bool	var_respectful_logging;
 /* DESCRIPTION
 /*	This module (actually the associated include file) defines
 /*	the names and defaults of all mail configuration parameters.
@@ -374,6 +376,7 @@ char   *var_maillog_file_stamp;
 char   *var_postlog_service;
 
 char   *var_dnssec_probe;
+bool    var_respectful_logging;
 
 const char null_format_string[1] = "";
 
@@ -384,6 +387,7 @@ int     warn_compat_break_smtpd_tls_fpt_dgst;
 int     warn_compat_break_smtp_tls_fpt_dgst;
 int     warn_compat_break_lmtp_tls_fpt_dgst;
 int     warn_compat_relay_before_rcpt_checks;
+int     warn_compat_respectful_logging;
 
  /*
   * Compatibility level 2.
@@ -657,11 +661,8 @@ static void check_legacy_defaults(void)
 	    warn_compat_break_lmtp_tls_fpt_dgst = 1;
 	if (mail_conf_lookup(VAR_RELAY_BEFORE_RCPT_CHECKS) == 0)
 	    warn_compat_relay_before_rcpt_checks = 1;
-    } else {
-	warn_compat_break_smtpd_tls_fpt_dgst = 0;
-	warn_compat_break_smtp_tls_fpt_dgst = 0;
-	warn_compat_break_lmtp_tls_fpt_dgst = 0;
-	warn_compat_relay_before_rcpt_checks = 0;
+	if (mail_conf_lookup(VAR_RESPECTFUL_LOGGING) == 0)
+	    warn_compat_respectful_logging = 1;
     }
 
     /*
@@ -677,10 +678,6 @@ static void check_legacy_defaults(void)
 	if (mail_conf_lookup(VAR_MYNETWORKS) == 0
 	    && mail_conf_lookup(VAR_MYNETWORKS_STYLE) == 0)
 	    warn_compat_break_mynetworks_style = 1;
-    } else {					/* for 'postfix reload' */
-	warn_compat_break_relay_domains = 0;
-	warn_compat_break_flush_domains = 0;
-	warn_compat_break_mynetworks_style = 0;
     }
 
     /*
@@ -705,11 +702,6 @@ static void check_legacy_defaults(void)
 	 */
 	if (mail_conf_lookup(VAR_RELAY_CHECKS) == 0)
 	    warn_compat_break_relay_restrictions = 1;
-    } else {					/* for 'postfix reload' */
-	warn_compat_break_app_dot_mydomain = 0;
-	warn_compat_break_smtputf8_enable = 0;
-	warn_compat_break_chroot = 0;
-	warn_compat_break_relay_restrictions = 0;
     }
 }
 
@@ -748,6 +740,7 @@ void    mail_params_init()
 	/* read and process the following before opening tables. */
 	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
 	VAR_IDNA2003_COMPAT, DEF_IDNA2003_COMPAT, &var_idna2003_compat,
+	VAR_RESPECTFUL_LOGGING, DEF_RESPECTFUL_LOGGING, &var_respectful_logging,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults[] = {

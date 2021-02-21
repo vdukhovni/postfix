@@ -234,7 +234,7 @@ SSeennddeerr aaddddrreessss vveerriiffiiccaattiioonn f
 
 Unfortunately, sender address verification cannot simply be turned on for all
 email - you are likely to lose legitimate mail from mis-configured systems. You
-almost certainly will have to set up white lists for specific addresses, or
+almost certainly will have to set up allow lists for specific addresses, or
 even for entire domains.
 
 To find out how sender address verification would affect your mail, specify

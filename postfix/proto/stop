@@ -1537,3 +1537,11 @@ inline
 mtime
 snprintf
 sprintf
+allowlist
+allowlisted
+denylist
+denylisted
+ALLOWLIST
+ALLOWLISTED
+DENYLIST
+DENYLISTED

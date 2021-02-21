@@ -1,11 +1,10 @@
-PPoossttffiixx PPoossttssccrreeeenn HHoowwttoo
+PPoossttffiixx PPoossttssccrreeeenn HHoowwttoo ((PPoossttffiixx 22..88 -- 33..55))
 
 -------------------------------------------------------------------------------
 
 IInnttrroodduuccttiioonn
 
-This document describes features that are available in Postfix 3.6 and later.
-See POSTSCREEN_3_5_README.html for Postfix versions 2.8 - 3.5.
+This document describes features that are available in Postfix 2.8 - 3.5.
 
 The Postfix postscreen(8) daemon provides additional protection against mail
 server overload. One postscreen(8) process handles multiple inbound SMTP
@@ -145,10 +144,7 @@ See the postscreen_access_list manpage documentation for more details.
 When the SMTP client address matches a "permit" action, postscreen(8) logs this
 with the client address and port number as:
 
-    AALLLLOOWWLLIISSTTEEDD [address]:port
-
-    Use the respectful_logging configuration parameter to select a deprecated
-    form of this logging.
+    WWHHIITTEELLIISSTTEEDD [address]:port
 
 The allowlist action is not configurable: immediately hand off the connection
 to a Postfix SMTP server process.
@@ -156,12 +152,9 @@ to a Postfix SMTP server process.
 When the SMTP client address matches a "reject" action, postscreen(8) logs this
 with the client address and port number as:
 
-    DDEENNYYLLIISSTTEEDD [address]:port
+    BBLLAACCKKLLIISSTTEEDD [address]:port
 
-    Use the respectful_logging configuration parameter to select a deprecated
-    form of this logging.
-
-The postscreen_denylist_action parameter specifies the action that is taken
+The postscreen_blacklist_action parameter specifies the action that is taken
 next. See "When tests fail before the 220 SMTP server greeting" below.
 
 TTeemmppoorraarryy aalllloowwlliisstt tteesstt
@@ -213,7 +206,7 @@ weaker anti-spam policies than primary MX hosts).
     backup MX address(es). An example for Wietse's server is:
 
     /etc/postfix/main.cf:
-        postscreen_allowlist_interfaces = !168.100.189.8 static:all
+        postscreen_whitelist_interfaces = !168.100.189.8 static:all
 
     Translation: allow clients to obtain the temporary allowlist status on all
     server IP addresses except 168.100.189.8, which is a backup MX address.
@@ -222,10 +215,7 @@ When a non-allowlisted client connects the backup MX address, postscreen(8)
 logs this with the client address and port number as:
 
     CCOONNNNEECCTT ffrroomm [address]:port ttoo [[116688..110000..118899..88]]::2255
-    AALLLLOOWWLLIISSTT VVEETTOO [address]:port
-
-    Use the respectful_logging configuration parameter to select a deprecated
-    form of this logging.
+    WWHHIITTEELLIISSTT VVEETTOO [address]:port
 
 Translation: the client at [address]:port connected to the backup MX address
 168.100.189.8 while it was not allowlisted. The client will not be granted the
@@ -320,7 +310,7 @@ WWhheenn tteessttss ffaaiill bbeeffoorree tthhee 222200
 
 When the client address matches the permanent denylist, or when the client
 fails the pregreet or DNSBL tests, the action is specified with
-postscreen_denylist_action, postscreen_greet_action, or
+postscreen_blacklist_action, postscreen_greet_action, or
 postscreen_dnsbl_action, respectively.
 
 iiggnnoorree (default)
@@ -351,9 +341,9 @@ discussed next.
     deliver mail. The following measures may help to avoid email delays:
 
       o Allow "good" clients to skip tests with the
-        postscreen_dnsbl_allowlist_threshold feature. This is especially
-        effective for large providers that usually don't retry from the same IP
-        address.
+        postscreen_dnsbl_whitelist_threshold feature (Postfix 2.11 and later).
+        This is especially effective for sites such as Google that never retry
+        immediately from the same IP address.
 
       o Small sites: Configure postscreen(8) to listen on multiple IP
         addresses, published in DNS as different IP addresses for the same MX

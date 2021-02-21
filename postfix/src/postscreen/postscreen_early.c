@@ -75,8 +75,8 @@ static void psc_allowlist_non_dnsbl(PSC_STATE *state)
      */
     if ((state->flags & PSC_STATE_MASK_ANY_FAIL) == 0
 	&& state->dnsbl_score < var_psc_dnsbl_thresh
-	&& var_psc_dnsbl_wthresh < 0
-	&& state->dnsbl_score <= var_psc_dnsbl_wthresh) {
+	&& var_psc_dnsbl_althresh < 0
+	&& state->dnsbl_score <= var_psc_dnsbl_althresh) {
 	now = event_time();
 	for (tindx = 0; tindx < PSC_TINDX_COUNT; tindx++) {
 	    if (tindx == PSC_TINDX_DNSBL)
@@ -172,7 +172,7 @@ static void psc_early_event(int event, void *context)
 				       &state->dnsbl_name,
 				       state->dnsbl_index,
 				       &state->dnsbl_ttl);
-		if (var_psc_dnsbl_wthresh < 0)
+		if (var_psc_dnsbl_althresh < 0)
 		    psc_allowlist_non_dnsbl(state);
 	    }
 	    if (state->dnsbl_score < var_psc_dnsbl_thresh) {
@@ -308,7 +308,7 @@ static void psc_early_dnsbl_event(int unused_event, void *context)
     state->dnsbl_score =
 	psc_dnsbl_retrieve(state->smtp_client_addr, &state->dnsbl_name,
 			   state->dnsbl_index, &state->dnsbl_ttl);
-    if (var_psc_dnsbl_wthresh < 0)
+    if (var_psc_dnsbl_althresh < 0)
 	psc_allowlist_non_dnsbl(state);
 
     /*

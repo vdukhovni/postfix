@@ -8007,7 +8007,7 @@ server process. </dd>
 
 <dt> <b> reject </b> </dt> <dd> Denylist the client and terminate
 the search. Subject the client to the action configured with the
-<a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a> configuration parameter. </dd>
+<a href="postconf.5.html#postscreen_denylist_action">postscreen_denylist_action</a> configuration parameter. </dd>
 
 <dt> <b> dunno </b> </dt> <dd> All <a href="postscreen.8.html">postscreen(8)</a> access lists
 implicitly have this command at the end. <br> When <b> dunno </b>
@@ -8024,7 +8024,8 @@ to the configured before/after 220 greeting tests. </dd>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
         <a href="cidr_table.5.html">cidr</a>:/etc/postfix/postscreen_access.cidr
-    <a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a> = enforce
+    # Postfix &lt; 3.6 use <a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a>.
+    <a href="postconf.5.html#postscreen_denylist_action">postscreen_denylist_action</a> = enforce
 </pre>
 
 <pre>
@@ -8036,6 +8037,61 @@ to the configured before/after 220 greeting tests. </dd>
 </pre>
 
 <p> This feature is available in Postfix 2.8. </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_allowlist_interfaces">postscreen_allowlist_interfaces</a>
+(default: <a href="DATABASE_README.html#types">static</a>:all)</b></DT><DD>
+
+<p> A list of local <a href="postscreen.8.html">postscreen(8)</a> server IP addresses where a
+non-allowlisted remote SMTP client can obtain <a href="postscreen.8.html">postscreen(8)</a>'s temporary
+allowlist status. This status is required before the client can
+talk to a Postfix SMTP server process.  By default, a client can
+obtain <a href="postscreen.8.html">postscreen(8)</a>'s allowlist status on any local <a href="postscreen.8.html">postscreen(8)</a>
+server IP address. </p>
+
+<p> When <a href="postscreen.8.html">postscreen(8)</a> listens on both primary and backup MX
+addresses, the <a href="postconf.5.html#postscreen_allowlist_interfaces">postscreen_allowlist_interfaces</a> parameter can be
+configured to give the temporary allowlist status only when a client
+connects to a primary MX address. Once a client is allowlisted it
+can talk to a Postfix SMTP server on any address. Thus, clients
+that connect only to backup MX addresses will never become allowlisted,
+and will never be allowed to talk to a Postfix SMTP server process.
+</p>
+
+<p> Specify a list of network addresses or network/netmask patterns,
+separated by commas and/or whitespace. The netmask specifies the
+number of bits in the network part of a host address. Continue long
+lines by starting the next line with whitespace. </p>
+
+<p> You can also specify "/file/name" or "<a href="DATABASE_README.html">type:table</a>" patterns.  A
+"/file/name" pattern is replaced by its contents; a "<a href="DATABASE_README.html">type:table</a>"
+lookup table is matched when a table entry matches a lookup string
+(the lookup result is ignored). </p>
+
+<p> The list is matched left to right, and the search stops on the
+first match. Specify "!pattern" to exclude an address or network
+block from the list.  </p>
+
+<p> Note: IP version 6 address information must be specified inside
+[] in the <a href="postconf.5.html#postscreen_allowlist_interfaces">postscreen_allowlist_interfaces</a> value, and in files
+specified with "/file/name".  IP version 6 addresses contain the
+":" character, and would otherwise be confused with a "<a href="DATABASE_README.html">type:table</a>"
+pattern. </p>
+
+<p> Example: </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # Don't allowlist connections to the backup IP address.
+    # Postfix &lt; 3.6 use <a href="postconf.5.html#postscreen_whitelist_interfaces">postscreen_whitelist_interfaces</a>.
+    <a href="postconf.5.html#postscreen_allowlist_interfaces">postscreen_allowlist_interfaces</a> = !168.100.189.8, <a href="DATABASE_README.html#types">static</a>:all
+</pre>
+
+<p> This feature is available in Postfix 3.6 and later.  </p>
+
+<p> Available as <a href="postconf.5.html#postscreen_whitelist_interfaces">postscreen_whitelist_interfaces</a> in Postfix 2.9 - 3.5. </p>
 
 
 </DD>
@@ -8111,33 +8167,9 @@ one-letter suffix that specifies the time unit).  Time units: s
 <DT><b><a name="postscreen_blacklist_action">postscreen_blacklist_action</a>
 (default: ignore)</b></DT><DD>
 
-<p> The action that <a href="postscreen.8.html">postscreen(8)</a> takes when a remote SMTP client is
-permanently denylisted with the <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> parameter.
-Specify one of the following: </p>
+<p> Renamed to <a href="postconf.5.html#postscreen_denylist_action">postscreen_denylist_action</a> in Postfix 3.6. </p>
 
-<dl>
-
-<dt> <b>ignore</b> (default) </dt>
-
-<dd> Ignore  this result. Allow other tests to complete.  Repeat
-this test the next time the client connects.
-This option is useful for testing and collecting statistics
-without blocking mail. </dd>
-
-<dt> <b>enforce</b> </dt>
-
-<dd> Allow other tests to complete. Reject attempts to deliver mail
-with a 550 SMTP reply, and log the helo/sender/recipient information.
-Repeat this test the next time the client connects. </dd>
-
-<dt> <b>drop</b> </dt>
-
-<dd> Drop the connection immediately with a 521 SMTP reply. Repeat
-this test the next time the client connects. </dd>
-
-</dl>
-
-<p> This feature is available in Postfix 2.8. </p>
+<p> This feature is available in Postfix 2.8 - 3.5. </p>
 
 
 </DD>
@@ -8250,6 +8282,42 @@ built-in SMTP protocol engine. </p>
 
 </DD>
 
+<DT><b><a name="postscreen_denylist_action">postscreen_denylist_action</a>
+(default: ignore)</b></DT><DD>
+
+<p> The action that <a href="postscreen.8.html">postscreen(8)</a> takes when a remote SMTP client is
+permanently denylisted with the <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> parameter.
+Specify one of the following: </p>
+
+<dl>
+
+<dt> <b>ignore</b> (default) </dt>
+
+<dd> Ignore  this result. Allow other tests to complete.  Repeat
+this test the next time the client connects.
+This option is useful for testing and collecting statistics
+without blocking mail. </dd>
+
+<dt> <b>enforce</b> </dt>
+
+<dd> Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects. </dd>
+
+<dt> <b>drop</b> </dt>
+
+<dd> Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects. </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 3.6 and later. </p>
+
+<p> Available as <a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a> in Postfix 2.8 - 3.5. </p>
+
+
+</DD>
+
 <DT><b><a name="postscreen_disable_vrfy_command">postscreen_disable_vrfy_command</a>
 (default: $<a href="postconf.5.html#disable_vrfy_command">disable_vrfy_command</a>)</b></DT><DD>
 
@@ -8319,6 +8387,28 @@ this test the next time the client connects. </dd>
 </dl>
 
 <p> This feature is available in Postfix 2.8. </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_dnsbl_allowlist_threshold">postscreen_dnsbl_allowlist_threshold</a>
+(default: 0)</b></DT><DD>
+
+<p> Allow a remote SMTP client to skip "before" and "after 220
+greeting" protocol tests, based on its combined DNSBL score as
+defined with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter.  </p>
+
+<p> Specify a negative value to enable this feature. When a client
+passes the <a href="postconf.5.html#postscreen_dnsbl_allowlist_threshold">postscreen_dnsbl_allowlist_threshold</a> without having
+failed other tests, all pending or disabled tests are flagged as
+completed with a time-to-live value equal to <a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>.
+When a test was already completed, its time-to-live value is updated
+if it was less than <a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>. </p>
+
+<p> This feature is available in Postfix 3.6 and later.  </p>
+
+<p> Available as <a href="postconf.5.html#postscreen_dnsbl_whitelist_threshold">postscreen_dnsbl_whitelist_threshold</a> in Postfix 2.11
+- 3.5.  </p>
 
 
 </DD>
@@ -8497,18 +8587,9 @@ replaced by <a href="postconf.5.html#postscreen_dnsbl_max_ttl">postscreen_dnsbl_
 <DT><b><a name="postscreen_dnsbl_whitelist_threshold">postscreen_dnsbl_whitelist_threshold</a>
 (default: 0)</b></DT><DD>
 
-<p> Allow a remote SMTP client to skip "before" and "after 220
-greeting" protocol tests, based on its combined DNSBL score as
-defined with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter.  </p>
+<p> Renamed to <a href="postconf.5.html#postscreen_dnsbl_allowlist_threshold">postscreen_dnsbl_allowlist_threshold</a> in Postfix 3.6. </p>
 
-<p> Specify a negative value to enable this feature. When a client
-passes the <a href="postconf.5.html#postscreen_dnsbl_whitelist_threshold">postscreen_dnsbl_whitelist_threshold</a> without having
-failed other tests, all pending or disabled tests are flagged as
-completed with a time-to-live value equal to <a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>.
-When a test was already completed, its time-to-live value is updated
-if it was less than <a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>. </p>
-
-<p> This feature is available in Postfix 2.11.  </p>
+<p> This feature is available in Postfix 2.11 - 3.5.  </p>
 
 
 </DD>
@@ -8908,51 +8989,9 @@ one-letter suffix that specifies the time unit).  Time units: s
 <DT><b><a name="postscreen_whitelist_interfaces">postscreen_whitelist_interfaces</a>
 (default: <a href="DATABASE_README.html#types">static</a>:all)</b></DT><DD>
 
-<p> A list of local <a href="postscreen.8.html">postscreen(8)</a> server IP addresses where a
-non-allowlisted remote SMTP client can obtain <a href="postscreen.8.html">postscreen(8)</a>'s temporary
-allowlist status. This status is required before the client can
-talk to a Postfix SMTP server process.  By default, a client can
-obtain <a href="postscreen.8.html">postscreen(8)</a>'s allowlist status on any local <a href="postscreen.8.html">postscreen(8)</a>
-server IP address. </p>
+<p> Renamed to <a href="postconf.5.html#postscreen_allowlist_interfaces">postscreen_allowlist_interfaces</a> in Postfix 3.6. </p>
 
-<p> When <a href="postscreen.8.html">postscreen(8)</a> listens on both primary and backup MX
-addresses, the <a href="postconf.5.html#postscreen_whitelist_interfaces">postscreen_whitelist_interfaces</a> parameter can be
-configured to give the temporary allowlist status only when a client
-connects to a primary MX address. Once a client is allowlisted it
-can talk to a Postfix SMTP server on any address. Thus, clients
-that connect only to backup MX addresses will never become allowlisted,
-and will never be allowed to talk to a Postfix SMTP server process.
-</p>
-
-<p> Specify a list of network addresses or network/netmask patterns,
-separated by commas and/or whitespace. The netmask specifies the
-number of bits in the network part of a host address. Continue long
-lines by starting the next line with whitespace. </p>
-
-<p> You can also specify "/file/name" or "<a href="DATABASE_README.html">type:table</a>" patterns.  A
-"/file/name" pattern is replaced by its contents; a "<a href="DATABASE_README.html">type:table</a>"
-lookup table is matched when a table entry matches a lookup string
-(the lookup result is ignored). </p>
-
-<p> The list is matched left to right, and the search stops on the
-first match. Specify "!pattern" to exclude an address or network
-block from the list.  </p>
-
-<p> Note: IP version 6 address information must be specified inside
-[] in the <a href="postconf.5.html#postscreen_whitelist_interfaces">postscreen_whitelist_interfaces</a> value, and in files
-specified with "/file/name".  IP version 6 addresses contain the
-":" character, and would otherwise be confused with a "<a href="DATABASE_README.html">type:table</a>"
-pattern. </p>
-
-<p> Example: </p>
-
-<pre>
-/etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    # Don't allowlist connections to the backup IP address.
-    <a href="postconf.5.html#postscreen_whitelist_interfaces">postscreen_whitelist_interfaces</a> = !168.100.189.8, <a href="DATABASE_README.html#types">static</a>:all
-</pre>
-
-<p> This feature is available in Postfix 2.9 and later.  </p>
+<p> This feature is available in Postfix 2.9 - 3.5. </p>
 
 
 </DD>
@@ -10147,6 +10186,17 @@ that rewrite into a form that ends in the "@" null domain.  </p>
 rejecting the address as invalid.  </p>
 
 <p> This feature is available in Postfix 2.3 and later.
+
+
+</DD>
+
+<DT><b><a name="respectful_logging">respectful_logging</a>
+(default: see 'postconf -d' output)</b></DT><DD>
+
+<p> Avoid logging that implies white is better than black. Instead
+use 'allowlist', 'denylist', and variations of those words. </p>
+
+<p> This feature is available in Postfix 3.6 and later. </p>
 
 
 </DD>
@@ -14741,7 +14791,7 @@ in Postfix version 2.1 and later.  </dd>
 <dt><b><a name="defer_if_reject">defer_if_reject</a></b></dt>
 
 <dd>Defer the request if some later restriction would result in a
-REJECT action.  This is useful when a whitelisting feature fails
+REJECT action.  This is useful when an allowlisting feature fails
 due to a temporary problem.  This feature is available in Postfix
 version 2.1 and later.  </dd>
 

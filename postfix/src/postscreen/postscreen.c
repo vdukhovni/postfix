@@ -124,6 +124,10 @@
 /* .IP "\fBpostscreen_reject_footer_maps ($smtpd_reject_footer_maps)\fR"
 /*	Optional lookup table for information that is appended after a 4XX
 /*	or 5XX \fBpostscreen\fR(8) server response.
+/* .PP
+/*	Available in Postfix 3.6 and later:
+/* .IP "\fBrespectful_logging (see 'postconf -d' output)\fR"
+/*	Avoid logging that implies white is better than black.
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -157,8 +161,7 @@
 /* .IP "\fBpostscreen_access_list (permit_mynetworks)\fR"
 /*	Permanent allow/denylist for remote SMTP client IP addresses.
 /* .IP "\fBpostscreen_blacklist_action (ignore)\fR"
-/*	The action that \fBpostscreen\fR(8) takes when a remote SMTP client is
-/*	permanently denylisted with the postscreen_access_list parameter.
+/*	Renamed to postscreen_denylist_action in Postfix 3.6.
 /* MAIL EXCHANGER POLICY TESTS
 /* .ad
 /* .fi
@@ -170,9 +173,7 @@
 /*	\fBpostscreen\fR(8) cache between primary and backup MTAs,
 /*	which would introduce a common point of failure.
 /* .IP "\fBpostscreen_whitelist_interfaces (static:all)\fR"
-/*	A list of local \fBpostscreen\fR(8) server IP addresses where a
-/*	non-allowlisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
-/*	allowlist status.
+/*	Renamed to postscreen_allowlist_interfaces in Postfix 3.6.
 /* BEFORE 220 GREETING TESTS
 /* .ad
 /* .fi
@@ -220,13 +221,24 @@
 /* .PP
 /*	Available in Postfix version 2.11 and later:
 /* .IP "\fBpostscreen_dnsbl_whitelist_threshold (0)\fR"
-/*	Allow a remote SMTP client to skip "before" and "after 220
-/*	greeting" protocol tests, based on its combined DNSBL score as
-/*	defined with the postscreen_dnsbl_sites parameter.
+/*	Renamed to postscreen_dnsbl_allowlist_threshold in Postfix 3.6.
 /* .PP
 /*	Available in Postfix version 3.0 and later:
 /* .IP "\fBpostscreen_dnsbl_timeout (10s)\fR"
 /*	The time limit for DNSBL or DNSWL lookups.
+/* .PP
+/*	Available in Postfix version 3.6 and later:
+/* .IP "\fBpostscreen_denylist_action (ignore)\fR"
+/*	The action that \fBpostscreen\fR(8) takes when a remote SMTP client is
+/*	permanently denylisted with the postscreen_access_list parameter.
+/* .IP "\fBpostscreen_allowlist_interfaces (static:all)\fR"
+/*	A list of local \fBpostscreen\fR(8) server IP addresses where a
+/*	non-allowlisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
+/*	allowlist status.
+/* .IP "\fBpostscreen_dnsbl_allowlist_threshold (0)\fR"
+/*	Allow a remote SMTP client to skip "before" and "after 220
+/*	greeting" protocol tests, based on its combined DNSBL score as
+/*	defined with the postscreen_dnsbl_sites parameter.
 /* AFTER 220 GREETING TESTS
 /* .ad
 /* .fi
@@ -485,7 +497,7 @@ int     var_psc_pre_queue_limit;
 int     var_psc_watchdog;
 
 char   *var_psc_acl;
-char   *var_psc_blist_action;
+char   *var_psc_dnlist_action;
 
 char   *var_psc_greet_ttl;
 int     var_psc_greet_wait;
@@ -497,7 +509,7 @@ int     var_psc_pregr_ttl;
 char   *var_psc_dnsbl_sites;
 char   *var_psc_dnsbl_reply;
 int     var_psc_dnsbl_thresh;
-int     var_psc_dnsbl_wthresh;
+int     var_psc_dnsbl_althresh;
 char   *var_psc_dnsbl_action;
 int     var_psc_dnsbl_min_ttl;
 int     var_psc_dnsbl_max_ttl;
@@ -531,7 +543,7 @@ int     var_psc_cconn_limit;
 char   *var_smtpd_exp_filter;
 char   *var_psc_exp_filter;
 
-char   *var_psc_wlist_if;
+char   *var_psc_allist_if;
 char   *var_psc_uproxy_proto;
 int     var_psc_uproxy_tmout;
 
@@ -564,8 +576,8 @@ HTABLE *psc_client_concurrency;		/* per-client concurrency */
   * Local variables and functions.
   */
 static ARGV *psc_acl;			/* permanent allow/denylist */
-static int psc_blist_action;		/* PSC_ACT_DROP/ENFORCE/etc */
-static ADDR_MATCH_LIST *psc_wlist_if;	/* allowlist interfaces */
+static int psc_dnlist_action;		/* PSC_ACT_DROP/ENFORCE/etc */
+static ADDR_MATCH_LIST *psc_allist_if;	/* allowlist interfaces */
 
 static void psc_endpt_lookup_done(int, VSTREAM *,
 			             MAI_HOSTADDR_STR *, MAI_SERVPORT_STR *,
@@ -663,6 +675,16 @@ static void psc_service(VSTREAM *smtp_client_stream,
     psc_endpt_lookup(smtp_client_stream, psc_endpt_lookup_done);
 }
 
+/* psc_warn_compat_respectful_logging - compatibility warning */
+
+static void psc_warn_compat_respectful_logging(PSC_STATE *state)
+{
+    msg_info("using backwards-compatible default setting "
+	     VAR_RESPECTFUL_LOGGING "=no for client [%s]:%s",
+	     PSC_CLIENT_ADDR_PORT(state));
+    warn_compat_respectful_logging = 0;
+}
+
 /* psc_endpt_lookup_done - endpoint lookup completed */
 
 static void psc_endpt_lookup_done(int endpt_status,
@@ -738,10 +760,14 @@ static void psc_endpt_lookup_done(int endpt_status,
 	    /*
 	     * Permanently denylisted.
 	     */
-	case PSC_ACL_ACT_BLACKLIST:
-	    msg_info("BLACKLISTED [%s]:%s", PSC_CLIENT_ADDR_PORT(state));
-	    PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_BLIST_FAIL);
-	    switch (psc_blist_action) {
+	case PSC_ACL_ACT_DENYLIST:
+	    msg_info("%sLISTED [%s]:%s",
+		     var_respectful_logging ? "DENY" : "BLACK",
+		     PSC_CLIENT_ADDR_PORT(state));
+	    if (warn_compat_respectful_logging)
+		psc_warn_compat_respectful_logging(state);
+	    PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_DNLIST_FAIL);
+	    switch (psc_dnlist_action) {
 	    case PSC_ACT_DROP:
 		PSC_DROP_SESSION_STATE(state,
 			     "521 5.3.2 Service currently unavailable\r\n");
@@ -751,7 +777,7 @@ static void psc_endpt_lookup_done(int endpt_status,
 			     "550 5.3.2 Service currently unavailable\r\n");
 		break;
 	    case PSC_ACT_IGNORE:
-		PSC_UNFAIL_SESSION_STATE(state, PSC_STATE_FLAG_BLIST_FAIL);
+		PSC_UNFAIL_SESSION_STATE(state, PSC_STATE_FLAG_DNLIST_FAIL);
 
 		/*
 		 * Not: PSC_PASS_SESSION_STATE. Repeat this test the next
@@ -760,15 +786,19 @@ static void psc_endpt_lookup_done(int endpt_status,
 		break;
 	    default:
 		msg_panic("%s: unknown denylist action value %d",
-			  myname, psc_blist_action);
+			  myname, psc_dnlist_action);
 	    }
 	    break;
 
 	    /*
 	     * Permanently allowlisted.
 	     */
-	case PSC_ACL_ACT_WHITELIST:
-	    msg_info("WHITELISTED [%s]:%s", PSC_CLIENT_ADDR_PORT(state));
+	case PSC_ACL_ACT_ALLOWLIST:
+	    msg_info("%sLISTED [%s]:%s",
+		     var_respectful_logging ? "ALLOW" : "WHITE",
+		     PSC_CLIENT_ADDR_PORT(state));
+	    if (warn_compat_respectful_logging)
+		psc_warn_compat_respectful_logging(state);
 	    psc_conclude(state);
 	    return;
 
@@ -821,9 +851,12 @@ static void psc_endpt_lookup_done(int endpt_status,
      * Don't allowlist clients that connect to backup MX addresses. Fail
      * "closed" on error.
      */
-    if (addr_match_list_match(psc_wlist_if, smtp_server_addr->buf) == 0) {
-	state->flags |= (PSC_STATE_FLAG_WLIST_FAIL | PSC_STATE_FLAG_NOFORWARD);
-	msg_info("WHITELIST VETO [%s]:%s", PSC_CLIENT_ADDR_PORT(state));
+    if (addr_match_list_match(psc_allist_if, smtp_server_addr->buf) == 0) {
+	state->flags |= (PSC_STATE_FLAG_ALLIST_FAIL | PSC_STATE_FLAG_NOFORWARD);
+	msg_info("%sLIST VETO [%s]:%s", var_respectful_logging ?
+		 "ALLOW" : "WHITE", PSC_CLIENT_ADDR_PORT(state));
+	if (warn_compat_respectful_logging)
+	    psc_warn_compat_respectful_logging(state);
     }
 
     /*
@@ -1011,10 +1044,10 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     psc_early_init();
     psc_smtpd_init();
 
-    if ((psc_blist_action = name_code(actions, NAME_CODE_FLAG_NONE,
-				      var_psc_blist_action)) < 0)
-	msg_fatal("bad %s value: %s", VAR_PSC_BLIST_ACTION,
-		  var_psc_blist_action);
+    if ((psc_dnlist_action = name_code(actions, NAME_CODE_FLAG_NONE,
+				       var_psc_dnlist_action)) < 0)
+	msg_fatal("bad %s value: %s", VAR_PSC_DNLIST_ACTION,
+		  var_psc_dnlist_action);
     if ((psc_dnsbl_action = name_code(actions, NAME_CODE_FLAG_NONE,
 				      var_psc_dnsbl_action)) < 0)
 	msg_fatal("bad %s value: %s", VAR_PSC_DNSBL_ACTION,
@@ -1036,8 +1069,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	msg_fatal("bad %s value: %s", VAR_PSC_BARLF_ACTION,
 		  var_psc_barlf_action);
     /* Fail "closed" on error. */
-    psc_wlist_if = addr_match_list_init(VAR_PSC_WLIST_IF, MATCH_FLAG_RETURN,
-					var_psc_wlist_if);
+    psc_allist_if = addr_match_list_init(VAR_PSC_ALLIST_IF, MATCH_FLAG_RETURN,
+					 var_psc_allist_if);
 
     /*
      * Start the cache maintenance pseudo thread last. Early cleanup makes
@@ -1126,7 +1159,7 @@ int     main(int argc, char **argv)
 	VAR_PSC_NSMTP_ACTION, DEF_PSC_NSMTP_ACTION, &var_psc_nsmtp_action, 1, 0,
 	VAR_PSC_BARLF_ACTION, DEF_PSC_BARLF_ACTION, &var_psc_barlf_action, 1, 0,
 	VAR_PSC_ACL, DEF_PSC_ACL, &var_psc_acl, 0, 0,
-	VAR_PSC_BLIST_ACTION, DEF_PSC_BLIST_ACTION, &var_psc_blist_action, 1, 0,
+	VAR_PSC_DNLIST_ACTION, DEF_PSC_DNLIST_ACTION, &var_psc_dnlist_action, 1, 0,
 	VAR_PSC_FORBID_CMDS, DEF_PSC_FORBID_CMDS, &var_psc_forbid_cmds, 0, 0,
 	VAR_PSC_EHLO_DIS_WORDS, DEF_PSC_EHLO_DIS_WORDS, &var_psc_ehlo_dis_words, 0, 0,
 	VAR_PSC_EHLO_DIS_MAPS, DEF_PSC_EHLO_DIS_MAPS, &var_psc_ehlo_dis_maps, 0, 0,
@@ -1135,14 +1168,13 @@ int     main(int argc, char **argv)
 	VAR_PSC_CMD_FILTER, DEF_PSC_CMD_FILTER, &var_psc_cmd_filter, 0, 0,
 	VAR_DNSBLOG_SERVICE, DEF_DNSBLOG_SERVICE, &var_dnsblog_service, 1, 0,
 	VAR_TLSPROXY_SERVICE, DEF_TLSPROXY_SERVICE, &var_tlsproxy_service, 1, 0,
-	VAR_PSC_WLIST_IF, DEF_PSC_WLIST_IF, &var_psc_wlist_if, 0, 0,
+	VAR_PSC_ALLIST_IF, DEF_PSC_ALLIST_IF, &var_psc_allist_if, 0, 0,
 	VAR_PSC_UPROXY_PROTO, DEF_PSC_UPROXY_PROTO, &var_psc_uproxy_proto, 0, 0,
 	VAR_PSC_REJ_FTR_MAPS, DEF_PSC_REJ_FTR_MAPS, &var_psc_rej_ftr_maps, 0, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {
 	VAR_PSC_DNSBL_THRESH, DEF_PSC_DNSBL_THRESH, &var_psc_dnsbl_thresh, 0, 0,
-	VAR_PSC_DNSBL_WTHRESH, DEF_PSC_DNSBL_WTHRESH, &var_psc_dnsbl_wthresh, 0, 0,
 	VAR_PSC_CMD_COUNT, DEF_PSC_CMD_COUNT, &var_psc_cmd_count, 1, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
 	0,
@@ -1151,6 +1183,7 @@ int     main(int argc, char **argv)
 	VAR_PSC_POST_QLIMIT, DEF_PSC_POST_QLIMIT, &var_psc_post_queue_limit, 5, 0,
 	VAR_PSC_PRE_QLIMIT, DEF_PSC_PRE_QLIMIT, &var_psc_pre_queue_limit, 10, 0,
 	VAR_PSC_CCONN_LIMIT, DEF_PSC_CCONN_LIMIT, &var_psc_cconn_limit, 0, 0,
+	VAR_PSC_DNSBL_ALTHRESH, DEF_PSC_DNSBL_ALTHRESH, &var_psc_dnsbl_althresh, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {

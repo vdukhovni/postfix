@@ -73,6 +73,7 @@ extern int warn_compat_break_smtpd_tls_fpt_dgst;
 extern int warn_compat_break_smtp_tls_fpt_dgst;
 extern int warn_compat_break_lmtp_tls_fpt_dgst;
 extern int warn_compat_relay_before_rcpt_checks;
+extern int warn_compat_respectful_logging;
 
 extern long compat_level;
 
@@ -3695,7 +3696,11 @@ extern int var_psc_dnsbl_thresh;
 
 #define VAR_PSC_DNSBL_WTHRESH	"postscreen_dnsbl_whitelist_threshold"
 #define DEF_PSC_DNSBL_WTHRESH	0
-extern int var_psc_dnsbl_wthresh;
+
+#define VAR_PSC_DNSBL_ALTHRESH	"postscreen_dnsbl_allowlist_threshold"
+#define DEF_PSC_DNSBL_ALTHRESH	\
+	"${" VAR_PSC_DNSBL_WTHRESH "?{$" VAR_PSC_DNSBL_WTHRESH "}:{0}}"
+extern int var_psc_dnsbl_althresh;
 
 #define VAR_PSC_DNSBL_ENABLE	"postscreen_dnsbl_enable"
 #define DEF_PSC_DNSBL_ENABLE	0
@@ -3759,7 +3764,11 @@ extern int var_psc_barlf_ttl;
 
 #define VAR_PSC_BLIST_ACTION	"postscreen_blacklist_action"
 #define DEF_PSC_BLIST_ACTION	"ignore"
-extern char *var_psc_blist_nets;
+
+#define VAR_PSC_DNLIST_ACTION	"postscreen_denylist_action"
+#define DEF_PSC_DNLIST_ACTION	\
+	"${" VAR_PSC_BLIST_ACTION "?{$" VAR_PSC_BLIST_ACTION "}:{" DEF_PSC_BLIST_ACTION "}}"
+extern char *var_psc_dnlist_nets;
 
 #define VAR_PSC_CMD_COUNT	"postscreen_command_count_limit"
 #define DEF_PSC_CMD_COUNT	20
@@ -3831,7 +3840,11 @@ extern char *var_psc_acl;
 
 #define VAR_PSC_WLIST_IF	"postscreen_whitelist_interfaces"
 #define DEF_PSC_WLIST_IF	"static:all"
-extern char *var_psc_wlist_if;
+
+#define VAR_PSC_ALLIST_IF	"postscreen_allowlist_interfaces"
+#define DEF_PSC_ALLIST_IF	\
+	"${" VAR_PSC_WLIST_IF "?{$" VAR_PSC_WLIST_IF "}:{" DEF_PSC_WLIST_IF "}}"
+extern char *var_psc_allist_if;
 
 #define NOPROXY_PROTO_NAME	""
 
@@ -3842,6 +3855,11 @@ extern char *var_psc_uproxy_proto;
 #define VAR_PSC_UPROXY_TMOUT	"postscreen_upstream_proxy_timeout"
 #define DEF_PSC_UPROXY_TMOUT	"5s"
 extern int var_psc_uproxy_tmout;
+
+#define VAR_RESPECTFUL_LOGGING "postscreen_respecful_logging"
+#define DEF_RESPECTFUL_LOGGING \
+	"${{$compatibility_level} <level {3.6} ?" " {no} : {yes}}"
+extern bool var_respectful_logging;
 
 #define VAR_DNSBLOG_SERVICE	"dnsblog_service_name"
 #define DEF_DNSBLOG_SERVICE	MAIL_SERVICE_DNSBLOG

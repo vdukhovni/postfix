@@ -5,9 +5,11 @@ Wish list:
 	created (fork() fails), or if a child process fails upon its
 	first use. The master always unthrottles the service if a process
 	handles a client successfully. This is sufficient to mitigate
-	local configuration errors. It also slows down stupid remote
-	attacks as long as malicious traffic dominates benign traffic.
-	Perhaps monitor a crashing percentage?
+	local errors that break all attempts to use a service. It also
+	slows down stupid remote attacks as long as malicious traffic
+	dominates benign traffic. Perhaps monitor a crashing percentage?
+	If 50% of all connections to a service result in abnormal
+	termination, that would be bad even under a non-attack scenario.
 
 	More accurate address verification: do a quota check before
 	reporting that a local(8) or virtual(8) recipient is deliverable.

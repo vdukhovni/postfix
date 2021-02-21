@@ -25401,9 +25401,13 @@ Apologies for any names omitted.
 
 20210216
 
+	Respectful code: avoid using terminology that implies white
+	is better than black. Instead, use 'allowlist', 'denylist',
+	and variations on those words. This continues work started
+	with Noel Jones a year ago.
+
 	Documentation: replaced white/blacklist with allow/denylist,
-	except in parameter names and lopging. Those will need a
-	compatibilty safety net to avoid breaking log analysis tools.
+	except in parameter names and logging. Files:
 	proto/ADDRESS_VERIFICATION_README.html, proto/cidr_table,
 	proto/OVERVIEW.html, proto/postconf.proto,
 	proto/POSTSCREEN_README.html, proto/SMTPD_ACCESS_README.html,
@@ -25416,3 +25420,25 @@ Apologies for any names omitted.
 	proxymap/proxymap.c, smtpd/smtpd.c, smtpd/smtpd_check.c,
 	smtpd/smtpd_dnswl.in, smtpd/smtpd_dnswl.ref, tlsproxy/tlsproxy.c,
 	verify/verify.c.
+
+20210220
+
+	Renamed postscreen_dnsbl_whitelist_threshold,
+	postscreen_blacklist_action, and postscreen_whitelist_interfaces,
+	with backwards-compatible default settings, and updated
+	documentation.
+
+	Forked POSTSCREEN_README for readability, to avoid deprecated
+	parameter names and logging examples. The historical parameter
+	names and logging are still described in POSTSCREEN_3_5_README.
+	Files: proto/Makefile.in, proto/POSTSCREEN_3_5_README.html,
+	proto/POSTSCREEN_README.html.
+
+	Renamed internal variables with names that contain 'white' or
+	'black'. Files: postscreen/postscreen.c, postscreen/postscreen.h.
+
+	Feature: respectful_logging configuration parameter (the
+	default depends on the compatibility_level) to choose
+	between respectful and deprecated logging formats. Files:
+	mantools/postlink, proto/postconf.proto, global/mail_params.[hc],
+	postscreen/postscreen.c, proto/COMPATIBILITY_README.

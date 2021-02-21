@@ -18,7 +18,8 @@
 <h2> <a name="intro">Introduction</a> </h2>
 
 <p> This document describes features that are available in Postfix
-2.8 and later. </p>
+3.6 and later. See <a href="proto/POSTSCREEN_3_5_README.html">
+POSTSCREEN_3_5_README.html</a> for Postfix versions 2.8 - 3.5. </p>
 
 <p> The Postfix postscreen(8) daemon provides additional protection
 against mail server overload. One postscreen(8) process handles
@@ -163,15 +164,15 @@ handling of known clients. </p>
 
 <ul>
 
-<li> <a href="#perm_white_black"> Permanent allow/denylist test </a>
+<li> <a href="#perm_allow_deny"> Permanent allow/denylist test </a>
 
-<li> <a href="#temp_white"> Temporary allowlist test </a>
+<li> <a href="#temp_allow"> Temporary allowlist test </a>
 
-<li> <a href="#white_veto"> MX Policy test </a>
+<li> <a href="#allow_veto"> MX Policy test </a>
 
 </ul>
 
-<h3> <a name="perm_white_black"> Permanent allow/denylist test </a> </h3>
+<h3> <a name="perm_allow_deny"> Permanent allow/denylist test </a> </h3>
 
 <p> The postscreen_access_list parameter (default: permit_mynetworks)
 specifies a permanent access list for SMTP client IP addresses. Typically
@@ -199,9 +200,14 @@ details.  </p>
 postscreen(8) logs this with the client address and port number as:
 </p>
 
+<blockquote> 
 <pre>
-    <b>WHITELISTED</b> <i>[address]:port</i>
+<b>ALLOWLISTED</b> <i>[address]:port</i>
 </pre>
+</blockquote>
+
+<blockquote> <p> Use the respectful_logging configuration parameter to
+select a deprecated form of this logging. </p> </blockquote>
 
 <p> The allowlist action is not configurable: immediately hand off the
 connection to a Postfix SMTP server process. </p>
@@ -210,15 +216,20 @@ connection to a Postfix SMTP server process. </p>
 postscreen(8) logs this with the client address and port number as:
 </p>
 
+<blockquote> 
 <pre>
-    <b>BLACKLISTED</b> <i>[address]:port</i>
+<b>DENYLISTED</b> <i>[address]:port</i>
 </pre>
+</blockquote>
 
-<p> The postscreen_blacklist_action parameter specifies the action
+<blockquote> <p> Use the respectful_logging configuration parameter to
+select a deprecated form of this logging. </p> </blockquote>
+
+<p> The postscreen_denylist_action parameter specifies the action
 that is taken next.  See "<a href="#fail_before_220">When tests
 fail before the 220 SMTP server greeting</a>" below. </p>
 
-<h3> <a name="temp_white"> Temporary allowlist test </a> </h3>
+<h3> <a name="temp_allow"> Temporary allowlist test </a> </h3>
 
 <p> The postscreen(8) daemon maintains a <i>temporary</i>
 allowlist for SMTP client IP addresses that have passed all
@@ -228,7 +239,7 @@ temporary allowlist is not used for SMTP client addresses
 that appear on the <i>permanent</i> access list. </p>
 
 <p> By default the temporary allowlist is not shared with other
-postscreen(8) daemons. See <a href="#temp_white_sharing"> Sharing
+postscreen(8) daemons. See <a href="#temp_allow_sharing"> Sharing
 the temporary allowlist </a> below for alternatives. </p>
 
 <p> When the SMTP client address appears on the temporary
@@ -245,7 +256,7 @@ excluded from further tests until its temporary allowlist
 entry expires, as controlled with the postscreen_*_ttl
 parameters.  Expired entries are silently renewed if possible. </p>
 
-<h3> <a name="white_veto"> MX Policy test </a> </h3>
+<h3> <a name="allow_veto"> MX Policy test </a> </h3>
 
 <p> When the remote SMTP client is not on the static access list
 or temporary allowlist, postscreen(8) can implement a number of
@@ -280,7 +291,7 @@ server is: </p>
 
 <pre>
 /etc/postfix/main.cf:
-    postscreen_whitelist_interfaces = !168.100.189.8 static:all
+    postscreen_allowlist_interfaces = !168.100.189.8 static:all
 </pre>
 
 <p> Translation: allow clients to obtain the temporary allowlist
@@ -293,10 +304,13 @@ backup MX address.  </p>
 postscreen(8) logs this with the client address and port number as:
 </p>
 
-<pre>
-    <b>CONNECT from</b> <i>[address]:port</i> <b>to [168.100.189.8]:25</b>
-    <b>WHITELIST VETO</b> <i>[address]:port</i>
-</pre>
+<blockquote> <pre>
+<b>CONNECT from</b> <i>[address]:port</i> <b>to [168.100.189.8]:25</b>
+<b>ALLOWLIST VETO</b> <i>[address]:port</i>
+</pre> </blockquote>
+
+<blockquote> <p> Use the respectful_logging configuration parameter to
+select a deprecated form of this logging. </p> </blockquote>
 
 <p> Translation: the client at <i>[address]:port</i> connected to
 the backup MX address 168.100.189.8 while it was not allowlisted.
@@ -418,7 +432,7 @@ before the 220 SMTP server greeting</a>" below. </p>
 
 <p> When the client address matches the permanent denylist, or
 when the client fails the pregreet or DNSBL tests, the action is
-specified with postscreen_blacklist_action, postscreen_greet_action,
+specified with postscreen_denylist_action, postscreen_greet_action,
 or postscreen_dnsbl_action, respectively. </p>
 
 <dl>
@@ -464,9 +478,9 @@ measures may help to avoid email delays: </p>
 <ul>
 
 <li> <p> Allow "good" clients to skip tests with the
-postscreen_dnsbl_whitelist_threshold feature (Postfix 2.11 and
-later). This is especially effective for sites such as Google that
-never retry immediately from the same IP address. </p>
+postscreen_dnsbl_allowlist_threshold feature. This is especially effective
+for large providers that usually don't retry from the same IP
+address. </p>
 
 <li> <p> Small sites: Configure postscreen(8) to listen on multiple
 IP addresses, published in DNS as different IP addresses for the
@@ -783,7 +797,7 @@ mail</a>
 
 <li> <a href="#turnoff"> Turning off postscreen(8) </a>
 
-<li> <a href="#temp_white_sharing"> Sharing the temporary allowlist
+<li> <a href="#temp_allow_sharing"> Sharing the temporary allowlist
 </a>
 
 </ul>
@@ -1070,7 +1084,7 @@ may follow.  </p>
 
 </ol>
 
-<h3> <a name="temp_white_sharing"> Sharing the temporary allowlist </a> </h3>
+<h3> <a name="temp_allow_sharing"> Sharing the temporary allowlist </a> </h3>
 
 <p> By default, the temporary allowlist is not shared between
 multiple postscreen(8) daemons.  To enable sharing, choose one

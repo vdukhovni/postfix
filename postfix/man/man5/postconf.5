@@ -4952,7 +4952,7 @@ server process.
 .IP "\fB reject \fR"
 Denylist the client and terminate
 the search. Subject the client to the action configured with the
-postscreen_blacklist_action configuration parameter.
+postscreen_denylist_action configuration parameter.
 .br
 .IP "\fB dunno \fR"
 All \fBpostscreen\fR(8) access lists
@@ -4976,7 +4976,8 @@ Example:
 /etc/postfix/main.cf:
     postscreen_access_list = permit_mynetworks,
         cidr:/etc/postfix/postscreen_access.cidr
-    postscreen_blacklist_action = enforce
+    # Postfix < 3.6 use postscreen_blacklist_action.
+    postscreen_denylist_action = enforce
 .fi
 .ad
 .ft R
@@ -4994,6 +4995,58 @@ Example:
 .ft R
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_allowlist_interfaces (default: static:all)
+A list of local \fBpostscreen\fR(8) server IP addresses where a
+non\-allowlisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
+allowlist status. This status is required before the client can
+talk to a Postfix SMTP server process.  By default, a client can
+obtain \fBpostscreen\fR(8)'s allowlist status on any local \fBpostscreen\fR(8)
+server IP address.
+.PP
+When \fBpostscreen\fR(8) listens on both primary and backup MX
+addresses, the postscreen_allowlist_interfaces parameter can be
+configured to give the temporary allowlist status only when a client
+connects to a primary MX address. Once a client is allowlisted it
+can talk to a Postfix SMTP server on any address. Thus, clients
+that connect only to backup MX addresses will never become allowlisted,
+and will never be allowed to talk to a Postfix SMTP server process.
+.PP
+Specify a list of network addresses or network/netmask patterns,
+separated by commas and/or whitespace. The netmask specifies the
+number of bits in the network part of a host address. Continue long
+lines by starting the next line with whitespace.
+.PP
+You can also specify "/file/name" or "type:table" patterns.  A
+"/file/name" pattern is replaced by its contents; a "type:table"
+lookup table is matched when a table entry matches a lookup string
+(the lookup result is ignored).
+.PP
+The list is matched left to right, and the search stops on the
+first match. Specify "!pattern" to exclude an address or network
+block from the list.
+.PP
+Note: IP version 6 address information must be specified inside
+[] in the postscreen_allowlist_interfaces value, and in files
+specified with "/file/name".  IP version 6 addresses contain the
+":" character, and would otherwise be confused with a "type:table"
+pattern.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    # Don't allowlist connections to the backup IP address.
+    # Postfix < 3.6 use postscreen_whitelist_interfaces.
+    postscreen_allowlist_interfaces = !168.100.189.8, static:all
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 3.6 and later.
+.PP
+Available as postscreen_whitelist_interfaces in Postfix 2.9 \- 3.5.
 .SH postscreen_bare_newline_action (default: ignore)
 The action that \fBpostscreen\fR(8) takes when a remote SMTP client sends
 a bare newline character, that is, a newline not preceded by carriage
@@ -5038,27 +5091,9 @@ one\-letter suffix that specifies the time unit).  Time units: s
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_blacklist_action (default: ignore)
-The action that \fBpostscreen\fR(8) takes when a remote SMTP client is
-permanently denylisted with the postscreen_access_list parameter.
-Specify one of the following:
-.IP "\fBignore\fR (default)"
-Ignore  this result. Allow other tests to complete.  Repeat
-this test the next time the client connects.
-This option is useful for testing and collecting statistics
-without blocking mail.
-.br
-.IP "\fBenforce\fR"
-Allow other tests to complete. Reject attempts to deliver mail
-with a 550 SMTP reply, and log the helo/sender/recipient information.
-Repeat this test the next time the client connects.
-.br
-.IP "\fBdrop\fR"
-Drop the connection immediately with a 521 SMTP reply. Repeat
-this test the next time the client connects.
-.br
-.br
+Renamed to postscreen_denylist_action in Postfix 3.6.
 .PP
-This feature is available in Postfix 2.8.
+This feature is available in Postfix 2.8 \- 3.5.
 .SH postscreen_cache_cleanup_interval (default: 12h)
 The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
 Cache cleanup increases the load on the cache database and should
@@ -5125,6 +5160,30 @@ The time limit to read an entire command line with \fBpostscreen\fR(8)'s
 built\-in SMTP protocol engine.
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_denylist_action (default: ignore)
+The action that \fBpostscreen\fR(8) takes when a remote SMTP client is
+permanently denylisted with the postscreen_access_list parameter.
+Specify one of the following:
+.IP "\fBignore\fR (default)"
+Ignore  this result. Allow other tests to complete.  Repeat
+this test the next time the client connects.
+This option is useful for testing and collecting statistics
+without blocking mail.
+.br
+.IP "\fBenforce\fR"
+Allow other tests to complete. Reject attempts to deliver mail
+with a 550 SMTP reply, and log the helo/sender/recipient information.
+Repeat this test the next time the client connects.
+.br
+.IP "\fBdrop\fR"
+Drop the connection immediately with a 521 SMTP reply. Repeat
+this test the next time the client connects.
+.br
+.br
+.PP
+This feature is available in Postfix 3.6 and later.
+.PP
+Available as postscreen_blacklist_action in Postfix 2.8 \- 3.5.
 .SH postscreen_disable_vrfy_command (default: $disable_vrfy_command)
 Disable the SMTP VRFY command in the \fBpostscreen\fR(8) daemon.  See
 disable_vrfy_command for details.
@@ -5168,6 +5227,22 @@ this test the next time the client connects.
 .br
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_dnsbl_allowlist_threshold (default: 0)
+Allow a remote SMTP client to skip "before" and "after 220
+greeting" protocol tests, based on its combined DNSBL score as
+defined with the postscreen_dnsbl_sites parameter.
+.PP
+Specify a negative value to enable this feature. When a client
+passes the postscreen_dnsbl_allowlist_threshold without having
+failed other tests, all pending or disabled tests are flagged as
+completed with a time\-to\-live value equal to postscreen_dnsbl_ttl.
+When a test was already completed, its time\-to\-live value is updated
+if it was less than postscreen_dnsbl_ttl.
+.PP
+This feature is available in Postfix 3.6 and later.
+.PP
+Available as postscreen_dnsbl_whitelist_threshold in Postfix 2.11
+\- 3.5.
 .SH postscreen_dnsbl_max_ttl (default: ${postscreen_dnsbl_ttl?{$postscreen_dnsbl_ttl}:{1}}h)
 The maximum amount of time that \fBpostscreen\fR(8) will use the
 result from a successful DNS\-based reputation test before a
@@ -5309,18 +5384,9 @@ one\-letter suffix that specifies the time unit).  Time units: s
 This feature is available in Postfix 2.8\-3.0. It was
 replaced by postscreen_dnsbl_max_ttl in Postfix 3.1.
 .SH postscreen_dnsbl_whitelist_threshold (default: 0)
-Allow a remote SMTP client to skip "before" and "after 220
-greeting" protocol tests, based on its combined DNSBL score as
-defined with the postscreen_dnsbl_sites parameter.
+Renamed to postscreen_dnsbl_allowlist_threshold in Postfix 3.6.
 .PP
-Specify a negative value to enable this feature. When a client
-passes the postscreen_dnsbl_whitelist_threshold without having
-failed other tests, all pending or disabled tests are flagged as
-completed with a time\-to\-live value equal to postscreen_dnsbl_ttl.
-When a test was already completed, its time\-to\-live value is updated
-if it was less than postscreen_dnsbl_ttl.
-.PP
-This feature is available in Postfix 2.11.
+This feature is available in Postfix 2.11 \- 3.5.
 .SH postscreen_enforce_tls (default: $smtpd_enforce_tls)
 Mandatory TLS: announce STARTTLS support to remote SMTP clients, and
 require that clients use TLS encryption.  See smtpd_postscreen_enforce_tls
@@ -5557,54 +5623,9 @@ one\-letter suffix that specifies the time unit).  Time units: s
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_whitelist_interfaces (default: static:all)
-A list of local \fBpostscreen\fR(8) server IP addresses where a
-non\-allowlisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
-allowlist status. This status is required before the client can
-talk to a Postfix SMTP server process.  By default, a client can
-obtain \fBpostscreen\fR(8)'s allowlist status on any local \fBpostscreen\fR(8)
-server IP address.
+Renamed to postscreen_allowlist_interfaces in Postfix 3.6.
 .PP
-When \fBpostscreen\fR(8) listens on both primary and backup MX
-addresses, the postscreen_whitelist_interfaces parameter can be
-configured to give the temporary allowlist status only when a client
-connects to a primary MX address. Once a client is allowlisted it
-can talk to a Postfix SMTP server on any address. Thus, clients
-that connect only to backup MX addresses will never become allowlisted,
-and will never be allowed to talk to a Postfix SMTP server process.
-.PP
-Specify a list of network addresses or network/netmask patterns,
-separated by commas and/or whitespace. The netmask specifies the
-number of bits in the network part of a host address. Continue long
-lines by starting the next line with whitespace.
-.PP
-You can also specify "/file/name" or "type:table" patterns.  A
-"/file/name" pattern is replaced by its contents; a "type:table"
-lookup table is matched when a table entry matches a lookup string
-(the lookup result is ignored).
-.PP
-The list is matched left to right, and the search stops on the
-first match. Specify "!pattern" to exclude an address or network
-block from the list.
-.PP
-Note: IP version 6 address information must be specified inside
-[] in the postscreen_whitelist_interfaces value, and in files
-specified with "/file/name".  IP version 6 addresses contain the
-":" character, and would otherwise be confused with a "type:table"
-pattern.
-.PP
-Example:
-.PP
-.nf
-.na
-.ft C
-/etc/postfix/main.cf:
-    # Don't allowlist connections to the backup IP address.
-    postscreen_whitelist_interfaces = !168.100.189.8, static:all
-.fi
-.ad
-.ft R
-.PP
-This feature is available in Postfix 2.9 and later.
+This feature is available in Postfix 2.9 \- 3.5.
 .SH prepend_delivered_header (default: command, file, forward)
 The message delivery contexts where the Postfix \fBlocal\fR(8) delivery
 agent prepends a Delivered\-To:  message header with the address
@@ -6373,6 +6394,11 @@ Resolve "user@ipaddress" as "user@[ipaddress]", instead of
 rejecting the address as invalid.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH respectful_logging (default: see 'postconf \-d' output)
+Avoid logging that implies white is better than black. Instead
+use 'allowlist', 'denylist', and variations of those words.
+.PP
+This feature is available in Postfix 3.6 and later.
 .SH rewrite_service_name (default: rewrite)
 The name of the address rewriting service. This service rewrites
 addresses to standard form and resolves them to a (delivery method,
@@ -9993,7 +10019,7 @@ in Postfix version 2.1 and later.
 .br
 .IP "\fBdefer_if_reject\fR"
 Defer the request if some later restriction would result in a
-REJECT action.  This is useful when a whitelisting feature fails
+REJECT action.  This is useful when an allowlisting feature fails
 due to a temporary problem.  This feature is available in Postfix
 version 2.1 and later.
 .br

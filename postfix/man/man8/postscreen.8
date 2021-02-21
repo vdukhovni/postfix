@@ -142,6 +142,10 @@ Available in Postfix version 3.4 and later:
 .IP "\fBpostscreen_reject_footer_maps ($smtpd_reject_footer_maps)\fR"
 Optional lookup table for information that is appended after a 4XX
 or 5XX \fBpostscreen\fR(8) server response.
+.PP
+Available in Postfix 3.6 and later:
+.IP "\fBrespectful_logging (see 'postconf -d' output)\fR"
+Avoid logging that implies white is better than black.
 .SH "TROUBLE SHOOTING CONTROLS"
 .na
 .nf
@@ -181,8 +185,7 @@ process.
 .IP "\fBpostscreen_access_list (permit_mynetworks)\fR"
 Permanent allow/denylist for remote SMTP client IP addresses.
 .IP "\fBpostscreen_blacklist_action (ignore)\fR"
-The action that \fBpostscreen\fR(8) takes when a remote SMTP client is
-permanently denylisted with the postscreen_access_list parameter.
+Renamed to postscreen_denylist_action in Postfix 3.6.
 .SH "MAIL EXCHANGER POLICY TESTS"
 .na
 .nf
@@ -196,9 +199,7 @@ on the same MTA. Larger sites would have to share the
 \fBpostscreen\fR(8) cache between primary and backup MTAs,
 which would introduce a common point of failure.
 .IP "\fBpostscreen_whitelist_interfaces (static:all)\fR"
-A list of local \fBpostscreen\fR(8) server IP addresses where a
-non\-allowlisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
-allowlist status.
+Renamed to postscreen_allowlist_interfaces in Postfix 3.6.
 .SH "BEFORE 220 GREETING TESTS"
 .na
 .nf
@@ -248,13 +249,24 @@ connections to.
 .PP
 Available in Postfix version 2.11 and later:
 .IP "\fBpostscreen_dnsbl_whitelist_threshold (0)\fR"
-Allow a remote SMTP client to skip "before" and "after 220
-greeting" protocol tests, based on its combined DNSBL score as
-defined with the postscreen_dnsbl_sites parameter.
+Renamed to postscreen_dnsbl_allowlist_threshold in Postfix 3.6.
 .PP
 Available in Postfix version 3.0 and later:
 .IP "\fBpostscreen_dnsbl_timeout (10s)\fR"
 The time limit for DNSBL or DNSWL lookups.
+.PP
+Available in Postfix version 3.6 and later:
+.IP "\fBpostscreen_denylist_action (ignore)\fR"
+The action that \fBpostscreen\fR(8) takes when a remote SMTP client is
+permanently denylisted with the postscreen_access_list parameter.
+.IP "\fBpostscreen_allowlist_interfaces (static:all)\fR"
+A list of local \fBpostscreen\fR(8) server IP addresses where a
+non\-allowlisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
+allowlist status.
+.IP "\fBpostscreen_dnsbl_allowlist_threshold (0)\fR"
+Allow a remote SMTP client to skip "before" and "after 220
+greeting" protocol tests, based on its combined DNSBL score as
+defined with the postscreen_dnsbl_sites parameter.
 .SH "AFTER 220 GREETING TESTS"
 .na
 .nf

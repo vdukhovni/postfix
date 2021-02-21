@@ -50,7 +50,7 @@ permanent in main.cf or master.cf, before <a href="#turnoff">turning
 off the backwards-compatibility safety net</a> as described at the
 end of this document. </p>
 
-<p> The following messages may be logged: </p>
+<p> Logged with compatibility_level &lt; 1: </p>
 
 <ul>
 
@@ -59,6 +59,12 @@ default setting append_dot_mydomain=yes </a> </p>
 
 <li> <p> <a href="#chroot"> Using backwards-compatible default setting
 chroot=y</a> </p>
+
+</ul>
+
+<p> Logged with compatibility_level &lt; 2: </p>
+
+<ul>
 
 <li><p> <a href="#relay_restrictions"> Using backwards-compatible
 default setting "smtpd_relay_restrictions = (empty)"</a> </p>
@@ -72,6 +78,12 @@ setting relay_domains=$mydestination </a> </p>
 <li> <p> <a href="#smtputf8_enable"> Using backwards-compatible
 default setting smtputf8_enable=no</a> </p>
 
+</ul>
+
+<p> Logged with compatibility_level &lt; 3.6: </p>
+
+<ul>
+
 <li> <p> <a href="#smtpd_digest"> Using backwards-compatible
 default setting smtpd_tls_fingerprint_digest=md5</a> </p>
 
@@ -83,6 +95,9 @@ default setting lmtp_tls_fingerprint_digest=md5</a> </p>
 
 <li> <p> <a href="#relay_before_rcpt"> Using backwards-compatible
 default setting smtpd_relay_before_recipient_restrictions=no</a> </p>
+
+<li> <p> <a href="#respectful_logging"> Using backwards-compatible
+default setting respectful_logging=no</a> </p>
 
 </ul>
 
@@ -479,9 +494,12 @@ smtpd_recipient_restrictions is primarily designed to enforce spam
 blocking policy. Both are evaluated while replying to the RCPT TO
 command, and both support the same features. </p> </blockquote>
 
-<p> When the compatibility_level is less than 3.6, and the
-smtpd_relay_before_recipient_restrictions parameter is left at its
-implicit default setting, Postfix may log the following message: </p>
+<p> To maintain compatibility with earlier versions, Postfix will
+keep evaluating smtpd_recipient_restrictions before
+smtpd_relay_restrictions, as long as the compatibility_level is
+less than 3.6, and the smtpd_relay_before_recipient_restrictions
+parameter is left at its implicit default setting. As a reminder,
+Postfix may log the following message: </p>
 
 <blockquote>
 <pre>
@@ -500,6 +518,39 @@ administrator should make the backwards-compatible setting
 <pre>
 # <b> postconf smtpd_relay_before_recipient_restrictions=no </b>
 # <b> postfix reload </b>
+</pre>
+</blockquote>
+
+<h2> <a name="respectful_logging"> Using backwards-compatible
+default setting respectful_logging=no</a> </h2>
+
+<p> Postfix version 3.6 deprecates configuration parameter names and
+logging that suggest white is better than black. Instead it prefers
+'allowlist, 'denylist', and variations of those words. While the renamed
+configuration parameters have backwards-compatible default values,
+the changes in logging could affect logfile analysis tools. </p>
+
+<p> To avoid breaking existing logfile analysis tools, Postfix will keep
+logging the deprecated form, as long as the respectful_logging parameter
+is left at its implicit default value, and the compatibility_level
+setting is less than 3.6. As a reminder, Postfix may log the following
+when a remote SMTP client is allowlisted or denylisted: </p>
+
+<blockquote>
+<pre>
+postfix/postscreen[22642]: Using backwards-compatible default setting
+    respectful_logging=no for client [<i>address</i>]:<i>port</i>
+</pre>
+</blockquote>
+
+<p> If Postfix should keep logging the deprecated form, then the
+system administrator should make the backwards-compatible setting
+"respectful_logging = no" permanent in main.cf.
+
+<blockquote>
+<pre>
+# <b>postconf "respectful_logging = no"</b>
+# <b>postfix reload</b>
 </pre>
 </blockquote>
 
@@ -533,7 +584,7 @@ the last incompatible change. The level is formatted as
 <i>major.minor.patch</i>, where <i>patch</i> is usually omitted and
 defaults to zero. Earlier compatibility levels are 0, 1 and 2. </p>
 
-<p> NOTE: this also introduces support for the "&lt;level",
+<p> NOTE: Postfix 3.6 also introduces support for the "&lt;level",
 "&lt;=level", and other operators to compare compatibility levels.
 With the standard operators "&lt;", "&lt;=", etc., compatibility
 level "3.10" would be smaller than "3.9" which is undesirable. </p>

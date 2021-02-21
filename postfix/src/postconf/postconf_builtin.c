@@ -142,6 +142,9 @@ static const CONFIG_STR_TABLE pcf_legacy_str_table[] = {
     {"authorized_verp_clients", ""},
     {"smtpd_client_connection_limit_exceptions", ""},
     {"postscreen_dnsbl_ttl", ""},
+    {"postscreen_blacklist_action", ""},
+    {"postscreen_dnsbl_whitelist_threshold", ""},
+    {"postscreen_whitelist_interfaces", ""},
     0,
 };
 

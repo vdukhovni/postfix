@@ -1052,8 +1052,6 @@ while (<>) {
     s;\bpostscreen_pipelining_ttl\b;<a href="postconf.5.html#postscreen_pipelining_ttl">$&</a>;g;
     s;\bpostscreen_watchdog_timeout\b;<a href="postconf.5.html#postscreen_watchdog_timeout">$&</a>;g;
     s;\bpostscreen_access_list\b;<a href="postconf.5.html#postscreen_access_list">$&</a>;g;
-    s;\bpostscreen_whitelist_networks\b;<a href="postconf.5.html#postscreen_whitelist_networks">$&</a>;g;
-    s;\bpostscreen_black[-</bB>]*\n*[ <bB>]*list_networks\b;<a href="postconf.5.html#postscreen_blacklist_networks">$&</a>;g;
     s;\bpostscreen_black[-</bB>]*\n*[ <bB>]*list_action\b;<a href="postconf.5.html#postscreen_blacklist_action">$&</a>;g;
     s;\bpostscreen_client_connection_count_limit\b;<a href="postconf.5.html#postscreen_client_connection_count_limit">$&</a>;g;
     s;\bpostscreen_tls_security_level\b;<a href="postconf.5.html#postscreen_tls_security_level">$&</a>;g;
@@ -1068,6 +1066,10 @@ while (<>) {
     s;\bpostscreen_whitelist_interfaces\b;<a href="postconf.5.html#postscreen_whitelist_interfaces">$&</a>;g;
     s;\bpostscreen_upstream_proxy_protocol\b;<a href="postconf.5.html#postscreen_upstream_proxy_protocol">$&</a>;g;
     s;\bpostscreen_upstream_proxy_timeout\b;<a href="postconf.5.html#postscreen_upstream_proxy_timeout">$&</a>;g;
+    s;\bpostscreen_allowlist_interfaces\b;<a href="postconf.5.html#postscreen_allowlist_interfaces">$&</a>;g;
+    s;\bpostscreen_denylist_action\b;<a href="postconf.5.html#postscreen_denylist_action">$&</a>;g;
+    s;\bpostscreen_dnsbl_allowlist_threshold\b;<a href="postconf.5.html#postscreen_dnsbl_allowlist_threshold">$&</a>;g;
+    s;\brespectful_logging\b;<a href="postconf.5.html#respectful_logging">$&</a>;g;
 
     s;\btlsproxy_watchdog_timeout\b;<a href="postconf.5.html#tlsproxy_watchdog_timeout">$&</a>;g;
     s;\btlsproxy_enforce_tls\b;<a href="postconf.5.html#tlsproxy_enforce_tls">$&</a>;g;

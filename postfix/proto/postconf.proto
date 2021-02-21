@@ -5409,7 +5409,7 @@ in Postfix version 2.1 and later.  </dd>
 <dt><b><a name="defer_if_reject">defer_if_reject</a></b></dt>
 
 <dd>Defer the request if some later restriction would result in a
-REJECT action.  This is useful when a whitelisting feature fails
+REJECT action.  This is useful when an allowlisting feature fails
 due to a temporary problem.  This feature is available in Postfix
 version 2.1 and later.  </dd>
 
@@ -14255,25 +14255,6 @@ IP address. </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
-#%PARAM postscreen_whitelist_networks $mynetworks
-#
-#<p> Network addresses that are permanently whitelisted, and that
-#will not be subjected to postscreen(8) checks. This parameter uses
-#the same address syntax as the mynetworks parameter. This feature
-#never uses the remote SMTP client hostname.  </p>
-#
-#<p> This feature is available in Postfix 2.8. </p>
-#
-#%PARAM postscreen_blacklist_networks 
-#
-#<p> Network addresses that are permanently blacklisted; see the
-#postscreen_blacklist_action parameter for possible actions.  This
-#parameter uses the same address syntax as the mynetworks parameter.
-#The blacklist has higher precedence than whitelists. This feature
-#never uses the remote SMTP client hostname.  </p>
-#
-#<p> This feature is available in Postfix 2.8. </p>
-
 %PARAM postscreen_access_list permit_mynetworks
 
 <p> Permanent allow/denylist for remote SMTP client IP addresses.
@@ -14306,7 +14287,7 @@ server process. </dd>
 
 <dt> <b> reject </b> </dt> <dd> Denylist the client and terminate
 the search. Subject the client to the action configured with the
-postscreen_blacklist_action configuration parameter. </dd>
+postscreen_denylist_action configuration parameter. </dd>
 
 <dt> <b> dunno </b> </dt> <dd> All postscreen(8) access lists
 implicitly have this command at the end. <br> When <b> dunno </b>
@@ -14323,7 +14304,8 @@ to the configured before/after 220 greeting tests. </dd>
 /etc/postfix/main.cf:
     postscreen_access_list = permit_mynetworks, 
         cidr:/etc/postfix/postscreen_access.cidr
-    postscreen_blacklist_action = enforce
+    # Postfix &lt; 3.6 use postscreen_blacklist_action.
+    postscreen_denylist_action = enforce
 </pre>
 
 <pre>
@@ -14348,6 +14330,12 @@ value to disable this feature.  </p>
 <p> This feature is available in Postfix 2.8. </p>
 
 %PARAM postscreen_blacklist_action ignore
+
+<p> Renamed to postscreen_denylist_action in Postfix 3.6. </p>
+
+<p> This feature is available in Postfix 2.8 - 3.5. </p>
+
+%PARAM postscreen_denylist_action ignore
 
 <p> The action that postscreen(8) takes when a remote SMTP client is
 permanently denylisted with the postscreen_access_list parameter.
@@ -14375,7 +14363,9 @@ this test the next time the client connects. </dd>
 
 </dl>
 
-<p> This feature is available in Postfix 2.8. </p>
+<p> This feature is available in Postfix 3.6 and later. </p>
+
+<p> Available as postscreen_blacklist_action in Postfix 2.8 - 3.5. </p>
 
 %PARAM smtpd_command_filter 
 
@@ -14651,18 +14641,27 @@ parameter. </p>
 
 %PARAM postscreen_dnsbl_whitelist_threshold 0
 
+<p> Renamed to postscreen_dnsbl_allowlist_threshold in Postfix 3.6. </p>
+
+<p> This feature is available in Postfix 2.11 - 3.5.  </p>
+
+%PARAM postscreen_dnsbl_allowlist_threshold 0
+
 <p> Allow a remote SMTP client to skip "before" and "after 220
 greeting" protocol tests, based on its combined DNSBL score as
 defined with the postscreen_dnsbl_sites parameter.  </p>
 
 <p> Specify a negative value to enable this feature. When a client
-passes the postscreen_dnsbl_whitelist_threshold without having
+passes the postscreen_dnsbl_allowlist_threshold without having
 failed other tests, all pending or disabled tests are flagged as
 completed with a time-to-live value equal to postscreen_dnsbl_ttl.
 When a test was already completed, its time-to-live value is updated
 if it was less than postscreen_dnsbl_ttl. </p>
 
-<p> This feature is available in Postfix 2.11.  </p>
+<p> This feature is available in Postfix 3.6 and later.  </p>
+
+<p> Available as postscreen_dnsbl_whitelist_threshold in Postfix 2.11
+- 3.5.  </p>
 
 %PARAM postscreen_command_count_limit 20
 
@@ -15676,6 +15675,12 @@ configuration parameter.  See there for details. </p>
 
 %PARAM postscreen_whitelist_interfaces static:all
 
+<p> Renamed to postscreen_allowlist_interfaces in Postfix 3.6. </p>
+
+<p> This feature is available in Postfix 2.9 - 3.5. </p>
+
+%PARAM postscreen_allowlist_interfaces static:all
+
 <p> A list of local postscreen(8) server IP addresses where a
 non-allowlisted remote SMTP client can obtain postscreen(8)'s temporary
 allowlist status. This status is required before the client can
@@ -15684,7 +15689,7 @@ obtain postscreen(8)'s allowlist status on any local postscreen(8)
 server IP address. </p>
 
 <p> When postscreen(8) listens on both primary and backup MX
-addresses, the postscreen_whitelist_interfaces parameter can be
+addresses, the postscreen_allowlist_interfaces parameter can be
 configured to give the temporary allowlist status only when a client
 connects to a primary MX address. Once a client is allowlisted it
 can talk to a Postfix SMTP server on any address. Thus, clients
@@ -15707,7 +15712,7 @@ first match. Specify "!pattern" to exclude an address or network
 block from the list.  </p>
 
 <p> Note: IP version 6 address information must be specified inside
-[] in the postscreen_whitelist_interfaces value, and in files
+[] in the postscreen_allowlist_interfaces value, and in files
 specified with "/file/name".  IP version 6 addresses contain the
 ":" character, and would otherwise be confused with a "type:table"
 pattern. </p>
@@ -15717,10 +15722,13 @@ pattern. </p>
 <pre>
 /etc/postfix/main.cf:
     # Don't allowlist connections to the backup IP address.
-    postscreen_whitelist_interfaces = !168.100.189.8, static:all
+    # Postfix &lt; 3.6 use postscreen_whitelist_interfaces.
+    postscreen_allowlist_interfaces = !168.100.189.8, static:all
 </pre>
 
-<p> This feature is available in Postfix 2.9 and later.  </p>
+<p> This feature is available in Postfix 3.6 and later.  </p>
+
+<p> Available as postscreen_whitelist_interfaces in Postfix 2.9 - 3.5. </p>
 
 %PARAM postscreen_upstream_proxy_protocol
 
@@ -18022,5 +18030,12 @@ designed to enforce a mail relaying policy, while
 smtpd_recipient_restrictions is primarily designed to enforce spam
 blocking policy. Both are evaluated while replying to the RCPT TO
 command, and both support the same features. </p>
+
+<p> This feature is available in Postfix 3.6 and later. </p>
+
+%PARAM respectful_logging see 'postconf -d' output
+
+<p> Avoid logging that implies white is better than black. Instead
+use 'allowlist', 'denylist', and variations of those words. </p>
 
 <p> This feature is available in Postfix 3.6 and later. </p>
