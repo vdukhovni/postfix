@@ -25442,3 +25442,9 @@ Apologies for any names omitted.
 	between respectful and deprecated logging formats. Files:
 	mantools/postlink, proto/postconf.proto, global/mail_params.[hc],
 	postscreen/postscreen.c, proto/COMPATIBILITY_README.
+
+20210224
+
+	Typo: the "respectful_logging" parameter had a typo and a
+	"postscreen_" prefix that should have been deleted. File:
+	global/mail_params.h

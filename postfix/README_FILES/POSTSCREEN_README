@@ -870,3 +870,6 @@ POP, IMAP, NNTP, and FTP over TLS.
 postscreen(8) was officially released as part of the Postfix 2.8 stable release
 in January 2011.
 
+Noel Jones helped with the Postfix 3.6 transition towards respectful
+documentation.
+

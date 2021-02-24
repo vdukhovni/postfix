@@ -3856,7 +3856,7 @@ extern char *var_psc_uproxy_proto;
 #define DEF_PSC_UPROXY_TMOUT	"5s"
 extern int var_psc_uproxy_tmout;
 
-#define VAR_RESPECTFUL_LOGGING "postscreen_respecful_logging"
+#define VAR_RESPECTFUL_LOGGING "respectful_logging"
 #define DEF_RESPECTFUL_LOGGING \
 	"${{$compatibility_level} <level {3.6} ?" " {no} : {yes}}"
 extern bool var_respectful_logging;
