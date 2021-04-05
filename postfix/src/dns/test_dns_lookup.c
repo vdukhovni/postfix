@@ -77,11 +77,10 @@ int     main(int argc, char **argv)
     int     ch;
     int     lflags = DNS_REQ_FLAG_NONE;
 
-    if (var_dnssec_probe == 0)
-	var_dnssec_probe = mystrdup(DEF_DNSSEC_PROBE);
+    var_dnssec_probe = "";
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
-    while ((ch = GETOPT(argc, argv, "f:npv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "f:npvs")) > 0) {
 	switch (ch) {
 	case 'v':
 	    msg_verbose++;
@@ -94,6 +93,9 @@ int     main(int argc, char **argv)
 	    break;
 	case 'p':
 	    var_dns_ncache_ttl_fix = 1;
+	    break;
+	case 's':
+	    var_dnssec_probe = DEF_DNSSEC_PROBE;
 	    break;
 	default:
 	    usage(argv);

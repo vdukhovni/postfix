@@ -127,8 +127,8 @@
 /* .PP
 /*	Available in Postfix 3.6 and later:
 /* .IP "\fBenable_threaded_bounces (no)\fR"
-/*	Enable non-delivery notifications (bounce messages) that link
-/*	to the original message by including a References: and In-Reply_to:
+/*	Enable non-delivery, success, and delay notifications that link
+/*	to the original message by including a References: and In-Reply-To:
 /*	header with the original Message-ID value.
 /* FILES
 /*	/var/spool/postfix/bounce/* non-delivery records

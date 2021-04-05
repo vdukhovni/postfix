@@ -2125,13 +2125,13 @@ version 2.0 behaves as if this parameter is always set to \fByes\fR.
 Postfix versions before 2.0 have no support for the original recipient
 address.
 .SH enable_threaded_bounces (default: no)
-Enable non\-delivery notifications (bounce messages) that link
+Enable non\-delivery, success, and delay notifications that link
 to the original message by including a References: and In\-Reply\-To:
 header with the original Message\-ID value. There are advantages and
 disadvantages to consider.
 .IP "\fB advantage \fR"
 This allows mail readers to present
-a non\-delivery notification in the same email thread as the original
+a delivery status notification in the same email thread as the original
 message.
 .br
 .IP "\fB disadvantage \fR"

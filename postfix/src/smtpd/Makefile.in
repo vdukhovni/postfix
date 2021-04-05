@@ -146,7 +146,7 @@ smtpd_check_dsn_test: smtpd_check smtpd_check_dsn.in smtpd_check_dsn.ref smtpd_c
 	diff smtpd_check_dsn.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
 
-# This requires that 168,100.189.7 is a local or virtual interface.
+# This requires that 168.100.3.7 is a local or virtual interface.
 
 smtpd_check_backup_test: smtpd_check smtpd_check_backup.in smtpd_check_backup.ref
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_check_backup.in >smtpd_check.tmp 2>&1

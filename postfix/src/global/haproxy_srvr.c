@@ -201,6 +201,8 @@ static int haproxy_srvr_parse_proto(const char *str, int *addr_family)
     if (msg_verbose)
 	msg_info("haproxy_srvr_parse: proto=%s", STR_OR_NULL(str));
 
+    if (str == 0)
+	return (-1);
 #ifdef AF_INET6
     if (strcasecmp(str, "TCP6") == 0) {
 	if (strchr((char *) proto_info->sa_family_list, AF_INET6) != 0) {

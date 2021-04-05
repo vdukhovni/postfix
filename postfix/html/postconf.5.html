@@ -3346,7 +3346,7 @@ address. </p>
 <DT><b><a name="enable_threaded_bounces">enable_threaded_bounces</a>
 (default: no)</b></DT><DD>
 
-<p> Enable non-delivery notifications (bounce messages) that link
+<p> Enable non-delivery, success, and delay notifications that link
 to the original message by including a References: and In-Reply-To:
 header with the original Message-ID value. There are advantages and
 disadvantages to consider. </p>
@@ -3354,7 +3354,7 @@ disadvantages to consider. </p>
 <dl>
 
 <dt> <b> advantage </b> </dt> <dd> This allows mail readers to present
-a non-delivery notification in the same email thread as the original
+a delivery status notification in the same email thread as the original
 message. </dd>
 
 <dt> <b> disadvantage </b> </dt> <dd> This makes it easy for users to

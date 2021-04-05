@@ -1,5 +1,25 @@
 Wish list:
 
+	Update the OVERVIEW page: add postlogd; add tlsproxy to
+	connection caching section.
+
+	Make smtpd_relay_before_recipient_restrictions settable
+	in smtpd_checks tests.
+
+	Make the DNS resolver library pluggable, so that we can
+	plug in a fake resolver library for DNS-related regression
+	tests to make DNS tests hermetic (no external dependency).
+	After the resolver library is pluggable, the migration to
+	non-libbind resolvers becomes a practical option.
+
+	Add a robust dnssec_probe regression test (success and fail)
+	that does not break existing regression tests.
+
+	smtp_sasl_tls_security_options = noanonymous, and make
+	smtp_sasl_security_options the default dependent on the
+	smtp_sasl_tls_security_options default (i.e. reverse the
+	dependency). Or make them independent.
+
 	Try to make the master throttle more distrusting. Currently,
 	the master throttles a service after a child process cannot be
 	created (fork() fails), or if a child process fails upon its
@@ -30,11 +50,6 @@ Wish list:
 	in posttls-finger when resolv.conf points to a host that
 	runs no DNS server.
 
-	The documented order of relay/recipient restrictions differs
-	from the implementation. This may need a new compatibility
-	parameter. For example:
-	http://postfix.1071664.n5.nabble.com/Relay-attempt-questions-td103646.html
-
 	Hardening the half-dane behavior: some sites may rely on
 	current behavior which allows original MX domain name for
 	certificate matches. Requires a new (compatibility) parameter
@@ -47,11 +62,6 @@ Wish list:
 	register a read event callback for handling post_accept
 	events. But the currrent multi_server API fits typical usage
 	better.
-
-	smtp_sasl_tls_security_options = noanonymous, and make
-	smtp_sasl_security_options default dependent on the
-	smtp_sasl_tls_security_options default (i.e. reverse the
-	dependency).
 
 	Add a configurable filter for SMTP command syntax. Maybe
 	time for some inline-pcre or inline-regexp map support?

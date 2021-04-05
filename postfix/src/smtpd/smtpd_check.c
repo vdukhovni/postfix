@@ -5871,6 +5871,11 @@ static int int_update(char **argv)
 }
 
  /*
+  * Boolean parameters.
+  */
+bool    var_relay_before_rcpt_checks;
+
+ /*
   * Restrictions.
   */
 typedef struct {

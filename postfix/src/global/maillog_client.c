@@ -235,6 +235,12 @@ void    maillog_client_init(const char *progname, int flags)
 	    service_path = concatenate(var_queue_dir, "/", MAIL_CLASS_PUBLIC,
 				       "/", var_postlog_service, (char *) 0);
 	} else {
+
+	    /*
+	     * var_postlog_service == 0, therefore var_maillog_file == 0.
+	     * logger_mode == MAILLOG_CLIENT_MODE_POSTLOG && var_maillog_file ==
+	     * 0, therefore import_service_path != 0.
+	     */
 	    service_path = import_service_path;
 	}
 	maillog_client_flags = flags;

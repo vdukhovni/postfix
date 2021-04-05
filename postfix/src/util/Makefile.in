@@ -713,7 +713,7 @@ timecmp_test: timecmp
 	$(SHLIB_ENV) ${VALGRIND} ./timecmp
 
 myaddrinfo_test: myaddrinfo myaddrinfo.ref myaddrinfo.ref2
-	$(SHLIB_ENV) ${VALGRIND} ./myaddrinfo all belly.porcupine.org 168.100.189.2 >myaddrinfo.tmp 2>&1
+	$(SHLIB_ENV) ${VALGRIND} ./myaddrinfo all belly.porcupine.org 168.100.3.2 >myaddrinfo.tmp 2>&1
 	diff myaddrinfo.ref myaddrinfo.tmp
 	rm -f myaddrinfo.tmp
 	$(SHLIB_ENV) ${VALGRIND} ./myaddrinfo all null.porcupine.org 10.0.0.0 >myaddrinfo.tmp 2>&1
@@ -721,7 +721,7 @@ myaddrinfo_test: myaddrinfo myaddrinfo.ref myaddrinfo.ref2
 	rm -f myaddrinfo.tmp
 
 myaddrinfo4_test: myaddrinfo4 myaddrinfo4.ref myaddrinfo4.ref2
-	$(SHLIB_ENV) ${VALGRIND} ./myaddrinfo4 all belly.porcupine.org 168.100.189.2 >myaddrinfo4.tmp 2>&1
+	$(SHLIB_ENV) ${VALGRIND} ./myaddrinfo4 all belly.porcupine.org 168.100.3.2 >myaddrinfo4.tmp 2>&1
 	diff myaddrinfo4.ref myaddrinfo4.tmp
 	$(SHLIB_ENV) ${VALGRIND} ./myaddrinfo4 all null.porcupine.org 10.0.0.0 >myaddrinfo4.tmp 2>&1
 	diff myaddrinfo4.ref2 myaddrinfo4.tmp
