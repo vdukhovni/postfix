@@ -41,11 +41,15 @@ POSTFIX(1)                                                          POSTFIX(1)
               ground,  and enable <a href="master.8.html"><b>master</b>(8)</a> "init" mode when running as PID 1.
               This command requires that multi-instance  support  is  disabled
               (i.e.  the  <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>  parameter  value must be
-              empty). When running Postfix inside a container, mount the  con-
-              tainer  host's  /dev/log  socket  inside the container (example:
-              "docker run -v /dev/log:/dev/log ...")  and specify  a  distinct
-              Postfix  "<a href="postconf.5.html#syslog_name">syslog_name</a>"  prefix  that identifies logging from the
-              Postfix instance.
+              empty).
+
+              When running Postfix inside a container, see <a href="MAILLOG_README.html">MAILLOG_README</a>  for
+              logging  to  stdout.  Postfix  logs  to syslog by default, which
+              requires a) running a syslogd process inside the  container,  or
+              b) mounting the container host's /dev/log socket inside the con-
+              tainer (example: "docker run -v /dev/log:/dev/log ..."), and  c)
+              a  distinct Postfix "<a href="postconf.5.html#syslog_name">syslog_name</a>" prefix that identifies logging
+              from the Postfix instance.
 
        <b>stop</b>   Stop the Postfix mail system in an orderly fashion. If possible,
               running  processes  are  allowed  to terminate at their earliest

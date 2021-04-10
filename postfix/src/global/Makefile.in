@@ -1989,6 +1989,7 @@ mail_stream.o: mail_stream.c
 mail_stream.o: mail_stream.h
 mail_stream.o: opened.h
 mail_task.o: ../../include/check_arg.h
+mail_task.o: ../../include/msg.h
 mail_task.o: ../../include/safe.h
 mail_task.o: ../../include/sys_defs.h
 mail_task.o: ../../include/vbuf.h

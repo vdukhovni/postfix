@@ -37,11 +37,15 @@
 /*	when running as PID 1.
 /*	This command requires that multi-instance support is
 /*	disabled (i.e. the multi_instance_directories parameter
-/*	value must be empty). When running Postfix inside a container,
-/*	mount the container host's /dev/log socket inside the
-/*	container (example: "docker run -v /dev/log:/dev/log ...")
-/*	and specify a distinct Postfix "syslog_name" prefix that
-/*	identifies logging from the Postfix instance.
+/*	value must be empty). 
+/*
+/*	When running Postfix inside a container, see MAILLOG_README
+/*	for logging to stdout. Postfix logs to syslog by default,
+/*	which requires a) running a syslogd process inside the
+/*	container, or b) mounting the container host's /dev/log
+/*	socket inside the container (example: "docker run -v
+/*	/dev/log:/dev/log ..."), and c) a distinct Postfix "syslog_name"
+/*	prefix that identifies logging from the Postfix instance.
 /* .IP \fBstop\fR
 /*	Stop the Postfix mail system in an orderly fashion. If
 /*	possible, running processes are allowed to terminate at

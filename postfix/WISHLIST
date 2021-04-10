@@ -1,8 +1,5 @@
 Wish list:
 
-	Update the OVERVIEW page: add postlogd; add tlsproxy to
-	connection caching section.
-
 	Make smtpd_relay_before_recipient_restrictions settable
 	in smtpd_checks tests.
 

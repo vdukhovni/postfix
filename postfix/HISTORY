@@ -25473,10 +25473,28 @@ Apologies for any names omitted.
 	by Coverity, reported by Jaroslav Skarvada. Fix by Viktor
 	Dukhovni. File: global/haproxy_srvr.c.
 
-	Missing null pointer check (introduced: Postfix alpha) after
-	null argv[0] value. Found by Coverity, reported by Jaroslav
-	Skarvada. File: global/mail_task.c.
-
 20210404
 
 	Unbroke a ton of regression tests after DNS-related changes.
+
+20210406
+
+	More specific warnings for incorrect net/mask syntax. Files:
+	util/cidr_match.c, util/dict_cidr.ref.
+
+20210410
+
+	Added an msg_panic() call to silence a Coverity warning,
+	File: global/mail_task.c.
+
+	Documentation: updated containerization suggestions in
+	the postfix(1) manpage. File: postfix/postfix.c.
+
+	Documentation: added text and ASCII art to illustrate how
+	tlsproxy(8) is used for outbound SMTP connection caching
+	and for inbound postscreen(8) TLS support. File:
+	proto/OVERVIEW.html.
+
+	Documentation: added text and ASCII art to illustrate how
+	postlogd(8) provides an alternative to syslog logging.
+	File: proto/OVERVIEW.html.

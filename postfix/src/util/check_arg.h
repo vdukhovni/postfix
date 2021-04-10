@@ -125,7 +125,7 @@
   * assignment is made in unreachable code, the compiler "should" not emit
   * any references to those assignment targets. We use the "extern" class so
   * that gcc will not complain about unused variables. Using "extern" breaks
-  * when a compiler does emit references unreachable assignment targets.
+  * when a compiler does emit references to unreachable assignment targets.
   * Hopefully, those cases will be rare.
   */
 #define CHECK_VAL_HELPER_DCL(tag, type) extern type CHECK_VAL_DUMMY(type)
