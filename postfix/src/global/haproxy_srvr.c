@@ -59,6 +59,8 @@
 
 static INET_PROTO_INFO *proto_info;
 
+#define STR_OR_NULL(str) ((str) ? (str) : "(null)")
+
 /* haproxy_srvr_parse_lit - extract and validate string literal */
 
 static int haproxy_srvr_parse_lit(const char *str,...)
@@ -68,7 +70,7 @@ static int haproxy_srvr_parse_lit(const char *str,...)
     int     result = -1;
 
     if (msg_verbose)
-	msg_info("haproxy_srvr_parse: %s", str);
+	msg_info("haproxy_srvr_parse: %s", STR_OR_NULL(str));
 
     if (str != 0) {
 	va_start(ap, str);
@@ -85,8 +87,10 @@ static int haproxy_srvr_parse_lit(const char *str,...)
 static int haproxy_srvr_parse_proto(const char *str, int *addr_family)
 {
     if (msg_verbose)
-	msg_info("haproxy_srvr_parse: proto=%s", str);
+	msg_info("haproxy_srvr_parse: proto=%s", STR_OR_NULL(str));
 
+    if (str == 0)
+	return (-1);
 #ifdef AF_INET6
     if (strcasecmp(str, "TCP6") == 0) {
 	if (strchr((char *) proto_info->sa_family_list, AF_INET6) != 0) {
@@ -110,7 +114,8 @@ static int haproxy_srvr_parse_addr(const char *str, MAI_HOSTADDR_STR *addr,
 				           int addr_family)
 {
     if (msg_verbose)
-	msg_info("haproxy_srvr_parse: addr=%s proto=%d", str, addr_family);
+	msg_info("haproxy_srvr_parse: addr=%s proto=%d",
+		 STR_OR_NULL(str), addr_family);
 
     if (str == 0 || strlen(str) >= sizeof(MAI_HOSTADDR_STR))
 	return (-1);
@@ -145,7 +150,7 @@ static int haproxy_srvr_parse_addr(const char *str, MAI_HOSTADDR_STR *addr,
 static int haproxy_srvr_parse_port(const char *str, MAI_SERVPORT_STR *port)
 {
     if (msg_verbose)
-	msg_info("haproxy_srvr_parse: port=%s", str);
+	msg_info("haproxy_srvr_parse: port=%s", STR_OR_NULL(str));
     if (str == 0 || strlen(str) >= sizeof(MAI_SERVPORT_STR)
 	|| !valid_hostport(str, DONT_GRIPE)) {
 	return (-1);
