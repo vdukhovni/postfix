@@ -52,6 +52,8 @@ const char *mail_task(const char *argv0)
     const char *slash;
     const char *tag;
 
+    if (argv0 == 0)
+	argv0 = "unknown";
     if (canon_name == 0)
 	canon_name = vstring_alloc(10);
     if ((slash = strrchr(argv0, '/')) != 0 && slash[1])
