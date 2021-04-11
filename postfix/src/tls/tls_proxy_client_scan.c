@@ -430,7 +430,8 @@ static int tls_proxy_client_certs_scan(ATTR_SCAN_MASTER_FN scan_fn,
     if (buf)
 	vstring_free(buf);
     if (ret != 1) {
-	tls_proxy_client_certs_free(head);
+	if (head)
+	    tls_proxy_client_certs_free(head);
 	head = 0;
     }
     *(TLS_CERTS **) ptr = head;
@@ -489,7 +490,8 @@ static int tls_proxy_client_pkeys_scan(ATTR_SCAN_MASTER_FN scan_fn,
     if (buf)
 	vstring_free(buf);
     if (ret != 1) {
-	tls_proxy_client_pkeys_free(head);
+	if (head)
+	    tls_proxy_client_pkeys_free(head);
 	head = 0;
     }
     *(TLS_PKEYS **) ptr = head;
@@ -538,7 +540,8 @@ static int tls_proxy_client_tlsa_scan(ATTR_SCAN_MASTER_FN scan_fn,
 	ret = (ret == 3 ? 1 : -1);
     }
     if (ret != 1) {
-	tls_proxy_client_tlsa_free(head);
+	if (head)
+	    tls_proxy_client_tlsa_free(head);
 	head = 0;
     }
     *(TLS_TLSA **) ptr = head;
