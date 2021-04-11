@@ -24572,3 +24572,24 @@ Apologies for any names omitted.
         causing unnecessary dnssec_probe activity. The default is now
         "dane" when smtp_tls_security_level is "dane", otherwise it is
         "may". File: global/mail_params.h.
+
+20210411
+
+	Missing null pointer checks (introduced: Postfix 3.4) after
+	an internal I/O error during the smtp(8) to tlsproxy(8)
+	handshake. Found by Coverity, reported by Jaroslav Skarvada.
+	Based on fix by Viktor Dukhovni. File: tls/tls_proxy_client_scan.c.
+
+	Null pointer bug (introduced: Postfix 3.0) and memory leak
+	(introduced: Postfix 3.4) after an inline: table syntax
+	error in main.cf or master.cf. Found by Coverity, reported
+	by Jaroslav Skarvada. Based on fix by Viktor Dukhovni. File:
+	util/dict_inline.c.
+
+	Incomplete null pointer check (introduced: Postfix 2.10)
+	after truncated HaProxy version 1 handshake message. Found
+	by Coverity, reported by Jaroslav Skarvada. Fix by Viktor
+	Dukhovni. File: global/haproxy_srvr.c.
+
+	Missing null pointer check (introduced: Postfix alpha) after
+	null argv[0] value. File: global/mail_task.c.
