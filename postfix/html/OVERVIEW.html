@@ -588,7 +588,7 @@ client inserts a <a href="tlsproxy.8.html">tlsproxy(8)</a> process into the conn
 below. </p>
 
 <p> After the mail transaction completes, the Postfix <a href="smtp.8.html">smtp(8)</a> client
-gives its connection to the <a href="tlsproxy.8.html">tlsproxy(8)</a> process to the <a href="scache.8.html">scache(8)</a>
+gives the <a href="smtp.8.html">smtp(8)</a>-to-<a href="tlsproxy.8.html">tlsproxy(8)</a> connection to the <a href="scache.8.html">scache(8)</a>
 server, which keeps the connection open for a limited amount of
 time. The <a href="smtp.8.html">smtp(8)</a> client continues with some other mail delivery
 request. Meanwhile, any Postfix <a href="smtp.8.html">smtp(8)</a> client can ask the <a href="scache.8.html">scache(8)</a>

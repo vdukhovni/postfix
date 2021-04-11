@@ -25484,9 +25484,6 @@ Apologies for any names omitted.
 
 20210410
 
-	Added an msg_panic() call to silence a Coverity warning,
-	File: global/mail_task.c.
-
 	Documentation: updated containerization suggestions in
 	the postfix(1) manpage. File: postfix/postfix.c.
 
@@ -25498,3 +25495,15 @@ Apologies for any names omitted.
 	Documentation: added text and ASCII art to illustrate how
 	postlogd(8) provides an alternative to syslog logging.
 	File: proto/OVERVIEW.html.
+
+20210411
+
+	Updated the missing null pointer check (introduced: Postfix
+	alpha) after null argv[0] value. File: global/mail_task.c.
+
+	Cleanup: added a test case for a missing haproxy v1 protocol
+	type, and improved the haproxy parser error messages. File:
+	global/haproxy_srvr.c.
+
+	Documentation: updated examples and TLS configuration. File
+	proto/CONNECTION_CACHE_README.html.

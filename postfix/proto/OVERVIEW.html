@@ -588,7 +588,7 @@ client inserts a tlsproxy(8) process into the connection as shown
 below. </p>
 
 <p> After the mail transaction completes, the Postfix smtp(8) client
-gives its connection to the tlsproxy(8) process to the scache(8)
+gives the smtp(8)-to-tlsproxy(8) connection to the scache(8)
 server, which keeps the connection open for a limited amount of
 time. The smtp(8) client continues with some other mail delivery
 request. Meanwhile, any Postfix smtp(8) client can ask the scache(8)

@@ -455,19 +455,19 @@ const char *haproxy_srvr_parse(const char *str, ssize_t *str_len,
 	if (beyond_header == 0)
 	    err = "missing protocol header terminator";
 	else if (haproxy_srvr_parse_lit(NEXT_TOKEN, "PROXY", (char *) 0) < 0)
-	    err = "unexpected protocol header";
+	    err = "bad or missing protocol header";
 	else if (haproxy_srvr_parse_proto(NEXT_TOKEN, &addr_family) < 0)
-	    err = "unsupported protocol type";
+	    err = "bad or missing protocol type";
 	else if (haproxy_srvr_parse_addr(NEXT_TOKEN, smtp_client_addr,
 					 addr_family) < 0)
-	    err = "unexpected client address syntax";
+	    err = "bad or missing client address";
 	else if (haproxy_srvr_parse_addr(NEXT_TOKEN, smtp_server_addr,
 					 addr_family) < 0)
-	    err = "unexpected server address syntax";
+	    err = "bad or missing server address";
 	else if (haproxy_srvr_parse_port(NEXT_TOKEN, smtp_client_port) < 0)
-	    err = "unexpected client port syntax";
+	    err = "bad or missing client port";
 	else if (haproxy_srvr_parse_port(NEXT_TOKEN, smtp_server_port) < 0)
-	    err = "unexpected server port syntax";
+	    err = "bad or missing server port";
 	else {
 	    err = 0;
 	    *str_len = beyond_header - saved_str;
@@ -561,32 +561,35 @@ static TEST_CASE v1_test_cases[] = {
     /* IPv6. */
     {"PROXY TCP6 fc:00:00:00:1:2:3:4 fc:00:00:00:4:3:2:1 123 321\n", 0, 0, 0, 0, "fc::1:2:3:4", "fc::4:3:2:1", "123", "321"},
     {"PROXY TCP6 FC:00:00:00:1:2:3:4 FC:00:00:00:4:3:2:1 123 321\n", 0, 0, 0, 0, "fc::1:2:3:4", "fc::4:3:2:1", "123", "321"},
-    {"PROXY TCP6 1.2.3.4 4.3.2.1 123 321\n", 0, 0, 0, "unexpected client address syntax"},
-    {"PROXY TCP6 fc:00:00:00:1:2:3:4 4.3.2.1 123 321\n", 0, 0, 0, "unexpected server address syntax"},
+    {"PROXY TCP6 1.2.3.4 4.3.2.1 123 321\n", 0, 0, 0, "bad or missing client address"},
+    {"PROXY TCP6 fc:00:00:00:1:2:3:4 4.3.2.1 123 321\n", 0, 0, 0, "bad or missing server address"},
     /* IPv4 in IPv6. */
     {"PROXY TCP6 ::ffff:1.2.3.4 ::ffff:4.3.2.1 123 321\n", 0, 0, 0, 0, "1.2.3.4", "4.3.2.1", "123", "321"},
     {"PROXY TCP6 ::FFFF:1.2.3.4 ::FFFF:4.3.2.1 123 321\n", 0, 0, 0, 0, "1.2.3.4", "4.3.2.1", "123", "321"},
-    {"PROXY TCP4 ::ffff:1.2.3.4 ::ffff:4.3.2.1 123 321\n", 0, 0, 0, "unexpected client address syntax"},
-    {"PROXY TCP4 1.2.3.4 ::ffff:4.3.2.1 123 321\n", 0, 0, 0, "unexpected server address syntax"},
+    {"PROXY TCP4 ::ffff:1.2.3.4 ::ffff:4.3.2.1 123 321\n", 0, 0, 0, "bad or missing client address"},
+    {"PROXY TCP4 1.2.3.4 ::ffff:4.3.2.1 123 321\n", 0, 0, 0, "bad or missing server address"},
     /* IPv4. */
     {"PROXY TCP4 1.2.3.4 4.3.2.1 123 321\n", 0, 0, 0, 0, "1.2.3.4", "4.3.2.1", "123", "321"},
     {"PROXY TCP4 01.02.03.04 04.03.02.01 123 321\n", 0, 0, 0, 0, "1.2.3.4", "4.3.2.1", "123", "321"},
-    {"PROXY TCP4 1.2.3.4 4.3.2.1 123456 321\n", 0, 0, 0, "unexpected client port syntax"},
-    {"PROXY TCP4 1.2.3.4 4.3.2.1 123 654321\n", 0, 0, 0, "unexpected server port syntax"},
-    {"PROXY TCP4 1.2.3.4 4.3.2.1 0123 321\n", 0, 0, 0, "unexpected client port syntax"},
-    {"PROXY TCP4 1.2.3.4 4.3.2.1 123 0321\n", 0, 0, 0, "unexpected server port syntax"},
+    {"PROXY TCP4 1.2.3.4 4.3.2.1 123456 321\n", 0, 0, 0, "bad or missing client port"},
+    {"PROXY TCP4 1.2.3.4 4.3.2.1 123 654321\n", 0, 0, 0, "bad or missing server port"},
+    {"PROXY TCP4 1.2.3.4 4.3.2.1 0123 321\n", 0, 0, 0, "bad or missing client port"},
+    {"PROXY TCP4 1.2.3.4 4.3.2.1 123 0321\n", 0, 0, 0, "bad or missing server port"},
     /* Missing fields. */
-    {"PROXY TCP6 fc:00:00:00:1:2:3:4 fc:00:00:00:4:3:2:1 123\n", 0, 0, 0, "unexpected server port syntax"},
-    {"PROXY TCP6 fc:00:00:00:1:2:3:4 fc:00:00:00:4:3:2:1\n", 0, 0, 0, "unexpected client port syntax"},
-    {"PROXY TCP6 fc:00:00:00:1:2:3:4\n", 0, 0, 0, "unexpected server address syntax"},
-    {"PROXY TCP6\n", 0, 0, 0, "unexpected client address syntax"},
-    {"PROXY TCP4 1.2.3.4 4.3.2.1 123\n", 0, 0, 0, "unexpected server port syntax"},
-    {"PROXY TCP4 1.2.3.4 4.3.2.1\n", 0, 0, 0, "unexpected client port syntax"},
-    {"PROXY TCP4 1.2.3.4\n", 0, 0, 0, "unexpected server address syntax"},
-    {"PROXY TCP4\n", 0, 0, 0, "unexpected client address syntax"},
+    {"PROXY TCP6 fc:00:00:00:1:2:3:4 fc:00:00:00:4:3:2:1 123\n", 0, 0, 0, "bad or missing server port"},
+    {"PROXY TCP6 fc:00:00:00:1:2:3:4 fc:00:00:00:4:3:2:1\n", 0, 0, 0, "bad or missing client port"},
+    {"PROXY TCP6 fc:00:00:00:1:2:3:4\n", 0, 0, 0, "bad or missing server address"},
+    {"PROXY TCP6\n", 0, 0, 0, "bad or missing client address"},
+    {"PROXY TCP4 1.2.3.4 4.3.2.1 123\n", 0, 0, 0, "bad or missing server port"},
+    {"PROXY TCP4 1.2.3.4 4.3.2.1\n", 0, 0, 0, "bad or missing client port"},
+    {"PROXY TCP4 1.2.3.4\n", 0, 0, 0, "bad or missing server address"},
+    {"PROXY TCP4\n", 0, 0, 0, "bad or missing client address"},
     /* Other. */
-    {"PROXY BLAH\n", 0, 0, 0, "unsupported protocol type"},
+    {"PROXY BLAH\n", 0, 0, 0, "bad or missing protocol type"},
+    {"PROXY\n", 0, 0, 0, "short protocol header"},
     {"BLAH\n", 0, 0, 0, "short protocol header"},
+    {"\n", 0, 0, 0, "short protocol header"},
+    {"", 0, 0, 0, "short protocol header"},
     0,
 };
 

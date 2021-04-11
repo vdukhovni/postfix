@@ -18,9 +18,7 @@
 /*	The result is overwritten with each call.
 /*
 /*	A null argv0 argument requests that the current result is
-/*	returned.
-/* DIAGNOSTICS
-/*	Panic: argv0 is a null pointer, but no current result exists.
+/*	returned, or "unknown" when no current result exists.
 /* LICENSE
 /* .ad
 /* .fi
@@ -46,7 +44,6 @@
 
 #include <vstring.h>
 #include <safe.h>
-#include <msg.h>
 
 /* Global library. */
 
@@ -62,6 +59,8 @@ const char *mail_task(const char *argv0)
     const char *slash;
     const char *tag;
 
+    if (argv0 == 0 && canon_name == 0)
+	argv0 = "unknown";
     if (argv0) {
 	if (canon_name == 0)
 	    canon_name = vstring_alloc(10);
@@ -74,7 +73,5 @@ const char *mail_task(const char *argv0)
 		mail_conf_eval(DEF_SYSLOG_NAME);
 	vstring_sprintf(canon_name, "%s/%s", tag, argv0);
     }
-    if (canon_name == 0)
-	msg_panic("mail_task: no current result");
     return (vstring_str(canon_name));
 }
