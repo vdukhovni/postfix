@@ -2741,6 +2741,21 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH known_tcp_ports (default: lmtp=24, smtp=25, smtps=submissions=465, submission=587)
+Optional setting that avoids lookups in the \fBservices\fR(5) database.
+This feature was implemented to address inconsistencies in the name
+of the port "465" service. The ABNF is:
+.sp
+.in +4
+known_tcp_ports = empty | name\-to\-port *("," name\-to\-port)
+.br
+name\-to\-port = 1*(service\-name "=') port\-number
+.in -4
+.PP
+Whitespace is optional but it cannot appear inside a service
+name or port number.
+.PP
+This feature is available in Postfix 3.6 and later.
 .SH line_length_limit (default: 2048)
 Upon input, long lines are chopped up into pieces of at most
 this length; upon delivery, long lines are reconstructed.

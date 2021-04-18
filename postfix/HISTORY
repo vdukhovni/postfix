@@ -25507,3 +25507,21 @@ Apologies for any names omitted.
 
 	Documentation: updated examples and TLS configuration. File
 	proto/CONNECTION_CACHE_README.html.
+
+20210418
+
+	Bitrot: new "known_tcp_ports" configuration parameter to
+	reduce Postfix dependency on the services(5) database.
+	There is no agreement about the name of the port 465 service:
+	the intersection of different systems is reportedly empty.
+	By default, Postfix now "knows" the port numbers for SMTP
+	services. Files: proto/postconf.proto, global/Makefile.in,
+	global/config_known_tcp_ports.c, global/config_known_tcp_ports.h,
+	global/config_known_tcp_ports.ref, global/mail_params.c,
+	global/mail_params.h, global/mail_version.h,
+	global/namadr_list.ref, master/master.c,
+	posttls-finger/Makefile.in, posttls-finger/posttls-finger.c,
+	smtp/Makefile.in, smtp/smtp.c, smtp/smtp_connect.c,
+	smtpd/smtpd.c, util/Makefile.in, util/find_inet.c,
+	util/known_tcp_ports.c, util/known_tcp_ports.h,
+	util/known_tcp_ports.ref, util/myaddrinfo.c.

@@ -2,9 +2,9 @@ dummy/168.100.3.2: YES
 dummy/168.100.3.2: NO
 dummy/168.100.3.3: YES
 dummy/168.100.3.16: NO
-./namadr_list: warning: command line: bad net/mask pattern: "168.100.3.0/98"
+./namadr_list: warning: command line: bad mask length in "168.100.3.0/98"
 dummy/168.100.3.16: ERROR
-./namadr_list: warning: command line: bad net/mask pattern: "168.100.589.0/28"
+./namadr_list: warning: command line: bad network value in "168.100.589.0/28"
 dummy/168.100.3.16: ERROR
 dummy/168.100.989.16: NO
 ./namadr_list: error: unsupported dictionary type: 2001
@@ -32,7 +32,7 @@ foo/168.100.3.3: YES
 bar/168.100.3.3: NO
 baz/168.100.3.3: YES
 x.x.x/127.0.0.1: NO
-./namadr_list: warning: command line: bad net/mask pattern: "be/be"
+./namadr_list: warning: command line: bad mask value in "be/be"
 x.x.x/127.0.0.1: ERROR
 x.x.x/127.0.0.1: NO
 ./namadr_list: warning: command line: bad address pattern: "be:be"

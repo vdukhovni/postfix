@@ -162,6 +162,10 @@
 /*	Available in Postfix 3.3 and later:
 /* .IP "\fBservice_name (read-only)\fR"
 /*	The master.cf service name of a Postfix daemon process.
+/* .PP
+/*	Available in Postfix 3.6 and later:
+/* .IP "\fBknown_tcp_ports (lmtp=24, smtp=25, smtps=submissions=465, submission=587)\fR"
+/*	Optional setting that avoids lookups in the \fBservices\fR(5) database.
 /* FILES
 /* .ad
 /* .fi

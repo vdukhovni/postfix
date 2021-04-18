@@ -93,6 +93,7 @@
 #include <myaddrinfo.h>
 #include <sock_addr.h>
 #include <inet_proto.h>
+#include <known_tcp_ports.h>
 
 /* Global library. */
 
@@ -360,7 +361,7 @@ static char *smtp_parse_destination(char *destination, char *def_service,
 	    msg_fatal("bad network port in destination: %s", destination);
 	*portp = htons(port);
     } else {
-	if ((sp = getservbyname(service, protocol)) == 0)
+	if ((sp = getservbyname(filter_known_tcp_port(service), protocol)) == 0)
 	    msg_fatal("unknown service: %s/%s", service, protocol);
 	*portp = sp->s_port;
     }

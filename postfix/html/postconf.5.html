@@ -4329,6 +4329,29 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="known_tcp_ports">known_tcp_ports</a>
+(default: lmtp=24, smtp=25, smtps=submissions=465, submission=587)</b></DT><DD>
+
+<p> Optional setting that avoids lookups in the services(5) database.
+This feature was implemented to address inconsistencies in the name
+of the port "465" service. The ABNF is:
+</p>
+
+<blockquote>
+<p>
+known_tcp_ports = empty | name-to-port *("," name-to-port) <br>
+name-to-port = 1*(service-name "=') port-number
+</p>
+</blockquote>
+
+<p> Whitespace is optional but it cannot appear inside a service
+name or port number. </p>
+
+<p> This feature is available in Postfix 3.6 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="line_length_limit">line_length_limit</a>
 (default: 2048)</b></DT><DD>
 

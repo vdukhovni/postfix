@@ -204,6 +204,7 @@
 #include <inet_proto.h>
 #include <myaddrinfo.h>
 #include <split_at.h>
+#include <known_tcp_ports.h>
 
 /* Application-specific. */
 
@@ -281,7 +282,7 @@ static int find_service(const char *service, int socktype)
     } else {
 	return (-1);
     }
-    if ((sp = getservbyname(service, proto)) != 0) {
+    if ((sp = getservbyname(filter_known_tcp_port(service), proto)) != 0) {
 	return (sp->s_port);
     } else {
 	return (-1);
@@ -444,7 +445,7 @@ int     hostname_to_sockaddr_pf(const char *hostname, int pf,
 	}
 #endif
     }
-    err = getaddrinfo(hostname, service, &hints, res);
+    err = getaddrinfo(hostname, filter_known_tcp_port(service), &hints, res);
 #if defined(BROKEN_AI_NULL_SERVICE)
     if (service == 0 && err == 0) {
 	struct addrinfo *r;
@@ -560,7 +561,7 @@ int     hostaddr_to_sockaddr(const char *hostaddr, const char *service,
 	}
 #endif
     }
-    err = getaddrinfo(hostaddr, service, &hints, res);
+    err = getaddrinfo(hostaddr, filter_known_tcp_port(service), &hints, res);
 #if defined(BROKEN_AI_NULL_SERVICE)
     if (service == 0 && err == 0) {
 	struct addrinfo *r;

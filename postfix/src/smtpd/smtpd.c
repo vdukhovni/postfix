@@ -148,6 +148,8 @@
 /*	Available in Postfix version 3.6 and later:
 /* .IP "\fBsmtpd_relay_before_recipient_restrictions (see 'postconf -d' output)\fR"
 /*	Evaluate smtpd_relay_restrictions before smtpd_recipient_restrictions.
+/* .IP "\fBknown_tcp_ports (lmtp=24, smtp=25, smtps=submissions=465, submission=587)\fR"
+/*	Optional setting that avoids lookups in the \fBservices\fR(5) database.
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi

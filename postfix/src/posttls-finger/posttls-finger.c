@@ -371,6 +371,7 @@
 #include <sock_addr.h>
 #include <midna_domain.h>
 #include <clean_env.h>
+#include <known_tcp_ports.h>
 
 #define STR(x)		vstring_str(x)
 
@@ -1492,7 +1493,7 @@ static char *parse_destination(char *destination, char *def_service,
 	    msg_fatal("bad network port in destination: %s", destination);
 	*portp = htons(port);
     } else {
-	if ((sp = getservbyname(service, protocol)) != 0)
+	if ((sp = getservbyname(filter_known_tcp_port(service), protocol)) != 0)
 	    *portp = sp->s_port;
 	else if (strcmp(service, "smtp") == 0)
 	    *portp = htons(25);

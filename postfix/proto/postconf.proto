@@ -18039,3 +18039,22 @@ command, and both support the same features. </p>
 use 'allowlist', 'denylist', and variations of those words. </p>
 
 <p> This feature is available in Postfix 3.6 and later. </p>
+
+%PARAM known_tcp_ports lmtp=24, smtp=25, smtps=submissions=465, submission=587
+
+<p> Optional setting that avoids lookups in the services(5) database.
+This feature was implemented to address inconsistencies in the name
+of the port "465" service. The ABNF is:
+</p>
+
+<blockquote>
+<p>
+known_tcp_ports = empty | name-to-port *("," name-to-port) <br>
+name-to-port = 1*(service-name "=') port-number
+</p>
+</blockquote>
+
+<p> Whitespace is optional but it cannot appear inside a service
+name or port number. </p>
+
+<p> This feature is available in Postfix 3.6 and later. </p>

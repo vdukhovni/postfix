@@ -4275,6 +4275,14 @@ extern char *var_info_log_addr_form;
 #define DEF_DNSSEC_PROBE	"ns:."
 extern char *var_dnssec_probe;
 
+ /*
+  * Pre-empt services(5) lookups.
+  */
+#define VAR_KNOWN_TCP_PORTS	"known_tcp_ports"
+#define	DEF_KNOWN_TCP_PORTS	\
+		"lmtp=24, smtp=25, smtps=submissions=465, submission=587"
+extern char *var_known_tcp_ports;
+
 /* LICENSE
 /* .ad
 /* .fi

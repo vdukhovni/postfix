@@ -362,6 +362,8 @@ Available in Postfix 3.6 and later:
 The DNS query type (default: "ns") and DNS query name (default:
 ".") that Postfix may use to determine whether DNSSEC validation
 is available.
+.IP "\fBknown_tcp_ports (lmtp=24, smtp=25, smtps=submissions=465, submission=587)\fR"
+Optional setting that avoids lookups in the \fBservices\fR(5) database.
 .SH "MIME PROCESSING CONTROLS"
 .na
 .nf

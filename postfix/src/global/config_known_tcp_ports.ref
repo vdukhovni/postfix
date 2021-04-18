@@ -1,0 +1,7 @@
+config_known_tcp_ports: good: PASS
+config_known_tcp_ports: port test 1: PASS
+config_known_tcp_ports: port test 2: PASS
+config_known_tcp_ports: port test 3: PASS
+config_known_tcp_ports: service name test 1: PASS
+config_known_tcp_ports: service name test 2: PASS
+config_known_tcp_ports: PASS=6 FAIL=0

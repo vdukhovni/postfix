@@ -52,6 +52,7 @@
 #include "msg.h"
 #include "stringops.h"
 #include "find_inet.h"
+#include "known_tcp_ports.h"
 
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
@@ -89,7 +90,7 @@ int     find_inet_port(const char *service, const char *protocol)
 	    msg_fatal("bad port number: %s", service);
 	return (htons(port));
     } else {
-	if ((sp = getservbyname(service, protocol)) == 0)
+	if ((sp = getservbyname(filter_known_tcp_port(service), protocol)) == 0)
 	    msg_fatal("unknown service: %s/%s", service, protocol);
 	return (sp->s_port);
     }

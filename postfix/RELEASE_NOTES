@@ -32,6 +32,9 @@ Postfix version 3.6 deprecates terminology that implies white is
 better than black. Instead, Postfix prefers 'allowlist', 'denylist',
 and variations on those words. 
 
+Set "respectful_logging = no" in main.cf to keep using the old
+behavior (parameter names and logging).
+
 Noel Jones assisted with the initial transition.
 
 Changes in documentation

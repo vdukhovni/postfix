@@ -164,6 +164,7 @@
 /*	char	*var_dnssec_probe;
 /*	bool	var_relay_before_rcpt_checks;
 /*	bool	var_respectful_logging;
+/*	char	*var_known_tcp_ports;
 /* DESCRIPTION
 /*	This module (actually the associated include file) defines
 /*	the names and defaults of all mail configuration parameters.
@@ -377,6 +378,7 @@ char   *var_postlog_service;
 
 char   *var_dnssec_probe;
 bool    var_respectful_logging;
+char   *var_known_tcp_ports;
 
 const char null_format_string[1] = "";
 
@@ -728,6 +730,7 @@ void    mail_params_init()
 	VAR_MAILLOG_FILE_STAMP, DEF_MAILLOG_FILE_STAMP, &var_maillog_file_stamp, 1, 0,
 	VAR_POSTLOG_SERVICE, DEF_POSTLOG_SERVICE, &var_postlog_service, 1, 0,
 	VAR_DNSSEC_PROBE, DEF_DNSSEC_PROBE, &var_dnssec_probe, 0, 0,
+	VAR_KNOWN_TCP_PORTS, DEF_KNOWN_TCP_PORTS, &var_known_tcp_ports, 0, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE first_bool_defaults[] = {
