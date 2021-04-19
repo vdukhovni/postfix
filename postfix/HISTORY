@@ -25525,3 +25525,9 @@ Apologies for any names omitted.
 	smtpd/smtpd.c, util/Makefile.in, util/find_inet.c,
 	util/known_tcp_ports.c, util/known_tcp_ports.h,
 	util/known_tcp_ports.ref, util/myaddrinfo.c.
+
+20210419
+
+	Bugfix (bug introduced 20210102): panic in some postconf
+	commands due to duplicate initialization of compatibility
+	level comparison operators. File: global/compat_level.c.

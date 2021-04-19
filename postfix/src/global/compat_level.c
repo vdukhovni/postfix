@@ -309,8 +309,10 @@ void    compat_level_relop_register(void)
 	MAC_EXP_OP_TOK_LT, MAC_EXP_OP_TOK_LE,
 	0,
     };
+    static int register_done;
 
-    mac_expand_add_relop(compat_level_relops, "level", compat_relop_eval);
+    if (register_done++ == 0)
+	mac_expand_add_relop(compat_level_relops, "level", compat_relop_eval);
 }
 
 #ifdef TEST
