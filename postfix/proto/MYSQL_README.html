@@ -62,6 +62,10 @@ make -f Makefile.init makefiles \
 </pre>
 </blockquote>
 
+<p> If your MySQL shared library is in a directory that the RUN-TIME
+linker does not know about, add a "-Wl,-R,/path/to/directory" option after
+"-lmysqlclient". </p>
+
 <p> Postfix versions before 3.0 use AUXLIBS instead of AUXLIBS_MYSQL.
 With Postfix 3.0 and later, the old AUXLIBS variable still supports
 building a statically-loaded MySQL database client, but only the new

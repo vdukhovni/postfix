@@ -30,7 +30,7 @@ Major changes with snapshot 20210220
 
 Postfix version 3.6 deprecates terminology that implies white is
 better than black. Instead, Postfix prefers 'allowlist', 'denylist',
-and variations on those words. 
+and variations on those words.
 
 Set "respectful_logging = no" in main.cf to keep using the old
 behavior (parameter names and logging).
@@ -89,7 +89,7 @@ no" permanent in main.cf, for example:
 To stop the reminder, configure the respectful_logging parameter to
 "yes" or "no", or configure "compatibility_level = 3.6".
 
-Major changes with snapshot 20220109
+Major changes with snapshot 20210109
 ====================================
 
 Starting with Postfix version 3.6, the "latest" compatibility level
@@ -218,7 +218,7 @@ Incompatible change with snapshot 20200705
 ==========================================
 
 The minimum OpenSSL version is 1.1.1, which will reach the end
-of life by 20203-09-11. 
+of life by 2023-09-11.
 
 The default digest has changed from md5 to sha256 (Postfix 3.6 with
 compatibility_level >= 3). With a lower compatibility_level setting,
@@ -232,7 +232,7 @@ Incompatible change with snapshot 20200531
 ==========================================
 
 Postfix delivery agents now log an explicit record when delegating
-delivery to a different Postfix delivery agent. 
+delivery to a different Postfix delivery agent.
 
 For example, with "best_mx_transport = local", an SMTP delivery
 agent will now log when a recipient will be delivered locally. This

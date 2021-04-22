@@ -100,6 +100,10 @@ source code, use something like: </p>
 </pre>
 </blockquote>
 
+<p> If your Berkeley DB shared library is in a directory that the RUN-TIME
+linker does not know about, add a "-Wl,-R,/path/to/directory" option after
+"-ldb". </p>
+
 <p> Solaris needs this: </p>
 
 <blockquote>

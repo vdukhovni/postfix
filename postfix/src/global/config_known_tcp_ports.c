@@ -77,7 +77,7 @@ void    config_known_tcp_ports(const char *source, const char *settings)
     for (cpp = associations->argv; *cpp != 0; cpp++) {
 	char   *temp = concatenate(" ", *cpp, " ", (char *) 0);
 
-	association = argv_split(temp, "=");
+	association = argv_split_at(temp, '=');
 	myfree(temp);
 
 	if (association->argc == 0) {
@@ -154,6 +154,13 @@ static struct test_case test_cases[] = {
     {"good",
 	 /* config */ "smtp = 25, smtps = submissions = 465, lmtp = 24",
 	 /* warning */ "",
+	 /* export */ "lmtp=24 smtp=25 smtps=465 submissions=465"
+    },
+    {"equal-equal",
+	 /* config */ "smtp = 25, smtps == submissions = 465, lmtp = 24",
+	 /* warning */ "config_known_tcp_ports: warning: equal-equal: "
+	"in \" smtps == submissions = 465\": missing service name before "
+	"\"=\"\n",
 	 /* export */ "lmtp=24 smtp=25 smtps=465 submissions=465"
     },
     {"port test 1",

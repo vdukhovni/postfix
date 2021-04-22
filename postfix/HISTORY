@@ -25531,3 +25531,19 @@ Apologies for any names omitted.
 	Bugfix (bug introduced 20210102): panic in some postconf
 	commands due to duplicate initialization of compatibility
 	level comparison operators. File: global/compat_level.c.
+
+	Cleanup: stricter parsing of known_tcp_port settings. Files:
+	util/argv_split_at.c, util/argv.h, global/config_known_tcp_ports.c.
+
+20210420
+
+	Documentation: typofixes by Paul Menzel. File: RELEASE_NOTES.
+
+	Documentation: numeric IP address examples. File: conf/master.cf.
+
+	Documentation: added "-Wl,-R,/path/to/directory" hints to 
+	optional build instructions. Files: proto/DB_README.html,
+	proto/LDAP_README.html, proto/LMDB_README.html,
+	proto/MYSQL_README.html, proto/PGSQL_README.html,
+	proto/SASL_README.html, proto/SQLITE_README.html,
+	proto/TLS_README.html.

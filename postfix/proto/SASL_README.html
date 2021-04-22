@@ -2127,6 +2127,10 @@ definitions: </p>
     -I/usr/local/include/sasl" AUXLIBS="-L/usr/local/lib -lsasl2"</strong>
 </pre>
 
+<p> If your Cyrus SASL shared library is in a directory that the RUN-TIME
+linker does not know about, add a "-Wl,-R,/path/to/directory" option after
+"-lsasl2". </p>
+
 </dd>
 
 <dt>Cyrus SASL version 1.5.x</dt>

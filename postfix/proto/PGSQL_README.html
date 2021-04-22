@@ -57,6 +57,10 @@ the location of the libpq library file. </p>
 </pre>
 </blockquote>
 
+<p> If your PostgreSQL shared library is in a directory that the RUN-TIME
+linker does not know about, add a "-Wl,-R,/path/to/directory" option after
+"-lpq". </p>
+
 <p> Postfix versions before 3.0 use AUXLIBS instead of AUXLIBS_PGSQL.
 With Postfix 3.0 and later, the old AUXLIBS variable still supports
 building a statically-loaded PostgreSQL database client, but only

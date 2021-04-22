@@ -3182,6 +3182,10 @@ are in directory <tt>/usr/local/lib</tt>:  </p>
 </pre>
 </blockquote>
 
+<p> If your OpenSSL shared library is in a directory that the RUN-TIME
+linker does not know about, add a "-Wl,-R,/path/to/directory" option after
+"-lcrypto". </p>
+
 <p> On Solaris, specify the <tt>-R</tt> option as shown below:
 
 <blockquote>

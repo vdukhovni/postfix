@@ -1,5 +1,7 @@
 Wish list:
 
+	Add verp=+= to the qmgr "from=" logging.
+
 	Make smtpd_relay_before_recipient_restrictions settable
 	in smtpd_checks tests.
 

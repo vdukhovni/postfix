@@ -1344,6 +1344,10 @@ Cyrus SASL version 2.1.x
     % mmaakkee mmaakkeeffiilleess CCCCAARRGGSS==""--DDUUSSEE__SSAASSLL__AAUUTTHH --DDUUSSEE__CCYYRRUUSS__SSAASSLL \\
         --II//uussrr//llooccaall//iinncclluuddee//ssaassll"" AAUUXXLLIIBBSS==""--LL//uussrr//llooccaall//lliibb --llssaassll22""
 
+    If your Cyrus SASL shared library is in a directory that the RUN-TIME
+    linker does not know about, add a "-Wl,-R,/path/to/directory" option after
+    "-lsasl2".
+
 Cyrus SASL version 1.5.x
 
     % mmaakkee ttiiddyy # if you have left-over files from a previous build

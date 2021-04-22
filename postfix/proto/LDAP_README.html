@@ -96,6 +96,10 @@ your Postfix source tree should work: </p>
 </pre>
 </blockquote>
 
+<p> If your LDAP shared library is in a directory that the RUN-TIME
+linker does not know about, add a "-Wl,-R,/path/to/directory" option after
+"-lldap". </p>
+
 <p> Postfix versions before 3.0 use AUXLIBS instead of AUXLIBS_LDAP.
 With Postfix 3.0 and later, the old AUXLIBS variable still supports
 building a statically-loaded LDAP database client, but only the new

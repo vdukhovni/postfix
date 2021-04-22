@@ -48,6 +48,10 @@ make -f Makefile.init makefiles \
 </pre>
 </blockquote>
 
+<p> If your SQLite shared library is in a directory that the RUN-TIME
+linker does not know about, add a "-Wl,-R,/path/to/directory" option after
+"-lsqlite3". </p>
+
 <p> Postfix versions before 3.0 use AUXLIBS instead of <a href="SQLITE_README.html">AUXLIBS_SQLITE</a>.
 With Postfix 3.0 and later, the old AUXLIBS variable still supports
 building a statically-loaded SQLite database client, but only the new

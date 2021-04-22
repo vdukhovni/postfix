@@ -2440,6 +2440,10 @@ aapppprroopprriiaattee..
         % mmaakkee mmaakkeeffiilleess CCCCAARRGGSS==""--DDUUSSEE__TTLLSS --II//uussrr//llooccaall//iinncclluuddee"" \\
             AAUUXXLLIIBBSS==""--LL//uussrr//llooccaall//lliibb --llssssll --llccrryyppttoo""
 
+    If your OpenSSL shared library is in a directory that the RUN-TIME linker
+    does not know about, add a "-Wl,-R,/path/to/directory" option after "-
+    lcrypto".
+
     On Solaris, specify the -R option as shown below:
 
         % mmaakkee ttiiddyy # if you have left-over files from a previous build
