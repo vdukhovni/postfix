@@ -1430,17 +1430,18 @@ static int smtp_out_add_header(SMTP_STATE *state, const char *label,
 
 static int smtp_out_add_headers(SMTP_STATE *state)
 {
-    if (smtp_cli_attr.flags & SMTP_CLI_FLAG_DELIVERED_TO)
-	if (smtp_out_add_header(state, "Delivered-To", "",
-			   state->request->rcpt_list.info->address, "") < 0)
+    /* Prepend headers in the same order as mail_copy.c. */
+    if (smtp_cli_attr.flags & SMTP_CLI_FLAG_RETURN_PATH)
+	if (smtp_out_add_header(state, "Return-Path", "<",
+				state->request->sender, ">") < 0)
 	    return (-1);
     if (smtp_cli_attr.flags & SMTP_CLI_FLAG_ORIG_RCPT)
 	if (smtp_out_add_header(state, "X-Original-To", "",
 			 state->request->rcpt_list.info->orig_addr, "") < 0)
 	    return (-1);
-    if (smtp_cli_attr.flags & SMTP_CLI_FLAG_RETURN_PATH)
-	if (smtp_out_add_header(state, "Return-Path", "<",
-				state->request->sender, ">") < 0)
+    if (smtp_cli_attr.flags & SMTP_CLI_FLAG_DELIVERED_TO)
+	if (smtp_out_add_header(state, "Delivered-To", "",
+			   state->request->rcpt_list.info->address, "") < 0)
 	    return (-1);
     return (0);
 }
