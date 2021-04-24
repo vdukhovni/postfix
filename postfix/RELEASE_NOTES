@@ -1,13 +1,13 @@
-This is the Postfix 3.6 (experimental) release.
+This is the Postfix 3.6 (stable) release.
 
-The stable Postfix release is called postfix-3.5.x where 3=major
-release number, 5=minor release number, x=patchlevel.  The stable
+The stable Postfix release is called postfix-3.6.x where 3=major
+release number, 6=minor release number, x=patchlevel. The stable
 release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
 
 New features are developed in snapshot releases. These are called
-postfix-3.6-yyyymmdd where yyyymmdd is the release date (yyyy=year,
-mm=month, dd=day).  Patches are never issued for snapshot releases;
+postfix-3.7-yyyymmdd where yyyymmdd is the release date (yyyy=year,
+mm=month, dd=day). Patches are never issued for snapshot releases;
 instead, a new snapshot is released.
 
 The mail_release_date configuration parameter (format: yyyymmdd)
@@ -25,29 +25,163 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
-Major changes with snapshot 20210220
-====================================
+Major changes - compatibility level
+-----------------------------------
 
-Postfix version 3.6 deprecates terminology that implies white is
-better than black. Instead, Postfix prefers 'allowlist', 'denylist',
-and variations on those words.
+[Feature 20210109] Starting with Postfix version 3.6, the compatibility
+level is "3.6". In future Postfix releases, the compatibility level will
+be the Postfix version that introduced the last incompatible change. The
+level is formatted as 'major.minor.patch', where 'patch' is usually
+omitted and defaults to zero. Earlier compatibility levels are 0, 1 and 2.
 
-Set "respectful_logging = no" in main.cf to keep using the old
-behavior (parameter names and logging).
+This also introduces main.cf and master.cf support for the <=level,
+<level, and other operators to compare compatibility levels. With the
+standard <=, <, etc. operators, compatibility level 3.10 would be less
+than 3.9. which is undesirable.
+
+Major changes - delivery logging
+--------------------------------
+
+[Incompat 20200531] Postfix delivery agents now log an explicit record
+when delegating delivery to a different Postfix delivery agent.
+
+For example, with "best_mx_transport = local", an SMTP delivery
+agent will now log when a recipient will be delivered locally. This
+makes the delegating delivery agent visible, where it would otherwise
+have remained invisible, which would complicate troubleshooting.
+
+  postfix/smtp[pid]: queueid: passing <recipient> to transport=local
+
+This will usually be followed by logging for an actual delivery:
+
+  postfix/local[pid]: queueid: to=<recipient>, relay=local, ...
+
+Other examples: the local delivery agent defers mailbox delivery
+through mailbox_transport or through fallback_transport.
+
+Major changes - dns lookups
+---------------------------
+
+[Feature 20200509] The threadsafe resolver API (res_nxxx() calls) is now
+the default, not because the API is threadsafe, but because new features
+are being added there.
+
+To build old style, build with:
+
+    make makefiles CCARGS="-DNO_RES_NCALLS..."
+
+This is also the default for systems that are known not to support
+the threadsafe resolver API.
+
+Major changes - error logging
+-----------------------------
+
+[Incompat 20200531] Postfix programs will now log "Application error"
+instead of "Success" or "Unknown error: 0" when an operation fails with
+errno == 0.
+
+Major changes - internal protocol identification
+------------------------------------------------
+
+[Incompat 20200920] Internal protocols have changed. You need to
+"postfix stop" before updating, or before backing out to an earlier
+release, otherwise long-running daemons (pickup, qmgr, verify, tlsproxy,
+postscreen) may fail to communicate with the rest of Postfix, causing
+warnings or timeouts.
+
+The purpose of this change is to produce better error messages, for
+example, when someone configures the discard daemon as a bounce
+service in master.cf, or vice versa.
+
+This change will break third-party programs that implement a
+Postfix-internal protocol such as qpsmtpd. This is not a Postfix bug:
+programs that depend on Postfix internal details have never been
+supported.
+
+Major changes - known tcp ports
+-------------------------------
+
+[Feature 20210418] The new "known_tcp_ports" configuration parameter
+reduces Postfix dependency on the services(5) database. On some systems
+the port 465 service is called "smtps", and on other systems it is called
+"submissions". The default known_tcp_ports value is "lmtp=24, smtp=25,
+smtps=submissions=465, submission=587".
+
+Major changes - local_login_sender_maps
+---------------------------------------
+
+[Feature 20201025] Fine-grained control over the envelope sender address
+for submission with the Postfix sendmail (or postdrop) commands.
+
+The local_login_sender_maps parameter (default: static:*) specifies
+a list of lookup tables that are searched by the UNIX login name, and
+that return a list of allowed envelope sender patterns separated by
+space or comma. The default is backwards-compatible: every user may
+specify any sender envelope address.
+
+This feature is enforced by the postdrop command. When no UNIX login
+name is available, the Postfix postdrop command will prepend "uid:"
+to the numerical UID and use that instead.
+
+This feature ignores address extensions in the user-specified
+envelope sender address.
+
+Besides the special pattern "*" which allows any sender address,
+there are "<>" which matches an empty sender address, and the
+"@domain" wildcard pattern. More information about those can be found
+in the postconf(5) manpage.
+
+Example:
+
+/etc/postfix/main.cf:
+    # Allow root and postfix full control, anyone else can only
+    # send mail as themselves. Use "uid:" followed by the numerical
+    # UID when the UID has no entry in the UNIX password file.
+    local_login_sender_maps =
+        inline:{ { root = *}, { postfix = * } },
+        pcre:/etc/postfix/login_senders
+
+/etc/postfix/login_senders:
+   # Allow both the bare username and the user@domain forms.
+    /(.+)/ $1 $1@example.com
+
+Major changes - order of relay and recipient restrictions
+---------------------------------------------------------
+
+[Incompat 20210131] With smtpd_relay_before_recipient_restrictions=yes,
+the Postfix SMTP server will evaluate smtpd_relay_restrictions before
+smtpd_recipient_restrictions. This is the default behavior with
+compatibility_level >= 3.6.
+
+This change makes the implemented behavior consistent with existing
+documentation. There is a backwards-compatibility warning that allows
+users to freeze historical behavior. See COMPATIBILITY_README for
+details.
+
+Major changes - respectful logging
+----------------------------------
+
+[Feature 20210220] Postfix version 3.6 deprecates terminology
+that implies white is better than black. Instead, Postfix prefers
+'allowlist', 'denylist', and variations on those words. This change
+affects Postfix documentation, and postscreen parameters and logging.
+
+To keep the old postscreen logging set "respectful_logging = no"
+in main.cf.
 
 Noel Jones assisted with the initial transition.
 
 Changes in documentation
 ------------------------
 
-Documentation was updated to use 'allowlist', 'denylist', etc.
+Postfix documentation was updated to use 'allowlist', 'denylist', etc.
 These documentation changes do not affect Postfix behavior.
 
 Changes in parameter names
 --------------------------
 
-The following parameters replace names that contain 'blacklist' or
-'whitelist':
+The following postscreen parameters replace names that contain 'blacklist'
+or 'whitelist':
 
     postscreen_allowlist_interfaces
     postscreen_denylist_action
@@ -89,136 +223,31 @@ no" permanent in main.cf, for example:
 To stop the reminder, configure the respectful_logging parameter to
 "yes" or "no", or configure "compatibility_level = 3.6".
 
-Major changes with snapshot 20210109
-====================================
+Major changes - smtpd_sasl_mechanism_list
+-----------------------------------------
 
-Starting with Postfix version 3.6, the "latest" compatibility level
-is the Postfix version that introduced the last incompatible change.
-The level is formatted as 'major.minor.patch', where 'patch' is
-usually omitted and defaults to zero. Earlier compatibility levels
-are 0, 1 and 2.
+[Feature 20200906] The smtpd_sasl_mechanism_list parameter (default:
+!external, static:rest) prevents confusing errors when a SASL backend
+announces EXTERNAL support which Postfix does not support.
 
-This also introduces support for the <=level, <level, and other
-operators to compare compatibility levels. With the standard <=,
-<, etc.  operators, compatibility level 3.10 would be less than 3.9
-which is undesirable.
+Major changes - threaded bounces
+--------------------------------
 
-Major changes with snapshot 20201205
-====================================
-
-Support for threaded bounces. This allows mail readers to present
-a non-delivery notification in the same email thread as the original
-message.
+[Feature 20201205] Support for threaded bounces. This allows mail readers
+to present a bounce, delay, or success delivery notification in the same
+email thread as the original message.
 
 Unfortunately, this also makes it easy for users to mistakenly delete
 the whole email thread (all related messages), instead of deleting
-only the non-delivery notification.
+only the delivery status notification.
 
 To enable, specify "enable_threaded_bounces = yes".
 
-Major changes with snapshot 20201025
-====================================
+Major changes - tls
+-------------------
 
-Fine-grained control over the envelope sender address for submission
-with the Postfix sendmail (or postdrop) commands.
-
-The local_login_sender_maps parameter (default: static:*) specifies
-a list of lookup tables that are searched by the UNIX login name, and
-that return a list of allowed envelope sender patterns separated by
-space or comma. The default is backwards-compatible: every user may
-specify any sender envelope address.
-
-When no UNIX login name is available, the Postfix postdrop command
-will prepend "uid:" to the numerical UID and use that instead.
-
-This feature ignores address extensions in the user-specified
-envelope sender address.
-
-Besides the special pattern "*" which allows any sender address,
-there are "<>" which matches an empty sender address, and the
-"@domain" wildcard pattern. More information about those can be found
-in the postconf(5) manpage.
-
-Example:
-
-/etc/postfix/main.cf:
-    # Allow root and postfix full control, anyone else can only
-    # send mail as themselves. Use "uid:" followed by the numerical
-    # UID when the UID has no entry in the UNIX password file.
-    local_login_sender_maps =
-        inline:{ { root = *}, { postfix = * } },
-        pcre:/etc/postfix/login_senders
-
-/etc/postfix/login_senders:
-   # Allow both the bare username and the user@domain forms.
-    /(.+)/ $1 $1@example.com
-
-Major changes with snapshot 20201003
-====================================
-
-The Postfix build system will no longer automatically disable DNSSEC
-support when it determines that Postfix will use libc-musl. Instead,
-Postfix will rely on the new dnssec_probe feature to determine at
-runtime if DNSSEC validation is available. DNSSEC support may be
-broken for reasons other than compatibility issues with the libc
-implementation.
-
-Major changes with snapshot 20200930
-====================================
-
-When a Postfix process requests DNSSEC support (typically, for
-Postfix DANE support), the process may do a one-time test to determine
-if DNSSEC validation is available. DNSSEC support may be broken
-because of local configuration, libc incompatibility, or network
-infrastructure issues.
-
-Background: DNSSEC validation is needed for Postfix DANE support;
-this ensures that Postfix receives TLSA records with secure TLS
-server certificate info. When DNSSEC validation is unavailable,
-mail deliveries using opportunistic DANE will not be protected by
-server certificate info in TLSA records, and mail deliveries using
-mandatory DANE will not be made at all.
-
-The dnssec_probe parameter specifies the DNS query type (default:
-"ns") and DNS query name (default: ".") that Postfix may use to
-determine whether DNSSEC validation is available. Specify an empty
-value to disable this feature.
-
-By default, a Postfix process will send a DNSSEC probe after 1) the
-process made a DNS query that requested DNSSEC validation, 2) the
-process did not receive a DNSSEC validated response to this query
-or to an earlier query, and 3) the process did not already send a
-DNSSEC probe.
-
-When the DNSSEC probe has no response, or when the response is not
-DNSSEC validated, Postfix logs a warning that DNSSEC validation may
-be unavailable. Examples:
-
-warning: DNSSEC validation may be unavailable
-warning: reason: dnssec_probe 'ns:.' received a response that is not DNSSEC validated
-warning: reason: dnssec_probe 'ns:.' received no response: Server failure
-
-Incompatible change with snapshot 20200920
-==========================================
-
-Internal protocols have changed. You need to "postfix stop" before
-updating, or before backing out to an earlier release, otherwise
-long-running daemons (pickup, qmgr, verify, tlsproxy, postscreen)
-may fail to communicate with the rest of Postfix (warnings, timeouts).
-
-The purpose of this change is to produce better error messages, for
-example, when someone configures the discard daemon as a bounce
-service in master.cf, or vice versa.
-
-This change will break third-party code that implements a
-Postfix-internal protocol such as qpsmtpd. Programs that depend on
-Postfix internal details are not supported.
-
-Incompatible change with snapshot 20200705
-==========================================
-
-The minimum OpenSSL version is 1.1.1, which will reach the end
-of life by 2023-09-11.
+[Incompat 20200705] The minimum OpenSSL version is 1.1.1, which will
+reach the end of life by 2023-09-11.
 
 The default digest has changed from md5 to sha256 (Postfix 3.6 with
 compatibility_level >= 3). With a lower compatibility_level setting,
@@ -228,44 +257,8 @@ configuration specifies no explicit digest type.
 Export-grade Diffie-Hellman key exchange is no longer supported,
 and the tlsproxy_tls_dh512_param_file parameter is ignored,
 
-Incompatible change with snapshot 20200531
-==========================================
+[Feature 20200906] The tlstype.pl helper script by Viktor Dukhovni
+reports TLS information per message delivery. This processes output
+from the collate.pl script. See auxiliary/collate/README.tlstype and
+auxiliary/collate/tlstype.pl.
 
-Postfix delivery agents now log an explicit record when delegating
-delivery to a different Postfix delivery agent.
-
-For example, with "best_mx_transport = local", an SMTP delivery
-agent will now log when a recipient will be delivered locally. This
-makes the delegating delivery agent visible, where it would otherwise
-have remained invisible, which would complicate troubleshooting.
-
-  postfix/smtp[pid]: queueid: passing <recipient> to transport=local
-
-This will usually be followed by logging for an actual delivery:
-
-  postfix/local[pid]: queueid: to=<recipient>, relay=local, ...
-
-Other examples: the local delivery agent defers mailbox delivery
-through mailbox_transport or through fallback_transport.
-
-Major changes with snapshot 20200509
-====================================
-
-The threadsafe resolver API (res_nxxx() calls) is now the default,
-not because the API is threadsafe, but because new features are
-being added there.
-
-To build old style, build with:
-
-    make makefiles CCARGS="-DNO_RES_NCALLS..."
-
-This is also the default for systems that are known not to support
-the threadsafe resolver API, such systems that use libc-musl.
-
-Incompatible changes with snapshot 20200416
-===========================================
-
-Security: this release disables DANE support on Linux systems with
-libc-musl, because libc-musl provides no indication whether DNS
-responses are authentic. This broke DANE support without a clear
-explanation.

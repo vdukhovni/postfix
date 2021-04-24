@@ -25255,8 +25255,8 @@ Apologies for any names omitted.
 20201031
 
 	Cleanup: don't split a space-comma separated address list
-	on on space or comma inside a quoted string. Files:
-	util/mystrtok.c, util/mystetok.ref, global/login_sender_match.c.
+	on space or comma inside a quoted string. Files: util/mystrtok.c,
+	util/mystrtok.ref, global/login_sender_match.c.
 
 20201101
 
@@ -25547,3 +25547,9 @@ Apologies for any names omitted.
 	proto/MYSQL_README.html, proto/PGSQL_README.html,
 	proto/SASL_README.html, proto/SQLITE_README.html,
 	proto/TLS_README.html.
+
+20210422
+
+	Cleanup: in the Postfix SMTP and LMTP client, prepend Return-Path
+	and other headers in the same order as in other Postfix delivery
+	agents. Adi Prasaja. File: smtp/smtp_proto.c.

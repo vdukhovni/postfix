@@ -5,11 +5,17 @@ Wish list:
 	Make smtpd_relay_before_recipient_restrictions settable
 	in smtpd_checks tests.
 
-	Make the DNS resolver library pluggable, so that we can
+	Make the DNS resolver library pluggable, so that we can a)
 	plug in a fake resolver library for DNS-related regression
-	tests to make DNS tests hermetic (no external dependency).
-	After the resolver library is pluggable, the migration to
-	non-libbind resolvers becomes a practical option.
+	tests and make DNS tests hermetic (no external dependency;
+	b) add support for non-libbind resolvers. Gracefully handle
+	requests for unsupported functionality; return an error status,
+	instead of terminating.
+
+	Inline regexp/pcre/cidr table support. If the table name is
+	a string inside {}, then split the string on comma (ignoring
+	commas inside {}), write each resulting fragment as one line to
+	a VSTRING buffer, and open that buffer as a memory file.
 
 	Add a robust dnssec_probe regression test (success and fail)
 	that does not break existing regression tests.
@@ -33,17 +39,23 @@ Wish list:
 	More accurate address verification: do a quota check before
 	reporting that a local(8) or virtual(8) recipient is deliverable.
 
-	Eliminate duplicate user_acl check from sendmail, and pass
-	the result through the postdrop-to-sendmail protocol. This
-	requires that postdrop reads all inputs before responding.
-	Then we can also consider to save input to dead.letter (drop
-	setgid privilege, use safe_open() to avoid clobbering files).
+	Eliminate duplicate mail submission permission checks from
+	sendmail, so that they happen in postdrop only. Then, pass the
+	result through the postdrop-to-sendmail protocol. This requires
+	that postdrop reads all inputs before responding (the
+	local_login_sender_maps check depends on the envelope
+	sender). Then sendmail can save input to dead.letter (no setgid
+	privilege, but it would still have to use safe_open() to avoid
+	clobbering files).
 
 	Consider removing compat_level_from_numbers() and aliases,
 	because they are no longer used anywhere.
 
-	Allow '}' at the beginning of a line. This would make
-	multi-line configuration settings easier to enter.
+	Allow '}' at the beginning of a line. This would make multi-line
+	configuration settings easier to enter. This may be true
+	for main.cf, master.cf and similar files (such as database
+	configuration files, but not necessarily elsewhere). So it
+	would have to be a readlline flag.
 
 	Understand what happens with DNSSEC related status fields 
 	in posttls-finger when resolv.conf points to a host that
@@ -68,14 +80,8 @@ Wish list:
 	Update makedefs and sys-defs.h for current Linux kernels and
 	*BSD releases.
 
-	DNS wrapper class, like XSASL, to support different stub
-	resolvers without contaminating Postfix programs with the
-	idiosyncracies of stub resolvers. Handle differences in
-	resolver feature sets gracefully: an unsupported request
-	will result in an error status, not program termination.
-
 	When a secondary instance has no multi_instance_name set,
-`	postmulti -i won't be able to find it.
+	postmulti -i won't be able to find it.
 
 	Read http://mmogilvi.users.sourceforge.net/software/oauthbearer.html
 	and see how we can improve on the Postfix side.
