@@ -1313,7 +1313,7 @@ BBuuiillddiinngg CCyyrruuss SSAASSLL ssuuppppoorrtt
 BBuuiillddiinngg tthhee CCyyrruuss SSAASSLL lliibbrraarryy
 
 Postfix works with cyrus-sasl-1.5.x or cyrus-sasl-2.1.x, which are available
-from ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/.
+from https://github.com/cyrusimap/cyrus-sasl/releases.
 
     IImmppoorrttaanntt
 

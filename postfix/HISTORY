@@ -25553,3 +25553,7 @@ Apologies for any names omitted.
 	Cleanup: in the Postfix SMTP and LMTP client, prepend Return-Path
 	and other headers in the same order as in other Postfix delivery
 	agents. Adi Prasaja. File: smtp/smtp_proto.c.
+
+20210428
+
+	Documentation: update by Paul Menzel. File: proto/SASL_README.html.
