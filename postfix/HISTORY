@@ -25553,3 +25553,22 @@ Apologies for any names omitted.
 	Cleanup: in the Postfix SMTP and LMTP client, prepend Return-Path
 	and other headers in the same order as in other Postfix delivery
 	agents. Adi Prasaja. File: smtp/smtp_proto.c.
+
+20210428
+
+	Documentation: update by Paul Menzel. File: proto/SASL_README.html.
+
+20210529
+
+	Cleanup: simplified master.cf stanzas for the submission
+	and submissions (formerly: smtps) services, to avoid
+	surprising warnings for undefined mua_smtpd_xxx_restrictions
+	parameters. File: conf/master.cf.
+
+	Bugfix (introduced: Postfix 2.11): "postmap lmdb:/file/name"
+	handled duplicate keys ungracefully, with a dangling pointer
+	resulting in a double free() call with lmdb versions 0.9.17
+	and later. Reported by Adi Prasaja, root cause analysis by
+	Howard Chu. In addition, "postmap lmdb:/file/name" forgot
+	entries stored up to and including the duplicate key. File:
+	util/slmdb.c.

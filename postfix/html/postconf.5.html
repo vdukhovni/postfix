@@ -7676,7 +7676,8 @@ separator. See the <a href="MILTER_README.html">MILTER_README</a> document for d
 (default: resource, software)</b></DT><DD>
 
 <p>
-The list of error classes that are reported to the postmaster. The
+The list of error classes that are reported to the postmaster. These
+postmaster notifications do not replace user notifications. The
 default is to report only the most serious problems. The paranoid
 may wish to turn on the policy (UCE and mail relaying) and protocol
 error (broken mail software) reports.
@@ -11330,7 +11331,7 @@ href="https://tools.ietf.org/html/rfc7672">DANE</a> is not applicable
 to hosts resolved via "native" lookups.  </p>
 
 <p> As mentioned above, Postfix is not a validating <a
-href="https://tools.ietf.org/html/rfc4035#section-4.9">stub
+href="<a href="https://tools.ietf.org/html/rfc4035#section-4.9">https://tools.ietf.org/html/rfc4035#section-4.9</a>">stub
 resolver</a>; it relies on the system's configured DNSSEC-validating
 <a href="https://tools.ietf.org/html/rfc4035#section-3.2">recursive
 nameserver</a> to perform all DNSSEC validation.  Since this
@@ -18768,7 +18769,7 @@ whitespace.  Each digest name may be followed by an optional
 "=&lt;number&gt;" suffix.  For example, "sha512" may instead be specified
 as "sha512=2" and "sha256" may instead be specified as "sha256=1".
 The optional number must match the <a
-href="https://www.iana.org/assignments/dane-parameters/dane-parameters.xhtml#matching-types"
+href="<a href="https://www.iana.org/assignments/dane-parameters/dane-parameters.xhtml#matching-types">https://www.iana.org/assignments/dane-parameters/dane-parameters.xhtml#matching-types</a>"
 >IANA</a> assigned TLSA matching type number the algorithm in question.
 Postfix will check this constraint for the algorithms it knows about.
 Additional matching type algorithms registered with IANA can be added
@@ -18935,7 +18936,7 @@ is unwise to choose an "bleeding-edge" curve supported by only a
 small subset of clients.  </p>
 
 <p> The default "strong" curve is rated in NSA <a
-href="https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/">Suite
+href="<a href="https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/">https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/</a>">Suite
 B</a> for information classified up to SECRET.  </p>
 
 <p> Note: elliptic curve names are poorly standardized; different
@@ -18976,7 +18977,7 @@ curve must be implemented by OpenSSL (as reported by ecparam(1) with the
 of <a href="http://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not generally change this setting. </p>
 
 <p> This default "ultra" curve is rated in NSA <a
-href="https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/">Suite
+href="<a href="https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/">https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/</a>">Suite
 B</a> for information classified up to TOP SECRET. </p>
 
 <p> If you want to take maximal advantage of ciphers that offer <a

@@ -1148,7 +1148,7 @@ while (<>) {
 
     # Hyperlink URLs and RFC documents
 
-    s/(http:\/\/[^ ,"\(\)]*[^ ,"\(\):;!?.])/<a href="$1">$1<\/a>/;
+    s/(https?:\/\/[^ ,"\(\)]*[^ ,"\(\):;!?.])/<a href="$1">$1<\/a>/;
     s/(ftp:\/\/[^ ,"\(\)]*[^ ,"\(\):;!?.])/<a href="$1">$1<\/a>/;
     s/\bRFC\s*([1-9]\d*)/<a href="http:\/\/tools.ietf.org\/html\/rfc$1">$&<\/a>/g;
 

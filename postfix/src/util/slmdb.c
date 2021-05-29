@@ -582,11 +582,15 @@ int     slmdb_put(SLMDB *slmdb, MDB_val *mdb_key,
      * Do the update.
      */
     if ((status = mdb_put(txn, slmdb->dbi, mdb_key, mdb_value, flags)) != 0) {
-	mdb_txn_abort(txn);
 	if (status != MDB_KEYEXIST) {
+	    mdb_txn_abort(txn);
 	    if ((status = slmdb_recover(slmdb, status)) == 0)
 		status = slmdb_put(slmdb, mdb_key, mdb_value, flags);
 	    SLMDB_API_RETURN(slmdb, status);
+	} else {
+	    /* Key exists, abort non-bulk transaction only. */
+	    if (slmdb->txn == 0)
+		mdb_txn_abort(txn);
 	}
     }
 
