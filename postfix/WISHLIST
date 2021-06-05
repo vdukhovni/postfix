@@ -1,5 +1,8 @@
 Wish list:
 
+	Make postscreen drop the connection after a non-SMTP command,
+	just like the real Postfix SMTP daemon.
+
 	Add verp=+= to the qmgr "from=" logging.
 
 	Make smtpd_relay_before_recipient_restrictions settable

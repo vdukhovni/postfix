@@ -812,6 +812,7 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
     DICT_PCRE *dict_pcre;
     VSTREAM *map_fp = 0;
     struct stat st;
+    VSTRING *why = 0;
     VSTRING *line_buffer = 0;
     DICT_PCRE_RULE *last_rule = 0;
     DICT_PCRE_RULE *rule;
@@ -831,6 +832,8 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
 	    vstream_fclose(map_fp); \
 	if (line_buffer != 0) \
 	    vstring_free(line_buffer); \
+	if (why != 0) \
+	   vstring_free(why); \
 	return (__d); \
     } while (0)
 
@@ -846,13 +849,11 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
     /*
      * Open the configuration file.
      */
-    if ((map_fp = vstream_fopen(mapname, O_RDONLY, 0)) == 0)
+    if ((map_fp = dict_stream_open(DICT_TYPE_PCRE, mapname, O_RDONLY,
+				   dict_flags, &st, &why)) == 0)
 	DICT_PCRE_OPEN_RETURN(dict_surrogate(DICT_TYPE_PCRE, mapname,
 					     open_flags, dict_flags,
-					     "open %s: %m", mapname));
-    if (fstat(vstream_fileno(map_fp), &st) < 0)
-	msg_fatal("fstat %s: %m", mapname);
-
+					     "%s", vstring_str(why)));
     line_buffer = vstring_alloc(100);
 
     dict_pcre = (DICT_PCRE *) dict_alloc(DICT_TYPE_PCRE, mapname,

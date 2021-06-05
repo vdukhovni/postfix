@@ -30,6 +30,10 @@
 /* DIAGNOSTICS
 /*	Fatal errors: cannot open file, file write error, out of
 /*	memory.
+/*
+/*	If a jump buffer is specified with dict_setjmp(), then the LMDB
+/*	client will call dict_longjmp() to return to that execution
+/*	context after a recoverable error.
 /* BUGS
 /*	The on-the-fly map resize operations require no concurrent
 /*	activity in the same database by other threads in the same

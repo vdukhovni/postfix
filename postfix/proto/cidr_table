@@ -98,6 +98,32 @@
 #
 #	Note: address information may be enclosed inside "[]" but
 #	this form is not required.
+# INLINE SPECIFICATION
+# .ad
+# .fi
+#	The contents of a table may be specified in the table name.
+#	The basic syntax is:
+#
+# .nf
+#	main.cf:
+#	    \fIparameter\fR \fB= .. pcre:{ { \fIrule-1\fB }, { \fIrule-2\fB } .. } ..\fR
+#
+#	master.cf:
+#	    \fB.. -o { \fIparameter\fR \fB= .. pcre:{ { \fIrule-1\fB }, { \fIrule-2\fB } .. } .. } ..\fR
+# .fi
+#
+#	Postfix ignores whitespace after '{' and before '}', and
+#	writes each \fIrule\fR as one text line to an in-memory
+#	file:
+#
+# .nf
+#	in-memory file:
+#	    rule-1
+#	    rule-2
+#	    ..
+# .fi
+#
+#	Postfix parses the result as if it is a file in /etc/postfix.
 # EXAMPLE SMTPD ACCESS MAP
 # .nf
 #	/etc/postfix/main.cf:

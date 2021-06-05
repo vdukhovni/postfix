@@ -25572,3 +25572,28 @@ Apologies for any names omitted.
 	Howard Chu. In addition, "postmap lmdb:/file/name" forgot
 	entries stored up to and including the duplicate key. File:
 	util/slmdb.c.
+
+20210605
+
+	Fixed a few more potential dangling pointer cases in the
+	LMDB client, future-proofing code paths that sofar aren't
+	used. File: util/slmdb.c.
+
+	Added LMDB integration tests using the postmmap command.
+	Files: postmap/Makefile.in, postmap/lmdb_abb, postmap/lmdb_abb.ref.
+
+	Cleanup: reset errno in the fail: database methods for
+	consistent error messages. File: util/dict_fail.c.
+
+	Cleanup: new vstream_control() option to give a memory stream
+	ownership of the underlying VSTRING. This simplifies resource
+	management for read-only streams. Files: util/vstream.[hc].
+
+	Cleanup: extpar() returns an error in case of a missing
+	initial '{', instead of aborting. This simplifies the
+	implementation of some callers. File: util/extpar.c.
+
+	Feature: inline pcre, regexp, and cidr table definition in main.cf
+	or master.cf, to improve their usability in matchlists. Files:
+	util/dict_stream.c, util/dict.h, util/dict_pcre.c,
+	util/dict_regexp.c, util/dict_cidr.c, and test files.

@@ -1280,7 +1280,7 @@ extern int var_smtpd_hist_thrsh;
 extern char *var_smtpd_noop_cmds;
 
 #define VAR_SMTPD_FORBID_CMDS	"smtpd_forbidden_commands"
-#define DEF_SMTPD_FORBID_CMDS	"CONNECT GET POST"
+#define DEF_SMTPD_FORBID_CMDS	"CONNECT GET POST regexp:{{/^[^A-Z]/ Bogus}}"
 extern char *var_smtpd_forbid_cmds;
 
 #define VAR_SMTPD_CMD_FILTER	"smtpd_command_filter"

@@ -87,6 +87,7 @@ extern VSTREAM vstream_fstd[];		/* pre-defined streams */
 #define VSTREAM_FLAG_DOUBLE	(1<<12)	/* double buffer */
 #define VSTREAM_FLAG_DEADLINE	(1<<13)	/* deadline active */
 #define VSTREAM_FLAG_MEMORY	(1<<14)	/* internal stream */
+#define VSTREAM_FLAG_OWN_VSTRING (1<<15)/* owns VSTRING resource */
 
 #define VSTREAM_PURGE_READ	(1<<0)	/* flush unread data */
 #define VSTREAM_PURGE_WRITE	(1<<1)	/* flush unwritten data */
@@ -155,6 +156,7 @@ extern void vstream_control(VSTREAM *, int,...);
 #define VSTREAM_CTL_SWAP_FD	13
 #define VSTREAM_CTL_START_DEADLINE 14
 #define VSTREAM_CTL_STOP_DEADLINE 15
+#define VSTREAM_CTL_OWN_VSTRING	16
 
 /* Safer API: type-checked arguments, external use. */
 #define CA_VSTREAM_CTL_END		VSTREAM_CTL_END
@@ -175,6 +177,7 @@ extern void vstream_control(VSTREAM *, int,...);
 #define CA_VSTREAM_CTL_SWAP_FD(v)	VSTREAM_CTL_SWAP_FD, CHECK_PTR(VSTREAM_CTL, VSTREAM, (v))
 #define CA_VSTREAM_CTL_START_DEADLINE	VSTREAM_CTL_START_DEADLINE
 #define CA_VSTREAM_CTL_STOP_DEADLINE	VSTREAM_CTL_STOP_DEADLINE
+#define CA_VSTREAM_CTL_OWN_VSTRING	VSTREAM_CTL_OWN_VSTRING
 
 CHECK_VAL_HELPER_DCL(VSTREAM_CTL, ssize_t);
 CHECK_VAL_HELPER_DCL(VSTREAM_CTL, int);

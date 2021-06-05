@@ -29,6 +29,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -51,6 +52,7 @@ static int dict_fail_sequence(DICT *dict, int unused_func,
 {
     DICT_FAIL *dp = (DICT_FAIL *) dict;
 
+    errno = 0;
     DICT_ERR_VAL_RETURN(dict, dp->dict_errno, DICT_STAT_ERROR);
 }
 
@@ -61,6 +63,7 @@ static int dict_fail_update(DICT *dict, const char *unused_name,
 {
     DICT_FAIL *dp = (DICT_FAIL *) dict;
 
+    errno = 0;
     DICT_ERR_VAL_RETURN(dict, dp->dict_errno, DICT_STAT_ERROR);
 }
 
@@ -70,6 +73,7 @@ static const char *dict_fail_lookup(DICT *dict, const char *unused_name)
 {
     DICT_FAIL *dp = (DICT_FAIL *) dict;
 
+    errno = 0;
     DICT_ERR_VAL_RETURN(dict, dp->dict_errno, (char *) 0);
 }
 
@@ -79,6 +83,7 @@ static int dict_fail_delete(DICT *dict, const char *unused_name)
 {
     DICT_FAIL *dp = (DICT_FAIL *) dict;
 
+    errno = 0;
     DICT_ERR_VAL_RETURN(dict, dp->dict_errno, DICT_STAT_ERROR);
 }
 

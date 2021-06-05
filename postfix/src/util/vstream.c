@@ -392,6 +392,10 @@
 /*	Revert VSTREAM_CTL_TIMEOUT behavior to the default, i.e.
 /*	a time limit for individual file descriptor read or write
 /*	operations.
+/* .IP CA_VSTREAM_CTL_OWN_VSTRING (no arguments)
+/*	Transfer ownership of the VSTRING that was opened with
+/*	vstream_memopen() etc. to the stream, so that the VSTRING
+/*	is automatically destroyed when the stream is closed.
 /* .PP
 /*	vstream_fileno() gives access to the file handle associated with
 /*	a buffered stream. With streams that have separate read/write
@@ -480,6 +484,9 @@
 /*	The double-buffering feature is activated.
 /* .IP VSTREAM_FLAG_MEMORY
 /*	The stream is connected to a VSTRING buffer.
+/* .IP VSTREAM_FLAG_OWN_VSTRING
+/*	The stream 'owns' the VSTRING buffer, and is responsible
+/*	for cleaning up when the stream is closed.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory.
 /* SEE ALSO
@@ -1417,6 +1424,8 @@ int     vstream_fclose(VSTREAM *stream)
 	myfree(stream->path);
     if (stream->jbuf)
 	myfree((void *) stream->jbuf);
+    if (stream->vstring && (stream->buf.flags & VSTREAM_FLAG_OWN_VSTRING))
+	vstring_free(stream->vstring);
     if (!VSTREAM_STATIC(stream))
 	myfree((void *) stream);
     return (err ? VSTREAM_EOF : 0);
@@ -1530,7 +1539,8 @@ void    vstream_control(VSTREAM *stream, int name,...)
      */
     int     memory_ops =
     ((1 << VSTREAM_CTL_END) | (1 << VSTREAM_CTL_CONTEXT)
-     | (1 << VSTREAM_CTL_PATH) | (1 << VSTREAM_CTL_EXCEPT));
+     | (1 << VSTREAM_CTL_PATH) | (1 << VSTREAM_CTL_EXCEPT)
+     | (1 << VSTREAM_CTL_OWN_VSTRING));
 
     for (va_start(ap, name); name != VSTREAM_CTL_END; name = va_arg(ap, int)) {
 	if ((stream->buf.flags & VSTREAM_FLAG_MEMORY)
@@ -1664,6 +1674,11 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    stream->buf.flags |= VSTREAM_FLAG_DEADLINE;
 	    stream->time_limit.tv_sec = stream->timeout;
 	    stream->time_limit.tv_usec = 0;
+	    break;
+	case VSTREAM_CTL_OWN_VSTRING:
+	    if ((stream->buf.flags |= VSTREAM_FLAG_MEMORY) == 0)
+		msg_panic("%s: operation on non-VSTRING stream", myname);
+	    stream->buf.flags |= VSTREAM_FLAG_OWN_VSTRING;
 	    break;
 	default:
 	    msg_panic("%s: bad name %d", myname, name);

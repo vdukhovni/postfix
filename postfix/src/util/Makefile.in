@@ -42,7 +42,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	extpar.c dict_inline.c casefold.c dict_utf8.c strcasecmp_utf8.c \
 	split_qnameval.c argv_attr_print.c argv_attr_scan.c dict_file.c \
 	msg_logger.c logwriter.c unix_dgram_connect.c unix_dgram_listen.c \
-	byte_mask.c known_tcp_ports.c argv_split_at.c
+	byte_mask.c known_tcp_ports.c argv_split_at.c dict_stream.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -86,7 +86,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	extpar.o dict_inline.o casefold.o dict_utf8.o strcasecmp_utf8.o \
 	split_qnameval.o argv_attr_print.o argv_attr_scan.o dict_file.o \
 	msg_logger.o logwriter.o unix_dgram_connect.o unix_dgram_listen.o \
-	byte_mask.o known_tcp_ports.o argv_split_at.o
+	byte_mask.o known_tcp_ports.o argv_split_at.o dict_stream.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -138,7 +138,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
-	known_tcp_ports
+	known_tcp_ports dict_stream
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX)
 
 LIB_DIR	= ../../lib
@@ -554,6 +554,11 @@ known_tcp_ports: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+dict_stream: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test \
@@ -567,7 +572,8 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	vstring_test vstream_test dict_pcre_file_test dict_regexp_file_test \
 	dict_cidr_file_test dict_static_file_test dict_random_test \
 	dict_random_file_test dict_inline_file_test byte_mask_tests \
-	mystrtok_test known_tcp_ports_test
+	mystrtok_test known_tcp_ports_test dict_stream_test \
+	dict_inline_pcre_test dict_inline_regexp_test dict_inline_cidr_test
 
 root_tests:
 
@@ -974,6 +980,33 @@ known_tcp_ports_test: known_tcp_ports known_tcp_ports.ref
 	$(SHLIB_ENV) ${VALGRIND} ./known_tcp_ports >known_tcp_ports.tmp 2>&1
 	diff known_tcp_ports.ref known_tcp_ports.tmp
 	rm -f known_tcp_ports.tmp
+
+dict_stream_test: dict_stream dict_stream.ref
+	$(SHLIB_ENV) ${VALGRIND} ./dict_stream >dict_stream.tmp 2>&1
+	diff dict_stream.ref dict_stream.tmp
+	rm -f dict_stream.tmp
+
+dict_inline_pcre_test: dict_open dict_inline_pcre.ref
+	(echo get foo; echo get bar) | \
+	    $(SHLIB_ENV) ${VALGRIND} ./dict_open 'pcre:{{/foo/ got foo}}' \
+	    read 2>&1 | grep -v uid= >dict_inline_pcre.tmp
+	diff dict_inline_pcre.ref dict_inline_pcre.tmp
+	rm -f dict_inline_pcre.tmp
+
+dict_inline_regexp_test: dict_open dict_inline_regexp.ref
+	(echo get foo; echo get bar) | \
+	    $(SHLIB_ENV) ${VALGRIND} ./dict_open 'regexp:{{/foo/ got foo}}' \
+	    read 2>&1 | grep -v uid= >dict_inline_regexp.tmp
+	diff dict_inline_regexp.ref dict_inline_regexp.tmp
+	rm -f dict_inline_regexp.tmp
+
+dict_inline_cidr_test: dict_open dict_inline_cidr.ref
+	(echo get 1.2.3.4; echo get 4.3.2.1) | \
+	    $(SHLIB_ENV) ${VALGRIND} ./dict_open \
+		'cidr:{{1.2.3.4 got 1.2.3.4}}' \
+		read 2>&1 | grep -v uid= >dict_inline_cidr.tmp
+	diff dict_inline_cidr.ref dict_inline_cidr.tmp
+	rm -f dict_inline_cidr.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -1621,6 +1654,18 @@ dict_static.o: sys_defs.h
 dict_static.o: vbuf.h
 dict_static.o: vstream.h
 dict_static.o: vstring.h
+dict_stream.o: argv.h
+dict_stream.o: check_arg.h
+dict_stream.o: dict.h
+dict_stream.o: dict_stream.c
+dict_stream.o: msg.h
+dict_stream.o: myflock.h
+dict_stream.o: mymalloc.h
+dict_stream.o: stringops.h
+dict_stream.o: sys_defs.h
+dict_stream.o: vbuf.h
+dict_stream.o: vstream.h
+dict_stream.o: vstring.h
 dict_surrogate.o: argv.h
 dict_surrogate.o: check_arg.h
 dict_surrogate.o: compat_va_copy.h
@@ -1772,7 +1817,6 @@ exec_command.o: msg.h
 exec_command.o: sys_defs.h
 extpar.o: check_arg.h
 extpar.o: extpar.c
-extpar.o: msg.h
 extpar.o: stringops.h
 extpar.o: sys_defs.h
 extpar.o: vbuf.h

@@ -14,6 +14,7 @@
  /*
   * System library.
   */
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <setjmp.h>
 
@@ -313,6 +314,12 @@ extern struct VSTRING *dict_file_from_b64(DICT *, const char *);
 extern char *dict_file_get_error(DICT *);
 extern void dict_file_purge_buffers(DICT *);
 extern const char *dict_file_lookup(DICT *dict, const char *);
+
+ /*
+  * dict_stream(3)
+  */
+extern VSTREAM *dict_stream_open(const char *dict_type, const char *mapname,
+            int open_flags, int dict_flags, struct stat * st, VSTRING **why);
 
 /* LICENSE
 /* .ad
