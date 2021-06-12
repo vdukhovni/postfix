@@ -410,7 +410,6 @@ static int slmdb_prepare(SLMDB *slmdb)
 static int slmdb_recover(SLMDB *slmdb, int status)
 {
     MDB_envinfo info;
-    int     recover_bulk_transaction = 0;
 
     /*
      * This may be needed in non-MDB_NOLOCK mode. Recovery is rare enough
@@ -420,24 +419,19 @@ static int slmdb_recover(SLMDB *slmdb, int status)
 	slmdb_cursor_close(slmdb);
 
     /*
-     * Recover bulk transactions only if they can be restarted. Limit the
-     * number of recovery attempts per slmdb(3) API request.
-     * 
-     * slmdb->txn must be either null (non-bulk transaction error), or an
-     * aborted bulk-mode transaction.
+     * Limit the number of recovery attempts per slmdb(3) API request.
      */
-    if ((slmdb->txn != 0 && slmdb->longjmp_fn == 0)
-	|| ((slmdb->api_retry_count += 1) >= slmdb->api_retry_limit))
+    if ((slmdb->api_retry_count += 1) >= slmdb->api_retry_limit)
 	return (status);
 
     /*
-     * Limit the number of recovery attempts per bulk transaction failure.
+     * Recover bulk transactions only if they can be restarted, but limit the
+     * number of recovery attempts.
      */
-    if (slmdb->txn != 0 && slmdb->longjmp_fn != 0) {
-	if ((slmdb->bulk_retry_count += 1) > slmdb->bulk_retry_limit)
-	    return (status);
-	recover_bulk_transaction = 1;
-    }
+    if ((slmdb->slmdb_flags & SLMDB_FLAG_BULK) != 0
+	&& (slmdb->longjmp_fn == 0
+	    || (slmdb->bulk_retry_count += 1) > slmdb->bulk_retry_limit))
+	return (status);
 
     /*
      * If we can recover from the error, we clear the error condition and the
@@ -516,7 +510,7 @@ static int slmdb_recover(SLMDB *slmdb, int status)
      * upgrade the lock to "exclusive", because the failed write transaction
      * has no side effects.
      */
-    if (status == 0 && recover_bulk_transaction != 0
+    if (status == 0 && (slmdb->slmdb_flags & SLMDB_FLAG_BULK) != 0
 	&& (status = mdb_txn_begin(slmdb->env, (MDB_txn *) 0,
 				   slmdb->lmdb_flags & MDB_RDONLY,
 				   &slmdb->txn)) == 0
@@ -559,6 +553,8 @@ int     slmdb_get(SLMDB *slmdb, MDB_val *mdb_key, MDB_val *mdb_value)
     if ((status = mdb_get(txn, slmdb->dbi, mdb_key, mdb_value)) != 0
 	&& status != MDB_NOTFOUND) {
 	mdb_txn_abort(txn);
+	if (txn == slmdb->txn)
+	    slmdb->txn = 0;
 	if ((status = slmdb_recover(slmdb, status)) == 0)
 	    status = slmdb_get(slmdb, mdb_key, mdb_value);
 	SLMDB_API_RETURN(slmdb, status);
@@ -595,6 +591,8 @@ int     slmdb_put(SLMDB *slmdb, MDB_val *mdb_key,
     if ((status = mdb_put(txn, slmdb->dbi, mdb_key, mdb_value, flags)) != 0) {
 	if (status != MDB_KEYEXIST) {
 	    mdb_txn_abort(txn);
+	    if (txn == slmdb->txn)
+		slmdb->txn = 0;
 	    if ((status = slmdb_recover(slmdb, status)) == 0)
 		status = slmdb_put(slmdb, mdb_key, mdb_value, flags);
 	    SLMDB_API_RETURN(slmdb, status);
@@ -636,6 +634,8 @@ int     slmdb_del(SLMDB *slmdb, MDB_val *mdb_key)
     if ((status = mdb_del(txn, slmdb->dbi, mdb_key, (MDB_val *) 0)) != 0) {
 	if (status != MDB_NOTFOUND) {
 	    mdb_txn_abort(txn);
+	    if (txn == slmdb->txn)
+		slmdb->txn = 0;
 	    if ((status = slmdb_recover(slmdb, status)) == 0)
 		status = slmdb_del(slmdb, mdb_key);
 	    SLMDB_API_RETURN(slmdb, status);
@@ -663,6 +663,12 @@ int     slmdb_cursor_get(SLMDB *slmdb, MDB_val *mdb_key,
 {
     MDB_txn *txn;
     int     status = 0;
+
+    /*
+     * TODO: figure how we would recover a failing bulk transaction.
+     */
+    if ((slmdb->slmdb_flags & SLMDB_FLAG_BULK) != 0)
+	return (MDB_PANIC);
 
     /*
      * Open a read transaction and cursor if needed.
@@ -786,7 +792,7 @@ int     slmdb_close(SLMDB *slmdb)
      * Finish an open bulk transaction. If slmdb_recover() returns after a
      * bulk-transaction error, then it was unable to recover.
      */
-    if (slmdb->txn != 0
+    if ((slmdb->slmdb_flags & SLMDB_FLAG_BULK) != 0 && slmdb->txn != 0
 	&& (status = mdb_txn_commit(slmdb->txn)) != 0)
 	status = slmdb_recover(slmdb, status);
 

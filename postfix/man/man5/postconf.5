@@ -10413,14 +10413,18 @@ The smtpd_expansion_filter value is not subject to Postfix configuration
 parameter $name expansion.
 .PP
 This feature is available in Postfix 2.0 and later.
-.SH smtpd_forbidden_commands (default: CONNECT, GET, POST)
+.SH smtpd_forbidden_commands (default: CONNECT GET POST regexp:{{/^[^A\-Z]/ Bogus}})
 List of commands that cause the Postfix SMTP server to immediately
 terminate the session with a 221 code. This can be used to disconnect
 clients that obviously attempt to abuse the system. In addition to the
 commands listed in this parameter, commands that follow the "Label:"
-format of message headers will also cause a disconnect.
+format of message headers will also cause a disconnect. With Postfix
+versions 3.6 and earlier, the default value is "CONNECT GET POST".
 .PP
 This feature is available in Postfix 2.2 and later.
+.PP
+Support for inline regular expressions was added in Postfix version
+3.7. See \fBregexp_table\fR(5) for a description of the syntax and features.
 .SH smtpd_hard_error_limit (default: normal: 20, overload: 1)
 The maximal number of errors a remote SMTP client is allowed to
 make without delivering mail. The Postfix SMTP server disconnects

@@ -637,7 +637,7 @@ static int psc_bdat_cmd(PSC_STATE *state, char *args)
     else if (state->sender == 0)
 	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
 					   psc_smtpd_time_event,
-				  "554 5.5.1 Error: need RCPT command\r\n");
+				  "554 5.5.1 Error: need MAIL command\r\n");
     else
 	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
 					   psc_smtpd_time_event,

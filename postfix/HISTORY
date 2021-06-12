@@ -25597,3 +25597,30 @@ Apologies for any names omitted.
 	or master.cf, to improve their usability in matchlists. Files:
 	util/dict_stream.c, util/dict.h, util/dict_pcre.c,
 	util/dict_regexp.c, util/dict_cidr.c, and test files.
+
+	The smtpd_forbidden_commands default setting now also inludes
+	a regular expression regexp:{{/^[^A-Z]/ Bogus}} for bogus inputs.
+	File: global/mail_params.h.
+
+20210606
+
+	Cleanup: "Postfix is running with backwards-compatible..."
+	did not make sense when Postfix is down. File: postfix/postfix.c.
+
+	Cleanup: the postscreen BDAT handler now replies with "need
+	MAIL command" when the client did not provide a sender address.
+	File: postscreen/postscreen_smtpd.c.
+
+	Typo: silent_discard should be silent-discard.  File:
+	proto/BDAT_README.html.
+
+20210610
+
+	Cleanup: escape non-printable characters in non-SMTP commands,
+	instead of replacing them with '?'. File: smtpd/smtpd.c.
+
+	Misc typofixes by Viktor Dukhovni. Files: conf/master.cf,
+	proto/regexp_table, proto/cidr_table.
+
+	Cleanup: simplify the LMDB error recovery code. File:
+	util/slmdb.c.

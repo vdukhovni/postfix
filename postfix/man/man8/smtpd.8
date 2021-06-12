@@ -1138,7 +1138,7 @@ A prefix that is prepended to the process name in syslog
 records, so that, for example, "smtpd" becomes "prefix/smtpd".
 .PP
 Available in Postfix version 2.2 and later:
-.IP "\fBsmtpd_forbidden_commands (CONNECT, GET, POST)\fR"
+.IP "\fBsmtpd_forbidden_commands (CONNECT GET POST regexp:{{/^[^A\-Z]/ Bogus}})\fR"
 List of commands that cause the Postfix SMTP server to immediately
 terminate the session with a 221 code.
 .PP

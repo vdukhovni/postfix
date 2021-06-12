@@ -1080,7 +1080,7 @@
 /*	records, so that, for example, "smtpd" becomes "prefix/smtpd".
 /* .PP
 /*	Available in Postfix version 2.2 and later:
-/* .IP "\fBsmtpd_forbidden_commands (CONNECT, GET, POST)\fR"
+/* .IP "\fBsmtpd_forbidden_commands (CONNECT GET POST regexp:{{/^[^A-Z]/ Bogus}})\fR"
 /*	List of commands that cause the Postfix SMTP server to immediately
 /*	terminate the session with a 221 code.
 /* .PP
@@ -5693,9 +5693,15 @@ static void smtpd_proto(SMTPD_STATE *state)
 		if (is_header(argv[0].strval)
 		    || (*var_smtpd_forbid_cmds
 		 && string_list_match(smtpd_forbid_cmds, argv[0].strval))) {
+		    VSTRING *escape_buf = vstring_alloc(100);
+
 		    msg_warn("non-SMTP command from %s: %.100s",
-			     state->namaddr, vstring_str(state->buffer));
+			     state->namaddr,
+			     vstring_str(escape(escape_buf,
+						vstring_str(state->buffer),
+					      VSTRING_LEN(state->buffer))));
 		    smtpd_chat_reply(state, "221 2.7.0 Error: I can break rules, too. Goodbye.");
+		    vstring_free(escape_buf);
 		    break;
 		}
 	    }

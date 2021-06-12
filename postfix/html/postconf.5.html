@@ -15300,18 +15300,24 @@ This feature is available in Postfix 2.0 and later.
 </DD>
 
 <DT><b><a name="smtpd_forbidden_commands">smtpd_forbidden_commands</a>
-(default: CONNECT, GET, POST)</b></DT><DD>
+(default: CONNECT GET POST <a href="regexp_table.5.html">regexp</a>:{{/^[^A-Z]/ Bogus}})</b></DT><DD>
 
 <p>
 List of commands that cause the Postfix SMTP server to immediately
 terminate the session with a 221 code. This can be used to disconnect
 clients that obviously attempt to abuse the system. In addition to the
 commands listed in this parameter, commands that follow the "Label:"
-format of message headers will also cause a disconnect.
+format of message headers will also cause a disconnect. With Postfix
+versions 3.6 and earlier, the default value is "CONNECT GET POST".
 </p>
 
 <p>
 This feature is available in Postfix 2.2 and later.
+</p>
+
+<p>
+Support for inline regular expressions was added in Postfix version
+3.7. See <a href="regexp_table.5.html">regexp_table(5)</a> for a description of the syntax and features.
 </p>
 
 

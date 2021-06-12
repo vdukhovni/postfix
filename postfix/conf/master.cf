@@ -32,9 +32,9 @@ smtp      inet  n       -       n       -       -       smtpd
 #  -o smtpd_relay_restrictions=
 #  -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject
 #  -o milter_macro_daemon_name=ORIGINATING
-# Choose one: enable submssions for loopback clients only, or for any client.
-#127.0.0.1:submssions inet n  -       n       -       -       smtpd
-#submssions     inet  n       -       n       -       -       smtpd
+# Choose one: enable submissions for loopback clients only, or for any client.
+#127.0.0.1:submissions inet n  -       n       -       -       smtpd
+#submissions     inet  n       -       n       -       -       smtpd
 #  -o syslog_name=postfix/submissions
 #  -o smtpd_tls_wrappermode=yes
 #  -o smtpd_sasl_auth_enable=yes

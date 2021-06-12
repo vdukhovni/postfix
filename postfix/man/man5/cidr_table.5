@@ -120,10 +120,10 @@ The basic syntax is:
 
 .nf
 main.cf:
-    \fIparameter\fR \fB= .. pcre:{ { \fIrule\-1\fB }, { \fIrule\-2\fB } .. } ..\fR
+    \fIparameter\fR \fB= .. cidr:{ { \fIrule\-1\fB }, { \fIrule\-2\fB } .. } ..\fR
 
 master.cf:
-    \fB.. \-o { \fIparameter\fR \fB= .. pcre:{ { \fIrule\-1\fB }, { \fIrule\-2\fB } .. } .. } ..\fR
+    \fB.. \-o { \fIparameter\fR \fB= .. cidr:{ { \fIrule\-1\fB }, { \fIrule\-2\fB } .. } .. } ..\fR
 .fi
 
 Postfix ignores whitespace after '{' and before '}', and

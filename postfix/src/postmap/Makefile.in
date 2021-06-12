@@ -26,7 +26,8 @@ update: ../../bin/$(PROG)
 ../../bin/$(PROG): $(PROG)
 	cp $(PROG) ../../bin
 
-tests:	test1 test2 fail_test quote_test file_test lmdb_abb_test lmdb_retry_test
+tests:	test1 test2 fail_test quote_test file_test lmdb_abb_test \
+	lmdb_bulk_test lmdb_incr_test
 
 root_tests:
 
@@ -80,12 +81,23 @@ lmdb_abb_test: $(PROG) lmdb_abb lmdb_abb.ref
 	diff lmdb_abb.ref lmdb_abb.tmp
 	rm -f lmdb_abb.tmp lmdb_abb.lmdb
 
-lmdb_retry_test: $(PROG)
+lmdb_bulk_test: $(PROG)
 	rm -f lmdb_retry.lmdb main.cf
 	tr A-Z a-z < /usr/share/dict/words| \
 	    sed -e 's/.*/&	&/' -e 10000q| LANG=C sort -u >lmdb_retry
-	echo lmdb_map_size=1000 >main.cf
+	echo lmdb_map_size=10000 >main.cf
 	($(SHLIB_ENV) $(VALGRIND) ./postmap -c . lmdb:lmdb_retry; \
+	$(SHLIB_ENV) $(VALGRIND) ./postmap -s lmdb:lmdb_retry | \
+	    LANG=C sort > lmdb_retry.tmp)
+	cmp lmdb_retry lmdb_retry.tmp
+	rm -f lmdb_retry lmdb_retry.tmp lmdb_retry.lmdb main.cf
+
+lmdb_incr_test: $(PROG)
+	rm -f lmdb_retry.lmdb main.cf
+	tr A-Z a-z < /usr/share/dict/words| \
+	    sed -e 's/.*/&	&/' -e 10000q| LANG=C sort -u >lmdb_retry
+	echo lmdb_map_size=10000 >main.cf
+	($(SHLIB_ENV) $(VALGRIND) ./postmap -ic . lmdb:lmdb_retry <lmdb_retry; \
 	$(SHLIB_ENV) $(VALGRIND) ./postmap -s lmdb:lmdb_retry | \
 	    LANG=C sort > lmdb_retry.tmp)
 	cmp lmdb_retry lmdb_retry.tmp
