@@ -815,6 +815,17 @@ void    mail_params_init()
     const char *cp;
 
     /*
+     * Ignore the Postfix >= 3.6 compatibility_level's minor and patch
+     * fields, to allow rollback from Postfix >= 3.6, and to allow
+     * configuration sharing with Postfix >= 3.6.
+     */
+    const char *compat_level_str;
+
+    if ((compat_level_str = mail_conf_lookup(VAR_COMPAT_LEVEL)) != 0
+      && ISDIGIT(compat_level_str[0]) && strchr(compat_level_str, '.') != 0)
+	set_mail_conf_int(VAR_COMPAT_LEVEL, atoi(compat_level_str));
+
+    /*
      * Extract compatibility level first, so that we can determine what
      * parameters of interest are left at their legacy defaults.
      */
