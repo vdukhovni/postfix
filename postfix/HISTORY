@@ -25557,3 +25557,17 @@ Apologies for any names omitted.
 20210428
 
 	Documentation: update by Paul Menzel. File: proto/SASL_README.html.
+
+20210601
+
+	Bugfix (introduced: Postfix 2.11): the command "postmap
+	lmdb:/file/name" handled duplicate keys ungracefully,
+	discarding entries stored up to and including the duplicate
+	key, and causing a double free() call with lmdb versions
+	0.9.17 and later. Reported by Adi Prasaja; double free()
+	root cause analysis by Howard Chu. File: util/slmdb.c.
+
+20210609
+
+	Typo (introduced: Postfix 3.4): silent_discard should be
+	silent-discard. File: proto/BDAT_README.html.

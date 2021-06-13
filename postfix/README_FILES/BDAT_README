@@ -23,7 +23,7 @@ BDAT support is enabled by default. To disable BDAT support globally:
         # The logging alternative:
         smtpd_discard_ehlo_keywords = chunking
         # The non-logging alternative:
-        smtpd_discard_ehlo_keywords = chunking, silent_discard
+        smtpd_discard_ehlo_keywords = chunking, silent-discard
 
 Specify '-o smtpd_discard_ehlo_keywords=' in master.cf for the submission and
 smtps services, if you have clients that benefit from CHUNKING support.
