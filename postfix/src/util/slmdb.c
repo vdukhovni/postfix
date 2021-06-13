@@ -386,12 +386,16 @@ static int slmdb_prepare(SLMDB *slmdb)
      * - With a bulk-mode transaction we commit when the database is closed.
      */
     if (slmdb->open_flags & O_TRUNC) {
-	if ((status = mdb_drop(slmdb->txn, slmdb->dbi, 0)) != 0)
-	    return (status);
-	if ((slmdb->slmdb_flags & SLMDB_FLAG_BULK) == 0) {
-	    if ((status = mdb_txn_commit(slmdb->txn)) != 0)
-		return (status);
+	if ((status = mdb_drop(slmdb->txn, slmdb->dbi, 0)) != 0) {
+	    mdb_txn_abort(slmdb->txn);
 	    slmdb->txn = 0;
+	    return (status);
+	}
+	if ((slmdb->slmdb_flags & SLMDB_FLAG_BULK) == 0) {
+	    status = mdb_txn_commit(slmdb->txn);
+	    slmdb->txn = 0;
+	    if (status != 0)
+		return (status);
 	}
     } else if ((slmdb->lmdb_flags & MDB_RDONLY) != 0
 	       || (slmdb->slmdb_flags & SLMDB_FLAG_BULK) == 0) {
@@ -582,11 +586,15 @@ int     slmdb_put(SLMDB *slmdb, MDB_val *mdb_key,
      * Do the update.
      */
     if ((status = mdb_put(txn, slmdb->dbi, mdb_key, mdb_value, flags)) != 0) {
-	mdb_txn_abort(txn);
 	if (status != MDB_KEYEXIST) {
+	    mdb_txn_abort(txn);
 	    if ((status = slmdb_recover(slmdb, status)) == 0)
 		status = slmdb_put(slmdb, mdb_key, mdb_value, flags);
 	    SLMDB_API_RETURN(slmdb, status);
+	} else {
+	    /* Abort non-bulk transaction only. */
+	    if (slmdb->txn == 0)
+		mdb_txn_abort(txn);
 	}
     }
 
