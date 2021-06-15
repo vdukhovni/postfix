@@ -105,7 +105,9 @@
 /*	value. When creating a map from source file, process each
 /*	value as a list of filenames, concatenate the content of
 /*	those files, and store the base64-encoded result instead
-/*	of the value (see INPUT FORMAT for details).
+/*	of the value (see INPUT FILE FORMAT for details).
+/* .sp
+/*	This feature is available in Postfix version 3.4 and later.
 /* .IP \fB-h\fR
 /*	Enable message header query mode. When reading lookup keys
 /*	from standard input with "\fB-q -\fR", process the input

@@ -1720,6 +1720,7 @@ dict_thash.o: htable.h
 dict_thash.o: iostuff.h
 dict_thash.o: msg.h
 dict_thash.o: myflock.h
+dict_thash.o: mymalloc.h
 dict_thash.o: readlline.h
 dict_thash.o: stringops.h
 dict_thash.o: sys_defs.h

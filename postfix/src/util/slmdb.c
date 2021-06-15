@@ -275,6 +275,9 @@
   * triggers a long jump back into the caller to some pre-arranged point (the
   * closest thing that C has to exception handling). The application is then
   * expected to repeat the bulk transaction from scratch.
+  * 
+  * When any code aborts a bulk transaction, it must reset slmdb->txn to null
+  * to avoid a use-after-free problem in slmdb_close().
   */
 
  /*
@@ -379,7 +382,9 @@ static int slmdb_prepare(SLMDB *slmdb)
      * This is called before accessing the database, or after recovery from
      * an LMDB error. Note: this code cannot recover from errors itself.
      * slmdb->txn is either the database open() transaction or a
-     * freshly-created bulk-mode transaction.
+     * freshly-created bulk-mode transaction. When slmdb_prepare() commits or
+     * aborts commits a transaction, it must set slmdb->txn to null to avoid
+     * a use-after-free error in slmdb_close().
      * 
      * - With O_TRUNC we make a "drop" request before updating the database.
      * 
@@ -410,6 +415,7 @@ static int slmdb_prepare(SLMDB *slmdb)
 static int slmdb_recover(SLMDB *slmdb, int status)
 {
     MDB_envinfo info;
+    int     original_status = status;
 
     /*
      * This may be needed in non-MDB_NOLOCK mode. Recovery is rare enough
@@ -425,19 +431,14 @@ static int slmdb_recover(SLMDB *slmdb, int status)
 	return (status);
 
     /*
-     * Recover bulk transactions only if they can be restarted, but limit the
-     * number of recovery attempts.
+     * Limit the number of bulk transaction recovery attempts.
      */
     if ((slmdb->slmdb_flags & SLMDB_FLAG_BULK) != 0
-	&& (slmdb->longjmp_fn == 0
-	    || (slmdb->bulk_retry_count += 1) > slmdb->bulk_retry_limit))
+	&& (slmdb->bulk_retry_count += 1) > slmdb->bulk_retry_limit)
 	return (status);
 
     /*
-     * If we can recover from the error, we clear the error condition and the
-     * caller should retry the failed operation immediately. Otherwise, the
-     * caller should terminate with a fatal run-time error and the program
-     * should be re-run later.
+     * Try to clear the error condition.
      */
     switch (status) {
 
@@ -504,18 +505,33 @@ static int slmdb_recover(SLMDB *slmdb, int status)
     }
 
     /*
-     * If a bulk-transaction error is recoverable, build a new bulk
-     * transaction from scratch, by making a long jump back into the caller
-     * at some pre-arranged point. In MDB_NOLOCK mode, there is no need to
-     * upgrade the lock to "exclusive", because the failed write transaction
-     * has no side effects.
+     * If we cleared the error condition for a non-bulk transaction, return a
+     * success status. The caller should retry the failed operation
+     * immediately.
      */
-    if (status == 0 && (slmdb->slmdb_flags & SLMDB_FLAG_BULK) != 0
-	&& (status = mdb_txn_begin(slmdb->env, (MDB_txn *) 0,
-				   slmdb->lmdb_flags & MDB_RDONLY,
-				   &slmdb->txn)) == 0
-	&& (status = slmdb_prepare(slmdb)) == 0)
-	slmdb->longjmp_fn(slmdb->cb_context, 1);
+    if (status == 0 && (slmdb->slmdb_flags & SLMDB_FLAG_BULK) != 0) {
+
+	/*
+	 * We cleared the error condition for a	bulk transaction. If the
+	 * transaction is not restartable, return the original error. The
+	 * caller should terminate with a fatal run-time error, and the
+	 * program should be re-run later.
+	 */
+	if (slmdb->longjmp_fn == 0)
+	    return (original_status);
+
+	/*
+	 * Rebuild a bulk transaction from scratch, by making a long jump
+	 * back into the caller at some pre-arranged point. In MDB_NOLOCK
+	 * mode, there is no need to upgrade a lock to "exclusive", because a
+	 * failed write transaction has no side effects.
+	 */
+	if ((status = mdb_txn_begin(slmdb->env, (MDB_txn *) 0,
+				    slmdb->lmdb_flags & MDB_RDONLY,
+				    &slmdb->txn)) == 0
+	    && (status = slmdb_prepare(slmdb)) == 0)
+	    slmdb->longjmp_fn(slmdb->cb_context, 1);
+    }
     return (status);
 }
 
@@ -667,8 +683,12 @@ int     slmdb_cursor_get(SLMDB *slmdb, MDB_val *mdb_key,
     /*
      * TODO: figure how we would recover a failing bulk transaction.
      */
-    if ((slmdb->slmdb_flags & SLMDB_FLAG_BULK) != 0)
+    if ((slmdb->slmdb_flags & SLMDB_FLAG_BULK) != 0) {
+	if (slmdb->assert_fn)
+	    slmdb->assert_fn(slmdb->cb_context,
+		     "slmdb_cursor_get: bulk transaction is not supported");
 	return (MDB_PANIC);
+    }
 
     /*
      * Open a read transaction and cursor if needed.
@@ -790,7 +810,8 @@ int     slmdb_close(SLMDB *slmdb)
 
     /*
      * Finish an open bulk transaction. If slmdb_recover() returns after a
-     * bulk-transaction error, then it was unable to recover.
+     * bulk-transaction error, then it was unable to clear the error
+     * condition, or unable to restart the bulk transaction.
      */
     if ((slmdb->slmdb_flags & SLMDB_FLAG_BULK) != 0 && slmdb->txn != 0
 	&& (status = mdb_txn_commit(slmdb->txn)) != 0)

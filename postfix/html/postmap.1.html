@@ -101,7 +101,9 @@ POSTMAP(1)                                                          POSTMAP(1)
               When creating a map from source file, process each  value  as  a
               list  of  filenames, concatenate the content of those files, and
               store the base64-encoded result instead of the value (see  INPUT
-              FORMAT for details).
+              FILE FORMAT for details).
+
+              This feature is available in Postfix version 3.4 and later.
 
        <b>-h</b>     Enable  message header query mode. When reading lookup keys from
               standard input with "<b>-q -</b>", process the input as  if  it  is  an

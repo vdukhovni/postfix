@@ -25624,3 +25624,16 @@ Apologies for any names omitted.
 
 	Cleanup: simplify the LMDB error recovery code. File:
 	util/slmdb.c.
+
+20210615
+
+	Bugfix (introduced: Postfix 3.4): the texthash: map
+	implementation did not support "postmap -F" behavior.
+	Reported by Christopher Gurnee, who also found the missing
+	code in the postmap source. File: util/dict_thash.c.
+
+	Cleanup: documentation for the postmap -F option. File:
+	postmap/postmap.c.
+
+	Cleanup: simplify the LMDB error recovery code. File:
+	util/slmdb.c.

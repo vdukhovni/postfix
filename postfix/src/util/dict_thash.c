@@ -46,6 +46,7 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <mymalloc.h>
 #include <iostuff.h>
 #include <vstring.h>
 #include <stringops.h>
@@ -178,6 +179,24 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
 	    if (key[strlen(key) - 1] == ':')
 		msg_warn("%s, line %d: record is in \"key: value\" format;"
 			 " is this an alias file?", path, lineno);
+
+	    /*
+	     * Optionally treat the value as a filename, and replace the value
+	     * with the BASE64-encoded content of the named file.
+	     */
+	    if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
+		VSTRING *base64_buf;
+		char   *err;
+
+		if ((base64_buf = dict_file_to_b64(dict, value)) == 0) {
+		    err = dict_file_get_error(dict);
+		    msg_warn("%s, line %d: %s: skipping this entry",
+			     VSTREAM_PATH(fp), lineno, err);
+		    myfree(err);
+		    continue;
+		}
+		value = vstring_str(base64_buf);
+	    }
 
 	    /*
 	     * Store the value under the key. Handle duplicates
