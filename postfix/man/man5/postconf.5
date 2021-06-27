@@ -2752,8 +2752,8 @@ known_tcp_ports = empty | name\-to\-port *("," name\-to\-port)
 name\-to\-port = 1*(service\-name "=') port\-number
 .in -4
 .PP
-Whitespace is optional but it cannot appear inside a service
-name or port number.
+The comma is required. Whitespace is optional but it cannot appear
+inside a service name or port number.
 .PP
 This feature is available in Postfix 3.6 and later.
 .SH line_length_limit (default: 2048)

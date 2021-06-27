@@ -177,6 +177,7 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <name_code.h>
+#include <sane_strtol.h>
 #include <mac_parse.h>
 #include <mac_expand.h>
 
@@ -274,7 +275,7 @@ static long atol_or_die(const char *strval)
     long    result;
     char   *remainder;
 
-    result = strtol(strval, &remainder, 10);
+    result = sane_strtol(strval, &remainder, 10);
     if (*strval == 0 /* can't happen */ || *remainder != 0 || errno == ERANGE)
 	msg_fatal("mac_exp_eval: bad conversion: %s", strval);
     return (result);

@@ -18061,7 +18061,7 @@ name-to-port = 1*(service-name "=') port-number
 </p>
 </blockquote>
 
-<p> Whitespace is optional but it cannot appear inside a service
-name or port number. </p>
+<p> The comma is required. Whitespace is optional but it cannot appear
+inside a service name or port number. </p>
 
 <p> This feature is available in Postfix 3.6 and later. </p>

@@ -983,6 +983,7 @@ compat_level.o: ../../include/check_arg.h
 compat_level.o: ../../include/mac_expand.h
 compat_level.o: ../../include/mac_parse.h
 compat_level.o: ../../include/msg.h
+compat_level.o: ../../include/sane_strtol.h
 compat_level.o: ../../include/sys_defs.h
 compat_level.o: ../../include/vbuf.h
 compat_level.o: ../../include/vstring.h

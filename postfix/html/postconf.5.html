@@ -4339,13 +4339,13 @@ of the port "465" service. The ABNF is:
 
 <blockquote>
 <p>
-known_tcp_ports = empty | name-to-port *("," name-to-port) <br>
+<a href="postconf.5.html#known_tcp_ports">known_tcp_ports</a> = empty | name-to-port *("," name-to-port) <br>
 name-to-port = 1*(service-name "=') port-number
 </p>
 </blockquote>
 
-<p> Whitespace is optional but it cannot appear inside a service
-name or port number. </p>
+<p> The comma is required. Whitespace is optional but it cannot appear
+inside a service name or port number. </p>
 
 <p> This feature is available in Postfix 3.6 and later. </p>
 

@@ -25637,3 +25637,16 @@ Apologies for any names omitted.
 
 	Cleanup: simplify the LMDB error recovery code. File:
 	util/slmdb.c.
+
+20210623
+
+	Cleanup: the known_tcp_ports parameter was not hyperlinked.
+	File: mantools/postlink.
+
+	Bugfix: some strtou?l() calls had no 'errno=0' statement
+	before the call. Fixed with strtou?l() wrapper functions
+	that reset errno before calling strtou?l(), and calling
+	these from code that did not explicitly reset errno. Other
+	strtou?l() can be migrated later. Problem reported by David
+	Bohman. Files: util/sane_strtol.[hc], global/compat_level.c,
+	postscreen/postscreen_tests.c, util/mac_expand.c.

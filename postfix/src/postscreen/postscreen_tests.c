@@ -90,12 +90,12 @@
 
 #include <sys_defs.h>
 #include <stdio.h>			/* sscanf */
-#include <stdlib.h>			/* strtoul */
 
 /* Utility library. */
 
 #include <msg.h>
 #include <name_code.h>
+#include <sane_strtol.h>
 
 /* Global library. */
 
@@ -175,7 +175,7 @@ void    psc_parse_tests(PSC_STATE *state,
      * at the time that the cache entry was written.
      */
     for (sp = time_stamps; sp < time_stamps + PSC_TINDX_COUNT; sp++) {
-	*sp = strtoul(start, &cp, 10);
+	*sp = sane_strtoul(start, &cp, 10);
 	if (*start == 0 || (*cp != '\0' && *cp != ';') || errno == ERANGE)
 	    *sp = PSC_TIME_STAMP_DISABLED;
 	if (msg_verbose)

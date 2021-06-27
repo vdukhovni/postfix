@@ -42,7 +42,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	extpar.c dict_inline.c casefold.c dict_utf8.c strcasecmp_utf8.c \
 	split_qnameval.c argv_attr_print.c argv_attr_scan.c dict_file.c \
 	msg_logger.c logwriter.c unix_dgram_connect.c unix_dgram_listen.c \
-	byte_mask.c known_tcp_ports.c argv_split_at.c dict_stream.c
+	byte_mask.c known_tcp_ports.c argv_split_at.c dict_stream.c \
+	sane_strtol.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -86,7 +87,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	extpar.o dict_inline.o casefold.o dict_utf8.o strcasecmp_utf8.o \
 	split_qnameval.o argv_attr_print.o argv_attr_scan.o dict_file.o \
 	msg_logger.o logwriter.o unix_dgram_connect.o unix_dgram_listen.o \
-	byte_mask.o known_tcp_ports.o argv_split_at.o dict_stream.o
+	byte_mask.o known_tcp_ports.o argv_split_at.o dict_stream.o \
+	sane_strtol.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -117,7 +119,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	slmdb.h compat_va_copy.h dict_pipe.h dict_random.h \
 	valid_utf8_hostname.h midna_domain.h dict_union.h dict_inline.h \
 	check_arg.h argv_attr.h msg_logger.h logwriter.h byte_mask.h \
-	known_tcp_ports.h
+	known_tcp_ports.h sane_strtol.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -2066,6 +2068,7 @@ mac_expand.o: mac_parse.h
 mac_expand.o: msg.h
 mac_expand.o: mymalloc.h
 mac_expand.o: name_code.h
+mac_expand.o: sane_strtol.h
 mac_expand.o: stringops.h
 mac_expand.o: sys_defs.h
 mac_expand.o: vbuf.h
@@ -2387,6 +2390,9 @@ sane_socketpair.o: msg.h
 sane_socketpair.o: sane_socketpair.c
 sane_socketpair.o: sane_socketpair.h
 sane_socketpair.o: sys_defs.h
+sane_strtol.o: sane_strtol.c
+sane_strtol.o: sane_strtol.h
+sane_strtol.o: sys_defs.h
 sane_time.o: msg.h
 sane_time.o: sane_time.c
 sane_time.o: sane_time.h
