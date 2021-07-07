@@ -25650,3 +25650,14 @@ Apologies for any names omitted.
 	strtou?l() can be migrated later. Problem reported by David
 	Bohman. Files: util/sane_strtol.[hc], global/compat_level.c,
 	postscreen/postscreen_tests.c, util/mac_expand.c.
+
+20210705
+
+	Bugfix (introduced: Postfix 3.3): with "header_from_format
+	= standard" (the default as of Postfix 3.3) the cleanup
+	daemon crashed with a "null pointer read" error when email
+	was submitted with /usr/sbin/sendmail without From: header,
+	and an all-space full name was specified in the password
+	file, with "sendmail -F", or with the NAME environment
+	variable. Found by Renaud Metrich. File:
+	cleanup/cleanup_message.c.
