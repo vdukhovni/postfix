@@ -2,6 +2,9 @@ Wish list:
 
 	Add verp=+= to the qmgr "from=" logging.
 
+	In addition to the xxx_per_record_deadline, specify
+	a minimum data rate for the DATA stage.
+
 	Make smtpd_relay_before_recipient_restrictions settable
 	in smtpd_checks tests.
 

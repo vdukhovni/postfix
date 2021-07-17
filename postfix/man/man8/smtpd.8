@@ -757,8 +757,12 @@ The maximal size in bytes of a message, including envelope information.
 The maximal number of recipients that the Postfix SMTP server
 accepts per message delivery request.
 .IP "\fBsmtpd_timeout (normal: 300s, overload: 10s)\fR"
-The time limit for sending a Postfix SMTP server response and for
-receiving a remote SMTP client request.
+When the Postfix SMTP server wants to send an SMTP server
+response, how long the Postfix SMTP server will wait for an underlying
+network write operation to complete; and when the Postfix SMTP
+server Postfix wants to receive an SMTP client request, how long
+the Postfix SMTP server will wait for an underlying network read
+operation to complete.
 .IP "\fBsmtpd_history_flush_threshold (100)\fR"
 The maximal number of lines in the Postfix SMTP server command history
 before it is flushed upon receipt of EHLO, RSET, or end of DATA.

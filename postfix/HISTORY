@@ -25661,3 +25661,16 @@ Apologies for any names omitted.
 	file, with "sendmail -F", or with the NAME environment
 	variable. Found by Renaud Metrich. File:
 	cleanup/cleanup_message.c.
+
+20210708
+
+	Bugfix (introduced: 1999): the Postfix SMTP server was
+	sending all session transcripts to the error_notice_recipient,
+	instead of sending transcripts of bounced mail to the
+	bounce_notice_recipient. File: smtpd/smtpd_chat.c.
+
+20210713
+
+	Cleanup: the 20060903 code for record loop detection was
+	comparing memory addresses instead of queue file names. It
+	now properly compares strings. File: global/record.c.

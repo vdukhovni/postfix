@@ -711,8 +711,12 @@
 /*	The maximal number of recipients that the Postfix SMTP server
 /*	accepts per message delivery request.
 /* .IP "\fBsmtpd_timeout (normal: 300s, overload: 10s)\fR"
-/*	The time limit for sending a Postfix SMTP server response and for
-/*	receiving a remote SMTP client request.
+/*	When the Postfix SMTP server wants to send an SMTP server
+/*	response, how long the Postfix SMTP server will wait for an underlying
+/*	network write operation to complete; and when the Postfix SMTP
+/*	server Postfix wants to receive an SMTP client request, how long
+/*	the Postfix SMTP server will wait for an underlying network read
+/*	operation to complete.
 /* .IP "\fBsmtpd_history_flush_threshold (100)\fR"
 /*	The maximal number of lines in the Postfix SMTP server command history
 /*	before it is flushed upon receipt of EHLO, RSET, or end of DATA.
@@ -1301,6 +1305,7 @@ int     var_reject_code;
 int     var_defer_code;
 int     var_smtpd_err_sleep;
 int     var_non_fqdn_code;
+char   *var_bounce_rcpt;
 char   *var_error_rcpt;
 int     var_smtpd_delay_reject;
 char   *var_rest_classes;
@@ -6437,6 +6442,7 @@ int     main(int argc, char **argv)
 	VAR_EOD_CHECKS, DEF_EOD_CHECKS, &var_eod_checks, 0, 0,
 	VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains, 0, 0,
 	VAR_RBL_REPLY_MAPS, DEF_RBL_REPLY_MAPS, &var_rbl_reply_maps, 0, 0,
+	VAR_BOUNCE_RCPT, DEF_BOUNCE_RCPT, &var_bounce_rcpt, 1, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes, 0, 0,
 	VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,

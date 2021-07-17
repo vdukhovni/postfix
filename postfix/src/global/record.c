@@ -338,8 +338,10 @@ int     rec_goto(VSTREAM *stream, const char *buf)
      */
 #define REVERSE_JUMP_LIMIT	10000
 
-    if (saved_path != VSTREAM_PATH(stream)) {
-	saved_path = VSTREAM_PATH(stream);
+    if (saved_path == 0 || strcmp(saved_path, VSTREAM_PATH(stream)) != 0) {
+	if (saved_path)
+	    myfree(saved_path);
+	saved_path = mystrdup(VSTREAM_PATH(stream));
 	reverse_count = 0;
 	saved_offset = 0;
     }

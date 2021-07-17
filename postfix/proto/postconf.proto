@@ -2314,8 +2314,8 @@ This feature is available in Postfix 2.1 and later.
 <p>
 Optional shell program for local(8) delivery to non-Postfix command.
 By default, non-Postfix commands are executed directly; commands
-are given to given to the default shell (typically, /bin/sh) only
-when they contain shell meta characters or shell built-in commands.
+are given to the default shell (typically, /bin/sh) only when they
+contain shell meta characters or shell built-in commands.
 </p>
 
 <p> "sendmail's restricted shell" (smrsh) is what most people will
@@ -6710,9 +6710,15 @@ smtpd_sender_restrictions = reject_unknown_sender_domain,
 
 %PARAM smtpd_timeout normal: 300s, overload: 10s
 
-<p>
-The time limit for sending a Postfix SMTP server response and for
-receiving a remote SMTP client request. Normally the default limit
+<p> When the Postfix SMTP server wants to send an SMTP server
+response, how long the Postfix SMTP server will wait for an underlying
+network write operation to complete; and when the Postfix SMTP
+server Postfix wants to receive an SMTP client request, how long
+the Postfix SMTP server will wait for an underlying network read
+operation to complete. See smtpd_per_record_deadline for how this
+time limit may be enforced. </p>
+
+<p> Normally the default limit
 is 300s, but it changes under overload to just 10s. With Postfix
 2.5 and earlier, the SMTP server always uses a time limit of 300s
 by default.
@@ -16265,7 +16271,7 @@ starting with "0x", the options corresponding to the bits specified
 in its value are enabled (see openssl/ssl.h and SSL_CTX_set_options(3)).
 You can only enable options not already controlled by other Postfix
 settings.  For example, you cannot disable protocols or enable
-server cipher preference.  Do not attempt to turn all features by
+server cipher preference.  Do not attempt to enable all features by
 specifying 0xFFFFFFFF, this is unlikely to be a good idea.  Some
 bug work-arounds are also valid here, allowing them to be re-enabled
 if/when they're no longer enabled by default.  The supported values
