@@ -776,9 +776,12 @@ static void cleanup_header_done_callback(void *context)
 		} else {
 		    token = tok822_alloc(TOK822_QSTRING, state->fullname);
 		}
-		tok822_externalize(state->temp2, token, TOK822_STR_NONE);
-		tok822_free(token);
-		vstring_sprintf_append(state->temp2, " <%s>",
+		if (token) {
+		    tok822_externalize(state->temp2, token, TOK822_STR_NONE);
+		    tok822_free(token);
+		    vstring_strcat(state->temp2, " ");
+		}
+		vstring_sprintf_append(state->temp2, "<%s>",
 				       vstring_str(state->temp1));
 		break;
 

@@ -316,7 +316,8 @@ void    smtpd_chat_notify(SMTPD_STATE *state)
 #define INDENT	4
 
     notice = post_mail_fopen_nowait(mail_addr_double_bounce(),
-				    var_error_rcpt,
+				    (state->error_mask & MAIL_ERROR_BOUNCE) ?
+				    var_bounce_rcpt : var_error_rcpt,
 				    MAIL_SRC_MASK_NOTIFY, NULL_TRACE_FLAGS,
 				    SMTPUTF8_FLAG_NONE, NO_QUEUE_ID);
     if (notice == 0) {
