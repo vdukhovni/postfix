@@ -157,6 +157,7 @@ long    compat_level_from_string(const char *str,
     char   *remainder;
 
     start = str;
+    errno = 0;
     major = strtol(start, &remainder, 10);
     if (start < remainder && (*remainder == 0 || *remainder == '.')
 	&& errno != ERANGE && GOOD_MAJOR(major)) {

@@ -1301,6 +1301,7 @@ int     var_reject_code;
 int     var_defer_code;
 int     var_smtpd_err_sleep;
 int     var_non_fqdn_code;
+char   *var_bounce_rcpt;
 char   *var_error_rcpt;
 int     var_smtpd_delay_reject;
 char   *var_rest_classes;
@@ -6431,6 +6432,7 @@ int     main(int argc, char **argv)
 	VAR_EOD_CHECKS, DEF_EOD_CHECKS, &var_eod_checks, 0, 0,
 	VAR_MAPS_RBL_DOMAINS, DEF_MAPS_RBL_DOMAINS, &var_maps_rbl_domains, 0, 0,
 	VAR_RBL_REPLY_MAPS, DEF_RBL_REPLY_MAPS, &var_rbl_reply_maps, 0, 0,
+	VAR_BOUNCE_RCPT, DEF_ERROR_RCPT, &var_bounce_rcpt, 1, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes, 0, 0,
 	VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,

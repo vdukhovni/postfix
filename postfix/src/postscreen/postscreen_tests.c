@@ -175,6 +175,7 @@ void    psc_parse_tests(PSC_STATE *state,
      * at the time that the cache entry was written.
      */
     for (sp = time_stamps; sp < time_stamps + PSC_TINDX_COUNT; sp++) {
+	errno = 0;
 	*sp = strtoul(start, &cp, 10);
 	if (*start == 0 || (*cp != '\0' && *cp != ';') || errno == ERANGE)
 	    *sp = PSC_TIME_STAMP_DISABLED;

@@ -25571,3 +25571,44 @@ Apologies for any names omitted.
 
 	Typo (introduced: Postfix 3.4): silent_discard should be
 	silent-discard. File: proto/BDAT_README.html.
+
+20210615
+
+	Bugfix (introduced: Postfix 3.4): the texthash: map
+	implementation did not support "postmap -F" behavior.
+	Reported by Christopher Gurnee, who also found the missing
+	code in the postmap source. File: util/dict_thash.c.
+
+20210623
+
+	Bugfix (introduced: Postfix 3.6) false "Result too large"
+	(ERANGE) fatal errors in the compatibility_level parser,
+	because an strtol() call had no 'errno = 0' statement before
+	the call. Also fixed two older latent bugs of the same kind.
+	Problem reported by David Bohman. Files: global/compat_level.c,
+	postscreen/postscreen_tests.c, util/mac_expand.c.
+
+20210705
+
+	Bugfix (introduced: Postfix 3.3): "null pointer read" error
+	in the cleanup daemon when "header_from_format = standard"
+	(the default as of Postfix 3.3) and email was submitted
+	with /usr/sbin/sendmail without From: header, and an all-space
+	full name was specified in 1) the password file, 2) with
+	"sendmail -F", or 3) with the NAME environment variable.
+	Found by Renaud Metrich. File: cleanup/cleanup_message.c.
+
+20210708
+
+	Bugfix (introduced: 1999): the Postfix SMTP server was
+	sending all session transcripts to the error_notice_recipient,
+	instead of sending transcripts of bounced mail to the
+	bounce_notice_recipient. File: smtpd/smtpd_chat.c.
+
+20210713
+
+	Bugfix (introduced: Postfix 2.4): false "too many reverse
+	jump" warnings in the showq daemon. The loop detection code
+	was comparing memory addresses instead of queue file names.
+	It now properly compares strings. Reported by Mehmet Avcioglu.
+	File: global/record.c.
