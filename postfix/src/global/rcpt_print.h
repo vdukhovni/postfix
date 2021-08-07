@@ -25,7 +25,7 @@
  /*
   * External interface.
   */
-extern int rcpt_print(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
+extern int rcpt_print(ATTR_SCAN_COMMON_FN, VSTREAM *, int, const void *);
 
 /* LICENSE
 /* .ad

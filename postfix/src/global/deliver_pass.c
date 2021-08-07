@@ -113,7 +113,7 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
 	       SEND_ATTR_STR(MAIL_ATTR_SENDER, request->sender),
 	       SEND_ATTR_STR(MAIL_ATTR_DSN_ENVID, request->dsn_envid),
 	       SEND_ATTR_INT(MAIL_ATTR_DSN_RET, request->dsn_ret),
-	       SEND_ATTR_FUNC(msg_stats_print, (void *) &request->msg_stats),
+	SEND_ATTR_FUNC(msg_stats_print, (const void *) &request->msg_stats),
     /* XXX Should be encapsulated with ATTR_TYPE_FUNC. */
 	     SEND_ATTR_STR(MAIL_ATTR_LOG_CLIENT_NAME, request->client_name),
 	     SEND_ATTR_STR(MAIL_ATTR_LOG_CLIENT_ADDR, request->client_addr),
@@ -130,7 +130,7 @@ static int deliver_pass_send_request(VSTREAM *stream, DELIVER_REQUEST *request,
 	       SEND_ATTR_INT(MAIL_ATTR_RCPT_COUNT, 1),
 	       ATTR_TYPE_END);
     attr_print(stream, ATTR_FLAG_NONE,
-	       SEND_ATTR_FUNC(rcpt_print, (void *) rcpt),
+	       SEND_ATTR_FUNC(rcpt_print, (const void *) rcpt),
 	       ATTR_TYPE_END);
 
     if (vstream_fflush(stream)) {

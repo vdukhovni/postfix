@@ -25653,24 +25653,58 @@ Apologies for any names omitted.
 
 20210705
 
-	Bugfix (introduced: Postfix 3.3): with "header_from_format
-	= standard" (the default as of Postfix 3.3) the cleanup
-	daemon crashed with a "null pointer read" error when email
-	was submitted with /usr/sbin/sendmail without From: header,
-	and an all-space full name was specified in the password
-	file, with "sendmail -F", or with the NAME environment
-	variable. Found by Renaud Metrich. File:
-	cleanup/cleanup_message.c.
+	Bugfix (introduced: Postfix 3.3): "null pointer read" error
+	in the cleanup daemon when "header_from_format = standard"
+	(the default as of Postfix 3.3) and email was submitted
+	with /usr/sbin/sendmail without From: header, and an all-space
+	full name was specified in 1) the password file, 2) with
+	"sendmail -F", or 3) with the NAME environment variable.
+	Found by Renaud Metrich. File: cleanup/cleanup_message.c.
 
 20210708
 
 	Bugfix (introduced: 1999): the Postfix SMTP server was
 	sending all session transcripts to the error_notice_recipient,
 	instead of sending transcripts of bounced mail to the
-	bounce_notice_recipient. File: smtpd/smtpd_chat.c.
+	bounce_notice_recipient. Reported by Hans van Zijst. File:
+	smtpd/smtpd_chat.c.
 
 20210713
 
-	Cleanup: the 20060903 code for record loop detection was
-	comparing memory addresses instead of queue file names. It
-	now properly compares strings. File: global/record.c.
+	Bugfix (introduced: Postfix 2.4): false "too many reverse
+	jump" warnings in the showq daemon. The loop detection code
+	was comparing memory addresses instead of queue file names.
+	It now properly compares strings. Reported by Mehmet Avcioglu.
+	File: global/record.c.
+
+20210724
+
+	Cleanup: missing const in the 20210713 bugfix. File:
+	global/record.c.
+
+20210728
+
+	Bitrot: GLIBC 2.34 has closefrom(), and of course their
+	interface is different. File: util/sys_defs.h.
+
+20210804
+
+	Cleanup: replace ad-hoc object-to-VSTRING serialization with
+	attr_print*() based serialization. Files: tls/tls_proxy.h,
+	tls/tls_proxy_client_misc.c, tlsproxy.c/tlsproxy.c.
+
+	Cleanup: left-over code from a DANE on/off workaround. File:
+	tlsproxy.c/tlsproxy.c.
+
+	Constified the object argument of functions that write objects
+	to VSTREAM. Files: global/bounce.c, global/defer.c,
+	global/deliver_pass.c, global/deliver_request.c,
+	global/dsn_print.c, global/dsn_print.h,
+	global/msg_stats.h, global/msg_stats_print.c,
+	global/rcpt_print.c, global/rcpt_print.h, global/trace.c,
+	milter/milter8.c, milter/milter.c, milter/milter.h,
+	milter/milter_macros.c, oqmgr/qmgr_deliver.c,
+	qmgr/qmgr_deliver.c, tls/tls_proxy_client_misc.c,
+	tls/tls_proxy_client_print.c, tls/tls_proxy_context_print.c,
+	tls/tls_proxy.h, tls/tls_proxy_server_print.c, util/argv_attr.h,
+	util/argv_attr_print.c, util/attr.h.

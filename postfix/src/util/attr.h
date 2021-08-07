@@ -31,7 +31,7 @@
 typedef int (*ATTR_SCAN_COMMON_FN) (VSTREAM *, int,...);
 typedef int (*ATTR_SCAN_CUSTOM_FN) (ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 typedef int (*ATTR_PRINT_COMMON_FN) (VSTREAM *, int,...);
-typedef int (*ATTR_PRINT_CUSTOM_FN) (ATTR_PRINT_COMMON_FN, VSTREAM *, int, void *);
+typedef int (*ATTR_PRINT_CUSTOM_FN) (ATTR_PRINT_COMMON_FN, VSTREAM *, int, const void *);
 
  /*
   * Attribute types. See attr_scan(3) for documentation.

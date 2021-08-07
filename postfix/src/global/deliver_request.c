@@ -170,7 +170,7 @@ static int deliver_request_final(VSTREAM *stream, DELIVER_REQUEST *request,
 	msg_info("deliver_request_final: send: \"%s\" %d",
 		 hop_status->reason, status);
     attr_print(stream, ATTR_FLAG_NONE,
-	       SEND_ATTR_FUNC(dsn_print, (void *) hop_status),
+	       SEND_ATTR_FUNC(dsn_print, (const void *) hop_status),
 	       SEND_ATTR_INT(MAIL_ATTR_STATUS, status),
 	       ATTR_TYPE_END);
     if ((err = vstream_fflush(stream)) != 0)

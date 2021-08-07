@@ -17,7 +17,7 @@
 /*	routine. rcpt_print() is meant to be passed as a call-back
 /*	to attr_print(), thusly:
 /*
-/*	... SEND_ATTR_FUNC(rcpt_print, (void *) recipient), ...
+/*	... SEND_ATTR_FUNC(rcpt_print, (const void *) recipient), ...
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* LICENSE
@@ -54,7 +54,7 @@
 /* rcpt_print - write recipient to stream */
 
 int     rcpt_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
-		           int flags, void *ptr)
+		           int flags, const void *ptr)
 {
     RECIPIENT *rcpt = (RECIPIENT *) ptr;
     int     ret;

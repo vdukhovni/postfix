@@ -77,9 +77,8 @@ typedef struct TLS_CLIENT_PARAMS {
   * tls_proxy_client_param_scan.c.
   */
 extern TLS_CLIENT_PARAMS *tls_proxy_client_param_from_config(TLS_CLIENT_PARAMS *);
-extern char *tls_proxy_client_param_to_string(VSTRING *, TLS_CLIENT_PARAMS *);
-extern char *tls_proxy_client_param_with_names_to_string(VSTRING *, TLS_CLIENT_PARAMS *);
-extern int tls_proxy_client_param_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, void *);
+extern char *tls_proxy_client_param_serialize(ATTR_PRINT_COMMON_FN, VSTRING *, const TLS_CLIENT_PARAMS *);
+extern int tls_proxy_client_param_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, const void *);
 extern void tls_proxy_client_param_free(TLS_CLIENT_PARAMS *);
 extern int tls_proxy_client_param_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 
@@ -114,24 +113,23 @@ extern VSTREAM *tls_proxy_open(const char *, int, VSTREAM *, const char *,
 
 extern TLS_SESS_STATE *tls_proxy_context_receive(VSTREAM *);
 extern void tls_proxy_context_free(TLS_SESS_STATE *);
-extern int tls_proxy_context_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, void *);
+extern int tls_proxy_context_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, const void *);
 extern int tls_proxy_context_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 
-extern int tls_proxy_client_init_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, void *);
+extern int tls_proxy_client_init_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, const void *);
 extern int tls_proxy_client_init_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 extern void tls_proxy_client_init_free(TLS_CLIENT_INIT_PROPS *);
-extern char *tls_proxy_client_init_to_string(VSTRING *, TLS_CLIENT_INIT_PROPS *);
-extern char *tls_proxy_client_init_with_names_to_string(VSTRING *, TLS_CLIENT_INIT_PROPS *);
+extern char *tls_proxy_client_init_serialize(ATTR_PRINT_COMMON_FN, VSTRING *, const TLS_CLIENT_INIT_PROPS *);
 
-extern int tls_proxy_client_start_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, void *);
+extern int tls_proxy_client_start_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, const void *);
 extern int tls_proxy_client_start_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 extern void tls_proxy_client_start_free(TLS_CLIENT_START_PROPS *);
 
-extern int tls_proxy_server_init_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, void *);
+extern int tls_proxy_server_init_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, const void *);
 extern int tls_proxy_server_init_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 extern void tls_proxy_server_init_free(TLS_SERVER_INIT_PROPS *);
 
-extern int tls_proxy_server_start_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, void *);
+extern int tls_proxy_server_start_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, const void *);
 extern int tls_proxy_server_start_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 
 extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);

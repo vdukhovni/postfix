@@ -10,33 +10,33 @@
 /*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM	*stream;
 /*	int	flags;
-/*	void	*ptr;
+/*	const void *ptr;
 /*
 /*	int	tls_proxy_client_init_print(print_fn, stream, flags, ptr)
 /*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM	*stream;
 /*	int	flags;
-/*	void	*ptr;
+/*	const void *ptr;
 /*
 /*	int	tls_proxy_client_start_print(print_fn, stream, flags, ptr)
 /*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM	*stream;
 /*	int	flags;
-/*	void	*ptr;
+/*	const void *ptr;
 /* DESCRIPTION
 /*	tls_proxy_client_param_print() writes a TLS_CLIENT_PARAMS structure to
 /*	the named stream using the specified attribute print routine.
 /*	tls_proxy_client_param_print() is meant to be passed as a call-back to
 /*	attr_print(), thusly:
 /*
-/*	SEND_ATTR_FUNC(tls_proxy_client_param_print, (void *) param), ...
+/*	SEND_ATTR_FUNC(tls_proxy_client_param_print, (const void *) param), ...
 /*
 /*	tls_proxy_client_init_print() writes a full TLS_CLIENT_INIT_PROPS
 /*	structure to the named stream using the specified attribute
 /*	print routine. tls_proxy_client_init_print() is meant to
 /*	be passed as a call-back to attr_print(), thusly:
 /*
-/*	SEND_ATTR_FUNC(tls_proxy_client_init_print, (void *) init_props), ...
+/*	SEND_ATTR_FUNC(tls_proxy_client_init_print, (const void *) init_props), ...
 /*
 /*	tls_proxy_client_start_print() writes a TLS_CLIENT_START_PROPS
 /*	structure, without stream or file descriptor members, to
@@ -44,7 +44,7 @@
 /*	tls_proxy_client_start_print() is meant to be passed as a
 /*	call-back to attr_print(), thusly:
 /*
-/*	SEND_ATTR_FUNC(tls_proxy_client_start_print, (void *) start_props), ...
+/*	SEND_ATTR_FUNC(tls_proxy_client_start_print, (const void *) start_props), ...
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* LICENSE
@@ -86,9 +86,9 @@
 /* tls_proxy_client_param_print - send TLS_CLIENT_PARAMS over stream */
 
 int     tls_proxy_client_param_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
-				             int flags, void *ptr)
+				             int flags, const void *ptr)
 {
-    TLS_CLIENT_PARAMS *params = (TLS_CLIENT_PARAMS *) ptr;
+    const TLS_CLIENT_PARAMS *params = (const TLS_CLIENT_PARAMS *) ptr;
     int     ret;
 
     if (msg_verbose)
@@ -135,9 +135,9 @@ int     tls_proxy_client_param_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 /* tls_proxy_client_init_print - send TLS_CLIENT_INIT_PROPS over stream */
 
 int     tls_proxy_client_init_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
-				            int flags, void *ptr)
+				            int flags, const void *ptr)
 {
-    TLS_CLIENT_INIT_PROPS *props = (TLS_CLIENT_INIT_PROPS *) ptr;
+    const TLS_CLIENT_INIT_PROPS *props = (const TLS_CLIENT_INIT_PROPS *) ptr;
     int     ret;
 
     if (msg_verbose)
@@ -183,10 +183,10 @@ int     tls_proxy_client_init_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 /* tls_proxy_client_tlsa_print - send TLS_TLSA over stream */
 
 static int tls_proxy_client_tlsa_print(ATTR_PRINT_COMMON_FN print_fn,
-				          VSTREAM *fp, int flags, void *ptr)
+			            VSTREAM *fp, int flags, const void *ptr)
 {
-    TLS_TLSA *head = (TLS_TLSA *) ptr;
-    TLS_TLSA *tp;
+    const TLS_TLSA *head = (const TLS_TLSA *) ptr;
+    const TLS_TLSA *tp;
     int     count;
     int     ret;
 
@@ -216,9 +216,9 @@ static int tls_proxy_client_tlsa_print(ATTR_PRINT_COMMON_FN print_fn,
 /* tls_proxy_client_dane_print - send TLS_DANE over stream */
 
 static int tls_proxy_client_dane_print(ATTR_PRINT_COMMON_FN print_fn,
-				          VSTREAM *fp, int flags, void *ptr)
+			            VSTREAM *fp, int flags, const void *ptr)
 {
-    TLS_DANE *dane = (TLS_DANE *) ptr;
+    const TLS_DANE *dane = (const TLS_DANE *) ptr;
     int     ret;
 
     ret = print_fn(fp, flags | ATTR_FLAG_MORE,
@@ -233,7 +233,7 @@ static int tls_proxy_client_dane_print(ATTR_PRINT_COMMON_FN print_fn,
 		       SEND_ATTR_STR(TLS_ATTR_DOMAIN,
 				     STRING_OR_EMPTY(dane->base_domain)),
 		       SEND_ATTR_FUNC(tls_proxy_client_tlsa_print,
-				      (void *) dane->tlsa),
+				      (const void *) dane->tlsa),
 		       ATTR_TYPE_END);
     }
     /* Do not flush the stream. */
@@ -245,9 +245,9 @@ static int tls_proxy_client_dane_print(ATTR_PRINT_COMMON_FN print_fn,
 /* tls_proxy_client_start_print - send TLS_CLIENT_START_PROPS over stream */
 
 int     tls_proxy_client_start_print(ATTR_PRINT_COMMON_FN print_fn,
-				          VSTREAM *fp, int flags, void *ptr)
+			            VSTREAM *fp, int flags, const void *ptr)
 {
-    TLS_CLIENT_START_PROPS *props = (TLS_CLIENT_START_PROPS *) ptr;
+    const TLS_CLIENT_START_PROPS *props = (const TLS_CLIENT_START_PROPS *) ptr;
     int     ret;
 
     if (msg_verbose)
@@ -277,11 +277,11 @@ int     tls_proxy_client_start_print(ATTR_PRINT_COMMON_FN print_fn,
 		   SEND_ATTR_STR(TLS_ATTR_CIPHER_EXCLUSIONS,
 				 STRING_OR_EMPTY(props->cipher_exclusions)),
 		   SEND_ATTR_FUNC(argv_attr_print,
-				  (void *) props->matchargv),
+				  (const void *) props->matchargv),
 		   SEND_ATTR_STR(TLS_ATTR_MDALG,
 				 STRING_OR_EMPTY(props->mdalg)),
 		   SEND_ATTR_FUNC(tls_proxy_client_dane_print,
-				  (void *) props->dane),
+				  (const void *) props->dane),
 		   ATTR_TYPE_END);
     /* Do not flush the stream. */
     if (msg_verbose)

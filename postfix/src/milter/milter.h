@@ -79,7 +79,7 @@ extern MILTER_MACROS *milter_macros_create(const char *, const char *,
 					        const char *, const char *);
 extern MILTER_MACROS *milter_macros_alloc(int);
 extern void milter_macros_free(MILTER_MACROS *);
-extern int milter_macros_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, void *);
+extern int milter_macros_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, const void *);
 extern int milter_macros_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 
 #define MILTER_MACROS_ALLOC_ZERO	1	/* null pointer */

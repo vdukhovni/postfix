@@ -323,7 +323,7 @@ int     rec_get_raw(VSTREAM *stream, VSTRING *buf, ssize_t maxsize, int flags)
 int     rec_goto(VSTREAM *stream, const char *buf)
 {
     off_t   offset;
-    static const char *saved_path;
+    static char *saved_path;
     static off_t saved_offset;
     static int reverse_count;
 

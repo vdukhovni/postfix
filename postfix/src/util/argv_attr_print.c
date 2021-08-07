@@ -16,7 +16,7 @@
 /*	the specified attribute print routine. argv_attr_print() is meant
 /*	to be passed as a call-back to attr_print(), thusly:
 /*
-/*	... SEND_ATTR_FUNC(argv_attr_print, (void *) argv), ...
+/*	... SEND_ATTR_FUNC(argv_attr_print, (const void *) argv), ...
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /*
@@ -50,7 +50,7 @@
 /* argv_attr_print - write ARGV to stream */
 
 int     argv_attr_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
-			        int flags, void *ptr)
+			        int flags, const void *ptr)
 {
     ARGV   *argv = (ARGV *) ptr;
     int     n;

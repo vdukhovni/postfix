@@ -26,7 +26,7 @@
 #define ARGV_ATTR_VALUE	"argv_value"
 #define ARGV_ATTR_MAX	1024
 
-extern int argv_attr_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, void *);
+extern int argv_attr_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, const void *);
 extern int argv_attr_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 
 /* LICENSE

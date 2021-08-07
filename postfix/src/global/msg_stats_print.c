@@ -17,7 +17,7 @@
 /*	msg_stats_print() is meant to be passed as a call-back to
 /*	attr_print(), thusly:
 /*
-/*	... SEND_ATTR_FUNC(msg_stats_print, (void *) stats), ...
+/*	... SEND_ATTR_FUNC(msg_stats_print, (const void *) stats), ...
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* LICENSE
@@ -52,7 +52,7 @@
 /* msg_stats_print - write MSG_STATS to stream */
 
 int     msg_stats_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
-			        int flags, void *ptr)
+			        int flags, const void *ptr)
 {
     int     ret;
 

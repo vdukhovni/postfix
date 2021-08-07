@@ -798,7 +798,7 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
      */
     (void) attr_print(stream, ATTR_FLAG_MORE,
 		      SEND_ATTR_FUNC(milter_macros_print,
-				     (void *) milters->macros),
+				     (const void *) milters->macros),
 		      ATTR_TYPE_END);
 
     /*

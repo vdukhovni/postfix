@@ -2672,7 +2672,7 @@ static int milter8_send(MILTER *m, VSTREAM *stream)
 	|| (milter->m.macros != 0
 	    && attr_print(stream, ATTR_FLAG_NONE,
 			  SEND_ATTR_FUNC(milter_macros_print,
-					 (void *) milter->m.macros),
+					 (const void *) milter->m.macros),
 			  ATTR_TYPE_END) != 0)
 	|| (milter->m.macros == 0
 	    && attr_print(stream, ATTR_FLAG_NONE,

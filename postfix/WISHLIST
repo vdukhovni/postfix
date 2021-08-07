@@ -2,6 +2,10 @@ Wish list:
 
 	Add verp=+= to the qmgr "from=" logging.
 
+	Need canonical Dovecot example that has virtual_mailbox_domains,
+	(virtual_mailbox_maps or reject unverified_recipient), and
+	virtual_transport.
+
 	In addition to the xxx_per_record_deadline, specify
 	a minimum data rate for the DATA stage.
 

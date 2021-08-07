@@ -77,7 +77,7 @@
 /*	print routine.  milter_macros_print() is meant to be passed
 /*	as a call-back to attr_print*(), thusly:
 /*
-/*	SEND_ATTR_FUNC(milter_macros_print, (void *) macros),
+/*	SEND_ATTR_FUNC(milter_macros_print, (const void *) macros),
 /*
 /*	milter_macros_scan() reads a MILTER_MACROS structure from
 /*	the named stream using the specified attribute scan routine.
@@ -136,7 +136,7 @@
 /* milter_macros_print - write macros structure to stream */
 
 int     milter_macros_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
-			            int flags, void *ptr)
+			            int flags, const void *ptr)
 {
     MILTER_MACROS *mp = (MILTER_MACROS *) ptr;
     int     ret;

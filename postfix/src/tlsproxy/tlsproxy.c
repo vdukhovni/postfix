@@ -1195,8 +1195,6 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
     char   *param_key;
     VSTRING *init_buf;
     char   *init_key;
-    VSTRING *init_buf_for_hashing;
-    char   *init_key_for_hashing;
     int     log_hints = 0;
 
     /*
@@ -1208,21 +1206,13 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
      * First, compute the TLS_APPL_STATE cache lookup key. Save a copy of the
      * pre-jail request TLS_CLIENT_PARAMS and TLSPROXY_CLIENT_INIT_PROPS
      * settings, so that we can detect post-jail requests that do not match.
-     * 
-     * Workaround: salt the hash-table key with DANE on/off info. This avoids
-     * cross-talk between DANE and non-DANE sessions. Postfix DANE support
-     * modifies SSL_CTX to override certificate verification because there is
-     * no other way to do this before OpenSSL 1.1.0.
      */
     param_buf = vstring_alloc(100);
-    param_key = tls_proxy_client_param_with_names_to_string(
-						     param_buf, tls_params);
+    param_key = tls_proxy_client_param_serialize(attr_print_plain, param_buf,
+						 tls_params);
     init_buf = vstring_alloc(100);
-    init_key = tls_proxy_client_init_with_names_to_string(
-						      init_buf, init_props);
-    init_buf_for_hashing = vstring_alloc(100);
-    init_key_for_hashing = STR(vstring_sprintf(init_buf_for_hashing, "%s\n",
-					       init_key));
+    init_key = tls_proxy_client_init_serialize(attr_print_plain, init_buf,
+					       init_props);
     if (tlsp_pre_jail_done == 0) {
 	if (tlsp_pre_jail_client_param_key == 0
 	    || tlsp_pre_jail_client_init_key == 0) {
@@ -1252,7 +1242,7 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
      * Look up the cached TLS_APPL_STATE for this tls_client_init request.
      */
     if ((appl_state = (TLS_APPL_STATE *)
-	 htable_find(tlsp_client_app_cache, init_key_for_hashing)) == 0) {
+	 htable_find(tlsp_client_app_cache, init_key)) == 0) {
 
 	/*
 	 * Before creating a TLS_APPL_STATE instance, log a warning if a
@@ -1303,7 +1293,7 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
      */
     if (appl_state == 0
 	&& (appl_state = tls_client_init(init_props)) != 0) {
-	(void) htable_enter(tlsp_client_app_cache, init_key_for_hashing,
+	(void) htable_enter(tlsp_client_app_cache, init_key,
 			    (void *) appl_state);
 
 	/*
@@ -1317,7 +1307,6 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
 			 SSL_MODE_ENABLE_PARTIAL_WRITE
 			 | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
     }
-    vstring_free(init_buf_for_hashing);
     vstring_free(init_buf);
     vstring_free(param_buf);
     return (appl_state);

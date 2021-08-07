@@ -191,7 +191,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       SEND_ATTR_STR(MAIL_ATTR_SENDER, sender),
 	       SEND_ATTR_STR(MAIL_ATTR_DSN_ENVID, message->dsn_envid),
 	       SEND_ATTR_INT(MAIL_ATTR_DSN_RET, message->dsn_ret),
-	       SEND_ATTR_FUNC(msg_stats_print, (void *) &stats),
+	       SEND_ATTR_FUNC(msg_stats_print, (const void *) &stats),
     /* XXX Should be encapsulated with ATTR_TYPE_FUNC. */
 	     SEND_ATTR_STR(MAIL_ATTR_LOG_CLIENT_NAME, message->client_name),
 	     SEND_ATTR_STR(MAIL_ATTR_LOG_CLIENT_ADDR, message->client_addr),
@@ -211,7 +211,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	vstring_free(sender_buf);
     for (recipient = list.info; recipient < list.info + list.len; recipient++)
 	attr_print(stream, ATTR_FLAG_NONE,
-		   SEND_ATTR_FUNC(rcpt_print, (void *) recipient),
+		   SEND_ATTR_FUNC(rcpt_print, (const void *) recipient),
 		   ATTR_TYPE_END);
     if (vstream_fflush(stream) != 0) {
 	msg_warn("write to process (%s): %m", entry->queue->transport->name);

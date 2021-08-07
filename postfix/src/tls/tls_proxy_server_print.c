@@ -23,14 +23,14 @@
 /*	routine. tls_proxy_server_init_print() is meant to be passed as
 /*	a call-back to attr_print(), thusly:
 /*
-/*	... SEND_ATTR_FUNC(tls_proxy_server_init_print, (void *) init_props), ...
+/*	... SEND_ATTR_FUNC(tls_proxy_server_init_print, (const void *) init_props), ...
 /*
 /*	tls_proxy_server_start_print() writes a TLS_SERVER_START_PROPS
 /*	structure to the named stream using the specified attribute print
 /*	routine. tls_proxy_server_start_print() is meant to be passed as
 /*	a call-back to attr_print(), thusly:
 /*
-/*	... SEND_ATTR_FUNC(tls_proxy_server_start_print, (void *) start_props), ...
+/*	... SEND_ATTR_FUNC(tls_proxy_server_start_print, (const void *) start_props), ...
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* LICENSE
@@ -62,9 +62,9 @@
 /* tls_proxy_server_init_print - send TLS_SERVER_INIT_PROPS over stream */
 
 int     tls_proxy_server_init_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
-				            int flags, void *ptr)
+				            int flags, const void *ptr)
 {
-    TLS_SERVER_INIT_PROPS *props = (TLS_SERVER_INIT_PROPS *) ptr;
+    const TLS_SERVER_INIT_PROPS *props = (const TLS_SERVER_INIT_PROPS *) ptr;
     int     ret;
 
 #define STRING_OR_EMPTY(s) ((s) ? (s) : "")
@@ -115,9 +115,9 @@ int     tls_proxy_server_init_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 /* tls_proxy_server_start_print - send TLS_SERVER_START_PROPS over stream */
 
 int     tls_proxy_server_start_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
-				             int flags, void *ptr)
+				             int flags, const void *ptr)
 {
-    TLS_SERVER_START_PROPS *props = (TLS_SERVER_START_PROPS *) ptr;
+    const TLS_SERVER_START_PROPS *props = (const TLS_SERVER_START_PROPS *) ptr;
     int     ret;
 
 #define STRING_OR_EMPTY(s) ((s) ? (s) : "")

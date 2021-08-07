@@ -130,8 +130,8 @@ int     trace_append(int flags, const char *id, MSG_STATS *stats,
 			    SEND_ATTR_INT(MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND),
 			    SEND_ATTR_INT(MAIL_ATTR_FLAGS, flags),
 			    SEND_ATTR_STR(MAIL_ATTR_QUEUEID, id),
-			    SEND_ATTR_FUNC(rcpt_print, (void *) rcpt),
-			    SEND_ATTR_FUNC(dsn_print, (void *) &my_dsn),
+			    SEND_ATTR_FUNC(rcpt_print, (const void *) rcpt),
+			  SEND_ATTR_FUNC(dsn_print, (const void *) &my_dsn),
 			    ATTR_TYPE_END) != 0) {
 	msg_warn("%s: %s service failure", id, var_trace_service);
 	req_stat = -1;
