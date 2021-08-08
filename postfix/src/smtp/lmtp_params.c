@@ -98,6 +98,7 @@
 #ifdef USE_TLS
 	VAR_LMTP_TLS_SCERT_VD, DEF_LMTP_TLS_SCERT_VD, &var_smtp_tls_scert_vd, 0, 0,
 #endif
+	VAR_LMTP_MIN_DATA_RATE, DEF_LMTP_MIN_DATA_RATE, &var_smtp_min_data_rate, 1, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE lmtp_bool_table[] = {
@@ -123,8 +124,8 @@
 	VAR_LMTP_CNAME_OVERR, DEF_LMTP_CNAME_OVERR, &var_smtp_cname_overr,
 	VAR_LMTP_SASL_AUTH_SOFT_BOUNCE, DEF_LMTP_SASL_AUTH_SOFT_BOUNCE, &var_smtp_sasl_auth_soft_bounce,
 	VAR_LMTP_ASSUME_FINAL, DEF_LMTP_ASSUME_FINAL, &var_lmtp_assume_final,
-	VAR_LMTP_REC_DEADLINE, DEF_LMTP_REC_DEADLINE, &var_smtp_rec_deadline,
 	VAR_LMTP_DUMMY_MAIL_AUTH, DEF_LMTP_DUMMY_MAIL_AUTH, &var_smtp_dummy_mail_auth,
 	VAR_LMTP_BALANCE_INET_PROTO, DEF_LMTP_BALANCE_INET_PROTO, &var_smtp_balance_inet_proto,
+	VAR_LMTP_REQ_DEADLINE, DEF_LMTP_REQ_DEADLINE, &var_smtp_req_deadline,
 	0,
     };

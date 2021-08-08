@@ -33,7 +33,7 @@
 #define SMTP_ERR_NONE	4		/* non-error case */
 #define SMTP_ERR_DATA	5		/* application data error */
 
-extern void smtp_stream_setup(VSTREAM *, int, int);
+extern void smtp_stream_setup(VSTREAM *, int, int, int);
 extern void PRINTFLIKE(2, 3) smtp_printf(VSTREAM *, const char *,...);
 extern void smtp_flush(VSTREAM *);
 extern int smtp_fgetc(VSTREAM *);
@@ -47,7 +47,7 @@ extern void smtp_fputc(int, VSTREAM *);
 extern void smtp_vprintf(VSTREAM *, const char *, va_list);
 
 #define smtp_timeout_setup(stream, timeout) \
-	smtp_stream_setup((stream), (timeout), 0)
+	smtp_stream_setup((stream), (timeout), 0, 0)
 
 #define SMTP_GET_FLAG_NONE	0
 #define SMTP_GET_FLAG_SKIP	(1<<0)	/* skip over excess input */

@@ -4091,6 +4091,26 @@ extern bool var_smtpd_rec_deadline;
 #define DEF_LMTP_REC_DEADLINE	0
 extern bool var_smtp_rec_deadline;
 
+#define VAR_SMTPD_REQ_DEADLINE	"smtpd_per_request_deadline"
+#define DEF_SMTPD_REQ_DEADLINE	"${stress?{yes}:{no}}"
+extern bool var_smtpd_req_deadline;
+
+#define VAR_SMTP_REQ_DEADLINE	"smtp_per_request_deadline"
+#define DEF_SMTP_REQ_DEADLINE	0
+#define VAR_LMTP_REQ_DEADLINE	"lmtp_per_request_deadline"
+#define DEF_LMTP_REQ_DEADLINE	0
+extern bool var_smtp_req_deadline;
+
+#define VAR_SMTPD_MIN_DATA_RATE	"smtpd_min_data_rate"
+#define DEF_SMTPD_MIN_DATA_RATE	500
+extern int var_smtpd_min_data_rate;
+
+#define VAR_SMTP_MIN_DATA_RATE	"smtp_min_data_rate"
+#define DEF_SMTP_MIN_DATA_RATE	500
+#define VAR_LMTP_MIN_DATA_RATE	"smtp_min_data_rate"
+#define DEF_LMTP_MIN_DATA_RATE	500
+extern int var_smtp_min_data_rate;
+
  /*
   * Permit logging.
   */

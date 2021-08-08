@@ -324,7 +324,7 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#smtp_dns_resolver_options">smtp_dns_resolver_options</a> (empty)</b>
               DNS Resolver options for the Postfix SMTP client.
 
-       Available in Postfix version 2.9 and later:
+       Available in Postfix version 2.9 - 3.6:
 
        <b><a href="postconf.5.html#smtp_per_record_deadline">smtp_per_record_deadline</a> (no)</b>
               Change the behavior of the smtp_*_timeout time  limits,  from  a
@@ -332,6 +332,8 @@ SMTP(8)                                                                SMTP(8)
               send or receive a complete record (an SMTP  command  line,  SMTP
               response  line,  SMTP message content line, or TLS protocol mes-
               sage).
+
+       Available in Postfix version 2.9 and later:
 
        <b><a href="postconf.5.html#smtp_send_dummy_mail_auth">smtp_send_dummy_mail_auth</a> (no)</b>
               Whether or not to append the "AUTH=&lt;&gt;" option to the  MAIL  FROM
@@ -372,10 +374,22 @@ SMTP(8)                                                                SMTP(8)
               ".") that Postfix may use to determine whether DNSSEC validation
               is available.
 
-       <b>known_tcp_ports  (lmtp=24,  smtp=25,   smtps=submissions=465,   submis-</b>
+       <b><a href="postconf.5.html#known_tcp_ports">known_tcp_ports</a>  (lmtp=24,  smtp=25,   smtps=submissions=465,   submis-</b>
        <b>sion=587)</b>
               Optional setting that avoids lookups in  the  <b>services</b>(5)  data-
               base.
+
+       Available in Postfix version 3.7 and later:
+
+       <b><a href="postconf.5.html#smtp_per_request_deadline">smtp_per_request_deadline</a> (no)</b>
+              Change  the  behavior  of the smtp_*_timeout time limits, from a
+              time limit per plaintext or TLS read or write call,  to  a  com-
+              bined  time  limit  for  sending a complete SMTP request and for
+              receiving a complete SMTP response.
+
+       <b><a href="postconf.5.html#smtp_min_data_rate">smtp_min_data_rate</a> (500)</b>
+              The minimum data transfer rate for DATA requests, when deadlines
+              are enabled with <a href="postconf.5.html#smtp_per_request_deadline">smtp_per_request_deadline</a>.
 
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:
@@ -783,7 +797,7 @@ SMTP(8)                                                                SMTP(8)
               Time limit for connection cache connect, send or receive  opera-
               tions.
 
-       Available in Postfix version 2.9 and later:
+       Available in Postfix version 2.9 - 3.6:
 
        <b><a href="postconf.5.html#smtp_per_record_deadline">smtp_per_record_deadline</a> (no)</b>
               Change  the  behavior  of the smtp_*_timeout time limits, from a
@@ -803,6 +817,18 @@ SMTP(8)                                                                SMTP(8)
 
        <b><a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> (no)</b>
               Try to make multiple deliveries per TLS-encrypted connection.
+
+       Available in Postfix version 3.7 and later:
+
+       <b><a href="postconf.5.html#smtp_per_request_deadline">smtp_per_request_deadline</a> (no)</b>
+              Change  the  behavior  of the smtp_*_timeout time limits, from a
+              time limit per plaintext or TLS read or write call,  to  a  com-
+              bined  time  limit  for  sending a complete SMTP request and for
+              receiving a complete SMTP response.
+
+       <b><a href="postconf.5.html#smtp_min_data_rate">smtp_min_data_rate</a> (500)</b>
+              The minimum data transfer rate for DATA requests, when deadlines
+              are enabled with <a href="postconf.5.html#smtp_per_request_deadline">smtp_per_request_deadline</a>.
 
        Implemented in the <a href="qmgr.8.html">qmgr(8)</a> daemon:
 

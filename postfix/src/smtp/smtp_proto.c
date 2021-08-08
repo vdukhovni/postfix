@@ -337,7 +337,7 @@ int     smtp_helo(SMTP_STATE *state)
 	/* XXX Mix-up of per-session and per-request flags. */
 	state->misc_flags |= SMTP_MISC_FLAG_IN_STARTTLS;
 	smtp_stream_setup(state->session->stream, var_smtp_starttls_tmout,
-			  var_smtp_rec_deadline);
+			  var_smtp_req_deadline, 0);
 	tls_helo_status = smtp_start_tls(state);
 	state->misc_flags &= ~SMTP_MISC_FLAG_IN_STARTTLS;
 	return (tls_helo_status);
@@ -348,7 +348,7 @@ int     smtp_helo(SMTP_STATE *state)
      * Prepare for disaster.
      */
     smtp_stream_setup(state->session->stream, var_smtp_helo_tmout,
-		      var_smtp_rec_deadline);
+		      var_smtp_req_deadline, 0);
     if ((except = vstream_setjmp(state->session->stream)) != 0)
 	return (smtp_stream_except(state, except, where));
 
@@ -764,7 +764,7 @@ int     smtp_helo(SMTP_STATE *state)
 	     * Prepare for disaster.
 	     */
 	    smtp_stream_setup(state->session->stream, var_smtp_starttls_tmout,
-			      var_smtp_rec_deadline);
+			      var_smtp_req_deadline, 0);
 	    if ((except = vstream_setjmp(state->session->stream)) != 0)
 		return (smtp_stream_except(state, except,
 					"receiving the STARTTLS response"));
@@ -1544,7 +1544,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	msg_panic("%s: bad sender state %d (receiver state %d)",
 		  myname, send_state, recv_state);
     smtp_stream_setup(session->stream, *xfer_timeouts[send_state],
-		      var_smtp_rec_deadline);
+		      var_smtp_req_deadline, 0);
     if ((except = vstream_setjmp(session->stream)) != 0) {
 	msg_warn("smtp_proto: spurious flush before read in send state %d",
 		 send_state);
@@ -1931,7 +1931,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 #define LOST_CONNECTION_INSIDE_DATA (except == SMTP_ERR_EOF)
 
 		smtp_stream_setup(session->stream, *xfer_timeouts[recv_state],
-				  var_smtp_rec_deadline);
+				  var_smtp_req_deadline, 0);
 		if (LOST_CONNECTION_INSIDE_DATA) {
 		    if (vstream_setjmp(session->stream) != 0)
 			RETURN(smtp_stream_except(state, SMTP_ERR_EOF,
@@ -2266,7 +2266,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	if (send_state == SMTP_STATE_DOT && nrcpt > 0) {
 
 	    smtp_stream_setup(session->stream, var_smtp_data1_tmout,
-			      var_smtp_rec_deadline);
+			      var_smtp_req_deadline, var_smtp_min_data_rate);
 
 	    if ((except = vstream_setjmp(session->stream)) == 0) {
 

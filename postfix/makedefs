@@ -893,7 +893,7 @@ CCARGS="$CCARGS -DSNAPSHOT"
 
 # Non-production: needs thorough testing, or major changes are still
 # needed before the code stabilizes.
-#CCARGS="$CCARGS -DNONPROD"
+CCARGS="$CCARGS -DNONPROD"
 
 # Workaround: prepend Postfix include files before other include files.
 CCARGS="-I. -I../../include $CCARGS"

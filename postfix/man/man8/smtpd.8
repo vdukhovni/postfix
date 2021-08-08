@@ -149,7 +149,7 @@ Available in Postfix version 2.7 and later:
 .IP "\fBsmtpd_command_filter (empty)\fR"
 A mechanism to transform commands from remote SMTP clients.
 .PP
-Available in Postfix version 2.9 and later:
+Available in Postfix version 2.9 \- 3.6:
 .IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
 Change the behavior of the smtpd_timeout and smtpd_starttls_timeout
 time limits, from a
@@ -166,6 +166,16 @@ Available in Postfix version 3.6 and later:
 Evaluate smtpd_relay_restrictions before smtpd_recipient_restrictions.
 .IP "\fBknown_tcp_ports (lmtp=24, smtp=25, smtps=submissions=465, submission=587)\fR"
 Optional setting that avoids lookups in the \fBservices\fR(5) database.
+.PP
+Available in Postfix version 3.7 and later:
+.IP "\fBsmtpd_per_request_deadline (normal: no, overload: yes)\fR"
+Change the behavior of the smtpd_timeout and smtpd_starttls_timeout
+time limits, from a time limit per plaintext or TLS read or write
+call, to a combined time limit for receiving a complete SMTP request
+and for sending a complete SMTP response.
+.IP "\fBsmtpd_min_data_rate (500)\fR"
+The minimum data transfer rate for DATA and BDAT requests, when
+deadlines are enabled with smtpd_per_request_deadline.
 .SH "ADDRESS REWRITING CONTROLS"
 .na
 .nf
@@ -799,7 +809,7 @@ The maximal number of new (i.e., uncached) TLS sessions that a
 remote SMTP client is allowed to negotiate with this service per
 time unit.
 .PP
-Available in Postfix version 2.9 and later:
+Available in Postfix version 2.9 \- 3.6:
 .IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
 Change the behavior of the smtpd_timeout and smtpd_starttls_timeout
 time limits, from a
@@ -812,6 +822,16 @@ Available in Postfix version 3.1 and later:
 The maximal number of AUTH commands that any client is allowed to
 send to this service per time unit, regardless of whether or not
 Postfix actually accepts those commands.
+.PP
+Available in Postfix version 3.7 and later:
+.IP "\fBsmtpd_per_request_deadline (normal: no, overload: yes)\fR"
+Change the behavior of the smtpd_timeout and smtpd_starttls_timeout
+time limits, from a time limit per plaintext or TLS read or write
+call, to a combined time limit for receiving a complete SMTP request
+and for sending a complete SMTP response.
+.IP "\fBsmtpd_min_data_rate (500)\fR"
+The minimum data transfer rate for DATA and BDAT requests, when
+deadlines are enabled with smtpd_per_request_deadline.
 .SH "TARPIT CONTROLS"
 .na
 .nf

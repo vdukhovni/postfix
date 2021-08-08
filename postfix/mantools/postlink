@@ -224,6 +224,8 @@ while (<>) {
     s;\blmtp_mime_header_checks\b;<a href="postconf.5.html#lmtp_mime_header_checks">$&</a>;g;
     s;\blmtp_nested_header_checks\b;<a href="postconf.5.html#lmtp_nested_header_checks">$&</a>;g;
     s;\blmtp_per_record_deadline\b;<a href="postconf.5.html#lmtp_per_record_deadline">$&</a>;g;
+    s;\blmtp_per_request_deadline\b;<a href="postconf.5.html#lmtp_per_request_deadline">$&</a>;g;
+    s;\blmtp_min_data_rate\b;<a href="postconf.5.html#lmtp_min_data_rate">$&</a>;g;
     s;\blmtp_reply_filter\b;<a href="postconf.5.html#lmtp_reply_filter">$&</a>;g;
     s;\blmtp_sasl_password_maps\b;<a href="postconf.5.html#lmtp_sasl_password_maps">$&</a>;g;
     s;\blmtp_send_dummy_mail_auth\b;<a href="postconf.5.html#lmtp_send_dummy_mail_auth">$&</a>;g;
@@ -694,6 +696,8 @@ while (<>) {
     s;\bsmtp_reply_filter\b;<a href="postconf.5.html#smtp_reply_filter">$&</a>;g;
     s;\bsmtp_address_preference\b;<a href="postconf.5.html#smtp_address_preference">$&</a>;g;
     s;\bsmtp_per_record_deadline\b;<a href="postconf.5.html#smtp_per_record_deadline">$&</a>;g;
+    s;\bsmtp_per_request_deadline\b;<a href="postconf.5.html#smtp_per_request_deadline">$&</a>;g;
+    s;\bsmtp_min_data_rate\b;<a href="postconf.5.html#smtp_min_data_rate">$&</a>;g;
     s;\bsmtp_send_dummy_mail_auth\b;<a href="postconf.5.html#smtp_send_dummy_mail_auth">$&</a>;g;
     s;\bsmtp_balance_inet_protocols\b;<a href="postconf.5.html#smtp_balance_inet_protocols">$&</a>;g;
     s;\binfo_log_address_format\b;<a href="postconf.5.html#info_log_address_format">$&</a>;g;
@@ -740,6 +744,8 @@ while (<>) {
     s;\bsmtpd_reject_footer\b;<a href="postconf.5.html#smtpd_reject_footer">$&</a>;g;
     s;\bsmtpd_reject_footer_maps\b;<a href="postconf.5.html#smtpd_reject_footer_maps">$&</a>;g;
     s;\bsmtpd_per_record_deadline\b;<a href="postconf.5.html#smtpd_per_record_deadline">$&</a>;g;
+    s;\bsmtpd_per_request_deadline\b;<a href="postconf.5.html#smtpd_per_request_deadline">$&</a>;g;
+    s;\bsmtpd_min_data_rate\b;<a href="postconf.5.html#smtpd_min_data_rate">$&</a>;g;
     s;\bsmtpd_upstream_proxy_protocol\b;<a href="postconf.5.html#smtpd_upstream_proxy_protocol">$&</a>;g;
     s;\bsmtpd_upstream_proxy_timeout\b;<a href="postconf.5.html#smtpd_upstream_proxy_timeout">$&</a>;g;
     s;\btls_daemon_random_bytes\b;<a href="postconf.5.html#tls_daemon_random_bytes">$&</a>;g;

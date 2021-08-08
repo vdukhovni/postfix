@@ -4916,6 +4916,17 @@ configuration parameter. See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_min_data_rate">lmtp_min_data_rate</a>
+(default: 500)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_min_data_rate">smtp_min_data_rate</a> configuration
+parameter. See there for details. </p>
+
+<p> This feature is available in Postfix 3.7 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_mx_address_limit">lmtp_mx_address_limit</a>
 (default: 5)</b></DT><DD>
 
@@ -4956,6 +4967,17 @@ configuration parameter. See there for details. </p>
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.9 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_per_request_deadline">lmtp_per_request_deadline</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_min_data_rate">smtp_min_data_rate</a> configuration
+parameter. See there for details. </p>
+
+<p> This feature is available in Postfix 3.7 and later.  </p>
 
 
 </DD>
@@ -11583,6 +11605,22 @@ available.  </p>
 
 </DD>
 
+<DT><b><a name="smtp_min_data_rate">smtp_min_data_rate</a>
+(default: 500)</b></DT><DD>
+
+<p> The minimum data transfer rate for DATA requests, when deadlines
+are enabled with <a href="postconf.5.html#smtp_per_request_deadline">smtp_per_request_deadline</a>. With each transfer of
+N message bytes, the DATA request deadline is incremented with
+N/smtp_min_data_rate seconds, after subtracting the time to complete
+a plaintext or TLS write call. However, the deadline will never be
+incremented beyond the time limit specified with <a href="postconf.5.html#smtp_data_xfer_timeout">smtp_data_xfer_timeout</a>.
+</p>
+
+<p> This feature is available in Postfix 3.7 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_mx_address_limit">smtp_mx_address_limit</a>
 (default: 5)</b></DT><DD>
 
@@ -11656,6 +11694,35 @@ sent or received within the per-record deadline.  </p>
 <p> This feature is available in Postfix 2.9 and later. With older
 Postfix releases, the behavior is as if this parameter is set to
 "no". </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_per_request_deadline">smtp_per_request_deadline</a>
+(default: no)</b></DT><DD>
+
+<p> Change the behavior of the smtp_*_timeout time limits, from a
+time limit per plaintext or TLS read or write call, to a combined
+time limit for sending a complete SMTP request and for receiving a
+complete SMTP response. The deadline limits only the time spent
+waiting for plaintext or TLS read or write calls, not time spent
+elsewhere. This limits the impact from hostile peers that trickle
+data one byte at a time.  </p>
+
+<p> See <a href="postconf.5.html#smtp_min_data_rate">smtp_min_data_rate</a> for how the per-request deadline is
+managed during the DATA phase. </p>
+
+<p> Note: when per-request deadlines are enabled, a short time limit
+may cause problems with TLS over very slow network connections. The
+reason is that a TLS protocol message can be up to 16 kbytes long
+(with TLSv1), and that an entire TLS protocol message must be
+transferred within the per-request deadline. </p>
+
+<p> This feature is available in Postfix 3.7 and later. A weaker
+feature, called <a href="postconf.5.html#smtp_per_record_deadline">smtp_per_record_deadline</a>, is available with Postfix
+2.9 - 3.6. </p>
+
+<p> This feature is available in Postfix 3.7 and later. </p>
 
 
 </DD>
@@ -15629,6 +15696,22 @@ separator. See the <a href="MILTER_README.html">MILTER_README</a> document for d
 
 </DD>
 
+<DT><b><a name="smtpd_min_data_rate">smtpd_min_data_rate</a>
+(default: 500)</b></DT><DD>
+
+<p> The minimum data transfer rate for DATA and BDAT requests, when
+deadlines are enabled with <a href="postconf.5.html#smtpd_per_request_deadline">smtpd_per_request_deadline</a>. With each
+transfer of N message bytes, the DATA or BDAT request deadline is
+incremented with N/smtpd_min_data_rate seconds, after subtracting
+the time to complete a plaintext or TLS read call. However, the
+deadline will never be incremented beyond the time limit specified
+with <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a>.  </p>
+
+<p> This feature is available in Postfix 3.7 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_noop_commands">smtpd_noop_commands</a>
 (default: empty)</b></DT><DD>
 
@@ -15686,6 +15769,36 @@ sent or received within the per-record deadline.  </p>
 <p> This feature is available in Postfix 2.9 and later. With older
 Postfix releases, the behavior is as if this parameter is set to
 "no". </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_per_request_deadline">smtpd_per_request_deadline</a>
+(default: normal: no, overload: yes)</b></DT><DD>
+
+<p> Change the behavior of the <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a> and <a href="postconf.5.html#smtpd_starttls_timeout">smtpd_starttls_timeout</a>
+time limits, from a time limit per plaintext or TLS read or write
+call, to a combined time limit for receiving a complete SMTP request
+and for sending a complete SMTP response. The deadline limits only
+the time spent waiting for plaintext or TLS read or write calls,
+not time spent elsewhere. This limits the impact from hostile peers
+that trickle data one byte at a time.  </p>
+
+<p> See <a href="postconf.5.html#smtpd_min_data_rate">smtpd_min_data_rate</a> for how the per-request deadline is
+managed during the DATA and BDAT phase. </p>
+
+<p> Note: when per-request deadlines are enabled, a short time limit
+may cause problems with TLS over very slow network connections. The
+reason is that a TLS protocol message can be up to 16 kbytes long
+(with TLSv1), and that an entire TLS protocol message must be
+transferred within the per-request deadline. </p>
+
+<p> This feature is available in Postfix 3.7 and later. A weaker
+feature, called <a href="postconf.5.html#smtpd_per_record_deadline">smtpd_per_record_deadline</a>, is available with Postfix
+2.9 - 3.6. With older Postfix releases, the behavior is as if this
+parameter is set to "no". </p>
+
+<p> This feature is available in Postfix 3.7 and later. </p>
 
 
 </DD>

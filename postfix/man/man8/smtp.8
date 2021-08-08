@@ -324,12 +324,14 @@ Available in Postfix version 2.8 and later:
 .IP "\fBsmtp_dns_resolver_options (empty)\fR"
 DNS Resolver options for the Postfix SMTP client.
 .PP
-Available in Postfix version 2.9 and later:
+Available in Postfix version 2.9 \- 3.6:
 .IP "\fBsmtp_per_record_deadline (no)\fR"
 Change the behavior of the smtp_*_timeout time limits, from a
 time limit per read or write system call, to a time limit to send
 or receive a complete record (an SMTP command line, SMTP response
 line, SMTP message content line, or TLS protocol message).
+.PP
+Available in Postfix version 2.9 and later:
 .IP "\fBsmtp_send_dummy_mail_auth (no)\fR"
 Whether or not to append the "AUTH=<>" option to the MAIL
 FROM command in SASL\-authenticated SMTP sessions.
@@ -364,6 +366,16 @@ The DNS query type (default: "ns") and DNS query name (default:
 is available.
 .IP "\fBknown_tcp_ports (lmtp=24, smtp=25, smtps=submissions=465, submission=587)\fR"
 Optional setting that avoids lookups in the \fBservices\fR(5) database.
+.PP
+Available in Postfix version 3.7 and later:
+.IP "\fBsmtp_per_request_deadline (no)\fR"
+Change the behavior of the smtp_*_timeout time limits, from a
+time limit per plaintext or TLS read or write call, to a combined
+time limit for sending a complete SMTP request and for receiving a
+complete SMTP response.
+.IP "\fBsmtp_min_data_rate (500)\fR"
+The minimum data transfer rate for DATA requests, when deadlines
+are enabled with smtp_per_request_deadline.
 .SH "MIME PROCESSING CONTROLS"
 .na
 .nf
@@ -700,7 +712,7 @@ Available in Postfix version 2.3 and later:
 Time limit for connection cache connect, send or receive
 operations.
 .PP
-Available in Postfix version 2.9 and later:
+Available in Postfix version 2.9 \- 3.6:
 .IP "\fBsmtp_per_record_deadline (no)\fR"
 Change the behavior of the smtp_*_timeout time limits, from a
 time limit per read or write system call, to a time limit to send
@@ -716,6 +728,16 @@ limit).
 Available in Postfix version 3.4 and later:
 .IP "\fBsmtp_tls_connection_reuse (no)\fR"
 Try to make multiple deliveries per TLS\-encrypted connection.
+.PP
+Available in Postfix version 3.7 and later:
+.IP "\fBsmtp_per_request_deadline (no)\fR"
+Change the behavior of the smtp_*_timeout time limits, from a
+time limit per plaintext or TLS read or write call, to a combined
+time limit for sending a complete SMTP request and for receiving a
+complete SMTP response.
+.IP "\fBsmtp_min_data_rate (500)\fR"
+The minimum data transfer rate for DATA requests, when deadlines
+are enabled with smtp_per_request_deadline.
 .PP
 Implemented in the qmgr(8) daemon:
 .IP "\fBtransport_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"

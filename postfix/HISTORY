@@ -25696,6 +25696,8 @@ Apologies for any names omitted.
 	Cleanup: left-over code from a DANE on/off workaround. File:
 	tlsproxy.c/tlsproxy.c.
 
+20210806
+
 	Constified the object argument of functions that write objects
 	to VSTREAM. Files: global/bounce.c, global/defer.c,
 	global/deliver_pass.c, global/deliver_request.c,
@@ -25708,3 +25710,19 @@ Apologies for any names omitted.
 	tls/tls_proxy_client_print.c, tls/tls_proxy_context_print.c,
 	tls/tls_proxy.h, tls/tls_proxy_server_print.c, util/argv_attr.h,
 	util/argv_attr_print.c, util/attr.h.
+
+
+20210808
+
+	Hardening: specify smtpd_per_request_deadline=yes to limit
+	the combined amount of time to receive a complete SMTP
+	request and to send a complete SMTP response. Specify
+	smtpd_data_rate to enforce a minimum data rate during DATA
+	and BDAT. This replaces smtpd_per_record_deadline.
+
+	Hardening: specify {smtp,lmtp}_per_request_deadline=yes to
+	limit the combined amount of time to send a complete SMTP
+	request and to receive a complete SMTP response. Specify
+	{smtp,lmtp}_data_rate to enforce a minimum data rate during
+	DATA. This replaces {smtp,lmtp}_per_record_deadline.
+
