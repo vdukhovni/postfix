@@ -25711,18 +25711,43 @@ Apologies for any names omitted.
 	tls/tls_proxy.h, tls/tls_proxy_server_print.c, util/argv_attr.h,
 	util/argv_attr_print.c, util/attr.h.
 
+20210810
 
-20210808
+	Pedantism: the Postfix SMTP server now replies with status
+	500 when a command is not recogized (status 502 is applicable
+	when a command is recognized but not implemented). File:
+	smtpd/smtpd.c.
+
+	Wordsmithing: in inet_connect() replaced "host/service xxx/yyy
+	not found" with "host or service xxx:yyy not found". The former
+	suggests UNIX-domain pathname syntax which is confusing. File:
+	until/inet_connect.c.
+
+20210814
+
+	To make the maillog_file feature more useful, the postlog(1)
+	command is now set-gid postdrop, so that unprivileged
+	programs can write logging through the postlogd(8) daemon.
+	Adopted some code from postqueue(1) and postdrop(1) to
+	harden postlog(1) against privilege escalation attacks.
+	Files: postlog/postlog.c, conf/postfix-files.
+
+
+20210814
 
 	Hardening: specify smtpd_per_request_deadline=yes to limit
 	the combined amount of time to receive a complete SMTP
 	request and to send a complete SMTP response. Specify
-	smtpd_data_rate to enforce a minimum data rate during DATA
-	and BDAT. This replaces smtpd_per_record_deadline.
+	smtpd_min_data_rate to enforce a minimum data rate during
+	DATA and BDAT. This replaces smtpd_per_record_deadline; the
+	new smtpd_per_request_deadline parameter has a backwards-
+	compatible default value.
 
 	Hardening: specify {smtp,lmtp}_per_request_deadline=yes to
 	limit the combined amount of time to send a complete SMTP
 	request and to receive a complete SMTP response. Specify
-	{smtp,lmtp}_data_rate to enforce a minimum data rate during
-	DATA. This replaces {smtp,lmtp}_per_record_deadline.
+	{smtp,lmtp}_min_data_rate to enforce a minimum data rate
+	during DATA. This replaces {smtp,lmtp}_per_record_deadline.
+	The new {smtp,lmtp}_per_request_deadline parameters have a
+	backwards-compatible default value.
 

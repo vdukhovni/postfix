@@ -145,6 +145,9 @@ static const CONFIG_STR_TABLE pcf_legacy_str_table[] = {
     {"postscreen_blacklist_action", ""},
     {"postscreen_dnsbl_whitelist_threshold", ""},
     {"postscreen_whitelist_interfaces", ""},
+    {"lmtp_per_record_deadline", ""},
+    {"smtp_per_record_deadline", ""},
+    {"smtpd_per_record_deadline", ""},
     0,
 };
 

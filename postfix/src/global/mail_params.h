@@ -4092,13 +4092,17 @@ extern bool var_smtpd_rec_deadline;
 extern bool var_smtp_rec_deadline;
 
 #define VAR_SMTPD_REQ_DEADLINE	"smtpd_per_request_deadline"
-#define DEF_SMTPD_REQ_DEADLINE	"${stress?{yes}:{no}}"
+#define DEF_SMTPD_REQ_DEADLINE	"${smtpd_per_record_deadline?" \
+				"{$smtpd_per_record_deadline}:" \
+				"{${stress?{yes}:{no}}}}"
 extern bool var_smtpd_req_deadline;
 
 #define VAR_SMTP_REQ_DEADLINE	"smtp_per_request_deadline"
-#define DEF_SMTP_REQ_DEADLINE	0
+#define DEF_SMTP_REQ_DEADLINE	"${smtp_per_record_deadline?" \
+				"{$smtp_per_record_deadline}:{no}}"
 #define VAR_LMTP_REQ_DEADLINE	"lmtp_per_request_deadline"
-#define DEF_LMTP_REQ_DEADLINE	0
+#define DEF_LMTP_REQ_DEADLINE	"${lmtp_per_record_deadline?" \
+				"{$lmtp_per_record_deadline}:{no}}"
 extern bool var_smtp_req_deadline;
 
 #define VAR_SMTPD_MIN_DATA_RATE	"smtpd_min_data_rate"

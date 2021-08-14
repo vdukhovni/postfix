@@ -1617,6 +1617,8 @@ int     main(int argc, char **argv)
 					   smtp_str_table : lmtp_str_table),
 		       CA_MAIL_SERVER_BOOL_TABLE(smtp_mode ?
 					 smtp_bool_table : lmtp_bool_table),
+		       CA_MAIL_SERVER_NBOOL_TABLE(smtp_mode ?
+					 smtp_nbool_table : lmtp_nbool_table),
 		       CA_MAIL_SERVER_PRE_INIT(pre_init),
 		       CA_MAIL_SERVER_POST_INIT(post_init),
 		       CA_MAIL_SERVER_PRE_ACCEPT(pre_accept),

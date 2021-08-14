@@ -6715,8 +6715,9 @@ response, how long the Postfix SMTP server will wait for an underlying
 network write operation to complete; and when the Postfix SMTP
 server Postfix wants to receive an SMTP client request, how long
 the Postfix SMTP server will wait for an underlying network read
-operation to complete. See smtpd_per_record_deadline for how this
-time limit may be enforced. </p>
+operation to complete. See the smtpd_per_request_deadline for how
+this time limit may be enforced (with Postfix 2.9-3.6 see
+smtpd_per_record_deadline). </p>
 
 <p> Normally the default limit
 is 300s, but it changes under overload to just 10s. With Postfix
@@ -18075,12 +18076,12 @@ inside a service name or port number. </p>
 %PARAM smtpd_min_data_rate 500
 
 <p> The minimum data transfer rate for DATA and BDAT requests, when
-deadlines are enabled with smtpd_per_request_deadline. With each
-transfer of N message bytes, the DATA or BDAT request deadline is
-incremented with N/smtpd_min_data_rate seconds, after subtracting
-the time to complete a plaintext or TLS read call. However, the
-deadline will never be incremented beyond the time limit specified
-with smtpd_timeout.  </p>
+deadlines are enabled with smtpd_per_request_deadline. After N
+plaintext message bytes are transferred, and after the DATA or BDAT
+request deadline is decremented by the elapsed time of the read
+request, the request deadline is incremented by N/smtpd_min_data_rate
+seconds. However, the deadline will never be incremented beyond
+the time limit specified with smtpd_timeout. </p>
 
 <p> This feature is available in Postfix 3.7 and later. </p>
 
@@ -18091,8 +18092,8 @@ time limits, from a time limit per plaintext or TLS read or write
 call, to a combined time limit for receiving a complete SMTP request
 and for sending a complete SMTP response. The deadline limits only
 the time spent waiting for plaintext or TLS read or write calls,
-not time spent elsewhere. This limits the impact from hostile peers
-that trickle data one byte at a time.  </p>
+not time spent elsewhere. The per-request deadline limits the impact
+from hostile peers that trickle data one byte at a time. </p>
 
 <p> See smtpd_min_data_rate for how the per-request deadline is
 managed during the DATA and BDAT phase. </p>
@@ -18105,7 +18106,7 @@ transferred within the per-request deadline. </p>
 
 <p> This feature is available in Postfix 3.7 and later. A weaker
 feature, called smtpd_per_record_deadline, is available with Postfix
-2.9 - 3.6. With older Postfix releases, the behavior is as if this
+2.9-3.6. With older Postfix releases, the behavior is as if this
 parameter is set to "no". </p>
 
 <p> This feature is available in Postfix 3.7 and later. </p>
@@ -18115,24 +18116,24 @@ parameter is set to "no". </p>
 <p> The LMTP-specific version of the smtp_min_data_rate configuration
 parameter. See there for details. </p>
 
-<p> This feature is available in Postfix 3.7 and later.  </p>
+<p> This feature is available in Postfix 3.7 and later. </p>
 
 %PARAM lmtp_per_request_deadline no
 
 <p> The LMTP-specific version of the smtp_min_data_rate configuration
 parameter. See there for details. </p>
 
-<p> This feature is available in Postfix 3.7 and later.  </p>
+<p> This feature is available in Postfix 3.7 and later. </p>
 
 %PARAM smtp_min_data_rate 500
 
 <p> The minimum data transfer rate for DATA requests, when deadlines
-are enabled with smtp_per_request_deadline. With each transfer of
-N message bytes, the DATA request deadline is incremented with
-N/smtp_min_data_rate seconds, after subtracting the time to complete
-a plaintext or TLS write call. However, the deadline will never be
-incremented beyond the time limit specified with smtp_data_xfer_timeout.
-</p>
+are enabled with smtp_per_request_deadline. After N plaintext message
+bytes are transferred, and after the DATA request deadline is
+decremented by the elapsed time of the write request, the request
+deadline is incremented by N/smtp_min_data_rate seconds. However,
+the deadline will never be incremented beyond the time limit specified
+with smtp_data_xfer_timeout. </p>
 
 <p> This feature is available in Postfix 3.7 and later. </p>
 
@@ -18143,8 +18144,8 @@ time limit per plaintext or TLS read or write call, to a combined
 time limit for sending a complete SMTP request and for receiving a
 complete SMTP response. The deadline limits only the time spent
 waiting for plaintext or TLS read or write calls, not time spent
-elsewhere. This limits the impact from hostile peers that trickle
-data one byte at a time.  </p>
+elsewhere. The per-request deadline limits the impact from hostile
+peers that trickle data one byte at a time. </p>
 
 <p> See smtp_min_data_rate for how the per-request deadline is
 managed during the DATA phase. </p>
@@ -18157,6 +18158,6 @@ transferred within the per-request deadline. </p>
 
 <p> This feature is available in Postfix 3.7 and later. A weaker
 feature, called smtp_per_record_deadline, is available with Postfix
-2.9 - 3.6. </p>
+2.9-3.6. </p>
 
 <p> This feature is available in Postfix 3.7 and later. </p>

@@ -5680,6 +5680,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 	for (;;) {
 	    if (state->flags & SMTPD_FLAG_HANGUP)
 		break;
+	    smtp_stream_setup(state->client, var_smtpd_tmout,
+			      var_smtpd_req_deadline, 0);
 	    if (state->error_count >= var_smtpd_hard_erlim) {
 		state->reason = REASON_ERROR_LIMIT;
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -5768,7 +5770,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 		    && (err = check_milter_reply(state, err)) != 0) {
 		    smtpd_chat_reply(state, "%s", err);
 		} else
-		    smtpd_chat_reply(state, "502 5.5.2 Error: command not recognized");
+		    smtpd_chat_reply(state, "500 5.5.2 Error: command not recognized");
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		state->error_count++;
 		continue;
@@ -6465,7 +6467,7 @@ int     main(int argc, char **argv)
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {
 	VAR_RELAY_BEFORE_RCPT_CHECKS, DEF_RELAY_BEFORE_RCPT_CHECKS, &var_relay_before_rcpt_checks,
-	VAR_SMTPD_REQ_DEADLINE, DEF_SMTPD_REC_DEADLINE, &var_smtpd_req_deadline,
+	VAR_SMTPD_REQ_DEADLINE, DEF_SMTPD_REQ_DEADLINE, &var_smtpd_req_deadline,
 	0,
     };
     static const CONFIG_STR_TABLE str_table[] = {

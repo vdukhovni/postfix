@@ -4922,7 +4922,7 @@ configuration parameter. See there for details. </p>
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_min_data_rate">smtp_min_data_rate</a> configuration
 parameter. See there for details. </p>
 
-<p> This feature is available in Postfix 3.7 and later.  </p>
+<p> This feature is available in Postfix 3.7 and later. </p>
 
 
 </DD>
@@ -4977,7 +4977,7 @@ configuration parameter.  See there for details. </p>
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_min_data_rate">smtp_min_data_rate</a> configuration
 parameter. See there for details. </p>
 
-<p> This feature is available in Postfix 3.7 and later.  </p>
+<p> This feature is available in Postfix 3.7 and later. </p>
 
 
 </DD>
@@ -11609,12 +11609,12 @@ available.  </p>
 (default: 500)</b></DT><DD>
 
 <p> The minimum data transfer rate for DATA requests, when deadlines
-are enabled with <a href="postconf.5.html#smtp_per_request_deadline">smtp_per_request_deadline</a>. With each transfer of
-N message bytes, the DATA request deadline is incremented with
-N/smtp_min_data_rate seconds, after subtracting the time to complete
-a plaintext or TLS write call. However, the deadline will never be
-incremented beyond the time limit specified with <a href="postconf.5.html#smtp_data_xfer_timeout">smtp_data_xfer_timeout</a>.
-</p>
+are enabled with <a href="postconf.5.html#smtp_per_request_deadline">smtp_per_request_deadline</a>. After N plaintext message
+bytes are transferred, and after the DATA request deadline is
+decremented by the elapsed time of the write request, the request
+deadline is incremented by N/smtp_min_data_rate seconds. However,
+the deadline will never be incremented beyond the time limit specified
+with <a href="postconf.5.html#smtp_data_xfer_timeout">smtp_data_xfer_timeout</a>. </p>
 
 <p> This feature is available in Postfix 3.7 and later. </p>
 
@@ -11706,8 +11706,8 @@ time limit per plaintext or TLS read or write call, to a combined
 time limit for sending a complete SMTP request and for receiving a
 complete SMTP response. The deadline limits only the time spent
 waiting for plaintext or TLS read or write calls, not time spent
-elsewhere. This limits the impact from hostile peers that trickle
-data one byte at a time.  </p>
+elsewhere. The per-request deadline limits the impact from hostile
+peers that trickle data one byte at a time. </p>
 
 <p> See <a href="postconf.5.html#smtp_min_data_rate">smtp_min_data_rate</a> for how the per-request deadline is
 managed during the DATA phase. </p>
@@ -11720,7 +11720,7 @@ transferred within the per-request deadline. </p>
 
 <p> This feature is available in Postfix 3.7 and later. A weaker
 feature, called <a href="postconf.5.html#smtp_per_record_deadline">smtp_per_record_deadline</a>, is available with Postfix
-2.9 - 3.6. </p>
+2.9-3.6. </p>
 
 <p> This feature is available in Postfix 3.7 and later. </p>
 
@@ -15700,12 +15700,12 @@ separator. See the <a href="MILTER_README.html">MILTER_README</a> document for d
 (default: 500)</b></DT><DD>
 
 <p> The minimum data transfer rate for DATA and BDAT requests, when
-deadlines are enabled with <a href="postconf.5.html#smtpd_per_request_deadline">smtpd_per_request_deadline</a>. With each
-transfer of N message bytes, the DATA or BDAT request deadline is
-incremented with N/smtpd_min_data_rate seconds, after subtracting
-the time to complete a plaintext or TLS read call. However, the
-deadline will never be incremented beyond the time limit specified
-with <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a>.  </p>
+deadlines are enabled with <a href="postconf.5.html#smtpd_per_request_deadline">smtpd_per_request_deadline</a>. After N
+plaintext message bytes are transferred, and after the DATA or BDAT
+request deadline is decremented by the elapsed time of the read
+request, the request deadline is incremented by N/smtpd_min_data_rate
+seconds. However, the deadline will never be incremented beyond
+the time limit specified with <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a>. </p>
 
 <p> This feature is available in Postfix 3.7 and later. </p>
 
@@ -15781,8 +15781,8 @@ time limits, from a time limit per plaintext or TLS read or write
 call, to a combined time limit for receiving a complete SMTP request
 and for sending a complete SMTP response. The deadline limits only
 the time spent waiting for plaintext or TLS read or write calls,
-not time spent elsewhere. This limits the impact from hostile peers
-that trickle data one byte at a time.  </p>
+not time spent elsewhere. The per-request deadline limits the impact
+from hostile peers that trickle data one byte at a time. </p>
 
 <p> See <a href="postconf.5.html#smtpd_min_data_rate">smtpd_min_data_rate</a> for how the per-request deadline is
 managed during the DATA and BDAT phase. </p>
@@ -15795,7 +15795,7 @@ transferred within the per-request deadline. </p>
 
 <p> This feature is available in Postfix 3.7 and later. A weaker
 feature, called <a href="postconf.5.html#smtpd_per_record_deadline">smtpd_per_record_deadline</a>, is available with Postfix
-2.9 - 3.6. With older Postfix releases, the behavior is as if this
+2.9-3.6. With older Postfix releases, the behavior is as if this
 parameter is set to "no". </p>
 
 <p> This feature is available in Postfix 3.7 and later. </p>
@@ -17188,8 +17188,9 @@ response, how long the Postfix SMTP server will wait for an underlying
 network write operation to complete; and when the Postfix SMTP
 server Postfix wants to receive an SMTP client request, how long
 the Postfix SMTP server will wait for an underlying network read
-operation to complete. See <a href="postconf.5.html#smtpd_per_record_deadline">smtpd_per_record_deadline</a> for how this
-time limit may be enforced. </p>
+operation to complete. See the <a href="postconf.5.html#smtpd_per_request_deadline">smtpd_per_request_deadline</a> for how
+this time limit may be enforced (with Postfix 2.9-3.6 see
+<a href="postconf.5.html#smtpd_per_record_deadline">smtpd_per_record_deadline</a>). </p>
 
 <p> Normally the default limit
 is 300s, but it changes under overload to just 10s. With Postfix

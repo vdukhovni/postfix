@@ -77,10 +77,10 @@
 /*	Otherwise, the stream is configured to enforce
 /*	a time limit for each individual read/write system call.
 /* .IP \f(bu
-/*	Additionally, when min_data_date is > 0, the deadline is
-/*	incremented by 1 second for every min_data_rate bytes
-/*	transferred. However, the deadline will never exceed the
-/*	value specified with the timeout argument.
+/*	Additionally, when min_data_rate is > 0, the deadline is
+/*	incremented by 1/min_data_rate seconds for every min_data_rate
+/*	bytes transferred. However, the deadline will never exceed
+/*	the value specified with the timeout argument.
 /* .IP \f(bu
 /*	The stream is configured to use double buffering.
 /* .IP \f(bu

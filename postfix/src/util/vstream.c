@@ -302,10 +302,10 @@
 /*	buffer, reads the bytes from the specified VSTREAM, and
 /*	adjusts the buffer write position. The buffer is NOT
 /*	null-terminated. The result value is as with vstream_fread().
-/*      NOTE: do not skip calling vstream_fread_buf() when len == 0.
-/*      This function has side effects including resetting the buffer
-/*      write position, and skipping the call would invalidate the
-/*      buffer state.
+/*	NOTE: do not skip calling vstream_fread_buf() when len == 0.
+/*	This function has side effects including resetting the buffer
+/*	write position, and skipping the call would invalidate the
+/*	buffer state.
 /*
 /*	vstream_fread_app() is like vstream_fread_buf() but appends
 /*	to existing buffer content, instead of writing over it.
@@ -393,10 +393,12 @@
 /*	a time limit for individual file descriptor read or write
 /*	operations.
 /* .IP CA_VSTREAM_CTL_MIN_DATA_RATE (int)
-/*	When the DEADLINE is enabled, the amount of data that
-/*	must be transferred to add 1 second to the deadline.
-/*	However, the deadline will never exceed the timeout
-/*	specified with VSTREAM_CTL_TIMEOUT.
+/*	When the DEADLINE is enabled, the amount of data that must
+/*	be transferred to add 1 second to the deadline. However,
+/*	the deadline will never exceed the timeout specified with
+/*	VSTREAM_CTL_TIMEOUT. A zero value requests no update to the
+/*	deadline as data is transferred; that is appropriate for
+/*	request/reply interactions.
 /* .IP CA_VSTREAM_CTL_OWN_VSTRING (no arguments)
 /*	Transfer ownership of the VSTRING that was opened with
 /*	vstream_memopen() etc. to the stream, so that the VSTRING

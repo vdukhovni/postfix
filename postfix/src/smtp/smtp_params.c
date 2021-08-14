@@ -130,6 +130,9 @@
 	VAR_LMTP_ASSUME_FINAL, DEF_LMTP_ASSUME_FINAL, &var_lmtp_assume_final,
 	VAR_SMTP_DUMMY_MAIL_AUTH, DEF_SMTP_DUMMY_MAIL_AUTH, &var_smtp_dummy_mail_auth,
 	VAR_SMTP_BALANCE_INET_PROTO, DEF_SMTP_BALANCE_INET_PROTO, &var_smtp_balance_inet_proto,
-	VAR_SMTP_REQ_DEADLINE, DEF_SMTP_REQ_DEADLINE, &var_smtp_req_deadline,
 	0,
     };
+   static const CONFIG_NBOOL_TABLE smtp_nbool_table[] = {
+	VAR_SMTP_REQ_DEADLINE, DEF_SMTP_REQ_DEADLINE, &var_smtp_req_deadline,
+	0,
+   };
