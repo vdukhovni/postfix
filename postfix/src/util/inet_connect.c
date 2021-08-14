@@ -101,8 +101,8 @@ int     inet_connect(const char *addr, int block_mode, int timeout)
     if ((parse_err = host_port(buf, &host, "localhost", &port, (char *) 0)) != 0)
 	msg_fatal("%s: %s", addr, parse_err);
     if ((aierr = hostname_to_sockaddr(host, port, SOCK_STREAM, &res0)) != 0)
-	msg_fatal("host/service %s/%s not found: %s",
-		  host, port, MAI_STRERROR(aierr));
+	msg_fatal("host or service %s not found: %s",
+		  addr, MAI_STRERROR(aierr));
     myfree(buf);
 
     proto_info = inet_proto_info();

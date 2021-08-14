@@ -25708,3 +25708,24 @@ Apologies for any names omitted.
 	tls/tls_proxy_client_print.c, tls/tls_proxy_context_print.c,
 	tls/tls_proxy.h, tls/tls_proxy_server_print.c, util/argv_attr.h,
 	util/argv_attr_print.c, util/attr.h.
+
+20210810
+
+	Pedantism: the Postfix SMTP server now replies with status
+	500 when a command is not recogized (status 502 is applicable
+	when a command is recognized but not implemented). File:
+	smtpd/smtpd.c.
+
+	Wordsmithing: in inet_connect() replaced "host/service xxx/yyy
+	not found" with "host or service xxx:yyy not found". The former
+	suggests UNIX-domain pathname syntax which is confusing. File:
+	until/inet_connect.c.
+
+20210814
+
+	To make the maillog_file feature more useful, the postlog(1)
+	command is now set-gid postdrop, so that unprivileged
+	programs can write logging through the postlogd(8) daemon.
+	Adopted some code from postqueue(1) and postdrop(1) to
+	harden postlog(1) against privilege escalation attacks.
+	Files: postlog/postlog.c, conf/postfix-files.

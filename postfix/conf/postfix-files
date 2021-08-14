@@ -132,7 +132,7 @@ $command_directory/postconf:f:root:-:755
 $command_directory/postfix:f:root:-:755
 $command_directory/postkick:f:root:-:755
 $command_directory/postlock:f:root:-:755
-$command_directory/postlog:f:root:-:755
+$command_directory/postlog:f:root:$setgid_group:2755:u
 $command_directory/postmap:f:root:-:755
 $command_directory/postmulti:f:root:-:755
 $command_directory/postsuper:f:root:-:755
