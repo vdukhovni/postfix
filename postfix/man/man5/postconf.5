@@ -3049,6 +3049,11 @@ The LMTP\-specific version of the smtp_mime_header_checks
 configuration parameter. See there for details.
 .PP
 This feature is available in Postfix 2.5 and later.
+.SH lmtp_min_data_rate (default: 500)
+The LMTP\-specific version of the smtp_min_data_rate configuration
+parameter. See there for details.
+.PP
+This feature is available in Postfix 3.7 and later.
 .SH lmtp_mx_address_limit (default: 5)
 The LMTP\-specific version of the smtp_mx_address_limit configuration
 parameter.  See there for details.
@@ -3069,6 +3074,11 @@ The LMTP\-specific version of the smtp_per_record_deadline
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.9 and later.
+.SH lmtp_per_request_deadline (default: no)
+The LMTP\-specific version of the smtp_per_request_deadline
+configuration parameter. See there for details.
+.PP
+This feature is available in Postfix 3.7 and later.
 .SH lmtp_pix_workaround_delay_time (default: 10s)
 The LMTP\-specific version of the smtp_pix_workaround_delay_time
 configuration parameter.  See there for details.
@@ -7340,6 +7350,17 @@ Actions that change the delivery time or destination are not
 available.
 .PP
 This feature is available in Postfix 2.5 and later.
+.SH smtp_min_data_rate (default: 500)
+The minimum plaintext data transfer rate in bytes/second for
+DATA requests, when deadlines are enabled with smtp_per_request_deadline.
+After a write operation transfers N plaintext message bytes (possibly
+after TLS encryption), and after the DATA request deadline is
+decremented by the elapsed time of that write operation, the DATA
+request deadline is incremented by N/smtp_min_data_rate seconds.
+However, the deadline will never be incremented beyond the time
+limit specified with smtp_data_xfer_timeout.
+.PP
+This feature is available in Postfix 3.7 and later.
 .SH smtp_mx_address_limit (default: 5)
 The maximal number of MX (mail exchanger) IP addresses that can
 result from Postfix SMTP client mail exchanger lookups, or zero (no
@@ -7380,9 +7401,32 @@ The reasons are that a TLS protocol message can be up to 16 kbytes
 long (with TLSv1), and that an entire TLS protocol message must be
 sent or received within the per\-record deadline.
 .PP
-This feature is available in Postfix 2.9 and later. With older
+This feature is available in Postfix 2.9\-3.6. With older
 Postfix releases, the behavior is as if this parameter is set to
-"no".
+"no". Postfix 3.7 and later use smtp_per_request_deadline.
+.SH smtp_per_request_deadline (default: no)
+Change the behavior of the smtp_*_timeout time limits, from a
+time limit per plaintext or TLS read or write call, to a combined
+time limit for sending a complete SMTP request and for receiving a
+complete SMTP response. The deadline limits only the time spent
+waiting for plaintext or TLS read or write calls, not time spent
+elsewhere. The per\-request deadline limits the impact from hostile
+peers that trickle data one byte at a time.
+.PP
+See smtp_min_data_rate for how the per\-request deadline is
+managed during the DATA phase.
+.PP
+Note: when per\-request deadlines are enabled, a short time limit
+may cause problems with TLS over very slow network connections. The
+reason is that a TLS protocol message can be up to 16 kbytes long
+(with TLSv1), and that an entire TLS protocol message must be
+transferred within the per\-request deadline.
+.PP
+This feature is available in Postfix 3.7 and later. A weaker
+feature, called smtp_per_record_deadline, is available with Postfix
+2.9\-3.6.
+.PP
+This feature is available in Postfix 3.7 and later.
 .SH smtp_pix_workaround_delay_time (default: 10s)
 How long the Postfix SMTP client pauses before sending
 ".<CR><LF>" in order to work around the PIX firewall
@@ -10672,6 +10716,18 @@ arrives via the Postfix \fBsmtpd\fR(8) server. Specify space or comma as
 separator. See the MILTER_README document for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH smtpd_min_data_rate (default: 500)
+The minimum plaintext data transfer rate in bytes/second for
+DATA and BDAT requests, when deadlines are enabled with
+smtpd_per_request_deadline. After a read operation transfers N
+plaintext message bytes (possibly after TLS decryption), and after
+the DATA or BDAT request deadline is decremented by the elapsed
+time of that read operation, the DATA or BDAT request deadline is
+incremented by N/smtpd_min_data_rate seconds. However, the deadline
+will never be incremented beyond the time limit specified with
+smtpd_timeout.
+.PP
+This feature is available in Postfix 3.7 and later.
 .SH smtpd_noop_commands (default: empty)
 List of commands that the Postfix SMTP server replies to with "250
 Ok", without doing any syntax checks and without changing state.
@@ -10702,9 +10758,33 @@ The reasons are that a TLS protocol message can be up to 16 kbytes
 long (with TLSv1), and that an entire TLS protocol message must be
 sent or received within the per\-record deadline.
 .PP
-This feature is available in Postfix 2.9 and later. With older
+This feature is available in Postfix 2.9\-3.6. With older
 Postfix releases, the behavior is as if this parameter is set to
-"no".
+"no". Postfix 3.7 and later use smtpd_per_request_deadline.
+.SH smtpd_per_request_deadline (default: normal: no, overload: yes)
+Change the behavior of the smtpd_timeout and smtpd_starttls_timeout
+time limits, from a time limit per plaintext or TLS read or write
+call, to a combined time limit for receiving a complete SMTP request
+and for sending a complete SMTP response. The deadline limits only
+the time spent waiting for plaintext or TLS read or write calls,
+not time spent elsewhere. The per\-request deadline limits the impact
+from hostile peers that trickle data one byte at a time.
+.PP
+See smtpd_min_data_rate for how the per\-request deadline is
+managed during the DATA and BDAT phase.
+.PP
+Note: when per\-request deadlines are enabled, a short time limit
+may cause problems with TLS over very slow network connections. The
+reason is that a TLS protocol message can be up to 16 kbytes long
+(with TLSv1), and that an entire TLS protocol message must be
+transferred within the per\-request deadline.
+.PP
+This feature is available in Postfix 3.7 and later. A weaker
+feature, called smtpd_per_record_deadline, is available with Postfix
+2.9\-3.6. With older Postfix releases, the behavior is as if this
+parameter is set to "no".
+.PP
+This feature is available in Postfix 3.7 and later.
 .SH smtpd_policy_service_default_action (default: 451 4.3.5 Server configuration problem)
 The default action when an SMTPD policy service request fails.
 Specify "DUNNO" to behave as if the failed  SMTPD policy service
@@ -11733,8 +11813,9 @@ response, how long the Postfix SMTP server will wait for an underlying
 network write operation to complete; and when the Postfix SMTP
 server Postfix wants to receive an SMTP client request, how long
 the Postfix SMTP server will wait for an underlying network read
-operation to complete. See smtpd_per_record_deadline for how this
-time limit may be enforced.
+operation to complete. See the smtpd_per_request_deadline for how
+this time limit may be enforced (with Postfix 2.9\-3.6 see
+smtpd_per_record_deadline).
 .PP
 Normally the default limit
 is 300s, but it changes under overload to just 10s. With Postfix

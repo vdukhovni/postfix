@@ -618,7 +618,7 @@ static int greeting(STATE *state)
     /*
      * Prepare for disaster.
      */
-    smtp_stream_setup(stream, conn_tmout, 1);
+    smtp_stream_setup(stream, conn_tmout, /* deadline */ 1, /* minrate */ 0);
     if ((except = vstream_setjmp(stream)) != 0) {
 	msg_info("%s while reading server greeting", exception_text(except));
 	return (1);
@@ -653,6 +653,7 @@ static RESPONSE *ehlo(STATE *state)
     /*
      * Send the standard greeting with our hostname
      */
+    smtp_stream_setup(stream, smtp_tmout, /* deadline */ 1, /* minrate */ 0);
     if ((except = vstream_setjmp(stream)) != 0) {
 	msg_info("%s while sending %s", exception_text(except), ehlo);
 	return (0);
@@ -740,7 +741,7 @@ static int starttls(STATE *state)
 
     if (state->wrapper_mode == 0) {
 	/* SMTP stream with deadline timeouts */
-	smtp_stream_setup(stream, smtp_tmout, 1);
+	smtp_stream_setup(stream, smtp_tmout, /* deadline */ 1, /* minrate */ 0);
 	if ((except = vstream_setjmp(stream)) != 0) {
 	    msg_fatal("%s while sending STARTTLS", exception_text(except));
 	    return (1);
@@ -780,6 +781,7 @@ static int starttls(STATE *state)
     else
 	ADD_EXCLUDE(cipher_exclusions, "eNULL");
 
+    smtp_stream_setup(stream, smtp_tmout, /* deadline */ 1, /* minrate */ 0);
     if (state->tlsproxy_mode) {
 	TLS_CLIENT_PARAMS tls_params;
 
@@ -985,7 +987,7 @@ static int doproto(STATE *state)
     /*
      * Prepare for disaster.
      */
-    smtp_stream_setup(stream, smtp_tmout, 1);
+    smtp_stream_setup(stream, smtp_tmout, /* deadline */ 1, /* minrate */ 0);
     if ((except = vstream_setjmp(stream)) != 0) {
 	msg_warn("%s while sending QUIT command", exception_text(except));
 	return (0);

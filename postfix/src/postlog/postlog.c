@@ -237,6 +237,7 @@ int     main(int argc, char **argv)
     int     fd;
     int     ch;
     const char *tag;
+    char   *unsanitized_tag;
     int     level = MSG_INFO;
     ARGV   *import_env;
 
@@ -281,7 +282,7 @@ int     main(int argc, char **argv)
      * validated by the mail configuration read routine. Don't do complex
      * things until we have completed initializations.
      */
-    tag = 0;
+    unsanitized_tag = 0;
     while ((ch = GETOPT(argc, argv, "c:ip:t:v")) > 0) {
 	switch (ch) {
 	default:
@@ -297,7 +298,7 @@ int     main(int argc, char **argv)
 	    level = level_map(optarg);
 	    break;
 	case 't':
-	    tag = optarg;			/* sanitized below */
+	    unsanitized_tag = optarg;
 	    break;
 	case 'v':
 	    msg_verbose++;
@@ -325,12 +326,14 @@ int     main(int argc, char **argv)
     import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
     clean_env(import_env->argv);
     argv_free(import_env);
-    if (tag == 0)
-	/* Use sanitized command name. */
-	tag = mail_task(argv[0]);
-    else
-	/* Sanitize user-specified tag, depends on var_smtputf8_enable. */
-	(void) printable(tag, '?');
+
+    /*
+     * Sanitize the user-specified tag. The result depends on the value of
+     * var_smtputf8_enable, therefore this code is after the mail_conf_read()
+     * call.
+     */
+    if (unsanitized_tag != 0)
+	tag = printable(unsanitized_tag, '?');
 
     /*
      * Re-initialize the logging, this time with the tag specified in main.cf

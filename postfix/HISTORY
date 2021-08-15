@@ -25696,6 +25696,8 @@ Apologies for any names omitted.
 	Cleanup: left-over code from a DANE on/off workaround. File:
 	tlsproxy.c/tlsproxy.c.
 
+20210806
+
 	Constified the object argument of functions that write objects
 	to VSTREAM. Files: global/bounce.c, global/defer.c,
 	global/deliver_pass.c, global/deliver_request.c,
@@ -25721,7 +25723,7 @@ Apologies for any names omitted.
 	suggests UNIX-domain pathname syntax which is confusing. File:
 	until/inet_connect.c.
 
-20210814
+20210815
 
 	To make the maillog_file feature more useful, the postlog(1)
 	command is now set-gid postdrop, so that unprivileged
@@ -25729,3 +25731,21 @@ Apologies for any names omitted.
 	Adopted some code from postqueue(1) and postdrop(1) to
 	harden postlog(1) against privilege escalation attacks.
 	Files: postlog/postlog.c, conf/postfix-files.
+
+	Hardening: specify smtpd_per_request_deadline=yes to limit
+	the combined amount of time to receive a complete SMTP
+	request and to send a complete SMTP response. Specify
+	smtpd_min_data_rate to enforce a minimum data rate during
+	DATA and BDAT. This replaces smtpd_per_record_deadline; the
+	new smtpd_per_request_deadline parameter has a backwards-
+	compatible default value.
+
+	Hardening: specify {smtp,lmtp}_per_request_deadline=yes to
+	limit the combined amount of time to send a complete SMTP
+	request and to receive a complete SMTP response. Specify
+	{smtp,lmtp}_min_data_rate to enforce a minimum data rate
+	during DATA. This replaces {smtp,lmtp}_per_record_deadline.
+	The new {smtp,lmtp}_per_request_deadline parameters have a
+	backwards-compatible default value.
+
+	Minor text and code cleanups. File: postlog/postlog.c.

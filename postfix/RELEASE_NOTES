@@ -25,6 +25,35 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Major changes with snapshot 20210814-nonprod
+============================================
+
+Updated defense against remote clients or servers that 'trickle'
+SMTP or LMTP traffc. The new {smtpd,smtp,lmtp}_per_request_deadline
+parameters replace {smtpd,smtp,lmtp}_per_record_deadline, with
+backwards compatible default settings. This defense is automatically
+enabled by default in the Postfix SMTP server in case of overload.
+
+The new smtpd_per_record_deadline parameter limits the combined
+time for the Postfix SMTP server to receive a request and to send
+a response, while the new {smtp,lmtp}_per_record_deadline parameters
+limit the combined time for the Postfix SMTP or LMTP client to send
+a request and to receive a response.
+
+Additionally, the new smtpd_min_data_rate parameter enforces a
+minimum plaintext data transfer rate for DATA and BDAT requests,
+but only when smtpd_per_record_deadline is enabled. After a read
+operation transfers N plaintext bytes (possibly after TLS decryption),
+and after the DATA or BDAT request deadline is decreased by the
+elapsed time of that read operation, the DATA or BDAT request
+deadline is increased by N/smtpd_min_data_rate seconds. However,
+the deadline is never increased beyond the smtpd_timeout value. The
+default minimum data rate is 500 (bytes/second) but is still subject
+to change.
+
+The new {smtp,lmtp}_min_data_rate parameters enforce the corresponding
+minimum DATA transfer rates for the Postfix SMTP and LMTP client.
+
 Major changes with snapshot 20210605
 ====================================
 

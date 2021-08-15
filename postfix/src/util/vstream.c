@@ -302,10 +302,10 @@
 /*	buffer, reads the bytes from the specified VSTREAM, and
 /*	adjusts the buffer write position. The buffer is NOT
 /*	null-terminated. The result value is as with vstream_fread().
-/*      NOTE: do not skip calling vstream_fread_buf() when len == 0.
-/*      This function has side effects including resetting the buffer
-/*      write position, and skipping the call would invalidate the
-/*      buffer state.
+/*	NOTE: do not skip calling vstream_fread_buf() when len == 0.
+/*	This function has side effects including resetting the buffer
+/*	write position, and skipping the call would invalidate the
+/*	buffer state.
 /*
 /*	vstream_fread_app() is like vstream_fread_buf() but appends
 /*	to existing buffer content, instead of writing over it.
@@ -385,13 +385,20 @@
 /*	buffer, so that the result of some %letter specifiers can
 /*	be written to contiguous memory.
 /* .IP CA_VSTREAM_CTL_START_DEADLINE (no arguments)
-/*	Change the VSTREAM_CTL_TIMEOUT behavior, to limit the total
-/*	time for all subsequent file descriptor read or write
-/*	operations, and recharge the deadline timer.
+/*	Change the VSTREAM_CTL_TIMEOUT behavior, to a deadline for
+/*	the total amount of time for all subsequent file descriptor
+/*	read or write operations, and recharge the deadline timer.
 /* .IP CA_VSTREAM_CTL_STOP_DEADLINE (no arguments)
 /*	Revert VSTREAM_CTL_TIMEOUT behavior to the default, i.e.
 /*	a time limit for individual file descriptor read or write
 /*	operations.
+/* .IP CA_VSTREAM_CTL_MIN_DATA_RATE (int)
+/*	When the DEADLINE is enabled, the amount of data that must
+/*	be transferred to add 1 second to the deadline. However,
+/*	the deadline will never exceed the timeout specified with
+/*	VSTREAM_CTL_TIMEOUT. A zero value requests no update to the
+/*	deadline as data is transferred; that is appropriate for
+/*	request/reply interactions.
 /* .IP CA_VSTREAM_CTL_OWN_VSTRING (no arguments)
 /*	Transfer ownership of the VSTRING that was opened with
 /*	vstream_memopen() etc. to the stream, so that the VSTRING
@@ -656,6 +663,16 @@ VSTREAM vstream_fstd[] = {
 	} \
     } while (0)
 
+#define VSTREAM_ADD_TIME(x, y, z) \
+    do { \
+	(x).tv_sec = (y).tv_sec + (z).tv_sec; \
+	(x).tv_usec = (y).tv_usec + (z).tv_usec; \
+	while ((x).tv_usec >= 1000000) { \
+	    (x).tv_usec -= 1000000; \
+	    (x).tv_sec += 1; \
+	} \
+    } while (0)
+
 /* vstream_buf_init - initialize buffer */
 
 static void vstream_buf_init(VBUF *bp, int flags)
@@ -729,6 +746,7 @@ static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
     int     timeout;
     struct timeval before;
     struct timeval elapsed;
+    struct timeval bonus;
 
     /*
      * Sanity checks. It is illegal to flush a read-only stream. Otherwise,
@@ -802,6 +820,17 @@ static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
 	    if (bp->flags & VSTREAM_FLAG_DEADLINE) {
 		VSTREAM_SUB_TIME(elapsed, stream->iotime, before);
 		VSTREAM_SUB_TIME(stream->time_limit, stream->time_limit, elapsed);
+		if (stream->min_data_rate > 0) {
+		    bonus.tv_sec = n / stream->min_data_rate;
+		    bonus.tv_usec = (n % stream->min_data_rate) * 1000000;
+		    bonus.tv_usec /= stream->min_data_rate;
+		    VSTREAM_ADD_TIME(stream->time_limit, stream->time_limit,
+				     bonus);
+		    if (stream->time_limit.tv_sec >= stream->timeout) {
+			stream->time_limit.tv_sec = stream->timeout;
+			stream->time_limit.tv_usec = 0;
+		    }
+		}
 	    }
 	}
 	if (msg_verbose > 2 && stream != VSTREAM_ERR && n != to_flush)
@@ -866,6 +895,7 @@ static int vstream_buf_get_ready(VBUF *bp)
     ssize_t n;
     struct timeval before;
     struct timeval elapsed;
+    struct timeval bonus;
     int     timeout;
 
     /*
@@ -967,6 +997,17 @@ static int vstream_buf_get_ready(VBUF *bp)
 	    if (bp->flags & VSTREAM_FLAG_DEADLINE) {
 		VSTREAM_SUB_TIME(elapsed, stream->iotime, before);
 		VSTREAM_SUB_TIME(stream->time_limit, stream->time_limit, elapsed);
+		if (stream->min_data_rate > 0) {
+		    bonus.tv_sec = n / stream->min_data_rate;
+		    bonus.tv_usec = (n % stream->min_data_rate) * 1000000;
+		    bonus.tv_usec /= stream->min_data_rate;
+		    VSTREAM_ADD_TIME(stream->time_limit, stream->time_limit,
+				     bonus);
+		    if (stream->time_limit.tv_sec >= stream->timeout) {
+			stream->time_limit.tv_sec = stream->timeout;
+			stream->time_limit.tv_usec = 0;
+		    }
+		}
 	    }
 	}
 	if (msg_verbose > 2)
@@ -1307,6 +1348,7 @@ static VSTREAM *vstream_subopen(void)
     stream->time_limit.tv_sec = stream->time_limit.tv_usec = 0;
     stream->req_bufsize = 0;
     stream->vstring = 0;
+    stream->min_data_rate = 0;
     return (stream);
 }
 
@@ -1531,6 +1573,7 @@ void    vstream_control(VSTREAM *stream, int name,...)
     int     old_fd;
     ssize_t req_bufsize = 0;
     VSTREAM *stream2;
+    int     min_data_rate;
 
 #define SWAP(type,a,b) do { type temp = (a); (a) = (b); (b) = (temp); } while (0)
 
@@ -1674,6 +1717,12 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    stream->buf.flags |= VSTREAM_FLAG_DEADLINE;
 	    stream->time_limit.tv_sec = stream->timeout;
 	    stream->time_limit.tv_usec = 0;
+	    break;
+	case VSTREAM_CTL_MIN_DATA_RATE:
+	    min_data_rate = va_arg(ap, int);
+	    if (min_data_rate < 0)
+		msg_panic("%s: bad min_data_rate %d", myname, min_data_rate);
+	    stream->min_data_rate = min_data_rate;
 	    break;
 	case VSTREAM_CTL_OWN_VSTRING:
 	    if ((stream->buf.flags |= VSTREAM_FLAG_MEMORY) == 0)

@@ -298,12 +298,14 @@
 /* .IP "\fBsmtp_dns_resolver_options (empty)\fR"
 /*	DNS Resolver options for the Postfix SMTP client.
 /* .PP
-/*	Available in Postfix version 2.9 and later:
+/*	Available in Postfix version 2.9 - 3.6:
 /* .IP "\fBsmtp_per_record_deadline (no)\fR"
 /*	Change the behavior of the smtp_*_timeout time limits, from a
 /*	time limit per read or write system call, to a time limit to send
 /*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
+/* .PP
+/*	Available in Postfix version 2.9 and later:
 /* .IP "\fBsmtp_send_dummy_mail_auth (no)\fR"
 /*	Whether or not to append the "AUTH=<>" option to the MAIL
 /*	FROM command in SASL-authenticated SMTP sessions.
@@ -338,6 +340,16 @@
 /*	is available.
 /* .IP "\fBknown_tcp_ports (lmtp=24, smtp=25, smtps=submissions=465, submission=587)\fR"
 /*	Optional setting that avoids lookups in the \fBservices\fR(5) database.
+/* .PP
+/*	Available in Postfix version 3.7 and later:
+/* .IP "\fBsmtp_per_request_deadline (no)\fR"
+/*	Change the behavior of the smtp_*_timeout time limits, from a
+/*	time limit per plaintext or TLS read or write call, to a combined
+/*	time limit for sending a complete SMTP request and for receiving a
+/*	complete SMTP response.
+/* .IP "\fBsmtp_min_data_rate (500)\fR"
+/*	The minimum plaintext data transfer rate in bytes/second for
+/*	DATA requests, when deadlines are enabled with smtp_per_request_deadline.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -662,7 +674,7 @@
 /*	Time limit for connection cache connect, send or receive
 /*	operations.
 /* .PP
-/*	Available in Postfix version 2.9 and later:
+/*	Available in Postfix version 2.9 - 3.6:
 /* .IP "\fBsmtp_per_record_deadline (no)\fR"
 /*	Change the behavior of the smtp_*_timeout time limits, from a
 /*	time limit per read or write system call, to a time limit to send
@@ -678,6 +690,16 @@
 /*	Available in Postfix version 3.4 and later:
 /* .IP "\fBsmtp_tls_connection_reuse (no)\fR"
 /*	Try to make multiple deliveries per TLS-encrypted connection.
+/* .PP
+/*	Available in Postfix version 3.7 and later:
+/* .IP "\fBsmtp_per_request_deadline (no)\fR"
+/*	Change the behavior of the smtp_*_timeout time limits, from a
+/*	time limit per plaintext or TLS read or write call, to a combined
+/*	time limit for sending a complete SMTP request and for receiving a
+/*	complete SMTP response.
+/* .IP "\fBsmtp_min_data_rate (500)\fR"
+/*	The minimum plaintext data transfer rate in bytes/second for
+/*	DATA requests, when deadlines are enabled with smtp_per_request_deadline.
 /* .PP
 /*	Implemented in the qmgr(8) daemon:
 /* .IP "\fBtransport_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"
@@ -1049,11 +1071,12 @@ char   *var_smtp_resp_filter;
 bool    var_lmtp_assume_final;
 char   *var_smtp_dns_res_opt;
 char   *var_smtp_dns_support;
-bool    var_smtp_rec_deadline;
 bool    var_smtp_dummy_mail_auth;
 char   *var_smtp_dsn_filter;
 char   *var_smtp_dns_re_filter;
 bool    var_smtp_balance_inet_proto;
+bool    var_smtp_req_deadline;
+int     var_smtp_min_data_rate;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -1594,6 +1617,8 @@ int     main(int argc, char **argv)
 					   smtp_str_table : lmtp_str_table),
 		       CA_MAIL_SERVER_BOOL_TABLE(smtp_mode ?
 					 smtp_bool_table : lmtp_bool_table),
+		       CA_MAIL_SERVER_NBOOL_TABLE(smtp_mode ?
+					 smtp_nbool_table : lmtp_nbool_table),
 		       CA_MAIL_SERVER_PRE_INIT(pre_init),
 		       CA_MAIL_SERVER_POST_INIT(post_init),
 		       CA_MAIL_SERVER_PRE_ACCEPT(pre_accept),

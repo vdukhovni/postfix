@@ -1,0 +1,5 @@
+Add a note to tlsproxy source why it does not enforce deadlines or
+minimum data rates. Reason: tlsproxy relies on the plaintext client
+to enforce their context-dependent deadlines and data rates. When
+a plaintext client times out, it will close the tlsproxy connection,
+and then tlsproxy will also hang up.

@@ -1356,6 +1356,12 @@ static void tlsp_get_request_event(int event, void *context)
     /*
      * Receive the initial request attributes. Receive the remainder after we
      * figure out what role we are expected to play.
+     * 
+     * The tlsproxy server does not enforce per-request read/write deadlines or
+     * minimal data rates. Instead, the tlsproxy server relies on the
+     * tlsproxy client to enforce these context-dependent limits. When a
+     * tlsproxy client decides to time out, it will close its end of the
+     * tlsproxy stream, and the tlsproxy server will handle that immediately.
      */
     if (event != EVENT_READ
 	|| attr_scan(plaintext_stream, ATTR_FLAG_STRICT,
