@@ -1110,7 +1110,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * created for us, so we can use it for debugging purposes.
      */
     if (log_mask & TLS_LOG_TLSPKTS)
-	BIO_set_callback(SSL_get_rbio(TLScontext->con), tls_bio_dump_cb);
+	tls_set_bio_callback(SSL_get_rbio(TLScontext->con), tls_bio_dump_cb);
 
     /*
      * If we don't trigger the handshake in the library, leave control over
@@ -1161,7 +1161,7 @@ TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
 
     /* Turn off packet dump if only dumping the handshake */
     if ((TLScontext->log_mask & TLS_LOG_ALLPKTS) == 0)
-	BIO_set_callback(SSL_get_rbio(TLScontext->con), 0);
+	tls_set_bio_callback(SSL_get_rbio(TLScontext->con), 0);
 
     /*
      * The caller may want to know if this session was reused or if a new
@@ -1175,7 +1175,7 @@ TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
      * Do peername verification if requested and extract useful information
      * from the certificate for later use.
      */
-    if ((peercert = SSL_get_peer_certificate(TLScontext->con)) != 0) {
+    if ((peercert = TLS_PEEK_PEER_CERT(TLScontext->con)) != 0) {
 	TLScontext->peer_status |= TLS_CERT_FLAG_PRESENT;
 
 	/*
@@ -1195,7 +1195,6 @@ TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
 		     TLScontext->peer_CN, TLScontext->issuer_CN,
 		     TLScontext->peer_cert_fprint,
 		     TLScontext->peer_pkey_fprint);
-	X509_free(peercert);
     } else {
 	TLScontext->issuer_CN = mystrdup("");
 	TLScontext->peer_CN = mystrdup("");

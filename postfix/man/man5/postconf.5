@@ -3420,6 +3420,11 @@ The LMTP\-specific version of the smtp_tls_verify_cert_match
 configuration parameter. See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_wrappermode (default: no)
+The LMTP\-specific version of the smtp_tls_wrappermode configuration
+parameter. See there for details.
+.PP
+This feature is available in Postfix 3.0 and later.
 .SH lmtp_use_tls (default: no)
 The LMTP\-specific version of the smtp_use_tls configuration
 parameter.  See there for details.
@@ -9707,7 +9712,7 @@ contain the ":" character, and would otherwise be confused with a
 .PP
 Pattern matching of domain names is controlled by the presence
 or absence of "smtpd_client_event_limit_exceptions" in the
-parent_domain_matches_subdomains parameter value (postfix 3.0 and
+parent_domain_matches_subdomains parameter value (Postfix 3.0 and
 later).
 .PP
 This feature is available in Postfix 2.2 and later.
@@ -12250,6 +12255,14 @@ This feature is available in Postfix 2.2 and later.
 .SH smtpd_tls_dh1024_param_file (default: empty)
 File with DH parameters that the Postfix SMTP server should
 use with non\-export EDH ciphers.
+.PP
+With Postfix >= 3.7, built with OpenSSL version is 3.0.0 or later, if the
+parameter value is either empty or "\fBauto\fR", then the DH parameter
+selection is delegated to the OpenSSL library, which selects appropriate
+parameters based on the TLS handshake.  This choice is likely to be the most
+interoperable with SMTP clients using various TLS libraries, and custom local
+parameters are no longer recommended when using Postfix >= 3.7 built against
+OpenSSL 3.0.0.
 .PP
 The best\-practice choice of parameters uses a 2048\-bit prime.  This is fine,
 despite the historical "1024" in the parameter name.  Do not be tempted to use

@@ -481,14 +481,9 @@ TLS_SCACHE *tls_scache_open(const char *dbname, const char *cache_label,
      * Open the dictionary with O_TRUNC, so that we never have to worry about
      * opening a damaged file after some process terminated abnormally.
      */
-#ifdef SINGLE_UPDATER
-#define DICT_FLAGS (DICT_FLAG_DUP_REPLACE | DICT_FLAG_OPEN_LOCK \
-		    | DICT_FLAG_UTF8_REQUEST)
-#else
 #define DICT_FLAGS \
-	(DICT_FLAG_DUP_REPLACE | DICT_FLAG_LOCK | DICT_FLAG_SYNC_UPDATE \
+	(DICT_FLAG_DUP_REPLACE | DICT_FLAG_OPEN_LOCK | DICT_FLAG_SYNC_UPDATE \
 	 | DICT_FLAG_UTF8_REQUEST)
-#endif
 
     dict = dict_open(dbname, O_RDWR | O_CREAT | O_TRUNC, DICT_FLAGS);
 

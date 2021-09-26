@@ -25749,3 +25749,34 @@ Apologies for any names omitted.
 	backwards-compatible default value.
 
 	Minor text and code cleanups. File: postlog/postlog.c.
+
+20210925
+
+	Prevent sharing of xxx_tls_session_cache_database instances
+	between different Postfix instances when a database is
+	not multi-writer safe. Like postscreen(8) and verify(8),
+	open such a database with a permanent lock, and raise
+	a fatal error when that database is already opened as
+	xxx_tls_session_cache_database. File: src/tls/tls_scache.c.
+
+	Bugfix (bug introduced: Postfix 2.10): postconf -x produced
+	incorrect output, because different functions were implicitly
+	sharing a buffer for intermediate results. Reported by raf, root
+	cause analysis by Viktor Dukhovni, and Wietse eliminated the
+	underlying anti-pattern. Files: postconf/postconf_builtin.c,
+	postconf/postconf_dbms.c, postconf/postconf_lookup.c,
+	postconf/postconf_main.c, postconf/postconf_master.c.
+
+	Documentation: missing lmtp_tls_wrappermode parameter
+	documentation. Viktor Dukhovni. Files: mantools/postlink,
+	proto/postconf.proto.
+
+20210926
+
+	OpenSSL 3.0.0 feature and bitrot updates. Viktor Dukhovni.
+	Files: proto/FORWARD_SECRECY_README.html, proto/postconf.proto,
+	tls/tls_client.c, tls/tls_dh.c, tls/tls.h, tls/tls_misc.c,
+	tls/tls_server.c/^+
+
+	Cleanup: don't hyperlink text that is already hyperlinked.
+	File: mantools/postlink.

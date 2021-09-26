@@ -4111,7 +4111,7 @@ extern int var_smtpd_min_data_rate;
 
 #define VAR_SMTP_MIN_DATA_RATE	"smtp_min_data_rate"
 #define DEF_SMTP_MIN_DATA_RATE	500
-#define VAR_LMTP_MIN_DATA_RATE	"smtp_min_data_rate"
+#define VAR_LMTP_MIN_DATA_RATE	"lmtp_min_data_rate"
 #define DEF_LMTP_MIN_DATA_RATE	500
 extern int var_smtp_min_data_rate;
 

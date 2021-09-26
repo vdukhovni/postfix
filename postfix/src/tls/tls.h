@@ -74,6 +74,7 @@ extern const char *str_tls_level(int);
 #include <openssl/x509v3.h>
 #include <openssl/rand.h>
 #include <openssl/crypto.h>		/* Legacy SSLEAY_VERSION_NUMBER */
+#include <openssl/evp.h>		/* New OpenSSL 3.0 EVP_PKEY APIs */
 #include <openssl/opensslv.h>		/* OPENSSL_VERSION_NUMBER */
 #include <openssl/ssl.h>
 
@@ -82,6 +83,15 @@ extern const char *str_tls_level(int);
 #define general_name_stack_t STACK_OF(GENERAL_NAME)
 #define ssl_cipher_stack_t STACK_OF(SSL_CIPHER)
 #define ssl_comp_stack_t STACK_OF(SSL_COMP)
+
+/*-
+ * Official way to check minimum OpenSSL API version from 3.0 onward.
+ * We simply define it false for all prior versions, where we typically also
+ * need the patch level to determine API compatibility.
+ */
+#ifndef OPENSSL_VERSION_PREREQ
+#define OPENSSL_VERSION_PREREQ(m,n) 0
+#endif
 
 #if (OPENSSL_VERSION_NUMBER < 0x1010100fUL)
 #error "OpenSSL releases prior to 1.1.1 are no longer supported"
@@ -101,6 +111,16 @@ extern const char *str_tls_level(int);
 #define tls_get_peer_dh_pubkey SSL_get_server_tmp_key
 #else
 #define tls_get_peer_dh_pubkey SSL_get_peer_tmp_key
+#endif
+
+#if OPENSSL_VERSION_PREREQ(3,0)
+#define TLS_PEEK_PEER_CERT(ssl) SSL_get0_peer_certificate(ssl)
+#define TLS_FREE_PEER_CERT(x)   ((void) 0)
+#define tls_set_bio_callback    BIO_set_callback_ex
+#else
+#define TLS_PEEK_PEER_CERT(ssl) SSL_get_peer_certificate(ssl)
+#define TLS_FREE_PEER_CERT(x)   X509_free(x)
+#define tls_set_bio_callback    BIO_set_callback
 #endif
 
  /*
@@ -604,7 +624,7 @@ extern int tls_bio(int, int, TLS_SESS_STATE *,
   * tls_dh.c
   */
 extern void tls_set_dh_from_file(const char *);
-extern void tls_tmp_dh(SSL_CTX *);
+extern void tls_tmp_dh(SSL_CTX *, int);
 extern void tls_auto_eecdh_curves(SSL_CTX *, const char *);
 
  /*
@@ -655,7 +675,15 @@ extern void tls_check_version(void);
 extern long tls_bug_bits(void);
 extern void tls_print_errors(void);
 extern void tls_info_callback(const SSL *, int, int);
+
+#if OPENSSL_VERSION_PREREQ(3,0)
+extern long tls_bio_dump_cb(BIO *, int, const char *, size_t, int, long,
+			            int, size_t *);
+
+#else
 extern long tls_bio_dump_cb(BIO *, int, const char *, int, long, long);
+
+#endif
 extern const EVP_MD *tls_validate_digest(const char *);
 
  /*

@@ -95,13 +95,15 @@
 /*	int	where;
 /*	int	ret;
 /*
-/*	long	tls_bio_dump_cb(bio, cmd, argp, argi, argl, ret)
+/*	long	tls_bio_dump_cb(bio, cmd, argp, len, argi, argl, ret, processed)
 /*	BIO	*bio;
 /*	int	cmd;
 /*	const char *argp;
+/*	size_t	len;
 /*	int	argi;
 /*	long	argl; /* unused */
-/*	long	ret;
+/*	int	ret;
+/*	size_t	*processed;
 /*
 /*	int	tls_log_mask(log_param, log_level)
 /*	const char *log_param;
@@ -861,18 +863,50 @@ const char *tls_set_ciphers(TLS_SESS_STATE *TLScontext, const char *grade,
     return (vstring_str(buf));
 }
 
+/* ec_curve_name - copy EC key curve group name */
+
+#ifndef OPENSSL_NO_EC
+static char *ec_curve_name(EVP_PKEY *pkey)
+{
+    char   *curve = 0;
+
+#if OPENSSL_VERSION_PREREQ(3,0)
+    size_t  namelen;
+
+    if (EVP_PKEY_get_group_name(pkey, 0, 0, &namelen)) {
+	curve = mymalloc(++namelen);
+	if (!EVP_PKEY_get_group_name(pkey, curve, namelen, 0)) {
+	    myfree(curve);
+	    curve = 0;
+	}
+    }
+#else
+    EC_KEY *eckey = EVP_PKEY_get0_EC_KEY(pkey);
+    int     nid = EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey));
+    const char *tmp = EC_curve_nid2nist(nid);
+
+    if (!tmp)
+	tmp = OBJ_nid2sn(nid);
+    if (tmp)
+	curve = mystrdup(tmp);
+#endif
+    return (curve);
+}
+
+#endif
+
 /* tls_get_signature_params - TLS 1.3 signature details */
 
 void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 {
     const char *kex_name = 0;
-    const char *kex_curve = 0;
     const char *locl_sig_name = 0;
-    const char *locl_sig_curve = 0;
     const char *locl_sig_dgst = 0;
     const char *peer_sig_name = 0;
-    const char *peer_sig_curve = 0;
     const char *peer_sig_dgst = 0;
+    char   *kex_curve = 0;
+    char   *locl_sig_curve = 0;
+    char   *peer_sig_curve = 0;
     int     nid;
     SSL    *ssl = TLScontext->con;
     int     srvr = SSL_is_server(ssl);
@@ -881,11 +915,6 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
     EVP_PKEY *local_pkey = 0;
     X509   *peer_cert;
     EVP_PKEY *peer_pkey = 0;
-
-#ifndef OPENSSL_NO_EC
-    EC_KEY *eckey;
-
-#endif
 
 #define SIG_PROP(c, s, p) (*((s) ? &c->srvr_sig_##p : &c->clnt_sig_##p))
 
@@ -906,11 +935,7 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 #ifndef OPENSSL_NO_EC
 	case EVP_PKEY_EC:
 	    kex_name = "ECDHE";
-	    eckey = EVP_PKEY_get0_EC_KEY(dh_pkey);
-	    nid = EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey));
-	    kex_curve = EC_curve_nid2nist(nid);
-	    if (!kex_curve)
-		kex_curve = OBJ_nid2sn(nid);
+	    kex_curve = ec_curve_name(dh_pkey);
 	    break;
 #endif
 	}
@@ -951,11 +976,7 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 #ifndef OPENSSL_NO_EC
 	    case EVP_PKEY_EC:
 		locl_sig_name = "ECDSA";
-		eckey = EVP_PKEY_get0_EC_KEY(local_pkey);
-		nid = EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey));
-		locl_sig_curve = EC_curve_nid2nist(nid);
-		if (!locl_sig_curve)
-		    locl_sig_curve = OBJ_nid2sn(nid);
+		locl_sig_curve = ec_curve_name(local_pkey);
 		break;
 #endif
 	    }
@@ -970,7 +991,7 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	    locl_sig_dgst = OBJ_nid2sn(nid);
     }
     /* Signature algorithms for the peer end of the connection */
-    if ((peer_cert = SSL_get_peer_certificate(ssl)) != 0) {
+    if ((peer_cert = TLS_PEEK_PEER_CERT(ssl)) != 0) {
 	peer_pkey = X509_get0_pubkey(peer_cert);
 
 	/*
@@ -993,11 +1014,7 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 #ifndef OPENSSL_NO_EC
 	    case EVP_PKEY_EC:
 		peer_sig_name = "ECDSA";
-		eckey = EVP_PKEY_get0_EC_KEY(peer_pkey);
-		nid = EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey));
-		peer_sig_curve = EC_curve_nid2nist(nid);
-		if (!peer_sig_curve)
-		    peer_sig_curve = OBJ_nid2sn(nid);
+		peer_sig_curve = ec_curve_name(peer_pkey);
 		break;
 #endif
 	    }
@@ -1010,24 +1027,21 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	if (SSL_get_peer_signature_nid(ssl, &nid) && nid != NID_undef)
 	    peer_sig_dgst = OBJ_nid2sn(nid);
 
-	X509_free(peer_cert);
+	TLS_FREE_PEER_CERT(peer_cert);
     }
     if (kex_name) {
 	TLScontext->kex_name = mystrdup(kex_name);
-	if (kex_curve)
-	    TLScontext->kex_curve = mystrdup(kex_curve);
+	TLScontext->kex_curve = kex_curve;
     }
     if (locl_sig_name) {
 	SIG_PROP(TLScontext, srvr, name) = mystrdup(locl_sig_name);
-	if (locl_sig_curve)
-	    SIG_PROP(TLScontext, srvr, curve) = mystrdup(locl_sig_curve);
+	SIG_PROP(TLScontext, srvr, curve) = locl_sig_curve;
 	if (locl_sig_dgst)
 	    SIG_PROP(TLScontext, srvr, dgst) = mystrdup(locl_sig_dgst);
     }
     if (peer_sig_name) {
 	SIG_PROP(TLScontext, !srvr, name) = mystrdup(peer_sig_name);
-	if (peer_sig_curve)
-	    SIG_PROP(TLScontext, !srvr, curve) = mystrdup(peer_sig_curve);
+	SIG_PROP(TLScontext, !srvr, curve) = peer_sig_curve;
 	if (peer_sig_dgst)
 	    SIG_PROP(TLScontext, !srvr, dgst) = mystrdup(peer_sig_dgst);
     }
@@ -1369,7 +1383,14 @@ void    tls_print_errors(void)
     int     line;
     int     flags;
 
-    while ((err = ERR_get_error_line_data(&file, &line, &data, &flags)) != 0) {
+#if OPENSSL_VERSION_PREREQ(3,0)
+/* XXX: We're ignoring the function name, do we want to log it? */
+#define ERRGET(fi, l, d, fl) ERR_get_error_all(fi, l, 0, d, fl)
+#else
+#define ERRGET(fi, l, d, fl) ERR_get_error_line_data(fi, l, d, fl)
+#endif
+
+    while ((err = ERRGET(&file, &line, &data, &flags)) != 0) {
 	ERR_error_string_n(err, buffer, sizeof(buffer));
 	if (flags & ERR_TXT_STRING)
 	    msg_warn("TLS library problem: %s:%s:%d:%s:",
@@ -1493,6 +1514,7 @@ static void tls_dump_buffer(const unsigned char *start, int len)
 
 /* taken from OpenSSL apps/s_cb.c */
 
+#if !OPENSSL_VERSION_PREREQ(3,0)
 long    tls_bio_dump_cb(BIO *bio, int cmd, const char *argp, int argi,
 			        long unused_argl, long ret)
 {
@@ -1509,6 +1531,40 @@ long    tls_bio_dump_cb(BIO *bio, int cmd, const char *argp, int argi,
     }
     return (ret);
 }
+
+#else
+long    tls_bio_dump_cb(BIO *bio, int cmd, const char *argp, size_t len,
+	             int argi, long unused_argl, int ret, size_t *processed)
+{
+    size_t  bytes = (ret > 0 && processed != NULL) ? *processed : len;
+
+    if (cmd == (BIO_CB_READ | BIO_CB_RETURN)) {
+	if (ret > 0) {
+	    msg_info("read from %08lX [%08lX] (%ld bytes => %ld (0x%lX))",
+		     (unsigned long) bio, (unsigned long) argp, (long) len,
+		     (long) bytes, (long) bytes);
+	    tls_dump_buffer((unsigned char *) argp, (int) bytes);
+	} else {
+	    msg_info("read from %08lX [%08lX] (%ld bytes => %d)",
+		     (unsigned long) bio, (unsigned long) argp,
+		     (long) len, ret);
+	}
+    } else if (cmd == (BIO_CB_WRITE | BIO_CB_RETURN)) {
+	if (ret > 0) {
+	    msg_info("write to %08lX [%08lX] (%ld bytes => %ld (0x%lX))",
+		     (unsigned long) bio, (unsigned long) argp, (long) len,
+		     (long) bytes, (long) bytes);
+	    tls_dump_buffer((unsigned char *) argp, (int) bytes);
+	} else {
+	    msg_info("write to %08lX [%08lX] (%ld bytes => %d)",
+		     (unsigned long) bio, (unsigned long) argp,
+		     (long) len, ret);
+	}
+    }
+    return ret;
+}
+
+#endif
 
 const EVP_MD *tls_validate_digest(const char *dgst)
 {

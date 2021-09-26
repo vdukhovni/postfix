@@ -25,8 +25,8 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
-Major changes with snapshot 20210814-nonprod
-============================================
+Major changes with snapshot 20210815
+====================================
 
 Updated defense against remote clients or servers that 'trickle'
 SMTP or LMTP traffc. The new {smtpd,smtp,lmtp}_per_request_deadline

@@ -250,6 +250,7 @@ static const char *pcf_check_mydomainname(void)
 static const char *pcf_mynetworks(void)
 {
     static const char *networks;
+    VSTRING *exp_buf;
     const char *junk;
 
     /*
@@ -258,10 +259,12 @@ static const char *pcf_mynetworks(void)
     if (networks)
 	return (networks);
 
+    exp_buf = vstring_alloc(100);
+
     if (var_inet_interfaces == 0) {
 	if ((pcf_cmd_mode & PCF_SHOW_DEFS)
 	    || (junk = mail_conf_lookup_eval(VAR_INET_INTERFACES)) == 0)
-	    junk = pcf_expand_parameter_value((VSTRING *) 0, pcf_cmd_mode,
+	    junk = pcf_expand_parameter_value(exp_buf, pcf_cmd_mode,
 					      DEF_INET_INTERFACES,
 					      (PCF_MASTER_ENT *) 0);
 	var_inet_interfaces = mystrdup(junk);
@@ -269,7 +272,7 @@ static const char *pcf_mynetworks(void)
     if (var_mynetworks_style == 0) {
 	if ((pcf_cmd_mode & PCF_SHOW_DEFS)
 	    || (junk = mail_conf_lookup_eval(VAR_MYNETWORKS_STYLE)) == 0)
-	    junk = pcf_expand_parameter_value((VSTRING *) 0, pcf_cmd_mode,
+	    junk = pcf_expand_parameter_value(exp_buf, pcf_cmd_mode,
 					      DEF_MYNETWORKS_STYLE,
 					      (PCF_MASTER_ENT *) 0);
 	var_mynetworks_style = mystrdup(junk);
@@ -277,12 +280,13 @@ static const char *pcf_mynetworks(void)
     if (var_inet_protocols == 0) {
 	if ((pcf_cmd_mode & PCF_SHOW_DEFS)
 	    || (junk = mail_conf_lookup_eval(VAR_INET_PROTOCOLS)) == 0)
-	    junk = pcf_expand_parameter_value((VSTRING *) 0, pcf_cmd_mode,
+	    junk = pcf_expand_parameter_value(exp_buf, pcf_cmd_mode,
 					      DEF_INET_PROTOCOLS,
 					      (PCF_MASTER_ENT *) 0);
 	var_inet_protocols = mystrdup(junk);
 	(void) inet_proto_init(VAR_INET_PROTOCOLS, var_inet_protocols);
     }
+    vstring_free(exp_buf);
     return (networks = mystrdup(mynetworks()));
 }
 
