@@ -103,6 +103,7 @@ smtp.o: ../../include/flush_clnt.h
 smtp.o: ../../include/fold_addr.h
 smtp.o: ../../include/header_body_checks.h
 smtp.o: ../../include/header_opts.h
+smtp.o: ../../include/hfrom_format.h
 smtp.o: ../../include/htable.h
 smtp.o: ../../include/iostuff.h
 smtp.o: ../../include/mail_conf.h
@@ -194,6 +195,7 @@ smtp_chat.o: ../../include/dsn_buf.h
 smtp_chat.o: ../../include/dsn_util.h
 smtp_chat.o: ../../include/header_body_checks.h
 smtp_chat.o: ../../include/header_opts.h
+smtp_chat.o: ../../include/hfrom_format.h
 smtp_chat.o: ../../include/htable.h
 smtp_chat.o: ../../include/int_filt.h
 smtp_chat.o: ../../include/iostuff.h

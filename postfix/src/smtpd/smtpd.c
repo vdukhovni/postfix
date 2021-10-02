@@ -788,6 +788,8 @@
 /*	The minimum plaintext data transfer rate in bytes/second for
 /*	DATA and BDAT requests, when deadlines are enabled with
 /*	smtpd_per_request_deadline.
+/* .IP "\fBheader_from_format (standard)\fR"
+/*	The format of the Postfix-generated \fBFrom:\fR header.
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -1264,6 +1266,7 @@
 #include <match_parent_style.h>
 #include <normalize_mailhost_addr.h>
 #include <info_log_addr_form.h>
+#include <hfrom_format.h>
 
 /* Single-threaded server skeleton. */
 
@@ -1493,6 +1496,7 @@ int     var_smtpd_uproxy_tmout;
 bool    var_relay_before_rcpt_checks;
 bool    var_smtpd_req_deadline;
 int     var_smtpd_min_data_rate;
+char   *var_hfrom_format;
 
  /*
   * Silly little macros.
@@ -1585,6 +1589,11 @@ static int ask_client_cert;
   * SMTP command mapping for broken clients.
   */
 static DICT *smtpd_cmd_filter;
+
+ /*
+  * Parsed header_from_format setting.
+  */
+int     smtpd_hfrom_format;
 
 #ifdef USE_SASL_AUTH
 
@@ -6362,6 +6371,11 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	|| var_smtpd_cmail_limit || var_smtpd_crcpt_limit
 	|| var_smtpd_cntls_limit || var_smtpd_cauth_limit)
 	anvil_clnt = anvil_clnt_create();
+
+    /*
+     * header_from_format support, for	postmaster notifications.
+     */
+    smtpd_hfrom_format = hfrom_format_parse(VAR_HFROM_FORMAT, var_hfrom_format);
 }
 
 MAIL_VERSION_STAMP_DECLARE;
@@ -6580,6 +6594,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_POLICY_CONTEXT, DEF_SMTPD_POLICY_CONTEXT, &var_smtpd_policy_context, 0, 0,
 	VAR_SMTPD_DNS_RE_FILTER, DEF_SMTPD_DNS_RE_FILTER, &var_smtpd_dns_re_filter, 0, 0,
 	VAR_SMTPD_REJ_FTR_MAPS, DEF_SMTPD_REJ_FTR_MAPS, &var_smtpd_rej_ftr_maps, 0, 0,
+	VAR_HFROM_FORMAT, DEF_HFROM_FORMAT, &var_hfrom_format, 1, 0,
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {

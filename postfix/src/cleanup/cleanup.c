@@ -114,6 +114,8 @@
 /* .IP "\fBmessage_drop_headers (bcc, content-length, resent-bcc, return-path)\fR"
 /*	Names of message headers that the \fBcleanup\fR(8) daemon will remove
 /*	after applying \fBheader_checks\fR(5) and before invoking Milter applications.
+/* .IP "\fBheader_from_format (standard)\fR"
+/*	The format of the Postfix-generated \fBFrom:\fR header.
 /* BUILT-IN CONTENT FILTERING CONTROLS
 /* .ad
 /* .fi

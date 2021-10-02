@@ -25780,3 +25780,18 @@ Apologies for any names omitted.
 
 	Cleanup: don't hyperlink text that is already hyperlinked.
 	File: mantools/postlink.
+
+20211002
+
+	Bugfix (introduced: Postfix 3.3): the header_from_format
+	feature was not implemented for From: headers from the
+	bounce daemon, and for Postfix SMTP server and client
+	postmaster notifications.  Reported by Vladimir Mishonov.
+	Files: bounce/bounce.c, bounce/bounce_notify_util_tester.c,
+	bounce/bounce_service.h, bounce/bounce_template.c,
+	bounce/bounce_template.h, bounce/bounce_templates.c,
+	cleanup/cleanup.h, cleanup/cleanup_init.c,
+	cleanup/cleanup_message.c, smtp/lmtp_params.c, smtp/smtp.c,
+	smtp/smtp.h, smtp/smtp_chat.c, smtp/smtp_params.c,
+	smtpd/smtpd.c, smtpd/smtpd.h, smtpd/smtpd_chat.c, and test
+	data.

@@ -24,6 +24,11 @@
 #include <bounce_template.h>
 
  /*
+  * bounce_service.c
+  */
+extern int bounce_hfrom_format;
+
+ /*
   * bounce_append_service.c
   */
 extern int bounce_append_service(int, char *, char *, RECIPIENT *, DSN *);

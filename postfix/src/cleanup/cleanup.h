@@ -352,9 +352,7 @@ extern void cleanup_body_edit_free(CLEANUP_STATE *);
  /*
   * From: header formatting.
   */
-#define HFROM_FORMAT_CODE_STD	0
-#define HFROM_FORMAT_CODE_OBS	1
-extern int hfrom_format_code;
+extern int cleanup_hfrom_format;
 
 /* LICENSE
 /* .ad

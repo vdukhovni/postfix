@@ -160,6 +160,11 @@ BOUNCE(8)                                                            BOUNCE(8)
               to   the   original  message  by  including  a  References:  and
               In-Reply-To: header with the original Message-ID value.
 
+       Available in Postfix 3.7 and later:
+
+       <b>header_from_format (standard)</b>
+              The format of the Postfix-generated <b>From:</b> header.
+
 <b>FILES</b>
        /var/spool/postfix/bounce/* non-delivery records
        /var/spool/postfix/defer/* non-delivery records

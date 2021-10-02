@@ -731,6 +731,11 @@ extern void smtp_rewrite_generic_internal(VSTRING *, const char *);
 extern void smtp_quote_822_address_flags(VSTRING *, const char *, int);
 extern void smtp_quote_821_address(VSTRING *, const char *);
 
+ /*
+  * header_from_format support, for postmaster notifications.
+  */
+extern int smtp_hfrom_format;
+
 /* LICENSE
 /* .ad
 /* .fi

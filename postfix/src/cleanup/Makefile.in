@@ -996,6 +996,7 @@ cleanup_init.o: ../../include/ext_prop.h
 cleanup_init.o: ../../include/flush_clnt.h
 cleanup_init.o: ../../include/header_body_checks.h
 cleanup_init.o: ../../include/header_opts.h
+cleanup_init.o: ../../include/hfrom_format.h
 cleanup_init.o: ../../include/htable.h
 cleanup_init.o: ../../include/iostuff.h
 cleanup_init.o: ../../include/mail_addr.h
@@ -1137,6 +1138,7 @@ cleanup_message.o: ../../include/dsn_util.h
 cleanup_message.o: ../../include/ext_prop.h
 cleanup_message.o: ../../include/header_body_checks.h
 cleanup_message.o: ../../include/header_opts.h
+cleanup_message.o: ../../include/hfrom_format.h
 cleanup_message.o: ../../include/htable.h
 cleanup_message.o: ../../include/info_log_addr_form.h
 cleanup_message.o: ../../include/iostuff.h

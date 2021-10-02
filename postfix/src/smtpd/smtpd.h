@@ -417,6 +417,11 @@ extern MILTERS *smtpd_milters;
   */
 extern double smtpd_space_multf;
 
+ /*
+  * header_from_format support.
+  */
+extern int smtpd_hfrom_format;
+
 /* LICENSE
 /* .ad
 /* .fi

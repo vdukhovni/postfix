@@ -27,7 +27,8 @@ typedef struct BOUNCE_TEMPLATE {
     const char *origin;			/* built-in or pathname */
     const char *mime_charset;		/* character set (configurable) */
     const char *mime_encoding;		/* 7bit or 8bit (derived) */
-    const char *from;			/* originator (configurable) */
+    const char *obs_from;		/* originator (configurable) */
+    const char *std_from;		/* originator (configurable) */
     const char *subject;		/* general subject (configurable) */
     const char *postmaster_subject;	/* postmaster subject (configurable) */
     const char **message_text;		/* message text (configurable) */

@@ -350,6 +350,8 @@
 /* .IP "\fBsmtp_min_data_rate (500)\fR"
 /*	The minimum plaintext data transfer rate in bytes/second for
 /*	DATA requests, when deadlines are enabled with smtp_per_request_deadline.
+/* .IP "\fBheader_from_format (standard)\fR"
+/*	The format of the Postfix-generated \fBFrom:\fR header.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -941,6 +943,7 @@
 #include <string_list.h>
 #include <maps.h>
 #include <ext_prop.h>
+#include <hfrom_format.h>
 
 /* DNS library. */
 
@@ -1083,6 +1086,8 @@ char   *var_smtp_sasl_auth_cache_name;
 int     var_smtp_sasl_auth_cache_time;
 bool    var_smtp_sasl_auth_soft_bounce;
 
+char   *var_hfrom_format;
+
  /*
   * Global variables.
   */
@@ -1099,6 +1104,7 @@ MAPS   *smtp_pix_bug_maps;
 HBC_CHECKS *smtp_header_checks;		/* limited header checks */
 HBC_CHECKS *smtp_body_checks;		/* limited body checks */
 SMTP_CLI_ATTR smtp_cli_attr;		/* parsed command-line */
+int     smtp_hfrom_format;		/* postmaster notifications */
 
 #ifdef USE_TLS
 
@@ -1384,6 +1390,11 @@ static void post_init(char *unused_name, char **argv)
      * the process lifetime.
      */
     get_cli_attr(&smtp_cli_attr, argv);
+
+    /*
+     * header_from format, for postmaster notifications.
+     */
+    smtp_hfrom_format = hfrom_format_parse(VAR_HFROM_FORMAT, var_hfrom_format);
 }
 
 /* pre_init - pre-jail initialization */
@@ -1618,7 +1629,7 @@ int     main(int argc, char **argv)
 		       CA_MAIL_SERVER_BOOL_TABLE(smtp_mode ?
 					 smtp_bool_table : lmtp_bool_table),
 		       CA_MAIL_SERVER_NBOOL_TABLE(smtp_mode ?
-					 smtp_nbool_table : lmtp_nbool_table),
+				       smtp_nbool_table : lmtp_nbool_table),
 		       CA_MAIL_SERVER_PRE_INIT(pre_init),
 		       CA_MAIL_SERVER_POST_INIT(post_init),
 		       CA_MAIL_SERVER_PRE_ACCEPT(pre_accept),

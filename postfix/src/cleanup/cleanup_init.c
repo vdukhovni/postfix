@@ -100,6 +100,7 @@
 #include <mail_version.h>		/* milter_macro_v */
 #include <ext_prop.h>
 #include <flush_clnt.h>
+#include <hfrom_format.h>
 
 /* Application-specific. */
 
@@ -282,7 +283,7 @@ MILTERS *cleanup_milters;
  /*
   * From: header format.
   */
-int     hfrom_format_code;
+int     cleanup_hfrom_format;
 
 /* cleanup_all - callback for the runtime error handler */
 
@@ -434,11 +435,6 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 
 void    cleanup_post_jail(char *unused_name, char **unused_argv)
 {
-    static const NAME_CODE hfrom_format_table[] = {
-	HFROM_FORMAT_NAME_STD, HFROM_FORMAT_CODE_STD,
-	HFROM_FORMAT_NAME_OBS, HFROM_FORMAT_CODE_OBS,
-	0, -1,
-    };
 
     /*
      * Optionally set the file size resource limit. XXX This limits the
@@ -472,8 +468,5 @@ void    cleanup_post_jail(char *unused_name, char **unused_argv)
     /*
      * From: header formatting.
      */
-    if ((hfrom_format_code = name_code(hfrom_format_table,
-				NAME_CODE_FLAG_NONE, var_hfrom_format)) < 0)
-	msg_fatal("invalid setting: %s = %s",
-		  VAR_HFROM_FORMAT, var_hfrom_format);
+    cleanup_hfrom_format = hfrom_format_parse(VAR_HFROM_FORMAT, var_hfrom_format);
 }

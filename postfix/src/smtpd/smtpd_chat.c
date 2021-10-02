@@ -103,6 +103,7 @@
 #include <post_mail.h>
 #include <mail_error.h>
 #include <smtp_reply_footer.h>
+#include <hfrom_format.h>
 
 /* Application-specific. */
 
@@ -324,9 +325,15 @@ void    smtpd_chat_notify(SMTPD_STATE *state)
 	msg_warn("postmaster notify: %m");
 	return;
     }
-    post_mail_fprintf(notice, "From: %s (Mail Delivery System)",
-		      mail_addr_mail_daemon());
-    post_mail_fprintf(notice, "To: %s (Postmaster)", var_error_rcpt);
+    if (smtpd_hfrom_format == HFROM_FORMAT_CODE_STD) {
+	post_mail_fprintf(notice, "From: Mail Delivery System <%s>",
+			  mail_addr_mail_daemon());
+	post_mail_fprintf(notice, "To: Postmaster <%s>", var_error_rcpt);
+    } else {
+	post_mail_fprintf(notice, "From: %s (Mail Delivery System)",
+			  mail_addr_mail_daemon());
+	post_mail_fprintf(notice, "To: %s (Postmaster)", var_error_rcpt);
+    }
     post_mail_fprintf(notice, "Subject: %s SMTP server: errors from %s",
 		      var_mail_name, state->namaddr);
     post_mail_fputs(notice, "");

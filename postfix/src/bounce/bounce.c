@@ -130,6 +130,10 @@
 /*	Enable non-delivery, success, and delay notifications that link
 /*	to the original message by including a References: and In-Reply-To:
 /*	header with the original Message-ID value.
+/* .PP
+/*	Available in Postfix 3.7 and later:
+/* .IP "\fBheader_from_format (standard)\fR"
+/*	The format of the Postfix-generated \fBFrom:\fR header.
 /* FILES
 /*	/var/spool/postfix/bounce/* non-delivery records
 /*	/var/spool/postfix/defer/* non-delivery records
@@ -183,6 +187,7 @@
 #include <mail_addr.h>
 #include <rcpt_buf.h>
 #include <dsb_scan.h>
+#include <hfrom_format.h>
 
 /* Single-threaded server skeleton. */
 
@@ -204,6 +209,7 @@ char   *var_2bounce_rcpt;
 char   *var_delay_rcpt;
 char   *var_bounce_tmpl;
 bool    var_threaded_bounce;
+char   *var_hfrom_format;		/* header_from_format */
 
  /*
   * We're single threaded, so we can avoid some memory allocation overhead.
@@ -221,6 +227,11 @@ static DSN_BUF *dsn_buf;
   * Templates.
   */
 BOUNCE_TEMPLATES *bounce_templates;
+
+ /*
+  * From: header format.
+  */
+int     bounce_hfrom_format;
 
 #define STR vstring_str
 
@@ -620,6 +631,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 
 static void post_jail_init(char *service_name, char **unused_argv)
 {
+    bounce_hfrom_format = hfrom_format_parse(VAR_HFROM_FORMAT, var_hfrom_format);
 
     /*
      * Special case: dump bounce templates. This is not part of the master(5)
@@ -673,6 +685,7 @@ int     main(int argc, char **argv)
 	VAR_2BOUNCE_RCPT, DEF_2BOUNCE_RCPT, &var_2bounce_rcpt, 1, 0,
 	VAR_DELAY_RCPT, DEF_DELAY_RCPT, &var_delay_rcpt, 1, 0,
 	VAR_BOUNCE_TMPL, DEF_BOUNCE_TMPL, &var_bounce_tmpl, 0, 0,
+	VAR_HFROM_FORMAT, DEF_HFROM_FORMAT, &var_hfrom_format, 1, 0,
 	0,
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {

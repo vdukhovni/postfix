@@ -19,6 +19,7 @@
 #include <mail_params.h>
 #include <record.h>
 #include <rec_type.h>
+#include <hfrom_format.h>
 
  /*
   * Bounce service.
@@ -58,6 +59,9 @@ static void test_driver(int argc, char **argv)
 
     if (chdir(var_queue_dir) < 0)
 	msg_fatal("chdir %s: %m", var_queue_dir);
+
+    bounce_hfrom_format = 
+	hfrom_format_parse(VAR_HFROM_FORMAT, var_hfrom_format);
 
     /*
      * Write one message to VSTRING.
@@ -123,6 +127,9 @@ char   *var_2bounce_rcpt;
 char   *var_delay_rcpt;
 char   *var_bounce_tmpl;
 bool    var_threaded_bounce;
+char   *var_hfrom_format;		/* header_from_format */
+
+int     bounce_hfrom_format;
 
 int     main(int argc, char **argv)
 {
@@ -141,6 +148,7 @@ int     main(int argc, char **argv)
 	VAR_2BOUNCE_RCPT, DEF_2BOUNCE_RCPT, &var_2bounce_rcpt, 1, 0,
 	VAR_DELAY_RCPT, DEF_DELAY_RCPT, &var_delay_rcpt, 1, 0,
 	VAR_BOUNCE_TMPL, DEF_BOUNCE_TMPL, &var_bounce_tmpl, 0, 0,
+	VAR_HFROM_FORMAT, DEF_HFROM_FORMAT, &var_hfrom_format, 1, 0,
 	0,
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {
