@@ -25795,3 +25795,23 @@ Apologies for any names omitted.
 	smtp/smtp.h, smtp/smtp_chat.c, smtp/smtp_params.c,
 	smtpd/smtpd.c, smtpd/smtpd.h, smtpd/smtpd_chat.c, and test
 	data.
+
+20211006
+
+	Documentation: http://tools.ietf.org/html/rfc[0-9]+ sometimes
+	does not redirect to the https site. Max-Julian Pogner.
+	Fixed by updating mantools/postlink and rebuilding the HTML
+	files that reference RFCs.
+
+20211016
+
+	Documentation: clarified the difference between private and
+	public services in master.cf. File: proto/master.
+
+20211022
+
+	Bugfix: the known_tcp_ports setting had no effect. Reported
+	by Peter. It also wasn't fully implemented. Files:
+	config_known_tcp_ports.c, mail_params.c,
+	posttls-finger/posttls-finger.c, smtp/smtp_connect.c,
+	util/find_inet.c, util/myaddrinfo.c.

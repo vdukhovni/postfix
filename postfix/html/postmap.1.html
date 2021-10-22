@@ -47,7 +47,7 @@ POSTMAP(1)                                                          POSTMAP(1)
        will store the base64-encoded result instead of the <i>value</i>.
 
        When the <i>key</i> specifies email address information, the localpart  should
-       be enclosed with double quotes if required by <a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>. For example, an
+       be enclosed with double quotes if required by <a href="https://tools.ietf.org/html/rfc5322">RFC 5322</a>. For example, an
        address localpart that contains ";", or a localpart that starts or ends
        with ".".
 
@@ -62,7 +62,7 @@ POSTMAP(1)                                                          POSTMAP(1)
 <b>COMMAND-LINE ARGUMENTS</b>
        <b>-b</b>     Enable  message  body  query mode. When reading lookup keys from
               standard input with "<b>-q -</b>", process the input as  if  it  is  an
-              email  message  in  <a href="http://tools.ietf.org/html/rfc5322">RFC  5322</a> format.  Each line of body content
+              email  message  in  <a href="https://tools.ietf.org/html/rfc5322">RFC  5322</a> format.  Each line of body content
               becomes one lookup key.
 
               By default, the <b>-b</b> option starts generating lookup keys  at  the
@@ -107,7 +107,7 @@ POSTMAP(1)                                                          POSTMAP(1)
 
        <b>-h</b>     Enable  message header query mode. When reading lookup keys from
               standard input with "<b>-q -</b>", process the input as  if  it  is  an
-              email  message  in  <a href="http://tools.ietf.org/html/rfc5322">RFC  5322</a>  format.  Each logical header line
+              email  message  in  <a href="https://tools.ietf.org/html/rfc5322">RFC  5322</a>  format.  Each logical header line
               becomes one lookup key. A multi-line header becomes  one  lookup
               key with one or more embedded newline characters.
 
@@ -276,7 +276,7 @@ POSTMAP(1)                                                          POSTMAP(1)
 
        <b><a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> (yes)</b>
               Enable preliminary SMTPUTF8 support for the protocols  described
-              in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533.
+              in <a href="https://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.

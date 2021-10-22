@@ -1941,6 +1941,7 @@ mail_params.o: ../../include/vbuf.h
 mail_params.o: ../../include/vstream.h
 mail_params.o: ../../include/vstring.h
 mail_params.o: ../../include/vstring_vstream.h
+mail_params.o: config_known_tcp_ports.h
 mail_params.o: compat_level.h
 mail_params.o: mail_conf.h
 mail_params.o: mail_params.c

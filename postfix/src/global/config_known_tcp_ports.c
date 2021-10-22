@@ -58,6 +58,8 @@ void    config_known_tcp_ports(const char *source, const char *settings)
     ARGV   *association;
     char  **cpp;
 
+    clear_known_tcp_ports();
+
     /*
      * The settings is in the form of associations separated by comma. Split
      * it into separate associations.

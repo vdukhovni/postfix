@@ -124,7 +124,7 @@ is hard-coded as "450".
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 <p>
@@ -143,7 +143,7 @@ an <a href="access.5.html">access(5)</a> map "reject" action.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 
@@ -828,7 +828,7 @@ that is received by the Postfix mail system.
 Note: with Postfix 2.3 and later the BCC address is added as if it
 was specified with NOTIFY=NONE. The sender will not be notified
 when the BCC address is undeliverable, as long as all down-stream
-software implements <a href="http://tools.ietf.org/html/rfc3461">RFC 3461</a>.
+software implements <a href="https://tools.ietf.org/html/rfc3461">RFC 3461</a>.
 </p>
 
 <p>
@@ -1357,7 +1357,7 @@ is placed into the Postfix configuration directory.  </p>
 
 <p>
 Enable interoperability with remote SMTP clients that implement an obsolete
-version of the AUTH command (<a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a>). Examples of such clients
+version of the AUTH command (<a href="https://tools.ietf.org/html/rfc4954">RFC 4954</a>). Examples of such clients
 are MicroSoft Outlook Express version 4 and MicroSoft Exchange
 version 5.0.
 </p>
@@ -2519,7 +2519,7 @@ address, or Recipient address. </dd>
 <a href="postconf.5.html#maps_rbl_reject_code">maps_rbl_reject_code</a> configuration parameter. Note: The numerical
 SMTP response code is required, and must appear at the start of the
 reply. With Postfix version 2.3 and later this information may be followed
-by an <a href="http://tools.ietf.org/html/rfc3463">RFC 3463</a> enhanced status code. </dd>
+by an <a href="https://tools.ietf.org/html/rfc3463">RFC 3463</a> enhanced status code. </dd>
 
 <dt><b>$rbl_domain</b></dt>
 
@@ -2752,7 +2752,7 @@ client request is rejected by the "defer" restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 
@@ -3014,7 +3014,7 @@ Example:
 (default: no)</b></DT><DD>
 
 <p> Enable a workaround for future libc incompatibility. The Postfix
-implementation of <a href="http://tools.ietf.org/html/rfc2308">RFC 2308</a> negative reply caching relies on the
+implementation of <a href="https://tools.ietf.org/html/rfc2308">RFC 2308</a> negative reply caching relies on the
 promise that res_query() and res_search() invoke res_send(), which
 returns the server response in an application buffer even if the
 requested record does not exist. If this promise is broken, specify
@@ -3871,7 +3871,7 @@ address is empty. This is the same behavior as prior to Postfix
 3.3. </p>
 
 <li> <p> In the <b>standard</b> form, the <i>name</i> will be quoted
-if it contains <b>specials</b> as defined in <a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>, or the "!%"
+if it contains <b>specials</b> as defined in <a href="https://tools.ietf.org/html/rfc5322">RFC 5322</a>, or the "!%"
 address operators. </p>
 
 <li> <p> The Postfix <a href="sendmail.1.html">sendmail(1)</a> command gets <i>name</i> information
@@ -4126,7 +4126,7 @@ workaround will be phased out as IPv6 deployment becomes more common.
 <p> Note: you MUST stop and start Postfix after changing this
 parameter. </p>
 
-<p> On systems that pre-date IPV6_V6ONLY support (<a href="http://tools.ietf.org/html/rfc3493">RFC 3493</a>), an
+<p> On systems that pre-date IPV6_V6ONLY support (<a href="https://tools.ietf.org/html/rfc3493">RFC 3493</a>), an
 IPv6 server will also accept IPv4 connections, even when IPv4 is
 turned off with the <a href="postconf.5.html#inet_protocols">inet_protocols</a> parameter.  On systems with
 IPV6_V6ONLY support, Postfix will use separate server sockets for
@@ -4137,7 +4137,7 @@ corresponding protocol.  </p>
 Postfix will look up DNS type A records, and will convert
 IPv4-in-IPv6 client IP addresses (::ffff:1.2.3.4) to their original
 IPv4 form (1.2.3.4).  The latter is needed on hosts that pre-date
-IPV6_V6ONLY support (<a href="http://tools.ietf.org/html/rfc3493">RFC 3493</a>). </p>
+IPV6_V6ONLY support (<a href="https://tools.ietf.org/html/rfc3493">RFC 3493</a>). </p>
 
 <p> When IPv6 support is enabled via the <a href="postconf.5.html#inet_protocols">inet_protocols</a> parameter,
 Postfix will do DNS type AAAA record lookups. </p>
@@ -4262,7 +4262,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 
@@ -5874,7 +5874,7 @@ a neighboring system.  </dd>
 <dt><b><a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> </b></dt>
 
 <dd> Append the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or $<a href="postconf.5.html#mydomain">mydomain</a> when the
-client is successfully authenticated via the <a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a> (AUTH)
+client is successfully authenticated via the <a href="https://tools.ietf.org/html/rfc4954">RFC 4954</a> (AUTH)
 protocol. </dd>
 
 <dt><b><a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a> </b></dt>
@@ -6621,7 +6621,7 @@ client request is blocked by the <a href="postconf.5.html#reject_rbl_client">rej
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 
@@ -7418,7 +7418,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 <p>
@@ -9657,7 +9657,7 @@ equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.ht
 Note: with Postfix 2.3 and later the BCC address is added as if it
 was specified with NOTIFY=NONE. The sender will not be notified
 when the BCC address is undeliverable, as long as all down-stream
-software implements <a href="http://tools.ietf.org/html/rfc3461">RFC 3461</a>.
+software implements <a href="https://tools.ietf.org/html/rfc3461">RFC 3461</a>.
 </p>
 
 <p>
@@ -9798,7 +9798,7 @@ client request is rejected by the "reject" restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 
@@ -9937,7 +9937,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 
@@ -10204,7 +10204,7 @@ in multiple deliveries of the same message to mailing list members.
 looking inside quotes.  </p>
 
 <p> By default, the Postfix address resolver does not quote the
-address localpart as per <a href="http://tools.ietf.org/html/rfc822">RFC 822</a>, so that additional @ or % or !
+address localpart as per <a href="https://tools.ietf.org/html/rfc822">RFC 822</a>, so that additional @ or % or !
 operators remain visible. This behavior is safe but it is also
 technically incorrect.  </p>
 
@@ -10355,7 +10355,7 @@ equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.ht
 Note: with Postfix 2.3 and later the BCC address is added as if it
 was specified with NOTIFY=NONE. The sender will not be notified
 when the BCC address is undeliverable, as long as all down-stream
-software implements <a href="http://tools.ietf.org/html/rfc3461">RFC 3461</a>.
+software implements <a href="https://tools.ietf.org/html/rfc3461">RFC 3461</a>.
 </p>
 
 <p>
@@ -11401,7 +11401,7 @@ the CommonName is checked.  The behavior may be changed with the
 <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> option.  </p>
 
 <p> This option is useful only if you are definitely sure that you
-will only connect to servers that support <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a> _and_ that
+will only connect to servers that support <a href="https://tools.ietf.org/html/rfc2487">RFC 2487</a> _and_ that
 provide valid server certificates.  Typical use is for clients that
 send all their email to a dedicated mailhub.  </p>
 
@@ -11848,12 +11848,12 @@ The default time unit is s (seconds).
 <p>
 Quote addresses in Postfix SMTP client MAIL FROM and RCPT TO commands
 as required
-by <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>. This includes putting quotes around an address localpart
+by <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>. This includes putting quotes around an address localpart
 that ends in ".".
 </p>
 
 <p>
-The default is to comply with <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>. If you have to send mail to
+The default is to comply with <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>. If you have to send mail to
 a broken SMTP server, configure a special SMTP client in <a href="master.5.html">master.cf</a>:
 </p>
 
@@ -12325,7 +12325,7 @@ Skip remote SMTP servers that greet with a 5XX status code.
 <p> By default, the Postfix SMTP client moves on the next mail
 exchanger. Specify "<a href="postconf.5.html#smtp_skip_5xx_greeting">smtp_skip_5xx_greeting</a> = no" if Postfix should
 bounce the mail immediately. Caution: the latter behavior appears
-to contradict <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a>. </p>
+to contradict <a href="https://tools.ietf.org/html/rfc2821">RFC 2821</a>. </p>
 
 
 </DD>
@@ -12849,7 +12849,7 @@ compiled and linked with OpenSSL 1.0.0 or later. </p>
 
 <p> With mandatory TLS encryption, require that the remote SMTP
 server hostname matches the information in the remote SMTP server
-certificate.  As of <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a> the requirements for hostname checking
+certificate.  As of <a href="https://tools.ietf.org/html/rfc2487">RFC 2487</a> the requirements for hostname checking
 for MTA clients are not specified. </p>
 
 <p> This option can be set to "no" to disable strict peer name
@@ -13475,7 +13475,7 @@ href="TLS_README.html#client_tls_may">may</a>.  If TLSA records are
 found, but none are usable, the effective security level is <a
 href="TLS_README.html#client_tls_encrypt">encrypt</a>.  When usable
 TLSA records are obtained for the remote SMTP server, the
-server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE)
+server certificate must match the TLSA records.  <a href="https://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE)
 TLS authentication and DNSSEC support is available with Postfix
 2.11 and later. The optional "connection_reuse" attribute (Postfix
 &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter.
@@ -13486,7 +13486,7 @@ TLS authentication and DNSSEC support is available with Postfix
 obtained via TLSA records in DNSSEC.  If no TLSA records are found,
 or none are usable, no connection is made to the server.  When
 usable TLSA records are obtained for the remote SMTP server, the
-server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE) TLS
+server certificate must match the TLSA records.  <a href="https://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE) TLS
 authentication and DNSSEC support is available with Postfix 2.11
 and later. The optional "connection_reuse" attribute (Postfix &ge;
 3.4) overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter.
@@ -13780,7 +13780,7 @@ in effect, the destination domain's containing DNS zone must be
 signed and the Postfix SMTP client's operating system must be
 configured to send its DNS queries to a recursive DNS nameserver
 that is able to validate the signed records.  Each MX host's DNS
-zone should also be signed, and should publish DANE TLSA (<a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a>)
+zone should also be signed, and should publish DANE TLSA (<a href="https://tools.ietf.org/html/rfc7672">RFC 7672</a>)
 records that specify how that MX host's TLS certificate is to be
 verified.  TLSA records do not preempt the normal SMTP MX host
 selection algorithm, if some MX hosts support TLSA and others do
@@ -13795,13 +13795,13 @@ purposes of protocol and cipher selection, the "dane" security level
 is treated like a "mandatory" TLS security level, and weak ciphers
 and protocols are disabled.  Since DANE authenticates server
 certificates the "aNULL" cipher-suites are transparently excluded
-at this level, no need to configure this manually.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE)
+at this level, no need to configure this manually.  <a href="https://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE)
 TLS authentication is available with Postfix 2.11 and later.  </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_dane">dane-only</a></b></dt>
 <dd>Mandatory DANE TLS.  This is just like "dane" above, but DANE
 TLSA authentication is required.  There is no fallback to "may" or
-"encrypt" when TLSA records are missing or unusable.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a>
+"encrypt" when TLSA records are missing or unusable.  <a href="https://tools.ietf.org/html/rfc7672">RFC 7672</a>
 (DANE) TLS authentication is available with Postfix 2.11 and later.
 </dd>
 
@@ -13902,7 +13902,7 @@ Examples:
 <p> Optional name to send to the remote SMTP server in the TLS Server
 Name Indication (SNI) extension.  The SNI extension is always on when
 DANE is used to authenticate the server, and in that case the SNI name
-sent is the one required by <a href="http://tools.ietf.org/html/rfc7672">RFC7672</a> and this parameter is ignored. </p>
+sent is the one required by <a href="https://tools.ietf.org/html/rfc7672">RFC7672</a> and this parameter is ignored. </p>
 
 <p> Some SMTP servers use the received SNI name to select an appropriate
 certificate chain to present to the client.  While this may improve
@@ -14018,7 +14018,7 @@ trust-anchor files are used at all, they will be specified on a
 per-destination basis via the "tafile" attribute of the "verify"
 and "secure" levels in <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>.  </p>
 
-<p> The underlying mechanism is in support of <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE TLSA),
+<p> The underlying mechanism is in support of <a href="https://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE TLSA),
 which defines mechanisms for an SMTP client MTA to securely determine
 server TLS certificates via DNS.  </p>
 
@@ -14730,7 +14730,7 @@ network or network address listed in  $<a href="postconf.5.html#mynetworks">myne
 <dt><b><a name="permit_sasl_authenticated">permit_sasl_authenticated</a></b></dt>
 
 <dd> Permit the request when the client is successfully
-authenticated via the <a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a> (AUTH) protocol. </dd>
+authenticated via the <a href="https://tools.ietf.org/html/rfc4954">RFC 4954</a> (AUTH) protocol. </dd>
 
 <dt><b><a name="permit_tls_all_clientcerts">permit_tls_all_clientcerts</a></b></dt>
 
@@ -15262,7 +15262,7 @@ restriction lists" for a discussion of evaluation context and time.
 (default: no)</b></DT><DD>
 
 <p> Mandatory TLS: announce STARTTLS support to remote SMTP clients,
-and require that clients use TLS encryption.  According to <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a>
+and require that clients use TLS encryption.  According to <a href="https://tools.ietf.org/html/rfc2487">RFC 2487</a>
 this MUST NOT be applied in case of a publicly-referenced SMTP
 server.  This option is therefore off by default. </p>
 
@@ -16797,7 +16797,7 @@ releases it was called <b><a href="postconf.5.html#smtpd_sasl_application_name">
 When the client's "initial response" is longer than the normal limit for
 SMTP commands, the client must omit its initial response, and wait for an
 empty server challenge; it can then send what would have been its "initial
-response" as a response to the empty server challenge.  <a href="http://tools.ietf.org/html/rfc4954">RFC4954</a> requires the
+response" as a response to the empty server challenge.  <a href="https://tools.ietf.org/html/rfc4954">RFC4954</a> requires the
 server to accept client responses up to at least 12288 octets of
 base64-encoded text.  The default value is therefore also the minimum value
 accepted for this parameter.</p>
@@ -18321,7 +18321,7 @@ to remote SMTP clients, but do not require that clients use TLS encryption.
 
 <dt><b>encrypt</b></dt> <dd>Mandatory TLS encryption: announce
 STARTTLS support to remote SMTP clients, and require that clients use TLS
-encryption. According to <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a> this MUST NOT be applied in case
+encryption. According to <a href="https://tools.ietf.org/html/rfc2487">RFC 2487</a> this MUST NOT be applied in case
 of a publicly-referenced SMTP server. Instead, this option should
 be used only on dedicated servers. </dd>
 
@@ -18372,7 +18372,7 @@ under a non-Postfix directory is redirected to the Postfix-owned
 <a href="postconf.5.html#data_directory">data_directory</a>, and a warning is logged. </p>
 
 <p> As of Postfix 2.11 the preferred mechanism for session resumption
-is <a href="http://tools.ietf.org/html/rfc5077">RFC 5077</a> TLS session tickets, which don't require server-side
+is <a href="https://tools.ietf.org/html/rfc5077">RFC 5077</a> TLS session tickets, which don't require server-side
 storage.  Consequently, for Postfix &ge; 2.11 this parameter should
 generally be left empty.  TLS session tickets require an OpenSSL
 library (at least version 0.9.8h) that provides full support for
@@ -18401,7 +18401,7 @@ are not possible. </p>
 
 <p> As of Postfix 2.11 this setting cannot exceed 100 days.  If set
 &le; 0, session caching is disabled, not just via the database, but
-also via <a href="http://tools.ietf.org/html/rfc5077">RFC 5077</a> TLS session tickets, which don't require server-side
+also via <a href="https://tools.ietf.org/html/rfc5077">RFC 5077</a> TLS session tickets, which don't require server-side
 storage.  If set to a positive value less than 2 minutes, the minimum
 value of 2 minutes is used instead.  TLS session tickets require
 an OpenSSL library (at least version 0.9.8h) that provides full
@@ -18540,7 +18540,7 @@ mail. </dd>
 (default: yes)</b></DT><DD>
 
 <p> Enable preliminary SMTPUTF8 support for the protocols described
-in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533. This requires that Postfix is built to support
+in <a href="https://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533. This requires that Postfix is built to support
 these protocols. </p>
 
 <p> This feature is available in Postfix 3.0 and later. </p>
@@ -18708,12 +18708,12 @@ This feature is available in Postfix 2.0 and later.
 <p>
 Require that addresses received in SMTP MAIL FROM and RCPT TO
 commands are enclosed with &lt;&gt;, and that those addresses do
-not contain <a href="http://tools.ietf.org/html/rfc822">RFC 822</a> style comments or phrases.  This stops mail
+not contain <a href="https://tools.ietf.org/html/rfc822">RFC 822</a> style comments or phrases.  This stops mail
 from poorly written software.
 </p>
 
 <p>
-By default, the Postfix SMTP server accepts <a href="http://tools.ietf.org/html/rfc822">RFC 822</a> syntax in MAIL
+By default, the Postfix SMTP server accepts <a href="https://tools.ietf.org/html/rfc822">RFC 822</a> syntax in MAIL
 FROM and RCPT TO addresses.
 </p>
 
@@ -18891,10 +18891,10 @@ bytes (equivalent to 256 bits) is sufficient to generate a 128bit
 <DT><b><a name="tls_dane_digest_agility">tls_dane_digest_agility</a>
 (default: on)</b></DT><DD>
 
-<p> Configure <a href="http://tools.ietf.org/html/rfc7671">RFC7671</a> DANE TLSA digest algorithm agility.
+<p> Configure <a href="https://tools.ietf.org/html/rfc7671">RFC7671</a> DANE TLSA digest algorithm agility.
 Do not change this setting from its default value. </p>
 
-<p> See Section 8 of <a href="http://tools.ietf.org/html/rfc7671">RFC7671</a> for correct key rotation procedures.  </p>
+<p> See Section 8 of <a href="https://tools.ietf.org/html/rfc7671">RFC7671</a> for correct key rotation procedures.  </p>
 
 <p> This feature is available in Postfix 2.11 through 3.1.  Postfix
 3.2 and later ignore this configuration parameter and behave as
@@ -18906,7 +18906,7 @@ though it were set to "on".  </p>
 <DT><b><a name="tls_dane_digests">tls_dane_digests</a>
 (default: sha512 sha256)</b></DT><DD>
 
-<p> DANE TLSA (<a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>, <a href="http://tools.ietf.org/html/rfc7671">RFC 7671</a>, <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a>) resource-record "matching
+<p> DANE TLSA (<a href="https://tools.ietf.org/html/rfc6698">RFC 6698</a>, <a href="https://tools.ietf.org/html/rfc7671">RFC 7671</a>, <a href="https://tools.ietf.org/html/rfc7672">RFC 7672</a>) resource-record "matching
 type" digest algorithms in descending preference order.  All the
 specified algorithms must be supported by the underlying OpenSSL
 library, otherwise the Postfix SMTP client will not support DANE
@@ -18929,7 +18929,7 @@ ignored with a warning. </p>
 
 <p> Note: It is unwise to omit sha256 from the digest list.  This
 digest algorithm is the only mandatory to implement digest algorithm
-in <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>, and many servers are expected publish TLSA records
+in <a href="https://tools.ietf.org/html/rfc6698">RFC 6698</a>, and many servers are expected publish TLSA records
 with just sha256 digests.  Unless one of the standard digests is
 seriously compromised and servers have had ample time to update their
 TLSA records you should not omit any standard digests, just arrange
@@ -18943,7 +18943,7 @@ them in order from strongest to weakest.  </p>
 <DT><b><a name="tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a>
 (default: yes)</b></DT><DD>
 
-<p> Enable support for <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA) DNS records that contain
+<p> Enable support for <a href="https://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA) DNS records that contain
 digests of trust-anchors with certificate usage "2".  Do not change
 this setting from its default value.  </p>
 
@@ -19047,15 +19047,15 @@ be using 0.9.6! </dd>
 SMTP client and server.  These curves are used by the Postfix SMTP
 server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = auto".  The selected curves
 must be implemented by OpenSSL and be standardized for use in TLS
-(<a href="http://tools.ietf.org/html/rfc4492">RFC 4492</a> or its imminent successor).  It is unwise to list only
+(<a href="https://tools.ietf.org/html/rfc4492">RFC 4492</a> or its imminent successor).  It is unwise to list only
 "bleeding-edge" curves supported by a small subset of clients.  The
 default list is suitable for most users. </p>
 
 <p> Postfix skips curve names that are unknown to OpenSSL, or that
 are known but not yet implemented.  This makes it possible to
 "anticipate" support for curves that should be used once they become
-available.  In particular, in some OpenSSL versions, the new <a href="http://tools.ietf.org/html/rfc8031">RFC</a>
-<a href="http://tools.ietf.org/html/rfc8031">8031</a> curves "X25519" and "X448" may be known by name, but ECDH
+available.  In particular, in some OpenSSL versions, the new <a href="https://tools.ietf.org/html/rfc8031">RFC</a>
+<a href="https://tools.ietf.org/html/rfc8031">8031</a> curves "X25519" and "X448" may be known by name, but ECDH
 support for either or both may be missing.  These curves may appear
 in the default value of this parameter, even though they'll only
 be usable with later versions of OpenSSL.  </p>
@@ -19077,7 +19077,7 @@ server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_gra
 strong" means approximately 128-bit security based on best known
 attacks. The selected curve must be implemented by OpenSSL (as
 reported by ecparam(1) with the "-list_curves" option) and be one
-of the curves listed in Section 5.1.1 of <a href="http://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not
+of the curves listed in Section 5.1.1 of <a href="https://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not
 generally change this setting.  Remote SMTP client implementations
 must support this curve for EECDH key exchange to take place.  It
 is unwise to choose an "bleeding-edge" curve supported by only a
@@ -19122,7 +19122,7 @@ This additional strength comes at a significant computational cost, most
 users should instead set "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = strong".  The selected
 curve must be implemented by OpenSSL (as reported by ecparam(1) with the
 "-list_curves" option) and be one of the curves listed in Section 5.1.1
-of <a href="http://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not generally change this setting. </p>
+of <a href="https://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not generally change this setting. </p>
 
 <p> This default "ultra" curve is rated in NSA <a
 href="https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/">Suite
@@ -19472,7 +19472,7 @@ listed before the corresponding certificates. </p>
 <DT><b><a name="tls_session_ticket_cipher">tls_session_ticket_cipher</a>
 (default: Postfix &ge; 3.0: aes-256-cbc, Postfix &lt; 3.0: aes-128-cbc)</b></DT><DD>
 
-<p> Algorithm used to encrypt <a href="http://tools.ietf.org/html/rfc5077">RFC5077</a> TLS session tickets.  This
+<p> Algorithm used to encrypt <a href="https://tools.ietf.org/html/rfc5077">RFC5077</a> TLS session tickets.  This
 algorithm must use CBC mode, have a 128-bit block size, and must
 have a key length between 128 and 256 bits.  The default is
 aes-256-cbc.  Overriding the default to choose a different algorithm
@@ -20627,7 +20627,7 @@ is one of the possible replies from the restrictions
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 
@@ -20660,7 +20660,7 @@ with 450 when the mapping failed due to a temporary error condition.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 
@@ -20691,7 +20691,7 @@ specified with the HELO or EHLO command is rejected by the
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 
@@ -20791,7 +20791,7 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 <p>
@@ -20815,7 +20815,7 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 <p>
@@ -20873,7 +20873,7 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 <p>
@@ -20897,7 +20897,7 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
+Do not change this unless you have a complete understanding of <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 </p>
 
 <p>

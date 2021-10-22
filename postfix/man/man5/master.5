@@ -123,7 +123,9 @@ implemented with streams sockets.
 This feature is available as of Postfix version 2.5.
 .RE
 .IP "\fBPrivate (default: y)\fR"
-Whether or not access is restricted to the mail system.
+Whether a service is internal to Postfix (pathname starts
+with \fBprivate/\fR), or exposed through Postfix command\-line
+tools (pathname starts with \fBpublic/\fR).
 Internet (type \fBinet\fR) services can't be private.
 .IP "\fBUnprivileged (default: y)\fR"
 Whether the service runs with root privileges or as the

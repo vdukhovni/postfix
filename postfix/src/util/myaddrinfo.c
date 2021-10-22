@@ -179,6 +179,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -271,6 +276,7 @@ static int find_service(const char *service, int socktype)
     const char *proto;
     unsigned port;
 
+    service = filter_known_tcp_port(service);
     if (alldig(service)) {
 	port = atoi(service);
 	return (port < 65536 ? htons(port) : -1);
@@ -282,7 +288,7 @@ static int find_service(const char *service, int socktype)
     } else {
 	return (-1);
     }
-    if ((sp = getservbyname(filter_known_tcp_port(service), proto)) != 0) {
+    if ((sp = getservbyname(service, proto)) != 0) {
 	return (sp->s_port);
     } else {
 	return (-1);
@@ -445,7 +451,12 @@ int     hostname_to_sockaddr_pf(const char *hostname, int pf,
 	}
 #endif
     }
-    err = getaddrinfo(hostname, filter_known_tcp_port(service), &hints, res);
+    if (service) {
+	service = filter_known_tcp_port(service);
+	if (alldig(service))
+	    hints.ai_flags |= AI_NUMERICSERV;
+    }
+    err = getaddrinfo(hostname, service, &hints, res);
 #if defined(BROKEN_AI_NULL_SERVICE)
     if (service == 0 && err == 0) {
 	struct addrinfo *r;
@@ -561,7 +572,12 @@ int     hostaddr_to_sockaddr(const char *hostaddr, const char *service,
 	}
 #endif
     }
-    err = getaddrinfo(hostaddr, filter_known_tcp_port(service), &hints, res);
+    if (service) {
+	service = filter_known_tcp_port(service);
+	if (alldig(service))
+	    hints.ai_flags |= AI_NUMERICSERV;
+    }
+    err = getaddrinfo(hostaddr, service, &hints, res);
 #if defined(BROKEN_AI_NULL_SERVICE)
     if (service == 0 && err == 0) {
 	struct addrinfo *r;

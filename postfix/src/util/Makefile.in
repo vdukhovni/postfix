@@ -140,7 +140,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
-	known_tcp_ports dict_stream
+	known_tcp_ports dict_stream find_inet
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX)
 
 LIB_DIR	= ../../lib
@@ -468,6 +468,11 @@ inet_proto: $(LIB)
 	mv junk $@.o
 
 sane_basename: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+find_inet: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -1009,6 +1014,11 @@ dict_inline_cidr_test: dict_open dict_inline_cidr.ref
 		read 2>&1 | grep -v uid= >dict_inline_cidr.tmp
 	diff dict_inline_cidr.ref dict_inline_cidr.tmp
 	rm -f dict_inline_cidr.tmp
+
+find_inet_test: find_inet find_inet.ref
+	    $(SHLIB_ENV) ${VALGRIND} ./find_inet >find_inet.tmp 2>&1
+	diff find_inet.ref find_inet.tmp
+	rm -f find_inet.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

@@ -1,6 +1,11 @@
 Wish list:
 
-	Add verp=+= to the qmgr "from=" logging.
+	Add a pointer to
+	http://mmogilvi.users.sourceforge.net/software/oauthbearer.html
+	in documentation or on-line howtos.
+
+	Add verp=+= to the qmgr "from=" logging. This is already
+	implemented but not yet integrated.
 
 	Need canonical Dovecot example that has virtual_mailbox_domains,
 	(virtual_mailbox_maps or reject unverified_recipient), and
