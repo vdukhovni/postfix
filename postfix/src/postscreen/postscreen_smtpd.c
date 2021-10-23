@@ -794,6 +794,7 @@ static void psc_smtpd_read_event(int event, void *context)
     char   *command;
     const PSC_SMTPD_COMMAND *cmdp;
     int     write_stat;
+    int     skip_command_processing;
 
     if (msg_verbose > 1)
 	msg_info("%s: sq=%d cq=%d event %d on smtp socket %d from [%s]:%s flags=%s",
@@ -929,24 +930,39 @@ static void psc_smtpd_read_event(int event, void *context)
 	}
 
 	/*
-	 * Terminate the command buffer, and apply the last-resort command
-	 * editing workaround.
+	 * As in smtpd(8), reject malformed UTF-8 when "smtputf8_enable =
+	 * yes". This also avoids noisy "non-UTF-8 key" warnings from
+	 * dict_utf8 infrastructure.
+	 * 
+	 * Caution: do not skip all code in the remainder of this loop.
 	 */
-	VSTRING_TERMINATE(state->cmd_buffer);
-	if (psc_cmd_filter != 0) {
-	    const char *cp;
+	if ((skip_command_processing = (var_smtputf8_enable
+			       && !valid_utf8_string(STR(state->cmd_buffer),
+						LEN(state->cmd_buffer))))) {
+	    write_stat = PSC_SEND_REPLY(state,
+					"500 5.5.2 Error: bad UTF-8 syntax");
+	} else {
 
-	    for (cp = STR(state->cmd_buffer); *cp && IS_SPACE_TAB(*cp); cp++)
-		 /* void */ ;
-	    if ((cp = psc_dict_get(psc_cmd_filter, cp)) != 0) {
-		msg_info("[%s]:%s: replacing command \"%.100s\" with \"%.100s\"",
-			 state->smtp_client_addr, state->smtp_client_port,
-			 STR(state->cmd_buffer), cp);
-		vstring_strcpy(state->cmd_buffer, cp);
-	    } else if (psc_cmd_filter->error != 0) {
-		msg_fatal("%s:%s lookup error for \"%.100s\"",
-			  psc_cmd_filter->type, psc_cmd_filter->name,
-			  STR(state->cmd_buffer));
+	    /*
+	     * Terminate the command buffer, and apply the last-resort
+	     * command editing workaround.
+	     */
+	    VSTRING_TERMINATE(state->cmd_buffer);
+	    if (psc_cmd_filter != 0) {
+		const char *cp;
+
+		for (cp = STR(state->cmd_buffer); *cp && IS_SPACE_TAB(*cp); cp++)
+		     /* void */ ;
+		if ((cp = psc_dict_get(psc_cmd_filter, cp)) != 0) {
+		    msg_info("[%s]:%s: replacing command \"%.100s\" with \"%.100s\"",
+			   state->smtp_client_addr, state->smtp_client_port,
+			     STR(state->cmd_buffer), cp);
+		    vstring_strcpy(state->cmd_buffer, cp);
+		} else if (psc_cmd_filter->error != 0) {
+		    msg_fatal("%s:%s lookup error for \"%.100s\"",
+			      psc_cmd_filter->type, psc_cmd_filter->name,
+			      STR(state->cmd_buffer));
+		}
 	    }
 	}
 
@@ -959,174 +975,180 @@ static void psc_smtpd_read_event(int event, void *context)
 	state->read_state = PSC_SMTPD_CMD_ST_ANY;
 	VSTRING_RESET(state->cmd_buffer);
 
-	/*
-	 * Process the command line.
-	 * 
-	 * Caution: some command handlers terminate the session and destroy the
-	 * session state structure. When this happens we must leave the SMTP
-	 * engine to avoid a dangling pointer problem.
-	 */
-	cmd_buffer_ptr = STR(state->cmd_buffer);
-	if (msg_verbose)
-	    msg_info("< [%s]:%s: %s", state->smtp_client_addr,
-		     state->smtp_client_port, cmd_buffer_ptr);
+	if (skip_command_processing == 0) {
 
-	/* Parse the command name. */
-	if ((command = PSC_SMTPD_NEXT_TOKEN(cmd_buffer_ptr)) == 0)
-	    command = "";
+	    /*
+	     * Process the command line.
+	     * 
+	     * Caution: some command handlers terminate the session and destroy
+	     * the session state structure. When this happens we must leave
+	     * the SMTP engine to avoid a dangling pointer problem.
+	     */
+	    cmd_buffer_ptr = STR(state->cmd_buffer);
+	    if (msg_verbose)
+		msg_info("< [%s]:%s: %s", state->smtp_client_addr,
+			 state->smtp_client_port, cmd_buffer_ptr);
 
-	/*
-	 * The non-SMTP, PIPELINING and command COUNT tests depend on the
-	 * client command handler.
-	 * 
-	 * Caution: cmdp->name and cmdp->action may be null on loop exit.
-	 */
-	saved_where = state->where;
-	state->where = PSC_SMTPD_CMD_UNIMPL;
-	for (cmdp = command_table; cmdp->name != 0; cmdp++) {
-	    if (strcasecmp(command, cmdp->name) == 0) {
-		state->where = cmdp->name;
-		break;
+	    /* Parse the command name. */
+	    if ((command = PSC_SMTPD_NEXT_TOKEN(cmd_buffer_ptr)) == 0)
+		command = "";
+
+	    /*
+	     * The non-SMTP, PIPELINING and command COUNT tests depend on the
+	     * client command handler.
+	     * 
+	     * Caution: cmdp->name and cmdp->action may be null on loop exit.
+	     */
+	    saved_where = state->where;
+	    state->where = PSC_SMTPD_CMD_UNIMPL;
+	    for (cmdp = command_table; cmdp->name != 0; cmdp++) {
+		if (strcasecmp(command, cmdp->name) == 0) {
+		    state->where = cmdp->name;
+		    break;
+		}
 	    }
-	}
 
-	if ((state->flags & PSC_STATE_FLAG_SMTPD_X21)
-	    && cmdp->action != psc_quit_cmd) {
-	    PSC_CLEAR_EVENT_DROP_SESSION_STATE(state, psc_smtpd_time_event,
-					       state->final_reply);
-	    return;
-	}
-	/* Non-SMTP command test. */
-	if ((state->flags & PSC_STATE_MASK_NSMTP_TODO_SKIP)
-	    == PSC_STATE_FLAG_NSMTP_TODO && cmdp->name == 0
-	    && (is_header(command)
-	/* Ignore forbid_cmds lookup errors. Non-critical feature. */
-		|| (*var_psc_forbid_cmds
-		    && string_list_match(psc_forbid_cmds, command)))) {
-	    printable(command, '?');
-	    PSC_SMTPD_ESCAPE_TEXT(psc_temp, cmd_buffer_ptr,
-				  strlen(cmd_buffer_ptr), 100);
-	    msg_info("NON-SMTP COMMAND from [%s]:%s after %s: %.100s %s",
-		     PSC_CLIENT_ADDR_PORT(state), saved_where,
-		     command, STR(psc_temp));
-	    PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_NSMTP_FAIL);
-	    PSC_UNPASS_SESSION_STATE(state, PSC_STATE_FLAG_NSMTP_PASS);
-	    expire_time[PSC_TINDX_NSMTP] = PSC_TIME_STAMP_DISABLED;	/* XXX */
-	    /* Skip this test for the remainder of this SMTP session. */
-	    PSC_SKIP_SESSION_STATE(state, "non-smtp test",
-				   PSC_STATE_FLAG_NSMTP_SKIP);
-	    switch (psc_nsmtp_action) {
-	    case PSC_ACT_DROP:
-		PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
-						   psc_smtpd_time_event,
-		   "521 5.7.0 Error: I can break rules, too. Goodbye.\r\n");
+	    if ((state->flags & PSC_STATE_FLAG_SMTPD_X21)
+		&& cmdp->action != psc_quit_cmd) {
+		PSC_CLEAR_EVENT_DROP_SESSION_STATE(state, psc_smtpd_time_event,
+						   state->final_reply);
 		return;
-	    case PSC_ACT_ENFORCE:
-		PSC_ENFORCE_SESSION_STATE(state,
-					  "550 5.5.1 Protocol error\r\n");
-		break;
-	    case PSC_ACT_IGNORE:
-		PSC_UNFAIL_SESSION_STATE(state,
-					 PSC_STATE_FLAG_NSMTP_FAIL);
-		/* Temporarily allowlist until something else expires. */
-		PSC_PASS_SESSION_STATE(state, "non-smtp test",
-				       PSC_STATE_FLAG_NSMTP_PASS);
-		expire_time[PSC_TINDX_NSMTP] = event_time() + psc_min_ttl;
-		break;
-	    default:
-		msg_panic("%s: unknown non_smtp_command action value %d",
-			  myname, psc_nsmtp_action);
 	    }
-	}
-	/* Command PIPELINING test. */
-	if ((cmdp->flags & PSC_SMTPD_CMD_FLAG_HAS_PAYLOAD) == 0
-	    && (state->flags & PSC_STATE_MASK_PIPEL_TODO_SKIP)
+	    /* Non-SMTP command test. */
+	    if ((state->flags & PSC_STATE_MASK_NSMTP_TODO_SKIP)
+		== PSC_STATE_FLAG_NSMTP_TODO && cmdp->name == 0
+		&& (is_header(command)
+	    /* Ignore forbid_cmds lookup errors. Non-critical feature. */
+		    || (*var_psc_forbid_cmds
+			&& string_list_match(psc_forbid_cmds, command)))) {
+		printable(command, '?');
+		PSC_SMTPD_ESCAPE_TEXT(psc_temp, cmd_buffer_ptr,
+				      strlen(cmd_buffer_ptr), 100);
+		msg_info("NON-SMTP COMMAND from [%s]:%s after %s: %.100s %s",
+			 PSC_CLIENT_ADDR_PORT(state), saved_where,
+			 command, STR(psc_temp));
+		PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_NSMTP_FAIL);
+		PSC_UNPASS_SESSION_STATE(state, PSC_STATE_FLAG_NSMTP_PASS);
+		expire_time[PSC_TINDX_NSMTP] = PSC_TIME_STAMP_DISABLED;	/* XXX */
+		/* Skip this test for the remainder of this SMTP session. */
+		PSC_SKIP_SESSION_STATE(state, "non-smtp test",
+				       PSC_STATE_FLAG_NSMTP_SKIP);
+		switch (psc_nsmtp_action) {
+		case PSC_ACT_DROP:
+		    PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
+						       psc_smtpd_time_event,
+		    "521 5.7.0 Error: I can break rules, too. Goodbye.\r\n");
+		    return;
+		case PSC_ACT_ENFORCE:
+		    PSC_ENFORCE_SESSION_STATE(state,
+					    "550 5.5.1 Protocol error\r\n");
+		    break;
+		case PSC_ACT_IGNORE:
+		    PSC_UNFAIL_SESSION_STATE(state,
+					     PSC_STATE_FLAG_NSMTP_FAIL);
+		    /* Temporarily allowlist until something else expires. */
+		    PSC_PASS_SESSION_STATE(state, "non-smtp test",
+					   PSC_STATE_FLAG_NSMTP_PASS);
+		    expire_time[PSC_TINDX_NSMTP] = event_time() + psc_min_ttl;
+		    break;
+		default:
+		    msg_panic("%s: unknown non_smtp_command action value %d",
+			      myname, psc_nsmtp_action);
+		}
+	    }
+	    /* Command PIPELINING test. */
+	    if ((cmdp->flags & PSC_SMTPD_CMD_FLAG_HAS_PAYLOAD) == 0
+		&& (state->flags & PSC_STATE_MASK_PIPEL_TODO_SKIP)
 	    == PSC_STATE_FLAG_PIPEL_TODO && !PSC_SMTPD_BUFFER_EMPTY(state)) {
-	    printable(command, '?');
-	    PSC_SMTPD_ESCAPE_TEXT(psc_temp, PSC_SMTPD_PEEK_DATA(state),
-				  PSC_SMTPD_PEEK_LEN(state), 100);
-	    msg_info("COMMAND PIPELINING from [%s]:%s after %.100s: %s",
-		     PSC_CLIENT_ADDR_PORT(state), command, STR(psc_temp));
-	    PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_PIPEL_FAIL);
-	    PSC_UNPASS_SESSION_STATE(state, PSC_STATE_FLAG_PIPEL_PASS);
-	    expire_time[PSC_TINDX_PIPEL] = PSC_TIME_STAMP_DISABLED;	/* XXX */
-	    /* Skip this test for the remainder of this SMTP session. */
-	    PSC_SKIP_SESSION_STATE(state, "pipelining test",
-				   PSC_STATE_FLAG_PIPEL_SKIP);
-	    switch (psc_pipel_action) {
-	    case PSC_ACT_DROP:
-		PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
-						   psc_smtpd_time_event,
+		printable(command, '?');
+		PSC_SMTPD_ESCAPE_TEXT(psc_temp, PSC_SMTPD_PEEK_DATA(state),
+				      PSC_SMTPD_PEEK_LEN(state), 100);
+		msg_info("COMMAND PIPELINING from [%s]:%s after %.100s: %s",
+		       PSC_CLIENT_ADDR_PORT(state), command, STR(psc_temp));
+		PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_PIPEL_FAIL);
+		PSC_UNPASS_SESSION_STATE(state, PSC_STATE_FLAG_PIPEL_PASS);
+		expire_time[PSC_TINDX_PIPEL] = PSC_TIME_STAMP_DISABLED;	/* XXX */
+		/* Skip this test for the remainder of this SMTP session. */
+		PSC_SKIP_SESSION_STATE(state, "pipelining test",
+				       PSC_STATE_FLAG_PIPEL_SKIP);
+		switch (psc_pipel_action) {
+		case PSC_ACT_DROP:
+		    PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
+						       psc_smtpd_time_event,
 					    "521 5.5.1 Protocol error\r\n");
-		return;
-	    case PSC_ACT_ENFORCE:
-		PSC_ENFORCE_SESSION_STATE(state,
-					  "550 5.5.1 Protocol error\r\n");
-		break;
-	    case PSC_ACT_IGNORE:
-		PSC_UNFAIL_SESSION_STATE(state,
-					 PSC_STATE_FLAG_PIPEL_FAIL);
-		/* Temporarily allowlist until something else expires. */
-		PSC_PASS_SESSION_STATE(state, "pipelining test",
-				       PSC_STATE_FLAG_PIPEL_PASS);
-		expire_time[PSC_TINDX_PIPEL] = event_time() + psc_min_ttl;
-		break;
-	    default:
-		msg_panic("%s: unknown pipelining action value %d",
-			  myname, psc_pipel_action);
+		    return;
+		case PSC_ACT_ENFORCE:
+		    PSC_ENFORCE_SESSION_STATE(state,
+					    "550 5.5.1 Protocol error\r\n");
+		    break;
+		case PSC_ACT_IGNORE:
+		    PSC_UNFAIL_SESSION_STATE(state,
+					     PSC_STATE_FLAG_PIPEL_FAIL);
+		    /* Temporarily allowlist until something else expires. */
+		    PSC_PASS_SESSION_STATE(state, "pipelining test",
+					   PSC_STATE_FLAG_PIPEL_PASS);
+		    expire_time[PSC_TINDX_PIPEL] = event_time() + psc_min_ttl;
+		    break;
+		default:
+		    msg_panic("%s: unknown pipelining action value %d",
+			      myname, psc_pipel_action);
+		}
 	    }
-	}
 
-	/*
-	 * The following tests don't pass until the client gets all the way
-	 * to the RCPT TO command. However, the client can still fail these
-	 * tests with some later command.
-	 */
-	if (cmdp->action == psc_rcpt_cmd) {
-	    if ((state->flags & PSC_STATE_MASK_BARLF_TODO_PASS_FAIL)
-		== PSC_STATE_FLAG_BARLF_TODO) {
-		PSC_PASS_SESSION_STATE(state, "bare newline test",
-				       PSC_STATE_FLAG_BARLF_PASS);
-		/* XXX Reset to PSC_TIME_STAMP_DISABLED on failure. */
-		expire_time[PSC_TINDX_BARLF] = event_time() + var_psc_barlf_ttl;
+	    /*
+	     * The following tests don't pass until the client gets all the
+	     * way to the RCPT TO command. However, the client can still fail
+	     * these tests with some later command.
+	     */
+	    if (cmdp->action == psc_rcpt_cmd) {
+		if ((state->flags & PSC_STATE_MASK_BARLF_TODO_PASS_FAIL)
+		    == PSC_STATE_FLAG_BARLF_TODO) {
+		    PSC_PASS_SESSION_STATE(state, "bare newline test",
+					   PSC_STATE_FLAG_BARLF_PASS);
+		    /* XXX Reset to PSC_TIME_STAMP_DISABLED on failure. */
+		    expire_time[PSC_TINDX_BARLF] = event_time()
+			+ var_psc_barlf_ttl;
+		}
+		if ((state->flags & PSC_STATE_MASK_NSMTP_TODO_PASS_FAIL)
+		    == PSC_STATE_FLAG_NSMTP_TODO) {
+		    PSC_PASS_SESSION_STATE(state, "non-smtp test",
+					   PSC_STATE_FLAG_NSMTP_PASS);
+		    /* XXX Reset to PSC_TIME_STAMP_DISABLED on failure. */
+		    expire_time[PSC_TINDX_NSMTP] = event_time()
+			+ var_psc_nsmtp_ttl;
+		}
+		if ((state->flags & PSC_STATE_MASK_PIPEL_TODO_PASS_FAIL)
+		    == PSC_STATE_FLAG_PIPEL_TODO) {
+		    PSC_PASS_SESSION_STATE(state, "pipelining test",
+					   PSC_STATE_FLAG_PIPEL_PASS);
+		    /* XXX Reset to PSC_TIME_STAMP_DISABLED on failure. */
+		    expire_time[PSC_TINDX_PIPEL] = event_time()
+			+ var_psc_pipel_ttl;
+		}
 	    }
-	    if ((state->flags & PSC_STATE_MASK_NSMTP_TODO_PASS_FAIL)
-		== PSC_STATE_FLAG_NSMTP_TODO) {
-		PSC_PASS_SESSION_STATE(state, "non-smtp test",
-				       PSC_STATE_FLAG_NSMTP_PASS);
-		/* XXX Reset to PSC_TIME_STAMP_DISABLED on failure. */
-		expire_time[PSC_TINDX_NSMTP] = event_time() + var_psc_nsmtp_ttl;
-	    }
-	    if ((state->flags & PSC_STATE_MASK_PIPEL_TODO_PASS_FAIL)
-		== PSC_STATE_FLAG_PIPEL_TODO) {
-		PSC_PASS_SESSION_STATE(state, "pipelining test",
-				       PSC_STATE_FLAG_PIPEL_PASS);
-		/* XXX Reset to PSC_TIME_STAMP_DISABLED on failure. */
-		expire_time[PSC_TINDX_PIPEL] = event_time() + var_psc_pipel_ttl;
-	    }
-	}
-	/* Command COUNT limit test. */
-	if (++state->command_count > var_psc_cmd_count
-	    && cmdp->action != psc_quit_cmd) {
-	    msg_info("COMMAND COUNT LIMIT from [%s]:%s after %s",
-		     PSC_CLIENT_ADDR_PORT(state), saved_where);
-	    PSC_CLEAR_EVENT_DROP_SESSION_STATE(state, psc_smtpd_time_event,
-					       psc_smtpd_421_reply);
-	    return;
-	}
-	/* Finally, execute the command. */
-	if (cmdp->name == 0 || (cmdp->flags & PSC_SMTPD_CMD_FLAG_ENABLE) == 0) {
-	    write_stat = PSC_SEND_REPLY(state,
-			     "502 5.5.2 Error: command not recognized\r\n");
-	} else if (var_psc_enforce_tls
-		   && (state->flags & PSC_STATE_FLAG_USING_TLS) == 0
-		   && (cmdp->flags & PSC_SMTPD_CMD_FLAG_PRE_TLS) == 0) {
-	    write_stat = PSC_SEND_REPLY(state,
-		       "530 5.7.0 Must issue a STARTTLS command first\r\n");
-	} else {
-	    write_stat = cmdp->action(state, cmd_buffer_ptr);
-	    if (cmdp->flags & PSC_SMTPD_CMD_FLAG_DESTROY)
+	    /* Command COUNT limit test. */
+	    if (++state->command_count > var_psc_cmd_count
+		&& cmdp->action != psc_quit_cmd) {
+		msg_info("COMMAND COUNT LIMIT from [%s]:%s after %s",
+			 PSC_CLIENT_ADDR_PORT(state), saved_where);
+		PSC_CLEAR_EVENT_DROP_SESSION_STATE(state, psc_smtpd_time_event,
+						   psc_smtpd_421_reply);
 		return;
+	    }
+	    /* Finally, execute the command. */
+	    if (cmdp->name == 0 || (cmdp->flags & PSC_SMTPD_CMD_FLAG_ENABLE) == 0) {
+		write_stat = PSC_SEND_REPLY(state,
+			     "502 5.5.2 Error: command not recognized\r\n");
+	    } else if (var_psc_enforce_tls
+		       && (state->flags & PSC_STATE_FLAG_USING_TLS) == 0
+		       && (cmdp->flags & PSC_SMTPD_CMD_FLAG_PRE_TLS) == 0) {
+		write_stat = PSC_SEND_REPLY(state,
+		       "530 5.7.0 Must issue a STARTTLS command first\r\n");
+	    } else {
+		write_stat = cmdp->action(state, cmd_buffer_ptr);
+		if (cmdp->flags & PSC_SMTPD_CMD_FLAG_DESTROY)
+		    return;
+	    }
 	}
 
 	/*

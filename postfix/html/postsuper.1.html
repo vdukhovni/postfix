@@ -49,7 +49,7 @@ POSTSUPER(1)                                                      POSTSUPER(1)
                   select(.recipients[0].address == "user@example.com")
                   | select(.recipients[1].address == null)
                   | .queue_id
-               ' | postsuper -d -
+               ' | tr -d '"' | postsuper -d -
 
               Or the historical form:
 

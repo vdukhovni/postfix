@@ -25815,3 +25815,14 @@ Apologies for any names omitted.
 	config_known_tcp_ports.c, mail_params.c,
 	posttls-finger/posttls-finger.c, smtp/smtp_connect.c,
 	util/find_inet.c, util/myaddrinfo.c.
+
+20211023
+
+	Documentation: fixed a jq example in the postsuper manpage, to
+	delete the quotes around a queue ID. File: postsuper/postsuper.c.
+
+	Cleanup: with "smtputf8_nable = yes" (the default), the
+	postscreen(8) dummy SMTP engine will no longer log a "non-UTF-8
+	key" warning when a remote SMTP client sends garbage. Instead,
+	postscreen(8) will reject the command with the same server
+	repsonse as smtpd(8). File: postscreen/p[ostscreen_smtpd.c.

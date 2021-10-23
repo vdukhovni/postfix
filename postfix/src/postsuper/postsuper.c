@@ -45,7 +45,7 @@
 /*	    select(.recipients[0].address == "user@example.com")
 /*	    | select(.recipients[1].address == null)
 /*	    | .queue_id
-/*	 ' | postsuper -d -
+/*	 ' | tr -d '"' | postsuper -d -
 /* .fi
 /* .sp
 /*	Or the historical form:
