@@ -109,7 +109,8 @@ static unsigned long showq_message(VSTREAM *showq_stream)
     /*
      * Read the message properties and sender address.
      */
-    if (attr_scan(showq_stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
+    if (attr_scan(showq_stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT
+		  | ATTR_FLAG_PRINTABLE,
 		  RECV_ATTR_STR(MAIL_ATTR_QUEUE, queue_name),
 		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
 		  RECV_ATTR_LONG(MAIL_ATTR_TIME, &arrival_time),
@@ -143,7 +144,8 @@ static unsigned long showq_message(VSTREAM *showq_stream)
      * resynchronize.
      */
     while ((showq_status = attr_scan_more(showq_stream)) > 0) {
-	if (attr_scan(showq_stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
+	if (attr_scan(showq_stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT
+		      | ATTR_FLAG_PRINTABLE,
 		      RECV_ATTR_STR(MAIL_ATTR_RECIP, addr),
 		      RECV_ATTR_STR(MAIL_ATTR_WHY, why),
 		      ATTR_TYPE_END) != 2)

@@ -893,6 +893,11 @@ The default TCP port that the Postfix SMTP client connects to.
 Available in Postfix 3.3 and later:
 .IP "\fBservice_name (read\-only)\fR"
 The master.cf service name of a Postfix daemon process.
+.PP
+Available in Postfix 3.7 and later:
+.IP "\fBsmtp_bind_address_enforce (no)\fR"
+Defer delivery when the Postfix SMTP client cannot apply the
+smtp_bind_address or smtp_bind_address6 setting.
 .SH "SEE ALSO"
 .na
 .nf

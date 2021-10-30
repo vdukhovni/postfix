@@ -1166,6 +1166,12 @@ extern char *var_smtp_bind_addr;
 #define DEF_LMTP_BIND_ADDR6	""
 extern char *var_smtp_bind_addr6;
 
+#define VAR_SMTP_BIND_ADDR_ENFORCE	"smtp_bind_address_enforce"
+#define DEF_SMTP_BIND_ADDR_ENFORCE	0
+#define VAR_LMTP_BIND_ADDR_ENFORCE	"lmtp_bind_address_enforce"
+#define DEF_LMTP_BIND_ADDR_ENFORCE	0
+extern bool var_smtp_bind_addr_enforce;
+
 #define VAR_SMTP_HELO_NAME	"smtp_helo_name"
 #define DEF_SMTP_HELO_NAME	"$myhostname"
 #define VAR_LMTP_HELO_NAME	"lmtp_lhlo_name"

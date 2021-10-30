@@ -849,6 +849,11 @@
 /*	Available in Postfix 3.3 and later:
 /* .IP "\fBservice_name (read-only)\fR"
 /*	The master.cf service name of a Postfix daemon process.
+/* .PP
+/*	Available in Postfix 3.7 and later:
+/* .IP "\fBsmtp_bind_address_enforce (no)\fR"
+/*	Defer delivery when the Postfix SMTP client cannot apply the
+/*	smtp_bind_address or smtp_bind_address6 setting.
 /* SEE ALSO
 /*	generic(5), output address rewriting
 /*	header_checks(5), message header content inspection
@@ -1087,6 +1092,7 @@ int     var_smtp_sasl_auth_cache_time;
 bool    var_smtp_sasl_auth_soft_bounce;
 
 char   *var_hfrom_format;
+bool var_smtp_bind_addr_enforce;
 
  /*
   * Global variables.

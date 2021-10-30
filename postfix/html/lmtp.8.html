@@ -1017,6 +1017,12 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#service_name">service_name</a> (read-only)</b>
               The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process.
 
+       Available in Postfix 3.7 and later:
+
+       <b><a href="postconf.5.html#smtp_bind_address_enforce">smtp_bind_address_enforce</a> (no)</b>
+              Defer  delivery  when  the  Postfix SMTP client cannot apply the
+              <a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a> or <a href="postconf.5.html#smtp_bind_address6">smtp_bind_address6</a> setting.
+
 <b>SEE ALSO</b>
        <a href="generic.5.html">generic(5)</a>, output address rewriting
        <a href="header_checks.5.html">header_checks(5)</a>, message header content inspection

@@ -40,15 +40,15 @@
 /*	with exactly one recipient \fBuser@example.com\fR:
 /* .sp
 /* .nf
-/*	postqueue -j | jq '
+/*	postqueue -j | jq -r '
 /*	    # See JSON OBJECT FORMAT section in the postqueue(1) manpage
 /*	    select(.recipients[0].address == "user@example.com")
 /*	    | select(.recipients[1].address == null)
 /*	    | .queue_id
-/*	 ' | tr -d '"' | postsuper -d -
+/*	 ' | postsuper -d -
 /* .fi
 /* .sp
-/*	Or the historical form:
+/*	(note the "jq -r" option), or the historical form:
 /* .sp
 /* .nf
 /*	mailq | tail -n +2 | grep -v '^ *(' | awk  'BEGIN { RS = "" }

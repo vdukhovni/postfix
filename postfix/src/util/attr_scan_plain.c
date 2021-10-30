@@ -86,6 +86,8 @@
 /*	from the same input attribute list.
 /*	By default, attr_scan_plain() skips forward past the input attribute
 /*	list terminator.
+/* .IP ATTR_FLAG_PRINTABLE
+/*	Santize received string values with printable(_, '?').
 /* .IP ATTR_FLAG_STRICT
 /*	For convenience, this value combines both ATTR_FLAG_MISSING and
 /*	ATTR_FLAG_EXTRA.
@@ -177,6 +179,7 @@
 #include <vstring.h>
 #include <htable.h>
 #include <base64_code.h>
+#include <stringops.h>
 #include <attr.h>
 
 /* Application specific. */
@@ -444,6 +447,8 @@ int     attr_vscan_plain(VSTREAM *fp, int flags, va_list ap)
 	    if ((ch = attr_scan_plain_string(fp, string, 0,
 					     "input attribute value")) < 0)
 		return (-1);
+	    if (flags & ATTR_FLAG_PRINTABLE)
+		(void) printable(STR(string), '?');
 	    break;
 	case ATTR_TYPE_DATA:
 	    if (ch != '=') {
@@ -490,6 +495,10 @@ int     attr_vscan_plain(VSTREAM *fp, int flags, va_list ap)
 	    if ((ch = attr_scan_plain_string(fp, str_buf, 0,
 					     "input attribute value")) < 0)
 		return (-1);
+	    if (flags & ATTR_FLAG_PRINTABLE) {
+		(void) printable(STR(name_buf), '?');
+		(void) printable(STR(str_buf), '?');
+	    }
 	    if (htable_locate(hash_table, STR(name_buf)) != 0) {
 		if ((flags & ATTR_FLAG_EXTRA) != 0) {
 		    msg_warn("duplicate attribute %s in input from %s",

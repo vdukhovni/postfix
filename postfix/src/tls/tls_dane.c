@@ -392,7 +392,7 @@ static void tlsa_carp(const char *s1, const char *s2, const char *s3,
 	vstring_sprintf(top, "...");
     }
 
-    msg_warn("%s%s%s%s: %u %u %u %s%s%s", s1, s2, s3, s4, u, s, m, STR(top),
+    msg_warn("%s%s%s %s: %u %u %u %s%s%s", s1, s2, s3, s4, u, s, m, STR(top),
 	     dlen > MAX_DUMP_BYTES ? "..." : "",
 	     dlen > MAX_DUMP_BYTES ? STR(bot) : "");
 }
@@ -807,13 +807,13 @@ int     tls_dane_enable(TLS_SESS_STATE *TLScontext)
 	    continue;
 	}
 	if (ret == 0) {
-	    tlsa_carp(TLScontext->namaddr, ": ", "", "unusable TLSA RR",
+	    tlsa_carp(TLScontext->namaddr, ":", "", "unusable TLSA RR",
 		      tp->usage, tp->selector, tp->mtype, tp->data,
 		      tp->length);
 	    continue;
 	}
 	/* Internal problem in OpenSSL */
-	tlsa_carp(TLScontext->namaddr, ": ", "", "error loading trust settings",
+	tlsa_carp(TLScontext->namaddr, ":", "", "error loading trust settings",
 		  tp->usage, tp->selector, tp->mtype, tp->data, tp->length);
 	tls_print_errors();
 	return (-1);

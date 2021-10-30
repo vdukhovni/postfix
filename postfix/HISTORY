@@ -25810,9 +25810,9 @@ Apologies for any names omitted.
 
 20211022
 
-	Bugfix: the known_tcp_ports setting had no effect. Reported
-	by Peter. It also wasn't fully implemented. Files:
-	config_known_tcp_ports.c, mail_params.c,
+	Bugfix (introduced: Postfix 3.6): the known_tcp_ports setting
+	had no effect. Reported by Peter. It also wasn't fully
+	implemented. Files: config_known_tcp_ports.c, mail_params.c,
 	posttls-finger/posttls-finger.c, smtp/smtp_connect.c,
 	util/find_inet.c, util/myaddrinfo.c.
 
@@ -25821,8 +25821,41 @@ Apologies for any names omitted.
 	Documentation: fixed a jq example in the postsuper manpage, to
 	delete the quotes around a queue ID. File: postsuper/postsuper.c.
 
-	Cleanup: with "smtputf8_nable = yes" (the default), the
+	Cleanup: with "smtputf8_enable = yes" (the default), the
 	postscreen(8) dummy SMTP engine will no longer log a "non-UTF-8
 	key" warning when a remote SMTP client sends garbage. Instead,
 	postscreen(8) will reject the command with the same server
 	repsonse as smtpd(8). File: postscreen/p[ostscreen_smtpd.c.
+
+20211025
+
+	Bugfix (introduced: Postfix 3.6): mangled warning where a
+	hostname and warning message ran together. Viktor Dukhovni.
+	File: tls/tls_dane.c.
+
+20211026
+
+	Feature: with "smtp_bind_address_enforce = yes" the Postfix
+	SMTP client will defer delivery when it is unable to apply
+	the smtp_bind_address or smtp_bind_address6 setting. By
+	default, the Postfix SMTP client continues with delivery,
+	after logging a warning. File: src/smtp/smtp_connect.c.
+
+20211027
+
+	Documentation: readability fix for the text about automatic
+	or explicit daemon restart (postfix reload) after LMDB table
+	change. raj. File: proto/lmdb_table.
+
+	Safety: the postqueue command now sanitizes strings before they
+	are formatted as json output or legacy output. These outputs are
+	piped into other programs that are run by administrative
+	users. This closes a hypothetical opportunity for privilege
+	escalation. Files: util/attr.h, util/attr_scan*.c,
+	postqueue/showq_json.c, postqueue/showq_compat.c.
+
+20211030
+
+	Bugfix: check_ccert_access worked as expected, but produced
+	a spurious warning when Postfix is built without SASL
+	support. Fix by Brad Barden. File: smtpd/smtpd_check.c.

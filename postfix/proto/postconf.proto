@@ -4017,6 +4017,9 @@ for example:
 </pre>
 </blockquote>
 
+<p> See smtp_bind_address_enforce for how Postfix should handle
+errors (Postfix 3.7 and later). </p>
+
 <p> Note 1: when inet_interfaces specifies no more than one IPv4
 address, and that address is a non-loopback address, it is
 automatically used as the smtp_bind_address.  This supports virtual
@@ -4047,6 +4050,9 @@ for example:
     smtp ... smtp -o smtp_bind_address6=1:2:3:4:5:6:7:8
 </pre>
 </blockquote>
+
+<p> See smtp_bind_address_enforce for how Postfix should handle
+errors (Postfix 3.7 and later). </p>
 
 <p> Note 1: when inet_interfaces specifies no more than one IPv6
 address, and that address is a non-loopback address, it is
@@ -18177,5 +18183,21 @@ transferred within the per-request deadline. </p>
 <p> This feature is available in Postfix 3.7 and later. A weaker
 feature, called smtp_per_record_deadline, is available with Postfix
 2.9-3.6. </p>
+
+<p> This feature is available in Postfix 3.7 and later. </p>
+
+%PARAM smtp_bind_address_enforce no
+
+<p> Defer delivery when the Postfix SMTP client cannot apply the
+smtp_bind_address or smtp_bind_address6 setting. By default, the
+Postfix SMTP client will continue delivery after logging a warning.
+</p>
+
+<p> This feature is available in Postfix 3.7 and later. </p>
+
+%PARAM lmtp_bind_address_enforce
+
+<p> The LMTP-specific version of the smtp_bind_address_enforce
+configuration parameter. See there for details. </p>
 
 <p> This feature is available in Postfix 3.7 and later. </p>

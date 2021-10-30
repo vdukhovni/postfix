@@ -2796,6 +2796,11 @@ The LMTP\-specific version of the smtp_bind_address6 configuration
 parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_bind_address_enforce (default: empty)
+The LMTP\-specific version of the smtp_bind_address_enforce
+configuration parameter. See there for details.
+.PP
+This feature is available in Postfix 3.7 and later.
 .SH lmtp_body_checks (default: empty)
 The LMTP\-specific version of the smtp_body_checks configuration
 parameter. See there for details.
@@ -6787,6 +6792,9 @@ for example:
 .ft R
 .in -4
 .PP
+See smtp_bind_address_enforce for how Postfix should handle
+errors (Postfix 3.7 and later).
+.PP
 Note 1: when inet_interfaces specifies no more than one IPv4
 address, and that address is a non\-loopback address, it is
 automatically used as the smtp_bind_address.  This supports virtual
@@ -6816,6 +6824,9 @@ for example:
 .ft R
 .in -4
 .PP
+See smtp_bind_address_enforce for how Postfix should handle
+errors (Postfix 3.7 and later).
+.PP
 Note 1: when inet_interfaces specifies no more than one IPv6
 address, and that address is a non\-loopback address, it is
 automatically used as the smtp_bind_address6.  This supports virtual
@@ -6824,6 +6835,12 @@ inet_interfaces documentation for more detail.
 .PP
 Note 2: address information may be enclosed inside [],
 but this form is not recommended here.
+.SH smtp_bind_address_enforce (default: no)
+Defer delivery when the Postfix SMTP client cannot apply the
+smtp_bind_address or smtp_bind_address6 setting. By default, the
+Postfix SMTP client will continue delivery after logging a warning.
+.PP
+This feature is available in Postfix 3.7 and later.
 .SH smtp_body_checks (default: empty)
 Restricted \fBbody_checks\fR(5) tables for the Postfix SMTP client.
 These tables are searched while mail is being delivered.  Actions

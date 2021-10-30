@@ -228,9 +228,14 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
 	if ((aierr = hostaddr_to_sockaddr(bind_addr, (char *) 0, 0, &res0)) != 0)
 	    msg_fatal("%s: bad %s parameter: %s: %s",
 		      myname, bind_var, bind_addr, MAI_STRERROR(aierr));
-	if (bind(sock, res0->ai_addr, res0->ai_addrlen) < 0)
+	if (bind(sock, res0->ai_addr, res0->ai_addrlen) < 0) {
 	    msg_warn("%s: bind %s: %m", myname, bind_addr);
-	else if (msg_verbose)
+	    if (var_smtp_bind_addr_enforce) {
+		freeaddrinfo(res0);
+		dsb_simple(why, "4.4.0", "server configuration error");
+		return (0);
+	    }
+	} else if (msg_verbose)
 	    msg_info("%s: bind %s", myname, bind_addr);
 	freeaddrinfo(res0);
     }
