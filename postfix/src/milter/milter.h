@@ -100,7 +100,7 @@ typedef const char *(*MILTER_DEL_HEADER_FN) (void *, ssize_t, const char *);
 typedef const char *(*MILTER_EDIT_FROM_FN) (void *, const char *, const char *);
 typedef const char *(*MILTER_EDIT_RCPT_FN) (void *, const char *);
 typedef const char *(*MILTER_EDIT_RCPT_PAR_FN) (void *, const char *, const char *);
-typedef const char *(*MILTER_EDIT_BODY_FN) (void *, int, VSTRING *);
+typedef const char *(*MILTER_EDIT_BODY_FN) (void *, int, int, VSTRING *);
 
 typedef struct MILTERS {
     MILTER *milter_list;		/* linked list of Milters */

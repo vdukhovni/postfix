@@ -85,12 +85,13 @@ int     find_inet_port(const char *service, const char *protocol)
     struct servent *sp;
     int     port;
 
+    service = filter_known_tcp_port(service);
     if (alldig(service) && (port = atoi(service)) != 0) {
 	if (port < 0 || port > 65535)
 	    msg_fatal("bad port number: %s", service);
 	return (htons(port));
     } else {
-	if ((sp = getservbyname(filter_known_tcp_port(service), protocol)) == 0)
+	if ((sp = getservbyname(service, protocol)) == 0)
 	    msg_fatal("unknown service: %s/%s", service, protocol);
 	return (sp->s_port);
     }

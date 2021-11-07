@@ -1488,12 +1488,14 @@ static char *parse_destination(char *destination, char *def_service,
     /*
      * Convert service to port number, network byte order.
      */
+    service = (char *) filter_known_tcp_port(service);
     if (alldig(service)) {
 	if ((port = atoi(service)) >= 65536 || port == 0)
-	    msg_fatal("bad network port in destination: %s", destination);
+	    msg_fatal("bad network port: %s for destination: %s",
+		      service, destination);
 	*portp = htons(port);
     } else {
-	if ((sp = getservbyname(filter_known_tcp_port(service), protocol)) != 0)
+	if ((sp = getservbyname(service, protocol)) != 0)
 	    *portp = sp->s_port;
 	else if (strcmp(service, "smtp") == 0)
 	    *portp = htons(25);

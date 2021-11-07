@@ -237,6 +237,7 @@
 #include <own_inet_addr.h>
 #include <mail_params.h>
 #include <compat_level.h>
+#include <config_known_tcp_ports.h>
 
  /*
   * Special configuration variables.
@@ -921,6 +922,11 @@ void    mail_params_init()
 	midna_domain_pre_chroot();
 #endif
     util_utf8_enable = var_smtputf8_enable;
+
+    /*
+     * Configure the known TCP port mappings.
+     */
+    config_known_tcp_ports(VAR_KNOWN_TCP_PORTS, var_known_tcp_ports);
 
     /*
      * What protocols should we attempt to support? The result is stored in
