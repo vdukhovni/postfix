@@ -203,6 +203,11 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
     if ((sock = socket(sa->sa_family, SOCK_STREAM, 0)) < 0)
 	msg_fatal("%s: socket: %m", myname);
 
+#define RETURN_EARLY() do { \
+	(void) close(sock); \
+	return (0); \
+    } while (0)
+
     if (inet_windowsize > 0)
 	set_inet_windowsize(sock, inet_windowsize);
 
@@ -233,7 +238,7 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
 	    if (var_smtp_bind_addr_enforce) {
 		freeaddrinfo(res0);
 		dsb_simple(why, "4.4.0", "server configuration error");
-		return (0);
+		RETURN_EARLY();
 	    }
 	} else if (msg_verbose)
 	    msg_info("%s: bind %s", myname, bind_addr);

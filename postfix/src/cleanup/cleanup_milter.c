@@ -1836,7 +1836,8 @@ static const char *cleanup_del_rcpt(void *context, const char *ext_rcpt)
 
 /* cleanup_repl_body - replace message body */
 
-static const char *cleanup_repl_body(void *context, int cmd, VSTRING *buf)
+static const char *cleanup_repl_body(void *context, int cmd, int rec_type,
+				             VSTRING *buf)
 {
     const char *myname = "cleanup_repl_body";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -1848,7 +1849,7 @@ static const char *cleanup_repl_body(void *context, int cmd, VSTRING *buf)
      */
     switch (cmd) {
     case MILTER_BODY_LINE:
-	if (cleanup_body_edit_write(state, REC_TYPE_NORM, buf) < 0)
+	if (cleanup_body_edit_write(state, rec_type, buf) < 0)
 	    return (cleanup_milter_error(state, errno));
 	break;
     case MILTER_BODY_START:
@@ -2546,6 +2547,16 @@ int     main(int unused_argc, char **argv)
 		msg_verbose = 0;
 	    } else {
 		msg_warn("bad verbose argument");
+	    }
+	} else if (strcmp(argv->argv[0], "line_length_limit") == 0) {
+	    if (argv->argc != 2) {
+		msg_warn("bad line_length_limit argument count: %ld",
+			 (long) argv->argc);
+	    } else if (alldig(argv->argv[1]) == 0) {
+		msg_warn("bad line_length_limit argument count: %ld",
+			 (long) argv->argc);
+	    } else if ((var_line_limit = atoi(argv->argv[1])) < DEF_LINE_LIMIT) {
+		msg_warn("bad line_length_limit argument");
 	    }
 	} else if (strcmp(argv->argv[0], "open") == 0) {
 	    if (state->dst != 0) {
