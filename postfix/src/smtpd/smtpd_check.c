@@ -4338,8 +4338,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    }
 	} else if (is_map_command(state, name, CHECK_CCERT_ACL, &cpp)) {
 	    status = check_ccert_access(state, *cpp, def_acl);
-#ifdef USE_SASL_AUTH
 	} else if (is_map_command(state, name, CHECK_SASL_ACL, &cpp)) {
+#ifdef USE_SASL_AUTH
 	    if (var_smtpd_sasl_enable) {
 		if (state->sasl_username && state->sasl_username[0])
 		    status = check_sasl_access(state, *cpp, def_acl);
