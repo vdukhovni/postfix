@@ -23783,3 +23783,71 @@ Apologies for any names omitted.
 	was comparing memory addresses instead of queue file names.
 	It now properly compares strings. Reported by Mehmet Avcioglu.
 	File: global/record.c.
+
+20210811
+
+	Bitrot: OpenSSL 3.x requires const. File: tls/tls_misc.c.
+
+20210925
+
+	Bugfix (bug introduced: Postfix 2.10): postconf -x produced
+	incorrect output, because different functions were implicitly
+	sharing a buffer for intermediate results. Reported
+	by raf, root cause analysis by Viktor Dukhovni. File:
+	postconf/postconf_builtin.c.
+
+20211030
+
+	Bugfix (problem introduced: Postfix 2.11): check_ccert_access
+	worked as expected, but produced a spurious warning when
+	Postfix was built without SASL support. Fix by Brad Barden.
+	File: smtpd/smtpd_check.c.
+
+20211105
+
+	Bugfix (introduced: Postfix 2.4): queue file corruption
+	after a Milter (for example, MIMEDefang) made a request to
+	replace the message body with a copy of that message body
+	plus additional text (for example, a SpamAssassin report).
+
+	The most likely impacts were a) the queue manager reporting
+	a fatal error resulting in email delivery delays, or b) the
+	queue manager reporting the corruption and moving the message
+	to the corrupt queue for damaged messages.
+
+	However, a determined adversary could craft an email message
+	that would trigger the bug, and insert a content filter
+	destination or a redirect email address into its queue file.
+	Postfix would then deliver the message headers there, in
+	most cases without delivering the message body. With enough
+	experimentation, an attacker could make Postfix deliver
+	both the message headers and body.
+
+	The details of a successful attack depend on the Milter
+	implementation, and on the Postfix and Milter configuration
+	details; these can be determined remotely through
+	experimentation.  Failed experiments may be detected when
+	the queue manager terminates with a fatal error, or when
+	the queue manager moves damaged files to the "corrupt" queue
+	as evidence.
+
+	Technical details: when Postfix executes a "replace body"
+	Milter request it will reuse queue file storage that was
+	used by the existing email message body. If the new body
+	is larger, Postfix will append body content to the end of
+	the queue file. The corruption happened when a Milter (for
+	example, MIMEDefang) made a request to replace the body of
+	a message with a new body that contained a copy of the
+	original body plus some new text, and the original body
+	contained a line longer than $line_length_limit bytes (for
+	example, an image encoded in base64 without hard or soft
+	line breaks). In queue files, Postfix stores a long text
+	line as multiple records with up to $line_length_limit bytes
+	each. Unfortunately, Postfix's "replace body" support did
+	not account for the additional queue file space needed to
+	store the second etc.  record headers. And thus, the last
+	record(s) of a long text line could overwrite one or more
+	queue file records immediately after the space that was
+	previously occupied by the original message body.
+
+	Problem report by Benoît Panizzon.

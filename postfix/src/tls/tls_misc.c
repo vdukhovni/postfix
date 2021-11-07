@@ -877,7 +877,7 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
     EVP_PKEY *pkey = 0;
 
 #ifndef OPENSSL_NO_EC
-    EC_KEY *eckey;
+    const EC_KEY *eckey;
 
 #endif
 

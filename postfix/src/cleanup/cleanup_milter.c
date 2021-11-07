@@ -1831,7 +1831,8 @@ static const char *cleanup_del_rcpt(void *context, const char *ext_rcpt)
 
 /* cleanup_repl_body - replace message body */
 
-static const char *cleanup_repl_body(void *context, int cmd, VSTRING *buf)
+static const char *cleanup_repl_body(void *context, int cmd, int rec_type,
+				             VSTRING *buf)
 {
     const char *myname = "cleanup_repl_body";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
@@ -1843,7 +1844,7 @@ static const char *cleanup_repl_body(void *context, int cmd, VSTRING *buf)
      */
     switch (cmd) {
     case MILTER_BODY_LINE:
-	if (cleanup_body_edit_write(state, REC_TYPE_NORM, buf) < 0)
+	if (cleanup_body_edit_write(state, rec_type, buf) < 0)
 	    return (cleanup_milter_error(state, errno));
 	break;
     case MILTER_BODY_START:
