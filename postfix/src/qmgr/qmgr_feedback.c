@@ -109,7 +109,7 @@ void    qmgr_feedback_init(QMGR_FEEDBACK *fb,
     double  enum_val;
     char    denom_str[30 + 1];
     double  denom_val;
-    char    slash;
+    char    slash[2];
     char    junk;
     char   *fbck_name;
     char   *fbck_val;
