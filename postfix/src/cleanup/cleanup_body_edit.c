@@ -210,6 +210,13 @@ int     cleanup_body_edit_write(CLEANUP_STATE *state, int rec_type,
     CLEANUP_OUT_BUF(state, rec_type, buf);
     curr_rp->write_offs = vstream_ftell(state->dst);
 
+    /*
+     * Sanity check.
+     */
+    if (curr_rp->len > 0
+	&& curr_rp->write_offs > curr_rp->start + curr_rp->len)
+	msg_panic("%s: write past end of body segment", myname);
+
     return (0);
 }
 

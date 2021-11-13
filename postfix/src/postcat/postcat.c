@@ -46,14 +46,14 @@
 /*	of taking the names literally.
 /*
 /*	This feature is available in Postfix 2.0 and later.
-/*.IP \fB-r\fR
+/* .IP \fB-r\fR
 /*	Print records in file order, don't follow pointer records.
 /*
 /*	This feature is available in Postfix 3.7 and later.
-/* IP "\fB-s \fIoffset\fR"
+/* .IP "\fB-s \fIoffset\fR"
 /*	Skip to the specified queue file offset.
 /*
-/*	This feature is available in Postfix 2.0 and later.
+/*	This feature is available in Postfix 3.7 and later.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
@@ -204,8 +204,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
     /*
      * See if this is a plausible file.
      */
-    if (start_offset == 0 && (flags & PC_FLAG_RAW) == 0
-	&& (ch = VSTREAM_GETC(fp)) != VSTREAM_EOF) {
+    if (start_offset == 0 && (ch = VSTREAM_GETC(fp)) != VSTREAM_EOF) {
 	if (!strchr(REC_TYPE_ENVELOPE, ch)) {
 	    msg_warn("%s: input is not a valid queue file", VSTREAM_PATH(fp));
 	    return;
@@ -519,7 +518,7 @@ int     main(int argc, char **argv)
 	    flags |= PC_FLAG_RAW;
 	    break;
 	case 's':
-	    if (!alldig(optarg) || (start_offset = atol(optarg)) <= 0)
+	    if (!alldig(optarg) || (start_offset = atol(optarg)) < 0)
 		msg_fatal("bad offset: %s", optarg);
 	    break;
 	case 'v':

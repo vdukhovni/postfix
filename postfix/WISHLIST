@@ -1,7 +1,7 @@
 Wish list:
 
-	Fix the body_edit_lockout safety: turn it on when editing,
-	and turn if off when done.
+	proxy_read_maps needs a dedicated matcher that looks
+	inside pipemap:{}. Maybe steal some code from postconf.
 
 	Add a pointer to
 	http://mmogilvi.users.sourceforge.net/software/oauthbearer.html

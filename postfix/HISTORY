@@ -25919,3 +25919,13 @@ Apologies for any names omitted.
 	Additional postcat flags for debuging a corrupted queue
 	file (-s: skip to offset; -r: don't follow pointer records).
 	File: postcat/postcat.c.
+
+20211110
+
+	Minor edits of 20211107 postcat changes. File: postcat.c.
+
+	Regression prevention: added sanity check in the queue file
+	editing code. File: cleanup/cleanup_body_edit.c
+
+	Regression prevention: copied a queue file record typecheck
+	from the pickup daemon. Files: *qmgr/qmgr_message.c.
