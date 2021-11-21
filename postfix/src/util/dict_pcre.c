@@ -36,7 +36,10 @@
 
 #include "sys_defs.h"
 
-#ifdef HAS_PCRE
+#if defined(HAS_PCRE2) || defined(HAS_PCRE)
+#if defined(HAS_PCRE2) && defined(HAS_PCRE)
+#error "define one of HAS_PCRE2 or HAS_PCRE, not both"
+#endif
 
 /* System library. */
 
@@ -51,6 +54,13 @@
 #include <strings.h>
 #endif
 
+#ifdef HAS_PCRE
+#include <pcre.h>
+#else
+#define PCRE2_CODE_UNIT_WIDTH	8
+#include <pcre2.h>
+#endif
+
 /* Utility library. */
 
 #include "mymalloc.h"
@@ -63,18 +73,75 @@
 #include "dict.h"
 #include "dict_pcre.h"
 #include "mac_parse.h"
-#include "pcre.h"
 #include "warn_stat.h"
 #include "mvect.h"
 
  /*
   * Backwards compatibility.
   */
+#ifdef HAS_PCRE
+ /* PCRE Legacy JIT supprt. */
 #ifdef PCRE_STUDY_JIT_COMPILE
 #define DICT_PCRE_FREE_STUDY(x)	pcre_free_study(x)
 #else
 #define DICT_PCRE_FREE_STUDY(x)	pcre_free((char *) (x))
 #endif
+
+ /* PCRE Compiled pattern. */
+#define DICT_PCRE_CODE		pcre
+#define DICT_PCRE_CODE_FREE(x)	myfree((void *) (x))
+
+ /* Old-style hints versus new-style match_data. */
+#define DICT_PCRE_MATCH_HINT_TYPE pcre_extra *
+#define DICT_PCRE_MATCH_HINT_NAME hints
+#define DICT_PCRE_MATCH_HINT(x) ((x)->DICT_PCRE_MATCH_HINT_NAME)
+#define DICT_PCRE_MATCH_HINT_FREE(x) do { \
+	if (DICT_PCRE_MATCH_HINT(x)) \
+	    DICT_PCRE_FREE_STUDY(DICT_PCRE_MATCH_HINT(x)); \
+    } while (0)
+
+ /* PCRE Pattern options. */
+#define DICT_PCRE_CASELESS	PCRE_CASELESS
+#define DICT_PCRE_MULTILINE	PCRE_MULTILINE
+#define DICT_PCRE_DOTALL	PCRE_DOTALL
+#define DICT_PCRE_EXTENDED	PCRE_EXTENDED
+#define DICT_PCRE_ANCHORED	PCRE_ANCHORED
+#define DICT_PCRE_DOLLAR_ENDONLY PCRE_DOLLAR_ENDONLY
+#define DICT_PCRE_UNGREEDY	PCRE_UNGREEDY
+#define DICT_PCRE_EXTRA		PCRE_EXTRA
+
+ /* PCRE Number of captures in pattern. */
+#ifdef PCRE_INFO_CAPTURECOUNT
+#define DICT_PCRE_CAPTURECOUNT_TYPE int
+#endif
+
+#else					/* HAS_PCRE */
+
+ /* PCRE2 Compiled pattern. */
+#define DICT_PCRE_CODE		pcre2_code
+#define DICT_PCRE_CODE_FREE(x)	pcre2_code_free(x)
+
+ /* PCRE2 Old-style hints versus new-style match_data. */
+#define DICT_PCRE_MATCH_HINT_TYPE pcre2_match_data *
+#define DICT_PCRE_MATCH_HINT_NAME match_data
+#define DICT_PCRE_MATCH_HINT(x)	((x)->DICT_PCRE_MATCH_HINT_NAME)
+#define DICT_PCRE_MATCH_HINT_FREE(x) \
+	pcre2_match_data_free(DICT_PCRE_MATCH_HINT(x))
+
+ /* PCRE2 Pattern options. */
+#define DICT_PCRE_CASELESS	PCRE2_CASELESS
+#define DICT_PCRE_MULTILINE	PCRE2_MULTILINE
+#define DICT_PCRE_DOTALL	PCRE2_DOTALL
+#define DICT_PCRE_EXTENDED	PCRE2_EXTENDED
+#define DICT_PCRE_ANCHORED	PCRE2_ANCHORED
+#define DICT_PCRE_DOLLAR_ENDONLY PCRE2_DOLLAR_ENDONLY
+#define DICT_PCRE_UNGREEDY	PCRE2_UNGREEDY
+#define DICT_PCRE_EXTRA		0
+
+ /* PCRE2 Number of captures in pattern. */
+#define	DICT_PCRE_CAPTURECOUNT_TYPE uint32_t
+
+#endif					/* HAS_PCRE */
 
  /*
   * Support for IF/ENDIF based on an idea by Bert Driehuis.
@@ -86,7 +153,9 @@
  /*
   * Max strings captured by regexp - essentially the max number of (..)
   */
+#ifdef HAS_PCRE
 #define PCRE_MAX_CAPTURE	99
+#endif
 
  /*
   * Regular expression before and after compilation.
@@ -98,8 +167,8 @@ typedef struct {
 } DICT_PCRE_REGEXP;
 
 typedef struct {
-    pcre   *pattern;			/* the compiled pattern */
-    pcre_extra *hints;			/* hints to speed pattern execution */
+    DICT_PCRE_CODE *pattern;		/* the compiled pattern */
+    DICT_PCRE_MATCH_HINT_TYPE DICT_PCRE_MATCH_HINT_NAME;
 } DICT_PCRE_ENGINE;
 
  /*
@@ -113,8 +182,8 @@ typedef struct DICT_PCRE_RULE {
 
 typedef struct {
     DICT_PCRE_RULE rule;		/* generic part */
-    pcre   *pattern;			/* compiled pattern */
-    pcre_extra *hints;			/* hints to speed pattern execution */
+    DICT_PCRE_CODE *pattern;		/* compiled pattern */
+    DICT_PCRE_MATCH_HINT_TYPE DICT_PCRE_MATCH_HINT_NAME;
     char   *replacement;		/* replacement string */
     int     match;			/* positive or negative match */
     size_t  max_sub;			/* largest $number in replacement */
@@ -122,8 +191,8 @@ typedef struct {
 
 typedef struct {
     DICT_PCRE_RULE rule;		/* generic members */
-    pcre   *pattern;			/* compiled pattern */
-    pcre_extra *hints;			/* hints to speed pattern execution */
+    DICT_PCRE_CODE *pattern;		/* compiled pattern */
+    DICT_PCRE_MATCH_HINT_TYPE DICT_PCRE_MATCH_HINT_NAME;
     int     match;			/* positive or negative match */
     struct DICT_PCRE_RULE *endif_rule;	/* matching endif rule */
 } DICT_PCRE_IF_RULE;
@@ -137,16 +206,25 @@ typedef struct {
     VSTRING *expansion_buf;		/* lookup result */
 } DICT_PCRE;
 
+#ifdef HAS_PCRE
 static int dict_pcre_init = 0;		/* flag need to init pcre library */
+
+#endif
 
 /*
  * Context for $number expansion callback.
  */
 typedef struct {
     DICT_PCRE *dict_pcre;		/* the dictionary handle */
+#ifdef HAS_PCRE
     DICT_PCRE_MATCH_RULE *match_rule;	/* the rule we matched */
+#endif
     const char *lookup_string;		/* string against which we match */
+#ifdef HAS_PCRE
     int     offsets[PCRE_MAX_CAPTURE * 3];	/* Cut substrings */
+#else					/* HAS_PCRE */
+    PCRE2_SIZE *ovector;		/* matched string offsets */
+#endif					/* HAS_PCRE */
     int     matches;			/* Count of cuts */
 } DICT_PCRE_EXPAND_CONTEXT;
 
@@ -180,17 +258,26 @@ typedef struct {
 static int dict_pcre_expand(int type, VSTRING *buf, void *ptr)
 {
     DICT_PCRE_EXPAND_CONTEXT *ctxt = (DICT_PCRE_EXPAND_CONTEXT *) ptr;
-    DICT_PCRE_MATCH_RULE *match_rule = ctxt->match_rule;
     DICT_PCRE *dict_pcre = ctxt->dict_pcre;
-    const char *pp;
     int     n;
+
+#ifdef HAS_PCRE
+    DICT_PCRE_MATCH_RULE *match_rule = ctxt->match_rule;
+    const char *pp;
     int     ret;
+
+#else
+    PCRE2_SPTR start;
+    PCRE2_SIZE length;
+
+#endif
 
     /*
      * Replace $0-${99} with strings cut from matched text.
      */
     if (type == MAC_PARSE_VARNAME) {
 	n = atoi(vstring_str(buf));
+#ifdef HAS_PCRE
 	ret = pcre_get_substring(ctxt->lookup_string, ctxt->offsets,
 				 ctxt->matches, n, &pp);
 	if (ret < 0) {
@@ -207,6 +294,14 @@ static int dict_pcre_expand(int type, VSTRING *buf, void *ptr)
 	vstring_strcat(dict_pcre->expansion_buf, pp);
 	myfree((void *) pp);
 	return (MAC_PARSE_OK);
+#else
+	start = (unsigned char *) ctxt->lookup_string + ctxt->ovector[2 * n];
+	length = ctxt->ovector[2 * n + 1] - ctxt->ovector[2 * n];
+	if (length == 0)
+	    return (MAC_PARSE_UNDEF);
+	vstring_strncat(dict_pcre->expansion_buf, (char *) start, length);
+	return (MAC_PARSE_OK);
+#endif
     }
 
     /*
@@ -218,10 +313,32 @@ static int dict_pcre_expand(int type, VSTRING *buf, void *ptr)
     }
 }
 
+#ifdef HAS_PCRE2
+
+#define DICT_PCRE_GET_ERROR_BUF_LEN	256
+
+/* dict_pcre_get_error - convert PCRE2 error number or text */
+
+static char *dict_pcre_get_error(VSTRING *buf, int errval)
+{
+    ssize_t len;
+
+    VSTRING_SPACE(buf, DICT_PCRE_GET_ERROR_BUF_LEN);
+    if ((len = pcre2_get_error_message(errval,
+				       (unsigned char *) vstring_str(buf),
+				       VSTRING_LEN(buf))) < 0)
+	vstring_sprintf(buf, "unexpected pcre2 error code %d", errval);
+    VSTRING_TERMINATE(buf);
+    return (vstring_str(buf));
+}
+
+#endif
+
 /* dict_pcre_exec_error - report matching error */
 
 static void dict_pcre_exec_error(const char *mapname, int lineno, int errval)
 {
+#ifdef HAS_PCRE
     switch (errval) {
 	case 0:
 	msg_warn("pcre map %s, line %d: too many (...)",
@@ -266,11 +383,19 @@ static void dict_pcre_exec_error(const char *mapname, int lineno, int errval)
 		 mapname, lineno, errval);
 	return;
     }
+#else					/* HAS_PCRE */
+    VSTRING *buf = vstring_alloc(DICT_PCRE_GET_ERROR_BUF_LEN);
+
+    msg_warn("pcre map %s, line %d: %s", mapname, lineno,
+	     dict_pcre_get_error(buf, errval));
+    vstring_free(buf);
+#endif						/* HAS_PCRE */
 }
 
  /*
   * Inlined to reduce function call overhead in the time-critical loop.
   */
+#ifdef HAS_PCRE
 #define DICT_PCRE_EXEC(ctxt, map, line, pattern, hints, match, str, len) \
     ((ctxt).matches = pcre_exec((pattern), (hints), (str), (len), \
 				NULL_STARTOFFSET, NULL_EXEC_OPTIONS, \
@@ -278,6 +403,15 @@ static void dict_pcre_exec_error(const char *mapname, int lineno, int errval)
      (ctxt).matches > 0 ? (match) : \
      (ctxt).matches == PCRE_ERROR_NOMATCH ? !(match) : \
      (dict_pcre_exec_error((map), (line), (ctxt).matches), 0))
+#else
+#define DICT_PCRE_EXEC(ctxt, map, line, pattern, match_data, match, str, len) \
+    ((ctxt).matches = pcre2_match((pattern), (unsigned char *) (str), (len), \
+				NULL_STARTOFFSET, NULL_EXEC_OPTIONS, \
+				(match_data), (pcre2_match_context *) 0), \
+     (ctxt).matches > 0 ? (match) : \
+     (ctxt).matches == PCRE2_ERROR_NOMATCH ? !(match) : \
+     (dict_pcre_exec_error((map), (line), (ctxt).matches), 0))
+#endif
 
 /* dict_pcre_lookup - match string and perform optional substitution */
 
@@ -314,7 +448,8 @@ static const char *dict_pcre_lookup(DICT *dict, const char *lookup_string)
 	case DICT_PCRE_OP_MATCH:
 	    match_rule = (DICT_PCRE_MATCH_RULE *) rule;
 	    if (!DICT_PCRE_EXEC(ctxt, dict->name, rule->lineno,
-				match_rule->pattern, match_rule->hints,
+				match_rule->pattern,
+				DICT_PCRE_MATCH_HINT(match_rule),
 			      match_rule->match, lookup_string, lookup_len))
 		continue;
 
@@ -333,7 +468,11 @@ static const char *dict_pcre_lookup(DICT *dict, const char *lookup_string)
 		dict_pcre->expansion_buf = vstring_alloc(10);
 	    VSTRING_RESET(dict_pcre->expansion_buf);
 	    ctxt.dict_pcre = dict_pcre;
+#ifdef HAS_PCRE
 	    ctxt.match_rule = match_rule;
+#else
+	    ctxt.ovector = pcre2_get_ovector_pointer(match_rule->match_data);
+#endif
 	    ctxt.lookup_string = lookup_string;
 
 	    if (mac_parse(match_rule->replacement, dict_pcre_expand,
@@ -353,7 +492,8 @@ static const char *dict_pcre_lookup(DICT *dict, const char *lookup_string)
 	case DICT_PCRE_OP_IF:
 	    if_rule = (DICT_PCRE_IF_RULE *) rule;
 	    if (DICT_PCRE_EXEC(ctxt, dict->name, rule->lineno,
-			       if_rule->pattern, if_rule->hints,
+			       if_rule->pattern,
+			       DICT_PCRE_MATCH_HINT(if_rule),
 			       if_rule->match, lookup_string, lookup_len))
 		continue;
 	    /* An IF without matching ENDIF has no "endif" rule. */
@@ -390,18 +530,16 @@ static void dict_pcre_close(DICT *dict)
 	case DICT_PCRE_OP_MATCH:
 	    match_rule = (DICT_PCRE_MATCH_RULE *) rule;
 	    if (match_rule->pattern)
-		myfree((void *) match_rule->pattern);
-	    if (match_rule->hints)
-		DICT_PCRE_FREE_STUDY(match_rule->hints);
+		DICT_PCRE_CODE_FREE(match_rule->pattern);
+	    DICT_PCRE_MATCH_HINT_FREE(match_rule);
 	    if (match_rule->replacement)
 		myfree((void *) match_rule->replacement);
 	    break;
 	case DICT_PCRE_OP_IF:
 	    if_rule = (DICT_PCRE_IF_RULE *) rule;
 	    if (if_rule->pattern)
-		myfree((void *) if_rule->pattern);
-	    if (if_rule->hints)
-		DICT_PCRE_FREE_STUDY(if_rule->hints);
+		DICT_PCRE_CODE_FREE(if_rule->pattern);
+	    DICT_PCRE_MATCH_HINT_FREE(if_rule);
 	    break;
 	case DICT_PCRE_OP_ENDIF:
 	    break;
@@ -467,32 +605,37 @@ static int dict_pcre_get_pattern(const char *mapname, int lineno, char **bufp,
     /*
      * Parse any regexp options.
      */
-    pattern->options = PCRE_CASELESS | PCRE_DOTALL;
+    pattern->options = DICT_PCRE_CASELESS | DICT_PCRE_DOTALL;
     while (*p && !ISSPACE(*p)) {
 	switch (*p) {
 	case 'i':
-	    pattern->options ^= PCRE_CASELESS;
+	    pattern->options ^= DICT_PCRE_CASELESS;
 	    break;
 	case 'm':
-	    pattern->options ^= PCRE_MULTILINE;
+	    pattern->options ^= DICT_PCRE_MULTILINE;
 	    break;
 	case 's':
-	    pattern->options ^= PCRE_DOTALL;
+	    pattern->options ^= DICT_PCRE_DOTALL;
 	    break;
 	case 'x':
-	    pattern->options ^= PCRE_EXTENDED;
+	    pattern->options ^= DICT_PCRE_EXTENDED;
 	    break;
 	case 'A':
-	    pattern->options ^= PCRE_ANCHORED;
+	    pattern->options ^= DICT_PCRE_ANCHORED;
 	    break;
 	case 'E':
-	    pattern->options ^= PCRE_DOLLAR_ENDONLY;
+	    pattern->options ^= DICT_PCRE_DOLLAR_ENDONLY;
 	    break;
 	case 'U':
-	    pattern->options ^= PCRE_UNGREEDY;
+	    pattern->options ^= DICT_PCRE_UNGREEDY;
 	    break;
 	case 'X':
-	    pattern->options ^= PCRE_EXTRA;
+#if DICT_PCRE_EXTRA != 0
+	    pattern->options ^= DICT_PCRE_EXTRA;
+#else
+	    msg_warn("pcre map %s, line %d: ignoring unsupported regexp "
+		     "option \"%c\"", mapname, lineno, *p);
+#endif
 	    break;
 	default:
 	    msg_warn("pcre map %s, line %d: unknown regexp option \"%c\": "
@@ -550,6 +693,7 @@ static int dict_pcre_compile(const char *mapname, int lineno,
 			             DICT_PCRE_REGEXP *pattern,
 			             DICT_PCRE_ENGINE *engine)
 {
+#ifdef HAS_PCRE
     const char *error;
     int     errptr;
 
@@ -564,9 +708,28 @@ static int dict_pcre_compile(const char *mapname, int lineno,
     if (error != 0) {
 	msg_warn("pcre map %s, line %d: error while studying regex: %s",
 		 mapname, lineno, error);
-	myfree((void *) engine->pattern);
+	DICT_PCRE_CODE_FREE(engine->pattern);
 	return (0);
     }
+#else
+    int     error;
+    size_t  errptr;
+
+    engine->pattern = pcre2_compile((unsigned char *) pattern->regexp,
+				    PCRE2_ZERO_TERMINATED,
+				    pattern->options, &error, &errptr, NULL);
+    if (engine->pattern == 0) {
+	VSTRING *buf = vstring_alloc(DICT_PCRE_GET_ERROR_BUF_LEN);
+
+	msg_warn("pcre map %s, line %d: error in regex at offset %lu: %s",
+		 mapname, lineno, (unsigned long) errptr,
+		 dict_pcre_get_error(buf, error));
+	vstring_free(buf);
+	return (0);
+    }
+    engine->match_data = pcre2_match_data_create_from_pattern(
+					       engine->pattern, (void *) 0);
+#endif
     return (1);
 }
 
@@ -591,7 +754,11 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(DICT *dict, const char *mapname,
 					            int nesting)
 {
     char   *p;
-    int     actual_sub;
+
+#ifdef DICT_PCRE_CAPTURECOUNT_TYPE
+    DICT_PCRE_CAPTURECOUNT_TYPE actual_sub;
+
+#endif
 
     p = line;
 
@@ -676,23 +843,29 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(DICT *dict, const char *mapname,
 	 */
 	if (dict_pcre_compile(mapname, lineno, &regexp, &engine) == 0)
 	    CREATE_MATCHOP_ERROR_RETURN(0);
-#ifdef PCRE_INFO_CAPTURECOUNT
+#ifdef DICT_PCRE_CAPTURECOUNT_TYPE
+#ifdef HAS_PCRE
 	if (pcre_fullinfo(engine.pattern, engine.hints,
 			  PCRE_INFO_CAPTURECOUNT,
 			  (void *) &actual_sub) != 0)
 	    msg_panic("pcre map %s, line %d: pcre_fullinfo failed",
 		      mapname, lineno);
+#else						/* HAS_PCRE */
+	if (pcre2_pattern_info(engine.pattern, PCRE2_INFO_CAPTURECOUNT,
+			       (void *) &actual_sub) != 0)
+	    msg_panic("pcre map %s, line %d: pcre2_pattern_info failed",
+		      mapname, lineno);
+#endif						/* HAS_PCRE */
 	if (prescan_context.max_sub > actual_sub) {
 	    msg_warn("pcre map %s, line %d: out of range replacement index \"%d\": "
 		     "skipping this rule", mapname, lineno,
 		     (int) prescan_context.max_sub);
 	    if (engine.pattern)
-		myfree((void *) engine.pattern);
-	    if (engine.hints)
-		DICT_PCRE_FREE_STUDY(engine.hints);
+		DICT_PCRE_CODE_FREE(engine.pattern);
+	    DICT_PCRE_MATCH_HINT_FREE(&engine);
 	    CREATE_MATCHOP_ERROR_RETURN(0);
 	}
-#endif
+#endif						/* DICT_PCRE_CAPTURECOUNT_TYPE */
 
 	/*
 	 * Save the result.
@@ -707,7 +880,7 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(DICT *dict, const char *mapname,
 	else
 	    match_rule->replacement = mystrdup(p);
 	match_rule->pattern = engine.pattern;
-	match_rule->hints = engine.hints;
+	DICT_PCRE_MATCH_HINT(match_rule) = DICT_PCRE_MATCH_HINT(&engine);
 	return ((DICT_PCRE_RULE *) match_rule);
     }
 
@@ -755,7 +928,7 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(DICT *dict, const char *mapname,
 				 sizeof(DICT_PCRE_IF_RULE));
 	if_rule->match = regexp.match;
 	if_rule->pattern = engine.pattern;
-	if_rule->hints = engine.hints;
+	DICT_PCRE_MATCH_HINT(if_rule) = DICT_PCRE_MATCH_HINT(&engine);
 	if_rule->endif_rule = 0;
 	return ((DICT_PCRE_RULE *) if_rule);
     }
@@ -866,11 +1039,13 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
     dict_pcre->head = 0;
     dict_pcre->expansion_buf = 0;
 
+#ifdef HAS_PCRE
     if (dict_pcre_init == 0) {
 	pcre_malloc = (void *(*) (size_t)) mymalloc;
 	pcre_free = (void (*) (void *)) myfree;
 	dict_pcre_init = 1;
     }
+#endif
     dict_pcre->dict.owner.uid = st.st_uid;
     dict_pcre->dict.owner.status = (st.st_uid != 0);
 
@@ -926,4 +1101,4 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
     DICT_PCRE_OPEN_RETURN(DICT_DEBUG (&dict_pcre->dict));
 }
 
-#endif					/* HAS_PCRE */
+#endif					/* HAS_PCRE || HAS_PCRE2 */

@@ -29,6 +29,9 @@
 #	-\fR <\fIfile\fR" for header_checks(5) patterns, and
 #	"\fBpostmap -bmq -\fR <\fIfile\fR" for body_checks(5)
 #	(Postfix 2.6 and later).
+#
+#	This driver can be built with the PCRE2 library, or with 
+#	obsolete PCRE library.
 # COMPATIBILITY
 # .ad
 # .fi
@@ -129,6 +132,8 @@
 #	When this flag is on, any backslash in a pattern that is
 #	followed by a letter that has no special meaning causes an
 #	error, thus reserving these combinations for future expansion.
+#
+#	This feature is not supported with PCRE2.
 # SEARCH ORDER
 # .ad
 # .fi
