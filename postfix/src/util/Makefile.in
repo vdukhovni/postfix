@@ -568,19 +568,22 @@ dict_stream: $(LIB)
 
 tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
-	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test \
+	attr_scan64_test attr_scan0_test dict_pcre_tests host_port_test \
 	dict_cidr_test attr_scan_plain_test htable_test hex_code_test \
 	myaddrinfo_test format_tv_test ip_match_test name_mask_tests \
 	base32_code_test dict_thash_test surrogate_test timecmp_test \
 	dict_static_test dict_inline_test midna_domain_test casefold_test \
 	dict_utf8_test strcasecmp_utf8_test vbuf_print_test dict_regexp_test \
 	dict_union_test dict_pipe_test miss_endif_cidr_test \
-	miss_endif_pcre_test miss_endif_regexp_test split_qnameval_test \
-	vstring_test vstream_test dict_pcre_file_test dict_regexp_file_test \
-	dict_cidr_file_test dict_static_file_test dict_random_test \
-	dict_random_file_test dict_inline_file_test byte_mask_tests \
-	mystrtok_test known_tcp_ports_test dict_stream_test \
-	dict_inline_pcre_test dict_inline_regexp_test dict_inline_cidr_test
+	miss_endif_regexp_test split_qnameval_test vstring_test \
+	vstream_test dict_regexp_file_test dict_cidr_file_test \
+	dict_static_file_test dict_random_test dict_random_file_test \
+	dict_inline_file_test byte_mask_tests mystrtok_test \
+	known_tcp_ports_test dict_stream_test dict_inline_regexp_test \
+	dict_inline_cidr_test
+
+dict_pcre_tests: dict_pcre_test miss_endif_pcre_test dict_pcre_file_test \
+	dict_inline_pcre_test
 
 root_tests:
 
@@ -648,7 +651,9 @@ dict_test: dict_open testdb dict_test.in dict_test.ref
 	rm -f testdb.db testdb.dir testdb.pag dict_test.tmp
 
 dict_pcre_test: dict_open dict_pcre.in dict_pcre.map dict_pcre.ref
-	$(SHLIB_ENV) ${VALGRIND} ./dict_open pcre:dict_pcre.map read <dict_pcre.in 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_pcre.tmp
+	$(SHLIB_ENV) ${VALGRIND} ./dict_open pcre:dict_pcre.map read \
+	    <dict_pcre.in 2>&1 | sed -e 's/uid=[0-9][0-9][0-9]*/uid=USER/' \
+	    -e 's/missing )/missing closing parenthesis/' >dict_pcre.tmp
 	diff dict_pcre.ref dict_pcre.tmp
 	rm -f dict_pcre.tmp
 

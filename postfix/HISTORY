@@ -25935,4 +25935,10 @@ Apologies for any names omitted.
 	Feature: PCRE2 support. This should be fully compatible,
 	except that the obscure 'X' pattern flag is ignored and a
 	warning is logged. Files: makedefs, util/dict_open.c,
-	util.dict_pcre.c, proto/pcre_table and genrated documentation.
+	util.dict_pcre.c, proto/pcre_table and generated documentation.
+
+20211123
+
+	Cleaned up PCRE2 support and updated PCRE_README. Files:
+	makedefs, proto/PCRE_README.html, proto/pcre_table,
+	util/dict_pcre.c.

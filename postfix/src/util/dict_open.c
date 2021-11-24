@@ -391,7 +391,7 @@ static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_UNION, dict_union_open,
     DICT_TYPE_INLINE, dict_inline_open,
 #ifndef USE_DYNAMIC_MAPS
-#if defined(HAS_PCRE) || defined(HAS_PCRE2)
+#ifdef HAS_PCRE
     DICT_TYPE_PCRE, dict_pcre_open,
 #endif
 #ifdef HAS_CDB

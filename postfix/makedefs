@@ -90,8 +90,8 @@
 #	is unavailable on some recent Solaris distributions.
 # .IP \fB-DNO_PCRE\fR
 #	Do not build with PCRE support.
-#	By default, PCRE support is compiled in when the \fBpcre-config\fR
-#	utility is installed.
+#	By default, PCRE support is compiled in when the \fBpcre2-config\fR
+#	or \fBpcre-config\fR utility are installed.
 # .IP \fB-DNO_POSIX_GETPW_R\fR
 #	Disable support for POSIX getpwnam_r/getpwuid_r.
 # .IP \fB-DNO_RES_NCALLS\fR
@@ -869,12 +869,12 @@ case "$CCARGS" in
 	   *)	if pcre_cflags=`(pcre2-config --cflags) 2>/dev/null` &&
 		    pcre_libs=`(pcre2-config --libs8) 2>/dev/null` 
 		then
-		    CCARGS="$CCARGS -DHAS_PCRE2 $pcre_cflags"
+		    CCARGS="$CCARGS -DHAS_PCRE=2 $pcre_cflags"
 		    AUXLIBS_PCRE="$pcre_libs"
 		elif pcre_cflags=`(pcre-config --cflags) 2>/dev/null` &&
 		    pcre_libs=`(pcre-config --libs) 2>/dev/null` 
 		then
-		    CCARGS="$CCARGS -DHAS_PCRE $pcre_cflags"
+		    CCARGS="$CCARGS -DHAS_PCRE=1 $pcre_cflags"
 		    AUXLIBS_PCRE="$pcre_libs"
 		fi
 		;;
@@ -1161,7 +1161,8 @@ ${WARN='-Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
 # The following was validated in 2014 on FreeBSD/Linux and Solaris 9.
 
 DEFINED_MAP_TYPES=`
-    echo $CCARGS | tr -cd '\- _ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' | 
+    echo $CCARGS | sed 's/=[^ ]*//' | 
+	tr -cd '\- _ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' | 
 	tr ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz | ${AWK} '
 	{ for (n = 1; n <= NF; n++)
 	      if ($n ~ /^-dhas_/)

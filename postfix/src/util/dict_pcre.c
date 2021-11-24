@@ -36,10 +36,7 @@
 
 #include "sys_defs.h"
 
-#if defined(HAS_PCRE2) || defined(HAS_PCRE)
-#if defined(HAS_PCRE2) && defined(HAS_PCRE)
-#error "define one of HAS_PCRE2 or HAS_PCRE, not both"
-#endif
+#ifdef HAS_PCRE
 
 /* System library. */
 
@@ -54,11 +51,13 @@
 #include <strings.h>
 #endif
 
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
 #include <pcre.h>
-#else
+#elif HAS_PCRE == 2
 #define PCRE2_CODE_UNIT_WIDTH	8
 #include <pcre2.h>
+#else
+#error "define HAS_PCRE=2 or HAS_PCRE=1"
 #endif
 
 /* Utility library. */
@@ -79,7 +78,7 @@
  /*
   * Backwards compatibility.
   */
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
  /* PCRE Legacy JIT supprt. */
 #ifdef PCRE_STUDY_JIT_COMPILE
 #define DICT_PCRE_FREE_STUDY(x)	pcre_free_study(x)
@@ -112,7 +111,7 @@
 
  /* PCRE Number of captures in pattern. */
 #ifdef PCRE_INFO_CAPTURECOUNT
-#define DICT_PCRE_CAPTURECOUNT_TYPE int
+#define DICT_PCRE_CAPTURECOUNT_T int
 #endif
 
 #else					/* HAS_PCRE */
@@ -139,7 +138,7 @@
 #define DICT_PCRE_EXTRA		0
 
  /* PCRE2 Number of captures in pattern. */
-#define	DICT_PCRE_CAPTURECOUNT_TYPE uint32_t
+#define	DICT_PCRE_CAPTURECOUNT_T uint32_t
 
 #endif					/* HAS_PCRE */
 
@@ -153,7 +152,7 @@
  /*
   * Max strings captured by regexp - essentially the max number of (..)
   */
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
 #define PCRE_MAX_CAPTURE	99
 #endif
 
@@ -206,7 +205,7 @@ typedef struct {
     VSTRING *expansion_buf;		/* lookup result */
 } DICT_PCRE;
 
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
 static int dict_pcre_init = 0;		/* flag need to init pcre library */
 
 #endif
@@ -216,11 +215,11 @@ static int dict_pcre_init = 0;		/* flag need to init pcre library */
  */
 typedef struct {
     DICT_PCRE *dict_pcre;		/* the dictionary handle */
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
     DICT_PCRE_MATCH_RULE *match_rule;	/* the rule we matched */
 #endif
     const char *lookup_string;		/* string against which we match */
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
     int     offsets[PCRE_MAX_CAPTURE * 3];	/* Cut substrings */
 #else					/* HAS_PCRE */
     PCRE2_SIZE *ovector;		/* matched string offsets */
@@ -250,8 +249,6 @@ typedef struct {
   */
 #define NULL_STARTOFFSET	(0)
 #define NULL_EXEC_OPTIONS 	(0)
-#define NULL_OVECTOR		((int *) 0)
-#define NULL_OVECTOR_LENGTH	(0)
 
 /* dict_pcre_expand - replace $number with matched text */
 
@@ -261,7 +258,7 @@ static int dict_pcre_expand(int type, VSTRING *buf, void *ptr)
     DICT_PCRE *dict_pcre = ctxt->dict_pcre;
     int     n;
 
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
     DICT_PCRE_MATCH_RULE *match_rule = ctxt->match_rule;
     const char *pp;
     int     ret;
@@ -277,7 +274,7 @@ static int dict_pcre_expand(int type, VSTRING *buf, void *ptr)
      */
     if (type == MAC_PARSE_VARNAME) {
 	n = atoi(vstring_str(buf));
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
 	ret = pcre_get_substring(ctxt->lookup_string, ctxt->offsets,
 				 ctxt->matches, n, &pp);
 	if (ret < 0) {
@@ -313,7 +310,7 @@ static int dict_pcre_expand(int type, VSTRING *buf, void *ptr)
     }
 }
 
-#ifdef HAS_PCRE2
+#if HAS_PCRE == 2
 
 #define DICT_PCRE_GET_ERROR_BUF_LEN	256
 
@@ -326,19 +323,20 @@ static char *dict_pcre_get_error(VSTRING *buf, int errval)
     VSTRING_SPACE(buf, DICT_PCRE_GET_ERROR_BUF_LEN);
     if ((len = pcre2_get_error_message(errval,
 				       (unsigned char *) vstring_str(buf),
-				       VSTRING_LEN(buf))) < 0)
+				       DICT_PCRE_GET_ERROR_BUF_LEN)) > 0) {
+	vstring_set_payload_size(buf, len);
+    } else
 	vstring_sprintf(buf, "unexpected pcre2 error code %d", errval);
-    VSTRING_TERMINATE(buf);
     return (vstring_str(buf));
 }
 
-#endif
+#endif					/* HAS_PCRE == 2 */
 
 /* dict_pcre_exec_error - report matching error */
 
 static void dict_pcre_exec_error(const char *mapname, int lineno, int errval)
 {
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
     switch (errval) {
 	case 0:
 	msg_warn("pcre map %s, line %d: too many (...)",
@@ -395,7 +393,7 @@ static void dict_pcre_exec_error(const char *mapname, int lineno, int errval)
  /*
   * Inlined to reduce function call overhead in the time-critical loop.
   */
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
 #define DICT_PCRE_EXEC(ctxt, map, line, pattern, hints, match, str, len) \
     ((ctxt).matches = pcre_exec((pattern), (hints), (str), (len), \
 				NULL_STARTOFFSET, NULL_EXEC_OPTIONS, \
@@ -468,7 +466,7 @@ static const char *dict_pcre_lookup(DICT *dict, const char *lookup_string)
 		dict_pcre->expansion_buf = vstring_alloc(10);
 	    VSTRING_RESET(dict_pcre->expansion_buf);
 	    ctxt.dict_pcre = dict_pcre;
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
 	    ctxt.match_rule = match_rule;
 #else
 	    ctxt.ovector = pcre2_get_ovector_pointer(match_rule->match_data);
@@ -633,7 +631,7 @@ static int dict_pcre_get_pattern(const char *mapname, int lineno, char **bufp,
 #if DICT_PCRE_EXTRA != 0
 	    pattern->options ^= DICT_PCRE_EXTRA;
 #else
-	    msg_warn("pcre map %s, line %d: ignoring unsupported regexp "
+	    msg_warn("pcre map %s, line %d: ignoring obsolete regexp "
 		     "option \"%c\"", mapname, lineno, *p);
 #endif
 	    break;
@@ -693,7 +691,7 @@ static int dict_pcre_compile(const char *mapname, int lineno,
 			             DICT_PCRE_REGEXP *pattern,
 			             DICT_PCRE_ENGINE *engine)
 {
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
     const char *error;
     int     errptr;
 
@@ -755,8 +753,8 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(DICT *dict, const char *mapname,
 {
     char   *p;
 
-#ifdef DICT_PCRE_CAPTURECOUNT_TYPE
-    DICT_PCRE_CAPTURECOUNT_TYPE actual_sub;
+#ifdef DICT_PCRE_CAPTURECOUNT_T
+    DICT_PCRE_CAPTURECOUNT_T actual_sub;
 
 #endif
 
@@ -843,8 +841,8 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(DICT *dict, const char *mapname,
 	 */
 	if (dict_pcre_compile(mapname, lineno, &regexp, &engine) == 0)
 	    CREATE_MATCHOP_ERROR_RETURN(0);
-#ifdef DICT_PCRE_CAPTURECOUNT_TYPE
-#ifdef HAS_PCRE
+#ifdef DICT_PCRE_CAPTURECOUNT_T
+#if HAS_PCRE == 1
 	if (pcre_fullinfo(engine.pattern, engine.hints,
 			  PCRE_INFO_CAPTURECOUNT,
 			  (void *) &actual_sub) != 0)
@@ -865,7 +863,7 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(DICT *dict, const char *mapname,
 	    DICT_PCRE_MATCH_HINT_FREE(&engine);
 	    CREATE_MATCHOP_ERROR_RETURN(0);
 	}
-#endif						/* DICT_PCRE_CAPTURECOUNT_TYPE */
+#endif						/* DICT_PCRE_CAPTURECOUNT_T */
 
 	/*
 	 * Save the result.
@@ -1039,7 +1037,7 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
     dict_pcre->head = 0;
     dict_pcre->expansion_buf = 0;
 
-#ifdef HAS_PCRE
+#if HAS_PCRE == 1
     if (dict_pcre_init == 0) {
 	pcre_malloc = (void *(*) (size_t)) mymalloc;
 	pcre_free = (void (*) (void *)) myfree;
@@ -1101,4 +1099,4 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
     DICT_PCRE_OPEN_RETURN(DICT_DEBUG (&dict_pcre->dict));
 }
 
-#endif					/* HAS_PCRE || HAS_PCRE2 */
+#endif					/* HAS_PCRE */
