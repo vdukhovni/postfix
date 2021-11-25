@@ -122,8 +122,10 @@ MASTER(5)                                                            MASTER(5)
                      This feature is available as of Postfix version 2.5.
 
        <b>Private (default: y)</b>
-              Whether or not access is restricted to the mail system.   Inter-
-              net (type <b>inet</b>) services can't be private.
+              Whether a service is internal to Postfix (pathname  starts  with
+              <b>private/</b>),  or exposed through Postfix command-line tools (path-
+              name starts with <b>public/</b>).  Internet (type <b>inet</b>) services  can't
+              be private.
 
        <b>Unprivileged (default: y)</b>
               Whether the service runs with root privileges or as the owner of

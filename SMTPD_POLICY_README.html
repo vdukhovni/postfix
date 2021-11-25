@@ -672,7 +672,7 @@ exceptions for mailing lists that use one-time sender addresses,
 because each message will be delayed due to greylisting, and the
 one-time sender addresses can pollute your greylist database
 relatively quickly. Instead of making exceptions, you can automatically
-whitelist clients that survive greylisting repeatedly; this avoids
+allowlist clients that survive greylisting repeatedly; this avoids
 most of the delays and most of the database pollution problem. </p>
 
 <blockquote>
@@ -746,11 +746,11 @@ $database_name="/var/mta/greylist.db";
 $greylist_delay=60;
 
 #
-# Auto-whitelist threshold. Specify 0 to disable, or the number of
+# Auto-allowlist threshold. Specify 0 to disable, or the number of
 # successful "come backs" after which a client is no longer subject
 # to greylisting.
 #
-$auto_whitelist_threshold = 10;
+$auto_allowlist_threshold = 10;
 
 #
 # Demo SMTPD access policy routine. The result is an action just like
@@ -763,10 +763,10 @@ sub smtpd_access_policy {
     # Open the database on the fly.
     open_database() unless $database_obj;
 
-    # Search the auto-whitelist.
-    if ($auto_whitelist_threshold &gt; 0) {
+    # Search the auto-allowlist.
+    if ($auto_allowlist_threshold &gt; 0) {
         $count = read_database($attr{"client_address"});
-        if ($count &gt; $auto_whitelist_threshold) {
+        if ($count &gt; $auto_allowlist_threshold) {
             return "dunno";
         }
     }
@@ -795,8 +795,8 @@ sub smtpd_access_policy {
     #
     syslog $syslog_priority, "request age %d", $now - $time_stamp if $verbose;
     if ($now - $time_stamp &gt; $greylist_delay) {
-        # Update the auto-whitelist.
-        if ($auto_whitelist_threshold &gt; 0) {
+        # Update the auto-allowlist.
+        if ($auto_allowlist_threshold &gt; 0) {
             update_database($attr{"client_address"}, $count + 1);
         }
         return "dunno";

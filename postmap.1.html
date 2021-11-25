@@ -47,7 +47,7 @@ POSTMAP(1)                                                          POSTMAP(1)
        will store the base64-encoded result instead of the <i>value</i>.
 
        When the <i>key</i> specifies email address information, the localpart  should
-       be enclosed with double quotes if required by <a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>. For example, an
+       be enclosed with double quotes if required by <a href="https://tools.ietf.org/html/rfc5322">RFC 5322</a>. For example, an
        address localpart that contains ";", or a localpart that starts or ends
        with ".".
 
@@ -62,7 +62,7 @@ POSTMAP(1)                                                          POSTMAP(1)
 <b>COMMAND-LINE ARGUMENTS</b>
        <b>-b</b>     Enable  message  body  query mode. When reading lookup keys from
               standard input with "<b>-q -</b>", process the input as  if  it  is  an
-              email  message  in  <a href="http://tools.ietf.org/html/rfc5322">RFC  5322</a> format.  Each line of body content
+              email  message  in  <a href="https://tools.ietf.org/html/rfc5322">RFC  5322</a> format.  Each line of body content
               becomes one lookup key.
 
               By default, the <b>-b</b> option starts generating lookup keys  at  the
@@ -101,11 +101,13 @@ POSTMAP(1)                                                          POSTMAP(1)
               When creating a map from source file, process each  value  as  a
               list  of  filenames, concatenate the content of those files, and
               store the base64-encoded result instead of the value (see  INPUT
-              FORMAT for details).
+              FILE FORMAT for details).
+
+              This feature is available in Postfix version 3.4 and later.
 
        <b>-h</b>     Enable  message header query mode. When reading lookup keys from
               standard input with "<b>-q -</b>", process the input as  if  it  is  an
-              email  message  in  <a href="http://tools.ietf.org/html/rfc5322">RFC  5322</a>  format.  Each logical header line
+              email  message  in  <a href="https://tools.ietf.org/html/rfc5322">RFC  5322</a>  format.  Each logical header line
               becomes one lookup key. A multi-line header becomes  one  lookup
               key with one or more embedded newline characters.
 
@@ -204,13 +206,19 @@ POSTMAP(1)                                                          POSTMAP(1)
                      <i>file</i><b>_</b><i>name</i><b>.dir</b>.  This is available on systems with support
                      for <b>dbm</b> databases.
 
+              <b>fail</b>   A  table that reliably fails all requests. The lookup ta-
+                     ble name is used for logging only. This table  exists  to
+                     simplify Postfix error tests.
+
               <b>hash</b>   The  output  file  is  a hashed file, named <i>file</i><b>_</b><i>name</i><b>.db</b>.
                      This is available on systems with support  for  <b>db</b>  data-
                      bases.
 
-              <b>fail</b>   A  table that reliably fails all requests. The lookup ta-
-                     ble name is used for logging only. This table  exists  to
-                     simplify Postfix error tests.
+              <b>lmdb</b>   The  output  is a btree-based file, named <i>file</i><b>_</b><i>name</i><b>.lmdb</b>.
+                     <b>lmdb</b> supports concurrent writes and reads from  different
+                     processes,  unlike  other  supported  file-based  tables.
+                     This is available on systems with support for <b>lmdb</b>  data-
+                     bases.
 
               <b>sdbm</b>   The output consists of two files, named <i>file</i><b>_</b><i>name</i><b>.pag</b> and
                      <i>file</i><b>_</b><i>name</i><b>.dir</b>.  This is available on systems with support
@@ -268,7 +276,7 @@ POSTMAP(1)                                                          POSTMAP(1)
 
        <b><a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> (yes)</b>
               Enable preliminary SMTPUTF8 support for the protocols  described
-              in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533.
+              in <a href="https://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
@@ -276,6 +284,11 @@ POSTMAP(1)                                                          POSTMAP(1)
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
               A  prefix  that  is  prepended  to  the  process  name in syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
+
+       Available in Postfix 2.11 and later:
+
+       <b><a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (16777216)</b>
+              The initial OpenLDAP LMDB database size limit in bytes.
 
 <b>SEE ALSO</b>
        <a href="postalias.1.html">postalias(1)</a>, create/update/query alias database
