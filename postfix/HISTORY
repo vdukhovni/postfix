@@ -25929,3 +25929,10 @@ Apologies for any names omitted.
 
 	Regression prevention: copied a queue file record typecheck
 	from the pickup daemon. Files: *qmgr/qmgr_message.c.
+
+20211127
+
+	Feature: support for the pcre2 library (the legacy pcre
+	library is still supported). See RELEASE_NOTES for details.
+	Files: makedefs, util/dict_open.c, util.dict_pcre.c,
+	proto/pcre_table, proto/PCRE_README.html.

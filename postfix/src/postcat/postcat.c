@@ -193,11 +193,12 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	    for (offset = 0; offset < start_offset; offset++)
 		if (VSTREAM_GETC(fp) == VSTREAM_EOF)
 		    msg_fatal("%s: skip %ld bytes failed after %ld",
-			      VSTREAM_PATH(fp), start_offset, offset);
+			      VSTREAM_PATH(fp), (long) start_offset,
+			      (long) offset);
 	} else {
 	    if (vstream_fseek(fp, start_offset, SEEK_SET) < 0)
 		msg_fatal("%s: seek to %ld: %m",
-			  VSTREAM_PATH(fp), start_offset);
+			  VSTREAM_PATH(fp), (long) start_offset);
 	}
     }
 
