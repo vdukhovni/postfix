@@ -186,7 +186,7 @@ void    tls_set_dh_from_file(const char *path)
 	return;
 
     if ((fp = fopen(path, "r")) == 0) {
-	msg_warn("cannot load DH parameters from file %s: %m"
+	msg_warn("error opening DH parameter file \"%s\": %m"
 		 " -- using compiled-in defaults", path);
 	return;
     }
@@ -194,7 +194,8 @@ void    tls_set_dh_from_file(const char *path)
 				      OSSL_KEYMGMT_SELECT_DOMAIN_PARAMETERS,
 				      NULL, NULL);
     if (!d || !OSSL_DECODER_from_fp(d, fp) || !tmp) {
-	msg_warn("error loading compiled-in DH parameters");
+	msg_warn("error decoding DH parameters from file \"%s\""
+		 " -- using compiled-in defaults", path);
 	tls_print_errors();
     } else {
 	dhp = tmp;

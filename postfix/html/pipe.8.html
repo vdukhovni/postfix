@@ -443,29 +443,28 @@ PIPE(8)                                                                PIPE(8)
               The location of the Postfix top-level queue directory.
 
        <b><a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> (empty)</b>
-              The  set  of  characters  that can separate a user name from its
-              extension (example: user+foo), or a .forward file name from  its
-              extension (example: .forward+foo).
+              The  set of characters that can separate an email address local-
+              part, user name, or a .forward file name from its extension.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              A  prefix  that  is  prepended  to  the  process  name in syslog
+              A prefix that  is  prepended  to  the  process  name  in  syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Available in Postfix version 3.0 and later:
 
        <b><a href="postconf.5.html#pipe_delivery_status_filter">pipe_delivery_status_filter</a> ($<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b>
-              Optional filter for the <a href="pipe.8.html"><b>pipe</b>(8)</a> delivery  agent  to  change  the
+              Optional  filter  for  the  <a href="pipe.8.html"><b>pipe</b>(8)</a> delivery agent to change the
               delivery status code or explanatory text of successful or unsuc-
               cessful deliveries.
 
        Available in Postfix version 3.3 and later:
 
        <b><a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> (yes)</b>
-              Enable support for  the  original  recipient  address  after  an
-              address  is  rewritten  to a different address (for example with
+              Enable  support  for  the  original  recipient  address after an
+              address is rewritten to a different address  (for  example  with
               aliasing or with canonical mapping).
 
        <b><a href="postconf.5.html#service_name">service_name</a> (read-only)</b>
@@ -474,7 +473,7 @@ PIPE(8)                                                                PIPE(8)
        Available in Postfix 3.5 and later:
 
        <b><a href="postconf.5.html#info_log_address_format">info_log_address_format</a> (external)</b>
-              The email address form that will be used  in  non-debug  logging
+              The  email  address  form that will be used in non-debug logging
               (info, warning, etc.).
 
 <b>SEE ALSO</b>

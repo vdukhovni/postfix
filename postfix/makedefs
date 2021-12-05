@@ -309,6 +309,24 @@ case "$SYSTEM.$RELEASE" in
 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 		: ${PLUGIN_LD="${CC} -shared"}
 		;;
+   FreeBSD.13*)	SYSTYPE=FREEBSD13
+		: ${CC=cc}
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD="${CC} -shared"}
+		;;
+   FreeBSD.14*)	SYSTYPE=FREEBSD14
+		: ${CC=cc}
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD="${CC} -shared"}
+		;;
  DragonFly.*)	SYSTYPE=DRAGONFLY
 		;;
   OpenBSD.2*)	SYSTYPE=OPENBSD2
@@ -327,6 +345,15 @@ case "$SYSTEM.$RELEASE" in
 		: ${PLUGIN_LD="${CC} -shared"}
 		;;
   OpenBSD.6*)	SYSTYPE=OPENBSD6
+		: ${CC=cc}
+		: ${SHLIB_SUFFIX=.so.1.0}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD="${CC} -shared"}
+		;;
+  OpenBSD.7*)	SYSTYPE=OPENBSD7
 		: ${CC=cc}
 		: ${SHLIB_SUFFIX=.so.1.0}
 		: ${SHLIB_CFLAGS=-fPIC}
@@ -354,8 +381,32 @@ case "$SYSTEM.$RELEASE" in
 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 		: ${PLUGIN_LD="${CC-gcc} -shared"}
-               ;;
-   NetBSD.7*)  SYSTYPE=NETBSD7
+		;;
+   NetBSD.7*)	SYSTYPE=NETBSD7
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD="${CC-gcc} -shared"}
+		;;
+   NetBSD.8*)	SYSTYPE=NETBSD8
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD="${CC-gcc} -shared"}
+		;;
+   NetBSD.9*)	SYSTYPE=NETBSD9
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD="${CC-gcc} -shared"}
+		;;
+   NetBSD.10*)	SYSTYPE=NETBSD10
 		: ${SHLIB_SUFFIX=.so}
 		: ${SHLIB_CFLAGS=-fPIC}
 		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}

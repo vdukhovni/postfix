@@ -25936,3 +25936,23 @@ Apologies for any names omitted.
 	library is still supported). See RELEASE_NOTES for details.
 	Files: makedefs, util/dict_open.c, util.dict_pcre.c,
 	proto/pcre_table, proto/PCRE_README.html.
+
+20211129
+
+	Portability: defines for FreeBSD <= 14.x, OpenBSD 7.x, NetBSD <=
+	10.x. Brad Smith. Files: makedefs, util/sys_defs.h.
+
+20211202
+
+	Cleanup: warning messages when a Diffie-Hellman parameter
+	file cannot be opened or parsed. Viktor Dukhovni. File:
+	tls/tls_dh.c.
+
+20211204
+
+	Cleanup: parameter descriptions in manpages were frozen in the
+	past. Files: proto/aliases, src/local/local.c, src/pipe/pipe.c,
+	src/qmqpd/qmqpd.c, src/trivial-rewrite/trivial-rewrite.c.
+
+	Documentation: added a "howto tip" to the stock main.cf
+	file. File: conf/main.cf

@@ -30,13 +30,15 @@
 #if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4) \
     || defined(FREEBSD5) || defined(FREEBSD6) || defined(FREEBSD7) \
     || defined(FREEBSD8) || defined(FREEBSD9) || defined(FREEBSD10) \
-    || defined(FREEBSD11) || defined(FREEBSD12) \
+    || defined(FREEBSD11) || defined(FREEBSD12) || defined(FREEBSD13) \
+    || defined(FREEBSD14) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
     || defined(OPENBSD2) || defined(OPENBSD3) || defined(OPENBSD4) \
-    || defined(OPENBSD5) || defined(OPENBSD6) \
+    || defined(OPENBSD5) || defined(OPENBSD6) || defined(OPENBSD7) \
     || defined(NETBSD1) || defined(NETBSD2) || defined(NETBSD3) \
     || defined(NETBSD4) || defined(NETBSD5) || defined(NETBSD6) \
-    || defined(NETBSD7) \
+    || defined(NETBSD7) | defined(NETBSD8) || defined(NETBSD9) \
+    || defined(NETBSD10) \
     || defined(EKKOBSD1) || defined(DRAGONFLY)
 #define SUPPORTED
 #include <sys/param.h>
