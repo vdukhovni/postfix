@@ -25956,3 +25956,15 @@ Apologies for any names omitted.
 
 	Documentation: added a "howto tip" to the stock main.cf
 	file. File: conf/main.cf
+
+20211211
+
+	Logging: the Postfix SMTP client logs an info message when it
+	breaks a long line with "<CR><LF><SP>".
+
+20211216
+
+	Bugfix (introduced: Postfix 3.0): the proxymap daemon did not
+	automatically authorize proxied maps inside pipemap (example:
+	pipemap:{proxy:maptype:mapname, ...}) or inside unionmap. Problem
+	reported by Mirko Vogt. Files: proxymap/proxymap.c.

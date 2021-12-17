@@ -1,11 +1,15 @@
 Wish list:
 
+	Factor out the new get_nested_dict_name() function from
+	proxymap.c, make it a library function, and reuse it in
+	postconf_dbms.c.
+
 	Convert the proxymap protol into "server speaks first".
 
 	Fix code that still uses "long" for data_size and data_offset,
 	and that uses "%ld" in sscanf().
 
-	A smart query services for live Postfix tables that outputs JSON?
+	A smart query service for live Postfix tables that outputs JSON?
 
 	proxy_read_maps needs a dedicated matcher that looks
 	inside pipemap:{}. Maybe steal some code from postconf.
@@ -21,9 +25,6 @@ Wish list:
 	(virtual_mailbox_maps or reject unverified_recipient), and
 	virtual_transport.
 
-	In addition to the xxx_per_record_deadline, specify
-	a minimum data rate for the DATA stage.
-
 	Make smtpd_relay_before_recipient_restrictions settable
 	in smtpd_checks tests.
 
@@ -33,11 +34,6 @@ Wish list:
 	b) add support for non-libbind resolvers. Gracefully handle
 	requests for unsupported functionality; return an error status,
 	instead of terminating.
-
-	Inline regexp/pcre/cidr table support. If the table name is
-	a string inside {}, then split the string on comma (ignoring
-	commas inside {}), write each resulting fragment as one line to
-	a VSTRING buffer, and open that buffer as a memory file.
 
 	Add a robust dnssec_probe regression test (success and fail)
 	that does not break existing regression tests.

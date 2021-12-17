@@ -94,7 +94,8 @@
 /*	external and internal forms differ), or MA_FORM_INTERNAL_FIRST
 /*	(internal form, then external form if the internal and external
 /*	forms differ).
-/* .IP in_form .IP out_form
+/* .IP in_form
+/* .IP out_form
 /*	Input and output address forms, one of MA_FORM_INTERNAL (unquoted
 /*	form), or MA_FORM_EXTERNAL (quoted form).
 /* .IP strategy
