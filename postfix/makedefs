@@ -950,7 +950,7 @@ CCARGS="$CCARGS -DSNAPSHOT"
 
 # Non-production: needs thorough testing, or major changes are still
 # needed before the code stabilizes.
-#CCARGS="$CCARGS -DNONPROD"
+CCARGS="$CCARGS -DNONPROD"
 
 # Workaround: prepend Postfix include files before other include files.
 CCARGS="-I. -I../../include $CCARGS"
@@ -974,7 +974,7 @@ CCARGS="-I. -I../../include $CCARGS"
 # "make makefiles name=value...". The replacement depends on usage
 # context: the expanded release version in actual pathnames, or the
 # unexpanded ${mail_version} in configuration parameter values (both
-# main.cf and and built-in defaults).
+# main.cf and built-in defaults).
 
 # Helper function to determine DEF_MAIL_VERSION.
 

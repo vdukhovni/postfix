@@ -2,7 +2,7 @@
 /* NAME
 /*	showq_compat 8
 /* SUMMARY
-/*	Sendmail mailq compatibitily adapter
+/*	Sendmail mailq compatibility adapter
 /* SYNOPSIS
 /*	void	showq_compat(
 /*	VSTREAM	*showq)

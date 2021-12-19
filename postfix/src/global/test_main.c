@@ -168,7 +168,7 @@ NORETURN test_main(int argc, char **argv, TEST_DRIVER_FN test_driver,...)
 
     /*
      * Register higher-level dictionaries and initialize the support for
-     * dynamically-loaded dictionarles.
+     * dynamically-loaded dictionaries.
      */
     mail_dict_init();
 

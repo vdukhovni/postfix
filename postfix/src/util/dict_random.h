@@ -5,7 +5,7 @@
 /* NAME
 /*	dict_random 3h
 /* SUMMARY
-/*	dictionary manager interface for ramdomized tables
+/*	dictionary manager interface for randomized tables
 /* SYNOPSIS
 /*	#include <dict_random.h>
 /* DESCRIPTION

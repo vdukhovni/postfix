@@ -46,7 +46,7 @@
 /*	same ctx argument. The context accumulates run-time lookup key and result
 /*	validation information (inapplicable keys or results are skipped) and is
 /*	needed later in each call of \fIdb_common_expand\fR. A non-zero return
-/*	value indicates that data-depedent '%' expansions were found in the input
+/*	value indicates that data-dependent '%' expansions were found in the input
 /*	template.
 /*
 /*	db_common_alloc() provides a way to use db_common_parse_domain()
@@ -56,7 +56,7 @@
 /*	When the input data lacks all fields needed for the expansion, zero
 /*	is returned and the query or result should be skipped. Otherwise
 /*	the expansion is appended to the result buffer (after a comma if the
-/*	the result buffer is not empty).
+/*	result buffer is not empty).
 /*
 /*	If not NULL, the \fBquote_func\fR callback performs database-specific
 /*	quoting of each variable before expansion.

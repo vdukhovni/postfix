@@ -38,7 +38,7 @@
 #define MAC_EXP_OP_TOK_GT	6	/* > */
 
  /*
-  * Relational operator results. An enum to discourage asuming that 0 is
+  * Relational operator results. An enum to discourage assuming that 0 is
   * false, !0 is true.
   */
 typedef enum MAC_EXP_OP_RES {

@@ -32,7 +32,7 @@
 #define MAIL_PROTO_QMQP		"QMQP"
 
  /*
-  * Names of services: these are the names of the UNIX-domain socket or or
+  * Names of services: these are the names of the UNIX-domain socket or
   * FIFO that a service listens on.
   */
 #define MAIL_SERVICE_BOUNCE	"bounce"

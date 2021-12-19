@@ -71,7 +71,7 @@
 /*
 /*	The \fIhop_status\fR member must be updated by the caller
 /*	when all delivery to the destination in \fInexthop\fR should
-/*	be deferred. This member is passed to to dsn_free().
+/*	be deferred. This member is passed to dsn_free().
 /*
 /*	deliver_request_done() reports the delivery status back to the
 /*	client, including the optional \fIhop_status\fR etc. information,

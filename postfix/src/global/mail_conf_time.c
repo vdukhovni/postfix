@@ -46,7 +46,7 @@
 /*	get_mail_conf_time() looks up the named entry in the global
 /*	configuration dictionary. The default value is returned
 /*	when no value was found. \fIdef_unit\fR supplies the default
-/*	time unit for numbers numbers specified without explicit unit.
+/*	time unit for numbers specified without explicit unit.
 /*	\fImin\fR is zero or specifies a lower limit on the integer
 /*	value or string length; \fImax\fR is zero or specifies an
 /*	upper limit on the integer value or string length.

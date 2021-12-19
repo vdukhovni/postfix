@@ -25968,3 +25968,45 @@ Apologies for any names omitted.
 	automatically authorize proxied maps inside pipemap (example:
 	pipemap:{proxy:maptype:mapname, ...}) or inside unionmap. Problem
 	reported by Mirko Vogt. Files: proxymap/proxymap.c.
+
+20211218
+
+	Typo fixes based on automated scans of C source code comments.
+	Verified that the .o files have not changed. Files:
+	bounce/bounce_notify_util.c, cleanup/cleanup_api.c,
+	cleanup/cleanup_message.c, dns/dns_lookup.c, flush/flush.c,
+	global/compat_level.c, global/db_common.c,
+	global/deliver_request.c, global/dict_ldap.c, global/dict_sqlite.c,
+	global/dynamicmaps.c, global/mail_conf_time.c, global/mail_copy.c,
+	global/mail_params.h, global/mail_proto.h, global/memcache_proto.c,
+	global/normalize_mailhost_addr.c, global/quote_822_local.c,
+	global/test_main.c, global/verify.c, global/verify_sender_addr.c,
+	local/unknown.c, master/dgram_server.c, master/event_server.c,
+	master/multi_server.c, master/single_server.c,
+	master/trigger_server.c, oqmgr/qmgr_entry.c,
+	postconf/postconf_dbms.c, postconf/postconf_master.c,
+	postconf/postconf_user.c, postdrop/postdrop.c, postmap/postmap.c,
+	postmulti/postmulti.c, postqueue/showq_compat.c,
+	postscreen/postscreen_smtpd.c, postscreen/postscreen_starttls.c,
+	posttls-finger/posttls-finger.c, proxymap/proxymap.c,
+	qmgr/qmgr_entry.c, qmqpd/qmqpd_peer.c, smtp/smtp.h,
+	smtp/smtp_proto.c, smtpd/smtpd_check.c, smtpd/smtpd_peer.c,
+	tls/tls_certkey.c, tls/tls_client.c, tls/tls_fprint.c,
+	tls/tls_misc.c, tls/tls_server.c, tlsmgr/tlsmgr.c,
+	tlsproxy/tlsproxy.c, trivial-rewrite/resolve.c,
+	trivial-rewrite/transport.c, trivial-rewrite/trivial-rewrite.c,
+	util/argv.c, util/dict_cache.c, util/dict_cdb.c, util/dict_file.c,
+	util/dict_random.c, util/dict_random.h, util/dict_thash.c,
+	util/dup2_pass_on_exec.c, util/edit_file.c, util/extpar.c,
+	util/gccw.c, util/mac_expand.c, util/mac_expand.h,
+	util/myaddrinfo.c, util/name_mask.c, util/sane_link.c,
+	util/sane_rename.c, util/unix_dgram_connect.c,
+	util/unix_dgram_listen.c, util/unix_pass_fd_fix.c,
+	util/vstring.c, xsasl/xsasl_dovecot_server.c.
+
+	Typo fixes based on automated scans of other files. Files:
+	auxiliary/qshape/qshape.pl, conf/post-install,
+	conf/postmulti-script, makedefs, postfix-install,
+	proto/postconf.proto, TLS_ACKNOWLEDGEMENTS, TLS_CHANGES.
+
+	Next up: raj's documentation fixes.

@@ -319,7 +319,7 @@ static void load_pkey(pem_load_state_t *st, int pkey_type,
 	if (pkey)
 	    EVP_PKEY_free(pkey);
 
-	/* XXX: Legacy behaviour was silent, should we stay silent? */
+	/* XXX: Legacy behavior was silent, should we stay silent? */
 	if (st->mixed) {
 	    msg_warn("ignoring 2nd key at index %d in %s after 1st at %d",
 		     st->objnum, st->source, st->keynum);

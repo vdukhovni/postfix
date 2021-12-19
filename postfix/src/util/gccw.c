@@ -1,5 +1,5 @@
  /*
-  * This is is a regression test for all the things that gcc is meant to warn
+  * This is a regression test for all the things that gcc is meant to warn
   * about.
   * 
   * gcc version 3 breaks several tests:

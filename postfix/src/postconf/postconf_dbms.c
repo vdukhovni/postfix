@@ -170,7 +170,7 @@ static void pcf_check_dbms_client(const PCF_DBMS_INFO *dp, const char *cf_file)
 	 * Populate the dictionary with settings in this database client
 	 * configuration file. Don't die if a file can't be opened - some
 	 * files may contain passwords and should not be world-readable.
-	 * Note: dict_load_fp() nags about duplicate pameter settings.
+	 * Note: dict_load_fp() nags about duplicate parameter settings.
 	 */
 	dict = dict_ht_open(dict_spec, O_CREAT | O_RDWR, 0);
 	dict_register(dict_spec, dict);

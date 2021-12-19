@@ -3645,7 +3645,7 @@ the recipient_delimiter set. The delimiter character and extension
 may then be used to generate an extended .forward file name. This
 implementation recognizes one delimiter character and one extension
 per email address localpart or email address. With Postfix 2.10 and
-earler, the recipient_delimiter specifies a single character. </p>
+earlier, the recipient_delimiter specifies a single character. </p>
 
 <p> See canonical(5), local(8), relocated(5) and virtual(5) for the
 effects of recipient_delimiter on lookups in aliases, canonical,
@@ -17652,7 +17652,7 @@ server mode of tlsproxy(8). </p>
 
 <p> When this parameter is non-empty, the Postfix SMTP server enables
 SNI extension processing, and logs SNI values that are invalid or
-don't match an entry in the the specified tables.  When an entry
+don't match an entry in the specified tables.  When an entry
 does match, the SNI name is logged as part of the connection summary
 at log levels 1 and higher.  </p>
 

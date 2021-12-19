@@ -174,7 +174,7 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
     }
 
     /*
-     * Optionally fold the key. Folding may be enabled on on-the-fly.
+     * Optionally fold the key. Folding may be enabled on-the-fly.
      */
     if (dict->flags & DICT_FLAG_FOLD_FIX) {
 	if (dict->fold_buf == 0)

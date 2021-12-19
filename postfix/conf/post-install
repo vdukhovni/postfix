@@ -144,7 +144,7 @@
 #	should not be in the command search path of any users.
 # .IP command_directory
 #	The directory for Postfix administrative commands. This
-#	directory should be in the command search path of adminstrative users.
+#	directory should be in the command search path of administrative users.
 # .IP queue_directory
 #	The directory for Postfix queues.
 # .IP data_directory

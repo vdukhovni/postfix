@@ -138,7 +138,7 @@ do {
 	"The 's' option shows sender domain counts.\n".
 	"The 'p' option shows address counts by for parent domains.\n".
 	"Parent domains are shown with a leading '.' before the domain name.\n".
-	"Parent domains are only shown if the the domain is not a TLD, and at\n".
+	"Parent domains are only shown if the domain is not a TLD, and at\n".
 	"least <min_subdomains> (default 5) subdomains are shown in the output.\n\n".
 
 	"The bucket age ranges in units of <bucket_time> minutes are\n".

@@ -5098,7 +5098,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      * value would block the request, without logging REJECT messages.
      * Approach: evaluate fake relay restrictions (permit_mynetworks,
      * permit_sasl_authenticated, permit_auth_destination) and log a warning
-     * if the result is DUNNO instead of OK, i.e. a reject_unauth_destinatin
+     * if the result is DUNNO instead of OK, i.e. a reject_unauth_destination
      * at the end would have blocked the request.
      * 
      * If warn_compat_break_relay_restrictions is true, always evaluate

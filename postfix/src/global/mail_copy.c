@@ -265,7 +265,7 @@ int     mail_copy(const char *sender,
      * while fflush and fsync() succeed. Think of remote file systems such as
      * AFS that copy the file back to the server upon close. Oh well, no
      * point optimizing the error case. XXX On systems that use flock()
-     * locking, we must truncate the file file before closing it (and losing
+     * locking, we must truncate the file before closing it (and losing
      * the exclusive lock).
      */
     read_error = vstream_ferror(src);

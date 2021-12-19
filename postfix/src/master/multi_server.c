@@ -113,7 +113,7 @@
 /*	Only the last instance of this parameter type is remembered.
 /* .IP "CA_MAIL_SERVER_POST_ACCEPT(void *(VSTREAM *stream, char *service_name, char **argv, HTABLE *attr))"
 /*	Function to be executed after accepting a new connection.
-/*	The stream, service_name and argv argunents are the same
+/*	The stream, service_name and argv arguments are the same
 /*	as with the "service" argument. The attr argument is null
 /*	or a pointer to a table with 'pass' connection attributes.
 /*	The table is destroyed after the function returns.
@@ -694,7 +694,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 
     /*
      * Register higher-level dictionaries and initialize the support for
-     * dynamically-loaded dictionarles.
+     * dynamically-loaded dictionaries.
      */
     mail_dict_init();
 

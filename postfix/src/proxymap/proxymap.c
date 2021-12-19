@@ -793,7 +793,7 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
-/* post_accept - anounce our protocol name */
+/* post_accept - announce our protocol name */
 
 static void post_accept(VSTREAM *stream, char *unused_name, char **unused_argv,
 			        HTABLE *unused_attr)

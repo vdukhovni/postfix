@@ -84,7 +84,7 @@
 #define VERIFY_BASE		31
 
  /*
-  * We append the time-dependent portion to the localpart of the the address
+  * We append the time-dependent portion to the localpart of the address
   * verification probe sender address, so that the result has the form
   * ``fixed1variable@fixed2''. There is no delimiter between ``fixed1'' and
   * ``variable'', because that could make "old" time stamps valid depending

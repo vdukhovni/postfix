@@ -161,7 +161,7 @@
 /* Application-specific. */
 
  /*
-  * The session_id_context indentifies the service that created a session.
+  * The session_id_context identifies the service that created a session.
   * This information is used to distinguish between multiple TLS-based
   * servers running on the same server. We use the name of the mail system.
   */

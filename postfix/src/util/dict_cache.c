@@ -139,7 +139,7 @@
 /*	behind" strategy does not interfere with database access,
 /*	allow dict_cache_sequence() to run to completion.
 /* .IP table
-/*	A bare dictonary handle.
+/*	A bare dictionary handle.
 /* DIAGNOSTICS
 /*	When a request is satisfied, the lookup routine returns
 /*	non-null, and the update, delete and sequence routines

@@ -1940,7 +1940,7 @@
   - Updated configuration information:
     * As of OpenSSL 0.9.4, certificate chain verification is not sufficient,
       since the certificate purpose is not checked, so I recommend to add
-      all intermediate CAs the the list of CAs and stay with a verification
+      all intermediate CAs the list of CAs and stay with a verification
       depth of 1.
       Work is in progress for 0.9.5.
   - Stepped up to the just released new patchlevel postfix-19990906-pl09.
@@ -2357,7 +2357,7 @@
 1999/04/14
   - Ported from OpenSSL the BIO_callback functions to dump out the negotiation
     and transmission for debugging purposes. The functions are triggered
-    by the the new loglevels 3 and 4.
+    by the new loglevels 3 and 4.
   - Call SSL_free() to get rid of the SSL connection structure not used
     anymore.
 

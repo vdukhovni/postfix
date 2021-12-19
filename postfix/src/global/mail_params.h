@@ -2079,7 +2079,7 @@ extern int var_mailtool_compat;
 
  /*
   * How long a daemon command may take to receive or deliver a message etc.
-  * before we assume it is wegded (should never happen).
+  * before we assume it is wedged (should never happen).
   */
 #define VAR_DAEMON_TIMEOUT	"daemon_timeout"
 #define DEF_DAEMON_TIMEOUT	"18000s"
@@ -4196,7 +4196,7 @@ extern char *var_smtp_dns_re_filter;
 extern char *var_smtpd_dns_re_filter;
 
  /*
-  * Share TLS sessions through tlproxy(8).
+  * Share TLS sessions through tlsproxy(8).
   */
 #define VAR_SMTP_TLS_CONN_REUSE		"smtp_tls_connection_reuse"
 #define DEF_SMTP_TLS_CONN_REUSE		0

@@ -1453,7 +1453,7 @@ void    tls_info_callback(const SSL *s, int where, int ret)
   * 
   * Modified to save a lot of strcpy and strcat by Matti Aarnio.
   * 
-  * Rewritten by Wietse to elimate fixed-size stack buffer, array index
+  * Rewritten by Wietse to eliminate fixed-size stack buffer, array index
   * multiplication and division, sprintf() and strcpy(), and lots of strlen()
   * calls. We could make it a little faster by using a fixed-size stack-based
   * buffer.

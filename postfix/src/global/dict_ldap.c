@@ -1040,7 +1040,7 @@ static char **url_attrs(DICT_LDAP *dict_ldap, LDAPURLDesc * url)
 
     /*
      * When the LDAP URI explicitly specifies a set of attributes, we use the
-     * interection of the URI attributes and our result attributes. This way
+     * interaction of the URI attributes and our result attributes. This way
      * LDAP URIs can hide certain attributes that should not be part of the
      * query. There is no point in retrieving attributes not listed in our
      * result set, we won't make any use of those.

@@ -816,7 +816,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
      * relayed.". Postfix adds an ORCPT parameter under these conditions.
      * 
      * Therefore, all down-stream MTAs will send DSNs with Original-Recipient
-     * field ontaining this same ORCPT value. When a down-stream MTA can use
+     * field containing this same ORCPT value. When a down-stream MTA can use
      * that information in their DSNs, it makes no sense that an up-stream
      * MTA can't use that same information in its own DSNs.
      * 

@@ -19,7 +19,7 @@
 /* .IP block_mode
 /*	Either NON_BLOCKING for a non-blocking socket, or BLOCKING for
 /*	blocking mode.
-/* DIAGNOSIICS
+/* DIAGNOSTICS
 /*	Fatal errors: path too large, can't create socket.
 /*
 /*	Other errors result in a -1 result value, with errno indicating
