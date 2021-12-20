@@ -18,7 +18,7 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        TLS-related information about the server. With SMTP, the destination is
        a  domainname;  with LMTP it is either a domainname prefixed with <b>inet:</b>
        or a pathname prefixed with <b>unix:</b>.  If Postfix  is  built  without  TLS
-       support,  the  resulting  posttls-finger program has very limited func-
+       support, the resulting <a href="posttls-finger.1.html"><b>posttls-finger</b>(1)</a> program has very limited func-
        tionality, and only the <b>-a</b>, <b>-c</b>, <b>-h</b>, <b>-o</b>, <b>-S</b>, <b>-t</b>, <b>-T</b> and <b>-v</b>  options  are
        available.
 
@@ -83,9 +83,9 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
 
        <b>-a</b> <i>family</i> (default: <b>any</b>)
               Address family preference: <b>ipv4</b>, <b>ipv6</b> or <b>any</b>.  When  using  <b>any</b>,
-              posttls-finger  will  randomly select one of the two as the more
-              preferred, and exhaust all MX preferences for the first  address
-              family before trying any addresses for the other.
+              <a href="posttls-finger.1.html"><b>posttls-finger</b>(1)</a>  will  randomly  select  one of the two as the
+              more preferred, and exhaust all MX  preferences  for  the  first
+              address family before trying any addresses for the other.
 
        <b>-A</b> <i>trust-anchor.pem</i> (default: none)
               A  list of PEM trust-anchor files that overrides CAfile and CAp-
@@ -109,7 +109,7 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               server fingerprints and matching against user provided  certifi-
               cate fingerprints (with DANE TLSA records the algorithm is spec-
               ified in the DNS).   In  Postfix  versions  prior  to  3.6,  the
-              default value was "sha1".
+              default value was "md5".
 
        <b>-f</b>     Lookup  the  associated  DANE TLSA RRset even when a hostname is
               not an alias and its address records lie in  an  unsigned  zone.
@@ -121,7 +121,7 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               trusted.
 
        <b>-g</b> <i>grade</i> (default: medium)
-              The  minimum  TLS  cipher  grade  used  by  posttls-finger.  See
+              The  minimum  TLS  cipher  grade used by <a href="posttls-finger.1.html"><b>posttls-finger</b>(1)</a>.  See
               <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> for details.
 
        <b>-h</b> <i>host</i><b>_</b><i>lookup</i> (default: <b>dns</b>)
@@ -157,13 +157,13 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               allows you to test certificate or public-key fingerprint matches
               before you deploy them in the policy table.
 
-              Note, since <b>posttls-finger</b> does not actually deliver any  email,
-              the  <b>none</b>,  <b>may</b> and <b>encrypt</b> security levels are not very useful.
-              Since <b>may</b> and <b>encrypt</b> don't require peer certificates, they will
-              often  negotiate  anonymous TLS ciphersuites, so you won't learn
-              much about the remote SMTP server's certificates at these levels
-              if it also supports anonymous TLS (though you may learn that the
-              server supports anonymous TLS).
+              Note, since <a href="posttls-finger.1.html"><b>posttls-finger</b>(1)</a>  does  not  actually  deliver  any
+              email,  the  <b>none</b>,  <b>may</b> and <b>encrypt</b> security levels are not very
+              useful.  Since <b>may</b> and <b>encrypt</b> don't require peer  certificates,
+              they  will  often  negotiate  anonymous TLS ciphersuites, so you
+              won't learn much about the remote SMTP server's certificates  at
+              these  levels  if it also supports anonymous TLS (though you may
+              learn that the server supports anonymous TLS).
 
        <b>-L</b> <i>logopts</i> (default: <b>routine,certmatch</b>)
               Fine-grained TLS logging  options.  To  tune  the  TLS  features
@@ -247,7 +247,7 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               The  TLS policy for MX hosts with "secure" TLSA records when the
               nexthop destination security level is <b>dane</b>, but  the  MX  record
               was found via an "insecure" MX lookup.  See the <a href="postconf.5.html">main.cf</a> documen-
-              tation for smtp_tls_insecure_mx_policy for details.
+              tation for <a href="postconf.5.html#smtp_tls_dane_insecure_mx_policy">smtp_tls_dane_insecure_mx_policy</a> for details.
 
        <b>-o</b> <i>name=value</i>
               Specify zero or more times to override the value of the  <a href="postconf.5.html">main.cf</a>
@@ -256,8 +256,8 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               configure the SMTP EHLO name sent to the remote server.
 
        <b>-p</b> <i>protocols</i> (default: &gt;=TLSv1)
-              TLS  protocols that posttls-finger will exclude or include.  See
-              <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> for details.
+              TLS  protocols  that  <a href="posttls-finger.1.html"><b>posttls-finger</b>(1)</a> will exclude or include.
+              See <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> for details.
 
        <b>-P</b> <i>CApath/</i> (default: none)
               The OpenSSL CApath/  directory  (indexed  via  c_rehash(1))  for
@@ -293,11 +293,11 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        <b>-v</b>     Enable  verbose  Postfix  logging.   Specify  more  than once to
               increase the level of verbose logging.
 
-       <b>-w</b>     Enable outgoing TLS wrapper mode, or  SMTPS  support.   This  is
-              typically  provided  on  port 465 by servers that are compatible
-              with the ad-hoc SMTP in SSL protocol, rather than  the  standard
-              STARTTLS protocol.  The destination <i>domain</i>:<i>port</i> should of course
-              provide such a service.
+       <b>-w</b>     Enable outgoing TLS wrapper mode, or SUBMISSIONS/SMTPS  support.
+              This  is typically provided on port 465 by servers that are com-
+              patible with the SMTP-in-SSL protocol, rather than the  STARTTLS
+              protocol.   The  destination  <i>domain</i>:<i>port</i> must of course provide
+              such a service.
 
        <b>-X</b>     Enable <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a> mode. This is an unsupported mode,  for  pro-
               gram development only.

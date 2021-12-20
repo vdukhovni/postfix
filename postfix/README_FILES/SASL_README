@@ -558,8 +558,8 @@ The following is a summary of applicable smtpd.conf file entries:
         Specify ldapdb to enable the plugin.
 
     ldapdb_uri
-        Specify either ldapi:// for to connect over a UNIX-domain socket, ldap:
-        // for an unencrypted TCP connection or ldaps:// for an encrypted TCP
+        Specify either ldapi:// to connect over a UNIX-domain socket, ldap:/
+        / for an unencrypted TCP connection, or ldaps:// for an encrypted TCP
         connection.
 
     ldapdb_id
@@ -1134,14 +1134,14 @@ final resort.
     single MySQL database, and configure different Postfix queries to extract
     the appropriate information.
 
-  * Specify dbm instead of hash if your system uses dbm files instead of db
+  * Specify ddbbmm instead of hhaasshh if your system uses ddbbmm files instead of ddbb
     files. To find out what lookup tables Postfix supports, use the command
-    "postconf -m".
+    "ppoossttccoonnff --mm".
 
-  * Execute the command "postmap /etc/postfix/sasl_passwd" whenever you change
+  * Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd" whenever you change
     the sasl_passwd table.
 
-  * Execute the command "postmap /etc/postfix/sender_relay" whenever you change
+  * Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//sseennddeerr__rreellaayy" whenever you change
     the sender_relay table.
 
 PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt ppoolliiccyy -- SSAASSLL mmeecchhaanniissmm pprrooppeerrttiieess
@@ -1296,7 +1296,7 @@ NNoottee
     Postfix configuration a little more convenient because you don't have to
     specify the SASL plug-in type in the Postfix main.cf file (but this may
     cause surprises when you switch to a later Postfix version that is built
-    with the default SASL type of sasl).
+    with the default SASL type of cyrus).
 
   * If you also want support for LDAP or TLS (or for Cyrus SASL), you need to
     merge their CCARGS and AUXLIBS options into the above command line; see the

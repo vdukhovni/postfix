@@ -129,7 +129,7 @@
 # .sp
 #	The \fBlocal\fR(8), \fBpipe\fR(8), \fBspawn\fR(8), and
 #	\fBvirtual\fR(8) daemons require privileges.
-# .IP "\fBChroot (default: Postfix >= 3.0: n, Postfix <3.0: y)\fR"
+# .IP "\fBChroot (default: Postfix >= 3.0: n, Postfix < 3.0: y)\fR"
 #	Whether or not the service runs chrooted to the mail queue
 #	directory (pathname is controlled by the \fBqueue_directory\fR
 #	configuration variable in the main.cf file).

@@ -117,7 +117,7 @@ send mail between users on the same machine. </p>
 
 <p> The following example presents additional configuration. You
 need to combine this with basic configuration information as
-discussed the first half of this document. </p>
+discussed in the first half of this document. </p>
 
 <blockquote>
 <pre>
@@ -165,7 +165,7 @@ address of their own.</p>
 
 <p> The following example presents additional configuration. You
 need to combine this with basic configuration information as
-discussed the first half of this document. </p>
+discussed in the first half of this document. </p>
 
 <blockquote>
 <pre>
@@ -400,14 +400,14 @@ resort.  </p>
 tables into one single MySQL database, and configure different
 Postfix queries to extract the appropriate information. </p>
 
-<li> <p> Specify dbm instead of hash if your system uses dbm files
-instead of db files. To find out what lookup tables Postfix supports,
-use the command "postconf -m". </p>
+<li> <p> Specify <b>dbm</b> instead of <b>hash</b> if your system uses
+<b>dbm</b> files instead of <b>db</b> files. To find out what lookup
+tables Postfix supports, use the command "<b>postconf -m</b>". </p>
 
-<li> <p> Execute the command "postmap /etc/postfix/sasl_passwd"
+<li> <p> Execute the command "<b>postmap /etc/postfix/sasl_passwd</b>"
 whenever you change the sasl_passwd table. </p>
 
-<li> <p> Execute the command "postmap /etc/postfix/sender_relay"
+<li> <p> Execute the command "<b>postmap /etc/postfix/sender_relay</b>"
 whenever you change the sender_relay table. </p>
 
 </ul>

@@ -20,10 +20,10 @@
 <h2> Host lookup issues </h2>
 
 <p> By default Linux /etc/hosts lookups do not support multiple IP
-address per hostname. This causes warnings from the Postfix SMTP
+addresses per hostname. This causes warnings from the Postfix SMTP
 server that "hostname XXX does not resolve to address YYY", and is
 especially a problem with hosts that have both IPv4 and IPv6
-addresses.  To fix, turn on support for multiple IP addresses: </p>
+addresses.  To fix this, turn on support for multiple IP addresses: </p>
 
 <blockquote>
 <pre>
@@ -73,7 +73,7 @@ library routines.  See the DB_README file for further information.
 
 <p> On RedHat Linux 7.1 and later <b>procmail</b> no longer has
 permission
-to write the mail spool directory. Workaround: </p>
+to write to the mail spool directory. Workaround: </p>
 
 <blockquote>
 <pre>

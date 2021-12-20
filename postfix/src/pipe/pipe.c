@@ -170,6 +170,7 @@
 /* .nf
 /*	    \fIRight\fR: command -f $sender -- $recipient
 /* .fi
+/* NOTE: DO NOT put quotes around the command, $sender, or $recipient.
 /* .IP
 /*	This feature is available as of Postfix 2.3.
 /* .IP "\fBsize\fR=\fIsize_limit\fR (optional)"

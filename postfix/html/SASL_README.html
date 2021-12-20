@@ -960,9 +960,9 @@ file entries: </p>
 
 <dt>ldapdb_uri</dt>
 
-<dd> <p> Specify either <code>ldapi://</code> for to connect over
+<dd> <p> Specify either <code><a href="ldap_table.5.html">ldapi</a>://</code> to connect over
 a UNIX-domain socket, <code><a href="ldap_table.5.html">ldap</a>://</code> for an unencrypted TCP
-connection or <code>ldaps://</code> for an encrypted TCP connection.
+connection, or <code><a href="ldap_table.5.html">ldaps</a>://</code> for an encrypted TCP connection.
 </p> </dd>
 
 <dt>ldapdb_id</dt>
@@ -1809,14 +1809,14 @@ resort.  </p>
 tables into one single MySQL database, and configure different
 Postfix queries to extract the appropriate information. </p>
 
-<li> <p> Specify dbm instead of hash if your system uses dbm files
-instead of db files. To find out what lookup tables Postfix supports,
-use the command "postconf -m". </p>
+<li> <p> Specify <b>dbm</b> instead of <b>hash</b> if your system uses
+<b>dbm</b> files instead of <b>db</b> files. To find out what lookup
+tables Postfix supports, use the command "<b>postconf -m</b>". </p>
 
-<li> <p> Execute the command "postmap /etc/postfix/sasl_passwd"
+<li> <p> Execute the command "<b>postmap /etc/postfix/sasl_passwd</b>"
 whenever you change the sasl_passwd table. </p>
 
-<li> <p> Execute the command "postmap /etc/postfix/sender_relay"
+<li> <p> Execute the command "<b>postmap /etc/postfix/sender_relay</b>"
 whenever you change the sender_relay table. </p>
 
 </ul>
@@ -2047,7 +2047,7 @@ necessary; it just makes Postfix configuration a little more
 convenient because you don't have to specify the SASL plug-in type
 in the Postfix <a href="postconf.5.html">main.cf</a> file (but this may cause surprises when you
 switch to a later Postfix version that is built with the default
-SASL type of <code>sasl</code>). </p>
+SASL type of <code>cyrus</code>). </p>
 
 </li>
 
@@ -2188,7 +2188,7 @@ it unless you are forced to. The makers of Cyrus SASL write: </p>
 
 <blockquote> <i> This library is being deprecated and applications
 should transition to using the SASLv2 library</i> (source: <a
-href="http://cyrusimap.web.cmu.edu/downloads.html">Project Cyrus:
+href="http://www.cyrusimap.org/download.html">Project Cyrus:
 Downloads</a>). </blockquote>
 
 <p> If you still need to set it up, here's a quick rundown: </p>

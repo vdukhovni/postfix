@@ -38,7 +38,10 @@
 /* .PP
 /*	The \fIkey\fR and \fIvalue\fR are processed as is, except that
 /*	surrounding white space is stripped off. Whitespace in lookup
-/*	keys is supported as of Postfix 3.2.
+/*	keys is supported in Postfix 3.2 and later, by surrounding the
+/*	key with double quote characters `"'. Within the double quotes,
+/*	double quote `"' and backslash `\\' characters can be included
+/*	by quoting them with a preceding backslash.
 /*
 /*	When the \fB-F\fR option is given, the \fIvalue\fR must
 /*	specify one or more filenames separated by comma and/or
@@ -78,8 +81,8 @@
 /*	headers and for attached message/* headers.
 /* .sp
 /*	NOTE: with "smtputf8_enable = yes", the \fB-b\fR option
-/*	option disables UTF-8 syntax checks on query keys and
-/*	lookup results. Specify the \fB-U\fR option to force UTF-8
+/*	disables UTF-8 syntax checks on query keys and lookup
+/*	results. Specify the \fB-U\fR option to force UTF-8
 /*	syntax checks anyway.
 /* .sp
 /*	This feature is available in Postfix version 2.6 and later.
@@ -271,12 +274,12 @@
 /*	The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
 /*	and \fBpostmap\fR(1) commands.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a privileged Postfix
+/*	The list of environment variables that a privileged Postfix
 /*	process will import from a non-Postfix parent process, or name=value
 /*	environment overrides.
 /* .IP "\fBsmtputf8_enable (yes)\fR"
 /*	Enable preliminary SMTPUTF8 support for the protocols described
-/*	in RFC 6531..6533.
+/*	in RFC 6531, RFC 6532, and RFC 6533.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"

@@ -195,9 +195,9 @@ weaker anti-spam policies than primary MX hosts).
     introduce a common point of failure.
 
   * First, configure the host to listen on both primary and backup MX
-    addresses. Use the appropriate ifconfig command for the local operating
-    system, or update the appropriate configuration files and "refresh" the
-    network protocol stack.
+    addresses. Use the appropriate ifconfig or ip command for the local
+    operating system, or update the appropriate configuration files and
+    "refresh" the network protocol stack.
 
     Second, configure Postfix to listen on the new IP address (this step is
     needed when you have specified inet_interfaces in main.cf).
@@ -642,8 +642,9 @@ Notes:
   * Some postscreen(8) configuration parameters implement stress-dependent
     behavior. This is supported only when the default value is stress-dependent
     (that is, "postconf -d parametername" output shows "parametername = $
-    {stress?something}${stress:something}"). Other parameters always evaluate
-    as if the stress value is the empty string.
+    {stress?something}${stress:something}" or "parametername = ${stress?
+    {something}:{something}}"). Other parameters always evaluate as if the
+    stress value is the empty string.
 
   * See "Tests before the 220 SMTP server greeting" for details about the
     logging from these postscreen(8) tests.

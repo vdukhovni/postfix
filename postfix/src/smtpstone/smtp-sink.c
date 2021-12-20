@@ -191,7 +191,7 @@
 /* .IP \fBunix:\fR\fIpathname\fR
 /*	Listen on the UNIX-domain socket at \fIpathname\fR.
 /* .IP \fIbacklog\fR
-/*	The maximum length the queue of pending connections,
+/*	The maximum length of the queue of pending connections,
 /*	as defined by the \fBlisten\fR(2) system call.
 /* DUMP FILE FORMAT
 /* .ad

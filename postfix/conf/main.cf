@@ -251,11 +251,14 @@ unknown_local_recipient_reject_code = 550
 # You can specify the list of "trusted" network addresses by hand
 # or you can let Postfix do it for you (which is the default).
 #
-# By default (mynetworks_style = subnet), Postfix "trusts" SMTP
-# clients in the same IP subnetworks as the local machine.
-# On Linux, this works correctly only with interfaces specified
-# with the "ifconfig" command.
+# By default (mynetworks_style = host), Postfix "trusts" only
+# the local machine.
 # 
+# Specify "mynetworks_style = subnet" when Postfix should "trust"
+# SMTP clients in the same IP subnetworks as the local machine.
+# On Linux, this works correctly only with interfaces specified
+# with the "ifconfig" or "ip" command.
+#
 # Specify "mynetworks_style = class" when Postfix should "trust" SMTP
 # clients in the same IP class A/B/C networks as the local machine.
 # Don't do this with a dialup site - it would cause Postfix to "trust"
@@ -285,14 +288,16 @@ unknown_local_recipient_reject_code = 550
 #mynetworks = hash:/etc/postfix/network_table
 
 # The relay_domains parameter restricts what destinations this system will
-# relay mail to.  See the smtpd_recipient_restrictions description in
-# postconf(5) for detailed information.
+# relay mail to.  See the smtpd_relay_restrictions and
+# smtpd_recipient_restrictions descriptions in  postconf(5) for detailed
+# information.
 #
 # By default, Postfix relays mail
-# - from "trusted" clients (IP address matches $mynetworks) to any destination,
+# - from "trusted" clients (IP address matches $mynetworks, or is
+#   SASL authenticated) to any destination,
 # - from "untrusted" clients to destinations that match $relay_domains or
 #   subdomains thereof, except addresses with sender-specified routing.
-# The default relay_domains value is $mydestination.
+# The default relay_domains value is empty.
 # 
 # In addition to the above, the Postfix SMTP server by default accepts mail
 # that Postfix is final destination for:
@@ -312,7 +317,7 @@ unknown_local_recipient_reject_code = 550
 # list this system as their primary or backup MX host. See the
 # permit_mx_backup restriction description in postconf(5).
 #
-#relay_domains = $mydestination
+#relay_domains = 
 
 # INTERNET OR INTRANET
 

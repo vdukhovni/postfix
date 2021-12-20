@@ -4,10 +4,10 @@ PPoossttffiixx aanndd LLiinnuuxx
 
 HHoosstt llooookkuupp iissssuueess
 
-By default Linux /etc/hosts lookups do not support multiple IP address per
+By default Linux /etc/hosts lookups do not support multiple IP addresses per
 hostname. This causes warnings from the Postfix SMTP server that "hostname XXX
 does not resolve to address YYY", and is especially a problem with hosts that
-have both IPv4 and IPv6 addresses. To fix, turn on support for multiple IP
+have both IPv4 and IPv6 addresses. To fix this, turn on support for multiple IP
 addresses:
 
     /etc/host.conf:
@@ -42,7 +42,7 @@ file for further information.
 
 PPrrooccmmaaiill iissssuueess
 
-On RedHat Linux 7.1 and later pprrooccmmaaiill no longer has permission to write the
+On RedHat Linux 7.1 and later pprrooccmmaaiill no longer has permission to write to the
 mail spool directory. Workaround:
 
     # chmod 1777 /var/spool/mail

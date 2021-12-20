@@ -32,7 +32,7 @@ while (<>) {
 	$printit = 0;
 	next LINE;
     }
-    if (/"[Hh][Tt][Tt][Pp]:/) {
+    if (/"[Hh][Tt][Tt][Pp][Ss]?:/) {
 	print;
 	$printit = 0;
 	next LINE;
@@ -140,17 +140,17 @@ while (<>) {
     s;\bdefault_delivery_status_filter\b;<a href="postconf.5.html#default_delivery_status_filter">$&</a>;g;
     s;\bdefault_data[-</Bb>]*\n* *[<Bb>]*base_type\b;<a href="postconf.5.html#default_database_type">$&</a>;g;
     s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_cost\b;<a href="postconf.5.html#default_delivery_slot_cost">$&</a>;g;
-    s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_discount\b;<a href="postconf.5.html#default_delivery_slot_discount">$&</a>;g;
+    s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_dis[-</Bb>]*\n* *[<Bb>]*count\b;<a href="postconf.5.html#default_delivery_slot_discount">$&</a>;g;
     s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_loan\b;<a href="postconf.5.html#default_delivery_slot_loan">$&</a>;g;
-    s;\bdefault_destina[-</Bb>]*\n* *[<Bb>]*tion_concur[-</Bb>]*\n* *[<Bb>]*rency_limit\b;<a href="postconf.5.html#default_destination_concurrency_limit">$&</a>;g;
+    s;\bdefault_destina[-</Bb>]*\n* *[<Bb>]*tion_con[-</Bb>]*\n* *[<Bb>]*cur[-</Bb>]*\n* *[<Bb>]*rency_limit\b;<a href="postconf.5.html#default_destination_concurrency_limit">$&</a>;g;
     s;\bdefault_destina[-</Bb>]*\n* *[<Bb>]*tion_recip[-</bB>]*\n* *[<bB>]*i[-</bB>]*\n* *[<bB>]*ent_limit\b;<a href="postconf.5.html#default_destination_recipient_limit">$&</a>;g;
     s;\bdefault_extra_recipi[-</bB>]*\n* *[<bB>]*ent_limit\b;<a href="postconf.5.html#default_extra_recipient_limit">$&</a>;g;
     s;\bdefault_minimum_deliv[-</Bb>]*\n* *[<Bb>]*ery_slots\b;<a href="postconf.5.html#default_minimum_delivery_slots">$&</a>;g;
     s;\bdefault_privs\b;<a href="postconf.5.html#default_privs">$&</a>;g;
     s;\bdefault_process_limit\b;<a href="postconf.5.html#default_process_limit">$&</a>;g;
     s;\bdefault_rbl_reply\b;<a href="postconf.5.html#default_rbl_reply">$&</a>;g;
-    s;\bdefault_recipi[-</bB>]*\n* *[<bB>]*ent_refill_limit\b;<a href="postconf.5.html#default_recipient_refill_limit">$&</a>;g;
-    s;\bdefault_recipi[-</bB>]*\n* *[<bB>]*ent_refill_delay\b;<a href="postconf.5.html#default_recipient_refill_delay">$&</a>;g;
+    s;\bdefault_recipi[-</bB>]*\n* *[<bB>]*ent_re[-</bB>]*\n* *[<bB>]*fill_limit\b;<a href="postconf.5.html#default_recipient_refill_limit">$&</a>;g;
+    s;\bdefault_recipi[-</bB>]*\n* *[<bB>]*ent_re[-</bB>]*\n* *[<bB>]*fill_delay\b;<a href="postconf.5.html#default_recipient_refill_delay">$&</a>;g;
     s;\bdefault_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#default_recipient_limit">$&</a>;g;
     s;\bdefault_transport\b;<a href="postconf.5.html#default_transport">$&</a>;g;
     s;\bsender[-</bB>]*\n* *[<bB>]*_de[-</bB>]*\n* *[<bB>]*pen[-</bB>]*\n* *[<bB>]*dent_de[-</bB>]*\n* *[<bB>]*fault[-</bB>]*\n* *[<bB>]*_trans[-</bB>]*\n* *[<bB>]*port[-</bB>]*\n* *[<bB>]*_maps\b;<a href="postconf.5.html#sender_dependent_default_transport_maps">$&</a>;g;
@@ -207,7 +207,7 @@ while (<>) {
     s;\bin_flow_delay\b;<a href="postconf.5.html#in_flow_delay">$&</a>;g;
     s;\binet_inter[-</bB>]*\n*[ <bB>]*faces\b;<a href="postconf.5.html#inet_interfaces">$&</a>;g;
     s;\binet_protocols\b;<a href="postconf.5.html#inet_protocols">$&</a>;g;
-    s;\binitial_desti[-</bB>]*\n*[ <bB>]*nation_concur[-</bB>]*\n*[ <bB>]*rency\b;<a href="postconf.5.html#initial_destination_concurrency">$&</a>;g;
+    s;\binitial_desti[-</bB>]*\n*[ <bB>]*nation_con[-</bB>]*\n*[ <bB>]*cur[-</bB>]*\n*[ <bB>]*rency\b;<a href="postconf.5.html#initial_destination_concurrency">$&</a>;g;
     s;\binvalid_hostname_reject_code\b;<a href="postconf.5.html#invalid_hostname_reject_code">$&</a>;g;
     s;\bipc_idle\b;<a href="postconf.5.html#ipc_idle">$&</a>;g;
     s;\bipc_timeout\b;<a href="postconf.5.html#ipc_timeout">$&</a>;g;
@@ -398,12 +398,12 @@ while (<>) {
     s;\bqmqpd_authorized_clients\b;<a href="postconf.5.html#qmqpd_authorized_clients">$&</a>;g;
     s;\bservice_name\b;<a href="postconf.5.html#service_name">$&</a>;g;
 
-    s;\bdefault_desti[-</Bb>]*\n* *[<Bb>]*na[-</Bb>]*\n* *[<Bb>]*tion_concur[-</Bb>]*\n* *[<Bb>]*rency_negative_feedback\b;<a href="postconf.5.html#default_destination_concurrency_negative_feedback">$&</a>;g;
-    s;\bdefault_desti[-</Bb>]*\n* *[<Bb>]*na[-</Bb>]*\n* *[<Bb>]*tion_concur[-</Bb>]*\n* *[<Bb>]*rency_positive_feedback\b;<a href="postconf.5.html#default_destination_concurrency_positive_feedback">$&</a>;g;
-    s;\bdefault_desti[-</Bb>]*\n* *[<Bb>]*na[-</Bb>]*\n* *[<Bb>]*tion_con[-</Bb>]*\n* *[<Bb>]*currency_failed_cohort_limit\b;<a href="postconf.5.html#default_destination_concurrency_failed_cohort_limit">$&</a>;g;
+    s;\bdefault_desti[-</Bb>]*\n* *[<Bb>]*na[-</Bb>]*\n* *[<Bb>]*tion_con[-</Bb>]*\n* *[<Bb>]*cur[-</Bb>]*\n* *[<Bb>]*rency_negative_feedback\b;<a href="postconf.5.html#default_destination_concurrency_negative_feedback">$&</a>;g;
+    s;\bdefault_desti[-</Bb>]*\n* *[<Bb>]*na[-</Bb>]*\n* *[<Bb>]*tion_con[-</Bb>]*\n* *[<Bb>]*cur[-</Bb>]*\n* *[<Bb>]*rency_positive_feedback\b;<a href="postconf.5.html#default_destination_concurrency_positive_feedback">$&</a>;g;
+    s;\bdefault_desti[-</Bb>]*\n* *[<Bb>]*na[-</Bb>]*\n* *[<Bb>]*tion_con[-</Bb>]*\n* *[<Bb>]*cur[-</Bb>]*\n* *[<Bb>]*rency_failed_cohort_limit\b;<a href="postconf.5.html#default_destination_concurrency_failed_cohort_limit">$&</a>;g;
     s;\bdestination_concurrency_feedback_debug\b;<a href="postconf.5.html#destination_concurrency_feedback_debug">$&</a>;g;
     s;\bdefault_destina[-</Bb>]*\n* *[<Bb>]*tion_rate_delay\b;<a href="postconf.5.html#default_destination_rate_delay">$&</a>;g;
-    s;\bdefault_trans[-<\/bB>]*\n*[ <bB>]*port_rate_delay\b;<a href="postconf.5.html#default_transport_rate_delay">$&</a>;g;
+    s;\bdefault_trans[-<\/bB>]*\n*[ <bB>]*port_rate_de[-<\/bB>]*\n*[ <bB>]*lay\b;<a href="postconf.5.html#default_transport_rate_delay">$&</a>;g;
     s;\bmeta_directory\b;<a href="postconf.5.html#meta_directory">$&</a>;g;
 
     s;\bqmqpd_client_port_logging\b;<a href="postconf.5.html#qmqpd_client_port_logging">$&</a>;g;
@@ -786,24 +786,26 @@ while (<>) {
     s;\bknown_tcp_ports\b;<a href="postconf.5.html#known_tcp_ports">$&</a>;g;
 
     # Transport-dependent magical parameters.
+    # Note: Accept non-italic "transport" prefix for content that has been
+    # converted from troff in C sources. Tooling doesn't support bold+italic.
 
-    s;(<i>transport</i>)(<b>)?(_destination_concurrency_failed_cohort_limit)\b;$2<a href="postconf.5.html#transport_destination_concurrency_failed_cohort_limit">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_destination_concurrency_negative_feedback)\b;$2<a href="postconf.5.html#transport_destination_concurrency_negative_feedback">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_destination_concurrency_positive_feedback)\b;$2<a href="postconf.5.html#transport_destination_concurrency_positive_feedback">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_delivery_slot_cost)\b;$2<a href="postconf.5.html#transport_delivery_slot_cost">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_delivery_slot_discount)\b;$2<a href="postconf.5.html#transport_delivery_slot_discount">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_delivery_slot_loan)\b;$2<a href="postconf.5.html#transport_delivery_slot_loan">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_destination_concurrency_limit)\b;$2<a href="postconf.5.html#transport_destination_concurrency_limit">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_destination_recipient_limit)\b;$2<a href="postconf.5.html#transport_destination_recipient_limit">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_extra_recipient_limit)\b;$2<a href="postconf.5.html#transport_extra_recipient_limit">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_initial_destination_concurrency)\b;$2<a href="postconf.5.html#transport_initial_destination_concurrency">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_minimum_delivery_slots)\b;$2<a href="postconf.5.html#transport_minimum_delivery_slots">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_recipient_limit)\b;$2<a href="postconf.5.html#transport_recipient_limit">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_recipient_refill_delay)\b;$2<a href="postconf.5.html#transport_recipient_refill_delay">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_recipient_refill_limit)\b;$2<a href="postconf.5.html#transport_recipient_refill_limit">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_time_limit)\b;$2<a href="postconf.5.html#transport_time_limit">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_destination_rate_delay)\b;$2<a href="postconf.5.html#transport_destination_rate_delay">$1$3</a>;g;
-    s;(<i>transport</i>)(<b>)?(_transport_rate_delay)\b;$2<a href="postconf.5.html#transport_transport_rate_delay">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_destination_concurrency_failed_cohort_limit)\b;$2<a href="postconf.5.html#transport_destination_concurrency_failed_cohort_limit">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_destination_concurrency_negative_feedback)\b;$2<a href="postconf.5.html#transport_destination_concurrency_negative_feedback">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_destination_concurrency_positive_feedback)\b;$2<a href="postconf.5.html#transport_destination_concurrency_positive_feedback">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_delivery_slot_cost)\b;$2<a href="postconf.5.html#transport_delivery_slot_cost">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_delivery_slot_discount)\b;$2<a href="postconf.5.html#transport_delivery_slot_discount">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_delivery_slot_loan)\b;$2<a href="postconf.5.html#transport_delivery_slot_loan">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_destination_concurrency_limit)\b;$2<a href="postconf.5.html#transport_destination_concurrency_limit">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_destination_recipient_limit)\b;$2<a href="postconf.5.html#transport_destination_recipient_limit">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_extra_recipient_limit)\b;$2<a href="postconf.5.html#transport_extra_recipient_limit">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_initial_destination_concurrency)\b;$2<a href="postconf.5.html#transport_initial_destination_concurrency">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_minimum_delivery_slots)\b;$2<a href="postconf.5.html#transport_minimum_delivery_slots">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_recipient_limit)\b;$2<a href="postconf.5.html#transport_recipient_limit">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_recipient_refill_delay)\b;$2<a href="postconf.5.html#transport_recipient_refill_delay">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_recipient_refill_limit)\b;$2<a href="postconf.5.html#transport_recipient_refill_limit">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_time_limit)\b;$2<a href="postconf.5.html#transport_time_limit">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_destination_rate_delay)\b;$2<a href="postconf.5.html#transport_destination_rate_delay">$1$3</a>;g;
+    s;((?:<i>)?transport(?:</i>)?)(<b>)?(_transport_rate_delay)\b;$2<a href="postconf.5.html#transport_transport_rate_delay">$1$3</a>;g;
 
     # Undo hyperlinks of manual pages with the same name as parameters.
 
@@ -1180,30 +1182,32 @@ while (<>) {
 	$printit = 0;
 	next LINE;
     }
-    s/canonical domains*/<a href="VIRTUAL_README.html#canonical">$&<\/a>/;
-    s/hosted domains*/<a href="VIRTUAL_README.html#canonical">$&<\/a>/;
-    #s/other domains*/<a href="VIRTUAL_README.html#canonical">&<\/a>/
-    s/virtual alias example/<a href="VIRTUAL_README.html#virtual_alias">$&<\/a>/;
-    s/virtual mailbox example/<a href="VIRTUAL_README.html#virtual_mailbox">$&<\/a>/;
-    s/local domains*/<a href="ADDRESS_CLASS_README.html#local_domain_class">$&<\/a>/;
-    s/virtual alias domains*/<a href="ADDRESS_CLASS_README.html#virtual_alias_class">$&<\/a>/;
-    s/virtual ALIAS domains*/<a href="ADDRESS_CLASS_README.html#virtual_alias_class">$&<\/a>/;
-    s/virtual mailbox domains*/<a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">$&<\/a>/;
-    s/virtual MAILBOX domains*/<a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">$&<\/a>/;
-    s/relay domains*/<a href="ADDRESS_CLASS_README.html#relay_domain_class">$&<\/a>/;
-    s/default domains*/<a href="ADDRESS_CLASS_README.html#default_domain_class">$&<\/a>/;
-    s/mydestination domains*/<a href="ADDRESS_CLASS_README.html#local_domain_class">$&<\/a>/;
-    s/\b"*maildrop"* *queues*\b/<a href="QSHAPE_README.html#maildrop_queue">$&<\/a>/;
-    s/\b("*maildrop"*),/<a href="QSHAPE_README.html#maildrop_queue">$1<\/a>,/;
-    s/\b("*incoming"*) and\b/<a href="QSHAPE_README.html#incoming_queue">$1<\/a> and/;
-    s/\b("*incoming"*) or\b/<a href="QSHAPE_README.html#incoming_queue">$1<\/a> or/;
-    s/\b"*incoming"* *queues*\b/<a href="QSHAPE_README.html#incoming_queue">$&<\/a>/;
-    s/<b> *incoming *<\/b> *queues*\b/<a href="QSHAPE_README.html#incoming_queue">$&<\/a>/;
-    s/\b"*active"* *queues*\b/<a href="QSHAPE_README.html#active_queue">$&<\/a>/;
-    s/\b"*deferred"* *queues*\b/<a href="QSHAPE_README.html#deferred_queue">$&<\/a>/;
-    s/\b"*hold"* *queues*\b/<a href="QSHAPE_README.html#hold_queue">$&<\/a>/;
-    s/\b("*hold"*),/<a href="QSHAPE_README.html#hold_queue">$1<\/a>,/;
-    s/\b(postfix  *tls)\b/<a href="postfix-tls.1.html">$1<\/a>/;
+    s/canonical domains*/<a href="VIRTUAL_README.html#canonical">$&<\/a>/g;
+    s/hosted domains*/<a href="VIRTUAL_README.html#canonical">$&<\/a>/g;
+    #s/other domains*/<a href="VIRTUAL_README.html#canonical">&<\/a>/g;
+    s/virtual alias example/<a href="VIRTUAL_README.html#virtual_alias">$&<\/a>/g;
+    s/virtual mailbox example/<a href="VIRTUAL_README.html#virtual_mailbox">$&<\/a>/g;
+    s/local domains*/<a href="ADDRESS_CLASS_README.html#local_domain_class">$&<\/a>/g;
+    s/virtual alias domains*/<a href="ADDRESS_CLASS_README.html#virtual_alias_class">$&<\/a>/g;
+    s/virtual ALIAS domains*/<a href="ADDRESS_CLASS_README.html#virtual_alias_class">$&<\/a>/g;
+    s/virtual mailbox domains*/<a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">$&<\/a>/g;
+    s/virtual MAILBOX domains*/<a href="ADDRESS_CLASS_README.html#virtual_mailbox_class">$&<\/a>/g;
+    s/relay domains*/<a href="ADDRESS_CLASS_README.html#relay_domain_class">$&<\/a>/g;
+    s/default domains*/<a href="ADDRESS_CLASS_README.html#default_domain_class">$&<\/a>/g;
+    s/mydestination domains*/<a href="ADDRESS_CLASS_README.html#local_domain_class">$&<\/a>/g;
+    s/\b"*maildrop"* *queues*\b/<a href="QSHAPE_README.html#maildrop_queue">$&<\/a>/g;
+    s/\b("*maildrop"*),/<a href="QSHAPE_README.html#maildrop_queue">$1<\/a>,/g;
+    s/\b(?<!\/)("*incoming"*),/<a href="QSHAPE_README.html#incoming_queue">$1<\/a>,/g;
+    s/\b("*incoming"*) and\b/<a href="QSHAPE_README.html#incoming_queue">$1<\/a> and/g;
+    s/\b("*incoming"*) or\b/<a href="QSHAPE_README.html#incoming_queue">$1<\/a> or/g;
+    s/\b"*incoming"* *queues*\b/<a href="QSHAPE_README.html#incoming_queue">$&<\/a>/g;
+    s/<b> *incoming *<\/b> *queues*\b/<a href="QSHAPE_README.html#incoming_queue">$&<\/a>/g;
+    s/\b("*active"*) and\b/<a href="QSHAPE_README.html#active_queue">$1<\/a> and/g;
+    s/\b"*active"* *queues*\b/<a href="QSHAPE_README.html#active_queue">$&<\/a>/ig;
+    s/\b"*deferred"* *queues*\b/<a href="QSHAPE_README.html#deferred_queue">$&<\/a>/g;
+    s/\b"*hold"* *queues*\b/<a href="QSHAPE_README.html#hold_queue">$&<\/a>/g;
+    s/\b("*hold"*),/<a href="QSHAPE_README.html#hold_queue">$1<\/a>,/g;
+    s/\b(postfix  *tls)\b/<a href="postfix-tls.1.html">$1<\/a>/g;
 
     # Hyperlink map types.
 
@@ -1215,7 +1219,7 @@ while (<>) {
     s/\b(fail):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(hash):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(internal):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
-    s/\b(ldap):/<a href="ldap_table.5.html">$1<\/a>:/g;
+    s/\b(ldap[is]?):/<a href="ldap_table.5.html">$1<\/a>:/g;
     s/\b(lmdb):/<a href="lmdb_table.5.html">$1<\/a>:/g;
     s/\b(memcache):/<a href="memcache_table.5.html">$1<\/a>:/g;
     s/\b(mysql):/<a href="mysql_table.5.html">$1<\/a>:/g;
@@ -1245,8 +1249,9 @@ while (<>) {
     s/([^\/])\b(virtual):/$1<a href="virtual.8.html">$2<\/a>:/g;
 
     # Database library dependencies.
+    # Note: Exclude AUXLIBS_SDBM because there is no SDBM_README.
 
-    s/\b(AUXLIBS_)([A-Z]+)\b/<a href="$2_README.html">$1$2<\/a>/g;
+    s/\b(AUXLIBS_(?!SDBM))([A-Z]+)\b/<a href="$2_README.html">$1$2<\/a>/g;
 }
 continue {
     if ($printit)

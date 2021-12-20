@@ -26009,4 +26009,36 @@ Apologies for any names omitted.
 	conf/postmulti-script, makedefs, postfix-install,
 	proto/postconf.proto, TLS_ACKNOWLEDGEMENTS, TLS_CHANGES.
 
-	Next up: raj's documentation fixes.
+20211220
+
+	Typo fixes from Raj, based on manual inspection. Verified
+	that the .o files have not changed. Files: conf/main.cf,
+	mantools/postlink, proto/ADDRESS_REWRITING_README.html,
+	proto/BACKSCATTER_README.html,
+	proto/BASIC_CONFIGURATION_README.html, proto/BDAT_README.html,
+	proto/BUILTIN_FILTER_README.html, proto/COMPATIBILITY_README.html,
+	proto/CONNECTION_CACHE_README.html, proto/DATABASE_README.html,
+	proto/DEBUG_README.html, proto/FORWARD_SECRECY_README.html,
+	proto/INSTALL.html, proto/IPV6_README.html, proto/LDAP_README.html,
+	proto/LINUX_README.html, proto/MAILLOG_README.html,
+	proto/MILTER_README.html, proto/MULTI_INSTANCE_README.html,
+	proto/MYSQL_README.html, proto/POSTSCREEN_3_5_README.html,
+	proto/POSTSCREEN_README.html, proto/QSHAPE_README.html,
+	proto/SASL_README.html, proto/SCHEDULER_README.html,
+	proto/SMTPD_ACCESS_README.html, proto/SMTPD_POLICY_README.html,
+	proto/SMTPD_PROXY_README.html, proto/SMTPUTF8_README.html,
+	proto/SQLITE_README.html, proto/STANDARD_CONFIGURATION_README.html,
+	proto/STRESS_README.html, proto/TLS_LEGACY_README.html,
+	proto/TLS_README.html, proto/TUNING_README.html,
+	proto/VIRTUAL_README.html, proto/access, proto/canonical,
+	proto/generic, proto/ldap_table, proto/master, proto/mysql_table,
+	proto/pgsql_table, proto/postconf.proto, proto/relocated,
+	proto/sqlite_table, proto/transport, proto/virtual,
+	global/mail_version.h, local/local.c, pipe/pipe.c,
+	postalias/postalias.c, postconf/postconf.c, postfix/postfix.c,
+	postmap/postmap.c, postmulti/postmulti.c,
+	posttls-finger/posttls-finger.c, sendmail/sendmail.c,
+	smtpstone/smtp-sink.c, tlsproxy/tlsproxy.c,
+	trivial-rewrite/trivial-rewrite.c, virtual/virtual.c.
+
+	Next up: the "open questions" in Rajs's notes.

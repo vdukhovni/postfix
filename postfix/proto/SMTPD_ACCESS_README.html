@@ -218,8 +218,9 @@ some restriction produces a result of PERMIT, REJECT or DEFER (try
 again later).  The end of each list is equivalent to a PERMIT result.
 By placing a PERMIT restriction before a REJECT restriction you
 can make exceptions for specific clients or users. This is called
-allowlisting; the fourth example above allows mail from local
-networks but otherwise rejects mail to arbitrary destinations. </p>
+allowlisting; the smtpd_relay_restrictions example above allows mail from local
+networks, and from SASL authenticated clients, but otherwise rejects mail
+to arbitrary destinations. </p>
 
 <p> The table below summarizes the purpose of each SMTP access
 restriction list. All lists use the exact same syntax; they differ
