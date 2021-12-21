@@ -51,15 +51,18 @@
 /*	(complete recipient address), \fB$extension\fR (recipient address
 /*	extension), \fB$domain\fR (recipient domain), \fB$local\fR
 /*	(entire recipient address localpart) and
-/*	\fB$recipient_delimiter.\fR The forms \fI${name?value}\fR (or
-/*	\fI${name?{value}}\fR (Postfix 3.0 and later)) and \fI${name:value}\fR
-/*	(or \fI${name:{value}}\fR (Postfix 3.0 and later)) expand conditionally
-/*	to \fIvalue\fR when \fI$name\fR is (is not) defined.
-/*	The form \fI${name?{value1}:{value2}}\fR (Postfix 3.0 and later) expands
-/*	conditionally to \fIvalue1\fR when \fI$name\fR is defined, or \fIvalue2\fR
-/*	otherwise. Characters that may have special meaning to the shell or file
-/*	system are replaced with underscores.  The list of acceptable characters
-/*	is specified with the \fBforward_expansion_filter\fR configuration
+/*	\fB$recipient_delimiter.\fR The forms \fI${name?value}\fR
+/*	and \fI${name?{value}}\fR (Postfix 3.0 and later) expand
+/*	conditionally to \fIvalue\fR when \fI$name\fR is defined,
+/*	and the forms \fI${name:value}\fR \fI${name:{value}}\fR
+/*	(Postfix 3.0 and later) expand conditionally to \fIvalue\fR
+/*	when \fI$name\fR is not defined.  The form
+/*	\fI${name?{value1}:{value2}}\fR (Postfix 3.0 and later)
+/*	expands conditionally to \fIvalue1\fR when \fI$name\fR is
+/*	defined, or \fIvalue2\fR otherwise. Characters that may
+/*	have special meaning to the shell or file system are replaced
+/*	with underscores. The list of acceptable characters is
+/*	specified with the \fBforward_expansion_filter\fR configuration
 /*	parameter.
 /*
 /*	An alias or ~/.\fBforward\fR file may list any combination of external
@@ -167,14 +170,16 @@
 /*	address), \fB$extension\fR (recipient address extension),
 /*	\fB$domain\fR (recipient domain), \fB$local\fR (entire
 /*	recipient address localpart) and \fB$recipient_delimiter.\fR
-/*	The forms \fI${name?value}\fR (or \fI${name?{value}}\fR
-/*	(Postfix 3.0 and later)) and \fI${name:value}\fR (or
-/*	\fI${name:{value}}\fR (Postfix 3.0 and later)) expand conditionally
-/*	to \fIvalue\fR when \fI$name\fR is (is not) defined.
-/*	The form \fI${name?{value1}:{value2}}\fR (Postfix 3.0 and later) expands
-/*	conditionally to \fIvalue1\fR when \fI$name\fR is defined, or \fIvalue2\fR
-/*	otherwise. Characters that may have special meaning to the shell or file
-/*	system are replaced with underscores.  The list of acceptable characters
+/*	The forms \fI${name?value}\fR and \fI${name?{value}}\fR
+/*	(Postfix 3.0 and later) expand conditionally to \fIvalue\fR
+/*	when \fI$name\fR is defined, and the forms \fI${name:value}\fR
+/*	and \fI${name:{value}}\fR (Postfix 3.0 and later) expand
+/*	conditionally to \fIvalue\fR when \fI$name\fR is not defined.
+/*	The form \fI${name?{value1}:{value2}}\fR (Postfix 3.0 and
+/*	later) expands conditionally to \fIvalue1\fR when \fI$name\fR
+/*	is defined, or \fIvalue2\fR otherwise. Characters that may
+/*	have special meaning to the shell or file system are replaced
+/*	with underscores. The list of acceptable characters
 /*	is specified with the \fBexecution_directory_expansion_filter\fR
 /*	configuration parameter.
 /*

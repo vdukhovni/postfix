@@ -163,7 +163,7 @@ logged as "partial" when the daemon terminates early after "<b>postfix
 reload</b>", "<b>postfix stop</b>", or no requests for $<a href="postconf.5.html#max_idle">max_idle</a>
 seconds. </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is h (hours).  </p>
@@ -530,7 +530,7 @@ non-zero time value. Specify a value of at least several hours,
 to avoid problems with senders that use greylisting. Avoid nice
 TTL values, to make the result less predictable.  </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).  </p>
@@ -1283,7 +1283,7 @@ with a temporary error, and the time in the queue has reached the
 as for regular mail.
 </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is d (days).  </p>
@@ -1532,11 +1532,20 @@ address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>${name?value}</b></dt>
 
+<dt><b>${name?{value}}</b> (Postfix &ge; 3.0)</dt>
+
 <dd>Expands to <i>value</i> when <i>$name</i> is non-empty. </dd>
 
 <dt><b>${name:value}</b></dt>
 
+<dt><b>${name:{value}}</b> (Postfix &ge; 3.0)</dt>
+
 <dd>Expands to <i>value</i> when <i>$name</i> is empty. </dd>
+
+<dt><b>${name?{value1}:{value2}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value1</i> when <i>$name</i> is non-empty,
+<i>value2</i> otherwise. </dd>
 
 </dl>
 
@@ -2567,13 +2576,22 @@ name, or an email address whose domain was denylisted). </dd>
 
 <dd>The sender address localpart or &lt;&gt; in case of the null address. </dd>
 
-<dt><b>${name?text}</b></dt>
+<dt><b>${name?value}</b></dt>
 
-<dd>Expands to `text' if $name is not empty. </dd>
+<dt><b>${name?{value}}</b> (Postfix &ge; 3.0)</dt>
 
-<dt><b>${name:text}</b></dt>
+<dd>Expands to <i>value</i> when <i>$name</i> is non-empty. </dd>
 
-<dd>Expands to `text' if $name is empty. </dd>
+<dt><b>${name:value}</b></dt>
+
+<dt><b>${name:{value}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is empty. </dd>
+
+<dt><b>${name?{value1}:{value2}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value1</i> when <i>$name</i> is non-empty,
+<i>value2</i> otherwise. </dd>
 
 </dl>
 
@@ -3736,11 +3754,20 @@ address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>${name?value}</b></dt>
 
+<dt><b>${name?{value}}</b> (Postfix &ge; 3.0)</dt>
+
 <dd>Expands to <i>value</i> when <i>$name</i> is non-empty. </dd>
 
 <dt><b>${name:value}</b></dt>
 
+<dt><b>${name:{value}}</b> (Postfix &ge; 3.0)</dt>
+
 <dd>Expands to <i>value</i> when <i>$name</i> is empty. </dd>
+
+<dt><b>${name?{value1}:{value2}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value1</i> when <i>$name</i> is non-empty,
+<i>value2</i> otherwise. </dd>
 
 </dl>
 
@@ -4545,7 +4572,7 @@ zero (use the operating system built-in time limit).  When no
 connection can be made within the deadline, the LMTP client tries
 the next address on the mail exchanger list.  </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).  </p>
@@ -6182,11 +6209,20 @@ address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>${name?value}</b></dt>
 
-<dd>Expands to <i>value</i> when <i>$name</i> has a non-empty value. </dd>
+<dt><b>${name?{value}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is non-empty. </dd>
 
 <dt><b>${name:value}</b></dt>
 
-<dd>Expands to <i>value</i> when <i>$name</i> has an empty value. </dd>
+<dt><b>${name:{value}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is empty. </dd>
+
+<dt><b>${name?{value1}:{value2}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value1</i> when <i>$name</i> is non-empty,
+<i>value2</i> otherwise. </dd>
 
 </dl>
 
@@ -6869,7 +6905,7 @@ temporary error, and the time in the queue has reached the
 <a href="postconf.5.html#maximal_queue_lifetime">maximal_queue_lifetime</a> limit.
 </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is d (days).  </p>
@@ -8268,7 +8304,7 @@ logged as "partial" when the daemon terminates early after "<b>postfix
 reload</b>", "<b>postfix stop</b>", or no requests for $<a href="postconf.5.html#max_idle">max_idle</a>
 seconds. </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is h (hours).  </p>
@@ -9287,7 +9323,7 @@ The minimal delay between warnings that a specific destination is
 clogging up the Postfix <a href="QSHAPE_README.html#active_queue">active queue</a>. Specify 0 to disable.
 </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).  </p>
@@ -9453,7 +9489,7 @@ reply to the remote QMQP client. The purpose is to slow down confused
 or malicious clients.
 </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).  </p>
@@ -10942,7 +10978,7 @@ disable the time limit (i.e. use whatever timeout is implemented by
 the operating system).
 </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).  </p>
@@ -11849,7 +11885,7 @@ turns on the PIX firewall "&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;"
 bug workaround for delivery through firewalls with "smtp fixup"
 mode turned on.  </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).  </p>
@@ -12093,7 +12129,7 @@ passwords, and requires that Postfix is compiled with TLS support.
 <p> The maximal age of an <a href="postconf.5.html#smtp_sasl_auth_cache_name">smtp_sasl_auth_cache_name</a> entry before it
 is removed. </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is d (days).  </p>
@@ -15404,12 +15440,14 @@ a client has made more than $<a href="postconf.5.html#smtpd_soft_error_limit">sm
 fewer than $<a href="postconf.5.html#smtpd_hard_error_limit">smtpd_hard_error_limit</a> errors, without delivering mail.
 </p>
 
-<p>With Postfix version 2.0 and earlier: the SMTP server delay before
-sending a reject (4xx or 5xx) response, when the client has made
-fewer than $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a> errors without delivering
-mail. </p>
+<p>With Postfix version 2.0 and earlier: the SMTP server delay
+before sending a reject (4xx or 5xx) response, when the client has
+made fewer than $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a> errors without delivering
+mail. When the client has made $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a> or more errors,
+delay all responses with the larger of (number of errors) seconds
+or $<a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a>. </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).  </p>
@@ -17316,11 +17354,18 @@ responses.
 
 <ul>
 
-<li><p>With Postfix version 2.1 and later, the Postfix SMTP server
-delays all responses by $<a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a> seconds. </p>
+<li><p>With Postfix version 2.1 and later, when the error count
+is &gt; $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a>, the Postfix SMTP server
+delays all responses by $<a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a>. </p>
 
-<li><p>With Postfix versions 2.0 and earlier, the Postfix SMTP
-server delays all responses by (number of errors) seconds. </p>
+<li><p>With Postfix versions 2.0 and earlier, when the error count
+is &gt; $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a>, the Postfix SMTP server delays all
+responses by the larger of (number of errors) seconds or
+$<a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a>. </p>
+
+<li><p>With Postfix versions 2.0 and earlier, when the error count
+is &le; $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a>, the Postfix SMTP server delays 4XX
+and 5XX responses by $<a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a>. </p>
 
 </ul>
 
@@ -18559,7 +18604,7 @@ value of 2 minutes is used instead.  TLS session tickets require
 an OpenSSL library (at least version 0.9.8h) that provides full
 support for this TLS extension. </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).  </p>
@@ -20758,7 +20803,7 @@ of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (i
 parameter value, where the initial <i>transport</i> in the parameter
 name is the <a href="master.5.html">master.cf</a> name of the message delivery transport. </p>
 
-<p> Specify a non-zero time value (an integral value plus an optional
+<p> Specify a non-negative time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).  </p>

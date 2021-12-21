@@ -567,9 +567,9 @@ the peer which represents the bound destination queue within this jobs context;
 if it does not exist yet, it instantiates it. Finally, it stores the address
 from the resolved triple to the recipient entry which is appended to both the
 queue entry list and the peer entry list. The addresses for the same nexthop
-are batched in the entries up to the transport_destination_concurrency_limit
-for that transport. This happens in qmgr_message_assign() and apart from that
-it operates with job and peer structures, it is basically the same as in oqmgr.
+are batched in the entries up to the transport_destination_recipient_limit for
+that transport. This happens in qmgr_message_assign(), and apart from that it
+operates with job and peer structures, it is basically the same as in oqmgr.
 
 When the job is instantiated, it is enqueued on the transport's job list based
 on the time its message was picked up by nqmgr. For first batch of recipients
@@ -606,9 +606,9 @@ job list is by default kept in the order the message was picked up by the
 nqmgr. So by default we get the top-level round-robin transport, and within
 each transport we get the FIFO message delivery. The round-robin of the peers
 by the destination is perhaps of little importance in most real-life cases
-(unless the transport_destination_concurrency_limit limit is reached, in one
-job there is only one peer structure for each destination), but theoretically
-it makes sure that even within single jobs, destinations are treated fairly.
+(unless the transport_destination_recipient_limit is reached, in one job there
+is only one peer structure for each destination), but theoretically it makes
+sure that even within single jobs, destinations are treated fairly.
 
 [By now you should have a feeling you really know how the scheduler works,
 except for the preemption, under ideal conditions - that is, no recipient

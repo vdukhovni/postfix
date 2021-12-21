@@ -26041,4 +26041,25 @@ Apologies for any names omitted.
 	smtpstone/smtp-sink.c, tlsproxy/tlsproxy.c,
 	trivial-rewrite/trivial-rewrite.c, virtual/virtual.c.
 
-	Next up: the "open questions" in Rajs's notes.
+20211221
+
+	Documentation: reverted some postconf(5) text from "Specify
+	a non-zero time value" to "Specify a non-negative time
+	value". File: proto/postconf.proto.
+
+	Documentation: reverted "destination concurrency limit" to
+	"destination recipient limit". File: proto/SCHEDULER_README.html.
+
+	Documentation: rephrased conditional $name expositions for
+	forward_path and command_execution_directory.  File:
+	local/local.c.
+
+	Documentation: added Postfix 3.0 syntax to postconf(5)
+	descriptions of command_execution_directory, default_rbl_reply,
+	forward_path, luser_relay, recipient_delimiter. File:
+	proto/postconf.proto.
+
+	Documentation: updated descriptions of smtpd_error_sleep_time
+	and smtpd_soft_error_limit. File: proto/postconf.proto.
+
+Next up: remaining "open questions" in Rafs's notes.

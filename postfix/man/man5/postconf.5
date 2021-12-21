@@ -113,7 +113,7 @@ logged as "partial" when the daemon terminates early after "\fBpostfix
 reload\fR", "\fBpostfix stop\fR", or no requests for $max_idle
 seconds.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is h (hours).
@@ -320,7 +320,7 @@ non\-zero time value. Specify a value of at least several hours,
 to avoid problems with senders that use greylisting. Avoid nice
 TTL values, to make the result less predictable.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -767,7 +767,7 @@ with a temporary error, and the time in the queue has reached the
 bounce_queue_lifetime limit.  By default, this limit is the same
 as for regular mail.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is d (days).
@@ -920,10 +920,16 @@ address (Postfix 2.11 and later), or the system\-wide recipient
 address extension delimiter (Postfix 2.10 and earlier).
 .br
 .IP "\fB${name?value}\fR"
+.IP "\fB${name?{value}}\fR (Postfix >= 3.0)"
 Expands to \fIvalue\fR when \fI$name\fR is non\-empty.
 .br
 .IP "\fB${name:value}\fR"
+.IP "\fB${name:{value}}\fR (Postfix >= 3.0)"
 Expands to \fIvalue\fR when \fI$name\fR is empty.
+.br
+.IP "\fB${name?{value1}:{value2}}\fR (Postfix >= 3.0)"
+Expands to \fIvalue1\fR when \fI$name\fR is non\-empty,
+\fIvalue2\fR otherwise.
 .br
 .br
 .PP
@@ -1670,11 +1676,17 @@ The sender domain or empty string.
 .IP "\fB$sender_name\fR"
 The sender address localpart or <> in case of the null address.
 .br
-.IP "\fB${name?text}\fR"
-Expands to `text' if $name is not empty.
+.IP "\fB${name?value}\fR"
+.IP "\fB${name?{value}}\fR (Postfix >= 3.0)"
+Expands to \fIvalue\fR when \fI$name\fR is non\-empty.
 .br
-.IP "\fB${name:text}\fR"
-Expands to `text' if $name is empty.
+.IP "\fB${name:value}\fR"
+.IP "\fB${name:{value}}\fR (Postfix >= 3.0)"
+Expands to \fIvalue\fR when \fI$name\fR is empty.
+.br
+.IP "\fB${name?{value1}:{value2}}\fR (Postfix >= 3.0)"
+Expands to \fIvalue1\fR when \fI$name\fR is non\-empty,
+\fIvalue2\fR otherwise.
 .br
 .br
 .PP
@@ -2375,10 +2387,16 @@ address (Postfix 2.11 and later), or the system\-wide recipient
 address extension delimiter (Postfix 2.10 and earlier).
 .br
 .IP "\fB${name?value}\fR"
+.IP "\fB${name?{value}}\fR (Postfix >= 3.0)"
 Expands to \fIvalue\fR when \fI$name\fR is non\-empty.
 .br
 .IP "\fB${name:value}\fR"
+.IP "\fB${name:{value}}\fR (Postfix >= 3.0)"
 Expands to \fIvalue\fR when \fI$name\fR is empty.
+.br
+.IP "\fB${name?{value1}:{value2}}\fR (Postfix >= 3.0)"
+Expands to \fIvalue1\fR when \fI$name\fR is non\-empty,
+\fIvalue2\fR otherwise.
 .br
 .br
 .PP
@@ -2890,7 +2908,7 @@ zero (use the operating system built\-in time limit).  When no
 connection can be made within the deadline, the LMTP client tries
 the next address on the mail exchanger list.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -3824,10 +3842,16 @@ The recipient's login shell.
 The recipient username.
 .br
 .IP "\fB${name?value}\fR"
-Expands to \fIvalue\fR when \fI$name\fR has a non\-empty value.
+.IP "\fB${name?{value}}\fR (Postfix >= 3.0)"
+Expands to \fIvalue\fR when \fI$name\fR is non\-empty.
 .br
 .IP "\fB${name:value}\fR"
-Expands to \fIvalue\fR when \fI$name\fR has an empty value.
+.IP "\fB${name:{value}}\fR (Postfix >= 3.0)"
+Expands to \fIvalue\fR when \fI$name\fR is empty.
+.br
+.IP "\fB${name?{value1}:{value2}}\fR (Postfix >= 3.0)"
+Expands to \fIvalue1\fR when \fI$name\fR is non\-empty,
+\fIvalue2\fR otherwise.
 .br
 .br
 .PP
@@ -4256,7 +4280,7 @@ Consider a message as undeliverable, when delivery fails with a
 temporary error, and the time in the queue has reached the
 maximal_queue_lifetime limit.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is d (days).
@@ -5209,7 +5233,7 @@ logged as "partial" when the daemon terminates early after "\fBpostfix
 reload\fR", "\fBpostfix stop\fR", or no requests for $max_idle
 seconds.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is h (hours).
@@ -5852,7 +5876,7 @@ This feature is available in Postfix 2.6 and later.
 The minimal delay between warnings that a specific destination is
 clogging up the Postfix active queue. Specify 0 to disable.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -5943,7 +5967,7 @@ How long the Postfix QMQP server will pause before sending a negative
 reply to the remote QMQP client. The purpose is to slow down confused
 or malicious clients.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -6970,7 +6994,7 @@ tries the next address on the mail exchanger list. Specify 0 to
 disable the time limit (i.e. use whatever timeout is implemented by
 the operating system).
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -7584,7 +7608,7 @@ turns on the PIX firewall "<CR><LF>.<CR><LF>"
 bug workaround for delivery through firewalls with "smtp fixup"
 mode turned on.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -7765,7 +7789,7 @@ This feature is available in Postfix 2.5 and later.
 The maximal age of an smtp_sasl_auth_cache_name entry before it
 is removed.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is d (days).
@@ -10593,12 +10617,14 @@ With Postfix version 2.1 and later: the SMTP server response delay after
 a client has made more than $smtpd_soft_error_limit errors, and
 fewer than $smtpd_hard_error_limit errors, without delivering mail.
 .PP
-With Postfix version 2.0 and earlier: the SMTP server delay before
-sending a reject (4xx or 5xx) response, when the client has made
-fewer than $smtpd_soft_error_limit errors without delivering
-mail.
+With Postfix version 2.0 and earlier: the SMTP server delay
+before sending a reject (4xx or 5xx) response, when the client has
+made fewer than $smtpd_soft_error_limit errors without delivering
+mail. When the client has made $smtpd_soft_error_limit or more errors,
+delay all responses with the larger of (number of errors) seconds
+or $smtpd_error_sleep_time.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -12014,11 +12040,18 @@ The number of errors a remote SMTP client is allowed to make without
 delivering mail before the Postfix SMTP server slows down all its
 responses.
 .IP \(bu
-With Postfix version 2.1 and later, the Postfix SMTP server
-delays all responses by $smtpd_error_sleep_time seconds.
+With Postfix version 2.1 and later, when the error count
+is > $smtpd_soft_error_limit, the Postfix SMTP server
+delays all responses by $smtpd_error_sleep_time.
 .IP \(bu
-With Postfix versions 2.0 and earlier, the Postfix SMTP
-server delays all responses by (number of errors) seconds.
+With Postfix versions 2.0 and earlier, when the error count
+is > $smtpd_soft_error_limit, the Postfix SMTP server delays all
+responses by the larger of (number of errors) seconds or
+$smtpd_error_sleep_time.
+.IP \(bu
+With Postfix versions 2.0 and earlier, when the error count
+is <= $smtpd_soft_error_limit, the Postfix SMTP server delays 4XX
+and 5XX responses by $smtpd_error_sleep_time.
 .br
 .SH smtpd_starttls_timeout (default: see "postconf \-d" output)
 The time limit for Postfix SMTP server write and read operations
@@ -13156,7 +13189,7 @@ value of 2 minutes is used instead.  TLS session tickets require
 an OpenSSL library (at least version 0.9.8h) that provides full
 support for this TLS extension.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
@@ -14633,7 +14666,7 @@ A transport\-specific override for the default_transport_rate_delay
 parameter value, where the initial \fItransport\fR in the parameter
 name is the master.cf name of the message delivery transport.
 .PP
-Specify a non\-zero time value (an integral value plus an optional
+Specify a non\-negative time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).

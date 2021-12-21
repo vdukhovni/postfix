@@ -827,9 +827,10 @@ not exist yet, it instantiates it.  Finally, it stores the address
 from the resolved triple to the recipient entry which is appended
 to both the queue entry list and the peer entry list. The addresses
 for the same nexthop are batched in the entries up to the
-<a href="postconf.5.html#transport_destination_concurrency_limit"><i>transport</i>_destination_concurrency_limit</a> for that transport. This
-happens in qmgr_message_assign() and apart from that it operates with
-job and peer structures, it is basically the same as in <tt>oqmgr</tt>.
+<a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a> for that transport.
+This happens in qmgr_message_assign(), and apart
+from that it operates with job and peer structures, it is basically the
+same as in <tt>oqmgr</tt>.
 
 </p>
 
@@ -894,8 +895,8 @@ was picked up by the <tt>nqmgr</tt>. So by default we get the
 top-level round-robin transport, and within each transport we get
 the FIFO message delivery. The round-robin of the peers by the
 destination is perhaps of little importance in most real-life cases
-(unless the <a href="postconf.5.html#transport_destination_concurrency_limit"><i>transport</i>_destination_concurrency_limit</a> limit is
-reached, in one job there
+(unless the <a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a> is reached,
+in one job there
 is only one peer structure for each destination), but theoretically
 it makes sure that even within single jobs, destinations are treated
 fairly.
