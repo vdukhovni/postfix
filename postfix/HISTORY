@@ -26062,4 +26062,21 @@ Apologies for any names omitted.
 	Documentation: updated descriptions of smtpd_error_sleep_time
 	and smtpd_soft_error_limit. File: proto/postconf.proto.
 
-Next up: remaining "open questions" in Rafs's notes.
+	Fixed non-UTF8 quotes in TLS_CHANGES that caused nvi to 
+	truncate the file.
+
+	Fixed a remaining typo in util/load_lib.c.
+
+20211222
+
+	Added a top-level 'make typo-check' target to automate
+	the typo checks (this only works on Wietse's development
+	system, because it depends on spell and lynx). Files:
+	Makefile.in, mantools/comment.c, mantools/deroff,
+	mantools/check-double-cc, mantools/check-double-install-proto-text,
+	mantools/check-double-proto-html, mantools/check-spell-cc,
+	mantools/check-spell-install-proto-text,
+	mantools/check-spell-proto-html, proto/stop,
+	proto/stop.double-cc, proto/stop.double-install-proto-text,
+	proto/stop.double-proto-html, proto/stop.spell-cc,
+	proto/stop.spell-proto-html.

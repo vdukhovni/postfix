@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Spellchecks the install scripts and proto non-html files.
+
+ls *install* proto/* | egrep -v 'stop|Makefile|html|\.proto' |  mantools/deroff | spell | fgrep -vxf proto/stop

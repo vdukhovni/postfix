@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Finds double words in proto html files.
+
+ls proto/*.html proto/*.proto | xargs mantools/dehtml | mantools/find-double | fgrep -vxf proto/stop.double-proto-html

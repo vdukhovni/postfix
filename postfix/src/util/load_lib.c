@@ -19,9 +19,9 @@
 /* .IP libname
 /*	shared-library pathname.
 /* .IP libfuncs
-/*	Array of LIB_FN strucures. The last name member must be null.
+/*	Array of LIB_FN structures. The last name member must be null.
 /* .IP libdata
-/*	Array of LIB_DP strucures. The last name member must be null.
+/*	Array of LIB_DP structures. The last name member must be null.
 /* SEE ALSO
 /*	msg(3) diagnostics interface
 /* DIAGNOSTICS

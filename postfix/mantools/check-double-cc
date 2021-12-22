@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Finds double words in C comments. See mantools/comment.c for 'comment'
+# source code.
+
+find src -name '*.[hc]' | xargs cat | comment | mantools/deroff | mantools/find-double | fgrep -vxf proto/stop.double-cc

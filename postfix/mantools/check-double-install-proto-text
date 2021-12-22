@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Finds double words in install and proto text files.
+
+ls *install* proto/* | egrep -v 'stop|Makefile|html|\.proto' | xargs mantools/deroff | mantools/find-double | fgrep -vxf proto/stop.double-install-proto-text
