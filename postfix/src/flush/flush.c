@@ -479,7 +479,7 @@ static int flush_one_file(const char *queue_id, VSTRING *queue_file,
 		 path, queue_name, MAIL_QUEUE_INCOMING);
 
     /*
-     * If we got here, we achieved something, so let's claim succes.
+     * If we got here, we achieved something, so let's claim success.
      */
     return (1);
 }

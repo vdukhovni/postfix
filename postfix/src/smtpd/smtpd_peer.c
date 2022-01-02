@@ -264,7 +264,7 @@ static int smtpd_peer_sockaddr_to_hostaddr(SMTPD_STATE *state)
 	    /*
 	     * Following RFC 2821 section 4.1.3, an IPv6 address literal gets
 	     * a prefix of 'IPv6:'. We do this consistently for all IPv6
-	     * addresses that that appear in headers or envelopes. The fact
+	     * addresses that appear in headers or envelopes. The fact
 	     * that valid_mailhost_addr() enforces the form helps of course.
 	     * We use the form without IPV6: prefix when doing access
 	     * control, or when accessing the connection cache.

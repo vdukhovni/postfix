@@ -103,7 +103,7 @@ TLSPROXY(8)                                                        TLSPROXY(8)
 
        Available in Postfix version 2.9 and later:
 
-       <b><a href="postconf.5.html#tls_legacy_public_key_fingerprint">tls_legacy_public_key_fingerprints</a> (no)</b>
+       <b><a href="postconf.5.html#tls_legacy_public_key_fingerprints">tls_legacy_public_key_fingerprints</a> (no)</b>
               A  temporary  migration  aid for sites that use certificate <i>pub-</i>
               <i>lic-key</i> fingerprints with Postfix  2.9.0..2.9.5,  which  use  an
               incorrect algorithm.
@@ -354,6 +354,13 @@ TLSPROXY(8)                                                        TLSPROXY(8)
        <b><a href="postconf.5.html#tlsproxy_enforce_tls">tlsproxy_enforce_tls</a> ($<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>)</b>
               Mandatory TLS: announce STARTTLS support to remote SMTP clients,
               and require that clients use TLS encryption.
+
+       <b><a href="postconf.5.html#tlsproxy_client_use_tls">tlsproxy_client_use_tls</a> ($<a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>)</b>
+              Opportunistic mode: use TLS when a remote server  announces  TLS
+              support.
+
+       <b><a href="postconf.5.html#tlsproxy_client_enforce_tls">tlsproxy_client_enforce_tls</a> ($<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>)</b>
+              Enforcement  mode: require that SMTP servers use TLS encryption.
 
 <b>RESOURCE CONTROLS</b>
        <b><a href="postconf.5.html#tlsproxy_watchdog_timeout">tlsproxy_watchdog_timeout</a> (10s)</b>

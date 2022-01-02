@@ -12,7 +12,7 @@
 /*	The \fBpostalias\fR(1) command creates or queries one or more Postfix
 /*	alias databases, or updates an existing one. The input and output
 /*	file formats are expected to be compatible with Sendmail version 8,
-/*	and are expected to be suitable for the use as NIS alias maps.
+/*	and are expected to be suitable for use as NIS alias maps.
 /*
 /*	If the result files do not exist they will be created with the
 /*	same group and other read permissions as their source file.
@@ -190,12 +190,12 @@
 /*	The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
 /*	and \fBpostmap\fR(1) commands.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a privileged Postfix
+/*	The list of environment variables that a privileged Postfix
 /*	process will import from a non-Postfix parent process, or name=value
 /*	environment overrides.
 /* .IP "\fBsmtputf8_enable (yes)\fR"
 /*	Enable preliminary SMTPUTF8 support for the protocols described
-/*	in RFC 6531..6533.
+/*	in RFC 6531, RFC 6532, and RFC 6533.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"

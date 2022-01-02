@@ -303,7 +303,7 @@ static char *get_nested_dict_name(char *type_name)
 {
     const struct {
 	const char *type_col;
-	ssize_t type_col_len
+	ssize_t type_col_len;
     }      *prefix, prefixes[] = {
 	DICT_TYPE_UNION ":", (sizeof(DICT_TYPE_UNION ":") - 1),
 	DICT_TYPE_PIPE ":", (sizeof(DICT_TYPE_PIPE ":") - 1),
@@ -793,7 +793,7 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
-/* post_accept - anounce our protocol name */
+/* post_accept - announce our protocol name */
 
 static void post_accept(VSTREAM *stream, char *unused_name, char **unused_argv,
 			        HTABLE *unused_attr)

@@ -113,7 +113,7 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
 	return (0);
 
     /*
-     * The fall-back transport specifies a delivery machanism that handles
+     * The fall-back transport specifies a delivery mechanism that handles
      * users not found in the aliases or UNIX passwd databases.
      */
     if (*var_fbck_transp_maps && transp_maps == 0)

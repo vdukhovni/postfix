@@ -25,8 +25,8 @@
 /*	EXTPAR_FLAG_NONE, or the bitwise OR of one or more flags:
 /* .RS
 /* .IP EXTPAR_FLAG_EXTRACT
-/*	This flag is intended to instruct expar() callers that
-/*	expar() should be invoked. It has no effect on expar()
+/*	This flag is intended to instruct extpar() callers that
+/*	extpar() should be invoked. It has no effect on expar()
 /*	itself.
 /* .IP EXTPAR_FLAG_STRIP
 /*	Skip whitespace after the opening parenthesis, and trim

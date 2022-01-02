@@ -311,7 +311,7 @@ void    dymap_init(const char *conf_path, const char *plugin_dir)
     VSTRING *sub_conf_path;
 
     /*
-     * Reload dynamicsmaps.cf, but don't reload already-loaded plugins.
+     * Reload dynamicmaps.cf, but don't reload already-loaded plugins.
      */
     if (dymap_info != 0)
 	htable_free(dymap_info, dymap_entry_free);

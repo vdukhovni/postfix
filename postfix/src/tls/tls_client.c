@@ -534,7 +534,7 @@ static int tls_auth_enable(TLS_SESS_STATE *TLScontext,
 	 * associated TLSA RRs.
 	 * 
 	 * Since the hostname is DNSSEC-validated, it must be a DNS FQDN and
-	 * thererefore valid for use with SNI.
+	 * therefore valid for use with SNI.
 	 */
 	if (SSL_dane_enable(TLScontext->con, 0) <= 0) {
 	    msg_warn("%s: error enabling DANE-based certificate validation",

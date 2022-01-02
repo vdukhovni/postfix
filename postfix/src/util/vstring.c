@@ -142,7 +142,7 @@
 /*	Specifies a hard upper limit on a string's length. When the
 /*	length would be exceeded, the program simulates a memory
 /*	allocation problem (i.e. it terminates through msg_fatal()).
-/*	This fuctionality is currently unimplemented.
+/*	This functionality is currently unimplemented.
 /* .IP "CA_VSTRING_CTL_EXACT (no argument)"
 /*	Allocate the requested amounts, instead of rounding up.
 /*	This should be used for tests only.

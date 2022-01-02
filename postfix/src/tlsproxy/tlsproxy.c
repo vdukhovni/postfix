@@ -298,6 +298,11 @@
 /* .IP "\fBtlsproxy_enforce_tls ($smtpd_enforce_tls)\fR"
 /*	Mandatory TLS: announce STARTTLS support to remote SMTP clients, and
 /*	require that clients use TLS encryption.
+/* .IP "\fBtlsproxy_client_use_tls ($smtp_use_tls)\fR"
+/*	Opportunistic mode: use TLS when a remote server announces TLS
+/*	support.
+/* .IP "\fBtlsproxy_client_enforce_tls ($smtp_enforce_tls)\fR"
+/*	Enforcement mode: require that SMTP servers use TLS encryption.
 /* RESOURCE CONTROLS
 /* .ad
 /* .fi
@@ -923,7 +928,7 @@ static void tlsp_strategy(TLSP_STATE *state)
      * block. In practice, postscreen(8) limits the number of client
      * commands, and thus postscreen(8)'s output will fit in a kernel buffer.
      * A remote SMTP server is not supposed to flood the local SMTP client
-     * with massive replies; it it does, then the local SMTP client should
+     * with massive replies; if it does, then the local SMTP client should
      * deal with it.
      */
     if (NBBIO_WRITE_PEND(plaintext_buf) > 0) {
@@ -971,7 +976,7 @@ static void tlsp_ciphertext_event(int event, void *context)
     TLSP_STATE *state = (TLSP_STATE *) context;
 
     /*
-     * Without a TLS quivalent of the NBBIO layer, we must decode the events
+     * Without a TLS equivalent of the NBBIO layer, we must decode the events
      * ourselves and do the ciphertext I/O. Then, we can decide if we want to
      * read or write more ciphertext.
      */

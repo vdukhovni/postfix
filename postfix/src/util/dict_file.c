@@ -45,7 +45,7 @@
 /*	memory that are associated with this DICT.
 /*
 /*	dict_file_get_error() should be called only after error;
-/*	it returns a desciption of the problem. Storage is owned
+/*	it returns a description of the problem. Storage is owned
 /*	by the caller.
 /*
 /*	dict_file_lookup() wraps the dictionary lookup method and

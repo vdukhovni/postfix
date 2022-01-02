@@ -156,7 +156,7 @@ UUssiinngg bbaacckkwwaarrddss--ccoommppaattiibbllee dd
 
 The mynetworks_style default value has changed from "subnet" to "host". This
 parameter is used to implement the "permit_mynetworks" feature. The change
-could in unexpected 'access denied' errors after Postfix is updated from an
+could cause unexpected 'access denied' errors after Postfix is updated from an
 older version. The backwards-compatibility safety net is designed to prevent
 such surprises.
 

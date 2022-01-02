@@ -81,7 +81,7 @@
 /*	command above.
 /* .IP \fB-bl\fR
 /*	Go into daemon mode. To accept only local connections as
-/*	with Sendmail\'s \fB-bl\fR option, specify "\fBinet_interfaces
+/*	with Sendmail's \fB-bl\fR option, specify "\fBinet_interfaces
 /*	= loopback\fR" in the Postfix \fBmain.cf\fR configuration
 /*	file.
 /* .IP \fB-bm\fR
@@ -140,7 +140,7 @@
 /*	Initialize alias database. See the \fBnewaliases\fR
 /*	command above.
 /* .IP "\fB-i\fR"
-/*	When reading a message from standard input, don\'t treat a line
+/*	When reading a message from standard input, don't treat a line
 /*	with only a \fB.\fR character as the end of input.
 /* .IP "\fB-L \fIlabel\fR (ignored)"
 /*	The logging label. Use the \fBsyslog_name\fR configuration
@@ -170,7 +170,7 @@
 /*	To send 8-bit or binary content, use an appropriate MIME encapsulation
 /*	and specify the appropriate \fB-B\fR command-line option.
 /* .IP "\fB-oi\fR"
-/*	When reading a message from standard input, don\'t treat a line
+/*	When reading a message from standard input, don't treat a line
 /*	with only a \fB.\fR character as the end of input.
 /* .IP "\fB-om\fR (ignored)"
 /*	The sender is never eliminated from alias etc. expansions.
@@ -403,7 +403,7 @@
 /*	The time after which the sender receives a copy of the message
 /*	headers of mail that is still queued.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a privileged Postfix
+/*	The list of environment variables that a privileged Postfix
 /*	process will import from a non-Postfix parent process, or name=value
 /*	environment overrides.
 /* .IP "\fBmail_owner (postfix)\fR"

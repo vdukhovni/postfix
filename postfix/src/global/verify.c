@@ -102,7 +102,7 @@ int     verify_append(const char *queue_id, MSG_STATS *stats,
      * XXX No DSN check; this routine is called from bounce/defer/sent, which
      * know what the DSN initial digit should look like.
      * 
-     * XXX vrfy_stat is competely redundant because of dsn.
+     * XXX vrfy_stat is completely redundant because of dsn.
      */
     if (var_verify_neg_cache || vrfy_stat == DEL_RCPT_STAT_OK) {
 	if (recipient->orig_addr[0])

@@ -2079,7 +2079,7 @@ extern int var_mailtool_compat;
 
  /*
   * How long a daemon command may take to receive or deliver a message etc.
-  * before we assume it is wegded (should never happen).
+  * before we assume it is wedged (should never happen).
   */
 #define VAR_DAEMON_TIMEOUT	"daemon_timeout"
 #define DEF_DAEMON_TIMEOUT	"18000s"
@@ -2497,7 +2497,11 @@ extern int var_local_rcpt_code;
 				" $" VAR_SMTPD_EHLO_DIS_MAPS \
 				" $" VAR_SMTPD_MILTER_MAPS \
 				" $" VAR_VIRT_GID_MAPS \
-				" $" VAR_VIRT_UID_MAPS
+				" $" VAR_VIRT_UID_MAPS \
+				" $" VAR_LOCAL_LOGIN_SND_MAPS \
+				" $" VAR_PSC_REJ_FTR_MAPS \
+				" $" VAR_SMTPD_REJ_FTR_MAPS \
+				" $" VAR_TLS_SERVER_SNI_MAPS
 extern char *var_proxy_read_maps;
 
 #define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"
@@ -4196,7 +4200,7 @@ extern char *var_smtp_dns_re_filter;
 extern char *var_smtpd_dns_re_filter;
 
  /*
-  * Share TLS sessions through tlproxy(8).
+  * Share TLS sessions through tlsproxy(8).
   */
 #define VAR_SMTP_TLS_CONN_REUSE		"smtp_tls_connection_reuse"
 #define DEF_SMTP_TLS_CONN_REUSE		0

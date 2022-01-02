@@ -130,7 +130,7 @@
 /*	RFC 822 (ARPA Internet Text Messages)
 /* DIAGNOSTICS
 /*	Mail bounces when the recipient has no mailbox or when the
-/*	recipient is over disk quota. In all other cases, mail for
+/*	recipient is over disk quota. In all other problem cases, mail for
 /*	an existing recipient is deferred and a warning is logged.
 /*
 /*	Problems and transactions are logged to \fBsyslogd\fR(8)
@@ -179,7 +179,7 @@
 /* .PP
 /*	Available in Postfix version 2.0 and later:
 /* .IP "\fBvirtual_mailbox_domains ($virtual_mailbox_maps)\fR"
-/*	Postfix is final destination for the specified list of domains;
+/*	Postfix is the final destination for the specified list of domains;
 /*	mail is delivered via the $virtual_transport mail delivery transport.
 /* .IP "\fBvirtual_transport (virtual)\fR"
 /*	The default mail delivery transport and next-hop destination for

@@ -34,7 +34,7 @@
 /* .IP addr_family
 /*	Null pointer, or pointer to integer for storing the address
 /*	family.
-/* DIAGNISTICS
+/* DIAGNOSTICS
 /*	normalize_mailhost_addr() returns -1 if the input is malformed,
 /*	zero otherwise.
 /* LICENSE

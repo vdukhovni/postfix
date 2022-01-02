@@ -76,7 +76,7 @@
   */
 
  /*
-  * Transient state for the portscreen(8)-to-tlsproxy(8) hand-off protocol.
+  * Transient state for the postscreen(8)-to-tlsproxy(8) hand-off protocol.
   */
 typedef struct {
     VSTREAM *tlsproxy_stream;		/* hand-off negotiation */

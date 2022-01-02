@@ -1,18 +1,22 @@
 Wish list:
 
-	Factor out the new get_nested_dict_name() function from
-	proxymap.c, make it a library function, and reuse it in
-	postconf_dbms.c.
+	Things to do before the stable release:
 
-	Convert the proxymap protol into "server speaks first".
+	make typo-check, HTML validator check,
+	mantools/missing-proxy-read-maps, mantools/check-postlink.
+
+	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
 	Fix code that still uses "long" for data_size and data_offset,
 	and that uses "%ld" in sscanf().
 
-	A smart query service for live Postfix tables that outputs JSON?
+	For consistent naming (tlsproxy_client_mumble <> smtp_tls_mumble),
+	rename tlsproxy_client_level to tlsproxy_client_security_level,
+	and tlsproxy_client_policy to tlsproxy_client_policy_maps.
+	This requires backwards-compatible defaults and documentation
+	updates.
 
-	proxy_read_maps needs a dedicated matcher that looks
-	inside pipemap:{}. Maybe steal some code from postconf.
+	A smart query service for live Postfix tables that outputs JSON?
 
 	Add a pointer to
 	http://mmogilvi.users.sourceforge.net/software/oauthbearer.html
@@ -123,13 +127,6 @@ Wish list:
 
 	Replace ad-hoc code for pipe(8) flags handling, with
 	infrastructure that was built for smtp(8).
-
-	Things to do before the stable release:
-
-	Spell-check, double-word check, HTML validator check,
-	mantools/missing-proxy-read-maps check.
-
-	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
 	Move map descriptions from postconf(1) to DATABASE_README
 	and point there. The text in DATABASE_README is less complete

@@ -239,7 +239,8 @@ temporary allowlist is not used for SMTP client addresses
 that appear on the <i>permanent</i> access list. </p>
 
 <p> By default the temporary allowlist is not shared with other
-postscreen(8) daemons. See <a href="#temp_allow_sharing"> Sharing
+postscreen(8) daemons. See
+<a href="#temp_allow_sharing"> Sharing
 the temporary allowlist </a> below for alternatives. </p>
 
 <p> When the SMTP client address appears on the temporary
@@ -277,9 +278,9 @@ failure.  </p> </blockquote>
 <ul>
 
 <li> <p> First, configure the host to listen on both primary and
-backup MX addresses. Use the appropriate <tt>ifconfig</tt> command
-for the local operating system, or update the appropriate configuration
-files and "refresh" the network protocol stack. </p>
+backup MX addresses. Use the appropriate <tt>ifconfig</tt> or <tt>ip</tt>
+command for the local operating system, or update the appropriate
+configuration files and "refresh" the network protocol stack. </p>
 
 <p> <p> Second, configure Postfix to listen on the new IP address
 (this step is needed when you have specified inet_interfaces in
@@ -324,7 +325,8 @@ interval before the "220 <i>text</i>..." server greeting, where
 postscreen(8) can run a number of tests in parallel. </p>
 
 <p> When a good client passes these tests, and no "<a
-href="#after_220">deep protocol tests</a>" are configured, postscreen(8)
+href="#after_220">deep protocol tests</a>"
+are configured, postscreen(8)
 adds the client to the temporary allowlist and hands off the "live"
 connection to a Postfix SMTP server process.  The client can then
 continue as if postscreen(8) never even existed (except of course
@@ -526,7 +528,8 @@ service, so that they never have to deal with postscreen(8)'s tests.
 receiver send one command and one response at a time.  Unlike the
 Postfix SMTP server, postscreen(8) does not announce support
 for ESMTP command pipelining.  Therefore, clients are not allowed
-to send multiple commands. postscreen(8)'s <a href="#after_220">deep
+to send multiple commands. postscreen(8)'s
+<a href="#after_220">deep
 protocol test</a> for this is disabled by default. </p>
 
 <p> With "postscreen_pipelining_enable = yes", postscreen(8) detects
@@ -560,7 +563,8 @@ after the 220 SMTP server greeting</a>" below. </p>
 of this is the usage of commands such as CONNECT and other non-SMTP
 commands. Just like the Postfix SMTP server's smtpd_forbidden_commands
 feature, postscreen(8) has an equivalent postscreen_forbidden_commands
-feature to block these clients. postscreen(8)'s <a href="#after_220">deep
+feature to block these clients. postscreen(8)'s
+<a href="#after_220">deep
 protocol test</a> for this is disabled by default.  </p>
 
 <p> With "postscreen_non_smtp_command_enable = yes", postscreen(8)
@@ -597,7 +601,8 @@ tests fail after the 220 SMTP server greeting</a>" below. </p>
 <p> SMTP is a line-oriented protocol: lines have a limited length,
 and are terminated with &lt;CR&gt;&lt;LF&gt;. Lines ending in a
 "bare" &lt;LF&gt;, that is newline not preceded by carriage return,
-are not allowed in SMTP.  postscreen(8)'s <a href="#after_220">deep
+are not allowed in SMTP.  postscreen(8)'s
+<a href="#after_220">deep
 protocol test</a> for this is disabled by default.  </p>
 
 <p> With "postscreen_bare_newline_enable = yes", postscreen(8)
@@ -916,14 +921,15 @@ Postfix version 2.8. </p>
 <li> <p> Some postscreen(8) configuration parameters implement
 stress-dependent behavior. This is supported only when the default
 value is stress-dependent (that is, "postconf -d <i>parametername</i>"
-output shows "<i>parametername</i> =
-${stress?<i>something</i>}${stress:<i>something</i>}").
+output shows
+"<i>parametername</i>&nbsp;=&nbsp;${stress?<i>something</i>}${stress:<i>something</i>}" or
+"<i>parametername</i>&nbsp;=&nbsp;${stress?{<i>something</i>}:{<i>something</i>}}").
 Other parameters always evaluate as if the stress value is the empty
 string. </p>
 
 <li> <p> See "<a href="#before_220">Tests before the 220 SMTP server
-greeting</a>" for details about the logging from these postscreen(8)
-tests. </p>
+greeting</a>" for details about the logging from these
+postscreen(8) tests. </p>
 
 <li> <p> If you run Postfix 2.6 or earlier you must stop and start
 the master daemon ("<tt>postfix stop; postfix start</tt>").  This
@@ -997,7 +1003,8 @@ tests</a>", but these are more intrusive than the pregreet or DNSBL
 tests. </p>
 
 <p> When a good client passes the "<a href="#after_220">deep
-protocol tests</a>", postscreen(8) adds the client to the temporary
+protocol tests</a>",
+postscreen(8) adds the client to the temporary
 allowlist but it cannot hand off the "live" connection to a Postfix
 SMTP server process in the middle of the session. Instead, postscreen(8)
 defers mail delivery attempts with a 4XX status, logs the

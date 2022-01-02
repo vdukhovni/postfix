@@ -98,7 +98,7 @@ configuration work with Postfix.
         mynetworks = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [fe80::]/10 [2001:
         240:587::]/64
 
-    If you did specify the mynetworks parameter value in main.cf, you need
+    If you did specify the mynetworks parameter value in main.cf, you need to
     update the mynetworks value to include the IPv6 networks the system is in.
     Be sure to specify IPv6 address information inside "[]", like this:
 

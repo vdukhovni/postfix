@@ -31,7 +31,7 @@
 /*	before calling transport_lookup().
 /*
 /*	transport_post_init() can be invoked after entering the chroot
-/*	jail, and must be called before before calling transport_lookup().
+/*	jail, and must be called before calling transport_lookup().
 /*
 /*	transport_lookup() finds the channel and nexthop for the given
 /*	domain, and returns 1 if something was found.	Otherwise, 0

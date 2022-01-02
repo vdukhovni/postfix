@@ -65,12 +65,6 @@ dbpath = /some/path/to/sqlite_database
 # See sqlite_table(5) for details.
 query = SELECT forw_addr FROM mxaliases WHERE alias='%s' AND status='paid'
 
-AAddddiittiioonnaall nnootteess
-
-The SQLite configuration interface setup allows for multiple sqlite databases:
-you can use one for a virtual table, one for an access table, and one for an
-aliases table if you want.
-
 CCrreeddiittss
 
 SQLite support was added with Postfix version 2.8.

@@ -295,7 +295,7 @@ typedef struct DNS_REPLY {
 #define INET6_ADDR_LEN	16		/* XXX */
 
  /*
-  * Use the theadsafe resolver API if available, not because it is theadsafe,
+  * Use the threadsafe resolver API if available, not because it is theadsafe,
   * but because it has more functionality.
   */
 #ifdef USE_RES_NCALLS

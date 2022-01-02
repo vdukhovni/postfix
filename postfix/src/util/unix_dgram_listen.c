@@ -19,7 +19,7 @@
 /* .IP backlog
 /*	Either NON_BLOCKING for a non-blocking socket, or BLOCKING for
 /*	blocking mode.
-/* DIAGNOSIICS
+/* DIAGNOSTICS
 /*	Fatal errors: path too large, can't create socket.
 /* LICENSE
 /* .ad

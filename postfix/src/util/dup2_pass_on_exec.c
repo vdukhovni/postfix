@@ -2,7 +2,7 @@
 /* NAME
 /*	dup2_pass_on_exec 1
 /* SUMMARY
-/*	dup2 close-on-exec behaviour test program
+/*	dup2 close-on-exec behavior test program
 /* SYNOPSIS
 /*	dup2_pass_on_exec
 /* DESCRIPTION

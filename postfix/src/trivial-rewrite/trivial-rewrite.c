@@ -48,7 +48,7 @@
 /* .ad
 /* .fi
 /*	The \fBtrivial-rewrite\fR(8) servers run under control by
-/*	the Postfix master
+/*	the Postfix master(8)
 /*	server.  Each server can handle multiple simultaneous connections.
 /*	When all servers are busy while a client connects, the master
 /*	creates a new server process, provided that the trivial-rewrite
@@ -521,7 +521,7 @@ static void pre_accept(char *unused_name, char **unused_argv)
 
 #endif
 
-/* post_accept - anounce our protocol name */
+/* post_accept - announce our protocol name */
 
 static void post_accept(VSTREAM *stream, char *unused_name, char **unused_argv,
 			        HTABLE *unused_attr)

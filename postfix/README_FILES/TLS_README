@@ -12,7 +12,7 @@ NOTE: By turning on TLS support in Postfix, you not only get the ability to
 encrypt mail and to authenticate remote SMTP clients or servers. You also turn
 on hundreds of thousands of lines of OpenSSL library code. Assuming that
 OpenSSL is written as carefully as Wietse's own code, every 1000 lines
-introduce one additional bug into Postfix.
+introduces one additional bug into Postfix.
 
 Topics covered in this document:
 
@@ -121,7 +121,7 @@ To verify the Postfix SMTP server certificate, the remote SMTP client must
 receive the issuing CA certificates via the TLS handshake or via public-key
 infrastructure. This means that the Postfix server public-key certificate file
 must include the server certificate first, then the issuing CA(s) (bottom-up
-order). The Postfix SMTP server certificate must be usable as SSL server
+order). The Postfix SMTP server certificate must be usable as an SSL server
 certificate and hence pass the "openssl verify -purpose sslserver ..." test.
 
 The examples that follow show how to create a server certificate file. We
@@ -178,7 +178,8 @@ and any additional issuer certificates. A single file can hold multiple (key,
 cert, [chain]) sequences, one per algorithm. It is typically simpler to keep
 the chain for each algorithm in its own file. Most users are likely to deploy
 just a single RSA chain, but with OpenSSL 1.1.1, it is possible to deploy up to
-five chains, one each for RSA, ECDSA, ED25519, ED448 and even the obsolete DSA.
+five chains, one each for RSA, ECDSA, ED25519, ED448, and even the obsolete
+DSA.
 
         # Postfix >= 3.4.  Preferred configuration interface.  Each file
         # starts with the private key, followed by the corresponding
@@ -554,8 +555,8 @@ their use in this context, though not recommended, is still likely safe.
 
 The permit_tls_all_clientcerts feature must be used with caution, because it
 can result in too many access permissions. Use this feature only if a special
-CA issues the client certificates, and only if this CA is listed as trusted CA.
-If other CAs are trusted, any owner of a valid client certificate would be
+CA issues the client certificates, and only if this CA is listed as a trusted
+CA. If other CAs are trusted, any owner of a valid client certificate would be
 authorized. The permit_tls_all_clientcerts feature can be practical for a
 specially created email relay server.
 
@@ -1404,8 +1405,8 @@ which certificate is presented.
 It is possible for the Postfix SMTP client to use the same key/certificate pair
 as the Postfix SMTP server. If a certificate is to be presented, it must be in
 "PEM" format. The private key must not be encrypted, meaning: it must be
-accessible without password. Both parts (certificate and private key) may be in
-the same file.
+accessible without a password. Both parts (certificate and private key) may be
+in the same file.
 
 With OpenSSL 1.1.1 and Postfix >= 3.4 it is also possible to configure Ed25519
 and Ed448 certificates. Rather than add two more pairs of key and certificate
@@ -1426,7 +1427,7 @@ user create the client.pem file with:
     # uummaasskk 007777
     # ccaatt cclliieenntt__kkeeyy..ppeemm cclliieenntt__cceerrtt..ppeemm iinntteerrmmeeddiiaattee__CCAA..ppeemm >> cchhaaiinn..ppeemm
 
-A Postfix SMTP client certificate supplied here must be usable as SSL client
+A Postfix SMTP client certificate supplied here must be usable as an SSL client
 certificate and hence pass the "openssl verify -purpose sslclient ..." test.
 
 A server that trusts the root CA has a local copy of the root CA certificate,
@@ -1443,7 +1444,8 @@ and any additional issuer certificates. A single file can hold multiple (key,
 cert, [chain]) sequences, one per algorithm. It is typically simpler to keep
 the chain for each algorithm in its own file. Most users are likely to deploy
 at most a single RSA chain, but with OpenSSL 1.1.1, it is possible to deploy up
-five chains, one each for RSA, ECDSA, ED25519, ED448 and even the obsolete DSA.
+five chains, one each for RSA, ECDSA, ED25519, ED448, and even the obsolete
+DSA.
 
         # Postfix >= 3.4.  Preferred configuration interface.  Each file
         # starts with the private key, followed by the corresponding
@@ -1782,14 +1784,15 @@ vveerriiffyy
     files.
 sseeccuurree
     Secure certificate verification. Mail is delivered only if the TLS
-    handshake succeeds, if the remote SMTP server certificate can be validated
-    (not expired or revoked, and signed by a trusted Certification Authority),
-    and if the server certificate name matches the optional "match" attribute
-    (or the main.cf smtp_tls_secure_cert_match parameter value when no optional
-    "match" attribute is specified). With Postfix >= 2.11 the "tafile"
-    attribute optionally modifies trust chain verification in the same manner
-    as the "smtp_tls_trust_anchor_file" parameter. The "tafile" attribute may
-    be specified multiple times to load multiple trust-anchor files.
+    handshake succeeds, and DNS forgery resistant remote SMTP certificate
+    verification succeeds (not expired or revoked, and signed by a trusted
+    Certification Authority), and if the server certificate name matches the
+    optional "match" attribute (or the main.cf smtp_tls_secure_cert_match
+    parameter value when no optional "match" attribute is specified). With
+    Postfix >= 2.11 the "tafile" attribute optionally modifies trust chain
+    verification in the same manner as the "smtp_tls_trust_anchor_file"
+    parameter. The "tafile" attribute may be specified multiple times to load
+    multiple trust-anchor files.
 Notes:
 
   * The "match" attribute is especially useful to verify TLS certificates for
@@ -2174,7 +2177,7 @@ authentication. This is sufficient for testing, and for exchanging email with
 sites that you have no trust relationship with. For real authentication you
 need also enable DNSSEC record signing for your domain and publish TLSA records
 and/or your Postfix public key certificate needs to be signed by a recognized
-Certification Authority. To authenticate the certificates of remote host you
+Certification Authority. To authenticate the certificates of a remote host you
 need a DNSSEC-validating local resolver and to enable DANE authentication and/
 or configure the Postfix SMTP client with a list of public key certificates of
 Certification Authorities, but make sure to read about the limitations of the
@@ -2392,7 +2395,7 @@ PPrriivvaattee CCeerrttiiffiiccaattiioonn AAuutthhoorr
     Often servers that perform TLS client authentication will issue the
     required certificates signed by their own CA. If you configure the client
     certificate and key incorrectly, you will be unable to send mail to sites
-    that request client certificate, but don't require them from all clients.
+    that request a client certificate, but don't require them from all clients.
 
         /etc/postfix/main.cf:
             smtp_tls_CAfile = /etc/postfix/cacert.pem

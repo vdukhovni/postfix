@@ -80,7 +80,7 @@
 /*
 /*	argv_terminate() null-terminates its string array argument.
 /*
-/*	argv_truncate() trucates its argument to the specified
+/*	argv_truncate() truncates its argument to the specified
 /*	number of entries, but does not reallocate memory. The
 /*	result is null-terminated.
 /*

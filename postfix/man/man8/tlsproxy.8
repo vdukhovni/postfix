@@ -320,6 +320,11 @@ but do not require that clients use TLS encryption.
 .IP "\fBtlsproxy_enforce_tls ($smtpd_enforce_tls)\fR"
 Mandatory TLS: announce STARTTLS support to remote SMTP clients, and
 require that clients use TLS encryption.
+.IP "\fBtlsproxy_client_use_tls ($smtp_use_tls)\fR"
+Opportunistic mode: use TLS when a remote server announces TLS
+support.
+.IP "\fBtlsproxy_client_enforce_tls ($smtp_enforce_tls)\fR"
+Enforcement mode: require that SMTP servers use TLS encryption.
 .SH "RESOURCE CONTROLS"
 .na
 .nf

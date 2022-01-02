@@ -58,6 +58,12 @@
 /*	values to be remembered are not character pointers, proper casts
 /*	should be used or the code will not be portable.
 /*
+/*	To thwart collision attacks, the hash function is seeded
+/*	once from /dev/urandom, and if that is unavailable, from
+/*	wallclock-time and monotonic system clocks. To disable
+/*	seeding for tests, specify NORANDOMIZE in the environment
+/*	(the value does not matter).
+/*
 /*	htable_create() creates a table of the specified size and returns a
 /*	pointer to the result. The lookup keys are saved with mystrdup().
 /*	htable_enter() stores a (key, value) pair into the specified table
@@ -119,6 +125,11 @@
 
 #include <sys_defs.h>
 #include <string.h>
+#include <sys/time.h>
+#include <time.h>
+#include <stdint.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 /* Local stuff */
 
@@ -126,23 +137,111 @@
 #include "msg.h"
 #include "htable.h"
 
+ /*
+  * Fall back to a mix of absolute and time-since-boot information in the
+  * rare case that /dev/urandom is unavailable.
+  */
+#ifdef CLOCK_UPTIME
+#define NON_WALLTIME_CLOCK      CLOCK_UPTIME
+#elif defined(CLOCK_BOOTTIME)
+#define NON_WALLTIME_CLOCK      CLOCK_BOOTTIME
+#elif defined(CLOCK_MONOTONIC)
+#define NON_WALLTIME_CLOCK      CLOCK_MONOTONIC
+#elif defined(CLOCK_HIGHRES)
+#define NON_WALLTIME_CLOCK      CLOCK_HIGHRES
+#endif
+
+/* htable_seed - randomize the hash function */
+
+static size_t htable_seed(void)
+{
+    uint32_t result = 0;
+
+    /*
+     * Medium-quality seed, for defenses against local and remote attacks.
+     */
+    int     fd;
+    int     count;
+
+    if ((fd = open("/dev/urandom", O_RDONLY)) > 0) {
+	count = read(fd, &result, sizeof(result));
+	(void) close(fd);
+	if (count == sizeof(result))
+	    return (result);
+    }
+
+    /*
+     * Low-quality seed, for defenses against remote attacks. Based on 1) the
+     * time since boot (good when an attacker knows the program start time
+     * but not the system boot time), and 2) absolute time (good when an
+     * attacker does not know the program start time). Assumes a system with
+     * better than microsecond resolution, and a network stack that does not
+     * leak the time since boot, for example, through TCP or ICMP timestamps.
+     * With those caveats, this seed is good for 20-30 bits of randomness.
+     */
+#ifdef NON_WALLTIME_CLOCK
+    {
+	struct timespec ts;
+
+	if (clock_gettime(NON_WALLTIME_CLOCK, &ts) != 0)
+	    msg_fatal("clock_gettime() failed: %m");
+	result += (size_t) ts.tv_sec ^ (size_t) ts.tv_nsec;
+    }
+#elif defined(USE_GETHRTIME)
+    result += gethrtime();
+#endif
+
+#ifdef CLOCK_REALTIME
+    {
+	struct timespec ts;
+
+	if (clock_gettime(CLOCK_REALTIME, &ts) != 0)
+	    msg_fatal("clock_gettime() failed: %m");
+	result += (size_t) ts.tv_sec ^ (size_t) ts.tv_nsec;
+    }
+#else
+    {
+	struct timeval tv;
+
+	if (GETTIMEOFDAY(&tv) != 0)
+	    msg_fatal("gettimeofday() failed: %m");
+	result += (size_t) tv.tv_sec + (size_t) tv.tv_usec;
+    }
+#endif
+    return (result + getpid());
+}
+
 /* htable_hash - hash a string */
 
 static size_t htable_hash(const char *s, size_t size)
 {
-    size_t  h = 0;
+    static size_t seed = 0;
+    static int randomize = 1;
+    size_t  h;
     size_t  g;
 
     /*
-     * From the "Dragon" book by Aho, Sethi and Ullman.
+     * Initialize.
      */
+    if (seed == 0 && randomize) {
+	if (getenv("NORANDOMIZE"))
+	    randomize = 0;
+	else
+	    seed = htable_seed();
+#if 0
+	if (msg_verbose)
+	    msg_info("htable_hash: seed=0x%lx", (long) seed);
+#endif
+    }
 
+    /*
+     * Inspired the "Dragon" book by Aho, Sethi and Ullman. Updated to use a
+     * seed, and to maintain 32+ bit state.
+     */
+    h = seed;
     while (*s) {
-	h = (h << 4U) + *(unsigned const char *) s++;
-	if ((g = (h & 0xf0000000)) != 0) {
-	    h ^= (g >> 24U);
-	    h ^= g;
-	}
+	g = h & 0xf0000000;
+	h = ((h << 4U) | (g >> 28U)) + *(unsigned const char *) s++;
     }
     return (h % size);
 }
@@ -392,6 +491,7 @@ int     main(int unused_argc, char **unused_argv)
     /*
      * Load a large number of strings and delete them in a random order.
      */
+    msg_verbose = 1;
     hash = htable_create(10);
     while (vstring_get(buf, VSTREAM_IN) != VSTREAM_EOF)
 	htable_enter(hash, vstring_str(buf), CAST_INT_TO_VOID_PTR(count++));

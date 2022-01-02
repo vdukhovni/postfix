@@ -89,7 +89,7 @@
 #define AUTH_PROTOCOL_MINOR_VERSION 0
 
  /*
-  * Encorce read/write time limits, so that we can produce accurate
+  * Enforce read/write time limits, so that we can produce accurate
   * diagnostics instead of getting killed by the watchdog timer.
   */
 #define AUTH_TIMEOUT	10
@@ -278,7 +278,8 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
 	fd = unix_connect(path, BLOCKING, AUTH_TIMEOUT);
     }
     if (fd < 0) {
-	msg_warn("SASL: Connect to %s failed: %m", xp->socket_path);
+	msg_warn("SASL: Connect to Dovecot auth socket '%s' failed: %m",
+		 xp->socket_path);
 	return (-1);
     }
     sasl_stream = vstream_fdopen(fd, O_RDWR);

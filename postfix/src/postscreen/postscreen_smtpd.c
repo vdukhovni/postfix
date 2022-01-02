@@ -213,7 +213,7 @@ static void psc_smtpd_read_event(int, void *);
  /*
   * Encapsulation. The STARTTLS, EHLO and AUTH command handlers temporarily
   * suspend SMTP command events, send an asynchronous proxy request, and
-  * resume SMTP command events after receiving the asynchrounous proxy
+  * resume SMTP command events after receiving the asynchronous proxy
   * response (the EHLO handler must asynchronously talk to the auth server
   * before it can announce the SASL mechanism list; the list can depend on
   * the client IP address and on the presence on TLS encryption).

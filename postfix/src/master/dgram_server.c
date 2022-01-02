@@ -460,7 +460,7 @@ NORETURN dgram_server_main(int argc, char **argv, DGRAM_SERVER_FN service,...)
 
     /*
      * Register higher-level dictionaries and initialize the support for
-     * dynamically-loaded dictionarles.
+     * dynamically-loaded dictionaries.
      */
     mail_dict_init();
 

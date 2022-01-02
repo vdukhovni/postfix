@@ -687,7 +687,8 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 	if (dbenv) dbenv->close(dbenv, 0); \
 	if (lock_fd >= 0) (void) close(lock_fd); \
 	if (db_base_buf) vstring_free(db_base_buf); \
-	if (db_path) myfree(db_path); return (_dict); \
+	if (db_path) myfree(db_path); \
+	return (_dict); \
     } while (0)
 #endif
 

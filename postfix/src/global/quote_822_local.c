@@ -231,7 +231,7 @@ VSTRING *unquote_822_local(VSTRING *dst, const char *mbox)
  /*
   * Proof-of-concept test program. Read an unquoted address from stdin, and
   * show the quoted and unquoted results. Specify <> to test behavior for an
-  * empty unquoted adress.
+  * empty unquoted address.
   */
 #include <ctype.h>
 #include <string.h>

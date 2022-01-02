@@ -51,11 +51,15 @@ LOCAL(8)                                                              LOCAL(8)
        shell), <b>$recipient</b> (complete recipient address), <b>$extension</b>  (recipient
        address  extension), <b>$domain</b> (recipient domain), <b>$local</b> (entire recipi-
        ent   address   localpart)   and   <b>$<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>.</b>   The    forms
-       <i>${name?value}</i>  and  <i>${name:value}</i>  expand  conditionally  to <i>value</i> when
-       <i>$name</i> is (is not) defined.  Characters that may have special meaning to
-       the  shell  or  file  system  are replaced by underscores.  The list of
-       acceptable characters is specified  with  the  <b><a href="postconf.5.html#forward_expansion_filter">forward_expansion_filter</a></b>
-       configuration parameter.
+       <i>${name?value}</i> and <i>${name?{value}}</i> (Postfix 3.0 and later) expand condi-
+       tionally to <i>value</i> when <i>$name</i> is defined, and  the  forms  <i>${name:value}</i>
+       <i>${name:{value}}</i>  (Postfix  3.0 and later) expand conditionally to <i>value</i>
+       when <i>$name</i> is not defined.  The form <i>${name?{value1}:{value2}}</i> (Postfix
+       3.0  and  later) expands conditionally to <i>value1</i> when <i>$name</i> is defined,
+       or <i>value2</i> otherwise. Characters that may have special  meaning  to  the
+       shell or file system are replaced with underscores. The list of accept-
+       able characters is specified with the <b><a href="postconf.5.html#forward_expansion_filter">forward_expansion_filter</a></b> configu-
+       ration parameter.
 
        An  alias  or ~/.<b>forward</b> file may list any combination of external com-
        mands, destination file names, <b>:include:</b> directives, or mail addresses.
@@ -141,11 +145,15 @@ LOCAL(8)                                                              LOCAL(8)
        <b>$shell</b>  (recipient  shell),  <b>$recipient</b>  (complete  recipient address),
        <b>$extension</b> (recipient address extension), <b>$domain</b>  (recipient  domain),
        <b>$local</b>  (entire  recipient address localpart) and <b>$<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>.</b>
-       The forms <i>${name?value}</i> and <i>${name:value}</i> expand conditionally to <i>value</i>
-       when <i>$name</i> is (is not) defined.  Characters that may have special mean-
-       ing to the shell or file system are replaced by underscores.  The  list
-       of   acceptable  characters  is  specified  with  the  <b><a href="postconf.5.html#execution_directory_expansion_filter">execution_direc</a>-</b>
-       <b><a href="postconf.5.html#execution_directory_expansion_filter">tory_expansion_filter</a></b> configuration parameter.
+       The forms <i>${name?value}</i> and <i>${name?{value}}</i>  (Postfix  3.0  and  later)
+       expand  conditionally  to  <i>value</i>  when  <i>$name</i> is defined, and the forms
+       <i>${name:value}</i> and <i>${name:{value}}</i> (Postfix 3.0 and later) expand condi-
+       tionally   to   <i>value</i>   when   <i>$name</i>   is   not   defined.    The  form
+       <i>${name?{value1}:{value2}}</i> (Postfix 3.0 and later) expands conditionally
+       to  <i>value1</i>  when <i>$name</i> is defined, or <i>value2</i> otherwise. Characters that
+       may have special meaning to the shell or file system are replaced  with
+       underscores.  The  list  of acceptable characters is specified with the
+       <b><a href="postconf.5.html#execution_directory_expansion_filter">execution_directory_expansion_filter</a></b> configuration parameter.
 
        The command is executed directly  where  possible.  Assistance  by  the
        shell  (<b>/bin/sh</b> on UNIX systems) is used only when the command contains
@@ -166,7 +174,7 @@ LOCAL(8)                                                              LOCAL(8)
 
        A  limited  amount of message context is exported via environment vari-
        ables. Characters that may  have  special  meaning  to  the  shell  are
-       replaced  by  underscores.  The list of acceptable characters is speci-
+       replaced with underscores.  The list of acceptable characters is speci-
        fied with the <b><a href="postconf.5.html#command_expansion_filter">command_expansion_filter</a></b> configuration parameter.
 
        <b>SHELL</b>  The recipient user's login shell.
@@ -421,7 +429,7 @@ LOCAL(8)                                                              LOCAL(8)
 
        <b><a href="postconf.5.html#command_execution_directory">command_execution_directory</a> (empty)</b>
               The <a href="local.8.html"><b>local</b>(8)</a> delivery agent working directory  for  delivery  to
-              external command.
+              external commands.
 
 <b>MAILBOX LOCKING CONTROLS</b>
        <b><a href="postconf.5.html#deliver_lock_attempts">deliver_lock_attempts</a> (20)</b>
@@ -480,7 +488,7 @@ LOCAL(8)                                                              LOCAL(8)
 
        <b><a href="postconf.5.html#default_privs">default_privs</a> (nobody)</b>
               The  default  rights  used  by  the  <a href="local.8.html"><b>local</b>(8)</a> delivery agent for
-              delivery to external file or command.
+              delivery to an external file or command.
 
        <b><a href="postconf.5.html#forward_expansion_filter">forward_expansion_filter</a> (see 'postconf -d' output)</b>
               Restrict the characters that the <a href="local.8.html"><b>local</b>(8)</a> delivery agent  allows
@@ -521,7 +529,7 @@ LOCAL(8)                                                              LOCAL(8)
 
        <b><a href="postconf.5.html#local_command_shell">local_command_shell</a> (empty)</b>
               Optional shell program for <a href="local.8.html"><b>local</b>(8)</a> delivery to non-Postfix com-
-              mand.
+              mands.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
               The  maximum  amount of time that an idle Postfix daemon process

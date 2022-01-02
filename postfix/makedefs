@@ -184,6 +184,28 @@
 #	New York, NY 10011, USA
 #--
 
+# By now all shells must have functions.
+
+error() {
+   # Alas, tput(1) is not portable so we can't use visual effects.
+   echo "ATTENTION:" 1>&2;
+   echo "ATTENTION:" $* 1>&2;
+   echo "ATTENTION:" 1>&2;
+   exit 1
+}
+
+# First, deal with unsupported usage.
+case "$LD_LIBRARY_PATH" in
+?*) error "Not supported: building with LD_LIBRARY_PATH";;
+esac
+
+env | grep '^AUXLIBS_' | while read line
+do
+    case  "$line" in
+*-lpostfix-*) error "Not supported: linking plugins with -lpostfix-*: $line";;
+    esac
+done || exit 1
+
 # Emit system-dependent Makefile macro definitions to standard output.
 
 echo "#----------------------------------------------------------------"
@@ -204,16 +226,6 @@ ARFL=rv
 
 # Ugly function to make our error message more visible among the
 # garbage that is output by some versions of make(1).
-
-# By now all shells must have functions.
-
-error() {
-   # Alas, tput(1) is not portable so we can't use visual effects.
-   echo "ATTENTION:" 1>&2;
-   echo "ATTENTION:" $* 1>&2;
-   echo "ATTENTION:" 1>&2;
-   exit 1
-}
 
 case $# in
  # Officially supported usage.
@@ -472,10 +484,6 @@ case "$SYSTEM.$RELEASE" in
 		CCARGS="$CCARGS -Dstrcasecmp=fix_strcasecmp \
 		    -Dstrncasecmp=fix_strncasecmp"
 		STRCASE="strcasecmp.o"
-		# Avoid common types of braindamage
-		case "$LD_LIBRARY_PATH" in
-		?*) error "Don't set LD_LIBRARY_PATH";;
-		esac
 		case "${CC}" in
 		*" "*) ;;
 		*ucb*) error "Don't use /usr/ucb/cc or ucblib";;
@@ -974,7 +982,7 @@ CCARGS="-I. -I../../include $CCARGS"
 # "make makefiles name=value...". The replacement depends on usage
 # context: the expanded release version in actual pathnames, or the
 # unexpanded ${mail_version} in configuration parameter values (both
-# main.cf and and built-in defaults).
+# main.cf and built-in defaults).
 
 # Helper function to determine DEF_MAIL_VERSION.
 

@@ -138,6 +138,10 @@ in\-memory file:
 .fi
 
 Postfix parses the result as if it is a file in /etc/postfix.
+
+Note: if a rule contains \fB$\fR, specify \fB$$\fR to keep
+Postfix from trying to do \fI$name\fR expansion as it
+evaluates a parameter value.
 .SH "EXAMPLE SMTPD ACCESS MAP"
 .na
 .nf

@@ -888,7 +888,7 @@ static int smtp_start_tls(SMTP_STATE *state)
      * either the transport name or the values of CAfile and CApath. We use
      * the transport name.
      * 
-     * XXX: We store only one session per lookup key. Ideally the the key maps
+     * XXX: We store only one session per lookup key. Ideally the key maps
      * 1-to-1 to a server TLS session cache. We use the IP address, port and
      * ehlo response name to build a lookup key that works for split caches
      * (that announce distinct names) behind a load balancer.
@@ -1935,7 +1935,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		 * not clobber this non-zero value once it is set. The
 		 * variable need not survive longjmp() calls, since the only
 		 * setjmp() which does not return early is the one sets this
-		 * condition, subquent failures always return early.
+		 * condition, subsequent failures always return early.
 		 */
 #define LOST_CONNECTION_INSIDE_DATA (except == SMTP_ERR_EOF)
 

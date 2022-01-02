@@ -176,7 +176,7 @@ and is not recommended for now.  </p>
 
 <h3> EDH Server support </h3>
 
-<p> Postfix &ge; 2.2 support 1024-bit-prime EDH out of the box,
+<p> Postfix &ge; 2.2 supports 1024-bit-prime EDH out of the box,
 with no additional configuration, but you may want to override the
 default prime to be 2048 bits long, and you may want to regenerate
 your primes periodically. See the <a href="#quick-start">quick-start</a>
@@ -218,7 +218,7 @@ for the recommended configuration to work around this issue.  </p>
 
 <h3> EECDH Server support </h3>
 
-<p> Postfix &ge; 2.6 support NIST P-256 EECDH when built with OpenSSL
+<p> Postfix &ge; 2.6 supports NIST P-256 EECDH when built with OpenSSL
 &ge; 1.0.0.  When the remote SMTP client also supports EECDH and
 implements the P-256 curve, forward secrecy just works.  </p>
 
@@ -530,7 +530,7 @@ This pattern is likely to persist until some new key-exchange
 mechanism is invented that also supports forward secrecy.  </p>
 
 <p> The actual key length and raw algorithm key length 
-are generally the same with non-export ciphers, but may they
+are generally the same with non-export ciphers, but they may
 differ for the legacy export ciphers where the actual key 
 is artificially shortened. </p>
 

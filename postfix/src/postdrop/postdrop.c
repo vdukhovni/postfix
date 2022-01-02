@@ -497,7 +497,7 @@ int     main(int argc, char **argv)
     for (;;) {
 	/* Don't allow PTR records. */
 	rec_type = rec_get_raw(VSTREAM_IN, buf, var_line_limit, REC_FLAG_NONE);
-	if (rec_type == REC_TYPE_EOF) {		/* request cancelled */
+	if (rec_type == REC_TYPE_EOF) {		/* request canceled */
 	    mail_stream_cleanup(dst);
 	    if (remove(postdrop_path))
 		msg_warn("uid=%ld: remove %s: %m", (long) uid, postdrop_path);

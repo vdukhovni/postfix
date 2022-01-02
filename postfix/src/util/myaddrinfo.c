@@ -762,7 +762,7 @@ void    freeaddrinfo(struct addrinfo * ai)
     struct addrinfo *next;
 
     /*
-     * Artefact of implementation: tolerate a null pointer argument.
+     * Artifact of implementation: tolerate a null pointer argument.
      */
     for (ap = ai; ap != 0; ap = next) {
 	next = ap->ai_next;

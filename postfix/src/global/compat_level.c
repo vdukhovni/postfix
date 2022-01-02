@@ -78,7 +78,7 @@
 /*	the major field ranges from 0..COMPAT_MAJOR_SHIFT47 or more
 /*	(11 bits or more).
 /*
-/*	This would be a great use case for fucntions returning
+/*	This would be a great use case for functions returning
 /*	StatusOr<compat_level_t> or StatusOr<string>, but is it a bit
 /*	late for a port to C++.
 /* LICENSE

@@ -503,7 +503,7 @@ static int tlsmgr_key(VSTRING *buffer, int timeout)
 	    return (TLS_MGR_STAT_ERR);
 	}
     }
-    /* Return value overrites name buffer */
+    /* Return value overwrites name buffer */
     vstring_memcpy(buffer, (char *) key, sizeof(*key));
     return (TLS_MGR_STAT_OK);
 }

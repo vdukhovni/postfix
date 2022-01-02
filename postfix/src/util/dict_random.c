@@ -154,7 +154,7 @@ DICT   *dict_random_open(const char *name, int open_flags, int dict_flags)
     dict_random->dict.owner.uid = 0;
 
     /*
-     * Split the name name into its constituent parts.
+     * Split the table name into its constituent parts.
      */
     if ((len = balpar(name, CHARS_BRACE)) == 0 || name[len] != 0
 	|| *(saved_name = mystrndup(name + 1, len - 2)) == 0
