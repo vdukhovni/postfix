@@ -26164,3 +26164,12 @@ Apologies for any names omitted.
 	The fix is cheap, and therefore implemented for all Postfix
 	in-memory hash tables. Problem reported by Pascal Junod.
 	File: util/htable.c.
+
+20210103
+
+	Documentation: CIDR example for mynetworks. Scott Kitterman.
+	File: proto/postconf.proto.
+
+	Updated the hash function to make the distance between
+	colliding inputs seed-dependent, which is really the only
+	property that we needed. File: util/htable.c.

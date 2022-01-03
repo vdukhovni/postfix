@@ -235,13 +235,14 @@ static size_t htable_hash(const char *s, size_t size)
     }
 
     /*
-     * Inspired the "Dragon" book by Aho, Sethi and Ullman. Updated to use a
-     * seed, and to maintain 32+ bit state.
+     * Heavily mutilated code based on the "Dragon" book by Aho, Sethi and
+     * Ullman. Updated to use a seed, to maintain 32+ bit state, and to make
+     * the distance between colliding inputs seed-dependent.
      */
     h = seed;
     while (*s) {
 	g = h & 0xf0000000;
-	h = ((h << 4U) | (g >> 28U)) + *(unsigned const char *) s++;
+	h = (h << 4U) ^ (((g >> 28U) + 1) * *(unsigned const char *) s++);
     }
     return (h % size);
 }

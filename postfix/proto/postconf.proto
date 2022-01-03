@@ -3166,6 +3166,9 @@ parameter value.  </p>
 "/file/name".  IP version 6 addresses contain the ":" character,
 and would otherwise be confused with a "type:table" pattern.  </p>
 
+<p> Note 3: CIDR ranges cannot be specified in hash tables.  Use cidr
+tables if CIDR ranges are used. </p>
+
 <p> Examples:  </p>
 
 <pre> 
@@ -3174,6 +3177,7 @@ mynetworks = !192.168.0.1, 192.168.0.0/28
 mynetworks = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [2001:240:587::]/64 
 mynetworks = $config_directory/mynetworks
 mynetworks = hash:/etc/postfix/network_table
+mynetworks = cidr:/etc/postfix/network_table.cidr
 </pre>
 
 %PARAM myorigin $myhostname
