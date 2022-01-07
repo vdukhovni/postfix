@@ -550,9 +550,8 @@ LOCAL(8)                                                              LOCAL(8)
               The location of the Postfix top-level queue directory.
 
        <b><a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> (empty)</b>
-              The  set  of  characters  that can separate a user name from its
-              extension (example: user+foo), or a .forward file name from  its
-              extension (example: .forward+foo).
+              The  set of characters that can separate an email address local-
+              part, user name, or a .forward file name from its extension.
 
        <b><a href="postconf.5.html#require_home_directory">require_home_directory</a> (no)</b>
               Require that a <a href="local.8.html"><b>local</b>(8)</a> recipient's home directory exists before
@@ -562,14 +561,14 @@ LOCAL(8)                                                              LOCAL(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              A prefix that  is  prepended  to  the  process  name  in  syslog
+              A  prefix  that  is  prepended  to  the  process  name in syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Available in Postfix version 3.3 and later:
 
        <b><a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> (yes)</b>
-              Enable  support  for  the  original  recipient  address after an
-              address is rewritten to a different address  (for  example  with
+              Enable support for  the  original  recipient  address  after  an
+              address  is  rewritten  to a different address (for example with
               aliasing or with canonical mapping).
 
        <b><a href="postconf.5.html#service_name">service_name</a> (read-only)</b>
@@ -578,7 +577,7 @@ LOCAL(8)                                                              LOCAL(8)
        Available in Postfix 3.5 and later:
 
        <b><a href="postconf.5.html#info_log_address_format">info_log_address_format</a> (external)</b>
-              The  email  address  form that will be used in non-debug logging
+              The email address form that will be used  in  non-debug  logging
               (info, warning, etc.).
 
 <b>FILES</b>
@@ -602,10 +601,10 @@ LOCAL(8)                                                              LOCAL(8)
        The Secure Mailer license must be distributed with this software.
 
 <b>HISTORY</b>
-       The <b>Delivered-To:</b> message header appears in the <b>qmail</b> system by  Daniel
+       The  <b>Delivered-To:</b> message header appears in the <b>qmail</b> system by Daniel
        Bernstein.
 
-       The  <i>maildir</i> structure appears in the <b>qmail</b> system by Daniel Bernstein.
+       The <i>maildir</i> structure appears in the <b>qmail</b> system by Daniel  Bernstein.
 
 <b>AUTHOR(S)</b>
        Wietse Venema

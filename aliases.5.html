@@ -164,16 +164,15 @@ ALIASES(5)                                                          ALIASES(5)
               set to "-".
 
        <b><a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> (empty)</b>
-              The  set  of  characters  that can separate a user name from its
-              extension (example: user+foo), or a .forward file name from  its
-              extension (example: .forward+foo).
+              The  set of characters that can separate an email address local-
+              part, user name, or a .forward file name from its extension.
 
        Available in Postfix version 2.3 and later:
 
        <b><a href="postconf.5.html#frozen_delivered_to">frozen_delivered_to</a> (yes)</b>
-              Update  the  <a href="local.8.html"><b>local</b>(8)</a> delivery agent's idea of the Delivered-To:
-              address (see <a href="postconf.5.html#prepend_delivered_header">prepend_delivered_header</a>) only once, at  the  start
-              of  a  delivery attempt; do not update the Delivered-To: address
+              Update the <a href="local.8.html"><b>local</b>(8)</a> delivery agent's idea of  the  Delivered-To:
+              address  (see  <a href="postconf.5.html#prepend_delivered_header">prepend_delivered_header</a>) only once, at the start
+              of a delivery attempt; do not update the  Delivered-To:  address
               while expanding aliases or .forward files.
 
 <b>STANDARDS</b>
