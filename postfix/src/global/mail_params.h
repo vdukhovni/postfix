@@ -2491,7 +2491,11 @@ extern int var_local_rcpt_code;
 				" $" VAR_SMTPD_EHLO_DIS_MAPS \
 				" $" VAR_SMTPD_MILTER_MAPS \
 				" $" VAR_VIRT_GID_MAPS \
-				" $" VAR_VIRT_UID_MAPS
+				" $" VAR_VIRT_UID_MAPS \
+				" $" VAR_LOCAL_LOGIN_SND_MAPS \
+				" $" VAR_PSC_REJ_FTR_MAPS \
+				" $" VAR_SMTPD_REJ_FTR_MAPS \
+				" $" VAR_TLS_SERVER_SNI_MAPS
 extern char *var_proxy_read_maps;
 
 #define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"

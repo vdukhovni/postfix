@@ -25694,3 +25694,34 @@ Apologies for any names omitted.
 	previously occupied by the original message body.
 
 	Problem report by Benoît Panizzon.
+
+20211115
+
+	Bugfix (introduced: 20210708): duplicate bounce_notice_recipient
+	entries in postconf output. The fix to send SMTP session
+	transcripts to bounce_notice_recipient was incomplete.
+	Reported by Vincent Lefevre. File: smtpd/smtpd.c.
+
+20211216
+
+	Bugfix (introduced: Postfix 3.0): the proxymap daemon did
+	not automatically authorize proxied maps inside pipemap
+	(example: pipemap:{proxy:maptype:mapname, ...}) or inside
+	unionmap. Problem reported by Mirko Vogt. Files:
+	proxymap/proxymap.c.
+
+20211220
+
+	Bugfix (introduced: Postfix 2.5): off-by-one error while
+	writing a string terminator. This code had passed all memory
+	corruption tests, presumably because it wrote over an
+	alignment padding byte, or over an adjacent character byte
+	that was never read. Reported by Robert Siemer. Files:
+	*qmgr/qmgr_feedback.c.
+
+20211223
+
+	Cleanup: added missing _maps parameter names to the
+	proxy_read_maps default value, based on output from the
+	mantools/missing-proxy-read-maps script.  File:
+	global/mail_params.h.
