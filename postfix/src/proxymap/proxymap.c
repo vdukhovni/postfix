@@ -232,6 +232,8 @@
 #include <htable.h>
 #include <stringops.h>
 #include <dict.h>
+#include <dict_pipe.h>
+#include <dict_union.h>
 
 /* Global library. */
 
@@ -295,6 +297,27 @@ static int proxy_writer;
   */
 #define STR(x)			vstring_str(x)
 #define VSTREQ(x,y)		(strcmp(STR(x),y) == 0)
+
+/* get_nested_dict_name - return nested dictionary name pointer, or null */
+
+static char *get_nested_dict_name(char *type_name)
+{
+    const struct {
+	const char *type_col;
+	ssize_t type_col_len;
+    }      *prefix, prefixes[] = {
+	DICT_TYPE_UNION ":", (sizeof(DICT_TYPE_UNION ":") - 1),
+	DICT_TYPE_PIPE ":", (sizeof(DICT_TYPE_PIPE ":") - 1),
+    };
+
+#define COUNT_OF(x) (sizeof(x)/sizeof((x)[0]))
+
+    for (prefix = prefixes; prefix < prefixes + COUNT_OF(prefixes); prefix++) {
+	if (strncmp(type_name, prefix->type_col, prefix->type_col_len) == 0)
+	    return (type_name + prefix->type_col_len);
+    }
+    return (0);
+}
 
 /* proxy_map_find - look up or open table */
 
@@ -660,15 +683,50 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
     return (dict_open(map, open_flags, dict_flags));
 }
 
+/* authorize_proxied_maps - recursively authorize maps */
+
+static void authorize_proxied_maps(char *bp)
+{
+    const char *sep = CHARS_COMMA_SP;
+    const char *parens = CHARS_BRACE;
+    char   *type_name;
+
+    while ((type_name = mystrtokq(&bp, sep, parens)) != 0) {
+	char   *nested_info;
+
+	/* Recurse into nested map (pipemap, unionmap). */
+	if ((nested_info = get_nested_dict_name(type_name)) != 0) {
+	    char   *err;
+
+	    if (*nested_info != parens[0])
+		continue;
+	    /* Warn about blatant syntax error. */
+	    if ((err = extpar(&nested_info, parens, EXTPAR_FLAG_NONE)) != 0) {
+		msg_warn("bad %s parameter value: %s",
+			 proxy_writer == 0 ? VAR_PROXY_READ_MAPS :
+			 VAR_PROXY_WRITE_MAPS, err);
+		myfree(err);
+		continue;
+	    }
+	    authorize_proxied_maps(nested_info);
+	    continue;
+	}
+	if (strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN))
+	    continue;
+	do {
+	    type_name += PROXY_COLON_LEN;
+	} while (!strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN));
+	if (strchr(type_name, ':') != 0
+	    && htable_locate(proxy_auth_maps, type_name) == 0)
+	    (void) htable_enter(proxy_auth_maps, type_name, (void *) 0);
+    }
+}
+
 /* post_jail_init - initialization after privilege drop */
 
 static void post_jail_init(char *service_name, char **unused_argv)
 {
-    const char *sep = CHARS_COMMA_SP;
-    const char *parens = CHARS_BRACE;
     char   *saved_filter;
-    char   *bp;
-    char   *type_name;
 
     /*
      * Are we proxy writer?
@@ -691,19 +749,10 @@ static void post_jail_init(char *service_name, char **unused_argv)
     /*
      * Prepare the pre-approved list of proxied tables.
      */
-    saved_filter = bp = mystrdup(proxy_writer ? var_proxy_write_maps :
-				 var_proxy_read_maps);
+    saved_filter = mystrdup(proxy_writer ? var_proxy_write_maps :
+			    var_proxy_read_maps);
     proxy_auth_maps = htable_create(13);
-    while ((type_name = mystrtokq(&bp, sep, parens)) != 0) {
-	if (strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN))
-	    continue;
-	do {
-	    type_name += PROXY_COLON_LEN;
-	} while (!strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN));
-	if (strchr(type_name, ':') != 0
-	    && htable_locate(proxy_auth_maps, type_name) == 0)
-	    (void) htable_enter(proxy_auth_maps, type_name, (void *) 0);
-    }
+    authorize_proxied_maps(saved_filter);
     myfree(saved_filter);
 
     /*
