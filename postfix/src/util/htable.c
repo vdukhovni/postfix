@@ -128,6 +128,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -166,7 +167,7 @@ static size_t htable_seed(void)
     if ((fd = open("/dev/urandom", O_RDONLY)) > 0) {
 	count = read(fd, &result, sizeof(result));
 	(void) close(fd);
-	if (count == sizeof(result))
+	if (count == sizeof(result) && result != 0)
 	    return (result);
     }
 
@@ -223,15 +224,11 @@ static size_t htable_hash(const char *s, size_t size)
     /*
      * Initialize.
      */
-    if (seed == 0 && randomize) {
+    while (seed == 0 && randomize) {
 	if (getenv("NORANDOMIZE"))
 	    randomize = 0;
 	else
 	    seed = htable_seed();
-#if 0
-	if (msg_verbose)
-	    msg_info("htable_hash: seed=0x%lx", (long) seed);
-#endif
     }
 
     /*
@@ -242,7 +239,7 @@ static size_t htable_hash(const char *s, size_t size)
     h = seed;
     while (*s) {
 	g = h & 0xf0000000;
-	h = (h << 4U) ^ (((g >> 28U) + 1) * *(unsigned const char *) s++);
+	h = (h << 4U) ^ (((g >> 28U) + 1) * (*(unsigned const char *) s++) + 1);
     }
     return (h % size);
 }

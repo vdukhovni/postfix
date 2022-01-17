@@ -114,6 +114,15 @@ manpages:
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) -f Makefile.in $(OPTS) MAKELEVEL=) || exit 1; \
 	done </dev/null
 
+# Some require a statically-linked bin/postconf executable.
+pre-release-checks: typo-check missing-proxy-read-maps-check postlink-check
+
+postlink-check:
+	mantools/check-postlink | diff /dev/null -
+
+missing-proxy-read-maps-check:
+	mantools/missing-proxy-read-maps | diff /dev/null -
+
 typo-check: spell-cc spell-install-proto-text spell-proto-html \
 	double-cc double-install-proto-text double-proto-html
 

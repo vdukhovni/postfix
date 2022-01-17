@@ -2675,10 +2675,13 @@ int     main(int unused_argc, char **argv)
 		    msg_warn("open %s file: %m", argv->argv[1]);
 		} else {
 		    buf = vstring_alloc(100);
-		    cleanup_repl_body(state, MILTER_BODY_START, buf);
+		    cleanup_repl_body(state, MILTER_BODY_START,
+				      REC_TYPE_NORM, buf);
 		    while (vstring_get_nonl(buf, fp) != VSTREAM_EOF)
-			cleanup_repl_body(state, MILTER_BODY_LINE, buf);
-		    cleanup_repl_body(state, MILTER_BODY_END, buf);
+			cleanup_repl_body(state, MILTER_BODY_LINE,
+					  REC_TYPE_NORM, buf);
+		    cleanup_repl_body(state, MILTER_BODY_END,
+				      REC_TYPE_NORM, buf);
 		    vstring_free(buf);
 		    vstream_fclose(fp);
 		}

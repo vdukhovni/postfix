@@ -2,8 +2,7 @@ Wish list:
 
 	Things to do before the stable release:
 
-	make typo-check, HTML validator check,
-	mantools/missing-proxy-read-maps, mantools/check-postlink.
+	make pre-release-check, HTML validator check.
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 

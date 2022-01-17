@@ -17035,16 +17035,6 @@ header names is limited only by available memory.  </p>
 
 <p> This feature is available in Postfix 3.0 and later. </p>
 
-%PARAM nullmx_reject_code 556
-
-<p> The numerical reply code when the Postfix SMTP server rejects
-a sender or recipient address because its domain has a nullmx DNS
-record (an MX record with an empty hostname). This is one of the
-possible replies from the restrictions reject_unknown_sender_domain
-and reject_unknown_recipient_domain. </p>
-
-<p> This feature is available in Postfix 3.0 and later. </p>
-
 %PARAM smtpd_dns_reply_filter
 
 <p> Optional filter for Postfix SMTP server DNS lookup results.

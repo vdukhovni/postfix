@@ -153,7 +153,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
      * world-writable, deliver as the recipient; if the spool directory is
      * group-writable, use the recipient user id and the mail spool group id.
      * 
-     * Otherwise, use root privileges and chown the mailbox.
+     * Otherwise, use root privileges and chown the mailbox if we create it.
      */
     if (spool_dir == 0
 	|| stat(spool_dir, &st) < 0

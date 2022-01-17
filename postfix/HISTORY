@@ -26022,11 +26022,12 @@ Apologies for any names omitted.
 
 20211220
 
-	Bugfix (introduced: Postfix 2.5): off-by-one error while writing
-	a string terminator. This code had passed all memory corruption
-	tests, presumably because it wrote over an alignment padding byte,
-	or over an adjacent character byte that was never read. Reported
-	by Robert Siemer. Files: *qmgr/qmgr_feedback.c.
+	Bugfix (introduced: Postfix 2.5): off-by-one error while
+	writing a string terminator. This code had passed all memory
+	corruption tests, presumably because it wrote over an
+	alignment padding byte, or over an adjacent character byte
+	that was never read. Reported by Robert Siemer. Files:
+	*qmgr/qmgr_feedback.c.
 
 	Typo fixes from Raf, based on manual inspection. Verified
 	that the .o files have not changed. Files: conf/main.cf,
@@ -26124,8 +26125,8 @@ Apologies for any names omitted.
 
 	Cleanup: added missing _maps parameter names to the
 	proxy_read_maps default value, based on output from the
-	mantools/missing-proxy-read-maps script.
-	File: global/mail_params.h.
+	mantools/missing-proxy-read-maps script.  File:
+	global/mail_params.h.
 
 	Sanity: added LANG=C to the typo-check scripts to get
 	consistent output. Files: mantools/check-spell-proto-html,
@@ -26173,3 +26174,43 @@ Apologies for any names omitted.
 	Updated the hash function to make the distance between
 	colliding inputs seed-dependent, which is really the only
 	property that we needed. File: util/htable.c.
+
+20210105
+
+	Cleanup: deleting the \ before \' broke other things. Now
+	we need to escape \ at the start of an nroff input line.
+	Files: mantools/postconf2man, mantools/srctoman.
+
+20220107
+
+	Updated the hash function to avoid losing state when an
+	input byte is 0 (can never happen with a null-terminated
+	string, but makes the hash function usable in other contexts.
+	File: util/htable.c.
+
+20220116
+
+	Added more pre-release checks: missing postlink rules,
+	missing maps in proxy_read_maps. File: Makefile.in.
+
+20220117
+
+	Clenaup: the nullmx_reject_code parameter was removed from
+	Postfix 3.0 before it was released, but the manpage was not
+	updated. File: proto/postconf.proto.
+
+	Cleanup: after seeking past the end of a writable memory-backed
+	VSTREAM (i.e.  backed by a VSTRING), write nulls over the
+	newly allocated bytes. This behavior is compatible with
+	seeking past the end of a writable regular file. File:
+	util/vstream.c.
+
+	Cleanup: unit tests. File: cleanup/cleanup_milter.c.
+
+	Cleamup: disable hash-table seed in unit tests. Many
+	Makefiles, some unit test 'reference' files.
+
+	Bugfix (documented but not implemented since Postfix 2.2):
+	missing support for [address] smtp_bind_address and
+	smtp_bind_address6. Reported by Vincent Pelletier. File:
+	smtp/smtp_connect.c.

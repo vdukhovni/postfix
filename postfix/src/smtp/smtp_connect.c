@@ -184,6 +184,8 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
     int     sock;
     char   *bind_addr;
     char   *bind_var;
+    char   *saved_bind_addr = 0;
+    char   *tail;
 
     dsb_reset(why);				/* Paranoia */
 
@@ -204,6 +206,8 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
 	msg_fatal("%s: socket: %m", myname);
 
 #define RETURN_EARLY() do { \
+	if (saved_bind_addr) \
+	    myfree(saved_bind_addr); \
 	(void) close(sock); \
 	return (0); \
     } while (0)
@@ -230,6 +234,13 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
 	int     aierr;
 	struct addrinfo *res0;
 
+	if (*bind_addr == '[') {
+	    saved_bind_addr = mystrdup(bind_addr + 1);
+	    if ((tail = split_at(saved_bind_addr, ']')) == 0 || *tail)
+		msg_fatal("%s: malformed %s parameter: %s",
+			  myname, bind_var, bind_addr);
+	    bind_addr = saved_bind_addr;
+	}
 	if ((aierr = hostaddr_to_sockaddr(bind_addr, (char *) 0, 0, &res0)) != 0)
 	    msg_fatal("%s: bad %s parameter: %s: %s",
 		      myname, bind_var, bind_addr, MAI_STRERROR(aierr));
@@ -242,6 +253,8 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
 	    }
 	} else if (msg_verbose)
 	    msg_info("%s: bind %s", myname, bind_addr);
+	if (saved_bind_addr)
+	    myfree(saved_bind_addr);
 	freeaddrinfo(res0);
     }
 
