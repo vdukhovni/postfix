@@ -163,8 +163,10 @@ logged as "partial" when the daemon terminates early after "<b>postfix
 reload</b>", "<b>postfix stop</b>", or no requests for $<a href="postconf.5.html#max_idle">max_idle</a>
 seconds. </p>
 
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks). </p>
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is h (hours).  </p>
 
 <p> This feature is available in Postfix 2.7. </p>
 
@@ -219,7 +221,7 @@ stop</b>". This is the default with Postfix version 2.6 and earlier.
 
 <p>
 Specify a location in a file system that will not fill up. If the
-database becomes corrupted, the world comes to an end. To recover
+database becomes corrupted, the world comes to an end. To recover,
 delete (NOT: truncate) the file and do "<b>postfix reload</b>".
 </p>
 
@@ -271,9 +273,10 @@ The time after which a failed probe expires from the address
 verification cache.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is d (days).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -290,9 +293,10 @@ The time after which a failed address verification probe needs to
 be refreshed.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is h (hours).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -367,9 +371,10 @@ verification request in progress.
 The default polling delay is 3 seconds.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -386,9 +391,10 @@ The time after which a successful probe expires from the address
 verification cache.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is d (days).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -406,9 +412,10 @@ to be refreshed.  The address verification status is not updated
 when the probe fails (optimistic caching).
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is d (days).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -519,12 +526,14 @@ caused such addresses to end up on spammer mailing lists, and has
 resulted in wasted network and processing resources.  </p>
 
 <p> To enable time-dependent probe sender addresses, specify a
-non-zero time value (an integral value plus an optional one-letter
-suffix that specifies the time unit).  Specify a value of at least
-several hours, to avoid problems with senders that use greylisting.
-Avoid nice TTL values, to make the result less predictable.  Time
-units are: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-</p>
+non-zero time value. Specify a value of at least several hours,
+to avoid problems with senders that use greylisting. Avoid nice
+TTL values, to make the result less predictable.  </p>
+
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.9 and later.  </p>
 
@@ -863,10 +872,10 @@ frequency of updates, the <a href="anvil.8.html">anvil(8)</a> server uses volati
 only. Thus, information is lost whenever the process terminates.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -879,13 +888,13 @@ How frequently the <a href="anvil.8.html">anvil(8)</a> connection and rate limit
 logs peak usage information.
 </p>
 
-<p>
-This feature is available in Postfix 2.2 and later.
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
+This feature is available in Postfix 2.2 and later.
 </p>
 
 
@@ -971,10 +980,10 @@ How long the <a href="postkick.1.html">postkick(1)</a> command waits for a reque
 Postfix daemon process input buffer before giving up.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -1274,10 +1283,10 @@ with a temporary error, and the time in the queue has reached the
 as for regular mail.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is d (days).
-</p>
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is d (days).  </p>
 
 <p>
 Specify 0 when mail delivery should be tried only once.
@@ -1338,7 +1347,7 @@ message size exceeds a local or remote MTA's message size limit.
 
 <p> Pathname of a configuration file with bounce message templates.
 These override the built-in templates of delivery status notification
-(DSN) messages for undeliverable mail, for delayed mail, successful
+(DSN) messages for undeliverable mail, delayed mail, successful
 delivery, or delivery verification. The <a href="bounce.5.html">bounce(5)</a> manual page
 describes how to edit and test template files.  </p>
 
@@ -1474,7 +1483,7 @@ The location of all postfix administrative commands.
 (default: empty)</b></DT><DD>
 
 <p> The <a href="local.8.html">local(8)</a> delivery agent working directory for delivery to
-external command.  Failure to change directory causes the delivery
+external commands.  Failure to change directory causes the delivery
 to be deferred. </p>
 
 <p> The <a href="postconf.5.html#command_execution_directory">command_execution_directory</a> value is not subject to Postfix
@@ -1523,11 +1532,20 @@ address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>${name?value}</b></dt>
 
+<dt><b>${name?{value}}</b> (Postfix &ge; 3.0)</dt>
+
 <dd>Expands to <i>value</i> when <i>$name</i> is non-empty. </dd>
 
 <dt><b>${name:value}</b></dt>
 
+<dt><b>${name:{value}}</b> (Postfix &ge; 3.0)</dt>
+
 <dd>Expands to <i>value</i> when <i>$name</i> is empty. </dd>
+
+<dt><b>${name?{value1}:{value2}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value1</i> when <i>$name</i> is non-empty,
+<i>value2</i> otherwise. </dd>
 
 </dl>
 
@@ -1821,10 +1839,10 @@ limited to 13 over the lifetime of a daemon process. </p>
 <p> How much time a Postfix daemon process may take to handle a
 request before it is terminated by a built-in watchdog timer.  </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -1953,7 +1971,7 @@ for each message. One message can be preempted by another one when
 the other message can be delivered using no more delivery slots
 (i.e., invocations of delivery agents) than the current message
 counter has accumulated (or will eventually accumulate - see about
-slot loans below). This parameter controls how often is the counter
+slot loans below). This parameter controls how often the counter is
 incremented - it happens after each <a href="postconf.5.html#default_delivery_slot_cost">default_delivery_slot_cost</a>
 recipients have been delivered.
 </p>
@@ -2005,8 +2023,8 @@ settings.
 This parameter speeds up the moment when a message preemption can
 happen. Instead of waiting until the full amount of delivery slots
 required is available, the preemption can happen when
-transport_delivery_slot_discount percent of the required amount
-plus transport_delivery_slot_loan still remains to be accumulated.
+<a href="postconf.5.html#transport_delivery_slot_discount"><i>transport</i>_delivery_slot_discount</a> percent of the required amount
+plus <a href="postconf.5.html#transport_delivery_slot_loan"><i>transport</i>_delivery_slot_loan</a> still remains to be accumulated.
 Note that the full amount will still have to be accumulated before
 another preemption can take place later.
 </p>
@@ -2031,8 +2049,8 @@ settings.
 This parameter speeds up the moment when a message preemption can
 happen. Instead of waiting until the full amount of delivery slots
 required is available, the preemption can happen when
-transport_delivery_slot_discount percent of the required amount
-plus transport_delivery_slot_loan still remains to be accumulated.
+<a href="postconf.5.html#transport_delivery_slot_discount">transport_delivery_slot_discount</a> percent of the required amount
+plus <a href="postconf.5.html#transport_delivery_slot_loan">transport_delivery_slot_loan</a> still remains to be accumulated.
 Note that the full amount will still have to be accumulated before
 another preemption can take place later.
 </p>
@@ -2174,7 +2192,7 @@ is compatible with earlier Postfix versions. </p>
 The default maximal number of parallel deliveries to the same
 destination.  This is the default limit for delivery via the <a href="lmtp.8.html">lmtp(8)</a>,
 <a href="pipe.8.html">pipe(8)</a>, <a href="smtp.8.html">smtp(8)</a> and <a href="virtual.8.html">virtual(8)</a> delivery agents.
-With per-destination recipient limit &gt; 1, a destination is a domain,
+With a per-destination recipient limit &gt; 1, a destination is a domain,
 otherwise it is a recipient.
 </p>
 
@@ -2394,7 +2412,7 @@ The default value for the extra per-transport limit imposed on the
 number of in-memory recipients.  This extra recipient space is
 reserved for the cases when the Postfix queue manager's scheduler
 preempts one message with another and suddenly needs some extra
-recipients slots for the chosen message in order to avoid performance
+recipient slots for the chosen message in order to avoid performance
 degradation.
 </p>
 
@@ -2444,7 +2462,7 @@ name of the message delivery transport.
 
 <p>
 The default rights used by the <a href="local.8.html">local(8)</a> delivery agent for delivery
-to external file or command.  These rights are used when delivery
+to an external file or command.  These rights are used when delivery
 is requested from an <a href="aliases.5.html">aliases(5)</a> file that is owned by <b>root</b>, or
 when delivery is done on behalf of <b>root</b>. <b>DO NOT SPECIFY A
 PRIVILEGED USER OR THE POSTFIX OWNER</b>.
@@ -2558,13 +2576,22 @@ name, or an email address whose domain was denylisted). </dd>
 
 <dd>The sender address localpart or &lt;&gt; in case of the null address. </dd>
 
-<dt><b>${name?text}</b></dt>
+<dt><b>${name?value}</b></dt>
 
-<dd>Expands to `text' if $name is not empty. </dd>
+<dt><b>${name?{value}}</b> (Postfix &ge; 3.0)</dt>
 
-<dt><b>${name:text}</b></dt>
+<dd>Expands to <i>value</i> when <i>$name</i> is non-empty. </dd>
 
-<dd>Expands to `text' if $name is empty. </dd>
+<dt><b>${name:value}</b></dt>
+
+<dt><b>${name:{value}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is empty. </dd>
+
+<dt><b>${name?{value1}:{value2}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value1</i> when <i>$name</i> is non-empty,
+<i>value2</i> otherwise. </dd>
 
 </dl>
 
@@ -2616,10 +2643,10 @@ name of the message delivery transport.
 (default: 5s)</b></DT><DD>
 
 <p>
-The default per-transport maximum delay between recipients refills.
-When not all message recipients fit into the memory at once, keep loading
+The default per-transport maximum delay between refilling recipients.
+When not all message recipients fit into memory at once, keep loading
 more of them at least once every this many seconds.  This is used to
-make sure the recipients are refilled in timely manner even when
+make sure the recipients are refilled in a timely manner even when
 $<a href="postconf.5.html#default_recipient_refill_limit">default_recipient_refill_limit</a> is too high for too slow deliveries.
 </p>
 
@@ -2638,7 +2665,7 @@ name of the message delivery transport.
 
 <p>
 The default per-transport limit on the number of recipients refilled at
-once.  When not all message recipients fit into the memory at once, keep
+once.  When not all message recipients fit into memory at once, keep
 loading more of them in batches of at least this many at a time.  See also
 $<a href="postconf.5.html#default_recipient_refill_delay">default_recipient_refill_delay</a>, which may result in recipient batches
 lower than this when this limit is too high for too slow deliveries.
@@ -2732,8 +2759,9 @@ unit). </p>
 
 <p> The two default VERP delimiter characters. These are used when
 no explicit delimiters are specified with the SMTP XVERP command
-or with the "<b>sendmail -V</b>" command-line option. Specify
-characters that are allowed by the <a href="postconf.5.html#verp_delimiter_filter">verp_delimiter_filter</a> setting.
+or with the "<b>sendmail -XV</b>" command-line option (Postfix 2.2
+and earlier: <b>-V</b>). Specify characters that are allowed by the
+<a href="postconf.5.html#verp_delimiter_filter">verp_delimiter_filter</a> setting.
 </p>
 
 <p>
@@ -2780,7 +2808,7 @@ This feature is available in Postfix 2.0 and later.
 <p>
 The names of message delivery transports that should not deliver mail
 unless someone issues "<b>sendmail -q</b>" or equivalent. Specify zero
-or more names of mail delivery transports names that appear in the
+or more mail delivery transport names that appear in the
 first field of <a href="master.5.html">master.cf</a>.
 </p>
 
@@ -2801,7 +2829,7 @@ Example:
 <p> The maximal number of digits after the decimal point when logging
 sub-second delay values.  Specify a number in the range 0..6.  </p>
 
-<p> Large delay values are rounded off to an integral number seconds;
+<p> Large delay values are rounded off to an integral number of seconds;
 delay values below the <a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> are logged
 as "0", and delay values under 100s are logged with at most two-digit
 precision.  </p>
@@ -2886,10 +2914,10 @@ The time between attempts to acquire an exclusive lock on a mailbox
 file or <a href="bounce.8.html">bounce(8)</a> logfile.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -3654,8 +3682,10 @@ This feature is available in Postfix 2.0 and later.
 
 <p> The delay between attempts to fork() a child process.  </p>
 
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks).  The default time unit is s (seconds).  </p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -3724,11 +3754,20 @@ address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>${name?value}</b></dt>
 
+<dt><b>${name?{value}}</b> (Postfix &ge; 3.0)</dt>
+
 <dd>Expands to <i>value</i> when <i>$name</i> is non-empty. </dd>
 
 <dt><b>${name:value}</b></dt>
 
+<dt><b>${name:{value}}</b> (Postfix &ge; 3.0)</dt>
+
 <dd>Expands to <i>value</i> when <i>$name</i> is empty. </dd>
+
+<dt><b>${name?{value1}:{value2}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value1</i> when <i>$name</i> is non-empty,
+<i>value2</i> otherwise. </dd>
 
 </dl>
 
@@ -3844,7 +3883,7 @@ message headers, as specified in the <a href="header_checks.5.html">header_check
 
 <p> The format of the Postfix-generated <b>From:</b> header. This
 setting affects the appearance of 'full name' information when a
-local program such as /bin/mail submits a message without From:
+local program such as /bin/mail submits a message without a From:
 header through the Postfix <a href="sendmail.1.html">sendmail(1)</a> command. </p>
 
 <p> Specify one of the following: </p>
@@ -3983,11 +4022,11 @@ mis-delivery of mail.
 <DT><b><a name="import_environment">import_environment</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
-<p> The list of environment parameters that a privileged Postfix
+<p> The list of environment variables that a privileged Postfix
 process will import from a non-Postfix parent process, or name=value
 environment overrides.  Unprivileged utilities will enforce the
 name=value overrides, but otherwise will not change their process
-environment.  Examples of relevant parameters: </p>
+environment.  Examples of relevant environment variables: </p>
 
 <dl>
 
@@ -4012,7 +4051,7 @@ environment.  Examples of relevant parameters: </p>
 
 <p> Specify a list of names and/or name=value pairs, separated by
 whitespace or comma. Specify "{ name=value }" to protect whitespace
-or comma in parameter values (whitespace after the opening "{" and
+or comma in environment variable values (whitespace after the opening "{" and
 before the closing "}"
 is ignored). The form name=value is supported with Postfix version
 2.1 and later; the use of {} is supported with Postfix 3.0 and
@@ -4280,10 +4319,10 @@ example, by the Postfix address resolving and rewriting clients.
 
 <p> With Postfix 2.4 the default value was reduced from 100s to 5s. </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -4298,10 +4337,10 @@ situations. If the time limit is exceeded the software aborts with a
 fatal error.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -4317,10 +4356,10 @@ after reaching their client limit.  This is used, for example, by
 the Postfix address resolving and rewriting clients.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -4507,7 +4546,7 @@ command.
 
 <p>
 Most of these limitations have been with the Postfix
-a connection cache that is shared among multiple LMTP client
+connection cache that is shared among multiple LMTP client
 programs.
 </p>
 
@@ -4533,10 +4572,10 @@ zero (use the operating system built-in time limit).  When no
 connection can be made within the deadline, the LMTP client tries
 the next address on the mail exchanger list.  </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p>
 Example:
@@ -4613,10 +4652,10 @@ and for receiving the remote LMTP server response.  When no response
 is received within the deadline, a warning is logged that the mail
 may be delivered multiple times.  </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -4630,10 +4669,10 @@ and
 for receiving the remote LMTP server response.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -4648,10 +4687,10 @@ When the connection stalls for more than $<a href="postconf.5.html#lmtp_data_xfe
 the LMTP client terminates the transfer.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -4854,7 +4893,7 @@ The hostname to send in the LMTP LHLO command.
 
 <p>
 The default value is the machine hostname.  Specify a hostname or
-[ip.add.re.ss].
+[ip.add.re.ss] or [ip:v6:add:re::ss].
 </p>
 
 <p>
@@ -4908,10 +4947,10 @@ The Postfix LMTP client time limit for sending the MAIL FROM command,
 and for receiving the remote LMTP server response.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -5045,10 +5084,10 @@ The Postfix LMTP client time limit for sending the QUIT command,
 and for receiving the remote LMTP server response.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -5083,10 +5122,10 @@ The Postfix LMTP client time limit for sending the RCPT TO command,
 and for receiving the remote LMTP server response.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -5111,10 +5150,10 @@ sends RSET in
 order to finish a recipient address probe, or to verify that a
 cached connection is still alive.  </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -5223,7 +5262,7 @@ active attacks. </dd>
 <dt><b>nodictionary</b></dt>
 
 <dd>Disallow authentication methods that are vulnerable to passive
-dictionary attack. </dd>
+dictionary attacks. </dd>
 
 <dt><b>noanonymous</b></dt>
 
@@ -5296,7 +5335,7 @@ Send an XFORWARD command to the remote LMTP server when the LMTP LHLO
 server response announces XFORWARD support.  This allows an <a href="lmtp.8.html">lmtp(8)</a>
 delivery agent, used for content filter message injection, to
 forward the name, address, protocol and HELO name of the original
-client to the content filter and downstream queuing LMTP server.
+client to the content filter and downstream LMTP server.
 Before you change the value to yes, it is best to make sure that
 your content filter supports this command.
 </p>
@@ -5762,10 +5801,10 @@ In case of problems the client does NOT try the next address on
 the mail exchanger list.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -5778,7 +5817,7 @@ This feature is available in Postfix 2.1 and later.
 (default: empty)</b></DT><DD>
 
 <p>
-Optional shell program for <a href="local.8.html">local(8)</a> delivery to non-Postfix command.
+Optional shell program for <a href="local.8.html">local(8)</a> delivery to non-Postfix commands.
 By default, non-Postfix commands are executed directly; commands
 are given to the default shell (typically, /bin/sh) only when they
 contain shell meta characters or shell built-in commands.
@@ -6006,14 +6045,14 @@ match. </dd>
     # send mail as themselves. Use "uid:" followed by the numerical
     # UID when the UID has no entry in the UNIX password file.
     <a href="postconf.5.html#local_login_sender_maps">local_login_sender_maps</a> =
-        <a href="DATABASE_README.html#types">inline</a>:{ { root = *}, { postfix = * } },
+        <a href="DATABASE_README.html#types">inline</a>:{ { root = * }, { postfix = * } },
         <a href="pcre_table.5.html">pcre</a>:/etc/postfix/login_senders
 </pre>
 
 <pre>
 /etc/postfix/login_senders:
    # Allow both the bare username and the user@domain forms.
-    /(.+)/ $1 $1@example.com/
+    /(.+)/ $1 $1@example.com
 </pre>
 
 <p> This feature is available in Postfix 3.6 and later. </p>
@@ -6170,11 +6209,20 @@ address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>${name?value}</b></dt>
 
-<dd>Expands to <i>value</i> when <i>$name</i> has a non-empty value. </dd>
+<dt><b>${name?{value}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is non-empty. </dd>
 
 <dt><b>${name:value}</b></dt>
 
-<dd>Expands to <i>value</i> when <i>$name</i> has an empty value. </dd>
+<dt><b>${name:{value}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is empty. </dd>
+
+<dt><b>${name?{value1}:{value2}}</b> (Postfix &ge; 3.0)</dt>
+
+<dd>Expands to <i>value1</i> when <i>$name</i> is non-empty,
+<i>value2</i> otherwise. </dd>
 
 </dl>
 
@@ -6478,7 +6526,9 @@ Note: the default setting of this parameter is system dependent.
 file, or zero (no limit).  In fact, this limits the size of any
 file that is written to upon local delivery, including files written
 by external commands that are executed by the <a href="local.8.html">local(8)</a> delivery
-agent.  </p>
+agent. The value cannot exceed LONG_MAX (typically, a 32-bit or
+64-bit signed integer).
+</p>
 
 <p>
 This limit must not be smaller than the message size limit.
@@ -6809,10 +6859,10 @@ is ignored by the Postfix queue manager and by other long-lived
 Postfix daemon processes.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -6840,10 +6890,10 @@ The maximal time between attempts to deliver a deferred message.
 <p> This parameter should be set to a value greater than or equal
 to $<a href="postconf.5.html#minimal_backoff_time">minimal_backoff_time</a>. See also $<a href="postconf.5.html#queue_run_delay">queue_run_delay</a>.  </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -6857,10 +6907,10 @@ temporary error, and the time in the queue has reached the
 <a href="postconf.5.html#maximal_queue_lifetime">maximal_queue_lifetime</a> limit.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is d (days).
-</p>
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is d (days).  </p>
 
 <p>
 Specify 0 when mail delivery should be tried only once.
@@ -6916,6 +6966,8 @@ and <a href="postconf.5.html#body_checks">body_checks</a>.  </p>
 
 <p>
 The maximal size in bytes of a message, including envelope information.
+The value cannot exceed LONG_MAX (typically, a 32-bit or 64-bit
+signed integer).
 </p>
 
 <p> Note: be careful when making changes.  Excessively small values
@@ -6980,10 +7032,9 @@ command line.  </p>
 filter) application, and for receiving the response.  </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
-one-letter suffix that specifies the time unit). </p>
-
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks). The default time unit is s (seconds). </p>
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -7009,10 +7060,9 @@ for a list of available macro names and their meanings. </p>
 application, and for negotiating protocol options. </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
-one-letter suffix that specifies the time unit). </p>
-
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks). The default time unit is s (seconds). </p>
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -7026,10 +7076,9 @@ one-letter suffix that specifies the time unit). </p>
 filter) application, and for receiving the response.  </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
-one-letter suffix that specifies the time unit). </p>
-
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks). The default time unit is s (seconds). </p>
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -7165,7 +7214,7 @@ values for arbitrary macros that Postfix may send to Milter
 applications.  These defaults are used when there is no corresponding
 information from the message delivery context. </p>
 
-<p> Specify <i>name=value</i> or <i>{name}=value</i> pairs separated
+<p> Specify <i>name=value</i> or <i>{name=value}</i> pairs separated
 by comma or whitespace.  Enclose a pair in "{}" when a value contains
 comma or whitespace (this form ignores whitespace after the enclosing
 "{", around the "=", and before the enclosing "}"). </p>
@@ -7326,10 +7375,10 @@ kept in the short-term, in-memory, destination status cache.
 <p> This parameter should be set greater than or equal to
 $<a href="postconf.5.html#queue_run_delay">queue_run_delay</a>. See also $<a href="postconf.5.html#maximal_backoff_time">maximal_backoff_time</a>.  </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -7587,13 +7636,16 @@ block from the list. The form "!/file/name" is supported only
 in Postfix version 2.4 and later. </p>
 
 <p> Note 1: Pattern matching of domain names is controlled by the
-or absence of "<a href="postconf.5.html#mynetworks">mynetworks</a>" in the <a href="postconf.5.html#parent_domain_matches_subdomains">parent_domain_matches_subdomains</a>
+presence or absence of "<a href="postconf.5.html#mynetworks">mynetworks</a>" in the <a href="postconf.5.html#parent_domain_matches_subdomains">parent_domain_matches_subdomains</a>
 parameter value.  </p>
 
 <p> Note 2: IP version 6 address information must be specified inside
 <tt>[]</tt> in the <a href="postconf.5.html#mynetworks">mynetworks</a> value, and in files specified with
 "/file/name".  IP version 6 addresses contain the ":" character,
 and would otherwise be confused with a "<a href="DATABASE_README.html">type:table</a>" pattern.  </p>
+
+<p> Note 3: CIDR ranges cannot be specified in hash tables.  Use cidr
+tables if CIDR ranges are used. </p>
 
 <p> Examples:  </p>
 
@@ -7603,6 +7655,7 @@ and would otherwise be confused with a "<a href="DATABASE_README.html">type:tabl
 <a href="postconf.5.html#mynetworks">mynetworks</a> = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [2001:240:587::]/64
 <a href="postconf.5.html#mynetworks">mynetworks</a> = $<a href="postconf.5.html#config_directory">config_directory</a>/mynetworks
 <a href="postconf.5.html#mynetworks">mynetworks</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/network_table
+<a href="postconf.5.html#mynetworks">mynetworks</a> = <a href="cidr_table.5.html">cidr</a>:/etc/postfix/network_table.cidr
 </pre>
 
 
@@ -7624,7 +7677,7 @@ This is the list of trusted networks for relay access control etc.
 <li><p>Specify "<a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = subnet" when Postfix
 should "trust" remote SMTP clients in the same IP subnetworks as the local
 machine.  On Linux, this works correctly only with interfaces
-specified with the "ifconfig" command. </p>
+specified with the "ifconfig" or "ip" command. </p>
 
 <li><p>Specify "<a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = class" when Postfix should
 "trust" remote SMTP clients in the same IP class A/B/C networks as the
@@ -7708,7 +7761,7 @@ or <a href="postconf.5.html#reject_non_fqdn_recipient">reject_non_fqdn_recipient
 does not arrive via the Postfix <a href="smtpd.8.html">smtpd(8)</a> server. This includes local
 submission via the <a href="sendmail.1.html">sendmail(1)</a> command line, new mail that arrives
 via the Postfix <a href="qmqpd.8.html">qmqpd(8)</a> server, and old mail that is re-injected
-into the queue with "postsuper -r".  Specify space or comma as
+into the queue with "postsuper -r".  Specify space or comma as a
 separator. See the <a href="MILTER_README.html">MILTER_README</a> document for details.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
@@ -7810,20 +7863,6 @@ Examples:
 
 </DD>
 
-<DT><b><a name="nullmx_reject_code">nullmx_reject_code</a>
-(default: 556)</b></DT><DD>
-
-<p> The numerical reply code when the Postfix SMTP server rejects
-a sender or recipient address because its domain has a nullmx DNS
-record (an MX record with an empty hostname). This is one of the
-possible replies from the restrictions <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>
-and <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>. </p>
-
-<p> This feature is available in Postfix 3.0 and later. </p>
-
-
-</DD>
-
 <DT><b><a name="openssl_path">openssl_path</a>
 (default: openssl)</b></DT><DD>
 
@@ -7899,7 +7938,7 @@ you really want to match subdomains.
 
 <dd>
 <a href="postconf.5.html#qmqpd_authorized_clients">qmqpd_authorized_clients</a>,
-smtpd_access_maps,
+<a href="SMTPD_ACCESS_README.html">smtpd_access_maps</a>,
 </dd>
 
 <dt> Postfix version 2.8 and later </dt>
@@ -7998,7 +8037,8 @@ cannot be set under 10s. </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
-(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 3.4 and later.  </p>
 
@@ -8176,7 +8216,7 @@ return.  Specify one of the following: </p>
 <dt> <b>ignore</b> </dt>
 
 <dd> Ignore the failure of this test. Allow other tests to complete.
-Do <i>not</i> repeat this test before some the result from some
+Do <i>not</i> repeat this test before the result from some
 other test expires.
 This option is useful for testing and collecting statistics
 without blocking mail permanently. </dd>
@@ -8225,7 +8265,8 @@ before it can talk to a real Postfix SMTP server. </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
-(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is d (days).  </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
 
@@ -8257,8 +8298,10 @@ logged as "partial" when the daemon terminates early after "<b>postfix
 reload</b>", "<b>postfix stop</b>", or no requests for $<a href="postconf.5.html#max_idle">max_idle</a>
 seconds. </p>
 
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks).  </p>
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is h (hours).  </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
@@ -8290,8 +8333,10 @@ from being logged as "NEW" just because their cache entry expired
 an hour ago. It also prevents the cache from filling up with clients
 that passed some deep protocol test once and never came back. </p>
 
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks).  </p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is d (days).  </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
@@ -8492,7 +8537,8 @@ it would be smaller than <a href="postconf.5.html#postscreen_dnsbl_min_ttl">post
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
-(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is h (hours).  </p>
 
 <p> This feature is available in Postfix 3.1. The default setting
 is backwards-compatible with older Postfix versions. </p>
@@ -8511,7 +8557,8 @@ it would be larger than <a href="postconf.5.html#postscreen_dnsbl_max_ttl">posts
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
-(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 3.1. </p>
 
@@ -8521,7 +8568,7 @@ one-letter suffix that specifies the time unit).  Time units: s
 <DT><b><a name="postscreen_dnsbl_reply_map">postscreen_dnsbl_reply_map</a>
 (default: empty)</b></DT><DD>
 
-<p> A mapping from actual DNSBL domain name which includes a secret
+<p> A mapping from an actual DNSBL domain name which includes a secret
 password, to the DNSBL domain name that postscreen will reply with
 when it rejects mail.  When no mapping is found, the actual DNSBL
 domain will be used. </p>
@@ -8630,6 +8677,11 @@ parameter. </p>
 the timeouts in the <a href="dnsblog.8.html">dnsblog(8)</a> daemon which are defined by system
 resolver(3) routines. </p>
 
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
+
 <p> This feature is available in Postfix 3.0.  </p>
 
 
@@ -8644,7 +8696,8 @@ IP address is required to pass that test again.  </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
-(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is h (hours).  </p>
 
 <p> This feature is available in Postfix 2.8-3.0. It was
 replaced by <a href="postconf.5.html#postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a> in Postfix 3.1.  </p>
@@ -8762,7 +8815,8 @@ a good client can immediately talk to a real Postfix SMTP server. </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
-(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is d (days).  </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
@@ -8778,10 +8832,9 @@ lookup results to arrive (default: up to 2 seconds under stress,
 up to 6 seconds otherwise).  <p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
-one-letter suffix that specifies the time unit).  </p>
-
-<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
-(weeks).  </p>
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
@@ -8811,7 +8864,7 @@ parameter.  Specify one of the following: </p>
 <dt> <b>ignore</b> </dt>
 
 <dd> Ignore the failure of this test. Allow other tests to complete.
-Do <i>not</i> repeat this test before some the result from some
+Do <i>not</i> repeat this test before the result from some
 other test expires.
 This option is useful for testing and collecting statistics
 without blocking mail permanently. </dd>
@@ -8859,7 +8912,8 @@ before it can talk to a real Postfix SMTP server. </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
-(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is d (days).  </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
 
@@ -8879,7 +8933,7 @@ the server to respond.  Specify one of the following: </p>
 <dt> <b>ignore</b> </dt>
 
 <dd> Ignore the failure of this test. Allow other tests to complete.
-Do <i>not</i> repeat this test before some the result from some
+Do <i>not</i> repeat this test before the result from some
 other test expires.
 This option is useful for testing and collecting statistics
 without blocking mail permanently. </dd>
@@ -8926,7 +8980,8 @@ before it can talk to a real Postfix SMTP server. </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
-(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is d (days).  </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
 
@@ -9047,7 +9102,8 @@ set under 10s.  </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
-(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
 
@@ -9261,6 +9317,11 @@ The minimal delay between warnings that a specific destination is
 clogging up the Postfix <a href="QSHAPE_README.html#active_queue">active queue</a>. Specify 0 to disable.
 </p>
 
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
+
 <p>
 This feature is enabled with the <a href="postconf.5.html#helpful_warnings">helpful_warnings</a> parameter.
 </p>
@@ -9279,10 +9340,10 @@ This feature is available in Postfix 2.0 and later.
 a request before it is terminated by a built-in watchdog timer.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.8 and later.  </p>
 
@@ -9314,10 +9375,10 @@ over an internal communication channel.  The purpose is to break
 out of deadlock situations. If the time limit is exceeded the
 software either retries or aborts the operation. </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.8 and later.  </p>
 
@@ -9422,10 +9483,10 @@ reply to the remote QMQP client. The purpose is to slow down confused
 or malicious clients.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -9439,10 +9500,10 @@ If a read or write operation blocks for more than $<a href="postconf.5.html#qmqp
 seconds the Postfix QMQP server gives up and disconnects.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -9510,10 +9571,10 @@ prior to Postfix 2.4 the default value was 1000s.
 <p> This parameter should be set less than or equal to
 $<a href="postconf.5.html#minimal_backoff_time">minimal_backoff_time</a>. See also $<a href="postconf.5.html#maximal_backoff_time">maximal_backoff_time</a>.  </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -9755,7 +9816,7 @@ the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> set. T
 may then be used to generate an extended .forward file name. This
 implementation recognizes one delimiter character and one extension
 per email address localpart or email address. With Postfix 2.10 and
-earler, the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> specifies a single character. </p>
+earlier, the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> specifies a single character. </p>
 
 <p> See <a href="canonical.5.html">canonical(5)</a>, <a href="local.8.html">local(8)</a>, <a href="relocated.5.html">relocated(5)</a> and <a href="virtual.5.html">virtual(5)</a> for the
 effects of <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> on lookups in aliases, canonical,
@@ -9965,7 +10026,7 @@ and then floods innocent people with undeliverable mail.  Technically,
 tables
 listed with $<a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a> are used as lists: Postfix needs
 to know only if a lookup string is found or not, but it does not
-use the result from table lookup.  </p>
+use the result from the table lookup.  </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
@@ -10576,10 +10637,10 @@ How long the Postfix <a href="master.8.html">master(8)</a> waits before forking 
 appears to be malfunctioning.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -10911,10 +10972,10 @@ disable the time limit (i.e. use whatever timeout is implemented by
 the operating system).
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -11071,10 +11132,10 @@ When no response is received within the deadline, a warning is
 logged that the mail may be delivered multiple times.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -11550,10 +11611,10 @@ The Postfix SMTP client time limit for sending the HELO or EHLO command,
 and for receiving the initial remote SMTP server response.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -11625,10 +11686,10 @@ The Postfix SMTP client time limit for sending the MAIL FROM command,
 and for receiving the remote SMTP server response.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -11779,9 +11840,14 @@ How long the Postfix SMTP client pauses before sending
 </p>
 
 <p>
-Choosing a too short time makes this workaround ineffective when
+Choosing too short a time makes this workaround ineffective when
 sending large messages over slow network connections.
 </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -11812,6 +11878,11 @@ until a match is found.
 turns on the PIX firewall "&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;"
 bug workaround for delivery through firewalls with "smtp fixup"
 mode turned on.  </p>
+
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p>
 By default, the workaround is turned off for mail that is queued
@@ -11864,10 +11935,10 @@ The Postfix SMTP client time limit for sending the QUIT command,
 and for receiving the remote SMTP server response.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -11925,10 +11996,10 @@ The Postfix SMTP client time limit for sending the SMTP RCPT TO
 command, and for receiving the remote SMTP server response.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -11995,6 +12066,11 @@ sends RSET in
 order to finish a recipient address probe, or to verify that a
 cached session is still usable.  </p>
 
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
+
 <p> This feature is available in Postfix 2.1 and later.  </p>
 
 
@@ -12009,7 +12085,7 @@ password. Each table (key, value) pair contains a server name, a
 username and password, and the full server response. This information
 is stored when a remote SMTP server rejects an authentication attempt
 with a 535 reply code.  As long as the <a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a>
-information does no change, and as long as the <a href="postconf.5.html#smtp_sasl_auth_cache_name">smtp_sasl_auth_cache_name</a>
+information does not change, and as long as the <a href="postconf.5.html#smtp_sasl_auth_cache_name">smtp_sasl_auth_cache_name</a>
 information does not expire (see <a href="postconf.5.html#smtp_sasl_auth_cache_time">smtp_sasl_auth_cache_time</a>) the
 Postfix SMTP client avoids SASL authentication attempts with the
 same server, username and password, and instead bounces or defers
@@ -12046,6 +12122,11 @@ passwords, and requires that Postfix is compiled with TLS support.
 
 <p> The maximal age of an <a href="postconf.5.html#smtp_sasl_auth_cache_name">smtp_sasl_auth_cache_name</a> entry before it
 is removed. </p>
+
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is d (days).  </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
@@ -12376,6 +12457,11 @@ Do not wait for the response to the SMTP QUIT command.
 <p> Time limit for Postfix SMTP client write and read operations
 during TLS startup and shutdown handshake procedures. </p>
 
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
+
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
 
@@ -12576,7 +12662,7 @@ key. </p>
 <p> The file or files must contain at most one key of each type.  If,
 for example, two or more RSA keys and corresponding chains are listed,
 depending on the version of OpenSSL either only the last one will be
-used or an configuration error may be detected.  Note that while
+used or a configuration error may be detected.  Note that while
 "Ed25519" and "Ed448" are considered separate algorithms, the various
 ECDSA curves (typically one of prime256v1, secp384r1 or secp521r1) are
 considered as different parameters of a single "ECDSA" algorithm, so it
@@ -12782,7 +12868,7 @@ With earlier Postfix versions the default setting was always "dane".
 compromise SMTP transport security by returning forged MX records,
 such attacks are "tamper-evident" since any forged MX hostnames
 will be recorded in the mail logs.  Attackers who place a high value
-staying hidden may be deterred from forging MX records. </p>
+on staying hidden may be deterred from forging MX records. </p>
 
 <p>
 This feature is available in Postfix 3.1 and later. The <b>may</b>
@@ -12886,7 +12972,7 @@ for MTA clients are not specified. </p>
 checking. This setting has no effect on sessions that are controlled
 via the <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> table.  </p>
 
-<p> Disabling the hostname verification can make sense in closed
+<p> Disabling the hostname verification can make sense in a closed
 environment where special CAs are created.  If not used carefully,
 this option opens the danger of a "man-in-the-middle" attack (the
 CommonName of this attacker will be logged). </p>
@@ -12919,7 +13005,7 @@ case only ciphers matching <b>all</b> the properties are excluded. </p>
 </pre>
 </blockquote>
 
-<p> The first setting, disables anonymous ciphers. The next setting
+<p> The first setting disables anonymous ciphers. The next setting
 disables ciphers that use the MD5 digest algorithm or the (single) DES
 encryption algorithm. The next setting disables ciphers that use MD5 and
 DES together.  The next setting disables the two ciphers "AES256-SHA"
@@ -13035,7 +13121,7 @@ $ openssl x509 -noout -fingerprint -<i>digest</i> -in <i>certfile</i>.pem
 </pre>
 </blockquote>
 
-<p> The text to the right of "=" sign is the desired fingerprint.
+<p> The text to the right of the "=" sign is the desired fingerprint.
 For example: </p>
 
 <blockquote>
@@ -13067,7 +13153,7 @@ $ openssl x509 -in cert.pem -noout -pubkey |
 </blockquote>
 
 <p> The Postfix SMTP server and client log the peer (leaf) certificate
-fingerprint and public key fingerprint when the TLS loglevel is 2 or
+fingerprint and the public key fingerprint when the TLS loglevel is 2 or
 higher. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
@@ -13137,10 +13223,10 @@ log trust-chain verification errors.  </dd>
 
 <dt> </dt> <dd> 2 Also log levels during TLS negotiation.  </dd>
 
-<dt> </dt> <dd> 3 Also log hexadecimal and ASCII dump of TLS negotiation
-process.  </dd>
+<dt> </dt> <dd> 3 Also log the hexadecimal and ASCII dump of the
+TLS negotiation process.  </dd>
 
-<dt> </dt> <dd> 4 Also log hexadecimal and ASCII dump of complete
+<dt> </dt> <dd> 4 Also log the hexadecimal and ASCII dump of complete
 transmission after STARTTLS. </dd>
 
 </dl>
@@ -13170,19 +13256,19 @@ on a per-destination basis. </p>
 <dt><b>export</b></dt>
 <dd> Enable "EXPORT" grade or better OpenSSL ciphers.  The underlying
 cipherlist is specified via the <a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> configuration
-parameter, which you are strongly encouraged to not change.  This
+parameter, which you are strongly encouraged not to change.  This
 choice is insecure and SHOULD NOT be used.  </dd>
 
 <dt><b>low</b></dt>
 <dd> Enable "LOW" grade or better OpenSSL ciphers.  The underlying
 cipherlist is specified via the <a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> configuration
-parameter, which you are strongly encouraged to not change.  This
+parameter, which you are strongly encouraged not to change.  This
 choice is insecure and SHOULD NOT be used.  </dd>
 
 <dt><b>medium</b></dt>
 <dd> Enable "MEDIUM" grade or better OpenSSL ciphers.
 The underlying cipherlist is specified via the <a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a>
-configuration parameter, which you are strongly encouraged to not change.
+configuration parameter, which you are strongly encouraged not to change.
 </dd>
 
 <dt><b>high</b></dt>
@@ -13191,7 +13277,7 @@ be appropriate when all mandatory TLS destinations (e.g. when all
 mail is routed to a suitably capable <a href="postconf.5.html#relayhost">relayhost</a>) support at least one
 "HIGH" grade cipher. The underlying cipherlist is specified via the
 <a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a> configuration parameter, which you are strongly
-encouraged to not change. </dd>
+encouraged not to change. </dd>
 
 <dt><b>null</b></dt>
 <dd> Enable only the "NULL" OpenSSL ciphers, these provide authentication
@@ -13200,7 +13286,7 @@ that all servers are prepared to use NULL ciphers (not normally enabled
 in TLS servers). A plausible use-case is an LMTP server listening on a
 UNIX-domain socket that is configured to support "NULL" ciphers. The
 underlying cipherlist is specified via the <a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a>
-configuration parameter, which you are strongly encouraged to not
+configuration parameter, which you are strongly encouraged not to
 change. </dd>
 
 </dl>
@@ -13287,7 +13373,7 @@ yet support a symbolic name for that protocol version. </p>
 <p> With Postfix &lt; 3.6 there is no support for a minimum or maximum
 version, and the protocol range is configured via protocol exclusions.
 To require at least TLS 1.0, set "<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2,
-!SSLv3". Listing the protocols to include, rather than protocols to
+!SSLv3". Listing the protocols to include, rather than the protocols to
 exclude, is supported, but not recommended.  The exclusion syntax more
 accurately matches the underlying OpenSSL interface.  </p>
 
@@ -13302,7 +13388,7 @@ disables all versions above that higher version.  Thus, for example: </p>
 </pre>
 </blockquote>
 
-<p> also disables any protocols version higher than TLSv1.1 leaving
+<p> also disables any protocol versions higher than TLSv1.1 leaving
 only "TLSv1" enabled.  </p>
 
 <p> Support for "TLSv1.3" was introduced in OpenSSL 1.1.1.  Disabling
@@ -13311,7 +13397,7 @@ releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2).  </p>
 
 <p> While the vast majority of SMTP servers with DANE TLSA records now
 support at least TLS 1.2, a few still only support TLS 1.0.  If you use
-"dane" or "dane-only" it is best to not disable TLSv1, except perhaps
+"dane" or "dane-only" it is best not to disable TLSv1, except perhaps
 via the policy table for destinations which you are sure will support
 "TLSv1.2".  </p>
 
@@ -13354,8 +13440,8 @@ postfix/smtp[pid]:  Host offered STARTTLS: [name.of.host]
 <p> Optional lookup tables with the Postfix SMTP client TLS usage
 policy by next-hop destination and by remote SMTP server hostname.
 When both lookups succeed, the more specific per-site policy (NONE,
-MUST, etc) overrides the less specific one (MAY), and the more secure
-per-site policy (MUST, etc) overrides the less secure one (NONE).
+MUST, etc.) overrides the less specific one (MAY), and the more secure
+per-site policy (MUST, etc.) overrides the less secure one (NONE).
 With Postfix 2.3 and later <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> is strongly discouraged:
 use <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> instead. </p>
 
@@ -13379,7 +13465,7 @@ lookup key, and overrides the global <a href="postconf.5.html#smtp_use_tls">smtp
 and <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> settings. </dd>
 
 <dt> MAY </dt> <dd> Try to use TLS if the server announces support,
-otherwise use the unencrypted connection. This has less precedence
+otherwise use an unencrypted connection. This has less precedence
 than a more specific result (including <b>NONE</b>) from the alternate
 host or next-hop lookup key, and has less precedence than the more
 specific global "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> = yes" or "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>
@@ -13397,7 +13483,7 @@ or next-hop lookup key, and overrides the global <a href="postconf.5.html#smtp_u
 SMTP server hostname matches the information in the remote SMTP
 server certificate, and require that the remote SMTP server certificate
 was issued by a trusted CA. This overrides a less secure <b>NONE</b>
-and <b>MUST_NOPEERMATCH</b> or a less specific <b>MAY</b> lookup
+or <b>MUST_NOPEERMATCH</b> or a less specific <b>MAY</b> lookup
 result from the alternate host or next-hop lookup key, and overrides
 the global <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>, <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> and <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>
 settings.  </dd>
@@ -13480,7 +13566,9 @@ attributes (available for opportunistic TLS with Postfix &ge; 2.6)
 and "connection_reuse" attribute (Postfix &ge; 3.4) override the
 "<a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>", "<a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a>", "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>",
 and
-"<a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a>" configuration parameters. When opportunistic
+"<a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a>" configuration parameters. In the policy table,
+multiple ciphers, protocols or excluded ciphers must be separated by colons,
+as attribute values may not contain whitespace or commas. When opportunistic
 TLS handshakes fail, Postfix retries the connection with TLS disabled.
 This allows mail delivery to sites with non-interoperable TLS
 implementations.</dd>
@@ -13494,7 +13582,7 @@ optional "exclude" attribute (Postfix &ge; 2.6) overrides the <a href="postconf.
 <a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> parameter, and the optional
 "connection_reuse" attribute (Postfix &ge; 3.4) overrides the
 <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. In the policy table,
-multiple protocols or excluded ciphers must be separated by colons,
+multiple ciphers, protocols or excluded ciphers must be separated by colons,
 as attribute values may not contain whitespace or commas. </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_dane">dane</a></b></dt>
@@ -13509,6 +13597,16 @@ server certificate must match the TLSA records.  <a href="https://tools.ietf.org
 TLS authentication and DNSSEC support is available with Postfix
 2.11 and later. The optional "connection_reuse" attribute (Postfix
 &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter.
+When the effective security level used is <a
+href="TLS_README.html#client_tls_may">may</a>, the optional "ciphers",
+"exclude", and "protocols" attributes (Postfix &ge; 2.6) override the
+"<a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>", "<a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a>", and "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>"
+configuration parameters.
+When the effective security level used is <a
+href="TLS_README.html#client_tls_encrypt">encrypt</a>, the optional "ciphers",
+"exclude", and "protocols" attributes (Postfix &ge; 2.6) override the
+"<a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>", "<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a>", and
+"<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>" configuration parameters.
 </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_dane">dane-only</a></b></dt>
@@ -13518,8 +13616,11 @@ or none are usable, no connection is made to the server.  When
 usable TLSA records are obtained for the remote SMTP server, the
 server certificate must match the TLSA records.  <a href="https://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE) TLS
 authentication and DNSSEC support is available with Postfix 2.11
-and later. The optional "connection_reuse" attribute (Postfix &ge;
-3.4) overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter.
+and later. The optional "ciphers", "exclude", and "protocols" attributes
+(Postfix &ge; 2.6) override the "<a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>",
+"<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a>", and "<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>"
+configuration parameters. The optional "connection_reuse" attribute
+(Postfix &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter.
 </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_fprint">fingerprint</a></b></dt>
@@ -13527,7 +13628,7 @@ and later. The optional "connection_reuse" attribute (Postfix &ge;
 verification. Available with Postfix 2.5 and later. At this security
 level, there are no trusted Certification Authorities. The certificate
 trust chain, expiration date, ... are not checked. Instead,
-the optional <b>match</b> attribute, or else the <a href="postconf.5.html">main.cf</a>
+the optional "match" attribute, or else the <a href="postconf.5.html">main.cf</a>
 <b><a href="postconf.5.html#smtp_tls_fingerprint_cert_match">smtp_tls_fingerprint_cert_match</a></b> parameter, lists the certificate
 fingerprints or the public key fingerprint (Postfix 2.9 and later)
 of the valid server certificate. The digest
@@ -13536,8 +13637,12 @@ algorithm used to calculate the fingerprint is selected by the
 be combined with a "|" delimiter in a single match attribute, or multiple
 match attributes can be employed. The ":" character is not used as a
 delimiter as it occurs between each pair of fingerprint (hexadecimal)
-digits. The optional "connection_reuse" attribute (Postfix &ge; 3.4)
-overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. </dd>
+digits. The optional "ciphers", "exclude", and "protocols" attributes
+(Postfix &ge; 2.6) override the "<a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>",
+"<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a>", and "<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>"
+configuration parameters. The optional "connection_reuse" attribute
+(Postfix &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a>
+parameter. </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_verify">verify</a></b></dt>
 <dd>Mandatory TLS verification.  At this security
@@ -13547,8 +13652,11 @@ unauthenticated DNS MX lookups.  The optional "match" attribute overrides
 the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_verify_cert_match">smtp_tls_verify_cert_match</a> parameter. In the policy table,
 multiple match patterns and strategies must be separated by colons.
 In practice explicit control over matching is more common with the
-"secure" policy, described below. The optional "connection_reuse"
-attribute (Postfix &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a>
+"secure" policy, described below. The optional "ciphers", "exclude",
+and "protocols" attributes (Postfix &ge; 2.6) override the
+"<a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>", "<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a>", and
+"<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>" configuration parameters. The optional
+"connection_reuse" attribute (Postfix &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a>
 <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_secure">secure</a></b></dt>
@@ -13557,18 +13665,21 @@ MX lookups, though potentially used to determine the candidate next-hop
 gateway IP addresses, are <b>not</b> trusted to be secure enough for TLS
 peername verification. Instead, the default name verified in the server
 certificate is obtained directly from the next-hop, or is explicitly
-specified via the optional <b>match</b> attribute which overrides the
+specified via the optional "match" attribute which overrides the
 <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_secure_cert_match">smtp_tls_secure_cert_match</a> parameter. In the policy table,
 multiple match patterns and strategies must be separated by colons.
 The match attribute is most useful when multiple domains are supported by
-common server, the policy entries for additional domains specify matching
+a common server: the policy entries for additional domains specify matching
 rules for the primary domain certificate. While transport table overrides
-routing the secondary domains to the primary nexthop also allow secure
+that route the secondary domains to the primary nexthop also allow secure
 verification, they risk delivery to the wrong destination when domains
 change hands or are re-assigned to new gateways. With the "match"
 attribute approach, routing is not perturbed, and mail is deferred if
-verification of a new MX host fails. The optional "connection_reuse"
-attribute (Postfix &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a>
+verification of a new MX host fails. The optional "ciphers", "exclude",
+and "protocols" attributes (Postfix &ge; 2.6) override the
+"<a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>", "<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a>", and
+"<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>" configuration parameters. The optional
+"connection_reuse" attribute (Postfix &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a>
 <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. </dd>
 
 </dl>
@@ -13603,10 +13714,10 @@ Example:
         match=51:e9:af:2e:1e:40:1f:...:64:0a:30:35:2d:09:16:31:5a:eb:82:76
 </pre>
 
-<p> <b>Note:</b> The <b>hostname</b> strategy if listed in a non-default
-setting of <a href="postconf.5.html#smtp_tls_secure_cert_match">smtp_tls_secure_cert_match</a> or in the <b>match</b> attribute
-in the policy table can render the <b>secure</b> level vulnerable to
-DNS forgery. Do not use the <b>hostname</b> strategy for secure-channel
+<p> <b>Note:</b> The "hostname" strategy if listed in a non-default
+setting of <a href="postconf.5.html#smtp_tls_secure_cert_match">smtp_tls_secure_cert_match</a> or in the "match" attribute
+in the policy table can render the "secure" level vulnerable to
+DNS forgery. Do not use the "hostname" strategy for secure-channel
 configurations in environments where DNS security is not assured. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
@@ -13633,7 +13744,7 @@ use the "!" exclusion syntax, also described below.  </p>
 acceptable protocols is to set the lowest acceptable TLS protocol
 version and/or the highest acceptable TLS protocol version.  To set the
 lower bound include an element of the form: "&gt;=<i>version</i>" where
-<i>version</i> is a either one of the TLS protocol names listed above,
+<i>version</i> is either one of the TLS protocol names listed above,
 or a hexadecimal number corresponding to the desired TLS protocol
 version (0301 for TLS 1.0, 0302 for TLS 1.1, etc.).  For the upper
 bound, use "&lt;=<i>version</i>".  There must be no whitespace between
@@ -13766,10 +13877,12 @@ example.net     secure match=example.com:.example.com
 <DT><b><a name="smtp_tls_security_level">smtp_tls_security_level</a>
 (default: empty)</b></DT><DD>
 
-<p> The default SMTP TLS security level for the Postfix SMTP client;
-when a non-empty value is specified, this overrides the obsolete
-parameters <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>, <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>, and <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>.
-</p>
+<p> The default SMTP TLS security level for the Postfix SMTP client.
+When a non-empty value is specified, this overrides the obsolete
+parameters <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>, <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>, and <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>;
+when no value is specified for <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> or the obsolete
+parameters, the default SMTP TLS security level is
+<a href="TLS_README.html#client_tls_none">none</a>. </p>
 
 <p> Specify one of the following security levels: </p>
 
@@ -13881,7 +13994,7 @@ Examples:
 <pre>
 # Opportunistic TLS.
 <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
-# Do not tweak opportunistic ciphers or protocol unless it is essential
+# Do not tweak opportunistic ciphers or protocols unless it is essential
 # to do so (if a security vulnerability is found in the SSL library that
 # can be mitigated by disabling a particular protocol or raising the
 # cipher grade).
@@ -13972,7 +14085,7 @@ concurrent access.  The file is created if it does not exist. The <a href="smtp.
 daemon does not use this parameter directly, rather the cache is
 implemented indirectly in the <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon. This means that
 per-smtp-instance <a href="master.5.html">master.cf</a> overrides of this parameter are not effective.
-Note, that each of the cache databases supported by <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon:
+Note that each of the cache databases supported by <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon:
 $<a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a>, $<a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a>
 (and with Postfix 2.3 and later $<a href="postconf.5.html#lmtp_tls_session_cache_database">lmtp_tls_session_cache_database</a>), needs to
 be stored separately. It is not at this time possible to store multiple
@@ -14011,6 +14124,11 @@ are not possible. </p>
 <p> As of Postfix 2.11 this setting cannot exceed 100 days.  If set
 &le; 0, session caching is disabled.  If set to a positive value
 less than 2 minutes, the minimum value of 2 minutes is used instead.  </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -14152,7 +14270,7 @@ example.com     verify  match=hostname:nexthop
 (default: no)</b></DT><DD>
 
 <p> Request that the Postfix SMTP client connects using the
-legacy SMTPS protocol instead of using the STARTTLS command. </p>
+SUBMISSIONS/SMTPS protocol instead of using the STARTTLS command. </p>
 
 <p> This mode requires "<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = encrypt" or
 stronger. </p>
@@ -14201,10 +14319,10 @@ The Postfix SMTP client time limit for sending the XFORWARD command,
 and for receiving the remote SMTP server response.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -14363,7 +14481,7 @@ with the <a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a>
 </p>
 
 <p>
-By default, there is no limit on the number AUTH commands that a
+By default, there is no limit on the number of AUTH commands that a
 client may send.
 </p>
 
@@ -14642,7 +14760,7 @@ client network address information.
 
 <dd> By default use the remote SMTP client certificate fingerprint
 or the public key
-fingerprint (Postfix 2.9 and later) as lookup key for the specified
+fingerprint (Postfix 2.9 and later) as the lookup key for the specified
 <a href="access.5.html">access(5)</a> database; with Postfix version 2.2, also require that the
 remote SMTP client certificate is verified successfully.
 The fingerprint digest algorithm is configurable via the
@@ -14739,7 +14857,7 @@ This feature is available in Postfix 2.7 and later.  </dd>
 
 <dt><b><a name="check_sasl_access">check_sasl_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
-<dd> Use the remote SMTP client SASL user name as lookup key for
+<dd> Use the remote SMTP client SASL user name as the lookup key for
 the specified <a href="access.5.html">access(5)</a> database. The lookup key has the form
 "username@domainname" when the <a href="postconf.5.html#smtpd_sasl_local_domain">smtpd_sasl_local_domain</a> parameter
 value is non-empty.  Unlike the <a href="postconf.5.html#check_client_access">check_client_access</a> feature,
@@ -14766,7 +14884,7 @@ authenticated via the <a href="https://tools.ietf.org/html/rfc4954">RFC 4954</a>
 
 <dd> Permit the request when the remote SMTP client certificate is
 verified successfully.  This option must be used only if a special
-CA issues the certificates and only this CA is listed as trusted
+CA issues the certificates and only this CA is listed as a trusted
 CA. Otherwise, clients with a third-party certificate would also
 be allowed to relay.  Specify "<a href="postconf.5.html#tls_append_default_CA">tls_append_default_CA</a> = no" when the
 trusted CA is specified with <a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a> or <a href="postconf.5.html#smtpd_tls_CApath">smtpd_tls_CApath</a>,
@@ -15099,7 +15217,7 @@ feature: </p>
 <pre>
     # Append XVERP to MAIL FROM commands to request VERP-style delivery.
     # See <a href="VERP_README.html">VERP_README</a> for more information on how to use Postfix VERP.
-    /^(MAIL FROM:\s*&lt;listname@example\.com&gt;.*)/   $1 XVERP
+    /^(MAIL\s+FROM:\s*&lt;listname@example\.com&gt;.*)/   $1 XVERP
 </pre>
 
 <pre>
@@ -15316,10 +15434,17 @@ a client has made more than $<a href="postconf.5.html#smtpd_soft_error_limit">sm
 fewer than $<a href="postconf.5.html#smtpd_hard_error_limit">smtpd_hard_error_limit</a> errors, without delivering mail.
 </p>
 
-<p>With Postfix version 2.0 and earlier: the SMTP server delay before
-sending a reject (4xx or 5xx) response, when the client has made
-fewer than $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a> errors without delivering
-mail. </p>
+<p>With Postfix version 2.0 and earlier: the SMTP server delay
+before sending a reject (4xx or 5xx) response, when the client has
+made fewer than $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a> errors without delivering
+mail. When the client has made $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a> or more errors,
+delay all responses with the larger of (number of errors) seconds
+or $<a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a>. </p>
+
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -15438,9 +15563,10 @@ Support for inline regular expressions was added in Postfix version
 <p>
 The maximal number of errors a remote SMTP client is allowed to
 make without delivering mail. The Postfix SMTP server disconnects
-when the limit is exceeded. Normally the default limit is 20, but
+when the limit is reached. Normally the default limit is 20, but
 it changes under overload to just 1. With Postfix 2.5 and earlier,
 the SMTP server always allows up to 20 errors by default.
+Valid values are greater than zero.
 
 </p>
 
@@ -15882,6 +16008,11 @@ The time after which an idle SMTPD policy service connection is
 closed.
 </p>
 
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
+
 <p>
 This feature is available in Postfix 2.1 and later.
 </p>
@@ -15896,6 +16027,11 @@ This feature is available in Postfix 2.1 and later.
 The time after which an active SMTPD policy service connection is
 closed.
 </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -15943,6 +16079,11 @@ This feature is available in Postfix 3.0 and later.
 <p> The delay between attempts to resend a failed SMTPD policy
 service request. Specify a value greater than zero. </p>
 
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
+
 <p> This feature is available in Postfix 3.0 and later. </p>
 
 
@@ -15955,6 +16096,11 @@ service request. Specify a value greater than zero. </p>
 The time limit for connecting to, writing to, or receiving from a
 delegated SMTPD policy server.
 </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -16000,7 +16146,7 @@ supposed to give the result to another Postfix SMTP server process.
 <p> Specify "host:port" or "inet:host:port" for a TCP endpoint, or
 "unix:pathname" for a UNIX-domain endpoint. The host can be specified
 as an IP address or as a symbolic name; no MX lookups are done.
-When no "host" or "host:"  are specified, the local machine is
+When no "host" or "host:" is specified, the local machine is
 assumed.  Pathname interpretation is relative to the Postfix queue
 directory.  </p>
 
@@ -16055,10 +16201,10 @@ generic error message while more detailed information is logged to
 the maillog file.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -16182,7 +16328,7 @@ feature is available in Postfix 2.1 and later.  </dd>
 
 <ul>
 
-<li> Postfix is mail forwarder: the resolved RCPT TO domain matches
+<li> Postfix is a mail forwarder: the resolved RCPT TO domain matches
 $<a href="postconf.5.html#relay_domains">relay_domains</a> or a subdomain thereof, and the address contains no
 sender-specified routing (user@elsewhere@domain),
 
@@ -16195,7 +16341,7 @@ contains no sender-specified routing (user@elsewhere@domain).
 
 <dt><b><a name="permit_mx_backup">permit_mx_backup</a></b></dt>
 
-<dd>Permit the request when the local mail system is backup MX for
+<dd>Permit the request when the local mail system is a backup MX for
 the RCPT TO domain, or when the domain is an authorized destination
 (see <a href="postconf.5.html#permit_auth_destination">permit_auth_destination</a> for definition).
 
@@ -16208,7 +16354,7 @@ sender-specified routing information (example: user@elsewhere@domain).
 access is not restricted with <a href="postconf.5.html#permit_mx_backup_networks">permit_mx_backup_networks</a>.
 
 <li> Safety: as of Postfix version 2.3, <a href="postconf.5.html#permit_mx_backup">permit_mx_backup</a> no longer
-accepts the address when the local mail system is primary MX for
+accepts the address when the local mail system is a primary MX for
 the recipient domain.  Exception: <a href="postconf.5.html#permit_mx_backup">permit_mx_backup</a> accepts the address
 when it specifies an authorized destination (see <a href="postconf.5.html#permit_auth_destination">permit_auth_destination</a>
 for definition).
@@ -16248,7 +16394,7 @@ in Postfix version 2.0 and later.</dd>
 
 <ul>
 
-<li> Postfix is mail forwarder: the resolved RCPT TO domain matches
+<li> Postfix is a mail forwarder: the resolved RCPT TO domain matches
 $<a href="postconf.5.html#relay_domains">relay_domains</a> or a subdomain thereof, and contains no sender-specified
 routing (user@elsewhere@domain),
 
@@ -16294,7 +16440,7 @@ Address verification information is managed by the <a href="verify.8.html">verif
 see the <a href="ADDRESS_VERIFICATION_README.html">ADDRESS_VERIFICATION_README</a> file for details.  <br> The
 <a href="postconf.5.html#unverified_recipient_reject_code">unverified_recipient_reject_code</a> parameter specifies the numerical
 response code when an address is known to bounce (default: 450,
-change into 550 when you are confident that it is safe to do so).
+change it to 550 when you are confident that it is safe to do so).
 <br>The <a href="postconf.5.html#unverified_recipient_defer_code">unverified_recipient_defer_code</a> parameter specifies the
 numerical response code when an address probe failed due to a
 temporary problem (default: 450). <br> The
@@ -16571,6 +16717,8 @@ By default, the Postfix SMTP server accepts:
 
 <li> Mail from clients whose IP address matches $<a href="postconf.5.html#mynetworks">mynetworks</a>, or:
 
+<li> Mail from clients who are SASL authenticated, or:
+
 <li> Mail to remote destinations that match $<a href="postconf.5.html#relay_domains">relay_domains</a>, except
 for addresses that contain sender-specified routing
 (user@elsewhere@domain), or:
@@ -16723,7 +16871,7 @@ $<a href="postconf.5.html#mynetworks">mynetworks</a> to prevent Postfix from off
 <p>
 Specify a list of network/netmask patterns, separated by commas
 and/or whitespace. The mask specifies the number of bits in the
-network part of a host address. You can also "/file/name" or
+network part of a host address. You can also specify "/file/name" or
 "<a href="DATABASE_README.html">type:table</a>" patterns.  A "/file/name" pattern is replaced by its
 contents; a "<a href="DATABASE_README.html">type:table</a>" lookup table is matched when a table entry
 matches a lookup string (the lookup result is ignored).  Continue
@@ -17106,7 +17254,7 @@ Postfix version 2.1 and later. </dd>
 
 <dt><b><a name="reject_unknown_sender_domain">reject_unknown_sender_domain</a></b></dt>
 
-<dd>Reject the request when Postfix is not final destination for
+<dd>Reject the request when Postfix is not the final destination for
 the sender address, and the MAIL FROM domain has 1) no DNS MX and
 no DNS A
 record, or 2) a malformed MX record such as a record with
@@ -17200,11 +17348,18 @@ responses.
 
 <ul>
 
-<li><p>With Postfix version 2.1 and later, the Postfix SMTP server
-delays all responses by $<a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a> seconds. </p>
+<li><p>With Postfix version 2.1 and later, when the error count
+is &gt; $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a>, the Postfix SMTP server
+delays all responses by $<a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a>. </p>
 
-<li><p>With Postfix versions 2.0 and earlier, the Postfix SMTP
-server delays all responses by (number of errors) seconds. </p>
+<li><p>With Postfix versions 2.0 and earlier, when the error count
+is &gt; $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a>, the Postfix SMTP server delays all
+responses by the larger of (number of errors) seconds or
+$<a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a>. </p>
+
+<li><p>With Postfix versions 2.0 and earlier, when the error count
+is &le; $<a href="postconf.5.html#smtpd_soft_error_limit">smtpd_soft_error_limit</a>, the Postfix SMTP server delays 4XX
+and 5XX responses by $<a href="postconf.5.html#smtpd_error_sleep_time">smtpd_error_sleep_time</a>. </p>
 
 </ul>
 
@@ -17218,6 +17373,11 @@ server delays all responses by (number of errors) seconds. </p>
 during TLS startup and shutdown handshake procedures. The current
 default value is stress-dependent. Before Postfix version 2.8, it
 was fixed at 300s. </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -17247,10 +17407,10 @@ Note: if you set SMTP time limits to very large values you may have
 to update the global <a href="postconf.5.html#ipc_timeout">ipc_timeout</a> parameter.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -17521,7 +17681,7 @@ key. </p>
 <p> The file or files must contain at most one key of each type.  If,
 for example, two or more RSA keys and corresponding chains are listed,
 depending on the version of OpenSSL either only the last one will be
-used or an configuration error may be detected.  Note that while
+used or a configuration error may be detected.  Note that while
 "Ed25519" and "Ed448" are considered separate algorithms, the various
 ECDSA curves (typically one of prime256v1, secp384r1 or secp521r1) are
 considered as different parameters of a single "ECDSA" algorithm, so it
@@ -17758,7 +17918,7 @@ Postfix uses ciphers with forward secrecy.  </p>
 <a href="postconf.5.html#smtpd_tls_dh1024_param_file">smtpd_tls_dh1024_param_file</a> = /etc/postfix/dh2048.pem
 </pre>
 
-<p>This feature is available with Postfix version 2.2.</p>
+<p>This feature is available in Postfix 2.2 and later.</p>
 
 
 </DD>
@@ -17784,7 +17944,8 @@ configuration parameter.  </p>
 <a href="postconf.5.html#smtpd_tls_dh512_param_file">smtpd_tls_dh512_param_file</a> = /etc/postfix/dh_512.pem
 </pre>
 
-<p>This feature is available with Postfix version 2.2.</p>
+<p>This feature is available in Postfix 2.2 and later,
+but is ignored in Postfix 3.6 and later.</p>
 
 
 </DD>
@@ -18094,13 +18255,13 @@ one "medium" or "high" grade cipher. </p>
 <dt><b>export</b></dt>
 <dd> Enable "EXPORT" grade or stronger OpenSSL ciphers.  The
 underlying cipherlist is specified via the <a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a>
-configuration parameter, which you are strongly encouraged to not
+configuration parameter, which you are strongly encouraged not to
 change.  This choice is insecure and SHOULD NOT be used.  </dd>
 
 <dt><b>low</b></dt>
 <dd> Enable "LOW" grade or stronger OpenSSL ciphers. The underlying
 cipherlist is specified via the <a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> configuration
-parameter, which you are strongly encouraged to not change.  This
+parameter, which you are strongly encouraged not to change.  This
 choice is insecure and SHOULD NOT be used.  </dd>
 
 <dt><b>medium</b></dt>
@@ -18108,7 +18269,7 @@ choice is insecure and SHOULD NOT be used.  </dd>
 or longer symmetric bulk-encryption keys. This is the default minimum
 strength for mandatory TLS encryption. The underlying cipherlist is
 specified via the <a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a> configuration parameter, which
-you are strongly encouraged to not change. </dd>
+you are strongly encouraged not to change. </dd>
 
 <dt><b>high</b></dt>
 <dd> Enable only "HIGH" grade OpenSSL ciphers. The
@@ -18122,7 +18283,7 @@ without encryption.  This setting is only appropriate in the rare
 case that all clients are prepared to use NULL ciphers (not normally
 enabled in TLS clients). The underlying cipherlist is specified via the
 <a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a> configuration parameter, which you are strongly
-encouraged to not change. </dd>
+encouraged not to change. </dd>
 
 </dl>
 
@@ -18386,7 +18547,7 @@ concurrent access.  The file is created if it does not exist. The <a href="smtpd
 daemon does not use this parameter directly, rather the cache is
 implemented indirectly in the <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon. This means that
 per-smtpd-instance <a href="master.5.html">master.cf</a> overrides of this parameter are not
-effective. Note, that each of the cache databases supported by <a href="tlsmgr.8.html">tlsmgr(8)</a>
+effective. Note that each of the cache databases supported by <a href="tlsmgr.8.html">tlsmgr(8)</a>
 daemon: $<a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a>, $<a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a>
 (and with Postfix 2.3 and later $<a href="postconf.5.html#lmtp_tls_session_cache_database">lmtp_tls_session_cache_database</a>), needs to be
 stored separately. It is not at this time possible to store multiple
@@ -18437,6 +18598,11 @@ value of 2 minutes is used instead.  TLS session tickets require
 an OpenSSL library (at least version 0.9.8h) that provides full
 support for this TLS extension. </p>
 
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
+
 <p> This feature is available in Postfix 2.2 and later, and updated
 for TLS session ticket support in Postfix 2.11. </p>
 
@@ -18446,13 +18612,13 @@ for TLS session ticket support in Postfix 2.11. </p>
 <DT><b><a name="smtpd_tls_wrappermode">smtpd_tls_wrappermode</a>
 (default: no)</b></DT><DD>
 
-<p> Run the Postfix SMTP server in the non-standard "wrapper" mode,
+<p> Run the Postfix SMTP server in TLS "wrapper" mode,
 instead of using the STARTTLS command. </p>
 
 <p> If you want to support this service, enable a special port in
 <a href="master.5.html">master.cf</a>, and specify "-o <a href="postconf.5.html#smtpd_tls_wrappermode">smtpd_tls_wrappermode</a>=yes" on the SMTP
-server's command line. Port 465 (smtps) was once chosen for this
-purpose. </p>
+server's command line. Port 465 (submissions/smtps) is reserved for
+this purpose. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -18482,6 +18648,11 @@ authentication in the proxy agent (Postfix 2.9 and later). <p>
 
 <p> The time limit for the proxy protocol specified with the
 <a href="postconf.5.html#smtpd_upstream_proxy_protocol">smtpd_upstream_proxy_protocol</a> parameter. </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.10 and later.  </p>
 
@@ -18570,8 +18741,8 @@ mail. </dd>
 (default: yes)</b></DT><DD>
 
 <p> Enable preliminary SMTPUTF8 support for the protocols described
-in <a href="https://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533. This requires that Postfix is built to support
-these protocols. </p>
+in <a href="https://tools.ietf.org/html/rfc6531">RFC 6531</a>, <a href="https://tools.ietf.org/html/rfc6532">RFC 6532</a>, and <a href="https://tools.ietf.org/html/rfc6533">RFC 6533</a>. This requires that Postfix is
+built to support these protocols. </p>
 
 <p> This feature is available in Postfix 3.0 and later. </p>
 
@@ -18616,10 +18787,10 @@ The time after which a stale exclusive mailbox lockfile is removed.
 This is used for delivery to file or mailbox.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -18959,7 +19130,7 @@ ignored with a warning. </p>
 
 <p> Note: It is unwise to omit sha256 from the digest list.  This
 digest algorithm is the only mandatory to implement digest algorithm
-in <a href="https://tools.ietf.org/html/rfc6698">RFC 6698</a>, and many servers are expected publish TLSA records
+in <a href="https://tools.ietf.org/html/rfc6698">RFC 6698</a>, and many servers are expected to publish TLSA records
 with just sha256 digests.  Unless one of the standard digests is
 seriously compromised and servers have had ample time to update their
 TLSA records you should not omit any standard digests, just arrange
@@ -19077,7 +19248,7 @@ be using 0.9.6! </dd>
 SMTP client and server.  These curves are used by the Postfix SMTP
 server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = auto".  The selected curves
 must be implemented by OpenSSL and be standardized for use in TLS
-(<a href="https://tools.ietf.org/html/rfc4492">RFC 4492</a> or its imminent successor).  It is unwise to list only
+(<a href="https://tools.ietf.org/html/rfc8422">RFC 8422</a>).  It is unwise to list only
 "bleeding-edge" curves supported by a small subset of clients.  The
 default list is suitable for most users. </p>
 
@@ -19107,10 +19278,10 @@ server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_gra
 strong" means approximately 128-bit security based on best known
 attacks. The selected curve must be implemented by OpenSSL (as
 reported by ecparam(1) with the "-list_curves" option) and be one
-of the curves listed in Section 5.1.1 of <a href="https://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not
+of the curves listed in Section 5.1.1 of <a href="https://tools.ietf.org/html/rfc8422">RFC 8422</a>. You should not
 generally change this setting.  Remote SMTP client implementations
 must support this curve for EECDH key exchange to take place.  It
-is unwise to choose an "bleeding-edge" curve supported by only a
+is unwise to choose only "bleeding-edge" curves supported by only a
 small subset of clients.  </p>
 
 <p> The default "strong" curve is rated in NSA <a
@@ -19152,7 +19323,10 @@ This additional strength comes at a significant computational cost, most
 users should instead set "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = strong".  The selected
 curve must be implemented by OpenSSL (as reported by ecparam(1) with the
 "-list_curves" option) and be one of the curves listed in Section 5.1.1
-of <a href="https://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not generally change this setting. </p>
+of <a href="https://tools.ietf.org/html/rfc8422">RFC 8422</a>. You should not generally change this setting.  Remote SMTP
+client implementations must support this curve for EECDH key exchange
+to take place.  It is unwise to choose only "bleeding-edge" curves
+supported by only a small subset of clients. </p>
 
 <p> This default "ultra" curve is rated in NSA <a
 href="https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/">Suite
@@ -19185,7 +19359,7 @@ defines the meaning of the "export" setting in <a href="postconf.5.html#smtpd_tl
 releases before the middle of 2015 this is the default cipherlist
 for the opportunistic ("may") TLS client security level and also
 the default cipherlist for the SMTP server. You are strongly
-encouraged to not change this setting.  </p>
+encouraged not to change this setting.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -19211,7 +19385,7 @@ later. </p>
 the meaning of the "high" setting in <a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a>,
 <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>, <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>, <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>,
 <a href="postconf.5.html#lmtp_tls_ciphers">lmtp_tls_ciphers</a>, and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>. You are strongly
-encouraged to not change this setting.  </p>
+encouraged not to change this setting.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -19226,7 +19400,7 @@ encouraged to not change this setting.  </p>
 an incorrect algorithm. This parameter has no effect on the certificate
 fingerprint support that is available since Postfix 2.2. </p>
 
-<p> Specify "<a href="postconf.5.html#tls_legacy_public_key_fingerprint">tls_legacy_public_key_fingerprints</a> = yes" temporarily,
+<p> Specify "<a href="postconf.5.html#tls_legacy_public_key_fingerprints">tls_legacy_public_key_fingerprints</a> = yes" temporarily,
 pending a migration from configuration files with incorrect Postfix
 2.9.0..2.9.5 certificate public-key finger prints, to the correct
 fingerprints used by Postfix 2.9.6 and later.  To compute the correct
@@ -19244,7 +19418,7 @@ certificate public-key fingerprints, see <a href="TLS_README.html">TLS_README</a
 the meaning of the "low" setting in <a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a>,
 <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>, <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>, <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>,
 <a href="postconf.5.html#lmtp_tls_ciphers">lmtp_tls_ciphers</a>, and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>. You are strongly
-encouraged to not change this setting.  </p>
+encouraged not to change this setting.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -19261,8 +19435,8 @@ defines the meaning of the "medium" setting in <a href="postconf.5.html#smtpd_tl
 default cipherlist for mandatory TLS encryption in the TLS client
 (with anonymous ciphers disabled when verifying server certificates).
 This is the default cipherlist for opportunistic TLS with Postfix
-releases after the middle of 2015.  You are strongly encouraged to
-not change this setting.  </p>
+releases after the middle of 2015.  You are strongly encouraged not
+to change this setting.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -19274,8 +19448,8 @@ not change this setting.  </p>
 
 <p> The OpenSSL cipherlist for "NULL" grade ciphers that provide
 authentication without encryption. This defines the meaning of the "null"
-setting in smtpd_mandatory_tls_ciphers, <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and
-<a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>.  You are strongly encouraged to not
+setting in <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>, <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and
+<a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>.  You are strongly encouraged not to
 change this setting. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
@@ -19353,6 +19527,11 @@ warning is logged. </p>
 the pseudo random number generator (PRNG) to the file specified
 with $<a href="postconf.5.html#tls_random_exchange_name">tls_random_exchange_name</a>.  </p>
 
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
+
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
 
@@ -19365,6 +19544,11 @@ with $<a href="postconf.5.html#tls_random_exchange_name">tls_random_exchange_nam
 in-memory pseudo random number generator (PRNG) pool from external
 sources.  The actual time between re-seeding attempts is calculated
 using the PRNG, and is between 0 and the time specified.  </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -19381,7 +19565,7 @@ type must be prepended:  egd:/path/to/egd_socket for a source with
 EGD compatible socket interface, or dev:/path/to/device for a
 device file.  </p>
 
-<p> Note: on OpenBSD systems specify /dev/arandom when /dev/urandom
+<p> Note: on OpenBSD systems specify dev:/dev/arandom when dev:/dev/urandom
 gives timeout errors.  </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
@@ -19400,7 +19584,7 @@ server mode of <a href="tlsproxy.8.html">tlsproxy(8)</a>. </p>
 
 <p> When this parameter is non-empty, the Postfix SMTP server enables
 SNI extension processing, and logs SNI values that are invalid or
-don't match an entry in the the specified tables.  When an entry
+don't match an entry in the specified tables.  When an entry
 does match, the SNI name is logged as part of the connection summary
 at log levels 1 and higher.  </p>
 
@@ -19752,7 +19936,8 @@ to configure tlsproxy client keys and certificates is via the
 (default: $<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>)</b></DT><DD>
 
 <p> Enforcement mode: require that SMTP servers use TLS encryption.
-See <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> for further details. </p>
+See <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> for further details. Use
+<a href="postconf.5.html#tlsproxy_client_security_level">tlsproxy_client_security_level</a> instead. </p>
 
 <p> This feature is available in Postfix 3.4 and later. </p>
 
@@ -19856,7 +20041,8 @@ client. See <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_
 (default: $<a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>)</b></DT><DD>
 
 <p> Opportunistic mode: use TLS when a remote server announces TLS
-support. See <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> for further details. </p>
+support. See <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> for further details. Use
+<a href="postconf.5.html#tlsproxy_client_security_level">tlsproxy_client_security_level</a> instead. </p>
 
 <p> This feature is available in Postfix 3.4 and later. </p>
 
@@ -19868,7 +20054,7 @@ support. See <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> for further
 
 <p> Mandatory TLS: announce STARTTLS support to remote SMTP clients, and
 require that clients use TLS encryption. See <a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a> for
-further details. </p>
+further details. Use <a href="postconf.5.html#tlsproxy_tls_security_level">tlsproxy_tls_security_level</a> instead. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
@@ -20224,7 +20410,7 @@ shared by all three services, namely <a href="postconf.5.html#smtpd_tls_session_
 
 <p> Opportunistic TLS: announce STARTTLS support to remote SMTP clients,
 but do not require that clients use TLS encryption. See <a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a>
-for further details. </p>
+for further details. Use <a href="postconf.5.html#tlsproxy_tls_security_level">tlsproxy_tls_security_level</a> instead. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
@@ -20243,7 +20429,8 @@ cannot be set under 10s.  </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
-(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.8 and later  </p>
 
@@ -20574,10 +20761,10 @@ The time between attempts by the Postfix queue manager to contact
 a malfunctioning message delivery transport.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -20588,6 +20775,11 @@ The default time unit is s (seconds).
 <p> A transport-specific override for the <a href="postconf.5.html#command_time_limit">command_time_limit</a> parameter
 value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message
 delivery transport. </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 <p> Note: <a href="postconf.5.html#transport_time_limit"><i>transport</i>_time_limit</a> parameters will not show up
 in "postconf" command output before Postfix version 2.9.  This
@@ -20605,6 +20797,17 @@ of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (i
 parameter value, where the initial <i>transport</i> in the parameter
 name is the <a href="master.5.html">master.cf</a> name of the message delivery transport. </p>
 
+<p> Specify a non-negative time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
+
+<p> Note: <a href="postconf.5.html#transport_transport_rate_delay"><i>transport</i>_transport_rate_delay</a> parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in
+this case: "_transport_rate_delay").  </p>
+
 
 </DD>
 
@@ -20618,10 +20821,10 @@ programs from getting stuck when the mail system is under heavy
 load.
 </p>
 
-<p>
-Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).
-</p>
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+The default time unit is s (seconds).  </p>
 
 
 </DD>
@@ -21005,7 +21208,7 @@ This feature is available in Postfix 3.0 and later.
 <DT><b><a name="virtual_alias_domains">virtual_alias_domains</a>
 (default: $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>)</b></DT><DD>
 
-<p> Postfix is final destination for the specified list of virtual
+<p> Postfix is the final destination for the specified list of virtual
 alias domains, that is, domains for which all addresses are aliased
 to addresses in other local or remote domains. The SMTP server
 validates recipient addresses with $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> and rejects
@@ -21029,7 +21232,7 @@ domain names).
 <p> Specify a list of host or domain names, "/file/name" or
 "<a href="DATABASE_README.html">type:table</a>" patterns, separated by commas and/or whitespace. A
 "/file/name" pattern is replaced by its contents; a "<a href="DATABASE_README.html">type:table</a>"
-lookup table is matched when a table entry matches a lookup string
+lookup table is matched when a table entry matches a host or domain name
 (the lookup result is ignored).  Continue long lines by starting
 the next line with whitespace. Specify "!pattern" to exclude a host
 or domain name from the list. The form "!/file/name" is supported
@@ -21071,7 +21274,7 @@ This feature is available in Postfix 2.1 and later.
 
 <p>
 Optional lookup tables that alias specific mail addresses or domains
-to other local or remote address.  The table format and lookups
+to other local or remote addresses.  The table format and lookups
 are documented in <a href="virtual.5.html">virtual(5)</a>. For an overview of Postfix address
 manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> document.
 </p>
@@ -21237,7 +21440,7 @@ Example:
 <DT><b><a name="virtual_mailbox_domains">virtual_mailbox_domains</a>
 (default: $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>)</b></DT><DD>
 
-<p> Postfix is final destination for the specified list of domains;
+<p> Postfix is the final destination for the specified list of domains;
 mail is delivered via the $<a href="postconf.5.html#virtual_transport">virtual_transport</a> mail delivery transport.
 By default this is the Postfix <a href="virtual.8.html">virtual(8)</a> delivery agent.  The SMTP
 server validates recipient addresses with $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>
@@ -21318,6 +21521,13 @@ until a match is found.
 In a lookup table, specify a left-hand side of "@domain.tld" to
 match any user in the specified domain that does not have a specific
 "user@domain.tld" entry.
+</p>
+
+<p>
+With the default "<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> = $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>",
+lookup tables also need entries with a left-hand side of "domain.tld"
+to satisfy virtual_mailbox_domain lookups (the right-hand side is
+required but will not be used).
 </p>
 
 <p> The remainder of this text is specific to the <a href="virtual.8.html">virtual(8)</a> delivery
