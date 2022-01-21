@@ -14185,6 +14185,12 @@ configure tlsproxy client keys and certificates is via the
 "tlsproxy_client_chain_files" parameter.
 .PP
 This feature is available in Postfix 3.4 and later.
+.SH tlsproxy_client_level (default: $smtp_tls_security_level)
+The default TLS security level for the Postfix \fBtlsproxy\fR(8)
+client. See smtp_tls_security_level for further details.
+.PP
+This feature is available in Postfix 3.4 \- 3.6. It was
+renamed to tlsproxy_client_security_level in Postfix 3.7.
 .SH tlsproxy_client_loglevel (default: $smtp_tls_loglevel)
 Enable additional Postfix \fBtlsproxy\fR(8) client logging of TLS
 activity. See smtp_tls_loglevel for further details.
@@ -14201,12 +14207,20 @@ usage policy by next\-hop destination and by remote TLS server
 hostname.  See smtp_tls_per_site for further details.
 .PP
 This feature is available in Postfix 3.4 and later.
+.SH tlsproxy_client_policy (default: $smtp_tls_policy_maps)
+Optional lookup tables with the Postfix \fBtlsproxy\fR(8) client TLS
+security policy by next\-hop destination. See smtp_tls_policy_maps
+for further details.
+.PP
+This feature is available in Postfix 3.4 \- 3.6. It was
+renamed to tlsproxy_client_policy_maps in Postfix 3.7.
 .SH tlsproxy_client_policy_maps (default: $smtp_tls_policy_maps)
 Optional lookup tables with the Postfix \fBtlsproxy\fR(8) client TLS
 security policy by next\-hop destination. See smtp_tls_policy_maps
 for further details.
 .PP
-This feature is available in Postfix 3.4 and later.
+This feature is available in Postfix 3.7 and later. It
+was previously called tlsproxy_client_policy.
 .SH tlsproxy_client_scert_verifydepth (default: $smtp_tls_scert_verifydepth)
 The verification depth for remote TLS server certificates.
 See smtp_tls_scert_verifydepth for further details.
@@ -14216,7 +14230,8 @@ This feature is available in Postfix 3.4 and later.
 The default TLS security level for the Postfix \fBtlsproxy\fR(8)
 client. See smtp_tls_security_level for further details.
 .PP
-This feature is available in Postfix 3.4 and later.
+This feature is available in Postfix 3.7 and later. It
+was previously called tlsproxy_client_level.
 .SH tlsproxy_client_use_tls (default: $smtp_use_tls)
 Opportunistic mode: use TLS when a remote server announces TLS
 support. See smtp_use_tls for further details. Use

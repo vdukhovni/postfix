@@ -191,6 +191,12 @@ typedef struct SMTP_STATE {
      * assume per-server debug_peer support.
      */
     int     debug_peer_per_nexthop;
+
+    /*
+     * One-bit counters to avoid logging the same warning multiple times per
+     * delivery request.
+     */
+    int     logged_line_length_limit:1;
 } SMTP_STATE;
 
  /*

@@ -41,10 +41,10 @@ Major changes with snapshot 20210815
 ====================================
 
 Updated defense against remote clients or servers that 'trickle'
-SMTP or LMTP traffc. The new {smtpd,smtp,lmtp}_per_request_deadline
+SMTP or LMTP traffic. The new {smtpd,smtp,lmtp}_per_request_deadline
 parameters replace {smtpd,smtp,lmtp}_per_record_deadline, with
-backwards compatible default settings. This defense is automatically
-enabled by default in the Postfix SMTP server in case of overload.
+backwards compatible default settings. This defense is enabled by
+default in the Postfix SMTP server in case of overload.
 
 The new smtpd_per_record_deadline parameter limits the combined
 time for the Postfix SMTP server to receive a request and to send

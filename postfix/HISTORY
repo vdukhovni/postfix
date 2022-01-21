@@ -26125,7 +26125,7 @@ Apologies for any names omitted.
 
 	Cleanup: added missing _maps parameter names to the
 	proxy_read_maps default value, based on output from the
-	mantools/missing-proxy-read-maps script.  File:
+	mantools/missing-proxy-read-maps script. File:
 	global/mail_params.h.
 
 	Sanity: added LANG=C to the typo-check scripts to get
@@ -26195,12 +26195,12 @@ Apologies for any names omitted.
 
 20220117
 
-	Clenaup: the nullmx_reject_code parameter was removed from
+	Cleanup: the nullmx_reject_code parameter was removed from
 	Postfix 3.0 before it was released, but the manpage was not
 	updated. File: proto/postconf.proto.
 
 	Cleanup: after seeking past the end of a writable memory-backed
-	VSTREAM (i.e.  backed by a VSTRING), write nulls over the
+	VSTREAM (i.e. backed by a VSTRING), write nulls over the
 	newly allocated bytes. This behavior is compatible with
 	seeking past the end of a writable regular file. File:
 	util/vstream.c.
@@ -26211,6 +26211,32 @@ Apologies for any names omitted.
 	Makefiles, some unit test 'reference' files.
 
 	Bugfix (documented but not implemented since Postfix 2.2):
-	missing support for [address] smtp_bind_address and
+	missing support for [address] in smtp_bind_address and
 	smtp_bind_address6. Reported by Vincent Pelletier. File:
 	smtp/smtp_connect.c.
+
+20220119
+
+	Cleanup: the 20211211 change could result in logfile spam.
+	Added a 1-bit counter to log "breaking long line" only once per
+	delivery request. File: smtp/smtp_proto.c.
+
+20220121
+
+	Cleanup: added a pre-release check for missing entries
+	in postfix-files. Problem reported by Jaroslav Skarvada.
+	Files: Makefile.in, conf/postfix-files,
+	mantools/check-postfix-files. Deleted: CYRUS_README.
+
+	Cleanup: added the RELEASE_NOTES file to the pre-release
+	checks, after Viktor Dukhovni reported a typo. Files:
+	mantools/check-double-install-proto-text,
+	mantools/check-spell-install-proto-text.
+
+	Cleanup: for consistent parameter naming (tlsproxy_client_xxx
+	correspnds to smtp_tls_xxx), renamed tlsproxy_client_level
+	to tlsproxy_client_security_level, and tlsproxy_client_policy
+	to tlsproxy_client_policy_maps, with backwards-compatible
+	defaults and updated documentation. Problem reported by
+	Raf. Files: global/mail_params.h, mantools/postlink,
+	postconf/postconf_builtin.c.

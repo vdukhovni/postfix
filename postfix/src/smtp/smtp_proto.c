@@ -1194,8 +1194,11 @@ static void smtp_text_out(void *context, int rec_type,
 		 * multibyte characters can span queue file records, for
 		 * example if line_length_limit == smtp_line_length_limit.
 		 */
-		msg_info("%s: breaking line > %d bytes with <CR><LF>SPACE",
-			 state->request->queue_id, var_smtp_line_limit);
+		if (state->logged_line_length_limit == 0) {
+		    msg_info("%s: breaking line > %d bytes with <CR><LF>SPACE",
+			     state->request->queue_id, var_smtp_line_limit);
+		    state->logged_line_length_limit = 1;
+		}
 	    }
 	} else {
 	    if (rec_type == REC_TYPE_CONT) {

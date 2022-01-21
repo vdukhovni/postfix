@@ -17493,12 +17493,21 @@ See smtp_tls_scert_verifydepth for further details. </p>
 
 <p> This feature is available in Postfix 3.4 and later. </p>
 
+%PARAM tlsproxy_client_level $smtp_tls_security_level
+
+<p> The default TLS security level for the Postfix tlsproxy(8)
+client. See smtp_tls_security_level for further details. </p>
+
+<p> This feature is available in Postfix 3.4 - 3.6. It was 
+renamed to tlsproxy_client_security_level in Postfix 3.7. </p>
+
 %PARAM tlsproxy_client_security_level $smtp_tls_security_level
 
 <p> The default TLS security level for the Postfix tlsproxy(8)
 client. See smtp_tls_security_level for further details. </p>
 
-<p> This feature is available in Postfix 3.4 and later. </p>
+<p> This feature is available in Postfix 3.7 and later. It
+was previously called tlsproxy_client_level. </p>
 
 %PARAM tlsproxy_client_per_site $smtp_tls_per_site
 
@@ -17508,13 +17517,23 @@ hostname.  See smtp_tls_per_site for further details. </p>
 
 <p> This feature is available in Postfix 3.4 and later. </p>
 
+%PARAM tlsproxy_client_policy $smtp_tls_policy_maps
+
+<p> Optional lookup tables with the Postfix tlsproxy(8) client TLS
+security policy by next-hop destination. See smtp_tls_policy_maps
+for further details. </p>
+
+<p> This feature is available in Postfix 3.4 - 3.6. It was
+renamed to tlsproxy_client_policy_maps in Postfix 3.7. </p>
+
 %PARAM tlsproxy_client_policy_maps $smtp_tls_policy_maps
 
 <p> Optional lookup tables with the Postfix tlsproxy(8) client TLS
 security policy by next-hop destination. See smtp_tls_policy_maps
 for further details. </p>
 
-<p> This feature is available in Postfix 3.4 and later. </p>
+<p> This feature is available in Postfix 3.7 and later. It
+was previously called tlsproxy_client_policy. </p>
 
 %PARAM tlsproxy_client_use_tls $smtp_use_tls
 

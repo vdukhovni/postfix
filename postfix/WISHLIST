@@ -9,17 +9,14 @@ Wish list:
 	Fix code that still uses "long" for data_size and data_offset,
 	and that uses "%ld" in sscanf().
 
-	For consistent naming (tlsproxy_client_mumble <> smtp_tls_mumble),
-	rename tlsproxy_client_level to tlsproxy_client_security_level,
-	and tlsproxy_client_policy to tlsproxy_client_policy_maps.
-	This requires backwards-compatible defaults and documentation
-	updates.
-
 	A smart query service for live Postfix tables that outputs JSON?
 
 	Add a pointer to
 	http://mmogilvi.users.sourceforge.net/software/oauthbearer.html
 	in documentation or on-line howtos.
+
+	Read http://mmogilvi.users.sourceforge.net/software/oauthbearer.html
+	and see how we can improve on the Postfix side.
 
 	Add verp=+= to the qmgr "from=" logging. This is already
 	implemented but not yet integrated.
@@ -76,7 +73,7 @@ Wish list:
 	configuration settings easier to enter. This may be true
 	for main.cf, master.cf and similar files (such as database
 	configuration files, but not necessarily elsewhere). So it
-	would have to be a readlline flag.
+	may have to be a readlline flag.
 
 	Understand what happens with DNSSEC related status fields 
 	in posttls-finger when resolv.conf points to a host that
@@ -95,17 +92,8 @@ Wish list:
 	events. But the currrent multi_server API fits typical usage
 	better.
 
-	Add a configurable filter for SMTP command syntax. Maybe
-	time for some inline-pcre or inline-regexp map support?
-
-	Update makedefs and sys-defs.h for current Linux kernels and
-	*BSD releases.
-
 	When a secondary instance has no multi_instance_name set,
 	postmulti -i won't be able to find it.
-
-	Read http://mmogilvi.users.sourceforge.net/software/oauthbearer.html
-	and see how we can improve on the Postfix side.
 
 	nbbio: exercise the sanity checks with fake msg(3) functions.
 

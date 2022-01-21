@@ -2501,7 +2501,8 @@ extern int var_local_rcpt_code;
 				" $" VAR_LOCAL_LOGIN_SND_MAPS \
 				" $" VAR_PSC_REJ_FTR_MAPS \
 				" $" VAR_SMTPD_REJ_FTR_MAPS \
-				" $" VAR_TLS_SERVER_SNI_MAPS
+				" $" VAR_TLS_SERVER_SNI_MAPS \
+				" $" VAR_TLSP_CLNT_POLICY
 extern char *var_proxy_read_maps;
 
 #define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"
@@ -4065,16 +4066,20 @@ extern bool var_tlsp_clnt_use_tls;
 #define DEF_TLSP_CLNT_ENFORCE_TLS	"$" VAR_SMTP_ENFORCE_TLS
 extern bool var_tlsp_clnt_enforce_tls;
 
-#define VAR_TLSP_CLNT_LEVEL		"tlsproxy_client_level"
-#define DEF_TLSP_CLNT_LEVEL		"$" VAR_SMTP_TLS_LEVEL
+/* Migrate an incorrect name. */
+#define OBS_TLSP_CLNT_LEVEL		"tlsproxy_client_level"
+#define VAR_TLSP_CLNT_LEVEL		"tlsproxy_client_security_level"
+#define DEF_TLSP_CLNT_LEVEL		"${" OBS_TLSP_CLNT_LEVEL ":$" VAR_SMTP_TLS_LEVEL "}"
 extern char *var_tlsp_clnt_level;
 
 #define VAR_TLSP_CLNT_PER_SITE		"tlsproxy_client_per_site"
 #define DEF_TLSP_CLNT_PER_SITE		"$" VAR_SMTP_TLS_PER_SITE
 extern char *var_tlsp_clnt_per_site;
 
-#define VAR_TLSP_CLNT_POLICY		"tlsproxy_client_policy"
-#define DEF_TLSP_CLNT_POLICY		"$" VAR_SMTP_TLS_POLICY
+/* Migrate an incorrect name. */
+#define OBS_TLSP_CLNT_POLICY		"tlsproxy_client_policy"
+#define VAR_TLSP_CLNT_POLICY		"tlsproxy_client_policy_maps"
+#define DEF_TLSP_CLNT_POLICY		"${" OBS_TLSP_CLNT_POLICY ":$" VAR_SMTP_TLS_POLICY "}"
 extern char *var_tlsp_clnt_policy;
 
  /*

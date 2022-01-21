@@ -272,10 +272,10 @@
 /*	value.
 /* .IP "\fBtlsproxy_client_scert_verifydepth ($smtp_tls_scert_verifydepth)\fR"
 /*	The verification depth for remote TLS server certificates.
-/* .IP "\fBtlsproxy_client_security_level ($smtp_tls_security_level)\fR"
+/* .IP "\fBtlsproxy_client_level ($smtp_tls_security_level)\fR"
 /*	The default TLS security level for the Postfix \fBtlsproxy\fR(8)
 /*	client.
-/* .IP "\fBtlsproxy_client_policy_maps ($smtp_tls_policy_maps)\fR"
+/* .IP "\fBtlsproxy_client_policy ($smtp_tls_policy_maps)\fR"
 /*	Optional lookup tables with the Postfix \fBtlsproxy\fR(8) client TLS
 /*	security policy by next-hop destination.
 /* .IP "\fBtlsproxy_client_use_tls ($smtp_use_tls)\fR"
@@ -287,6 +287,14 @@
 /*	Optional lookup tables with the Postfix \fBtlsproxy\fR(8) client TLS
 /*	usage policy by next-hop destination and by remote TLS server
 /*	hostname.
+/* .PP
+/*	Available in Postfix version 3.7 and later:
+/* .IP "\fBtlsproxy_client_security_level ($smtp_tls_security_level)\fR"
+/*	The default TLS security level for the Postfix \fBtlsproxy\fR(8)
+/*	client.
+/* .IP "\fBtlsproxy_client_policy_maps ($smtp_tls_policy_maps)\fR"
+/*	Optional lookup tables with the Postfix \fBtlsproxy\fR(8) client TLS
+/*	security policy by next-hop destination.
 /* OBSOLETE STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi

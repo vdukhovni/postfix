@@ -1,11 +1,11 @@
 #!/bin/sh
 
-# Look for missing parameter names in postlink
+# Reports parameter names that have no postlink rules.
 
 LANG=C; export LANG
 LC_ALL=C; export LC_ALL
 
-trap 'rm -f postlink.tmp postconf.tmp check-postlink.tmp 2>/dev/null' 0 1 2 3 15
+trap 'rm -f postlink.tmp postconf.tmp stoplist.tmp 2>/dev/null' 0 1 2 3 15
 
 # Extract parameters from postlink script. This also produces names
 # of obsolete parameters, and non-parameter names such as SMTPD
@@ -17,124 +17,41 @@ sed -n '/[ 	].*href="postconf\.5\.html#/{
 	p
 }' mantools/postlink | sort > postlink.tmp
 
-# Extract parameters from postconf output.
+# Extract parameters from postconf output, using the stock configurations.
 
 bin/postconf -dHc conf | sort >postconf.tmp
 
-# Filter the output through a whitelist.
+# Filter the postconf output through a stoplist. First, parameter
+# names prefixed by their service name.
 
-cat >check-postlink.tmp <<'EOF'
-error_delivery_slot_cost
-error_delivery_slot_discount
-error_delivery_slot_loan
-error_destination_concurrency_failed_cohort_limit
-error_destination_concurrency_limit
-error_destination_concurrency_negative_feedback
-error_destination_concurrency_positive_feedback
-error_destination_rate_delay
-error_destination_recipient_limit
-error_extra_recipient_limit
-error_initial_destination_concurrency
-error_minimum_delivery_slots
-error_recipient_limit
-error_recipient_refill_delay
-error_recipient_refill_limit
-error_transport_rate_delay
-lmtp_body_checks
-lmtp_cname_overrides_servername
-lmtp_delivery_slot_cost
-lmtp_delivery_slot_discount
-lmtp_delivery_slot_loan
-lmtp_destination_concurrency_failed_cohort_limit
-lmtp_destination_concurrency_negative_feedback
-lmtp_destination_concurrency_positive_feedback
-lmtp_destination_rate_delay
-lmtp_extra_recipient_limit
-lmtp_header_checks
-lmtp_initial_destination_concurrency
-lmtp_mime_header_checks
-lmtp_minimum_delivery_slots
-lmtp_nested_header_checks
-lmtp_recipient_limit
-lmtp_recipient_refill_delay
-lmtp_recipient_refill_limit
-lmtp_transport_rate_delay
-local_delivery_slot_cost
-local_delivery_slot_discount
-local_delivery_slot_loan
-local_destination_concurrency_failed_cohort_limit
-local_destination_concurrency_negative_feedback
-local_destination_concurrency_positive_feedback
-local_destination_rate_delay
-local_extra_recipient_limit
-local_initial_destination_concurrency
-local_minimum_delivery_slots
-local_recipient_limit
-local_recipient_refill_delay
-local_recipient_refill_limit
-local_transport_rate_delay
-relay_delivery_slot_cost
-relay_delivery_slot_discount
-relay_delivery_slot_loan
-relay_destination_concurrency_failed_cohort_limit
-relay_destination_concurrency_negative_feedback
-relay_destination_concurrency_positive_feedback
-relay_destination_rate_delay
-relay_extra_recipient_limit
-relay_initial_destination_concurrency
-relay_minimum_delivery_slots
-relay_recipient_limit
-relay_recipient_refill_delay
-relay_recipient_refill_limit
-relay_transport_rate_delay
-retry_delivery_slot_cost
-retry_delivery_slot_discount
-retry_delivery_slot_loan
-retry_destination_concurrency_failed_cohort_limit
-retry_destination_concurrency_limit
-retry_destination_concurrency_negative_feedback
-retry_destination_concurrency_positive_feedback
-retry_destination_rate_delay
-retry_destination_recipient_limit
-retry_extra_recipient_limit
-retry_initial_destination_concurrency
-retry_minimum_delivery_slots
-retry_recipient_limit
-retry_recipient_refill_delay
-retry_recipient_refill_limit
-retry_transport_rate_delay
-smtp_delivery_slot_cost
-smtp_delivery_slot_discount
-smtp_delivery_slot_loan
-smtp_destination_concurrency_failed_cohort_limit
-smtp_destination_concurrency_negative_feedback
-smtp_destination_concurrency_positive_feedback
-smtp_destination_rate_delay
-smtp_extra_recipient_limit
-smtp_initial_destination_concurrency
-smtp_minimum_delivery_slots
-smtp_recipient_limit
-smtp_recipient_refill_delay
-smtp_recipient_refill_limit
-smtp_transport_rate_delay
+for xport in error lmtp local relay retry smtp virtual
+do
+   cat <<EOF
+${xport}_delivery_slot_cost
+${xport}_delivery_slot_discount
+${xport}_delivery_slot_loan
+${xport}_destination_concurrency_failed_cohort_limit
+${xport}_destination_concurrency_limit
+${xport}_destination_concurrency_negative_feedback
+${xport}_destination_concurrency_positive_feedback
+${xport}_destination_rate_delay
+${xport}_destination_recipient_limit
+${xport}_extra_recipient_limit
+${xport}_initial_destination_concurrency
+${xport}_minimum_delivery_slots
+${xport}_recipient_limit
+${xport}_recipient_refill_delay
+${xport}_recipient_refill_limit
+${xport}_transport_rate_delay
+EOF
+done >stoplist.tmp
+
+# Second, pseudo parameters, read-only parameters, etc.
+
+cat >>stoplist.tmp <<'EOF'
 stress
-tlsproxy_client_level
-tlsproxy_client_policy
-virtual_delivery_slot_cost
-virtual_delivery_slot_discount
-virtual_delivery_slot_loan
-virtual_destination_concurrency_failed_cohort_limit
-virtual_destination_concurrency_negative_feedback
-virtual_destination_concurrency_positive_feedback
-virtual_destination_rate_delay
-virtual_extra_recipient_limit
-virtual_initial_destination_concurrency
-virtual_minimum_delivery_slots
-virtual_recipient_limit
-virtual_recipient_refill_delay
-virtual_recipient_refill_limit
-virtual_transport_rate_delay
-
 EOF
 
-comm -23 postconf.tmp postlink.tmp | fgrep -vx -f check-postlink.tmp
+# Report names from postconf that have no rule in mantools/postlink.
+
+comm -23 postconf.tmp postlink.tmp | fgrep -vx -f stoplist.tmp

@@ -88,6 +88,7 @@ SMTP_STATE *smtp_state_alloc(void)
     }
     state->why = dsb_create();
     state->debug_peer_per_nexthop = 0;
+    state->logged_line_length_limit = 0;
     return (state);
 }
 

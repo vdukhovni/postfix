@@ -148,6 +148,8 @@ static const CONFIG_STR_TABLE pcf_legacy_str_table[] = {
     {"lmtp_per_record_deadline", ""},
     {"smtp_per_record_deadline", ""},
     {"smtpd_per_record_deadline", ""},
+    {"tlsproxy_client_level", ""},
+    {"tlsproxy_client_policy", ""},
     0,
 };
 
