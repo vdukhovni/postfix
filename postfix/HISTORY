@@ -26240,3 +26240,9 @@ Apologies for any names omitted.
 	defaults and updated documentation. Problem reported by
 	Raf. Files: global/mail_params.h, mantools/postlink,
 	postconf/postconf_builtin.c.
+
+20220123
+
+	Documentation: added LINUX_README sections for logging in
+	a container, and for systemd logging workarounds. File:
+	proto/LINUX_README.hmtl.

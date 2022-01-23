@@ -81,6 +81,13 @@ to write to the mail spool directory. Workaround: </p>
 </pre>
 </blockquote>
 
+<h2>Logging in a container</h2>
+
+<p> When running Postfix inside a container, you can use stdout
+logging as described in MAILLOG_README. Alternatives: run syslogd
+inside the container, or mount the host's syslog socket inside the
+container. </p>
+
 <h2>Syslogd performance</h2>
 
 <p> LINUX <b>syslogd</b> uses synchronous writes by default. Because
@@ -98,6 +105,14 @@ logfile name:  </p>
 
 <p> Send a "<b>kill -HUP</b>" to the <b>syslogd</b> to make the
 change effective.  </p>
+
+<h2>Other logging performance issues</h2>
+
+<p> LINUX <b>systemd</b> intercepts all logging and enforces its
+own rate limits before handing off requests to a backend such as
+<b>rsyslogd</b> or <b>syslog-ng</b>. On a busy mail server this can
+result in information loss. As a workaround, you can use Postfix's
+built-in logging as described in MAILLOG_README. </p>
 
 </body>
 

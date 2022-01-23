@@ -1,12 +1,12 @@
-This is the Postfix 3.7 (experimental) release.
+This is the Postfix 3.7 (stable) release.
 
-The stable Postfix release is called postfix-3.6.x where 3=major
-release number, 6=minor release number, x=patchlevel.  The stable
+The stable Postfix release is called postfix-3.7.x where 3=major
+release number, 7=minor release number, x=patchlevel.  The stable
 release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
 
 New features are developed in snapshot releases. These are called
-postfix-3.7-yyyymmdd where yyyymmdd is the release date (yyyy=year,
+postfix-3.8-yyyymmdd where yyyymmdd is the release date (yyyy=year,
 mm=month, dd=day).  Patches are never issued for snapshot releases;
 instead, a new snapshot is released.
 
@@ -25,26 +25,105 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
-Major changes with snapshot 20211127
-====================================
+Major changes - configuration
+-----------------------------
 
-Support for the pcre2 library (the legacy pcre library is no longer
-maintained). The Postfix build procedure automatically detects if
-the pcre2 library is installed, and if it is unavailable, the Postfix
-build procedure will detect if the legacy pcre library is installed.
-See PCRE_README if you need to build Postfix with a specific library.
+[Feature 20210605] Support to inline the content of small cidr,
+pcre, and regexp tables.
+
+Example:
+
+    smtpd_forbidden_commands =
+	CONNECT GET POST regexp:{{/^[^A-Z]/ Thrash}}
+
+The basic syntax is:
+
+/etc/postfix/main.cf:
+    parameter = .. map-type:{ { rule-1 }, { rule-2 } .. } ..
+
+/etc/postfix/master.cf:
+    .. -o { parameter = .. map-type:{ { rule-1 }, { rule-2 } .. } .. } ..
+
+where map-type is one of cidr, pcre, or regexp.
+
+Postfix ignores whitespace after '{' and before '}', and writes each
+rule as one text line to a nameless in-memory file: 
+
+in-memory file:
+    rule-1
+    rule-2
+    ..
+
+Postfix parses the result as if it is a file in /etc/postfix.
+
+Note: if a rule contains $, specify $$, to keep Postfix from trying
+to do $name expansion as it evaluates the parameter value.
+
+Major changes - lmdb support
+----------------------------
+
+[Feature 20210605] Overhauled the LMDB client implementation, added
+integration tests for future-proofing.
+
+Major changes - logging
+-----------------------
+
+[Feature 20210815] To make the maillog_file feature more useful,
+the postlog(1) command is now set-gid postdrop, so that unprivileged
+programs can write logging through the postlogd(8) daemon.  This
+required hardening the postlog(1) command against privilege escalation
+attacks.
+
+Major changes - pcre2 support
+-----------------------------
+
+[Feature 20211127] Support for the pcre2 library (the legacy pcre
+library is no longer maintained). The Postfix build procedure
+automatically detects if the pcre2 library is installed, and if it
+is unavailable, the Postfix build procedure will detect if the
+legacy pcre library is installed.  See PCRE_README if you need to
+build Postfix with a specific library.
 
 Visible differences: some error messages may have a different text,
 and the 'X' pattern flag is no longer supported with pcre2.
 
-Major changes with snapshot 20210815
-====================================
+Major changes - safety
+----------------------
 
-Updated defense against remote clients or servers that 'trickle'
-SMTP or LMTP traffic. The new {smtpd,smtp,lmtp}_per_request_deadline
-parameters replace {smtpd,smtp,lmtp}_per_record_deadline, with
-backwards compatible default settings. This defense is enabled by
-default in the Postfix SMTP server in case of overload.
+[Feature 20210926] Prevent sharing of xxx_tls_session_cache_database
+instances between different Postfix instances when a database is
+not multi-writer safe. These databases are now opened with a permanent
+lock. The tlsmgr(8) daemon will raise a fatal error when it attempts
+to open an xxx_tls_session_cache_database that is already opened
+by a different tlsmgr(8) process.
+
+Major changes - security
+------------------------
+
+[Feature 20220102] Postfix programs now randomize the initial state
+of in-memory hash tables, to defend against hash collision attacks
+involving a large number of attacker-chosen lookup keys.  Presently,
+the only known opportunity for such attacks involves remote SMTP
+client IPv6 addresses in the anvil(8) service. That would require
+making hundreds of short-lived connections per second, because the
+service ages out idle connections after 100s. Other tables with
+attacker-chosen lookup keys are by design limited in size. The fix
+is cheap, and therefore implemented for all Postfix in-memory hash
+tables. Problem reported by Pascal Junod.
+
+[Feature 20211030] The postqueue command now sanitizes non-printable
+characters in strings before they are formatted as json output or
+legacy output. These outputs are piped into other programs that are
+run by administrative users. This closes a hypothetical opportunity
+for privilege escalation.
+
+[Feature 20210815] Updated defense against remote clients or servers
+that 'trickle' SMTP or LMTP traffic. 
+
+The new {smtpd,smtp,lmtp}_per_request_deadline parameters replace
+{smtpd,smtp,lmtp}_per_record_deadline, with backwards compatible
+default settings. This defense is enabled by default in the Postfix
+SMTP server in case of overload.
 
 The new smtpd_per_record_deadline parameter limits the combined
 time for the Postfix SMTP server to receive a request and to send
@@ -66,33 +145,34 @@ to change.
 The new {smtp,lmtp}_min_data_rate parameters enforce the corresponding
 minimum DATA transfer rates for the Postfix SMTP and LMTP client.
 
-Major changes with snapshot 20210605
-====================================
+Major changes - tls support
+---------------------------
 
-Support to inline the content of small cidr, pcre, and regexp tables.
+[Incompat 20220121] Renamed tlsproxy_client_level to
+tlsproxy_client_security_level, and tlsproxy_client_policy to
+tlsproxy_client_policy_maps, for consistent parameter naming
+(tlsproxy_client_xxx corresponds to smtp_tls_xxx).
 
-Example:
+This change was made with backwards-compatible default settings,
+and with updated documentation.
 
-    smtpd_forbidden_commands =
-	CONNECT GET POST regexp:{{/^[^A-Z]/ Thrash}}
+[Feature 20210926] Postfix was updated to support OpenSSL 3.0.0
+features, and to work around OpenSSL 3.0.0 bit-rot (avoid using
+deprecated features).
 
-The basic syntax is:
+Other code health
+-----------------
 
-/etc/postfix/main.cf:
-    parameter = .. map-type:{ { rule-1 }, { rule-2 } .. } ..
+[typos] Typo fixes by raf.
 
-/etc/postfix/master.cf:
-    .. -o { parameter = .. map-type:{ { rule-1 }, { rule-2 } .. } .. } ..
+[pre-release checks] Added pre-release checks to detect new typos,
+and missing entries in postfix-files (some documentation would not
+be installed), missing postlink rules (would result in missing
+hyperlinks in documentation), missing proxy_read_maps entries (the
+proxymap daemon would not automatically authorize some proxied maps).
 
-Postfix ignores whitespace after '{' and before '}', and writes each
-rule as one text line to an in-memory file: 
+[memory stream] Improved support for memory-based streams made it
+possible to eliminate ad-hoc code that converted tlsproxy(8) protocol
+data to and from serialized form, and to inline small cidr:, pcre:,
+and regexp: maps in main.cf.
 
-in-memory file:
-    rule-1
-    rule-2
-    ..
-
-Postfix parses the result as if it is a file in /etc/postfix.
-
-Note: if a rule contains $, specify $$, to keep Postfix from trying to
-do $name expansion as it evaluates the parameter value.
