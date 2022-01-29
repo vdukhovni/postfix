@@ -30,6 +30,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -86,12 +91,13 @@ int     master_monitor(int time_limit)
 	close(pipes[1]);
 	switch (timed_read(pipes[0], buf, 1, time_limit, (void *) 0)) {
 	default:
+	    msg_warn("%m while waiting for daemon initialization");
 	    /* The child process still runs, but something is wrong. */
 	    (void) kill(pid, SIGKILL);
 	    /* FALLTHROUGH */
 	case 0:
 	    /* The child process exited prematurely. */
-	    msg_fatal("daemon initialization failure");
+	    msg_fatal("daemon initialization failure -- see logs for details");
 	case 1:
 	    /* The child process initialized successfully. */
 	    exit(0);

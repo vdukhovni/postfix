@@ -43,7 +43,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	split_qnameval.c argv_attr_print.c argv_attr_scan.c dict_file.c \
 	msg_logger.c logwriter.c unix_dgram_connect.c unix_dgram_listen.c \
 	byte_mask.c known_tcp_ports.c argv_split_at.c dict_stream.c \
-	sane_strtol.c
+	sane_strtol.c hash_fnv.c ldseed.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -88,7 +88,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	split_qnameval.o argv_attr_print.o argv_attr_scan.o dict_file.o \
 	msg_logger.o logwriter.o unix_dgram_connect.o unix_dgram_listen.o \
 	byte_mask.o known_tcp_ports.o argv_split_at.o dict_stream.o \
-	sane_strtol.o
+	sane_strtol.o hash_fnv.o ldseed.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -119,7 +119,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	slmdb.h compat_va_copy.h dict_pipe.h dict_random.h \
 	valid_utf8_hostname.h midna_domain.h dict_union.h dict_inline.h \
 	check_arg.h argv_attr.h msg_logger.h logwriter.h byte_mask.h \
-	known_tcp_ports.h sane_strtol.h
+	known_tcp_ports.h sane_strtol.h hash_fnv.h ldseed.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -843,9 +843,9 @@ base32_code_test: base32_code
 	$(SHLIB_ENV) ${VALGRIND} ./base32_code
 
 dict_thash_test: ../postmap/postmap dict_thash.map dict_thash.in dict_thash.ref
-	$(SHLIB_ENV) ../postmap/postmap -fs texthash:dict_thash.map 2>&1 | \
+	$(SHLIB_ENV) ${VALGRIND} ../postmap/postmap -fs texthash:dict_thash.map 2>&1 | \
 	    LANG=C sort | diff dict_thash.map -
-	$(SHLIB_ENV) ../postmap/postmap -fs texthash:dict_thash.in >dict_thash.tmp 2>&1
+	NORANDOMIZE=1 $(SHLIB_ENV) ${VALGRIND} ../postmap/postmap -fs texthash:dict_thash.in >dict_thash.tmp 2>&1
 	diff dict_thash.ref dict_thash.tmp
 	rm -f dict_thash.tmp
 
@@ -1177,6 +1177,7 @@ attr_scan0.o: htable.h
 attr_scan0.o: msg.h
 attr_scan0.o: mymalloc.h
 attr_scan0.o: nvtable.h
+attr_scan0.o: stringops.h
 attr_scan0.o: sys_defs.h
 attr_scan0.o: vbuf.h
 attr_scan0.o: vstream.h
@@ -1190,6 +1191,7 @@ attr_scan64.o: htable.h
 attr_scan64.o: msg.h
 attr_scan64.o: mymalloc.h
 attr_scan64.o: nvtable.h
+attr_scan64.o: stringops.h
 attr_scan64.o: sys_defs.h
 attr_scan64.o: vbuf.h
 attr_scan64.o: vstream.h
@@ -1202,6 +1204,7 @@ attr_scan_plain.o: htable.h
 attr_scan_plain.o: msg.h
 attr_scan_plain.o: mymalloc.h
 attr_scan_plain.o: nvtable.h
+attr_scan_plain.o: stringops.h
 attr_scan_plain.o: sys_defs.h
 attr_scan_plain.o: vbuf.h
 attr_scan_plain.o: vstream.h
@@ -1904,6 +1907,11 @@ get_hostname.o: msg.h
 get_hostname.o: mymalloc.h
 get_hostname.o: sys_defs.h
 get_hostname.o: valid_hostname.h
+hash_fnv.o: hash_fnv.c
+hash_fnv.o: hash_fnv.h
+hash_fnv.o: ldseed.h
+hash_fnv.o: msg.h
+hash_fnv.o: sys_defs.h
 hex_code.o: check_arg.h
 hex_code.o: hex_code.c
 hex_code.o: hex_code.h
@@ -1930,6 +1938,7 @@ host_port.o: valid_hostname.h
 host_port.o: valid_utf8_hostname.h
 host_port.o: vbuf.h
 host_port.o: vstring.h
+htable.o: hash_fnv.h
 htable.o: htable.c
 htable.o: htable.h
 htable.o: msg.h
@@ -2030,6 +2039,10 @@ known_tcp_ports.o: stringops.h
 known_tcp_ports.o: sys_defs.h
 known_tcp_ports.o: vbuf.h
 known_tcp_ports.o: vstring.h
+ldseed.o: iostuff.h
+ldseed.o: ldseed.c
+ldseed.o: msg.h
+ldseed.o: sys_defs.h
 line_number.o: check_arg.h
 line_number.o: line_number.c
 line_number.o: line_number.h
@@ -2533,6 +2546,7 @@ stream_trigger.o: mymalloc.h
 stream_trigger.o: stream_trigger.c
 stream_trigger.o: sys_defs.h
 stream_trigger.o: trigger.h
+sys_compat.o: iostuff.h
 sys_compat.o: sys_compat.c
 sys_compat.o: sys_defs.h
 timecmp.o: timecmp.c

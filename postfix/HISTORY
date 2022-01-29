@@ -26246,3 +26246,24 @@ Apologies for any names omitted.
 	Documentation: added LINUX_README sections for logging in
 	a container, and for systemd logging workarounds. File:
 	proto/LINUX_README.hmtl.
+
+20220126
+
+	Added defensive logging while waiting for the master daemon
+	to initialize in the background. File: master/master_monitor.c.
+
+20220127
+
+	Cleanup: smtpprox hyperlink. File: proto/FILTER_README.html.
+
+20220128
+
+	Clenaup: standardize on FNV hash, after having verified
+	that collisions will change with the hash seed value, and
+	that the collision rate is low. Files: util/htable.c,
+	util/hash_fnv.[hc].
+
+20220129
+
+	Cleanup: factored out the non-cryptographic seeder. Files:
+	ldseed.[hc].
