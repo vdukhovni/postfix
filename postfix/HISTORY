@@ -26258,6 +26258,12 @@ Apologies for any names omitted.
 
 20220128
 
-	Clenaup: standardize on FNV hash, having verified that
-	collisions will depend on the hash seed value, and that the
-	collision rate is low. Files: util/htable.c, util/fnv_hash.[hc].
+	Clenaup: standardize on FNV hash, after having verified
+	that collisions will change with the hash seed value, and
+	that the collision rate is low. Files: util/htable.c,
+	util/hash_fnv.[hc].
+
+20220129
+
+	Cleanup: factored out the non-cryptographic seeder. Files:
+	ldseed.[hc].

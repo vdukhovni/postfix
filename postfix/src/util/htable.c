@@ -113,6 +113,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* C library */
@@ -124,14 +129,12 @@
 
 #include "mymalloc.h"
 #include "msg.h"
-#ifndef NO_HASH_FNV
-#include "hash_fnv.h"
-#endif
 #include "htable.h"
 
 /* htable_hash - hash a string */
 
 #ifndef NO_HASH_FNV
+#include "hash_fnv.h"
 
 #define htable_hash(s, size) (hash_fnv((s), strlen(s)) % (size))
 
@@ -147,14 +150,15 @@ static size_t htable_hash(const char *s, size_t size)
      */
 
     while (*s) {
-        h = (h << 4U) + *(unsigned const char *) s++;
-        if ((g = (h & 0xf0000000)) != 0) {
-            h ^= (g >> 24U);
-            h ^= g;
-        }
+	h = (h << 4U) + *(unsigned const char *) s++;
+	if ((g = (h & 0xf0000000)) != 0) {
+	    h ^= (g >> 24U);
+	    h ^= g;
+	}
     }
     return (h % size);
 }
+
 #endif
 
 /* htable_link - insert element into table */

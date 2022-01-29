@@ -12,20 +12,16 @@
 /* .nf
 
  /*
-  * Systemn library.
-  */
-#ifndef NO_STDINT_H
-#include <stdint.h>
-#endif
-
- /*
   * External interface.
   */
+#ifndef HASH_FNV_T
+#include <stdint.h>
 #ifdef NO_64_BITS
 #define HASH_FNV_T	uint32_t
-#else
-#define	HASH_FNV_T	uint64_t
-#endif
+#else					/* NO_64_BITS */
+#define HASH_FNV_T	uint64_t
+#endif					/* NO_64_BITS */
+#endif					/* HASH_FNV_T */
 
 extern HASH_FNV_T hash_fnv(const void *, size_t);
 
