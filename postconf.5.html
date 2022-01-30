@@ -19969,6 +19969,18 @@ configure tlsproxy client keys and certificates is via the
 
 </DD>
 
+<DT><b><a name="tlsproxy_client_level">tlsproxy_client_level</a>
+(default: $<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>)</b></DT><DD>
+
+<p> The default TLS security level for the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a>
+client. See <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 - 3.6. It was
+renamed to <a href="postconf.5.html#tlsproxy_client_security_level">tlsproxy_client_security_level</a> in Postfix 3.7. </p>
+
+
+</DD>
+
 <DT><b><a name="tlsproxy_client_loglevel">tlsproxy_client_loglevel</a>
 (default: $<a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a>)</b></DT><DD>
 
@@ -20003,6 +20015,19 @@ hostname.  See <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a>
 
 </DD>
 
+<DT><b><a name="tlsproxy_client_policy">tlsproxy_client_policy</a>
+(default: $<a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>)</b></DT><DD>
+
+<p> Optional lookup tables with the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> client TLS
+security policy by next-hop destination. See <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>
+for further details. </p>
+
+<p> This feature is available in Postfix 3.4 - 3.6. It was
+renamed to <a href="postconf.5.html#tlsproxy_client_policy_maps">tlsproxy_client_policy_maps</a> in Postfix 3.7. </p>
+
+
+</DD>
+
 <DT><b><a name="tlsproxy_client_policy_maps">tlsproxy_client_policy_maps</a>
 (default: $<a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>)</b></DT><DD>
 
@@ -20010,7 +20035,8 @@ hostname.  See <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a>
 security policy by next-hop destination. See <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>
 for further details. </p>
 
-<p> This feature is available in Postfix 3.4 and later. </p>
+<p> This feature is available in Postfix 3.7 and later. It
+was previously called <a href="postconf.5.html#tlsproxy_client_policy">tlsproxy_client_policy</a>. </p>
 
 
 </DD>
@@ -20032,7 +20058,8 @@ See <a href="postconf.5.html#smtp_tls_scert_verifydepth">smtp_tls_scert_verifyde
 <p> The default TLS security level for the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a>
 client. See <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> for further details. </p>
 
-<p> This feature is available in Postfix 3.4 and later. </p>
+<p> This feature is available in Postfix 3.7 and later. It
+was previously called <a href="postconf.5.html#tlsproxy_client_level">tlsproxy_client_level</a>. </p>
 
 
 </DD>
