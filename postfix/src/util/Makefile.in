@@ -140,7 +140,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
-	known_tcp_ports dict_stream find_inet
+	known_tcp_ports dict_stream find_inet binhash
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
 LIB_DIR	= ../../lib
@@ -427,6 +427,11 @@ htable: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+binhash: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 unix_recv_fd:  $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
@@ -580,7 +585,7 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	dict_static_file_test dict_random_test dict_random_file_test \
 	dict_inline_file_test byte_mask_tests mystrtok_test \
 	known_tcp_ports_test dict_stream_test dict_inline_regexp_test \
-	dict_inline_cidr_test
+	dict_inline_cidr_test binhash_test
 
 dict_pcre_tests: dict_pcre_test miss_endif_pcre_test dict_pcre_file_test \
 	dict_inline_pcre_test
@@ -730,6 +735,9 @@ attr_scan_plain_test: attr_print_plain attr_scan_plain attr_scan_plain.ref
 
 htable_test: htable /usr/share/dict/words
 	$(SHLIB_ENV) ${VALGRIND} ./htable < /usr/share/dict/words
+
+binhash_test: binhash /usr/share/dict/words
+	$(SHLIB_ENV) ${VALGRIND} ./binhash < /usr/share/dict/words
 
 hex_code_test: hex_code
 	$(SHLIB_ENV) ${VALGRIND} ./hex_code
@@ -1251,6 +1259,7 @@ basename.o: vbuf.h
 basename.o: vstring.h
 binhash.o: binhash.c
 binhash.o: binhash.h
+binhash.o: hash_fnv.h
 binhash.o: msg.h
 binhash.o: mymalloc.h
 binhash.o: sys_defs.h
@@ -2041,6 +2050,7 @@ known_tcp_ports.o: vbuf.h
 known_tcp_ports.o: vstring.h
 ldseed.o: iostuff.h
 ldseed.o: ldseed.c
+ldseed.o: ldseed.h
 ldseed.o: msg.h
 ldseed.o: sys_defs.h
 line_number.o: check_arg.h
@@ -2546,7 +2556,6 @@ stream_trigger.o: mymalloc.h
 stream_trigger.o: stream_trigger.c
 stream_trigger.o: sys_defs.h
 stream_trigger.o: trigger.h
-sys_compat.o: iostuff.h
 sys_compat.o: sys_compat.c
 sys_compat.o: sys_defs.h
 timecmp.o: timecmp.c

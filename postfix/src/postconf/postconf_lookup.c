@@ -158,7 +158,6 @@ char   *pcf_expand_parameter_value(VSTRING *buf, int mode, const char *value,
 				           PCF_MASTER_ENT *local_scope)
 {
     const char *myname = "pcf_expand_parameter_value";
-    static VSTRING *local_buf;
     int     status;
     PCF_EVAL_CTX eval_ctx;
 

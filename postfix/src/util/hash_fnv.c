@@ -28,9 +28,10 @@
 /*	get the standard behavior.
 /*
 /*	The default HASH_FNV_T result type is uint64_t. When compiled
-/*	with -DNO_64_BITS, the result type is uint32_t. On ancient
+/*	with -DUSE_FNV_32BIT, the result type is uint32_t. On ancient
 /*	systems without <stdint.h>, define HASH_FNV_T on the compiler
-/*	command line as an unsigned 32-bit or 64-bit integer type.
+/*	command line as an unsigned 32-bit or 64-bit integer type,
+/*	and specify -DUSE_FNV_32BIT when HASH_FNV_T is a 32-bit type.
 /* SEE ALSO
 /*	http://www.isthe.com/chongo/tech/comp/fnv/index.html
 /*	https://softwareengineering.stackexchange.com/questions/49550/
@@ -62,7 +63,7 @@
  /*
   * Application-specific.
   */
-#ifdef NO_64_BITS
+#ifdef USE_FNV_32BIT
 #define FNV_prime 		0x01000193UL
 #define FNV_offset_basis	0x811c9dc5UL
 #else

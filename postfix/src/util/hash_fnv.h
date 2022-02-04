@@ -16,11 +16,11 @@
   */
 #ifndef HASH_FNV_T
 #include <stdint.h>
-#ifdef NO_64_BITS
+#ifdef USE_FNV_32BIT
 #define HASH_FNV_T	uint32_t
-#else					/* NO_64_BITS */
+#else					/* USE_FNV_32BIT */
 #define HASH_FNV_T	uint64_t
-#endif					/* NO_64_BITS */
+#endif					/* USE_FNV_32BIT */
 #endif					/* HASH_FNV_T */
 
 extern HASH_FNV_T hash_fnv(const void *, size_t);

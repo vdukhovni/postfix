@@ -75,10 +75,10 @@ Major changes - logging
 
 [Feature 20210815] To make the maillog_file feature more useful,
 the postlog(1) command is now set-gid postdrop, so that unprivileged
-programs can write logging through the postlogd(8) daemon. This
-required hardening the postlog(1) command against privilege escalation
-attacks. DO NOT turn on the set-gid bit with older postlog(1)
-implementations.
+programs can use it to write logging through the postlogd(8) daemon.
+This required hardening the postlog(1) command against privilege
+escalation attacks. DO NOT turn on the set-gid bit with older
+postlog(1) implementations.
 
 Major changes - pcre2 support
 -----------------------------
@@ -92,16 +92,6 @@ build Postfix with a specific library.
 
 Visible differences: some error messages may have a different text,
 and the 'X' pattern flag is no longer supported with pcre2.
-
-Major changes - safety
-----------------------
-
-[Feature 20210926] Prevent sharing of xxx_tls_session_cache_database
-instances between different Postfix instances when a database is
-not multi-writer safe. These databases are now opened with a permanent
-lock. The tlsmgr(8) daemon will raise a fatal error when it attempts
-to open an xxx_tls_session_cache_database that is already opened
-by a different tlsmgr(8) process.
 
 Major changes - security
 ------------------------
