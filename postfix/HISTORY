@@ -23874,3 +23874,13 @@ Apologies for any names omitted.
 	alignment padding byte, or over an adjacent character byte
 	that was never read. Reported by Robert Siemer. Files:
 	*qmgr/qmgr_feedback.c.
+
+20220120
+
+	Bitrot: Glibc 2.34 implements closefrom(). File:
+	util/sys_defs.h.
+
+20220202
+
+	Bitrot: Berkeley DB 18 is like Berkeley DB 6. Yasuhiro
+	Kimura. File: util/dict_db.c.
