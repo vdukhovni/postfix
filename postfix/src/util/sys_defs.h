@@ -827,6 +827,9 @@ extern int initgroups(const char *, int);
 #define HAVE_POSIX_GETPW_R
 #endif
 #endif
+#if HAVE_GLIBC_API_VERSION_SUPPORT(2, 34)
+#define HAS_CLOSEFROM
+#endif
 
 #endif
 

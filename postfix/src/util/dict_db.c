@@ -753,7 +753,7 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
     if (type == DB_HASH && db->set_h_nelem(db, DICT_DB_NELM) != 0)
 	msg_fatal("set DB hash element count %d: %m", DICT_DB_NELM);
     db_base_buf = vstring_alloc(100);
-#if DB_VERSION_MAJOR == 6 || DB_VERSION_MAJOR == 5 || \
+#if DB_VERSION_MAJOR == 18 || DB_VERSION_MAJOR == 6 || DB_VERSION_MAJOR == 5 || \
 	(DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR > 0)
     if ((errno = db->open(db, 0, sane_basename(db_base_buf, db_path),
 			  0, type, db_flags, 0644)) != 0)
