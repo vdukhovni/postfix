@@ -25725,3 +25725,13 @@ Apologies for any names omitted.
 	proxy_read_maps default value, based on output from the
 	mantools/missing-proxy-read-maps script.  File:
 	global/mail_params.h.
+
+20220120
+
+	Bitrot: Glibc 2.34 implements closefrom(). File:
+	util/sys_defs.h.
+
+20220202
+
+	Bitrot: Berkeley DB 18 is like Berkeley DB 6. Yasuhiro
+	Kimura. File: util/dict_db.c.
