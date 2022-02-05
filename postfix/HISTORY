@@ -26267,3 +26267,16 @@ Apologies for any names omitted.
 
 	Cleanup: factored out the non-cryptographic seeder. Files:
 	ldseed.[hc].
+
+20220130
+
+	Cleanup: added a binhash unit test, and updated the htable
+	unit test. Files: util/Makefile.in, util/binhash.[hc],
+	util/htable.c.
+
+	Cleanup: names of hash_fnv(3) build options. File: hash:fnv.c.
+
+20220202
+
+	Bitrot: Berkeley DB 18 is like Berkeley DB 6. Yasuhiro
+	Kimura. File: util/dict_db.c.

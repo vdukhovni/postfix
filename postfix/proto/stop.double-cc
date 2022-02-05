@@ -327,4 +327,4 @@ more  more useful and more consistent
  Fatal error error opening existing file 
 XXX  XXX 
  int compar DNS_RR DNS_RR 
-NO_64_BITS  NO_64_BITS 
+USE_FNV_32BIT  USE_FNV_32BIT 

@@ -103,8 +103,8 @@
 /*	terminate immediately: memory allocation failure; an attempt
 /*	to delete a non-existent entry.
 /* SEE ALSO
-/*	hash_fnv() Fowler/Noll/Vo hash function
 /*	mymalloc(3) memory management wrapper
+/*	hash_fnv(3) Fowler/Noll/Vo hash function
 /* LICENSE
 /* .ad
 /* .fi
@@ -410,6 +410,9 @@ int     main(int unused_argc, char **unused_argv)
     hash = htable_create(10);
     while (vstring_get(buf, VSTREAM_IN) != VSTREAM_EOF)
 	htable_enter(hash, vstring_str(buf), CAST_INT_TO_VOID_PTR(count++));
+    if (count != hash->used)
+	msg_panic("%ld entries stored, but %lu entries exist",
+		  (long) count, (unsigned long) hash->used);
     for (i = 0, op = HTABLE_SEQ_FIRST; htable_sequence(hash, op) != 0;
 	 i++, op = HTABLE_SEQ_NEXT)
 	 /* void */ ;

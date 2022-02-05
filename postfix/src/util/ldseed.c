@@ -51,6 +51,7 @@
   */
 #include <iostuff.h>
 #include <msg.h>
+#include <ldseed.h>
 
  /*
   * Different systems have different names for non-wallclock time.

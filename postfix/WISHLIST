@@ -6,6 +6,12 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Alias htable(3) calls to equivalent binhash(3) calls,
+	and obsolete the htable(3) module.
+
+	FILTER_README needs some text on multi-instance implementations,
+	and existing multi-instance references need to be updated.
+
 	Fix code that still uses "long" for data_size and data_offset,
 	and that uses "%ld" in sscanf().
 
