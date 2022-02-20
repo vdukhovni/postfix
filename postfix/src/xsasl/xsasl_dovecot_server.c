@@ -684,6 +684,8 @@ int     xsasl_dovecot_server_first(XSASL_SERVER *xp, const char *sasl_method,
 	if (server->tls_flag)
 	    /* XXX Encapsulate for logging. */
 	    vstream_fputs("\tsecured", server->impl->sasl_stream);
+	if (server->tls_flag & 2)
+	    vstream_fputs("\tvalid-client-cert", server->impl->sasl_stream);
 	if (init_response) {
 
 	    /*

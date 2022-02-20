@@ -222,7 +222,8 @@ void    smtpd_sasl_activate(SMTPD_STATE *state, const char *sasl_opts_name,
      * Set up a new server context for this connection.
      */
 #ifdef USE_TLS
-    tls_flag = state->tls_context != 0;
+    tls_flag = state->tls_context != 0 ;
+    tls_flag |= (state->tls_context && TLS_CERT_IS_TRUSTED(state->tls_context))?2:0;
 #else
     tls_flag = 0;
 #endif
