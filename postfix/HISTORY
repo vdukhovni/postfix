@@ -26280,3 +26280,29 @@ Apologies for any names omitted.
 
 	Bitrot: Berkeley DB 18 is like Berkeley DB 6. Yasuhiro
 	Kimura. File: util/dict_db.c.
+
+20220204
+
+	Updated collate.pl script for better tracking when a
+	Milter rejects, discards, or quarantines a message. Viktor
+	Dukhovni. File: auxiliary/collate/collate.pl.
+
+20220212
+
+	Cleanup: removed WISHLIST items that were recently fixed.
+
+20220217
+
+	Typo: "pcre2 --libs" should be "pcre2 --libs8". Reported by
+	Carlos Velasco. File proto/PCRE_README.html.
+
+	Future proofing: added comments on the purpose of address
+	sanitization.  File: showq/showq.c.
+
+20220220
+
+	Added a hash_fnvz() function to eliminate unnecessary strlen()
+	calls, and added regression tests. File: util/hash_fnv.c,
+	util/htable.c.
+
+	Cleanup: unused initialization. File: util/make_dirs.c

@@ -25,6 +25,7 @@ my %smtp;
 my %transaction;
 my $i = 0;
 my %seqno;
+my %deleted;
 
 my %isagent = map { ($_, 1) } @agents;
 
@@ -36,6 +37,7 @@ while (<>) {
 		if (m{\Gconnect from }gc) {
 			# Start new log
 			$smtpd{$pid}->{"log"} = $_; next;
+			undef $smtpd{$pid}->{"qid"};
 		}
 
 		$smtpd{$pid}->{"log"} .= $_;
@@ -52,7 +54,14 @@ while (<>) {
 		my $qid = $smtpd{$pid}->{"qid"};
 		$transaction{$qid} .= $_
 			if (defined($qid) && exists $transaction{$qid});
-		delete $smtpd{$pid} if (m{\Gdisconnect from}gc);
+		if (m{\Gdisconnect from}gc) {
+			if (!defined($qid)) {
+				print $smtpd{$pid}->{"log"}, "\n";
+			} elsif (delete $deleted{$qid}) {
+				print delete $transaction{$qid}, "\n";
+			}
+			delete $smtpd{$pid};
+		}
 		next;
 	}
 
@@ -73,6 +82,9 @@ while (<>) {
 		my $qid = "$inst/$1";
 		$transaction{$qid} .= $_;
 		$seqno{$qid} = ++$i if (! exists $seqno{$qid});
+		if (m{\G(?:milter(?:-(?:header|body))?-)?(?:reject|discard|hold): }) {
+			$deleted{$qid} = 1;
+		}
 		next;
 	}
 

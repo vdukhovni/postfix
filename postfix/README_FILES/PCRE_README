@@ -41,7 +41,7 @@ To build Postfix explicitly with a pcre2 library (Postfix 3.7 and later):
 
     $ make -f Makefile.init makefiles \
         "CCARGS=-DHAS_PCRE=2 `pcre2-config --cflags`" \
-        "AUXLIBS_PCRE=`pcre2-config --libs`"
+        "AUXLIBS_PCRE=`pcre2-config --libs8`"
     $ make
 
 To build Postfix explicitly with a legacy pcre library (all Postfix versions):

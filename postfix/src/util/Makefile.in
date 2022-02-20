@@ -140,7 +140,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
-	known_tcp_ports dict_stream find_inet binhash
+	known_tcp_ports dict_stream find_inet binhash hash_fnv
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
 LIB_DIR	= ../../lib
@@ -428,6 +428,11 @@ htable: $(LIB)
 	mv junk $@.o
 
 binhash: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+hash_fnv: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -738,6 +743,9 @@ htable_test: htable /usr/share/dict/words
 
 binhash_test: binhash /usr/share/dict/words
 	$(SHLIB_ENV) ${VALGRIND} ./binhash < /usr/share/dict/words
+
+hash_fnv_test: hash_fnv
+	$(SHLIB_ENV) ${VALGRIND} ./hash_fnv
 
 hex_code_test: hex_code
 	$(SHLIB_ENV) ${VALGRIND} ./hex_code
