@@ -19,18 +19,16 @@
 /*	strings, avoiding an unnecessary strlen() call.
 /*
 /*	To thwart collision attacks, the hash function is seeded
-/*	once from /dev/urandom, and if that is unavailable, from
-/*	wallclock time, monotonic system clocks, and the process
-/*	ID. To disable seeding (typically, for regression tests),
-/*	specify the NORANDOMIZE environment variable; the value
-/*	does not matter.
+/*	once with ldseed(). To disable seeding (typically, to make
+/*	tests predictable), specify the NORANDOMIZE environment
+/*	variable; the value does not matter.
 /*
-/*	This function implements a workaround for a "sticky state"
-/*	problem with FNV hash functions: when an input produces a
-/*	zero hash state, and the next input byte is zero, then the
-/*	hash state would not change. To avoid this, hash_fnv() adds
-/*	1 to each input value. Compile with -DSTRICT_FNV1A to get
-/*	the standard behavior.
+/*	This implementation works around a "sticky state" problem
+/*	with FNV hash functions: when an input produces a zero hash
+/*	state, and the next input byte is zero, then the hash state
+/*	would not change. To avoid this, hash_fnv() adds 1 to each
+/*	input value. Compile with -DSTRICT_FNV1A to get the standard
+/*	behavior.
 /*
 /*	The default HASH_FNV_T result type is uint64_t. When compiled
 /*	with -DUSE_FNV_32BIT, the result type is uint32_t. On ancient

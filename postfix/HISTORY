@@ -26306,3 +26306,25 @@ Apologies for any names omitted.
 	util/htable.c.
 
 	Cleanup: unused initialization. File: util/make_dirs.c
+
+20220222
+
+	Documentation: updated comment text. File: util/hash_fnv.c.
+
+29220312
+
+	Cleanup: when a main.cf like file may have changed while
+	it was read, forget the settings before re-reading the file.
+	File: util/dict.c.
+
+20220322
+
+	Cleanup: added missing _checks, _reply_footer, _reply_filter,
+	_command_filter, and _delivery_status_filter parameter names
+	to the proxy_read_maps default value. Files: global/mail_params.h,
+	mantools/missing-proxy-read-maps.
+
+20220325
+
+	Documentation: how to stop recursion in virtual_alias_maps.
+	File: proto/virtual.

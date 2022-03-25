@@ -6,6 +6,18 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	postscreen_dnsbl_sites is evaluated in the reverse order, breaking
+	expectations when different reply patterns have different weights.
+	We need a compatibility_level feature to correct this.
+
+	In the cleanup daemon, open the milter*header_checks greedily,
+	before the chroot() call. This code is implemented and needs
+	to be tested.
+
+	In the pgsql: client, make the client encoding configurable
+	with a sensible default (UTF8). This code is implemented
+	and needs to be tested.
+
 	FILTER_README needs some text on multi-instance implementations,
 	and existing multi-instance references need to be updated.
 

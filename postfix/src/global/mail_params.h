@@ -2502,7 +2502,33 @@ extern int var_local_rcpt_code;
 				" $" VAR_PSC_REJ_FTR_MAPS \
 				" $" VAR_SMTPD_REJ_FTR_MAPS \
 				" $" VAR_TLS_SERVER_SNI_MAPS \
-				" $" VAR_TLSP_CLNT_POLICY
+				" $" VAR_TLSP_CLNT_POLICY \
+				" $" VAR_DSN_FILTER \
+				" $" VAR_LMTP_DSN_FILTER \
+				" $" VAR_LMTP_DNS_RE_FILTER \
+				" $" VAR_LMTP_RESP_FILTER \
+				" $" VAR_LOCAL_DSN_FILTER \
+				" $" VAR_PIPE_DSN_FILTER \
+				" $" VAR_PSC_CMD_FILTER \
+				" $" VAR_SMTP_DSN_FILTER \
+				" $" VAR_SMTP_DNS_RE_FILTER \
+				" $" VAR_SMTP_RESP_FILTER \
+				" $" VAR_SMTPD_CMD_FILTER \
+				" $" VAR_SMTPD_DNS_RE_FILTER \
+				" $" VAR_VIRT_DSN_FILTER \
+				" $" VAR_BODY_CHECKS \
+				" $" VAR_HEADER_CHECKS \
+				" $" VAR_LMTP_BODY_CHKS \
+				" $" VAR_LMTP_HEAD_CHKS \
+				" $" VAR_LMTP_MIME_CHKS \
+				" $" VAR_LMTP_NEST_CHKS \
+				" $" VAR_MILT_HEAD_CHECKS \
+				" $" VAR_MIMEHDR_CHECKS \
+				" $" VAR_NESTHDR_CHECKS \
+				" $" VAR_SMTP_BODY_CHKS \
+				" $" VAR_SMTP_HEAD_CHKS \
+				" $" VAR_SMTP_MIME_CHKS \
+				" $" VAR_SMTP_NEST_CHKS
 extern char *var_proxy_read_maps;
 
 #define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"
