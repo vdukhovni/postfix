@@ -426,9 +426,7 @@
 /*	Detailed information about STARTTLS configuration may be found
 /*	in the TLS_README document.
 /* .IP "\fBsmtp_tls_security_level (empty)\fR"
-/*	The default SMTP TLS security level for the Postfix SMTP client;
-/*	when a non-empty value is specified, this overrides the obsolete
-/*	parameters smtp_use_tls, smtp_enforce_tls, and smtp_tls_enforce_peername.
+/*	The default SMTP TLS security level for the Postfix SMTP client.
 /* .IP "\fBsmtp_sasl_tls_security_options ($smtp_sasl_security_options)\fR"
 /*	The SASL authentication security options that the Postfix SMTP
 /*	client uses for TLS encrypted SMTP sessions.
@@ -561,7 +559,7 @@
 /*	Available in Postfix version 3.0 and later:
 /* .IP "\fBsmtp_tls_wrappermode (no)\fR"
 /*	Request that the Postfix SMTP client connects using the
-/*	legacy SMTPS protocol instead of using the STARTTLS command.
+/*	SUBMISSIONS/SMTPS protocol instead of using the STARTTLS command.
 /* .PP
 /*	Available in Postfix version 3.1 and later:
 /* .IP "\fBsmtp_tls_dane_insecure_mx_policy (see 'postconf -d' output)\fR"
@@ -720,7 +718,7 @@
 /*	Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
 /* .IP "\fBsmtputf8_enable (yes)\fR"
 /*	Enable preliminary SMTPUTF8 support for the protocols described
-/*	in RFC 6531..6533.
+/*	in RFC 6531, RFC 6532, and RFC 6533.
 /* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
 /*	Detect that a message requires SMTPUTF8 support for the specified
 /*	mail origin classes.
@@ -1092,7 +1090,7 @@ int     var_smtp_sasl_auth_cache_time;
 bool    var_smtp_sasl_auth_soft_bounce;
 
 char   *var_hfrom_format;
-bool var_smtp_bind_addr_enforce;
+bool    var_smtp_bind_addr_enforce;
 
  /*
   * Global variables.
@@ -1541,13 +1539,16 @@ static void pre_init(char *unused_name, char **unused_argv)
     /*
      * Header/body checks.
      */
+#define MAPS_OR_NULL(name, value) \
+	(*(value) ? maps_create((name), (value), DICT_FLAG_LOCK) : (MAPS *) 0)
+
     smtp_header_checks = hbc_header_checks_create(
-			       VAR_LMTP_SMTP(HEAD_CHKS), var_smtp_head_chks,
-			       VAR_LMTP_SMTP(MIME_CHKS), var_smtp_mime_chks,
-			       VAR_LMTP_SMTP(NEST_CHKS), var_smtp_nest_chks,
+		 MAPS_OR_NULL(VAR_LMTP_SMTP(HEAD_CHKS), var_smtp_head_chks),
+		 MAPS_OR_NULL(VAR_LMTP_SMTP(MIME_CHKS), var_smtp_mime_chks),
+		 MAPS_OR_NULL(VAR_LMTP_SMTP(NEST_CHKS), var_smtp_nest_chks),
 						  smtp_hbc_callbacks);
     smtp_body_checks = hbc_body_checks_create(
-			       VAR_LMTP_SMTP(BODY_CHKS), var_smtp_body_chks,
+		 MAPS_OR_NULL(VAR_LMTP_SMTP(BODY_CHKS), var_smtp_body_chks),
 					      smtp_hbc_callbacks);
 
     /*

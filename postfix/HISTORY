@@ -26311,7 +26311,7 @@ Apologies for any names omitted.
 
 	Documentation: updated comment text. File: util/hash_fnv.c.
 
-29220312
+20220312
 
 	Cleanup: when a main.cf like file may have changed while
 	it was read, forget the settings before re-reading the file.
@@ -26328,3 +26328,17 @@ Apologies for any names omitted.
 
 	Documentation: how to stop recursion in virtual_alias_maps.
 	File: proto/virtual.
+
+20220330
+
+	Documentation: updated the postlogd(8) daemon manpage,
+	adding that the Postfix >= 3.7 postlog(1) command can run
+	with setgid permissions. File: postlogd/postlogd.c.
+
+20220403
+
+	Cleanup: milter_hader_checks maps are now opened before the
+	cleanup server enters the chroot jail. Files: cleanup/cleanup.h,
+	cleanup/cleanup_init.c, cleanup/cleanup_milter.c,
+	global/header_body_checks.c, global/header_body_checks.h,
+	global/maps.c, global/maps.h, smtp/smtp.c.

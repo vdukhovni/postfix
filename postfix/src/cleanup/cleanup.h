@@ -170,6 +170,7 @@ extern VSTRING *cleanup_strip_chars;
  /*
   * Milters.
   */
+extern MAPS *cleanup_milt_head_checks;
 extern MILTERS *cleanup_milters;
 
  /*

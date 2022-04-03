@@ -29,11 +29,6 @@
   * External interface.
   */
 typedef struct {
-    const char *map_class;		/* parameter name */
-    MAPS   *maps;			/* map handle */
-} HBC_MAP_INFO;
-
-typedef struct {
     void    (*logger) (void *, const char *, const char *, const char *, const char *);
     void    (*prepend) (void *, int, const char *, ssize_t, off_t);
     char   *(*extend) (void *, const char *, ssize_t, const char *, const char *, const char *, ssize_t, off_t);
@@ -41,19 +36,16 @@ typedef struct {
 
 typedef struct {
     HBC_CALL_BACKS *call_backs;
-    HBC_MAP_INFO map_info[1];		/* actually, a bunch */
+    MAPS   *map_info[1];		/* actually, a bunch; NOT owned */
 } HBC_CHECKS;
 
 #define HBC_CHECKS_STAT_IGNORE	((char *) 0)
 #define HBC_CHECKS_STAT_ERROR	(&hbc_checks_error)
 #define HBC_CHECKS_STAT_UNKNOWN	(&hbc_checks_unknown)
 
-extern HBC_CHECKS *hbc_header_checks_create(const char *, const char *,
-					         const char *, const char *,
-					         const char *, const char *,
+extern HBC_CHECKS *hbc_header_checks_create(MAPS *, MAPS *, MAPS *,
 					            HBC_CALL_BACKS *);
-extern HBC_CHECKS *hbc_body_checks_create(const char *, const char *,
-					          HBC_CALL_BACKS *);
+extern HBC_CHECKS *hbc_body_checks_create(MAPS *, HBC_CALL_BACKS *);
 extern char *hbc_header_checks(void *, HBC_CHECKS *, int, const HEADER_OPTS *,
 			               VSTRING *, off_t);
 extern char *hbc_body_checks(void *, HBC_CHECKS *, const char *, ssize_t, off_t);
