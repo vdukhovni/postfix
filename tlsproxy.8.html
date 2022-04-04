@@ -323,14 +323,6 @@ TLSPROXY(8)                                                        TLSPROXY(8)
        <b><a href="postconf.5.html#tlsproxy_client_scert_verifydepth">tlsproxy_client_scert_verifydepth</a> ($<a href="postconf.5.html#smtp_tls_scert_verifydepth">smtp_tls_scert_verifydepth</a>)</b>
               The verification depth for remote TLS server certificates.
 
-       <b><a href="postconf.5.html#tlsproxy_client_level">tlsproxy_client_level</a> ($<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>)</b>
-              The  default  TLS  security  level  for  the Postfix <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a>
-              client.
-
-       <b><a href="postconf.5.html#tlsproxy_client_policy">tlsproxy_client_policy</a> ($<a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>)</b>
-              Optional lookup tables with the Postfix <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a>  client  TLS
-              security policy by next-hop destination.
-
        <b><a href="postconf.5.html#tlsproxy_client_use_tls">tlsproxy_client_use_tls</a> ($<a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>)</b>
               Opportunistic  mode:  use TLS when a remote server announces TLS
               support.
@@ -342,6 +334,16 @@ TLSPROXY(8)                                                        TLSPROXY(8)
               Optional  lookup  tables with the Postfix <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a> client TLS
               usage policy by next-hop destination and by  remote  TLS  server
               hostname.
+
+       Available in Postfix version 3.4-3.6:
+
+       <b><a href="postconf.5.html#tlsproxy_client_level">tlsproxy_client_level</a> ($<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>)</b>
+              The  default  TLS  security  level  for  the Postfix <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a>
+              client.
+
+       <b><a href="postconf.5.html#tlsproxy_client_policy">tlsproxy_client_policy</a> ($<a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>)</b>
+              Optional lookup tables with the Postfix <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a>  client  TLS
+              security policy by next-hop destination.
 
        Available in Postfix version 3.7 and later:
 
