@@ -21,9 +21,6 @@
 /*	const char *key;
 /*	int	flags;
 /*
-/*	const char *maps_title(maps)
-/*	MAPS	*maps;
-/*
 /*	MAPS	*maps_free(maps)
 /*	MAPS	*maps;
 /* DESCRIPTION
@@ -50,9 +47,6 @@
 /*	maps_file_find() implements maps_find() but also decodes
 /*	the base64 lookup result. This requires that the maps are
 /*	opened with DICT_FLAG_SRC_RHS_IS_FILE.
-/*
-/*	maps_title() returns a pointer to a copy of the title
-/*	specified with maps_create().
 /*
 /*	maps_free() releases storage claimed by maps_create()
 /*	and conveniently returns a null pointer.

@@ -26337,8 +26337,33 @@ Apologies for any names omitted.
 
 20220403
 
+	(Rolled back because there was too much collateral damage)
 	Cleanup: milter_hader_checks maps are now opened before the
 	cleanup server enters the chroot jail. Files: cleanup/cleanup.h,
 	cleanup/cleanup_init.c, cleanup/cleanup_milter.c,
 	global/header_body_checks.c, global/header_body_checks.h,
 	global/maps.c, global/maps.h, smtp/smtp.c.
+
+20220404
+
+	Bugfix: in an internal client module, "host or service not
+	found" was a fatal error, causing the milter_default_action
+	setting to be ignored. It is now a non-fatal error. The
+	same client is used by many Postfix clients (smtpd_proxy,
+	dovecot auth, tcp_table, memcache, socketmap, and so on).
+	File: util/inet_connect.c.
+
+20220407
+
+	Documentation: updated the firewall/gateway example to use
+	the "relay" transport to forward inbound messages. File:
+	proto/STANDARD_CONFIGURATION_README.html
+
+	Documentation: updated smtp_fallback_relay description.
+	The text was based on an early Postfix implementation.
+	File: proto/postconf.proto.
+
+	Cleanup: milter_hader_checks maps are now opened before the
+	cleanup server enters the chroot jail. Files: cleanup/cleanup.h,
+	cleanup/cleanup_init.c, cleanup/cleanup_milter.c,
+	cleanup/cleanup_state.c.

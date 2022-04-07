@@ -278,7 +278,6 @@ int     cleanup_ext_prop_mask;
  /*
   * Milter support.
   */
-MAPS   *cleanup_milt_head_checks;
 MILTERS *cleanup_milters;
 
  /*
@@ -412,10 +411,6 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 	    maps_create(VAR_RCPT_BCC_MAPS, var_rcpt_bcc_maps,
 			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
 			| DICT_FLAG_UTF8_REQUEST);
-    if (*var_milt_head_checks)
-	cleanup_milt_head_checks =
-	    maps_create(VAR_MILT_HEAD_CHECKS, var_milt_head_checks,
-			DICT_FLAG_LOCK);
     if (*var_cleanup_milters)
 	cleanup_milters = milter_create(var_cleanup_milters,
 					var_milt_conn_time,
@@ -432,6 +427,8 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 					var_milt_eod_macros,
 					var_milt_unk_macros,
 					var_milt_macro_deflts);
+    if (*var_milt_head_checks)
+	cleanup_milter_header_checks_init();
 
     flush_init();
 }

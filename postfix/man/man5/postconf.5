@@ -7382,12 +7382,14 @@ send all their email to a dedicated mailhub.
 This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use smtp_tls_security_level instead.
 .SH smtp_fallback_relay (default: $fallback_relay)
-Optional list of relay hosts for SMTP destinations that can't be
-found or that are unreachable. With Postfix 2.2 and earlier this
-parameter is called fallback_relay.
+Optional list of relay destinations that will be used when an
+SMTP destination is not found, or when delivery fails due to a
+non\-permanent error. With Postfix 2.2 and earlier this parameter
+is called fallback_relay.
 .PP
-By default, mail is returned to the sender when a destination is
-not found, and delivery is deferred when a destination is unreachable.
+By default, smtp_fallback_relay is empty, mail is returned to
+the sender when a destination is not found, and delivery is deferred
+after it fails due to a non\-permanent error.
 .PP
 With bulk email deliveries, it can be beneficial to run the
 fallback relay MTA on the same host, so that it can reuse the sender

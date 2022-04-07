@@ -6,6 +6,17 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Can tests use LD_PRELOAD to inject fake modules such
+	as fake_dns(3), fake_msg(3), fake_myaddrinfo() and so on?
+	One limitation is that functions etc. in a preloaded object
+	always take precedence.
+
+	'%l' support. ef7c661c-d86a-2366-6a73-ec8d51d75012@dev.snart.me
+
+	WARN_IF_REJECT like prefix that disables the error counter increment.
+
+	Send the Postfix version in a policy server request.
+
 	postscreen_dnsbl_sites is evaluated in the reverse order, breaking
 	expectations when different reply patterns have different weights.
 	We need a compatibility_level feature to correct this.

@@ -19,15 +19,23 @@
 /*	} HBC_CALL_BACKS;
 /*
 /*	HBC_CHECKS *hbc_header_checks_create(
-/*			header_checks_maps, mime_header_checks_maps,
-/*			nested_header_checks_maps, call_backs)
-/*	MAPS	*header_checks_maps;
-/*	MAPS	*mime_header_checks_maps;
-/*	MAPS	*nested_header_checks_maps;
+/*			header_checks_name, header_checks_value
+/*			mime_header_checks_name, mime_header_checks_value,
+/*			nested_header_checks_name, nested_header_checks_value,
+/*			call_backs)
+/*	const char *header_checks_name;
+/*	const char *header_checks_value;
+/*	const char *mime_header_checks_name;
+/*	const char *mime_header_checks_value;
+/*	const char *nested_header_checks_name;
+/*	const char *nested_header_checks_value;
 /*	HBC_CALL_BACKS *call_backs;
 /*
-/*	HBC_CHECKS *hbc_body_checks_create(body_check_maps, call_backs)
-/*	MAPS	*body_check_maps;
+/*	HBC_CHECKS *hbc_body_checks_create(
+/*			body_checks_name, body_checks_value,
+/*			call_backs)
+/*	const char *body_checks_name;
+/*	const char *body_checks_value;
 /*	HBC_CALL_BACKS *call_backs;
 /*
 /*	char	*hbc_header_checks(context, hbc, header_class, hdr_opts, header)
@@ -63,13 +71,10 @@
 /*
 /*	hbc_header_checks_create() creates a context for header
 /*	inspection. This function is typically called once during
-/*	program initialization. The result is a null pointer when
-/*	all _maps arguments specify a null pointer; in this
+/*	program initialization.  The result is a null pointer when
+/*	all _value arguments specify zero-length strings; in this
 /*	case, hbc_header_checks() and hbc_header_checks_free() must
 /*	not be called.
-/*
-/*	Note: hbc_header_checks_create() does not take ownership
-/*	of its _maps arguments.
 /*
 /*	hbc_header_checks() inspects the specified logical header.
 /*	The result is either the original header, HBC_CHECKS_STAT_IGNORE
@@ -189,14 +194,26 @@ char    hbc_checks_error;
 const char hbc_checks_unknown;
 
  /*
-  * Header checks are stored as an array of MAPS pointers, one for each
-  * header class (MIME_HDR_PRIMARY, MIME_HDR_MULTIPART, or MIME_HDR_NESTED).
+  * Header checks are stored as an array of HBC_MAP_INFO structures, one
+  * structure for each header class (MIME_HDR_PRIMARY, MIME_HDR_MULTIPART, or
+  * MIME_HDR_NESTED).
   * 
-  * Body checks are stored as a single MAPS pointer, because we make no
-  * distinction between body segments.
+  * Body checks are stored as one single HBC_MAP_INFO structure, because we make
+  * no distinction between body segments.
   */
 #define HBC_HEADER_INDEX(class)	((class) - MIME_HDR_FIRST)
 #define HBC_BODY_INDEX	(0)
+
+#define HBC_INIT(hbc, index, name, value) do { \
+	HBC_MAP_INFO *_mp = (hbc)->map_info + (index); \
+	if (*(value) != 0) { \
+	    _mp->map_class = (name); \
+	    _mp->maps = maps_create((name), (value), DICT_FLAG_LOCK); \
+	} else { \
+	    _mp->map_class = 0; \
+	    _mp->maps = 0; \
+	} \
+    } while (0)
 
 /* How does the action routine know where we are? */
 
@@ -278,7 +295,7 @@ static char *hbc_action(void *context, HBC_CALL_BACKS *cb,
     if (STREQUAL(cmd, "IGNORE", cmd_len))
 	/* XXX Not logged for compatibility with cleanup(8). */
 	return (HBC_CHECKS_STAT_IGNORE);
-
+ 
     if (STREQUAL(cmd, "DUNNO", cmd_len)		/* preferred */
 	||STREQUAL(cmd, "OK", cmd_len))		/* compatibility */
 	return ((char *) line);
@@ -295,7 +312,7 @@ char   *hbc_header_checks(void *context, HBC_CHECKS *hbc, int header_class,
 {
     const char *myname = "hbc_header_checks";
     const char *action;
-    MAPS   *mp;
+    HBC_MAP_INFO *mp;
 
     if (msg_verbose)
 	msg_info("%s: '%.30s'", myname, STR(header));
@@ -306,13 +323,13 @@ char   *hbc_header_checks(void *context, HBC_CHECKS *hbc, int header_class,
     if (hdr_opts && (hdr_opts->flags & HDR_OPT_MIME))
 	header_class = MIME_HDR_MULTIPART;
 
-    mp = hbc->map_info[HBC_HEADER_INDEX(header_class)];
+    mp = hbc->map_info + HBC_HEADER_INDEX(header_class);
 
-    if (mp != 0 && (action = maps_find(mp, STR(header), 0)) != 0) {
+    if (mp->maps != 0 && (action = maps_find(mp->maps, STR(header), 0)) != 0) {
 	return (hbc_action(context, hbc->call_backs,
-			   maps_title(mp), HBC_CTXT_HEADER, action,
+			   mp->map_class, HBC_CTXT_HEADER, action,
 			   STR(header), LEN(header), offset));
-    } else if (mp && mp->error) {
+    } else if (mp->maps && mp->maps->error) {
 	return (HBC_CHECKS_STAT_ERROR);
     } else {
 	return (STR(header));
@@ -326,18 +343,18 @@ char   *hbc_body_checks(void *context, HBC_CHECKS *hbc, const char *line,
 {
     const char *myname = "hbc_body_checks";
     const char *action;
-    MAPS   *mp;
+    HBC_MAP_INFO *mp;
 
     if (msg_verbose)
 	msg_info("%s: '%.30s'", myname, line);
 
-    mp = hbc->map_info[0];
+    mp = hbc->map_info;
 
-    if ((action = maps_find(mp, line, 0)) != 0) {
+    if ((action = maps_find(mp->maps, line, 0)) != 0) {
 	return (hbc_action(context, hbc->call_backs,
-			   maps_title(mp), HBC_CTXT_BODY, action,
+			   mp->map_class, HBC_CTXT_BODY, action,
 			   line, len, offset));
-    } else if (mp->error) {
+    } else if (mp->maps->error) {
 	return (HBC_CHECKS_STAT_ERROR);
     } else {
 	return ((char *) line);
@@ -346,9 +363,12 @@ char   *hbc_body_checks(void *context, HBC_CHECKS *hbc, const char *line,
 
 /* hbc_header_checks_create - create header checking context */
 
-HBC_CHECKS *hbc_header_checks_create(MAPS *header_checks_maps,
-				             MAPS *mime_header_checks_maps,
-				             MAPS *nested_header_checks_maps,
+HBC_CHECKS *hbc_header_checks_create(const char *header_checks_name,
+				             const char *header_checks_value,
+				        const char *mime_header_checks_name,
+			               const char *mime_header_checks_value,
+			              const char *nested_header_checks_name,
+			             const char *nested_header_checks_value,
 				             HBC_CALL_BACKS *call_backs)
 {
     HBC_CHECKS *hbc;
@@ -356,26 +376,27 @@ HBC_CHECKS *hbc_header_checks_create(MAPS *header_checks_maps,
     /*
      * Optimize for the common case.
      */
-    if (header_checks_maps == 0 && mime_header_checks_maps == 0
-	&& nested_header_checks_maps == 0) {
+    if (*header_checks_value == 0 && *mime_header_checks_value == 0
+	&& *nested_header_checks_value == 0) {
 	return (0);
     } else {
 	hbc = (HBC_CHECKS *) mymalloc(sizeof(*hbc)
-		+ (MIME_HDR_LAST - MIME_HDR_FIRST) * sizeof(hbc->map_info));
+		 + (MIME_HDR_LAST - MIME_HDR_FIRST) * sizeof(HBC_MAP_INFO));
 	hbc->call_backs = call_backs;
-	hbc->map_info[HBC_HEADER_INDEX(MIME_HDR_PRIMARY)] =
-	    header_checks_maps;
-	hbc->map_info[HBC_HEADER_INDEX(MIME_HDR_MULTIPART)] =
-	    mime_header_checks_maps;
-	hbc->map_info[HBC_HEADER_INDEX(MIME_HDR_NESTED)] =
-	    nested_header_checks_maps;
+	HBC_INIT(hbc, HBC_HEADER_INDEX(MIME_HDR_PRIMARY),
+		 header_checks_name, header_checks_value);
+	HBC_INIT(hbc, HBC_HEADER_INDEX(MIME_HDR_MULTIPART),
+		 mime_header_checks_name, mime_header_checks_value);
+	HBC_INIT(hbc, HBC_HEADER_INDEX(MIME_HDR_NESTED),
+		 nested_header_checks_name, nested_header_checks_value);
 	return (hbc);
     }
 }
 
 /* hbc_body_checks_create - create body checking context */
 
-HBC_CHECKS *hbc_body_checks_create(MAPS *body_checks_maps,
+HBC_CHECKS *hbc_body_checks_create(const char *body_checks_name,
+				           const char *body_checks_value,
 				           HBC_CALL_BACKS *call_backs)
 {
     HBC_CHECKS *hbc;
@@ -383,12 +404,12 @@ HBC_CHECKS *hbc_body_checks_create(MAPS *body_checks_maps,
     /*
      * Optimize for the common case.
      */
-    if (body_checks_maps == 0) {
+    if (*body_checks_value == 0) {
 	return (0);
     } else {
 	hbc = (HBC_CHECKS *) mymalloc(sizeof(*hbc));
 	hbc->call_backs = call_backs;
-	hbc->map_info[HBC_BODY_INDEX] = body_checks_maps;
+	HBC_INIT(hbc, HBC_BODY_INDEX, body_checks_name, body_checks_value);
 	return (hbc);
     }
 }
@@ -397,6 +418,11 @@ HBC_CHECKS *hbc_body_checks_create(MAPS *body_checks_maps,
 
 void    _hbc_checks_free(HBC_CHECKS *hbc, ssize_t len)
 {
+    HBC_MAP_INFO *mp;
+
+    for (mp = hbc->map_info; mp < hbc->map_info + len; mp++)
+	if (mp->maps)
+	    maps_free(mp->maps);
     myfree((void *) hbc);
 }
 
@@ -577,18 +603,13 @@ int     main(int argc, char **argv)
 				  body_out, body_end,
 				  err_print,
 				  (void *) &context);
-
-#define MAPS_OR_NULL(name, value) \
-	(*(value) ? maps_create((name), (value), DICT_FLAG_LOCK) : (MAPS *) 0)
-
     context.header_checks =
-	hbc_header_checks_create(MAPS_OR_NULL("header_checks", argv[1]),
-				 MAPS_OR_NULL("mime_header_checks", argv[2]),
-			      MAPS_OR_NULL("nested_header_checks", argv[3]),
+	hbc_header_checks_create("header_checks", argv[1],
+				 "mime_header_checks", argv[2],
+				 "nested_header_checks", argv[3],
 				 call_backs);
     context.body_checks =
-	hbc_body_checks_create(MAPS_OR_NULL("body_checks", argv[4]),
-			       call_backs);
+	hbc_body_checks_create("body_checks", argv[4], call_backs);
     context.buf = vstring_alloc(100);
     context.fp = VSTREAM_OUT;
     context.queueid = "test-queueID";

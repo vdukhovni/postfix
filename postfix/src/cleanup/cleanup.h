@@ -117,8 +117,6 @@ typedef struct CLEANUP_STATE {
     VSTRING *milter_ext_from;		/* externalized sender */
     VSTRING *milter_ext_rcpt;		/* externalized recipient */
     VSTRING *milter_err_text;		/* milter call-back reply */
-    HBC_CHECKS *milter_hbc_checks;	/* Milter header checks */
-    VSTRING *milter_hbc_reply;		/* Milter header checks reply */
     VSTRING *milter_dsn_buf;		/* Milter DSN parsing buffer */
 
     /*
@@ -170,7 +168,6 @@ extern VSTRING *cleanup_strip_chars;
  /*
   * Milters.
   */
-extern MAPS *cleanup_milt_head_checks;
 extern MILTERS *cleanup_milters;
 
  /*
@@ -319,6 +316,7 @@ extern int cleanup_bounce(CLEANUP_STATE *);
  /*
   * cleanup_milter.c.
   */
+extern void cleanup_milter_header_checks_init(void);
 extern void cleanup_milter_receive(CLEANUP_STATE *, int);
 extern void cleanup_milter_inspect(CLEANUP_STATE *, MILTERS *);
 extern void cleanup_milter_emul_mail(CLEANUP_STATE *, MILTERS *, const char *);

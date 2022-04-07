@@ -1090,7 +1090,7 @@ int     var_smtp_sasl_auth_cache_time;
 bool    var_smtp_sasl_auth_soft_bounce;
 
 char   *var_hfrom_format;
-bool    var_smtp_bind_addr_enforce;
+bool var_smtp_bind_addr_enforce;
 
  /*
   * Global variables.
@@ -1539,16 +1539,13 @@ static void pre_init(char *unused_name, char **unused_argv)
     /*
      * Header/body checks.
      */
-#define MAPS_OR_NULL(name, value) \
-	(*(value) ? maps_create((name), (value), DICT_FLAG_LOCK) : (MAPS *) 0)
-
     smtp_header_checks = hbc_header_checks_create(
-		 MAPS_OR_NULL(VAR_LMTP_SMTP(HEAD_CHKS), var_smtp_head_chks),
-		 MAPS_OR_NULL(VAR_LMTP_SMTP(MIME_CHKS), var_smtp_mime_chks),
-		 MAPS_OR_NULL(VAR_LMTP_SMTP(NEST_CHKS), var_smtp_nest_chks),
+			       VAR_LMTP_SMTP(HEAD_CHKS), var_smtp_head_chks,
+			       VAR_LMTP_SMTP(MIME_CHKS), var_smtp_mime_chks,
+			       VAR_LMTP_SMTP(NEST_CHKS), var_smtp_nest_chks,
 						  smtp_hbc_callbacks);
     smtp_body_checks = hbc_body_checks_create(
-		 MAPS_OR_NULL(VAR_LMTP_SMTP(BODY_CHKS), var_smtp_body_chks),
+			       VAR_LMTP_SMTP(BODY_CHKS), var_smtp_body_chks,
 					      smtp_hbc_callbacks);
 
     /*
