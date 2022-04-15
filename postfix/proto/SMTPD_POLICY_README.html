@@ -116,6 +116,8 @@ policy_context=submission
 <b>Postfix version 3.2 and later:</b>
 server_address=10.3.2.1
 server_port=54321
+<b>Postfix version 3.8 and later:</b>
+compatibility_level=<i>major</i>.<i>minor</i>.<i>patch</i>
 [empty line]
 </pre>
 </blockquote>
@@ -212,6 +214,11 @@ server_port=54321
     <li> <p> The "policy_context" attribute provides a way to pass
     information that is not available via other attributes (Postfix
     version 3.1 and later). </p>
+
+   <li> <p> The "compatibility_level" attribute corresponds to the
+   compatibility_level parameter value. It has the form
+   <i>major</i>.<i>minor</i>.<i>patch</i> where <i>minor</i> and
+   <i>patch</i> may be absent. </p>
 
 </ul>
 

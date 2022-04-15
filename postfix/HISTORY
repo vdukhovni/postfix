@@ -26367,3 +26367,20 @@ Apologies for any names omitted.
 	cleanup server enters the chroot jail. Files: cleanup/cleanup.h,
 	cleanup/cleanup_init.c, cleanup/cleanup_milter.c,
 	cleanup/cleanup_state.c.
+
+20220407
+
+	Feature: the policy delegation protocol now sends a
+	"compatibility_level" attribute with the value of the
+	compatibility_level configuration parameter. Files:
+	global/mail_proto.h, smtpd/smtpd_check.c,
+	proto/SMTPD_POLICY_README.html.
+
+20220415
+
+	Cleanup: with dynamic map loading enabled, an attempt to
+	create a map with "postmap regexp:path" would result in a
+	bogus error message "Is the postfix-regexp package installed?"
+	instead of "unsupported map type for this operation".
+	Implemented a workaround for all map types including regexp
+	that have no 'bulk create' support. File: global mkmap_open.c.

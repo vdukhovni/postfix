@@ -6,10 +6,14 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
-	Can tests use LD_PRELOAD to inject fake modules such
-	as fake_dns(3), fake_msg(3), fake_myaddrinfo() and so on?
+	Scan Postfix code with github.com/googleprojectzero/weggli
+	(depends on "rust").
+
+	Can tests use LD_PRELOAD to inject fake modules such as
+	fake_dns(3), fake_msg(3), fake_myaddrinfo(3) and so on?
 	One limitation is that functions etc. in a preloaded object
-	always take precedence.
+	always take precedence, even in code that is not being
+	tested.
 
 	'%l' support. ef7c661c-d86a-2366-6a73-ec8d51d75012@dev.snart.me
 

@@ -4099,6 +4099,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 #endif
 			  SEND_ATTR_STR(MAIL_ATTR_POL_CONTEXT,
 					policy_clnt->policy_context),
+			  SEND_ATTR_STR(MAIL_ATTR_COMPAT_LEVEL,
+					var_compatibility_level),
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
 			  RECV_ATTR_STR(MAIL_ATTR_ACTION, action),
