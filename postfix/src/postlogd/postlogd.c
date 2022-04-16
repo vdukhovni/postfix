@@ -26,8 +26,8 @@
 /*	with the operation of some of these programs). These programs
 /*	can log to \fBpostlogd\fR(8) if they are run by the super-user,
 /*	or if their executable file has set-gid permission. Do not
-/*	set this permission on programs other than \fBpostdrop\fR(1)
-/*	and \fBpostqueue\fR(1).
+/*	set this permission on programs other than \fBpostdrop\fR(1),
+/*	\fBpostqueue\fR(1) and (Postfix >= 3.7) \fBpostlog\fR(1).
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi

@@ -6,8 +6,13 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
-	Alias htable(3) calls to equivalent binhash(3) calls,
-	and obsolete the htable(3) module.
+	postscreen_dnsbl_sites is evaluated in the reverse order, breaking
+	expectations when different reply patterns have different weights.
+	We need a compatibility_level feature to correct this.
+
+	In the pgsql: client, make the client encoding configurable
+	with a sensible default (UTF8). This code is implemented
+	and needs to be tested.
 
 	FILTER_README needs some text on multi-instance implementations,
 	and existing multi-instance references need to be updated.
@@ -16,6 +21,10 @@ Wish list:
 	and that uses "%ld" in sscanf().
 
 	A smart query service for live Postfix tables that outputs JSON?
+
+	JSON logging?
+
+	default_transport_maps? This would simplify configuration.
 
 	Add a pointer to
 	http://mmogilvi.users.sourceforge.net/software/oauthbearer.html
@@ -263,10 +272,6 @@ Wish list:
 
 	Maybe don't whitelist a client that has maxed out its
 	per-MTA connection count limit.
-
-	Inline support for pcre:{/pattern/=action, ...} and ditto
-	support for regexp: and cidr: tables. Factor out and reuse
-	code that already exists in inline: and other tables.
 
 	Log command=good/bad statistics in postscreen?
 
@@ -810,22 +815,6 @@ Wish list:
 	Cleanup: make DNSBL query format configurable beyond the
 	client's reversed IP address.
 
-	With 'final delivery' in the LMTP client, need an option
-	to also add delivered-to and other pipe(8) features.  This
-	requires making mail_copy() functionality available in
-	non-mailbox context.
-
-	Cleanup: modernize the "add missing From: header" code, to
-	``phrase <addr>'' form. Most likely, quote the entire phrase
-	if it contains any text that is special, then rfc822_externalize
-	the whole thing.
-
-	SMTP server: make the server_addr and server_port available
-	to policy server, Dovecot, and perhaps Milters.
-
-	Med: local and remote source port and IP address for smtpd
-	policy hook.
-
 	Maybe change maps_rbl_reject_code default to 521, and
 	update wording in STRESS_README.
 
@@ -837,15 +826,6 @@ Wish list:
 
 	Plan for time_t larger than long, or wait for LP64 to
 	dominate the world?
-
-	Make "AUTH=<>" appendage to MAIL FROM configurable, enabled
-	by default.
-
-	To support ternary operator without a huge parsing effort,
-	consider ${value?{xxx}:{yyy}} where ${name} is existing
-	syntax, and where ?{text} and :{text} are new syntax that
-	is unlikely to break existing configurations. Or perhaps
-	it's just too ugly.
 
 	Write delivery rate delay example (which _README?) and auth
 	failure cache example (SASL_README). Then include them in

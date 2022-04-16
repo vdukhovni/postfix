@@ -26280,3 +26280,65 @@ Apologies for any names omitted.
 
 	Bitrot: Berkeley DB 18 is like Berkeley DB 6. Yasuhiro
 	Kimura. File: util/dict_db.c.
+
+20220204
+
+	Updated collate.pl script for better tracking when a
+	Milter rejects, discards, or quarantines a message. Viktor
+	Dukhovni. File: auxiliary/collate/collate.pl.
+
+20220212
+
+	Cleanup: removed WISHLIST items that were recently fixed.
+
+20220217
+
+	Typo: "pcre2 --libs" should be "pcre2 --libs8". Reported by
+	Carlos Velasco. File proto/PCRE_README.html.
+
+	Future proofing: added comments on the purpose of address
+	sanitization.  File: showq/showq.c.
+
+20220220
+
+	Added a hash_fnvz() function to eliminate unnecessary strlen()
+	calls, and added regression tests. File: util/hash_fnv.c,
+	util/htable.c.
+
+	Cleanup: unused initialization. File: util/make_dirs.c
+
+20220222
+
+	Documentation: updated comment text. File: util/hash_fnv.c.
+
+20220312
+
+	Cleanup: when a main.cf like file may have changed while
+	it was read, forget the settings before re-reading the file.
+	File: util/dict.c.
+
+20220322
+
+	Cleanup: added missing _checks, _reply_footer, _reply_filter,
+	_command_filter, and _delivery_status_filter parameter names
+	to the proxy_read_maps default value. Files: global/mail_params.h,
+	mantools/missing-proxy-read-maps.
+
+20220325
+
+	Documentation: how to stop recursion in virtual_alias_maps.
+	File: proto/virtual.
+
+20220330
+
+	Documentation: updated the postlogd(8) daemon manpage,
+	adding that the Postfix >= 3.7 postlog(1) command can run
+	with setgid permissions. File: postlogd/postlogd.c.
+
+20220403
+
+	Cleanup: milter_hader_checks maps are now opened before the
+	cleanup server enters the chroot jail. Files: cleanup/cleanup.h,
+	cleanup/cleanup_init.c, cleanup/cleanup_milter.c,
+	global/header_body_checks.c, global/header_body_checks.h,
+	global/maps.c, global/maps.h, smtp/smtp.c.

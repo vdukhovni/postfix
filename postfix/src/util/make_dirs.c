@@ -57,7 +57,7 @@ int     make_dirs(const char *path, int perms)
     int     saved_ch;
     struct stat st;
     int     ret;
-    mode_t  saved_mode = 0;
+    mode_t  saved_mode;
     gid_t   egid = -1;
 
     /*

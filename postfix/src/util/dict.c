@@ -463,6 +463,7 @@ int     dict_load_file_xt(const char *dict_name, const char *path)
 	if (msg_verbose > 1)
 	    msg_info("pausing to let %s cool down", path);
 	doze(300000);
+	dict_unregister(dict_name);
     }
     return (1);
 }

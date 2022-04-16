@@ -24,6 +24,7 @@
 #endif					/* HASH_FNV_T */
 
 extern HASH_FNV_T hash_fnv(const void *, size_t);
+extern HASH_FNV_T hash_fnvz(const char *);
 
 /* LICENSE
 /* .ad

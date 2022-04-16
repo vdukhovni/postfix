@@ -137,7 +137,7 @@
 #ifndef NO_HASH_FNV
 #include "hash_fnv.h"
 
-#define htable_hash(s, size) (hash_fnv((s), strlen(s)) % (size))
+#define htable_hash(s, size) (hash_fnvz(s) % (size))
 
 #else
 

@@ -506,10 +506,8 @@ static void cleanup_milter_hbc_add_meta_records(CLEANUP_STATE *state)
 
 static void cleanup_milter_header_checks_init(CLEANUP_STATE *state)
 {
-#define NO_NESTED_HDR_NAME	""
-#define NO_NESTED_HDR_VALUE	""
-#define NO_MIME_HDR_NAME	""
-#define NO_MIME_HDR_VALUE	""
+#define NO_NESTED_HDR_MAPS	((MAPS *) 0)
+#define NO_MIME_HDR_MAPS	((MAPS *) 0)
 
     static /* XXX not const */ HBC_CALL_BACKS call_backs = {
 	cleanup_milter_hbc_log,
@@ -518,9 +516,9 @@ static void cleanup_milter_header_checks_init(CLEANUP_STATE *state)
     };
 
     state->milter_hbc_checks =
-	hbc_header_checks_create(VAR_MILT_HEAD_CHECKS, var_milt_head_checks,
-				 NO_MIME_HDR_NAME, NO_MIME_HDR_VALUE,
-				 NO_NESTED_HDR_NAME, NO_NESTED_HDR_VALUE,
+	hbc_header_checks_create(cleanup_milt_head_checks,
+				 NO_MIME_HDR_MAPS,
+				 NO_NESTED_HDR_MAPS,
 				 &call_backs);
     state->milter_hbc_reply = vstring_alloc(100);
     if (state->filter)
@@ -2150,7 +2148,7 @@ void    cleanup_milter_inspect(CLEANUP_STATE *state, MILTERS *milters)
     /*
      * Prologue: prepare for Milter header/body checks.
      */
-    if (*var_milt_head_checks)
+    if (cleanup_milt_head_checks)
 	cleanup_milter_header_checks_init(state);
 
     /*
@@ -2164,7 +2162,7 @@ void    cleanup_milter_inspect(CLEANUP_STATE *state, MILTERS *milters)
     /*
      * Epilogue: finalize Milter header/body checks.
      */
-    if (*var_milt_head_checks)
+    if (cleanup_milt_head_checks)
 	cleanup_milter_hbc_finish(state);
 
     if (msg_verbose)
@@ -2321,6 +2319,7 @@ char   *var_milt_daemon_name = "host.example.com";
 char   *var_milt_v = DEF_MILT_V;
 MILTERS *cleanup_milters = (MILTERS *) ((char *) sizeof(*cleanup_milters));
 char   *var_milt_head_checks = "";
+MAPS   *cleanup_milt_head_checks;
 
 /* Dummies to satisfy unused external references. */
 
@@ -2587,6 +2586,8 @@ int     main(int unused_argc, char **argv)
 		cleanup_milter_hbc_finish(state);
 		myfree(var_milt_head_checks);
 		var_milt_head_checks = "";
+		maps_free(cleanup_milt_head_checks);
+		cleanup_milt_head_checks = 0;
 	    }
 	    close_queue_file(state);
 	} else if (state->milter_hbc_reply && LEN(state->milter_hbc_reply)) {
@@ -2694,6 +2695,8 @@ int     main(int unused_argc, char **argv)
 		msg_warn("can't change header checks");
 	    } else {
 		var_milt_head_checks = mystrdup(argv->argv[1]);
+		cleanup_milt_head_checks = maps_create(VAR_MILT_HEAD_CHECKS,
+				      var_milt_head_checks, DICT_FLAG_LOCK);
 		cleanup_milter_header_checks_init(state);
 	    }
 	} else if (strcmp(argv->argv[0], "sender_bcc_maps") == 0) {
@@ -2726,8 +2729,10 @@ int     main(int unused_argc, char **argv)
 	    msg_info("errs = %s", cleanup_strerror(state->errs));
     }
     cleanup_state_free(state);
-    if (*var_milt_head_checks)
+    if (*var_milt_head_checks) 
 	myfree(var_milt_head_checks);
+    if (cleanup_milt_head_checks)
+	maps_free(cleanup_milt_head_checks);
 
     return (0);
 }
