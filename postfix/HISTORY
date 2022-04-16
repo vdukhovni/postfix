@@ -26338,7 +26338,7 @@ Apologies for any names omitted.
 20220403
 
 	(Rolled back because there was too much collateral damage)
-	Cleanup: milter_hader_checks maps are now opened before the
+	Cleanup: milter_header_checks maps are now opened before the
 	cleanup server enters the chroot jail. Files: cleanup/cleanup.h,
 	cleanup/cleanup_init.c, cleanup/cleanup_milter.c,
 	global/header_body_checks.c, global/header_body_checks.h,
@@ -26363,10 +26363,10 @@ Apologies for any names omitted.
 	The text was based on an early Postfix implementation.
 	File: proto/postconf.proto.
 
-	Cleanup: milter_hader_checks maps are now opened before the
-	cleanup server enters the chroot jail. Files: cleanup/cleanup.h,
-	cleanup/cleanup_init.c, cleanup/cleanup_milter.c,
-	cleanup/cleanup_state.c.
+	Cleanup (problem introduced: Postfix 2.7): milter_header_checks
+	maps are now opened before the cleanup server enters the
+	chroot jail. Files: cleanup/cleanup.h, cleanup/cleanup_init.c,
+	cleanup/cleanup_milter.c, cleanup/cleanup_state.c.
 
 20220407
 
@@ -26378,9 +26378,10 @@ Apologies for any names omitted.
 
 20220415
 
-	Cleanup: with dynamic map loading enabled, an attempt to
-	create a map with "postmap regexp:path" would result in a
-	bogus error message "Is the postfix-regexp package installed?"
-	instead of "unsupported map type for this operation".
-	Implemented a workaround for all map types including regexp
-	that have no 'bulk create' support. File: global mkmap_open.c.
+	Cleanup (problem introduced: Postfix 3.0): with dynamic map
+	loading enabled, an attempt to create a map with "postmap
+	regexp:path" would result in a bogus error message "Is the
+	postfix-regexp package installed?" instead of "unsupported
+	map type for this operation". This happened with all built-in
+	map types (static, cidr, etc.) that have no 'bulk create'
+	support. File: global/dynamicmaps.c.

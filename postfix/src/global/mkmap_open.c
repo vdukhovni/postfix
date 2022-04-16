@@ -101,39 +101,6 @@
 #include <mymalloc.h>
 #include <stringops.h>
 
- /*
-  * Workaround for map types that have no 'bulk create' support, for example
-  * regexp. When dynamic map loading is enabled, an attempt to create a map
-  * with "postmap regexp:/path" would result in a bogus error message with
-  * "Is the postfix-regexp package installed?" instead of the expected
-  * "unsupported map type for this operation: regexp". The workaround is to
-  * provide explicit definitions for mkmap_open() so that it knows what map
-  * types exist without a 'bulk create' open function.
-  * 
-  * The solution is to merge the {maptype, function} tables that are currently
-  * managed separately by mkmap_open() (for bulk-mode map create operations)
-  * and by dict_open() (for all other operations). That change would be too
-  * invasive for a stable release.
-  */
-#ifdef USE_DYNAMIC_MAPS
-#include <dict_env.h>
-#include <dict_ht.h>
-#include <dict_unix.h>
-#include <dict_tcp.h>
-#include <dict_nis.h>
-#include <dict_nisplus.h>
-#include <dict_ni.h>
-#include <dict_regexp.h>
-#include <dict_static.h>
-#include <dict_cidr.h>
-#include <dict_thash.h>
-#include <dict_sockmap.h>
-#include <dict_pipe.h>
-#include <dict_random.h>
-#include <dict_union.h>
-#include <dict_inline.h>
-#endif
-
 /* Global library. */
 
 #include "mkmap.h"
@@ -170,32 +137,6 @@ static const MKMAP_OPEN_INFO mkmap_open_info[] = {
     DICT_TYPE_BTREE, mkmap_btree_open,
 #endif
     DICT_TYPE_FAIL, mkmap_fail_open,
-#ifdef USE_DYNAMIC_MAPS			/* Begin workaround */
-    DICT_TYPE_ENVIRON, 0,
-    DICT_TYPE_HT, 0,
-    DICT_TYPE_UNIX, 0,
-    DICT_TYPE_TCP, 0,
-#ifdef HAS_NIS
-    DICT_TYPE_NIS, 0,
-#endif
-#ifdef HAS_NISPLUS
-    DICT_TYPE_NISPLUS, 0,
-#endif
-#ifdef HAS_NETINFO
-    DICT_TYPE_NETINFO, 0,
-#endif
-#ifdef HAS_POSIX_REGEXP
-    DICT_TYPE_REGEXP, 0,
-#endif
-    DICT_TYPE_STATIC, 0,
-    DICT_TYPE_CIDR, 0,
-    DICT_TYPE_THASH, 0,
-    DICT_TYPE_SOCKMAP, 0,
-    DICT_TYPE_PIPE, 0,
-    DICT_TYPE_RANDOM, 0,
-    DICT_TYPE_UNION, 0,
-    DICT_TYPE_INLINE, 0,
-#endif					/* End workaround */
     0,
 };
 
@@ -311,10 +252,9 @@ MKMAP  *mkmap_open(const char *type, const char *path,
 	    mkmap_open_register(type, open_fn);
 	    mp = (MKMAP_OPEN_INFO *) htable_find(mkmap_open_hash, type);
 	}
+	if (mp == 0)
+	    msg_fatal("unsupported map type for this operation: %s", type);
     }
-    if (mp == 0 || mp->before_open == 0)
-	msg_fatal("unsupported map type for this operation: %s", type);
-
     if (msg_verbose)
 	msg_info("open %s %s", type, path);
 
