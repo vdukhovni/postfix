@@ -573,6 +573,7 @@ static void cleanup_milter_header_checks_reinit(CLEANUP_STATE *state)
     if (state->redirect)
 	myfree(state->redirect);
     state->redirect = 0;
+    VSTRING_RESET(cleanup_milter_hbc_reply);
 }
 
 /* cleanup_milter_hbc_finish - finalize post-Milter header checks */

@@ -26385,3 +26385,11 @@ Apologies for any names omitted.
 	map type for this operation". This happened with all built-in
 	map types (static, cidr, etc.) that have no 'bulk create'
 	support. File: global/dynamicmaps.c.
+
+20220417
+
+	Bugfix (introduced: 20220406): reset the milter_header_checks
+	response buffer, so that a negative response for one email
+	message will not be applied to a later email message that is
+	handled by the same cleanup process. File:
+	cleanup/cleanup_milter.c.
