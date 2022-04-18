@@ -427,6 +427,8 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 					var_milt_eod_macros,
 					var_milt_unk_macros,
 					var_milt_macro_deflts);
+    if (*var_milt_head_checks)
+	cleanup_milter_header_checks_init();
 
     flush_init();
 }

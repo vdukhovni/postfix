@@ -107,8 +107,6 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->append_hdr_pt_target = -1;
     state->append_meta_pt_offset = -1;
     state->append_meta_pt_target = -1;
-    state->milter_hbc_checks = 0;
-    state->milter_hbc_reply = 0;
     state->rcpt_count = 0;
     state->reason = 0;
     state->smtp_reply = 0;
