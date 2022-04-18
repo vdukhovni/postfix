@@ -168,11 +168,23 @@ static MKMAP_OPEN_FN dymap_mkmap_lookup(const char *dict_type)
      * All errors are fatal. If the postmap(1) or postalias(1) command can't
      * create the requested database, then graceful degradation is not
      * useful.
+     * 
+     * Fix 20220416: if this dictionary type is registered for some non-mkmap
+     * purpose, then don't talk nonsense about a missing package.
      */
-    if ((dp = (DYMAP_INFO *) htable_find(dymap_info, dict_type)) == 0)
+    if ((dp = (DYMAP_INFO *) htable_find(dymap_info, dict_type)) == 0) {
+	ARGV   *types = dict_mapnames();
+	char  **cpp;
+
+	for (cpp = types->argv; *cpp; cpp++) {
+	    if (strcmp(dict_type, *cpp) == 0)
+		msg_fatal("unsupported dictionary type: %s does not support "
+			  "bulk-mode creation.", dict_type);
+	}
 	msg_fatal("unsupported dictionary type: %s. "
 		  "Is the postfix-%s package installed?",
 		  dict_type, dict_type);
+    }
     if (!dp->mkmap_name)
 	msg_fatal("unsupported dictionary type: %s does not support "
 		  "bulk-mode creation.", dict_type);

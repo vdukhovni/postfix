@@ -25735,3 +25735,38 @@ Apologies for any names omitted.
 
 	Bitrot: Berkeley DB 18 is like Berkeley DB 6. Yasuhiro
 	Kimura. File: util/dict_db.c.
+
+20220322
+
+	Cleanup: added missing _checks, _reply_footer, _reply_filter,
+	_command_filter, and _delivery_status_filter parameter names
+	to the proxy_read_maps default value. Files: global/mail_params.h,
+	mantools/missing-proxy-read-maps.
+
+20220404
+
+	Bugfix: in an internal client module, "host or service not
+	found" was a fatal error, causing the milter_default_action
+	setting to be ignored. It is now a non-fatal error. The
+	same client is used by many Postfix clients (smtpd_proxy,
+	dovecot auth, tcp_table, memcache, socketmap, and so on).
+	Problem reported by Christian Degenkolb. File: util/inet_connect.c.
+
+20220415
+
+	Cleanup (problem introduced: Postfix 3.0): with dynamic map
+	loading enabled, an attempt to create a map with "postmap
+	regexp:path" would result in a bogus error message "Is the
+	postfix-regexp package installed?" instead of "unsupported
+	map type for this operation". This happened with all built-in
+	map types (static, cidr, etc.) that have no 'bulk create'
+	support. Problem reported by Greg Klanderman. File:
+	global/dynamicmaps.c.
+
+20220417
+
+	Cleanup (problem introduced: Postfix 2.7): milter_header_checks
+	maps are now opened before the cleanup server enters the
+	chroot jail. Problem reported by Jesper Dybdal. Files:
+	cleanup/cleanup.h, cleanup/cleanup_init.c,
+	cleanup/cleanup_milter.c, cleanup/cleanup_state.c.
