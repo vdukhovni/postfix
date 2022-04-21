@@ -26351,7 +26351,7 @@ Apologies for any names omitted.
 	setting to be ignored. It is now a non-fatal error. The
 	same client is used by many Postfix clients (smtpd_proxy,
 	dovecot auth, tcp_table, memcache, socketmap, and so on).
-	File: util/inet_connect.c.
+	Problem reported by Christian Degenkolb. File: util/inet_connect.c.
 
 20220407
 
@@ -26365,7 +26365,8 @@ Apologies for any names omitted.
 
 	Cleanup (problem introduced: Postfix 2.7): milter_header_checks
 	maps are now opened before the cleanup server enters the
-	chroot jail. Files: cleanup/cleanup.h, cleanup/cleanup_init.c,
+	chroot jail. Problem reported by Jesper Dybdal. Files:
+	cleanup/cleanup.h, cleanup/cleanup_init.c,
 	cleanup/cleanup_milter.c, cleanup/cleanup_state.c.
 
 20220407
@@ -26384,7 +26385,8 @@ Apologies for any names omitted.
 	postfix-regexp package installed?" instead of "unsupported
 	map type for this operation". This happened with all built-in
 	map types (static, cidr, etc.) that have no 'bulk create'
-	support. File: global/dynamicmaps.c.
+	support. Problem reported by Greg Klanderman. File:
+	global/dynamicmaps.c.
 
 20220417
 
@@ -26393,3 +26395,13 @@ Apologies for any names omitted.
 	message will not be applied to a later email message that is
 	handled by the same cleanup process. File:
 	cleanup/cleanup_milter.c.
+
+20220421
+
+	Bugfix (introduced: Postfix 3.7): reverted an overly complex
+	change in the postscreen SMTP engine from 20211023, that
+	was segfaulting on malformed input, where the Postfix 3.6
+	implementation worked properly. The purpose of the change
+	was to prevent complaints about "malformed UTF8" from Postfix
+	lookup tables. Replaced the change with a trivial guard.
+	File: postscreen/postscreen_smtpd.c.
