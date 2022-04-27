@@ -26327,3 +26327,30 @@ Apologies for any names omitted.
 	chroot jail. Problem reported by Jesper Dybdal. Files:
 	cleanup/cleanup.h, cleanup/cleanup_init.c,
 	cleanup/cleanup_milter.c, cleanup/cleanup_state.c.
+
+20220421
+
+	Bugfix (introduced: Postfix 3.7): reverted an overly complex
+	change in the postscreen SMTP engine from 20211023, and
+	replaced it with a much simpler change. The bad change was
+	segfaulting on some systems after receiving malformed input
+	(for example, TLS "hello"). File: postscreen/postscreen_smtpd.c.
+
+	Under conditions described below, the postscreen program
+	attempted to read through an uninitialized 'const' pointer.
+	The pointer value depended on the compiler type and compiler
+	options, but crucially, it did not depend on network inputs.
+
+	The conditions were that SMTPUTF8 support was enabled (the
+	default), and that postscreen received non-UTF8 input, for
+	example, a TLS or RDP handshake request. Depending on
+	compiler details, the result of the read operation could
+	be uninteresting, a combined memory leak and file handle
+	leak, or a segmentation violation (signal 11).
+
+	The segmentation violation result was reported by Michael
+	Grimm who used a FreeBSD 13.1 early version. The result was
+	"uninteresting" with FreeBSD 13.0. Both FreeBSD systems use
+	Clang instead of GCC. The result was also "uninteresting"
+	on Linux-based systems that use GCC, or on a few older
+	systems that use GCC.
