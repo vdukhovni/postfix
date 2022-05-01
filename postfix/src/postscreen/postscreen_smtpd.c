@@ -435,7 +435,7 @@ static int psc_starttls_cmd(PSC_STATE *state, char *args)
      * unavailable when tlsproxy(8) detects the problem too late.
      */
     if (PSC_SMTPD_NEXT_TOKEN(args) != 0)
-	return (PSC_SEND_REPLY(state, "501 Syntax: EHLO hostname\r\n"));
+	return (PSC_SEND_REPLY(state, "501 5.5.4 Syntax: STARTTLS\r\n"));
     if (state->flags & PSC_STATE_FLAG_USING_TLS)
 	return (PSC_SEND_REPLY(state,
 			       "554 5.5.1 Error: TLS already active\r\n"));

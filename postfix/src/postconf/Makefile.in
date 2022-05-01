@@ -1080,6 +1080,7 @@ postconf_dbms.o: ../../include/mac_expand.h
 postconf_dbms.o: ../../include/mac_parse.h
 postconf_dbms.o: ../../include/mail_conf.h
 postconf_dbms.o: ../../include/mail_params.h
+postconf_dbms.o: ../../include/mkmap.h
 postconf_dbms.o: ../../include/msg.h
 postconf_dbms.o: ../../include/myflock.h
 postconf_dbms.o: ../../include/mymalloc.h

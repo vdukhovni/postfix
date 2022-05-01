@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	create or open database, fail: style
 /* SYNOPSIS
-/*	#include <mkmap.h>
+/*	#include <dict_fail.h>
 /*
 /*	MKMAP	*mkmap_fail_open(path)
 /*	const char *path;
@@ -23,6 +23,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -32,11 +37,6 @@
 /* Utility library. */
 
 #include <mymalloc.h>
-#include <dict.h>
-
-/* Application-specific. */
-
-#include <mkmap.h>
 #include <dict_fail.h>
 
  /*

@@ -15,6 +15,7 @@
   * Utility library.
   */
 #include <dict.h>
+#include <mkmap.h>
 
  /*
   * External interface.
@@ -22,6 +23,7 @@
 #define DICT_TYPE_FAIL	"fail"
 
 extern DICT *dict_fail_open(const char *, int, int);
+extern MKMAP *mkmap_fail_open(const char *);
 
 /* LICENSE
 /* .ad
@@ -30,6 +32,11 @@ extern DICT *dict_fail_open(const char *, int, int);
 /* AUTHOR(S)
 /*	jeffm
 /*	ghostgun.com
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif

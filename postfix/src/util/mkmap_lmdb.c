@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	create or open database, LMDB style
 /* SYNOPSIS
-/*	#include <mkmap.h>
+/*	#include <dict_lmdb.h>
 /*
 /*	MKMAP	*mkmap_lmdb_open(path)
 /*	const char *path;
@@ -26,6 +26,11 @@
 /* AUTHOR(S)
 /*	Howard Chu
 /*	Symas Corporation
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -37,13 +42,9 @@
 
 /* Utility library. */
 
-#include <msg.h>
 #include <mymalloc.h>
-#include <stringops.h>
-#include <dict.h>
 #include <dict_lmdb.h>
-#include <myflock.h>
-#include <warn_stat.h>
+#include <mkmap.h>
 
 #ifdef HAS_LMDB
 #ifdef PATH_LMDB_H
@@ -51,15 +52,6 @@
 #else
 #include <lmdb.h>
 #endif
-
-/* Global library. */
-
-#include <mail_conf.h>
-#include <mail_params.h>
-
-/* Application-specific. */
-
-#include "mkmap.h"
 
 /* mkmap_lmdb_open */
 

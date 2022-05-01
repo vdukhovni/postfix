@@ -9,6 +9,8 @@ Wish list:
 	Scan Postfix code with github.com/googleprojectzero/weggli
 	(depends on "rust").
 
+	Enforce var_line_limit in util/attr_scan*c.
+
 	Can tests use LD_PRELOAD to inject fake modules such as
 	fake_dns(3), fake_msg(3), fake_myaddrinfo(3) and so on?
 	One limitation is that functions etc. in a preloaded object

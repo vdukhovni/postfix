@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	create or open database, DB style
 /* SYNOPSIS
-/*	#include <mkmap.h>
+/*	#include <dict_db.h>
 /*
 /*	MKMAP	*mkmap_hash_open(path)
 /*	const char *path;
@@ -30,6 +30,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -44,18 +49,9 @@
 #include <msg.h>
 #include <mymalloc.h>
 #include <stringops.h>
-#include <dict.h>
 #include <dict_db.h>
 #include <myflock.h>
 #include <warn_stat.h>
-
-/* Global library. */
-
-#include <mail_params.h>
-
-/* Application-specific. */
-
-#include "mkmap.h"
 
 #ifdef HAS_DB
 #ifdef PATH_DB_H
@@ -104,24 +100,9 @@ static MKMAP *mkmap_db_before_open(const char *path,
     struct stat st;
 
     /*
-     * Override the default per-table cache size for map (re)builds.
-     * 
-     * db_cache_size" is defined in util/dict_db.c and defaults to 128kB, which
-     * works well for the lookup code.
-     * 
-     * We use a larger per-table cache when building ".db" files. For "hash"
-     * files performance degrades rapidly unless the memory pool is O(file
-     * size).
-     * 
-     * For "btree" files performance is good with sorted input even for small
-     * memory pools, but with random input degrades rapidly unless the memory
-     * pool is O(file size).
-     * 
-     * XXX This should be specified via the DICT interface so that the buffer
-     * size becomes an object property, instead of being specified by poking
-     * a global variable so that it becomes a class property.
+     * Assumes that  dict_db_cache_size = var_db_create_buf was done in the
+     * caller, because this code has no access to Postfix variables.
      */
-    dict_db_cache_size = var_db_create_buf;
 
     /*
      * Fill in the generic members.
