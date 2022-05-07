@@ -1957,6 +1957,16 @@ environment.  Examples of relevant environment variables: </p>
 
 <dd>Needed to make "<b>postfix -c</b>" work. </dd>
 
+<dt><b>POSTLOG_SERVICE</b></dt>
+
+<dd>Needed to make "<b>maillog_file</b>" work during daemon 
+process initialization. </dd>
+
+<dt><b>POSTLOG_HOSTNAME</b></dt>
+
+<dd>Needed to make "<b>maillog_file</b>" work during daemon  
+process initialization. </dd>
+
 </dl>
 
 <p> Specify a list of names and/or name=value pairs, separated by
@@ -8740,8 +8750,9 @@ access restriction is specified. This prevents the Postfix queue
 from filling up with undeliverable MAILER-DAEMON messages.
 </p>
 
-<p> An address is always considered "known" when it matches a
-virtual(5) alias or a canonical(5) mapping.
+<p> An address is considered "unknown" when it does not match a
+virtual(5) alias or a canonical(5) mapping, and one of the following
+conditions holds: </p>
 
 <ul>
 
@@ -8773,8 +8784,9 @@ sender addresses, even when no explicit reject_unlisted_sender
 access restriction is specified. This can slow down an explosion
 of forged mail from worms or viruses.  </p>
 
-<p> An address is always considered "known" when it matches a
-virtual(5) alias or a canonical(5) mapping.
+<p> An address is considered "unknown" when it does not match a 
+virtual(5) alias or a canonical(5) mapping, and one of the following
+conditions holds: </p>
 
 <ul>
 

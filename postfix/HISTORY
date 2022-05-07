@@ -26207,7 +26207,7 @@ Apologies for any names omitted.
 
 	Cleanup: unit tests. File: cleanup/cleanup_milter.c.
 
-	Cleamup: disable hash-table seed in unit tests. Many
+	Cleanup: disable hash-table seed in unit tests. Many
 	Makefiles, some unit test 'reference' files.
 
 	Bugfix (documented but not implemented since Postfix 2.2):
@@ -26234,7 +26234,7 @@ Apologies for any names omitted.
 	mantools/check-spell-install-proto-text.
 
 	Cleanup: for consistent parameter naming (tlsproxy_client_xxx
-	correspnds to smtp_tls_xxx), renamed tlsproxy_client_level
+	corresponds to smtp_tls_xxx), renamed tlsproxy_client_level
 	to tlsproxy_client_security_level, and tlsproxy_client_policy
 	to tlsproxy_client_policy_maps, with backwards-compatible
 	defaults and updated documentation. Problem reported by
@@ -26258,7 +26258,7 @@ Apologies for any names omitted.
 
 20220128
 
-	Clenaup: standardize on FNV hash, after having verified
+	Cleanup: standardize on FNV hash, after having verified
 	that collisions will change with the hash seed value, and
 	that the collision rate is low. Files: util/htable.c,
 	util/hash_fnv.[hc].
@@ -26399,9 +26399,99 @@ Apologies for any names omitted.
 20220421
 
 	Bugfix (introduced: Postfix 3.7): reverted an overly complex
-	change in the postscreen SMTP engine from 20211023, that
-	was segfaulting on malformed input, where the Postfix 3.6
-	implementation worked properly. The purpose of the change
-	was to prevent complaints about "malformed UTF8" from Postfix
-	lookup tables. Replaced the change with a trivial guard.
-	File: postscreen/postscreen_smtpd.c.
+	change in the postscreen SMTP engine from 20211023, and
+	replaced it with a much simpler change. The bad change was
+	segfaulting on some systems after receiving malformed input
+	(for example, TLS "hello"). File: postscreen/postscreen_smtpd.c.
+
+	Under conditions described below, the postscreen program
+	attempted to read through an uninitialized 'const' pointer.
+	The pointer value depended on the compiler type and compiler
+	options, but crucially, it did not depend on network inputs.
+
+	The conditions were that SMTPUTF8 support was enabled (the
+	default), and that postscreen received non-UTF8 input, for
+	example, a TLS or RDP handshake request.
+
+	Depending on compiler details, the result of the read
+	operation could be uninteresting, a combined memory leak
+	and file handle leak, or a segmentation violation (signal
+	11).
+
+	The segmentation violation result was reported by Michael
+	Grimm who used a FreeBSD 13.1 early version. The result was
+	"uninteresting" with FreeBSD 13.0. Both FreeBSD systems use
+	Clang instead of GCC. The result was also "uninteresting"
+	on Linux-based systems that use GCC, or on a few older
+	systems that use GCC.
+
+20220427
+
+	Cleanup: incorrect error message after postscreen received
+	a STARTTLS command with too many arguments. File:
+	postscreen/postscreen_smtpd.c.
+
+20220429
+
+	Noise: shut up a useless warning. File: cleanup_map1n.c.
+
+	Documentation: IPv6 support, by Pau Amma. Files: proto/INSTALL,
+	proto/IPV6_README.html.
+
+20220501
+
+	Cleanup: merged the infrastructure that "knows" which tables
+	are created with "postmap" or "postalias", with infrastructure
+	that has other information about lookup tables. The old design
+	pre-dated dynamically-loaded table drivers, and was difficult
+	to maintain.
+
+	The following files were moved from the "global" directory to
+	the "util" directory: src/util/mkmap.h, src/util/mkmap_cdb.c,
+	src/util/mkmap_db.c, src/util/mkmap_dbm.c, src/util/mkmap_fail.c,
+	src/util/mkmap_lmdb.c, src/util/mkmap_open.c,
+	src/util/mkmap_sdbm.c.
+
+	The corresponding postfix-xxx.so shared objects are now created
+	by util/Makefile instead of global/Makefile. There is no change
+	in how these files are installed or deployed.
+
+	Other files affected by this change: src/util/dict_open.c,
+	src/global/dynamicmaps.c, src/global/mail_version.h,
+	src/global/header_body_checks.h, src/global/maps.c,
+	src/global/dict_proxy.h, src/util/dict.c, src/util/dict_dbm.h,
+	src/util/dict_fail.h, src/util/dict_db.h, src/util/dict_lmdb.h,
+	src/util/dict_cdb.h, src/util/dict_sdbm.h, src/util/dict.h,
+	src/global/mail_dict.c, src/postalias/postalias.c,
+	src/postmap/postmap.c.
+
+	Portability: variable declaration after code. File:
+	global/compat_level.c.
+
+20220504
+
+	Documentation: dymap_init() description. File:
+	global/dynamicmaps.c.
+
+20220506
+
+	Added an argv_uniq() function to deduplicate same-value
+	adjacent array elements. Added a ton of tests to validate
+	the argv implementation. File: util/argv.c.
+
+	Cleanup: the dict_mapnames() function (used in "postconf
+	-m") now deduplicates dictionary type names. File:
+	util/dict_open.c.
+
+20220507
+
+	Documentation: inverted the paragraph about "known" addresses,
+	in the descriptions of smtpd_reject_unlisted_sender and
+	smtpd_reject_unlisted_recipient. File: proto/postconf.proto.
+
+	Documentation: added the HISTORY file to the pre-release-checks.
+	Files: mantools/check-double-history, mantools/check-spell-history,
+	proto/stop.double-history, proto/stop.spell-history.
+
+	Documentation: added POSTLOG_SERVICE and POSTLOG_HOSTNAME
+	to the import_environment description. File: proto/postconf.proto.

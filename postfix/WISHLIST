@@ -9,13 +9,18 @@ Wish list:
 	Scan Postfix code with github.com/googleprojectzero/weggli
 	(depends on "rust").
 
+	Enforce var_line_limit in util/attr_scan*c.
+
 	Can tests use LD_PRELOAD to inject fake modules such as
 	fake_dns(3), fake_msg(3), fake_myaddrinfo(3) and so on?
 	One limitation is that functions etc. in a preloaded object
 	always take precedence, even in code that is not being
 	tested.
 
-	'%l' support. ef7c661c-d86a-2366-6a73-ec8d51d75012@dev.snart.me
+	'%l' support, similar to %D in the Dovecot LDAP driver.
+	Subject: Feature request: '%l' expansion for ldap_table,
+	Date: Tue, 5 Apr 2022.  Message-ID:
+	<ef7c661c-d86a-2366-6a73-ec8d51d75012@dev.snart.me>
 
 	WARN_IF_REJECT like prefix that disables the error counter increment.
 

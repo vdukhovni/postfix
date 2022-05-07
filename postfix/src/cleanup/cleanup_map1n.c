@@ -101,7 +101,7 @@ ARGV   *cleanup_map1n_internal(CLEANUP_STATE *state, const char *addr,
      * pointer.
      */
 #define UPDATE(ptr,new)	do { \
-	if (ptr) myfree(ptr); ptr = mystrdup(new); \
+	if (ptr) { myfree(ptr); } ptr = mystrdup(new); \
     } while (0)
 #define STR	vstring_str
 #define RETURN(x) do { \

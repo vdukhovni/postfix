@@ -27,8 +27,6 @@ extern const char *compat_level_to_string(long,
 #define compat_level_from_major_minor(major, minor, msg_fn) \
 	compat_level_from_numbers((major), (minor), 0, (msg_fn))
 
-#
-
 /* LICENSE
 /* .ad
 /* .fi

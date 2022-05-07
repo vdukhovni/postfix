@@ -1784,3 +1784,5 @@ stdint
 Noll
 deinit
 reinit
+COMPAR
+deduplicate

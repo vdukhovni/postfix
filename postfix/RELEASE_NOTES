@@ -24,3 +24,11 @@ historical IBM Public License 1.0, it is now also distributed with the
 more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
+
+Incompatible changes with snapshot 20220507
+===========================================
+
+Most global/mkmap*.[hc] files have moved to the util directory;
+only global/mkmap_proxy.* remains. The old file organization was
+designed before support for dynamically-loadable databases was
+added, and the code suffered from complexity.

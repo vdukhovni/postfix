@@ -2561,6 +2561,14 @@ Needed for debugging Postfix daemons with an X\-windows debugger.
 .IP "\fBMAIL_CONFIG\fR"
 Needed to make "\fBpostfix \-c\fR" work.
 .br
+.IP "\fBPOSTLOG_SERVICE\fR"
+Needed to make "\fBmaillog_file\fR" work during daemon
+process initialization.
+.br
+.IP "\fBPOSTLOG_HOSTNAME\fR"
+Needed to make "\fBmaillog_file\fR" work during daemon
+process initialization.
+.br
 .br
 .PP
 Specify a list of names and/or name=value pairs, separated by
@@ -11482,8 +11490,9 @@ recipient addresses, even when no explicit reject_unlisted_recipient
 access restriction is specified. This prevents the Postfix queue
 from filling up with undeliverable MAILER\-DAEMON messages.
 .PP
-An address is always considered "known" when it matches a
-\fBvirtual\fR(5) alias or a \fBcanonical\fR(5) mapping.
+An address is considered "unknown" when it does not match a
+\fBvirtual\fR(5) alias or a \fBcanonical\fR(5) mapping, and one of the following
+conditions holds:
 .IP \(bu
 The recipient domain matches $mydestination, $inet_interfaces
 or $proxy_interfaces, but the recipient is not listed in
@@ -11508,8 +11517,9 @@ sender addresses, even when no explicit reject_unlisted_sender
 access restriction is specified. This can slow down an explosion
 of forged mail from worms or viruses.
 .PP
-An address is always considered "known" when it matches a
-\fBvirtual\fR(5) alias or a \fBcanonical\fR(5) mapping.
+An address is considered "unknown" when it does not match a
+\fBvirtual\fR(5) alias or a \fBcanonical\fR(5) mapping, and one of the following
+conditions holds:
 .IP \(bu
 The sender domain matches $mydestination, $inet_interfaces or
 $proxy_interfaces, but the sender is not listed in

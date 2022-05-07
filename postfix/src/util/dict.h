@@ -232,10 +232,16 @@ extern int dict_error(const char *);
   * Low-level interface, with physical dictionary handles.
   */
 typedef DICT *(*DICT_OPEN_FN) (const char *, int, int);
-typedef DICT_OPEN_FN (*DICT_OPEN_EXTEND_FN) (const char *);
+typedef struct {
+    const char *type;
+    DICT_OPEN_FN dict_fn;
+    struct MKMAP *(*mkmap_fn) (const char *);
+} DICT_OPEN_INFO;
+typedef const DICT_OPEN_INFO *(*DICT_OPEN_EXTEND_FN) (const char *);
 extern DICT *dict_open(const char *, int, int);
 extern DICT *dict_open3(const char *, const char *, int, int);
-extern void dict_open_register(const char *, DICT_OPEN_FN);
+extern void dict_open_register(const DICT_OPEN_INFO *);
+extern const DICT_OPEN_INFO *dict_open_lookup(const char *);
 extern DICT_OPEN_EXTEND_FN dict_open_extend(DICT_OPEN_EXTEND_FN);
 
 #define dict_get(dp, key)	((const char *) (dp)->lookup((dp), (key)))

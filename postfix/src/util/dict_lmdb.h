@@ -15,6 +15,7 @@
   * Utility library.
   */
 #include <dict.h>
+#include <mkmap.h>
 
  /*
   * External interface.
@@ -22,6 +23,7 @@
 #define DICT_TYPE_LMDB	"lmdb"
 
 extern DICT *dict_lmdb_open(const char *, int, int);
+extern MKMAP *mkmap_lmdb_open(const char *);
 
  /*
   * XXX Should be part of the DICT interface.
@@ -38,6 +40,11 @@ extern size_t dict_lmdb_map_size;
 /* AUTHOR(S)
 /*	Howard Chu
 /*	Symas Corporation
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif

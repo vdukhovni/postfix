@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	create or open database, CDB style
 /* SYNOPSIS
-/*	#include <mkmap.h>
+/*	#include <dict_cdb.h>
 /*
 /*	MKMAP	*mkmap_cdb_open(path)
 /*	const char *path;
@@ -32,6 +32,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -43,11 +48,6 @@
 /* Utility library. */
 
 #include <mymalloc.h>
-#include <dict.h>
-
-/* Application-specific. */
-
-#include "mkmap.h"
 #include <dict_cdb.h>
 
 /* This is a dummy module, since CDB has all the functionality

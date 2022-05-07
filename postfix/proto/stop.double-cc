@@ -329,3 +329,4 @@ XXX  XXX
  int compar DNS_RR DNS_RR 
 USE_FNV_32BIT  USE_FNV_32BIT 
 void  void cleanup_milter_receive state count 
+ struct DICT open const char int int dict_xx_open 
