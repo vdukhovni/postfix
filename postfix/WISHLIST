@@ -30,10 +30,6 @@ Wish list:
 	expectations when different reply patterns have different weights.
 	We need a compatibility_level feature to correct this.
 
-	In the pgsql: client, make the client encoding configurable
-	with a sensible default (UTF8). This code is implemented
-	and needs to be tested.
-
 	FILTER_README needs some text on multi-instance implementations,
 	and existing multi-instance references need to be updated.
 

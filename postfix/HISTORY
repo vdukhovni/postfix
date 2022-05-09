@@ -26495,3 +26495,10 @@ Apologies for any names omitted.
 
 	Documentation: added POSTLOG_SERVICE and POSTLOG_HOSTNAME
 	to the import_environment description. File: proto/postconf.proto.
+
+20220509
+
+	Cleanup: the pgsql: client encoding is now configurable
+	with the "encoding" configuration file attribute. The default
+	is "UTF8". Previously the encoding was hard-coded as "LATIN1".
+	Files: global/dict_pgsql,c, proto/pgsql_table.
