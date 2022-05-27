@@ -11490,25 +11490,11 @@ recipient addresses, even when no explicit reject_unlisted_recipient
 access restriction is specified. This prevents the Postfix queue
 from filling up with undeliverable MAILER\-DAEMON messages.
 .PP
-An address is considered "unknown" when it does not match a
-\fBvirtual\fR(5) alias or a \fBcanonical\fR(5) mapping, and one of the following
-conditions holds:
-.IP \(bu
-The recipient domain matches $mydestination, $inet_interfaces
-or $proxy_interfaces, but the recipient is not listed in
-$local_recipient_maps, and $local_recipient_maps is not null.
-.IP \(bu
-The recipient domain matches $virtual_alias_domains but the
-recipient is not listed in $virtual_alias_maps.
-.IP \(bu
-The recipient domain matches $virtual_mailbox_domains but the
-recipient is not listed in $virtual_mailbox_maps, and $virtual_mailbox_maps
-is not null.
-.IP \(bu
-The recipient domain matches $relay_domains but the recipient
-is not listed in $relay_recipient_maps, and $relay_recipient_maps
-is not null.
-.br
+An address is considered "unknown" when 1) it does not match a
+\fBvirtual\fR(5) alias or \fBcanonical\fR(5) mapping, and 2) the address is not
+valid for its address class. For a definition of class\-based address
+validation, see
+ADDRESS_CLASS_README.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH smtpd_reject_unlisted_sender (default: no)
@@ -11517,25 +11503,11 @@ sender addresses, even when no explicit reject_unlisted_sender
 access restriction is specified. This can slow down an explosion
 of forged mail from worms or viruses.
 .PP
-An address is considered "unknown" when it does not match a
-\fBvirtual\fR(5) alias or a \fBcanonical\fR(5) mapping, and one of the following
-conditions holds:
-.IP \(bu
-The sender domain matches $mydestination, $inet_interfaces or
-$proxy_interfaces, but the sender is not listed in
-$local_recipient_maps, and $local_recipient_maps is not null.
-.IP \(bu
-The sender domain matches $virtual_alias_domains but the sender
-is not listed in $virtual_alias_maps.
-.IP \(bu
-The sender domain matches $virtual_mailbox_domains but the
-sender is not listed in $virtual_mailbox_maps, and $virtual_mailbox_maps
-is not null.
-.IP \(bu
-The sender domain matches $relay_domains but the sender is
-not listed in $relay_recipient_maps, and $relay_recipient_maps is
-not null.
-.br
+An address is considered "unknown" when 1) it does not match a
+\fBvirtual\fR(5) alias or \fBcanonical\fR(5) mapping, and 2) the address is not
+valid for its address class. For a definition of class\-based address
+validation, see
+ADDRESS_CLASS_README.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH smtpd_relay_before_recipient_restrictions (default: see "postconf \-d" output)
@@ -11921,14 +11893,29 @@ use DUNNO in order to exclude specific hosts from denylists.  This
 feature is available in Postfix 2.1 and later.
 .br
 .IP "\fBreject_authenticated_sender_login_mismatch\fR"
-Enforces the reject_sender_login_mismatch restriction for
-authenticated clients only. This feature is available in
-Postfix version 2.1 and later.
+Reject the request when the client is authenticated with SASL,
+but either the MAIL FROM address is not listed in $smtpd_sender_login_maps,
+or the SASL login name is not an owner for that address.
+.br
+This prevents an authenticated client from using a MAIL FROM address
+that they do not explicitly own.
+.br
+This feature is available in Postfix version 2.1 and later.
 .br
 .IP "\fBreject_known_sender_login_mismatch\fR"
-Apply the reject_sender_login_mismatch restriction only to MAIL
-FROM addresses that are known in $smtpd_sender_login_maps.  This
-feature is available in Postfix version 2.11 and later.
+When the client is authenticated with SASL, reject the request
+when the MAIL FROM address is listed in $smtpd_sender_login_maps,
+but the SASL login name is not an owner for that address.
+.br
+When the client is not authenticated with SASL, reject the request
+when SASL is enabled, and the MAIL FROM address is listed in
+$smtpd_sender_login_maps.
+.br
+This protects any MAIL FROM address that is listed in
+$smtpd_sender_login_maps, while still allowing a client to use any
+unlisted MAIL FROM address.
+.br
+This feature is available in Postfix version 2.11 and later.
 .br
 .IP "\fBreject_non_fqdn_sender\fR"
 Reject the request when the MAIL FROM address specifies a
@@ -11957,16 +11944,19 @@ specifies tables with server replies indexed by \fIrbl_domain\fR.
 This feature is available in Postfix 2.0 and later.
 .br
 .IP "\fBreject_sender_login_mismatch\fR"
-Reject the request when $smtpd_sender_login_maps specifies an
-owner for the MAIL FROM address, but the client is not (SASL) logged
-in as that MAIL FROM address owner; or when the client is (SASL)
-logged in, but the client login name doesn't own the MAIL FROM
-address according to $smtpd_sender_login_maps.
+As of Postfix 2.1, this is an alias for
+"reject_authenticated_sender_login_mismatch,
+reject_unauthenticated_sender_login_mismatch".
 .br
 .IP "\fBreject_unauthenticated_sender_login_mismatch\fR"
-Enforces the reject_sender_login_mismatch restriction for
-unauthenticated clients only. This feature is available in
-Postfix version 2.1 and later.
+Reject the request when SASL is enabled, the MAIL FROM address
+is listed in $smtpd_sender_login_maps, but the client is not
+authenticated with SASL.
+.br
+With SASL enabled, this prevents an unauthenticated client from
+using any MAIL FROM address that is listed in $smtpd_sender_login_maps.
+.br
+This feature is available in Postfix version 2.1 and later.
 .br
 .IP "\fBreject_unknown_sender_domain\fR"
 Reject the request when Postfix is not the final destination for

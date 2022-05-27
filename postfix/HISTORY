@@ -26502,3 +26502,34 @@ Apologies for any names omitted.
 	with the "encoding" configuration file attribute. The default
 	is "UTF8". Previously the encoding was hard-coded as "LATIN1".
 	Files: global/dict_pgsql,c, proto/pgsql_table.
+
+20220512
+
+	Documentation: in the text for smtpd_reject_unlisted_sender
+	and smtpd_reject_unlisted_recipient, refer to the address
+	class validation in ADDRESS_CLASS_README, instead of repeating
+	that information in postconf(5). File: proto/postconf.proto.
+
+20220515
+
+	Documentation: the text for reject_xxx_sender_login_mismatch
+	was not optimal for clarity. As new features were added
+	over time, they were documented in terms of the existing
+	features. File: proto/postconf.proto.
+
+	Documentation: minor tweaks in ADDRESS_CLASS_README. File:
+	proto/ADDRESS_CLASS_README.html.
+
+20220523
+
+	Documentation: add the Postfix >= 3.7 postlog(1) command
+	to the list of programs that can have set-gid permissions.
+	File: proto/MAILLOG_README.html.
+
+20220527
+
+	Internal documentation: update the timeline annotations of
+	Milter protocol features. File: milter/milter8.c.
+
+	Documentation: edit text for clarity. File:
+	proto/MILTER_README.html.
