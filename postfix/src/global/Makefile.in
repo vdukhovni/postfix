@@ -3,7 +3,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	canon_addr.c cfg_parser.c cleanup_strerror.c cleanup_strflags.c \
 	clnt_stream.c conv_time.c db_common.c debug_peer.c debug_process.c \
 	defer.c deliver_completed.c deliver_flock.c deliver_pass.c \
-	deliver_request.c dict_ldap.c dict_mysql.c dict_pgsql.c \
+	deliver_request.c dict_ldap.c dict_mongodb.c dict_mysql.c dict_pgsql.c \
 	dict_proxy.c dict_sqlite.c domain_list.c dot_lockfile.c dot_lockfile_as.c \
 	dsb_scan.c dsn.c dsn_buf.c dsn_mask.c dsn_print.c dsn_util.c \
 	ehlo_mask.c ext_prop.c file_id.c flush_clnt.c header_opts.c \
@@ -80,13 +80,13 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
-MAP_OBJ = dict_ldap.o dict_mysql.o dict_pgsql.o dict_sqlite.o
+MAP_OBJ = dict_ldap.o dict_mysql.o dict_pgsql.o dict_sqlite.o dict_mongodb.o
 
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
 	deliver_completed.h deliver_flock.h deliver_pass.h deliver_request.h \
-	dict_ldap.h dict_mysql.h dict_pgsql.h dict_proxy.h dict_sqlite.h domain_list.h \
+	dict_ldap.h dict_mysql.h dict_pgsql.h dict_mongodb.h dict_proxy.h dict_sqlite.h domain_list.h \
 	dot_lockfile.h dot_lockfile_as.h dsb_scan.h dsn.h dsn_buf.h \
 	dsn_mask.h dsn_print.h dsn_util.h ehlo_mask.h ext_prop.h \
 	file_id.h flush_clnt.h header_opts.h header_token.h input_transp.h \
@@ -136,7 +136,7 @@ LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 PLUGIN_MAP_SO = $(LIB_PREFIX)ldap$(LIB_SUFFIX) $(LIB_PREFIX)mysql$(LIB_SUFFIX) \
-	$(LIB_PREFIX)pgsql$(LIB_SUFFIX) $(LIB_PREFIX)sqlite$(LIB_SUFFIX)
+	$(LIB_PREFIX)pgsql$(LIB_SUFFIX) $(LIB_PREFIX)sqlite$(LIB_SUFFIX) $(LIB_PREFIX)mongodb$(LIB_SUFFIX)
 MAKES	=
 
 .c.o:;	$(CC) $(SHLIB_CFLAGS) $(CFLAGS) -c $*.c
@@ -172,6 +172,9 @@ $(LIB_PREFIX)pgsql$(LIB_SUFFIX): dict_pgsql.o
 
 $(LIB_PREFIX)sqlite$(LIB_SUFFIX): dict_sqlite.o
 	$(PLUGIN_LD) $(SHLIB_RPATH) -o $@ dict_sqlite.o $(AUXLIBS_SQLITE)
+
+$(LIB_PREFIX)mongodb$(LIB_SUFFIX): dict_mongodb.o
+	$(PLUGIN_LD) $(SHLIB_RPATH) -o $@ dict_mongodb.o $(AUXLIBS_MONGODB)
 
 update: $(LIB_DIR)/$(LIB) $(HDRS) $(PLUGIN_MAP_SO_UPDATE)
 	-for i in $(HDRS); \
@@ -1865,6 +1868,7 @@ mail_dict.o: dict_mysql.h
 mail_dict.o: dict_pgsql.h
 mail_dict.o: dict_proxy.h
 mail_dict.o: dict_sqlite.h
+mail_dict.o: dict_mongodb.h
 mail_dict.o: dynamicmaps.h
 mail_dict.o: mail_dict.c
 mail_dict.o: mail_dict.h

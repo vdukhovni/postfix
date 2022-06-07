@@ -7,3 +7,4 @@ pcre	${LIB_PREFIX}pcre${LIB_SUFFIX}	dict_pcre_open
 pgsql	${LIB_PREFIX}pgsql${LIB_SUFFIX}	dict_pgsql_open
 sdbm	${LIB_PREFIX}sdbm${LIB_SUFFIX}	dict_sdbm_open	mkmap_sdbm_open
 sqlite	${LIB_PREFIX}sqlite${LIB_SUFFIX}	dict_sqlite_open
+mongodb	${LIB_PREFIX}mongodb${LIB_SUFFIX}	dict_mongodb_open

@@ -80,6 +80,7 @@ $shlib_directory/${LIB_PREFIX}pcre${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}pgsql${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}sdbm${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}sqlite${LIB_SUFFIX}:f:root:-:755
+$shlib_directory/${LIB_PREFIX}mongodb${LIB_SUFFIX}:f:root:-:755
 $meta_directory/dynamicmaps.cf.d:d:root:-:755
 $meta_directory/dynamicmaps.cf:f:root:-:644
 $meta_directory/main.cf.proto:f:root:-:644
