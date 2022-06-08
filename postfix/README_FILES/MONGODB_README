@@ -1,0 +1,82 @@
+PPoossttffiixx MMoonnggooDDBB HHoowwttoo
+
+-------------------------------------------------------------------------------
+
+IInnttrroodduuccttiioonn
+
+The Postfix mongodb map type allows you to hook up Postfix to a MongoDB database.
+
+Busy mail servers using mongodb maps will generate lots of concurrent mongodb
+connections, so the mongodb server(s) should be run with this fact in mind. You can
+reduce the number of concurrent mongodb clients by using the Postfix proxymap(8)
+service.
+
+BBuuiillddiinngg PPoossttffiixx wwiitthh MMoonnggooDDBB ssuuppppoorrtt
+
+These instructions assume that you build Postfix from source code as described
+in the INSTALL document. Some modification may be required if you build Postfix
+from a vendor-specific source package.
+
+The Postfix MongoDB client utilizes the mongo-c-driver library, which can be
+obtained from:
+
+    https://github.com/mongodb/mongo-c-driver/releases
+
+In order to build Postfix with mongodb map support, you will need to add -
+DHAS_MONGODB and -I for the directory containing the mongodb headers, the
+libmongoc-1.0 and libbson-1.0 libraries to AUXLIBS_MONGODB, for example:
+
+    make -f Makefile.init makefiles \
+        'CCARGS=-DHAS_MONGODB -I/usr/include/libmongoc-1.0 -I/usr/include/libbson-1.0' \
+        'AUXLIBS_MONGODB=-lmongoc-1.0 -lbson-1.0'
+
+If your MongoDB shared library is in a directory that the RUN-TIME linker does
+not know about, add a "-Wl,-R,/path/to/directory" option after "-lbson-1.0".
+
+Then, just run 'make'.
+
+UUssiinngg MMoonnggooDDBB ttaabblleess
+
+Once Postfix is built with mongodb support, you can specify a map type in main.cf
+like this:
+
+    alias_maps = mongodb:/etc/postfix/mongodb-aliases.cf
+
+The file /etc/postfix/mongodb-aliases.cf specifies a few information telling
+Postfix how to reference the mongodb database.
+
+EExxaammppllee:: llooccaall aalliiaasseess
+
+#
+# mongodb config file for local(8) aliases(5) lookups
+#
+
+# MongoDB URI, please see: https://www.mongodb.com/docs/manual/reference/connection-string/
+uri = mongodb+srv://someone:some_password@some_server
+
+# The database name on the servers.
+dbname = customer_database
+
+# The collection (table) name on the database.
+collection = mxaliases
+
+# MongoDB query and options
+filter = {"alias": %s, "status": "paid"}
+options = {"projection": {"_id": 0, "forw_addr": 1}}
+
+AAddddiittiioonnaall nnootteess
+
+1. This implementation uses connection pools.
+2. When it comes to the query(filter), it can be 1000 characters long by default.
+   Change QUERY_BUFFER_SIZE as necessary.
+3. Please note the field type when creating the filter:
+     filter = {"id": %s}
+        postmap -q "1" mongodb:... => expanded filter = {"id": 1} (which means field id must be int in the DB)
+     filter = {"id": "%s"}
+        postmap -q "1" mongodb:... => expanded filter = {"id": "1"} (which means field id must be string in the DB)
+
+CCrreeddiittss
+
+  * This is based on the work done by Stephan Ferraro.
+  * Hamid Maadani has contributed the initial code for this plugin.
+
