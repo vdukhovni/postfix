@@ -88,11 +88,11 @@
 #include "dict_mongodb.h"
 
 #define QUERY_BUFFER_SIZE 1000
-#define INIT_VSTR(buf, len) do { \                                    
-	if (buf == 0) \       
+#define INIT_VSTR(buf, len) do { \
+	if (buf == 0) \
 		buf = vstring_alloc(len); \
 	VSTRING_RESET(buf); \
-	VSTRING_TERMINATE(buf); \                            
+	VSTRING_TERMINATE(buf); \
 } while (0)
 
 /* Structure of one mongodb dictionary handle. */
@@ -134,6 +134,7 @@ static const char *dict_mongodb_lookup(DICT *dict, const char *name)
 	bson_t *query = NULL;
 	bson_t *options = NULL;
 	bson_error_t error;
+	bson_iter_t iter;
 	char *result = NULL;
 	static VSTRING *queryString = NULL;
 
@@ -178,7 +179,19 @@ static const char *dict_mongodb_lookup(DICT *dict, const char *name)
 	}
 
 	if (mongoc_cursor_next(cursor, &doc)) {
-		result = bson_as_canonical_extended_json(doc, NULL);
+		if (bson_count_keys(doc) == 1 && bson_iter_init(&iter, doc) && bson_iter_next(&iter)) {
+			switch (bson_iter_type(&iter)) {
+				case BSON_TYPE_UTF8:
+					result = strdup(bson_iter_utf8(&iter, NULL));
+					break;
+				default:
+					result = calloc(20, sizeof(char));
+					sprintf(result, "%ld", bson_iter_as_int64(&iter));
+					break;
+			}
+		} else {
+			result = bson_as_canonical_extended_json(doc, NULL);
+		}
 	} else {
 		// Should we return a failure if query has no match? Sticking with DICT_STAT_SUCCESS for now.
 		//dict->error = DICT_STAT_FAIL;

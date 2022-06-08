@@ -74,6 +74,8 @@ AAddddiittiioonnaall nnootteess
         postmap -q "1" mongodb:... => expanded filter = {"id": 1} (which means field id must be int in the DB)
      filter = {"id": "%s"}
         postmap -q "1" mongodb:... => expanded filter = {"id": "1"} (which means field id must be string in the DB)
+4. If the JSON document resulting from the query has only 1 key, only the value of that will be returned (use 
+   'projection' in query options to make this happen). Otherwise, the whole JSON document will be returned.
 
 CCrreeddiittss
 
