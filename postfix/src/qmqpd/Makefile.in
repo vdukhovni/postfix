@@ -120,6 +120,7 @@ qmqpd_peer.o: ../../include/valid_mailhost_addr.h
 qmqpd_peer.o: ../../include/vbuf.h
 qmqpd_peer.o: ../../include/vstream.h
 qmqpd_peer.o: ../../include/vstring.h
+qmqpd_peer.o: ../../include/wrap_netdb.h
 qmqpd_peer.o: qmqpd.h
 qmqpd_peer.o: qmqpd_peer.c
 qmqpd_state.o: ../../include/attr.h

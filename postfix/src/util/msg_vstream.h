@@ -19,6 +19,7 @@
   * External interface.
   */
 extern void msg_vstream_init(const char *, VSTREAM *);
+extern void msg_vstream_enable(int);
 
 /* LICENSE
 /* .ad

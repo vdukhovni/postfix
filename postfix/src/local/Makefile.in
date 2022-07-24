@@ -102,9 +102,12 @@ alias.o: ../../include/vstream.h
 alias.o: ../../include/vstring.h
 alias.o: alias.c
 alias.o: local.h
+biff_notify.o: ../../include/inet_proto.h
 biff_notify.o: ../../include/iostuff.h
 biff_notify.o: ../../include/msg.h
+biff_notify.o: ../../include/myaddrinfo.h
 biff_notify.o: ../../include/sys_defs.h
+biff_notify.o: ../../include/wrap_netdb.h
 biff_notify.o: biff_notify.c
 biff_notify.o: biff_notify.h
 bounce_workaround.o: ../../include/argv.h

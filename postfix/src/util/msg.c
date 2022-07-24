@@ -59,6 +59,17 @@
 /*	int	count;
 /*
 /*	void	msg_error_clear()
+/*
+/*	int	msg_setjmp(
+/*	MSG_JMP_BUF *bufp)
+/*
+/*	void	msg_longjmp(
+/*	int	value)
+/*
+/*	void	msg_resetjmp(
+/*	MSG_JMP_BUF *bufp)
+/*
+/*	void	msg_clearjmp(void)
 /* DESCRIPTION
 /*	This module reports diagnostics. By default, diagnostics are sent
 /*	to the standard error stream, but the disposition can be changed
@@ -131,6 +142,26 @@
 /*	This protection exists under the condition that these
 /*	specific resources are accessed exclusively via the msg_info()
 /*	etc.  functions.
+/* EXCEPTIONS AND NON-PRODUCTION TESTS
+/*	The default action for msg_fatal*() and msg_panic is to
+/*	terminate the program. In order to support non-production
+/*	tests, the following macros implement support for long
+/*	jumps.
+/*
+/*	msg_setjmp() specifies a caller-specified buffer and saves
+/*	state for a future long jump. The buffer lifetime must
+/*	extend to the next msg_resetjmp() or msg_clearjmp() call.
+/*
+/*	In-between the msg_setjmp() and msg_clearjmp() calls,
+/*	msg_fatal*() and msg_panic() will perform a long jump instead
+/*	of terminating the program.
+/*
+/*	msg_resetjmp() should be used to restore state that was
+/*	previously saved with msg_setjmp(). The buffer lifetime
+/*	must extend to the next msg_resetjmp() or msg_clearjmp()
+/*	call.
+/* .ad
+/* .fi
 /* SEE ALSO
 /*	msg_output(3) specify diagnostics disposition
 /*	msg_stdio(3) direct diagnostics to standard I/O stream
@@ -157,6 +188,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System libraries. */
@@ -165,6 +201,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <signal.h>
 
 /* Application-specific. */
 
@@ -175,6 +212,12 @@
   * Default is verbose logging off.
   */
 int     msg_verbose = 0;
+
+ /*
+  * Semi-private state. Managed with msg_setjmp(), msg_longjmp(), and
+  * msg_clearjmp().
+  */
+MSG_JMP_BUF *msg_jmp_bufp;
 
  /*
   * Private state.
@@ -262,6 +305,11 @@ NORETURN vmsg_fatal(const char *fmt, va_list ap)
 	if (msg_cleanup_fn)
 	    msg_cleanup_fn();
     }
+    if (msg_jmp_bufp) {
+	/* This code is for testing only. */
+	msg_exiting = 0;
+	msg_longjmp(MSG_LONGJMP_FATAL);
+    }
     sleep(1);
     /* In case we're running as a signal handler. */
     _exit(1);
@@ -285,6 +333,11 @@ NORETURN vmsg_fatal_status(int status, const char *fmt, va_list ap)
 	if (msg_cleanup_fn)
 	    msg_cleanup_fn();
     }
+    if (msg_jmp_bufp) {
+	/* This code is for testing only. */
+	msg_exiting = 0;
+	msg_longjmp(MSG_LONGJMP_FATAL);
+    }
     sleep(1);
     /* In case we're running as a signal handler. */
     _exit(status);
@@ -305,6 +358,11 @@ NORETURN vmsg_panic(const char *fmt, va_list ap)
 {
     if (msg_exiting++ == 0) {
 	msg_vprintf(MSG_PANIC, fmt, ap);
+    }
+    if (msg_jmp_bufp) {
+	/* This code is for testing only. */
+	msg_exiting = 0;
+	msg_longjmp(MSG_LONGJMP_PANIC);
     }
     sleep(1);
     abort();					/* Die! */

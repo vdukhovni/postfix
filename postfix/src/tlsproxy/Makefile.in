@@ -89,6 +89,7 @@ tlsproxy.o: ../../include/tls_proxy.h
 tlsproxy.o: ../../include/vbuf.h
 tlsproxy.o: ../../include/vstream.h
 tlsproxy.o: ../../include/vstring.h
+tlsproxy.o: ../../include/wrap_netdb.h
 tlsproxy.o: tlsproxy.c
 tlsproxy.o: tlsproxy.h
 tlsproxy_state.o: ../../include/argv.h
@@ -113,5 +114,6 @@ tlsproxy_state.o: ../../include/tls_proxy.h
 tlsproxy_state.o: ../../include/vbuf.h
 tlsproxy_state.o: ../../include/vstream.h
 tlsproxy_state.o: ../../include/vstring.h
+tlsproxy_state.o: ../../include/wrap_netdb.h
 tlsproxy_state.o: tlsproxy.h
 tlsproxy_state.o: tlsproxy_state.c

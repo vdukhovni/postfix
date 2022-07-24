@@ -1,19 +1,22 @@
 SHELL	= /bin/sh
 SRCS	= dns_lookup.c dns_rr.c dns_strerror.c dns_strtype.c dns_rr_to_pa.c \
 	dns_sa_to_rr.c dns_rr_eq_sa.c dns_rr_to_sa.c dns_strrecord.c \
-	dns_rr_filter.c dns_str_resflags.c dns_sec.c
+	dns_rr_filter.c dns_str_resflags.c dns_sec.c dns_lookup_types.c
 OBJS	= dns_lookup.o dns_rr.o dns_strerror.o dns_strtype.o dns_rr_to_pa.o \
 	dns_sa_to_rr.o dns_rr_eq_sa.o dns_rr_to_sa.o dns_strrecord.o \
-	dns_rr_filter.o dns_str_resflags.o dns_sec.o
+	dns_rr_filter.o dns_str_resflags.o dns_sec.o dns_lookup_types.o
+TEST_OBJ = dns_lookup_types_test.o
 HDRS	= dns.h
 TESTSRC	= test_dns_lookup.c test_alias_token.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 INCL	=
 LIB	= lib$(LIB_PREFIX)dns$(LIB_SUFFIX)
-TESTPROG= test_dns_lookup dns_rr_to_pa dns_rr_to_sa dns_sa_to_rr dns_rr_eq_sa
+TESTPROG= test_dns_lookup dns_rr_to_pa dns_rr_to_sa dns_sa_to_rr dns_rr_eq_sa \
+	dns_lookup_types_test
 LIBS	= ../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
 	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
+TEST_LIB= ../../lib/libtesting.a ../../lib/libptest.a
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 
@@ -21,7 +24,7 @@ INC_DIR	= ../../include
 
 all: $(LIB)
 
-$(OBJS): ../../conf/makedefs.out
+$(OBJS) $(TEST_OBJ): ../../conf/makedefs.out
 
 Makefile: Makefile.in
 	cat ../../conf/makedefs.out $? >$@
@@ -31,7 +34,7 @@ test:	$(TESTPROG)
 tests:	test dns_rr_to_pa_test dns_rr_to_sa_test dns_sa_to_rr_test \
 	dns_rr_eq_sa_test no-a-test no-aaaa-test no-mx-test \
 	error-filter-test nullmx_test nxdomain_test mxonly_test \
-	dnsbl_tests
+	dnsbl_tests test_dns_lookup_types
 
 dnsbl_tests: \
 	dnsbl_ttl_127.0.0.2_bind_plain_test \
@@ -98,7 +101,7 @@ dns_rr_eq_sa: $(LIB) $(LIBS)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
-
+	
 dns_rr_to_pa_test: dns_rr_to_pa dns_rr_to_pa.in dns_rr_to_pa.ref
 	$(SHLIB_ENV) ./dns_rr_to_pa `cat dns_rr_to_pa.in` >dns_rr_to_pa.tmp
 	diff dns_rr_to_pa.ref dns_rr_to_pa.tmp
@@ -159,6 +162,14 @@ mxonly_test: test_dns_lookup mxonly_test.ref
 	) >mxonly_test.tmp 2>&1 || exit 0
 	diff mxonly_test.ref mxonly_test.tmp
 	rm -f mxonly_test.tmp
+
+dns_lookup_types_test: update dns_lookup_types_test.o \
+	$(LIB_DIR)/mock_dns_lookup.o $(TEST_LIB) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(LIB_DIR)/mock_dns_lookup.o \
+	$(TEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
+
+test_dns_lookup_types: dns_lookup_types_test
+	$(SHLIB_ENV) $(VALGRIND) ./dns_lookup_types_test
 
 # Non-existent record, libbind API, RFC 2308 disabled.
 
@@ -283,8 +294,43 @@ dns_lookup.o: ../../include/valid_hostname.h
 dns_lookup.o: ../../include/vbuf.h
 dns_lookup.o: ../../include/vstream.h
 dns_lookup.o: ../../include/vstring.h
+dns_lookup.o: ../../include/wrap_netdb.h
 dns_lookup.o: dns.h
 dns_lookup.o: dns_lookup.c
+dns_lookup_types.o: ../../include/argv.h
+dns_lookup_types.o: ../../include/check_arg.h
+dns_lookup_types.o: ../../include/dict.h
+dns_lookup_types.o: ../../include/maps.h
+dns_lookup_types.o: ../../include/msg.h
+dns_lookup_types.o: ../../include/myaddrinfo.h
+dns_lookup_types.o: ../../include/myflock.h
+dns_lookup_types.o: ../../include/sock_addr.h
+dns_lookup_types.o: ../../include/sys_defs.h
+dns_lookup_types.o: ../../include/vbuf.h
+dns_lookup_types.o: ../../include/vstream.h
+dns_lookup_types.o: ../../include/vstring.h
+dns_lookup_types.o: ../../include/wrap_netdb.h
+dns_lookup_types.o: dns.h
+dns_lookup_types.o: dns_lookup_types.c
+dns_lookup_types_test.o: ../../include/argv.h
+dns_lookup_types_test.o: ../../include/check_arg.h
+dns_lookup_types_test.o: ../../include/mock_dns.h
+dns_lookup_types_test.o: ../../include/msg.h
+dns_lookup_types_test.o: ../../include/msg_output.h
+dns_lookup_types_test.o: ../../include/msg_vstream.h
+dns_lookup_types_test.o: ../../include/myaddrinfo.h
+dns_lookup_types_test.o: ../../include/pmock_expect.h
+dns_lookup_types_test.o: ../../include/ptest.h
+dns_lookup_types_test.o: ../../include/ptest_main.h
+dns_lookup_types_test.o: ../../include/sock_addr.h
+dns_lookup_types_test.o: ../../include/stringops.h
+dns_lookup_types_test.o: ../../include/sys_defs.h
+dns_lookup_types_test.o: ../../include/vbuf.h
+dns_lookup_types_test.o: ../../include/vstream.h
+dns_lookup_types_test.o: ../../include/vstring.h
+dns_lookup_types_test.o: ../../include/wrap_netdb.h
+dns_lookup_types_test.o: dns.h
+dns_lookup_types_test.o: dns_lookup_types_test.c
 dns_rr.o: ../../include/check_arg.h
 dns_rr.o: ../../include/msg.h
 dns_rr.o: ../../include/myaddrinfo.h
@@ -294,6 +340,7 @@ dns_rr.o: ../../include/sock_addr.h
 dns_rr.o: ../../include/sys_defs.h
 dns_rr.o: ../../include/vbuf.h
 dns_rr.o: ../../include/vstring.h
+dns_rr.o: ../../include/wrap_netdb.h
 dns_rr.o: dns.h
 dns_rr.o: dns_rr.c
 dns_rr_eq_sa.o: ../../include/check_arg.h
@@ -303,6 +350,7 @@ dns_rr_eq_sa.o: ../../include/sock_addr.h
 dns_rr_eq_sa.o: ../../include/sys_defs.h
 dns_rr_eq_sa.o: ../../include/vbuf.h
 dns_rr_eq_sa.o: ../../include/vstring.h
+dns_rr_eq_sa.o: ../../include/wrap_netdb.h
 dns_rr_eq_sa.o: dns.h
 dns_rr_eq_sa.o: dns_rr_eq_sa.c
 dns_rr_filter.o: ../../include/argv.h
@@ -317,6 +365,7 @@ dns_rr_filter.o: ../../include/sys_defs.h
 dns_rr_filter.o: ../../include/vbuf.h
 dns_rr_filter.o: ../../include/vstream.h
 dns_rr_filter.o: ../../include/vstring.h
+dns_rr_filter.o: ../../include/wrap_netdb.h
 dns_rr_filter.o: dns.h
 dns_rr_filter.o: dns_rr_filter.c
 dns_rr_to_pa.o: ../../include/check_arg.h
@@ -326,6 +375,7 @@ dns_rr_to_pa.o: ../../include/sock_addr.h
 dns_rr_to_pa.o: ../../include/sys_defs.h
 dns_rr_to_pa.o: ../../include/vbuf.h
 dns_rr_to_pa.o: ../../include/vstring.h
+dns_rr_to_pa.o: ../../include/wrap_netdb.h
 dns_rr_to_pa.o: dns.h
 dns_rr_to_pa.o: dns_rr_to_pa.c
 dns_rr_to_sa.o: ../../include/check_arg.h
@@ -335,6 +385,7 @@ dns_rr_to_sa.o: ../../include/sock_addr.h
 dns_rr_to_sa.o: ../../include/sys_defs.h
 dns_rr_to_sa.o: ../../include/vbuf.h
 dns_rr_to_sa.o: ../../include/vstring.h
+dns_rr_to_sa.o: ../../include/wrap_netdb.h
 dns_rr_to_sa.o: dns.h
 dns_rr_to_sa.o: dns_rr_to_sa.c
 dns_sa_to_rr.o: ../../include/check_arg.h
@@ -344,6 +395,7 @@ dns_sa_to_rr.o: ../../include/sock_addr.h
 dns_sa_to_rr.o: ../../include/sys_defs.h
 dns_sa_to_rr.o: ../../include/vbuf.h
 dns_sa_to_rr.o: ../../include/vstring.h
+dns_sa_to_rr.o: ../../include/wrap_netdb.h
 dns_sa_to_rr.o: dns.h
 dns_sa_to_rr.o: dns_sa_to_rr.c
 dns_sec.o: ../../include/check_arg.h
@@ -356,6 +408,7 @@ dns_sec.o: ../../include/split_at.h
 dns_sec.o: ../../include/sys_defs.h
 dns_sec.o: ../../include/vbuf.h
 dns_sec.o: ../../include/vstring.h
+dns_sec.o: ../../include/wrap_netdb.h
 dns_sec.o: dns.h
 dns_sec.o: dns_sec.c
 dns_str_resflags.o: ../../include/check_arg.h
@@ -365,6 +418,7 @@ dns_str_resflags.o: ../../include/sock_addr.h
 dns_str_resflags.o: ../../include/sys_defs.h
 dns_str_resflags.o: ../../include/vbuf.h
 dns_str_resflags.o: ../../include/vstring.h
+dns_str_resflags.o: ../../include/wrap_netdb.h
 dns_str_resflags.o: dns.h
 dns_str_resflags.o: dns_str_resflags.c
 dns_strerror.o: ../../include/check_arg.h
@@ -373,6 +427,7 @@ dns_strerror.o: ../../include/sock_addr.h
 dns_strerror.o: ../../include/sys_defs.h
 dns_strerror.o: ../../include/vbuf.h
 dns_strerror.o: ../../include/vstring.h
+dns_strerror.o: ../../include/wrap_netdb.h
 dns_strerror.o: dns.h
 dns_strerror.o: dns_strerror.c
 dns_strrecord.o: ../../include/check_arg.h
@@ -382,6 +437,7 @@ dns_strrecord.o: ../../include/sock_addr.h
 dns_strrecord.o: ../../include/sys_defs.h
 dns_strrecord.o: ../../include/vbuf.h
 dns_strrecord.o: ../../include/vstring.h
+dns_strrecord.o: ../../include/wrap_netdb.h
 dns_strrecord.o: dns.h
 dns_strrecord.o: dns_strrecord.c
 dns_strtype.o: ../../include/check_arg.h
@@ -390,6 +446,7 @@ dns_strtype.o: ../../include/sock_addr.h
 dns_strtype.o: ../../include/sys_defs.h
 dns_strtype.o: ../../include/vbuf.h
 dns_strtype.o: ../../include/vstring.h
+dns_strtype.o: ../../include/wrap_netdb.h
 dns_strtype.o: dns.h
 dns_strtype.o: dns_strtype.c
 test_dns_lookup.o: ../../include/argv.h
@@ -404,5 +461,6 @@ test_dns_lookup.o: ../../include/sys_defs.h
 test_dns_lookup.o: ../../include/vbuf.h
 test_dns_lookup.o: ../../include/vstream.h
 test_dns_lookup.o: ../../include/vstring.h
+test_dns_lookup.o: ../../include/wrap_netdb.h
 test_dns_lookup.o: dns.h
 test_dns_lookup.o: test_dns_lookup.c

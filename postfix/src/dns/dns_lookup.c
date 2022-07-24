@@ -33,6 +33,9 @@
 /*	unsigned *ltype;
 /*
 /*	int	dns_get_h_errno()
+/*
+/*	void	dns_set_h_errno(
+/*	int	errval)
 /* AUXILIARY FUNCTIONS
 /*	extern int var_dns_ncache_ttl_fix;
 /*
@@ -85,9 +88,9 @@
 /*	an invalid name is reported as a DNS_INVAL result, while
 /*	malformed replies are reported as transient errors.
 /*
-/*	dns_get_h_errno() returns the last error. This deprecates
-/*	usage of the global h_errno variable. We should not rely
-/*	on that being updated.
+/*	dns_get_h_errno() returns the last error, and dns_set_h_errno()
+/*	sets it. This deprecates usage of the global h_errno variable.
+/*	We should not rely on that being updated.
 /*
 /*	dns_lookup_l() and dns_lookup_v() allow the user to specify
 /*	a list of resource types.
@@ -295,8 +298,8 @@ typedef struct DNS_REPLY {
 #define INET6_ADDR_LEN	16		/* XXX */
 
  /*
-  * Use the threadsafe resolver API if available, not because it is theadsafe,
-  * but because it has more functionality.
+  * Use the threadsafe resolver API if available, not because it is
+  * theadsafe, but because it has more functionality.
   */
 #ifdef USE_RES_NCALLS
 static struct __res_state dns_res_state;
@@ -1137,136 +1140,16 @@ int     dns_lookup_x(const char *name, unsigned type, unsigned flags,
     return (DNS_NOTFOUND);
 }
 
-/* dns_lookup_rl - DNS lookup interface with types list */
-
-int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
-		              VSTRING *fqdn, VSTRING *why, int *rcode,
-		              int lflags,...)
-{
-    va_list ap;
-    unsigned type, next;
-    int     status = DNS_NOTFOUND;
-    int     hpref_status = INT_MIN;
-    VSTRING *hpref_rtext = 0;
-    int     hpref_rcode;
-    int     hpref_h_errno;
-    DNS_RR *rr;
-
-    /* Save intermediate highest-priority result. */
-#define SAVE_HPREF_STATUS() do { \
-	hpref_status = status; \
-	if (rcode) \
-	    hpref_rcode = *rcode; \
-	if (why && status != DNS_OK) \
-	    vstring_strcpy(hpref_rtext ? hpref_rtext : \
-			   (hpref_rtext = vstring_alloc(VSTRING_LEN(why))), \
-			   vstring_str(why)); \
-	hpref_h_errno = DNS_GET_H_ERRNO(&dns_res_state); \
-    } while (0)
-
-    /* Restore intermediate highest-priority result. */
-#define RESTORE_HPREF_STATUS() do { \
-	status = hpref_status; \
-	if (rcode) \
-	    *rcode = hpref_rcode; \
-	if (why && status != DNS_OK) \
-	    vstring_strcpy(why, vstring_str(hpref_rtext)); \
-	DNS_SET_H_ERRNO(&dns_res_state, hpref_h_errno); \
-    } while (0)
-
-    if (rrlist)
-	*rrlist = 0;
-    va_start(ap, lflags);
-    for (type = va_arg(ap, unsigned); type != 0; type = next) {
-	next = va_arg(ap, unsigned);
-	if (msg_verbose)
-	    msg_info("lookup %s type %s flags %s",
-		     name, dns_strtype(type), dns_str_resflags(flags));
-	status = dns_lookup_x(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
-			      fqdn, why, rcode, lflags);
-	if (rrlist && rr)
-	    *rrlist = dns_rr_append(*rrlist, rr);
-	if (status == DNS_OK) {
-	    if (lflags & DNS_REQ_FLAG_STOP_OK)
-		break;
-	} else if (status == DNS_INVAL) {
-	    if (lflags & DNS_REQ_FLAG_STOP_INVAL)
-		break;
-	} else if (status == DNS_POLICY) {
-	    if (type == T_MX && (lflags & DNS_REQ_FLAG_STOP_MX_POLICY))
-		break;
-	} else if (status == DNS_NULLMX) {
-	    if (lflags & DNS_REQ_FLAG_STOP_NULLMX)
-		break;
-	}
-	/* XXX Stop after NXDOMAIN error. */
-	if (next == 0)
-	    break;
-	if (status >= hpref_status)
-	    SAVE_HPREF_STATUS();		/* save last info */
-    }
-    va_end(ap);
-    if (status < hpref_status)
-	RESTORE_HPREF_STATUS();			/* else report last info */
-    if (hpref_rtext)
-	vstring_free(hpref_rtext);
-    return (status);
-}
-
-/* dns_lookup_rv - DNS lookup interface with types vector */
-
-int     dns_lookup_rv(const char *name, unsigned flags, DNS_RR **rrlist,
-		              VSTRING *fqdn, VSTRING *why, int *rcode,
-		              int lflags, unsigned *types)
-{
-    unsigned type, next;
-    int     status = DNS_NOTFOUND;
-    int     hpref_status = INT_MIN;
-    VSTRING *hpref_rtext = 0;
-    int     hpref_rcode;
-    int     hpref_h_errno;
-    DNS_RR *rr;
-
-    if (rrlist)
-	*rrlist = 0;
-    for (type = *types++; type != 0; type = next) {
-	next = *types++;
-	if (msg_verbose)
-	    msg_info("lookup %s type %s flags %s",
-		     name, dns_strtype(type), dns_str_resflags(flags));
-	status = dns_lookup_x(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
-			      fqdn, why, rcode, lflags);
-	if (rrlist && rr)
-	    *rrlist = dns_rr_append(*rrlist, rr);
-	if (status == DNS_OK) {
-	    if (lflags & DNS_REQ_FLAG_STOP_OK)
-		break;
-	} else if (status == DNS_INVAL) {
-	    if (lflags & DNS_REQ_FLAG_STOP_INVAL)
-		break;
-	} else if (status == DNS_POLICY) {
-	    if (type == T_MX && (lflags & DNS_REQ_FLAG_STOP_MX_POLICY))
-		break;
-	} else if (status == DNS_NULLMX) {
-	    if (lflags & DNS_REQ_FLAG_STOP_NULLMX)
-		break;
-	}
-	/* XXX Stop after NXDOMAIN error. */
-	if (next == 0)
-	    break;
-	if (status >= hpref_status)
-	    SAVE_HPREF_STATUS();		/* save last info */
-    }
-    if (status < hpref_status)
-	RESTORE_HPREF_STATUS();			/* else report last info */
-    if (hpref_rtext)
-	vstring_free(hpref_rtext);
-    return (status);
-}
-
 /* dns_get_h_errno - get the last lookup status */
 
 int     dns_get_h_errno(void)
 {
     return (DNS_GET_H_ERRNO(&dns_res_state));
+}
+
+/* dns_set_h_errno - set the last lookup status */
+
+void    dns_set_h_errno(int errval)
+{
+    DNS_SET_H_ERRNO(&dns_res_state, errval);
 }

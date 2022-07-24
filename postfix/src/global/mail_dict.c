@@ -114,7 +114,7 @@ int     main(int argc, char **argv)
     var_proxywrite_service = DEF_PROXYWRITE_SERVICE;
     var_ipc_timeout = 3600;
     mail_dict_init();
-    dict_test(argc, argv);
+    dict_cli(argc, argv);
     return (0);
 }
 

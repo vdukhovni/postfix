@@ -17,7 +17,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h>
+#include <wrap_netdb.h>
 #include <string.h>
 #include <errno.h>			/* MAI_STRERROR() */
 #include <limits.h>			/* CHAR_BIT */
@@ -42,7 +42,7 @@
 #define sockaddr_storage mai_sockaddr_storage
 
  /*
-  * Modern systems define this in <netdb.h>.
+  * Modern systems define this in <wrap_netdb.h>.
   */
 struct addrinfo {
     int     ai_flags;			/* AI_PASSIVE|CANONNAME|NUMERICHOST */

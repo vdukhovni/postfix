@@ -119,7 +119,7 @@ static void vstream_swap(VSTREAM *one, VSTREAM *two)
     *two = save;
 }
 
-jmp_buf test_fatal_jbuf;
+jmp_buf ptest_fatal_jbuf;
 
 #undef msg_fatal
 
@@ -132,7 +132,7 @@ void    test_msg_fatal(const char *fmt,...)
     va_start(ap, fmt);
     vmsg_warn(fmt, ap);
     va_end(ap);
-    longjmp(test_fatal_jbuf, 1);
+    longjmp(ptest_fatal_jbuf, 1);
 }
 
 struct name_test_case {
@@ -214,7 +214,7 @@ int     main(int argc, char **argv)
 	if ((memory_stream = vstream_memopen(msg_buf, O_WRONLY)) == 0)
 	    msg_fatal("open memory stream: %m");
 	vstream_swap(VSTREAM_ERR, memory_stream);
-	if (setjmp(test_fatal_jbuf) == 0)
+	if (setjmp(ptest_fatal_jbuf) == 0)
 	    code = hfrom_format_parse(np->label, np->config);
 	vstream_swap(memory_stream, VSTREAM_ERR);
 	if (vstream_fclose(memory_stream))
@@ -248,7 +248,7 @@ int     main(int argc, char **argv)
 	if ((memory_stream = vstream_memopen(msg_buf, O_WRONLY)) == 0)
 	    msg_fatal("open memory stream: %m");
 	vstream_swap(VSTREAM_ERR, memory_stream);
-	if (setjmp(test_fatal_jbuf) == 0)
+	if (setjmp(ptest_fatal_jbuf) == 0)
 	    name = str_hfrom_format_code(cp->code);
 	vstream_swap(memory_stream, VSTREAM_ERR);
 	if (vstream_fclose(memory_stream))

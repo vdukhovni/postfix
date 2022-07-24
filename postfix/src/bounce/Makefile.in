@@ -504,7 +504,7 @@ bounce_notify_util_tester.o: ../../include/rec_type.h
 bounce_notify_util_tester.o: ../../include/recipient_list.h
 bounce_notify_util_tester.o: ../../include/record.h
 bounce_notify_util_tester.o: ../../include/sys_defs.h
-bounce_notify_util_tester.o: ../../include/test_main.h
+bounce_notify_util_tester.o: ../../include/test_server_main.h
 bounce_notify_util_tester.o: ../../include/vbuf.h
 bounce_notify_util_tester.o: ../../include/vstream.h
 bounce_notify_util_tester.o: ../../include/vstring.h

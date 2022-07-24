@@ -252,6 +252,7 @@ smtpd.o: ../../include/vstream.h
 smtpd.o: ../../include/vstring.h
 smtpd.o: ../../include/vstring_vstream.h
 smtpd.o: ../../include/watchdog.h
+smtpd.o: ../../include/wrap_netdb.h
 smtpd.o: ../../include/xtext.h
 smtpd.o: smtpd.c
 smtpd.o: smtpd.h
@@ -303,6 +304,7 @@ smtpd_chat.o: ../../include/tls.h
 smtpd_chat.o: ../../include/vbuf.h
 smtpd_chat.o: ../../include/vstream.h
 smtpd_chat.o: ../../include/vstring.h
+smtpd_chat.o: ../../include/wrap_netdb.h
 smtpd_chat.o: smtpd.h
 smtpd_chat.o: smtpd_chat.c
 smtpd_chat.o: smtpd_chat.h
@@ -377,6 +379,7 @@ smtpd_check.o: ../../include/vbuf.h
 smtpd_check.o: ../../include/verify_clnt.h
 smtpd_check.o: ../../include/vstream.h
 smtpd_check.o: ../../include/vstring.h
+smtpd_check.o: ../../include/wrap_netdb.h
 smtpd_check.o: ../../include/xtext.h
 smtpd_check.o: smtpd.h
 smtpd_check.o: smtpd_check.c
@@ -414,6 +417,7 @@ smtpd_expand.o: ../../include/tls.h
 smtpd_expand.o: ../../include/vbuf.h
 smtpd_expand.o: ../../include/vstream.h
 smtpd_expand.o: ../../include/vstring.h
+smtpd_expand.o: ../../include/wrap_netdb.h
 smtpd_expand.o: smtpd.h
 smtpd_expand.o: smtpd_expand.c
 smtpd_expand.o: smtpd_expand.h
@@ -443,6 +447,7 @@ smtpd_haproxy.o: ../../include/valid_mailhost_addr.h
 smtpd_haproxy.o: ../../include/vbuf.h
 smtpd_haproxy.o: ../../include/vstream.h
 smtpd_haproxy.o: ../../include/vstring.h
+smtpd_haproxy.o: ../../include/wrap_netdb.h
 smtpd_haproxy.o: smtpd.h
 smtpd_haproxy.o: smtpd_haproxy.c
 smtpd_milter.o: ../../include/argv.h
@@ -469,6 +474,7 @@ smtpd_milter.o: ../../include/tls.h
 smtpd_milter.o: ../../include/vbuf.h
 smtpd_milter.o: ../../include/vstream.h
 smtpd_milter.o: ../../include/vstring.h
+smtpd_milter.o: ../../include/wrap_netdb.h
 smtpd_milter.o: smtpd.h
 smtpd_milter.o: smtpd_milter.c
 smtpd_milter.o: smtpd_milter.h
@@ -502,6 +508,7 @@ smtpd_peer.o: ../../include/valid_mailhost_addr.h
 smtpd_peer.o: ../../include/vbuf.h
 smtpd_peer.o: ../../include/vstream.h
 smtpd_peer.o: ../../include/vstring.h
+smtpd_peer.o: ../../include/wrap_netdb.h
 smtpd_peer.o: smtpd.h
 smtpd_peer.o: smtpd_peer.c
 smtpd_proxy.o: ../../include/argv.h
@@ -534,6 +541,7 @@ smtpd_proxy.o: ../../include/tls.h
 smtpd_proxy.o: ../../include/vbuf.h
 smtpd_proxy.o: ../../include/vstream.h
 smtpd_proxy.o: ../../include/vstring.h
+smtpd_proxy.o: ../../include/wrap_netdb.h
 smtpd_proxy.o: ../../include/xtext.h
 smtpd_proxy.o: smtpd.h
 smtpd_proxy.o: smtpd_proxy.c
@@ -581,6 +589,7 @@ smtpd_sasl_glue.o: ../../include/tls.h
 smtpd_sasl_glue.o: ../../include/vbuf.h
 smtpd_sasl_glue.o: ../../include/vstream.h
 smtpd_sasl_glue.o: ../../include/vstring.h
+smtpd_sasl_glue.o: ../../include/wrap_netdb.h
 smtpd_sasl_glue.o: ../../include/xsasl.h
 smtpd_sasl_glue.o: smtpd.h
 smtpd_sasl_glue.o: smtpd_chat.h
@@ -611,6 +620,7 @@ smtpd_sasl_proto.o: ../../include/tls.h
 smtpd_sasl_proto.o: ../../include/vbuf.h
 smtpd_sasl_proto.o: ../../include/vstream.h
 smtpd_sasl_proto.o: ../../include/vstring.h
+smtpd_sasl_proto.o: ../../include/wrap_netdb.h
 smtpd_sasl_proto.o: smtpd.h
 smtpd_sasl_proto.o: smtpd_chat.h
 smtpd_sasl_proto.o: smtpd_sasl_glue.h
@@ -642,6 +652,7 @@ smtpd_state.o: ../../include/tls.h
 smtpd_state.o: ../../include/vbuf.h
 smtpd_state.o: ../../include/vstream.h
 smtpd_state.o: ../../include/vstring.h
+smtpd_state.o: ../../include/wrap_netdb.h
 smtpd_state.o: smtpd.h
 smtpd_state.o: smtpd_chat.h
 smtpd_state.o: smtpd_sasl_glue.h
@@ -675,5 +686,6 @@ smtpd_xforward.o: ../../include/tls.h
 smtpd_xforward.o: ../../include/vbuf.h
 smtpd_xforward.o: ../../include/vstream.h
 smtpd_xforward.o: ../../include/vstring.h
+smtpd_xforward.o: ../../include/wrap_netdb.h
 smtpd_xforward.o: smtpd.h
 smtpd_xforward.o: smtpd_xforward.c

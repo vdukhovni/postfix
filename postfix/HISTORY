@@ -26539,16 +26539,43 @@ Apologies for any names omitted.
 	Documentation: Cyrus SASL configuration file location.
 	Viktor Dukhovni. File: proto/SASL_README.html.
 
+20220605
+
+	Cleanup: migrate biff_notify() from gethostbyname() and
+	getservbyname() to myaddrinfo. File: local/biff_notify.c.
+
+20220609
+
+	Cleanup: new find_inet_service(3) module that returns errors,
+	and deprecate find_inet(3) where all errors are fatal. File:
+	util/find_inet_service.c.
+
 20220617
 
 	Cleanup: missing <stdio.h> include was causing a warning
 	on some platform. posttls-finger/posttls-finger.c.
+
+20220618
+
+	Cleanup: migrate the MySQL client from find_inet(3) to
+	find_inet_service(3). Files: src/global/dict_mysql.c.
 
 20220620
 
 	Documentation: inet_interfaces and proxy_interfaces
 	descriptions. File: proto/postconf.proto.
 
+20220624
+
+	Cleanup: renamed global/test_main.[hc] to
+	global/test_server_main.[hc]. Files: global/test_server_main.[hc],
+	bounce/bounce_tester.c, Makefiles.
+
+20220626
+
+	Feature: when the NAME_MASK_NULL flag is present, the
+	str_name_mask_opt() function will output a string "0" when the
+	input mask is empty. Files: util/name_mask.[hc].
 
 20220719
 
@@ -26562,3 +26589,27 @@ Apologies for any names omitted.
 	regression that broke TLS handshakes. It is rarely useful.
 	Report by Spil Oss, fix by Viktor Dukhovni. File:
 	tls/tls_server.c.
+
+	Feature: 'ptest' infrastructure for unit tests, and 'pmock'
+	infrastructure to make tests independent of host configuration,
+	network configuration, or DNS. ptest looks like Go test,
+	while pmock implements a few ideas from Google gmock.
+
+	This changes the Postfix file footprint as follows:
+
+	1) This adds source files named 'foo_test.c' that test code
+	in 'foo.c' and 'foo.h'; and this adds source files mock_foo.c
+	and mock_foo.h with functions that produce prepared outputs
+	for expected inputs. For example, mock_getaddrinfo.c
+	implements getaddrinfo() and getnameinfo() functions that
+	return prepared outputs without doing host or DNS lookups.
+	More files will be added as tests are converted to the
+	ptest/pmock infrastructure.
+
+	2) This removes obsolete test data files ('file.in*',
+	'file.ref*').  More files will be removed as tests are
+	converted to the ptest/pmock infrastructure.
+
+	3) This renames old files whose names end in test.c:
+	dict_test.c is now dict_cli.c, and stream_test.c is now
+	test_sunos5_stream.c.

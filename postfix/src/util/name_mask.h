@@ -32,6 +32,7 @@ typedef struct {
 #define NAME_MASK_NUMBER	(1<<5)
 #define NAME_MASK_WARN		(1<<6)
 #define NAME_MASK_IGNORE	(1<<7)
+#define NAME_MASK_NULL		(1<<8)
 
 #define NAME_MASK_REQUIRED \
     (NAME_MASK_FATAL | NAME_MASK_RETURN | NAME_MASK_WARN | NAME_MASK_IGNORE)

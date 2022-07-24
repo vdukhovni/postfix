@@ -100,6 +100,7 @@ posttls-finger.o: ../../include/vbuf.h
 posttls-finger.o: ../../include/vstream.h
 posttls-finger.o: ../../include/vstring.h
 posttls-finger.o: ../../include/vstring_vstream.h
+posttls-finger.o: ../../include/wrap_netdb.h
 posttls-finger.o: posttls-finger.c
 posttls-finger.o: tlsmgrmem.h
 tlsmgrmem.o: ../../include/argv.h

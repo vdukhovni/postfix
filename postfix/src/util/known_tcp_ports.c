@@ -78,6 +78,8 @@ const char *add_known_tcp_port(const char *name, const char *port)
 	return ("numerical service name");
     if (!alldig(port))
 	return ("non-numerical service port");
+    if (strlen(port) > 5 || (strlen(port) == 5 && strcmp(port, "65535") > 0))
+	return ("port number out of range");
     if (known_tcp_ports == 0)
 	known_tcp_ports = htable_create(10);
     if (htable_locate(known_tcp_ports, name) != 0)
@@ -139,115 +141,3 @@ char   *export_known_tcp_ports(VSTRING *out)
     VSTRING_TERMINATE(out);
     return (STR(out));
 }
-
-#ifdef TEST
-
-#include <msg.h>
-
-struct association {
-    const char *lhs;			/* service name */
-    const char *rhs;			/* service port */
-};
-
-struct probe {
-    const char *query;			/* query */
-    const char *exp_reply;		/* expected reply */
-};
-
-struct test_case {
-    const char *label;			/* identifies test case */
-    struct association associations[10];
-    const char *exp_err;		/* expected error */
-    const char *exp_export;		/* expected export output */
-    struct probe probes[10];
-};
-
-struct test_case test_cases[] = {
-    {"good",
-	 /* association */ {{"smtp", "25"}, {"lmtp", "24"}, 0},
-	 /* error */ 0,
-	 /* export */ "lmtp=24 smtp=25",
-	 /* probe */ {{"smtp", "25"}, {"1", "1"}, {"x", "x"}, {"lmtp", "24"}, 0}
-    },
-    {"duplicate lhs",
-	 /* association */ {{"smtp", "25"}, {"smtp", "100"}, 0},
-	 /* error */ "duplicate service name"
-    },
-    {"numerical lhs",
-	 /* association */ {{"100", "100"}, 0},
-	 /* error */ "numerical service name"
-    },
-    {"symbolic rhs",
-	 /* association */ {{"smtp", "lmtp"}, 0},
-	 /* error */ "non-numerical service port"
-    },
-    {"uninitialized",
-	 /* association */ {0},
-	 /* error */ 0,
-	 /* export */ "",
-	 /* probe */ {{"smtp", "smtp"}, {"1", "1"}, {"x", "x"}, 0}
-    },
-    0,
-};
-
-int     main(int argc, char **argv)
-{
-    VSTRING *export_buf;
-    struct test_case *tp;
-    struct association *ap;
-    struct probe *pp;
-    int     pass = 0;
-    int     fail = 0;
-    const char *err;
-    int     test_failed;
-    const char *reply;
-    const char *export;
-
-#define STRING_OR_NULL(s) ((s) ? (s) : "(null)")
-
-    export_buf = vstring_alloc(100);
-    for (tp = test_cases; tp->label != 0; tp++) {
-	test_failed = 0;
-	for (err = 0, ap = tp->associations; err == 0 && ap->lhs != 0; ap++)
-	    err = add_known_tcp_port(ap->lhs, ap->rhs);
-	if (!err != !tp->exp_err) {
-	    msg_warn("test case %s: got error: \"%s\", want: \"%s\"",
-	       tp->label, STRING_OR_NULL(err), STRING_OR_NULL(tp->exp_err));
-	    test_failed = 1;
-	} else if (err != 0) {
-	    if (strcmp(err, tp->exp_err) != 0) {
-		msg_warn("test case %s: got err: \"%s\", want: \"%s\"",
-			 tp->label, err, tp->exp_err);
-		test_failed = 1;
-	    }
-	} else {
-	    export = export_known_tcp_ports(export_buf);
-	    if (strcmp(export, tp->exp_export) != 0) {
-		msg_warn("test case %s: got export: \"%s\", want: \"%s\"",
-			 tp->label, export, tp->exp_export);
-		test_failed = 1;
-	    }
-	    for (pp = tp->probes; test_failed == 0 && pp->query != 0; pp++) {
-		reply = filter_known_tcp_port(pp->query);
-		if (strcmp(reply, pp->exp_reply) != 0) {
-		    msg_warn("test case %s: got reply: \"%s\", want: \"%s\"",
-			     tp->label, reply, pp->exp_reply);
-		    test_failed = 1;
-		}
-	    }
-	}
-	clear_known_tcp_ports();
-	if (test_failed) {
-	    msg_info("%s: FAIL", tp->label);
-	    fail++;
-	} else {
-	    msg_info("%s: PASS", tp->label);
-	    pass++;
-	}
-    }
-    msg_info("PASS=%d FAIL=%d", pass, fail);
-    vstring_free(export_buf);
-    exit(fail != 0);
-}
-
-#endif

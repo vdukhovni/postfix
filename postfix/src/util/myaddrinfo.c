@@ -193,7 +193,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netdb.h>
+#include <wrap_netdb.h>
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>

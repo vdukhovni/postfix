@@ -271,7 +271,7 @@ extern DICT *dict_utf8_activate(DICT *);
  /*
   * Driver for interactive or scripted tests.
   */
-void    dict_test(int, char **);
+void    dict_cli(int, char **);
 
  /*
   * Behind-the-scenes support to continue execution with reduced

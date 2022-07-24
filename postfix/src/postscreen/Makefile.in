@@ -100,6 +100,7 @@ postscreen.o: ../../include/sys_defs.h
 postscreen.o: ../../include/vbuf.h
 postscreen.o: ../../include/vstream.h
 postscreen.o: ../../include/vstring.h
+postscreen.o: ../../include/wrap_netdb.h
 postscreen.o: postscreen.c
 postscreen.o: postscreen.h
 postscreen_dict.o: ../../include/addr_match_list.h
@@ -120,6 +121,7 @@ postscreen_dict.o: ../../include/sys_defs.h
 postscreen_dict.o: ../../include/vbuf.h
 postscreen_dict.o: ../../include/vstream.h
 postscreen_dict.o: ../../include/vstring.h
+postscreen_dict.o: ../../include/wrap_netdb.h
 postscreen_dict.o: postscreen.h
 postscreen_dict.o: postscreen_dict.c
 postscreen_dnsbl.o: ../../include/addr_match_list.h
@@ -151,6 +153,7 @@ postscreen_dnsbl.o: ../../include/valid_hostname.h
 postscreen_dnsbl.o: ../../include/vbuf.h
 postscreen_dnsbl.o: ../../include/vstream.h
 postscreen_dnsbl.o: ../../include/vstring.h
+postscreen_dnsbl.o: ../../include/wrap_netdb.h
 postscreen_dnsbl.o: postscreen.h
 postscreen_dnsbl.o: postscreen_dnsbl.c
 postscreen_early.o: ../../include/addr_match_list.h
@@ -174,6 +177,7 @@ postscreen_early.o: ../../include/sys_defs.h
 postscreen_early.o: ../../include/vbuf.h
 postscreen_early.o: ../../include/vstream.h
 postscreen_early.o: ../../include/vstring.h
+postscreen_early.o: ../../include/wrap_netdb.h
 postscreen_early.o: postscreen.h
 postscreen_early.o: postscreen_early.c
 postscreen_endpt.o: ../../include/addr_match_list.h
@@ -197,6 +201,7 @@ postscreen_endpt.o: ../../include/sys_defs.h
 postscreen_endpt.o: ../../include/vbuf.h
 postscreen_endpt.o: ../../include/vstream.h
 postscreen_endpt.o: ../../include/vstring.h
+postscreen_endpt.o: ../../include/wrap_netdb.h
 postscreen_endpt.o: postscreen.h
 postscreen_endpt.o: postscreen_endpt.c
 postscreen_endpt.o: postscreen_haproxy.h
@@ -225,6 +230,7 @@ postscreen_expand.o: ../../include/sys_defs.h
 postscreen_expand.o: ../../include/vbuf.h
 postscreen_expand.o: ../../include/vstream.h
 postscreen_expand.o: ../../include/vstring.h
+postscreen_expand.o: ../../include/wrap_netdb.h
 postscreen_expand.o: postscreen.h
 postscreen_expand.o: postscreen_expand.c
 postscreen_haproxy.o: ../../include/addr_match_list.h
@@ -249,6 +255,7 @@ postscreen_haproxy.o: ../../include/sys_defs.h
 postscreen_haproxy.o: ../../include/vbuf.h
 postscreen_haproxy.o: ../../include/vstream.h
 postscreen_haproxy.o: ../../include/vstring.h
+postscreen_haproxy.o: ../../include/wrap_netdb.h
 postscreen_haproxy.o: postscreen.h
 postscreen_haproxy.o: postscreen_haproxy.c
 postscreen_haproxy.o: postscreen_haproxy.h
@@ -273,6 +280,7 @@ postscreen_misc.o: ../../include/sys_defs.h
 postscreen_misc.o: ../../include/vbuf.h
 postscreen_misc.o: ../../include/vstream.h
 postscreen_misc.o: ../../include/vstring.h
+postscreen_misc.o: ../../include/wrap_netdb.h
 postscreen_misc.o: postscreen.h
 postscreen_misc.o: postscreen_misc.c
 postscreen_send.o: ../../include/addr_match_list.h
@@ -303,6 +311,7 @@ postscreen_send.o: ../../include/sys_defs.h
 postscreen_send.o: ../../include/vbuf.h
 postscreen_send.o: ../../include/vstream.h
 postscreen_send.o: ../../include/vstring.h
+postscreen_send.o: ../../include/wrap_netdb.h
 postscreen_send.o: postscreen.h
 postscreen_send.o: postscreen_send.c
 postscreen_smtpd.o: ../../include/addr_match_list.h
@@ -339,6 +348,7 @@ postscreen_smtpd.o: ../../include/tls.h
 postscreen_smtpd.o: ../../include/vbuf.h
 postscreen_smtpd.o: ../../include/vstream.h
 postscreen_smtpd.o: ../../include/vstring.h
+postscreen_smtpd.o: ../../include/wrap_netdb.h
 postscreen_smtpd.o: postscreen.h
 postscreen_smtpd.o: postscreen_smtpd.c
 postscreen_starttls.o: ../../include/addr_match_list.h
@@ -373,6 +383,7 @@ postscreen_starttls.o: ../../include/tls_proxy.h
 postscreen_starttls.o: ../../include/vbuf.h
 postscreen_starttls.o: ../../include/vstream.h
 postscreen_starttls.o: ../../include/vstring.h
+postscreen_starttls.o: ../../include/wrap_netdb.h
 postscreen_starttls.o: postscreen.h
 postscreen_starttls.o: postscreen_starttls.c
 postscreen_state.o: ../../include/addr_match_list.h
@@ -401,6 +412,7 @@ postscreen_state.o: ../../include/sys_defs.h
 postscreen_state.o: ../../include/vbuf.h
 postscreen_state.o: ../../include/vstream.h
 postscreen_state.o: ../../include/vstring.h
+postscreen_state.o: ../../include/wrap_netdb.h
 postscreen_state.o: postscreen.h
 postscreen_state.o: postscreen_state.c
 postscreen_tests.o: ../../include/addr_match_list.h
@@ -424,5 +436,6 @@ postscreen_tests.o: ../../include/sys_defs.h
 postscreen_tests.o: ../../include/vbuf.h
 postscreen_tests.o: ../../include/vstream.h
 postscreen_tests.o: ../../include/vstring.h
+postscreen_tests.o: ../../include/wrap_netdb.h
 postscreen_tests.o: postscreen.h
 postscreen_tests.o: postscreen_tests.c

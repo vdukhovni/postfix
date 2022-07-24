@@ -1237,6 +1237,7 @@ postconf_other.o: ../../include/tls.h
 postconf_other.o: ../../include/vbuf.h
 postconf_other.o: ../../include/vstream.h
 postconf_other.o: ../../include/vstring.h
+postconf_other.o: ../../include/wrap_netdb.h
 postconf_other.o: ../../include/xsasl.h
 postconf_other.o: postconf.h
 postconf_other.o: postconf_other.c

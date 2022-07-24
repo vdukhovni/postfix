@@ -610,7 +610,7 @@ void    dict_type_override(DICT *dict, const char *type)
   */
 int     main(int argc, char **argv)
 {
-    dict_test(argc, argv);
+    dict_cli(argc, argv);
     return (0);
 }
 

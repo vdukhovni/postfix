@@ -34,7 +34,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	allascii.c load_file.c killme_after.c vstream_tweak.c \
 	pass_trigger.c edit_file.c inet_windowsize.c \
 	unix_pass_fd_fix.c dict_cache.c valid_utf8_string.c dict_thash.c \
-	ip_match.c nbbio.c base32_code.c dict_test.c \
+	ip_match.c nbbio.c base32_code.c dict_cli.c \
 	dict_fail.c msg_rate_delay.c dict_surrogate.c warn_stat.c \
 	dict_sockmap.c line_number.c recv_pass_attr.c pass_accept.c \
 	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c \
@@ -44,7 +44,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	msg_logger.c logwriter.c unix_dgram_connect.c unix_dgram_listen.c \
 	byte_mask.c known_tcp_ports.c argv_split_at.c dict_stream.c \
 	sane_strtol.c hash_fnv.c ldseed.c mkmap_cdb.c mkmap_db.c mkmap_dbm.c \
-	mkmap_fail.c mkmap_lmdb.c mkmap_open.c mkmap_sdbm.c
+	mkmap_fail.c mkmap_lmdb.c mkmap_open.c mkmap_sdbm.c \
+	find_inet_service.c wrap_netdb.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -80,7 +81,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	allascii.o load_file.o killme_after.o vstream_tweak.o \
 	pass_trigger.o edit_file.o inet_windowsize.o \
 	unix_pass_fd_fix.o dict_cache.o valid_utf8_string.o dict_thash.o \
-	ip_match.o nbbio.o base32_code.o dict_test.o \
+	ip_match.o nbbio.o base32_code.o dict_cli.o \
 	dict_fail.o msg_rate_delay.o dict_surrogate.o warn_stat.o \
 	dict_sockmap.o line_number.o recv_pass_attr.o pass_accept.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o \
@@ -90,12 +91,16 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	msg_logger.o logwriter.o unix_dgram_connect.o unix_dgram_listen.o \
 	byte_mask.o known_tcp_ports.o argv_split_at.o dict_stream.o \
 	sane_strtol.o hash_fnv.o ldseed.o mkmap_db.o mkmap_dbm.o \
-	mkmap_fail.o mkmap_open.o
+	mkmap_fail.o mkmap_open.o find_inet_service.o wrap_netdb.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
 MAP_OBJ	= dict_pcre.o dict_cdb.o dict_lmdb.o dict_sdbm.o slmdb.o \
 	mkmap_cdb.o mkmap_lmdb.o mkmap_sdbm.o 
+TEST_OBJ = dict_pipe_test.o dict_union_test.o find_inet_service_test.o \
+	known_tcp_ports_test.o msg_output_test.o myaddrinfo_test.o \
+	mymalloc_test.o mystrtok_test.o unescape_test.o  hash_fnv_test.o \
+	argv_test.o dict_stream_test.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -121,9 +126,14 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	slmdb.h compat_va_copy.h dict_pipe.h dict_random.h \
 	valid_utf8_hostname.h midna_domain.h dict_union.h dict_inline.h \
 	check_arg.h argv_attr.h msg_logger.h logwriter.h byte_mask.h \
-	known_tcp_ports.h sane_strtol.h hash_fnv.h ldseed.h mkmap.h
+	known_tcp_ports.h sane_strtol.h hash_fnv.h ldseed.h mkmap.h \
+	find_inet_service.h wrap_netdb.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
-	stream_test.c dup2_pass_on_exec.c
+	stream_test.c dup2_pass_on_exec.c argv_test.c dict_pipe_test.c \
+	dict_stream_test.c dict_cli.c dict_union_test.c \
+	find_inet_service_test.c hash_fnv_test.c known_tcp_ports_test.c \
+	msg_output_test.c myaddrinfo_test.c mymalloc_test.c mystrtok_test.c \
+	unescape_test.c
 DEFS	= -I. -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 FILES	= Makefile $(SRCS) $(HDRS)
@@ -132,9 +142,9 @@ LIB	= lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	fifo_rdonly_bug fifo_rdwr_bug fifo_trigger fsspace fullname \
 	inet_addr_host inet_addr_local mac_parse make_dirs msg_syslog \
-	mystrtok sigdelay translit valid_hostname vstream_popen \
+	mystrtok_test sigdelay translit valid_hostname vstream_popen \
 	vstring vstring_vstream doze select_bug stream_test mac_expand \
-	watchdog unescape hex_quote name_mask rand_sleep sane_time ctable \
+	watchdog unescape_test hex_quote name_mask rand_sleep sane_time ctable \
 	inet_addr_list attr_print64 attr_scan64 base64_code attr_print0 \
 	attr_scan0 host_port attr_scan_plain attr_print_plain htable \
 	unix_recv_fd unix_send_fd stream_recv_fd stream_send_fd hex_code \
@@ -142,10 +152,13 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
-	known_tcp_ports dict_stream find_inet binhash hash_fnv argv
+	known_tcp_ports_test dict_stream_test binhash hash_fnv_test \
+	argv_test find_inet_service_test mymalloc_test msg_output_test \
+	dict_union_test dict_pipe_test myaddrinfo_test
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
+TEST_LIB= ../../lib/libtesting.a ../../lib/libptest.a
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 
@@ -153,7 +166,7 @@ INC_DIR	= ../../include
 
 all: $(LIB) $(PLUGIN_MAP_SO_MAKE) $(PLUGIN_MAP_OBJ)
 
-$(OBJS) $(PLUGIN_MAP_OBJ): ../../conf/makedefs.out
+$(OBJS) $(PLUGIN_MAP_OBJ) $(TEST_OBJ): ../../conf/makedefs.out
 
 Makefile: Makefile.in
 	cat ../../conf/makedefs.out $? >$@
@@ -293,11 +306,6 @@ sigdelay: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-mystrtok: $(LIB)
-	mv $@.o junk
-	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
-	mv junk $@.o
-
 fifo_rdwr_bug: fifo_rdwr_bug.c $(LIB)
 	$(CC) $(CFLAGS)  -o $@ $@.c $(LIB) $(SYSLIBS)
 
@@ -353,11 +361,6 @@ mac_expand: $(LIB)
 	mv junk $@.o
 
 watchdog: $(LIB)
-	mv $@.o junk
-	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
-	mv junk $@.o
-
-unescape: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -497,12 +500,7 @@ sane_basename: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-find_inet: $(LIB)
-	mv $@.o junk
-	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
-	mv junk $@.o
-
-stream_test: stream_test.c $(LIB)
+test_sunos5_stream: test_sunos5_stream.c $(LIB)
 	$(CC) $(CFLAGS)  -o $@ $@.c $(LIB) $(SYSLIBS)
 
 gcctest: gccw.c gccw.ref
@@ -581,10 +579,11 @@ split_qnameval: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-known_tcp_ports: $(LIB)
-	mv $@.o junk
-	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
-	mv junk $@.o
+known_tcp_ports_test: known_tcp_ports_test.o $(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(SYSLIBS)
+
+test_known_tcp_ports: update known_tcp_ports_test
+	$(SHLIB_ENV) ${VALGRIND} ./known_tcp_ports_test
 
 dict_stream: $(LIB)
 	mv $@.o junk
@@ -596,23 +595,23 @@ argv: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
+tests: all valid_hostname_test mac_expand_test dict_test test_unescape \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test host_port_test dict_tests \
-	attr_scan_plain_test htable_test hex_code_test myaddrinfo_test \
+	attr_scan_plain_test htable_test hex_code_test test_myaddrinfo\
 	format_tv_test ip_match_test name_mask_tests base32_code_test \
 	surrogate_test timecmp_test midna_domain_test casefold_test \
 	strcasecmp_utf8_test vbuf_print_test miss_endif_cidr_test \
 	miss_endif_regexp_test split_qnameval_test vstring_test \
-	vstream_test byte_mask_tests mystrtok_test known_tcp_ports_test \
-	binhash_test argv_test
+	vstream_test byte_mask_tests test_mystrtok test_known_tcp_ports \
+	binhash_test test_argv test_find_inet_service test_mymalloc
  
 dict_tests: all dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
-	dict_inline_test dict_utf8_test dict_regexp_test dict_union_test \
-	dict_pipe_test dict_regexp_file_test dict_cidr_file_test \
+	dict_inline_test dict_utf8_test dict_regexp_test test_dict_union \
+	test_dict_pipe dict_regexp_file_test dict_cidr_file_test \
 	dict_static_file_test dict_random_test dict_random_file_test \
-	dict_inline_file_test dict_stream_test dict_inline_regexp_test \
+	dict_inline_file_test test_dict_stream dict_inline_regexp_test \
 	dict_inline_cidr_test
 
 dict_pcre_tests: dict_pcre_test miss_endif_pcre_test dict_pcre_file_test \
@@ -630,12 +629,11 @@ mac_expand_test: mac_expand mac_expand.in mac_expand.ref
 	diff mac_expand.ref mac_expand.tmp
 	rm -f mac_expand.tmp
 
-unescape_test: unescape unescape.in unescape.ref
-	$(SHLIB_ENV) ${VALGRIND} ./unescape <unescape.in | od -cb >unescape.tmp
-	diff -b unescape.ref unescape.tmp
-#	$(SHLIB_ENV) ${VALGRIND} ./unescape <unescape.in | $(SHLIB_ENV) ./unescape -e >unescape.tmp
-#	diff unescape.in unescape.tmp
-	rm -f unescape.tmp
+unescape_test: unescape_test.o $(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(SYSLIBS)
+	
+test_unescape: update unescape_test 
+	$(SHLIB_ENV) ${VALGRIND} ./unescape_test
 
 hex_quote_test: hex_quote
 	$(SHLIB_ENV) ${VALGRIND} ./hex_quote <hex_quote.c | od -cb >hex_quote.tmp
@@ -767,8 +765,12 @@ htable_test: htable /usr/share/dict/words
 binhash_test: binhash /usr/share/dict/words
 	$(SHLIB_ENV) ${VALGRIND} ./binhash < /usr/share/dict/words
 
-hash_fnv_test: hash_fnv
-	$(SHLIB_ENV) ${VALGRIND} ./hash_fnv
+hash_fnv_test: hash_fnv_test.o $(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o $(LIB_DIR)/mock_getaddrinfo.o \
+	$(TEST_LIB) $(LIB) $(SYSLIBS)
+
+test_hash_fnv: update hash_fnv_test
+	$(SHLIB_ENV) ${VALGRIND} ./hash_fnv_test
 
 hex_code_test: hex_code
 	$(SHLIB_ENV) ${VALGRIND} ./hex_code
@@ -776,20 +778,13 @@ hex_code_test: hex_code
 timecmp_test: timecmp
 	$(SHLIB_ENV) ${VALGRIND} ./timecmp
 
-myaddrinfo_test: myaddrinfo myaddrinfo.ref myaddrinfo.ref2
-	$(SHLIB_ENV) ${VALGRIND} ./myaddrinfo all belly.porcupine.org 168.100.3.2 >myaddrinfo.tmp 2>&1
-	diff myaddrinfo.ref myaddrinfo.tmp
-	rm -f myaddrinfo.tmp
-	$(SHLIB_ENV) ${VALGRIND} ./myaddrinfo all null.porcupine.org 10.0.0.0 >myaddrinfo.tmp 2>&1
-	diff myaddrinfo.ref2 myaddrinfo.tmp
-	rm -f myaddrinfo.tmp
-
-myaddrinfo4_test: myaddrinfo4 myaddrinfo4.ref myaddrinfo4.ref2
-	$(SHLIB_ENV) ${VALGRIND} ./myaddrinfo4 all belly.porcupine.org 168.100.3.2 >myaddrinfo4.tmp 2>&1
-	diff myaddrinfo4.ref myaddrinfo4.tmp
-	$(SHLIB_ENV) ${VALGRIND} ./myaddrinfo4 all null.porcupine.org 10.0.0.0 >myaddrinfo4.tmp 2>&1
-	diff myaddrinfo4.ref2 myaddrinfo4.tmp
-	rm -f myaddrinfo4.tmp
+myaddrinfo_test: myaddrinfo_test.o $(LIB_DIR)/mock_getaddrinfo.o \
+	$(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o $(LIB_DIR)/mock_getaddrinfo.o \
+	$(TEST_LIB) $(LIB) $(SYSLIBS)
+	
+test_myaddrinfo: update myaddrinfo_test 
+	$(SHLIB_ENV) ${VALGRIND} ./myaddrinfo_test
 
 format_tv_test: format_tv format_tv.in format_tv.ref
 	$(SHLIB_ENV) ${VALGRIND} ./format_tv <format_tv.in >format_tv.tmp
@@ -1002,15 +997,17 @@ vbuf_print_test: vbuf_print vbuf_print_test.in vbuf_print_test.ref
 	diff vbuf_print_test.ref vbuf_print_test.tmp
 	rm -f vbuf_print_test.tmp
 
-dict_union_test: dict_open dict_union_test.in dict_union_test.ref
-	$(SHLIB_ENV) ${VALGRIND} sh -x dict_union_test.in >dict_union_test.tmp 2>&1
-	diff dict_union_test.ref dict_union_test.tmp
-	rm -f dict_union_test.tmp
+dict_union_test: dict_union_test.o $(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(SYSLIBS)
+	
+test_dict_union: update dict_union_test 
+	$(SHLIB_ENV) ${VALGRIND} ./dict_union_test
 
-dict_pipe_test: dict_open dict_pipe_test.in dict_pipe_test.ref
-	$(SHLIB_ENV) ${VALGRIND} sh -x dict_pipe_test.in >dict_pipe_test.tmp 2>&1
-	diff dict_pipe_test.ref dict_pipe_test.tmp
-	rm -f dict_pipe_test.tmp
+dict_pipe_test: dict_pipe_test.o $(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(SYSLIBS)
+	
+test_dict_pipe: update dict_pipe_test 
+	$(SHLIB_ENV) ${VALGRIND} ./dict_pipe_test
 
 vstring_test: dict_open vstring vstring_test.ref
 	$(SHLIB_ENV) ${VALGRIND} ./vstring one two three >vstring_test.tmp 2>&1
@@ -1022,20 +1019,17 @@ vstream_test: vstream vstream_test.in vstream_test.ref
 	diff vstream_test.ref vstream_test.tmp
 	rm -f vstream_test.tmp
 
-mystrtok_test: mystrtok mystrtok.ref
-	$(SHLIB_ENV) ${VALGRIND} ./mystrtok >mystrtok.tmp 2>&1
-	diff mystrtok.ref mystrtok.tmp
-	rm -f mystrtok.tmp
+mystrtok_test: mystrtok_test.o $(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(SYSLIBS)
 
-known_tcp_ports_test: known_tcp_ports known_tcp_ports.ref
-	$(SHLIB_ENV) ${VALGRIND} ./known_tcp_ports >known_tcp_ports.tmp 2>&1
-	diff known_tcp_ports.ref known_tcp_ports.tmp
-	rm -f known_tcp_ports.tmp
+test_mystrtok: update mystrtok_test
+	$(SHLIB_ENV) ${VALGRIND} ./mystrtok_test
 
-dict_stream_test: dict_stream dict_stream.ref
-	$(SHLIB_ENV) ${VALGRIND} ./dict_stream >dict_stream.tmp 2>&1
-	diff dict_stream.ref dict_stream.tmp
-	rm -f dict_stream.tmp
+dict_stream_test: dict_stream_test.o $(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(SYSLIBS)
+
+test_dict_stream: update dict_stream_test
+	$(SHLIB_ENV) ${VALGRIND} ./dict_stream_test
 
 dict_inline_pcre_test: dict_open dict_inline_pcre.ref
 	(echo get foo; echo get bar) | \
@@ -1059,13 +1053,31 @@ dict_inline_cidr_test: dict_open dict_inline_cidr.ref
 	diff dict_inline_cidr.ref dict_inline_cidr.tmp
 	rm -f dict_inline_cidr.tmp
 
-find_inet_test: find_inet find_inet.ref
-	$(SHLIB_ENV) ${VALGRIND} ./find_inet >find_inet.tmp 2>&1
-	diff find_inet.ref find_inet.tmp
-	rm -f find_inet.tmp
+find_inet_service_test: find_inet_service_test.o $(LIB_DIR)/mock_servent.o \
+	$(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o find_inet_service.o \
+	$(LIB_DIR)/mock_servent.o $(TEST_LIB) $(LIB) $(SYSLIBS)
+	
+test_find_inet_service: update find_inet_service_test 
+	$(SHLIB_ENV) ${VALGRIND} ./find_inet_service_test
 
-argv_test: argv
-	$(SHLIB_ENV) ${VALGRIND} ./argv
+mymalloc_test: mymalloc_test.o $(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(SYSLIBS)
+	
+test_mymalloc: update mymalloc_test 
+	$(SHLIB_ENV) ${VALGRIND} ./mymalloc_test
+
+msg_output_test: msg_output_test.o $(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(SYSLIBS)
+	
+test_msg_output: update msg_output_test 
+	$(SHLIB_ENV) ${VALGRIND} ./msg_output_test
+
+argv_test: argv_test.o $(TEST_LIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(SYSLIBS)
+	
+test_argv: update argv_test 
+	$(SHLIB_ENV) ${VALGRIND} ./argv_test
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -1160,6 +1172,20 @@ argv_splitq.o: stringops.h
 argv_splitq.o: sys_defs.h
 argv_splitq.o: vbuf.h
 argv_splitq.o: vstring.h
+argv_test.o: ../../include/pmock_expect.h
+argv_test.o: ../../include/ptest.h
+argv_test.o: ../../include/ptest_main.h
+argv_test.o: argv.h
+argv_test.o: argv_test.c
+argv_test.o: check_arg.h
+argv_test.o: msg.h
+argv_test.o: msg_output.h
+argv_test.o: msg_vstream.h
+argv_test.o: stringops.h
+argv_test.o: sys_defs.h
+argv_test.o: vbuf.h
+argv_test.o: vstream.h
+argv_test.o: vstring.h
 attr_clnt.o: attr.h
 attr_clnt.o: attr_clnt.c
 attr_clnt.o: attr_clnt.h
@@ -1328,6 +1354,7 @@ cidr_match.o: stringops.h
 cidr_match.o: sys_defs.h
 cidr_match.o: vbuf.h
 cidr_match.o: vstring.h
+cidr_match.o: wrap_netdb.h
 clean_env.o: argv.h
 clean_env.o: clean_env.c
 clean_env.o: clean_env.h
@@ -1432,6 +1459,23 @@ dict_cidr.o: vbuf.h
 dict_cidr.o: vstream.h
 dict_cidr.o: vstring.h
 dict_cidr.o: warn_stat.h
+dict_cidr.o: wrap_netdb.h
+dict_cli.o: argv.h
+dict_cli.o: check_arg.h
+dict_cli.o: dict.h
+dict_cli.o: dict_cli.c
+dict_cli.o: dict_db.h
+dict_cli.o: dict_lmdb.h
+dict_cli.o: mkmap.h
+dict_cli.o: msg.h
+dict_cli.o: msg_vstream.h
+dict_cli.o: myflock.h
+dict_cli.o: stringops.h
+dict_cli.o: sys_defs.h
+dict_cli.o: vbuf.h
+dict_cli.o: vstream.h
+dict_cli.o: vstring.h
+dict_cli.o: vstring_vstream.h
 dict_db.o: argv.h
 dict_db.o: check_arg.h
 dict_db.o: dict.h
@@ -1644,6 +1688,24 @@ dict_pipe.o: sys_defs.h
 dict_pipe.o: vbuf.h
 dict_pipe.o: vstream.h
 dict_pipe.o: vstring.h
+dict_pipe_test.o: ../../include/pmock_expect.h
+dict_pipe_test.o: ../../include/ptest.h
+dict_pipe_test.o: ../../include/ptest_main.h
+dict_pipe_test.o: argv.h
+dict_pipe_test.o: check_arg.h
+dict_pipe_test.o: dict.h
+dict_pipe_test.o: dict_pipe.h
+dict_pipe_test.o: dict_pipe_test.c
+dict_pipe_test.o: msg.h
+dict_pipe_test.o: msg_output.h
+dict_pipe_test.o: msg_vstream.h
+dict_pipe_test.o: myflock.h
+dict_pipe_test.o: mymalloc.h
+dict_pipe_test.o: stringops.h
+dict_pipe_test.o: sys_defs.h
+dict_pipe_test.o: vbuf.h
+dict_pipe_test.o: vstream.h
+dict_pipe_test.o: vstring.h
 dict_random.o: argv.h
 dict_random.o: check_arg.h
 dict_random.o: dict.h
@@ -1735,6 +1797,22 @@ dict_stream.o: sys_defs.h
 dict_stream.o: vbuf.h
 dict_stream.o: vstream.h
 dict_stream.o: vstring.h
+dict_stream_test.o: ../../include/pmock_expect.h
+dict_stream_test.o: ../../include/ptest.h
+dict_stream_test.o: ../../include/ptest_main.h
+dict_stream_test.o: argv.h
+dict_stream_test.o: check_arg.h
+dict_stream_test.o: dict.h
+dict_stream_test.o: dict_stream_test.c
+dict_stream_test.o: msg.h
+dict_stream_test.o: msg_output.h
+dict_stream_test.o: msg_vstream.h
+dict_stream_test.o: myflock.h
+dict_stream_test.o: stringops.h
+dict_stream_test.o: sys_defs.h
+dict_stream_test.o: vbuf.h
+dict_stream_test.o: vstream.h
+dict_stream_test.o: vstring.h
 dict_surrogate.o: argv.h
 dict_surrogate.o: check_arg.h
 dict_surrogate.o: compat_va_copy.h
@@ -1764,22 +1842,6 @@ dict_tcp.o: vbuf.h
 dict_tcp.o: vstream.h
 dict_tcp.o: vstring.h
 dict_tcp.o: vstring_vstream.h
-dict_test.o: argv.h
-dict_test.o: check_arg.h
-dict_test.o: dict.h
-dict_test.o: dict_db.h
-dict_test.o: dict_lmdb.h
-dict_test.o: dict_test.c
-dict_test.o: mkmap.h
-dict_test.o: msg.h
-dict_test.o: msg_vstream.h
-dict_test.o: myflock.h
-dict_test.o: stringops.h
-dict_test.o: sys_defs.h
-dict_test.o: vbuf.h
-dict_test.o: vstream.h
-dict_test.o: vstring.h
-dict_test.o: vstring_vstream.h
 dict_thash.o: argv.h
 dict_thash.o: check_arg.h
 dict_thash.o: dict.h
@@ -1811,6 +1873,24 @@ dict_union.o: sys_defs.h
 dict_union.o: vbuf.h
 dict_union.o: vstream.h
 dict_union.o: vstring.h
+dict_union_test.o: ../../include/pmock_expect.h
+dict_union_test.o: ../../include/ptest.h
+dict_union_test.o: ../../include/ptest_main.h
+dict_union_test.o: argv.h
+dict_union_test.o: check_arg.h
+dict_union_test.o: dict.h
+dict_union_test.o: dict_union.h
+dict_union_test.o: dict_union_test.c
+dict_union_test.o: msg.h
+dict_union_test.o: msg_output.h
+dict_union_test.o: msg_vstream.h
+dict_union_test.o: myflock.h
+dict_union_test.o: mymalloc.h
+dict_union_test.o: stringops.h
+dict_union_test.o: sys_defs.h
+dict_union_test.o: vbuf.h
+dict_union_test.o: vstream.h
+dict_union_test.o: vstring.h
 dict_unix.o: argv.h
 dict_unix.o: check_arg.h
 dict_unix.o: dict.h
@@ -1927,6 +2007,35 @@ find_inet.o: stringops.h
 find_inet.o: sys_defs.h
 find_inet.o: vbuf.h
 find_inet.o: vstring.h
+find_inet_service.o: check_arg.h
+find_inet_service.o: find_inet_service.c
+find_inet_service.o: find_inet_service.h
+find_inet_service.o: known_tcp_ports.h
+find_inet_service.o: msg.h
+find_inet_service.o: sane_strtol.h
+find_inet_service.o: stringops.h
+find_inet_service.o: sys_defs.h
+find_inet_service.o: vbuf.h
+find_inet_service.o: vstring.h
+find_inet_service.o: wrap_netdb.h
+find_inet_service_test.o: ../../include/mock_servent.h
+find_inet_service_test.o: ../../include/pmock_expect.h
+find_inet_service_test.o: ../../include/ptest.h
+find_inet_service_test.o: ../../include/ptest_main.h
+find_inet_service_test.o: argv.h
+find_inet_service_test.o: check_arg.h
+find_inet_service_test.o: find_inet_service.h
+find_inet_service_test.o: find_inet_service_test.c
+find_inet_service_test.o: known_tcp_ports.h
+find_inet_service_test.o: msg.h
+find_inet_service_test.o: msg_output.h
+find_inet_service_test.o: msg_vstream.h
+find_inet_service_test.o: stringops.h
+find_inet_service_test.o: sys_defs.h
+find_inet_service_test.o: vbuf.h
+find_inet_service_test.o: vstream.h
+find_inet_service_test.o: vstring.h
+find_inet_service_test.o: wrap_netdb.h
 format_tv.o: check_arg.h
 format_tv.o: format_tv.c
 format_tv.o: format_tv.h
@@ -1962,6 +2071,21 @@ hash_fnv.o: hash_fnv.h
 hash_fnv.o: ldseed.h
 hash_fnv.o: msg.h
 hash_fnv.o: sys_defs.h
+hash_fnv_test.o: ../../include/pmock_expect.h
+hash_fnv_test.o: ../../include/ptest.h
+hash_fnv_test.o: ../../include/ptest_main.h
+hash_fnv_test.o: argv.h
+hash_fnv_test.o: check_arg.h
+hash_fnv_test.o: hash_fnv.h
+hash_fnv_test.o: hash_fnv_test.c
+hash_fnv_test.o: msg.h
+hash_fnv_test.o: msg_output.h
+hash_fnv_test.o: msg_vstream.h
+hash_fnv_test.o: stringops.h
+hash_fnv_test.o: sys_defs.h
+hash_fnv_test.o: vbuf.h
+hash_fnv_test.o: vstream.h
+hash_fnv_test.o: vstring.h
 hex_code.o: check_arg.h
 hex_code.o: hex_code.c
 hex_code.o: hex_code.h
@@ -2003,6 +2127,7 @@ inet_addr_host.o: myaddrinfo.h
 inet_addr_host.o: mymalloc.h
 inet_addr_host.o: sock_addr.h
 inet_addr_host.o: sys_defs.h
+inet_addr_host.o: wrap_netdb.h
 inet_addr_list.o: inet_addr_list.c
 inet_addr_list.o: inet_addr_list.h
 inet_addr_list.o: msg.h
@@ -2010,6 +2135,7 @@ inet_addr_list.o: myaddrinfo.h
 inet_addr_list.o: mymalloc.h
 inet_addr_list.o: sock_addr.h
 inet_addr_list.o: sys_defs.h
+inet_addr_list.o: wrap_netdb.h
 inet_addr_local.o: check_arg.h
 inet_addr_local.o: hex_code.h
 inet_addr_local.o: inet_addr_list.h
@@ -2023,6 +2149,7 @@ inet_addr_local.o: sock_addr.h
 inet_addr_local.o: sys_defs.h
 inet_addr_local.o: vbuf.h
 inet_addr_local.o: vstring.h
+inet_addr_local.o: wrap_netdb.h
 inet_connect.o: connect.h
 inet_connect.o: host_port.h
 inet_connect.o: inet_connect.c
@@ -2035,6 +2162,7 @@ inet_connect.o: sane_connect.h
 inet_connect.o: sock_addr.h
 inet_connect.o: sys_defs.h
 inet_connect.o: timed_connect.h
+inet_connect.o: wrap_netdb.h
 inet_listen.o: host_port.h
 inet_listen.o: htable.h
 inet_listen.o: inet_listen.c
@@ -2047,6 +2175,7 @@ inet_listen.o: mymalloc.h
 inet_listen.o: sane_accept.h
 inet_listen.o: sock_addr.h
 inet_listen.o: sys_defs.h
+inet_listen.o: wrap_netdb.h
 inet_proto.o: check_arg.h
 inet_proto.o: inet_proto.c
 inet_proto.o: inet_proto.h
@@ -2057,6 +2186,7 @@ inet_proto.o: name_mask.h
 inet_proto.o: sys_defs.h
 inet_proto.o: vbuf.h
 inet_proto.o: vstring.h
+inet_proto.o: wrap_netdb.h
 inet_trigger.o: connect.h
 inet_trigger.o: events.h
 inet_trigger.o: inet_trigger.c
@@ -2089,6 +2219,21 @@ known_tcp_ports.o: stringops.h
 known_tcp_ports.o: sys_defs.h
 known_tcp_ports.o: vbuf.h
 known_tcp_ports.o: vstring.h
+known_tcp_ports_test.o: ../../include/pmock_expect.h
+known_tcp_ports_test.o: ../../include/ptest.h
+known_tcp_ports_test.o: ../../include/ptest_main.h
+known_tcp_ports_test.o: argv.h
+known_tcp_ports_test.o: check_arg.h
+known_tcp_ports_test.o: known_tcp_ports.h
+known_tcp_ports_test.o: known_tcp_ports_test.c
+known_tcp_ports_test.o: msg.h
+known_tcp_ports_test.o: msg_output.h
+known_tcp_ports_test.o: msg_vstream.h
+known_tcp_ports_test.o: stringops.h
+known_tcp_ports_test.o: sys_defs.h
+known_tcp_ports_test.o: vbuf.h
+known_tcp_ports_test.o: vstream.h
+known_tcp_ports_test.o: vstring.h
 ldseed.o: iostuff.h
 ldseed.o: ldseed.c
 ldseed.o: ldseed.h
@@ -2113,8 +2258,6 @@ load_file.o: vbuf.h
 load_file.o: vstream.h
 load_file.o: warn_stat.h
 load_lib.o: load_lib.c
-load_lib.o: load_lib.h
-load_lib.o: msg.h
 load_lib.o: sys_defs.h
 logwriter.o: check_arg.h
 logwriter.o: iostuff.h
@@ -2203,6 +2346,7 @@ match_ops.o: sys_defs.h
 match_ops.o: vbuf.h
 match_ops.o: vstream.h
 match_ops.o: vstring.h
+match_ops.o: wrap_netdb.h
 midna_domain.o: check_arg.h
 midna_domain.o: ctable.h
 midna_domain.o: midna_domain.c
@@ -2327,6 +2471,7 @@ msg_logger.o: vbuf.h
 msg_logger.o: vstream.h
 msg_logger.o: vstring.h
 msg_output.o: check_arg.h
+msg_output.o: msg.h
 msg_output.o: msg_output.c
 msg_output.o: msg_output.h
 msg_output.o: msg_vstream.h
@@ -2336,6 +2481,22 @@ msg_output.o: sys_defs.h
 msg_output.o: vbuf.h
 msg_output.o: vstream.h
 msg_output.o: vstring.h
+msg_output_test.o: ../../include/match_basic.h
+msg_output_test.o: ../../include/pmock_expect.h
+msg_output_test.o: ../../include/ptest.h
+msg_output_test.o: ../../include/ptest_main.h
+msg_output_test.o: argv.h
+msg_output_test.o: check_arg.h
+msg_output_test.o: msg.h
+msg_output_test.o: msg_output.h
+msg_output_test.o: msg_output_test.c
+msg_output_test.o: msg_vstream.h
+msg_output_test.o: mymalloc.h
+msg_output_test.o: stringops.h
+msg_output_test.o: sys_defs.h
+msg_output_test.o: vbuf.h
+msg_output_test.o: vstream.h
+msg_output_test.o: vstring.h
 msg_rate_delay.o: check_arg.h
 msg_rate_delay.o: events.h
 msg_rate_delay.o: msg.h
@@ -2380,6 +2541,29 @@ myaddrinfo.o: sys_defs.h
 myaddrinfo.o: valid_hostname.h
 myaddrinfo.o: vbuf.h
 myaddrinfo.o: vstring.h
+myaddrinfo.o: wrap_netdb.h
+myaddrinfo_test.o: ../../include/addrinfo_to_string.h
+myaddrinfo_test.o: ../../include/make_addr.h
+myaddrinfo_test.o: ../../include/match_addr.h
+myaddrinfo_test.o: ../../include/match_basic.h
+myaddrinfo_test.o: ../../include/mock_getaddrinfo.h
+myaddrinfo_test.o: ../../include/pmock_expect.h
+myaddrinfo_test.o: ../../include/ptest.h
+myaddrinfo_test.o: ../../include/ptest_main.h
+myaddrinfo_test.o: argv.h
+myaddrinfo_test.o: check_arg.h
+myaddrinfo_test.o: inet_proto.h
+myaddrinfo_test.o: msg.h
+myaddrinfo_test.o: msg_output.h
+myaddrinfo_test.o: msg_vstream.h
+myaddrinfo_test.o: myaddrinfo.h
+myaddrinfo_test.o: myaddrinfo_test.c
+myaddrinfo_test.o: stringops.h
+myaddrinfo_test.o: sys_defs.h
+myaddrinfo_test.o: vbuf.h
+myaddrinfo_test.o: vstream.h
+myaddrinfo_test.o: vstring.h
+myaddrinfo_test.o: wrap_netdb.h
 myflock.o: msg.h
 myflock.o: myflock.c
 myflock.o: myflock.h
@@ -2388,6 +2572,21 @@ mymalloc.o: msg.h
 mymalloc.o: mymalloc.c
 mymalloc.o: mymalloc.h
 mymalloc.o: sys_defs.h
+mymalloc_test.o: ../../include/pmock_expect.h
+mymalloc_test.o: ../../include/ptest.h
+mymalloc_test.o: ../../include/ptest_main.h
+mymalloc_test.o: argv.h
+mymalloc_test.o: check_arg.h
+mymalloc_test.o: msg.h
+mymalloc_test.o: msg_output.h
+mymalloc_test.o: msg_vstream.h
+mymalloc_test.o: mymalloc.h
+mymalloc_test.o: mymalloc_test.c
+mymalloc_test.o: stringops.h
+mymalloc_test.o: sys_defs.h
+mymalloc_test.o: vbuf.h
+mymalloc_test.o: vstream.h
+mymalloc_test.o: vstring.h
 myrand.o: myrand.c
 myrand.o: myrand.h
 myrand.o: sys_defs.h
@@ -2397,6 +2596,21 @@ mystrtok.o: stringops.h
 mystrtok.o: sys_defs.h
 mystrtok.o: vbuf.h
 mystrtok.o: vstring.h
+mystrtok_test.o: ../../include/pmock_expect.h
+mystrtok_test.o: ../../include/ptest.h
+mystrtok_test.o: ../../include/ptest_main.h
+mystrtok_test.o: argv.h
+mystrtok_test.o: check_arg.h
+mystrtok_test.o: msg.h
+mystrtok_test.o: msg_output.h
+mystrtok_test.o: msg_vstream.h
+mystrtok_test.o: mymalloc.h
+mystrtok_test.o: mystrtok_test.c
+mystrtok_test.o: stringops.h
+mystrtok_test.o: sys_defs.h
+mystrtok_test.o: vbuf.h
+mystrtok_test.o: vstream.h
+mystrtok_test.o: vstring.h
 name_code.o: name_code.c
 name_code.o: name_code.h
 name_code.o: sys_defs.h
@@ -2671,17 +2885,6 @@ stream_send_fd.o: iostuff.h
 stream_send_fd.o: msg.h
 stream_send_fd.o: stream_send_fd.c
 stream_send_fd.o: sys_defs.h
-stream_test.o: check_arg.h
-stream_test.o: connect.h
-stream_test.o: htable.h
-stream_test.o: iostuff.h
-stream_test.o: listen.h
-stream_test.o: msg.h
-stream_test.o: msg_vstream.h
-stream_test.o: stream_test.c
-stream_test.o: sys_defs.h
-stream_test.o: vbuf.h
-stream_test.o: vstream.h
 stream_trigger.o: connect.h
 stream_trigger.o: events.h
 stream_trigger.o: iostuff.h
@@ -2692,6 +2895,17 @@ stream_trigger.o: sys_defs.h
 stream_trigger.o: trigger.h
 sys_compat.o: sys_compat.c
 sys_compat.o: sys_defs.h
+test_sunos5_stream.o: check_arg.h
+test_sunos5_stream.o: connect.h
+test_sunos5_stream.o: htable.h
+test_sunos5_stream.o: iostuff.h
+test_sunos5_stream.o: listen.h
+test_sunos5_stream.o: msg.h
+test_sunos5_stream.o: msg_vstream.h
+test_sunos5_stream.o: sys_defs.h
+test_sunos5_stream.o: test_sunos5_stream.c
+test_sunos5_stream.o: vbuf.h
+test_sunos5_stream.o: vstream.h
 timecmp.o: timecmp.c
 timecmp.o: timecmp.h
 timed_connect.o: iostuff.h
@@ -2731,6 +2945,20 @@ unescape.o: sys_defs.h
 unescape.o: unescape.c
 unescape.o: vbuf.h
 unescape.o: vstring.h
+unescape_test.o: ../../include/pmock_expect.h
+unescape_test.o: ../../include/ptest.h
+unescape_test.o: ../../include/ptest_main.h
+unescape_test.o: argv.h
+unescape_test.o: check_arg.h
+unescape_test.o: msg.h
+unescape_test.o: msg_output.h
+unescape_test.o: msg_vstream.h
+unescape_test.o: stringops.h
+unescape_test.o: sys_defs.h
+unescape_test.o: unescape_test.c
+unescape_test.o: vbuf.h
+unescape_test.o: vstream.h
+unescape_test.o: vstring.h
 unix_connect.o: connect.h
 unix_connect.o: iostuff.h
 unix_connect.o: msg.h
@@ -2884,6 +3112,9 @@ watchdog.o: posix_signals.h
 watchdog.o: sys_defs.h
 watchdog.o: watchdog.c
 watchdog.o: watchdog.h
+wrap_netdb.o: sys_defs.h
+wrap_netdb.o: wrap_netdb.c
+wrap_netdb.o: wrap_netdb.h
 write_buf.o: iostuff.h
 write_buf.o: msg.h
 write_buf.o: sys_defs.h

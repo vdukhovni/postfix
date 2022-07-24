@@ -119,6 +119,7 @@ qmqp-source.o: ../../include/valid_mailhost_addr.h
 qmqp-source.o: ../../include/vbuf.h
 qmqp-source.o: ../../include/vstream.h
 qmqp-source.o: ../../include/vstring.h
+qmqp-source.o: ../../include/wrap_netdb.h
 qmqp-source.o: qmqp-source.c
 smtp-sink.o: ../../include/check_arg.h
 smtp-sink.o: ../../include/chroot_uid.h
@@ -144,6 +145,7 @@ smtp-sink.o: ../../include/vbuf.h
 smtp-sink.o: ../../include/vstream.h
 smtp-sink.o: ../../include/vstring.h
 smtp-sink.o: ../../include/vstring_vstream.h
+smtp-sink.o: ../../include/wrap_netdb.h
 smtp-sink.o: smtp-sink.c
 smtp-source.o: ../../include/check_arg.h
 smtp-source.o: ../../include/compat_va_copy.h
@@ -169,4 +171,5 @@ smtp-source.o: ../../include/vbuf.h
 smtp-source.o: ../../include/vstream.h
 smtp-source.o: ../../include/vstring.h
 smtp-source.o: ../../include/vstring_vstream.h
+smtp-source.o: ../../include/wrap_netdb.h
 smtp-source.o: smtp-source.c

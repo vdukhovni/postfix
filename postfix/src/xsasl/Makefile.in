@@ -148,6 +148,7 @@ xsasl_dovecot_server.o: ../../include/vbuf.h
 xsasl_dovecot_server.o: ../../include/vstream.h
 xsasl_dovecot_server.o: ../../include/vstring.h
 xsasl_dovecot_server.o: ../../include/vstring_vstream.h
+xsasl_dovecot_server.o: ../../include/wrap_netdb.h
 xsasl_dovecot_server.o: xsasl.h
 xsasl_dovecot_server.o: xsasl_dovecot.h
 xsasl_dovecot_server.o: xsasl_dovecot_server.c

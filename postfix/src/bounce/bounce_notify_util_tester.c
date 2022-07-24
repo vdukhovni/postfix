@@ -30,7 +30,7 @@
  /*
   * Testing library.
   */
-#include <test_main.h>
+#include <test_server_main.h>
 
 #define TEST_ENCODING	"7bit"
 #define NO_SMTPUTF8	(0)
@@ -156,7 +156,7 @@ int     main(int argc, char **argv)
 	0,
     };
 
-    test_main(argc, argv, test_driver,
+    test_server_main(argc, argv, test_driver,
 	      CA_TEST_MAIN_INT_TABLE(int_table),
 	      CA_TEST_MAIN_STR_TABLE(str_table),
 	      CA_TEST_MAIN_TIME_TABLE(time_table),

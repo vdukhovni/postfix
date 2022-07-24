@@ -9,6 +9,9 @@
 /*	void	msg_vstream_init(progname, stream)
 /*	const char *progname;
 /*	VSTREAM	*stream;
+/*
+/*	void	msg_vstream_enable(yesno)
+/*	int	yesno;
 /* DESCRIPTION
 /*	This module implements support to report msg(3) diagnostics
 /*	to a VSTREAM.
@@ -16,6 +19,9 @@
 /*	msg_vstream_init() sets the program name that appears in each output
 /*	record, and directs diagnostics (see msg(3)) to the specified
 /*	VSTREAM. The \fIprogname\fR argument is not copied.
+/*
+/*	msg_vstream_enable() enables or disables msg_vstream logging,
+/*	depending on the argument value.
 /* SEE ALSO
 /*	msg(3)
 /* BUGS
@@ -51,6 +57,7 @@
   */
 static const char *msg_tag;
 static VSTREAM *msg_stream;
+static int msg_vstream_enabled;
 
 /* msg_vstream_print - log diagnostic to VSTREAM */
 
@@ -59,6 +66,9 @@ static void msg_vstream_print(int level, const char *text)
     static const char *level_text[] = {
 	"info", "warning", "error", "fatal", "panic",
     };
+
+    if (!msg_vstream_enabled)
+	return;
 
     if (level < 0 || level >= (int) (sizeof(level_text) / sizeof(level_text[0])))
 	msg_panic("invalid severity level: %d", level);
@@ -76,12 +86,15 @@ static void msg_vstream_print(int level, const char *text)
 
 void    msg_vstream_init(const char *name, VSTREAM *vp)
 {
-    static int first_call = 1;
-
     msg_tag = name;
     msg_stream = vp;
-    if (first_call) {
-	first_call = 0;
-	msg_output(msg_vstream_print);
-    }
+    msg_output(msg_vstream_print);
+    msg_vstream_enabled = 1;
+}
+
+/* msg_vstream_enable - on/off switch */
+
+void    msg_vstream_enable(int yesno)
+{
+    msg_vstream_enabled = yesno;
 }

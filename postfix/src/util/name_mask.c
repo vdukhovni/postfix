@@ -156,6 +156,9 @@
 /*	Enable case-insensitive matching.
 /*	This feature is not enabled by default when calling name_mask();
 /*	it has no effect with str_name_mask().
+/* .IP NAME_MASK_NULL
+/*	When converting from mask to string, output "0" when the
+/*	input mask is empty.
 /* .IP NAME_MASK_COMMA
 /*	Use comma instead of space when converting a mask to string.
 /* .IP NAME_MASK_PIPE
@@ -308,6 +311,8 @@ const char *str_name_mask_opt(VSTRING *buf, const char *context,
     }
     if ((len = VSTRING_LEN(buf)) > 0)
 	vstring_truncate(buf, len - 1);
+    else if (flags & NAME_MASK_NULL)
+	vstring_strcat(buf, "0");
     VSTRING_TERMINATE(buf);
 
     return (STR(buf));
@@ -316,7 +321,7 @@ const char *str_name_mask_opt(VSTRING *buf, const char *context,
 /* long_name_mask_delim_opt - compute mask corresponding to list of names */
 
 long    long_name_mask_delim_opt(const char *context,
-				         const LONG_NAME_MASK * table,
+				         const LONG_NAME_MASK *table,
 			               const char *names, const char *delim,
 				         int flags)
 {
@@ -378,7 +383,7 @@ long    long_name_mask_delim_opt(const char *context,
 /* str_long_name_mask_opt - mask to string */
 
 const char *str_long_name_mask_opt(VSTRING *buf, const char *context,
-				           const LONG_NAME_MASK * table,
+				           const LONG_NAME_MASK *table,
 				           long mask, int flags)
 {
     const char *myname = "name_mask";

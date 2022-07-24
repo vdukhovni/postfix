@@ -135,6 +135,7 @@ smtp.o: ../../include/tok822.h
 smtp.o: ../../include/vbuf.h
 smtp.o: ../../include/vstream.h
 smtp.o: ../../include/vstring.h
+smtp.o: ../../include/wrap_netdb.h
 smtp.o: lmtp_params.c
 smtp.o: smtp.c
 smtp.o: smtp.h
@@ -180,6 +181,7 @@ smtp_addr.o: ../../include/tok822.h
 smtp_addr.o: ../../include/vbuf.h
 smtp_addr.o: ../../include/vstream.h
 smtp_addr.o: ../../include/vstring.h
+smtp_addr.o: ../../include/wrap_netdb.h
 smtp_addr.o: smtp.h
 smtp_addr.o: smtp_addr.c
 smtp_addr.o: smtp_addr.h
@@ -231,6 +233,7 @@ smtp_chat.o: ../../include/tok822.h
 smtp_chat.o: ../../include/vbuf.h
 smtp_chat.o: ../../include/vstream.h
 smtp_chat.o: ../../include/vstring.h
+smtp_chat.o: ../../include/wrap_netdb.h
 smtp_chat.o: smtp.h
 smtp_chat.o: smtp_chat.c
 smtp_connect.o: ../../include/argv.h
@@ -282,6 +285,7 @@ smtp_connect.o: ../../include/tok822.h
 smtp_connect.o: ../../include/vbuf.h
 smtp_connect.o: ../../include/vstream.h
 smtp_connect.o: ../../include/vstring.h
+smtp_connect.o: ../../include/wrap_netdb.h
 smtp_connect.o: smtp.h
 smtp_connect.o: smtp_addr.h
 smtp_connect.o: smtp_connect.c
@@ -322,6 +326,7 @@ smtp_key.o: ../../include/tok822.h
 smtp_key.o: ../../include/vbuf.h
 smtp_key.o: ../../include/vstream.h
 smtp_key.o: ../../include/vstring.h
+smtp_key.o: ../../include/wrap_netdb.h
 smtp_key.o: smtp.h
 smtp_key.o: smtp_key.c
 smtp_map11.o: ../../include/argv.h
@@ -362,6 +367,7 @@ smtp_map11.o: ../../include/tok822.h
 smtp_map11.o: ../../include/vbuf.h
 smtp_map11.o: ../../include/vstream.h
 smtp_map11.o: ../../include/vstring.h
+smtp_map11.o: ../../include/wrap_netdb.h
 smtp_map11.o: smtp.h
 smtp_map11.o: smtp_map11.c
 smtp_misc.o: ../../include/argv.h
@@ -402,6 +408,7 @@ smtp_misc.o: ../../include/tok822.h
 smtp_misc.o: ../../include/vbuf.h
 smtp_misc.o: ../../include/vstream.h
 smtp_misc.o: ../../include/vstring.h
+smtp_misc.o: ../../include/wrap_netdb.h
 smtp_misc.o: smtp.h
 smtp_misc.o: smtp_misc.c
 smtp_params.o: smtp_params.c
@@ -465,6 +472,7 @@ smtp_proto.o: ../../include/vbuf.h
 smtp_proto.o: ../../include/vstream.h
 smtp_proto.o: ../../include/vstring.h
 smtp_proto.o: ../../include/vstring_vstream.h
+smtp_proto.o: ../../include/wrap_netdb.h
 smtp_proto.o: ../../include/xtext.h
 smtp_proto.o: smtp.h
 smtp_proto.o: smtp_proto.c
@@ -509,6 +517,7 @@ smtp_rcpt.o: ../../include/tok822.h
 smtp_rcpt.o: ../../include/vbuf.h
 smtp_rcpt.o: ../../include/vstream.h
 smtp_rcpt.o: ../../include/vstring.h
+smtp_rcpt.o: ../../include/wrap_netdb.h
 smtp_rcpt.o: smtp.h
 smtp_rcpt.o: smtp_rcpt.c
 smtp_reuse.o: ../../include/argv.h
@@ -547,6 +556,7 @@ smtp_reuse.o: ../../include/tok822.h
 smtp_reuse.o: ../../include/vbuf.h
 smtp_reuse.o: ../../include/vstream.h
 smtp_reuse.o: ../../include/vstring.h
+smtp_reuse.o: ../../include/wrap_netdb.h
 smtp_reuse.o: smtp.h
 smtp_reuse.o: smtp_reuse.c
 smtp_reuse.o: smtp_reuse.h
@@ -589,6 +599,7 @@ smtp_sasl_auth_cache.o: ../../include/tok822.h
 smtp_sasl_auth_cache.o: ../../include/vbuf.h
 smtp_sasl_auth_cache.o: ../../include/vstream.h
 smtp_sasl_auth_cache.o: ../../include/vstring.h
+smtp_sasl_auth_cache.o: ../../include/wrap_netdb.h
 smtp_sasl_auth_cache.o: smtp.h
 smtp_sasl_auth_cache.o: smtp_sasl_auth_cache.c
 smtp_sasl_auth_cache.o: smtp_sasl_auth_cache.h
@@ -632,6 +643,7 @@ smtp_sasl_glue.o: ../../include/tok822.h
 smtp_sasl_glue.o: ../../include/vbuf.h
 smtp_sasl_glue.o: ../../include/vstream.h
 smtp_sasl_glue.o: ../../include/vstring.h
+smtp_sasl_glue.o: ../../include/wrap_netdb.h
 smtp_sasl_glue.o: ../../include/xsasl.h
 smtp_sasl_glue.o: smtp.h
 smtp_sasl_glue.o: smtp_sasl.h
@@ -674,6 +686,7 @@ smtp_sasl_proto.o: ../../include/tok822.h
 smtp_sasl_proto.o: ../../include/vbuf.h
 smtp_sasl_proto.o: ../../include/vstream.h
 smtp_sasl_proto.o: ../../include/vstring.h
+smtp_sasl_proto.o: ../../include/wrap_netdb.h
 smtp_sasl_proto.o: smtp.h
 smtp_sasl_proto.o: smtp_sasl.h
 smtp_sasl_proto.o: smtp_sasl_proto.c
@@ -714,6 +727,7 @@ smtp_session.o: ../../include/tok822.h
 smtp_session.o: ../../include/vbuf.h
 smtp_session.o: ../../include/vstream.h
 smtp_session.o: ../../include/vstring.h
+smtp_session.o: ../../include/wrap_netdb.h
 smtp_session.o: smtp.h
 smtp_session.o: smtp_sasl.h
 smtp_session.o: smtp_session.c
@@ -753,6 +767,7 @@ smtp_state.o: ../../include/tok822.h
 smtp_state.o: ../../include/vbuf.h
 smtp_state.o: ../../include/vstream.h
 smtp_state.o: ../../include/vstring.h
+smtp_state.o: ../../include/wrap_netdb.h
 smtp_state.o: smtp.h
 smtp_state.o: smtp_sasl.h
 smtp_state.o: smtp_state.c
@@ -795,6 +810,7 @@ smtp_tls_policy.o: ../../include/valid_utf8_hostname.h
 smtp_tls_policy.o: ../../include/vbuf.h
 smtp_tls_policy.o: ../../include/vstream.h
 smtp_tls_policy.o: ../../include/vstring.h
+smtp_tls_policy.o: ../../include/wrap_netdb.h
 smtp_tls_policy.o: smtp.h
 smtp_tls_policy.o: smtp_tls_policy.c
 smtp_trouble.o: ../../include/argv.h
@@ -838,6 +854,7 @@ smtp_trouble.o: ../../include/tok822.h
 smtp_trouble.o: ../../include/vbuf.h
 smtp_trouble.o: ../../include/vstream.h
 smtp_trouble.o: ../../include/vstring.h
+smtp_trouble.o: ../../include/wrap_netdb.h
 smtp_trouble.o: smtp.h
 smtp_trouble.o: smtp_sasl.h
 smtp_trouble.o: smtp_trouble.c
@@ -875,5 +892,6 @@ smtp_unalias.o: ../../include/tok822.h
 smtp_unalias.o: ../../include/vbuf.h
 smtp_unalias.o: ../../include/vstream.h
 smtp_unalias.o: ../../include/vstring.h
+smtp_unalias.o: ../../include/wrap_netdb.h
 smtp_unalias.o: smtp.h
 smtp_unalias.o: smtp_unalias.c

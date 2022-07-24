@@ -21,6 +21,9 @@
   */
 typedef void (*MSG_OUTPUT_FN) (int, const char *);
 extern void msg_output(MSG_OUTPUT_FN);
+typedef void (*MSG_OUTPUT3_FN) (int, const char *, void *);
+extern void msg_output_push(MSG_OUTPUT3_FN, void *);
+extern void msg_output_pop(MSG_OUTPUT3_FN, void *);
 extern void PRINTFLIKE(2, 3) msg_printf(int, const char *,...);
 extern void msg_vprintf(int, const char *, va_list);
 

@@ -1,0 +1,295 @@
+TODO write a TEST_README that summarizes how to write simple tests
+that don't need custom PTEST_CASE fields (use the example in
+ptest_main.h), how to report test errors and how to require them,
+how to require msg(3) logging, how to write subtests when test data
+does not fit in custom PTEST_CASE fields (use example in test_run.c),
+and how to mock out dependencies (use example in pmock_expect_test.c).
+
+TODO document NO_MOCK_WRAPPERS in makedefs.
+
+TODO move PCRE tests to src/global, and either make them skippable 
+(#ifndef USE_DYNAMIC_MAPS) or support dynamic loading in tests.
+
+DONE Need a way to SKIP tests, and report those in the summmary.
+
+	NORETURN ptest_skip(TEST_CTX *t)
+	TEST_CTX has a 'skip' counter
+	main() reports skipped tests
+
+DONE PTEST_CASE.name should be PTEST_CASE.testname
+
+DONE Port hfrom_format.c to use PTEST.
+
+TODO Port haproxy_srvr.c, to use PTEST.
+
+TODO Test that eq_sockaddr() and eq_addrinfo compare all fields for equality.
+
+==============
+
+DONE Subtests. What would the API look like?
+
+With callback:
+test_run(TEST_CTX *t, const char *name, void (*cb)(void *), void *context)
+
+This is clumsy because the callback has to be implemented outside
+the test.  Apart from that, the approach is robust and can temporarily
+redirect long jumps.
+
+With inline code:
+    new_ctx = test_start(TEST_CTX *t, const char *name);
+    ... do stuff with new_ctx context...
+    end_test(new_ctx);	// merges pass/fail stats into parent.
+
+This keeps the code inside the test. The problem that this still
+exposes internal machinery, such as redircting long jumps and
+logging.
+
+With inline code, again:
+    START_SUB_TEST(new_ctx, name) {
+	...do actual test...
+    }
+    END_SUB_TEST(new_ctx);
+
+That hides the internal machinery inside macros, but is still too clumsy.
+
+In-line code, single-macro alternative:
+
+    RUN_TEST(t, name, {
+	/* do actual test */
+   });
+
+Now we're talking!
+
+Both Linux gcc 11.3.1 and FreeBSD clang version 11.0.1 pre-process {}
+inside () without problems.
+
+indent complains about "Unbalanced parens" before the '(' and "Extra
+)" before the ')', but formats the code correctly.
+
+clang-format 12.0.1 handles {} inside (), but needs comments with /*
+clang-format off */ and /* clang-format on */ to avoid messing up the
+macro definition (it removes the '\' at the end of the lines).
+
+TODO: make sure that a subtest within a subtest propagates
+the number of subtests passed/failed.
+
+Assume that there always is a parent (the root is special).
+
+#define RUN_TEST(t, name, body_in_braces) \
+    MSG_JMP_BUF new_buf; \
+    TEST_CTX *parent = t;
+    t = test_ctx_create(name, &new_buf); \
+    test_info(t, "RUN %s", t->name); \
+    test_error_setup(t, VSTREAM_ERR); \
+    test_log_setup(t); \
+    msg_vstream_enable(0); \
+    if (msg_setjmp(&new_buf) == 0) { \
+	body_in_braces \
+    } \
+    msg_jmp_bufp = parent->jbuf; \
+    msg_vstream_enable(1); \
+    test_log_wrapup(t); \
+    mock_expect_wrapup(t); \
+    if (test_error_wrapup(t) == 0) { \
+	test_info(t, "PASS %s", t->name); \
+	parent->pass += 1;
+   } else { \
+	test_info(t, "FAIL %s", t->name); \
+	parent->fail += 1; \
+    } \
+    if (t->defer_fn) \
+        t->defer_fn(t->defer_ctx); \
+    test_ctx_free(t);
+    t = parent;
+
+This invites an archiecture where main() creates its own context with
+pass/fail counts and error handling, main() runs top-level tests in their
+own child context, subtests run in a child of a top-level test, and so on.
+
+Remaining questions
+
+- When would we NOT want the test framework to capture msg(3)
+logging? Perhaps in the main test context, where all logging is the
+result of a test framework failure, therefore no events should be
+suppressed with expectations.
+
+- When would we NOT want the test framework to catch panic/fatal
+errors? In a main context they indicate a test framework failure.
+Elsewhere, continuing after such a failure may still be desirable
+even if the result will be less reliable. mymalloc_test.c relies
+on this.
+
+================
+
+DONE: implemented with test_defer(TEST_CTX *t, callback, context) which
+is called from within a test, and which runs deferred code after a test
+is finished.
+
+Some tests just need do some pre setup post cleanup. Actually,
+they need to clean up after a fatal or paninc error. Would this be solved
+with an application callback for example expect_exception(callback, context)?
+Or should we just fork() the program that is being tested?
+
+
+================
+
+mock_expect_apply() should be a void function (now that errors are
+propagated through the test context.
+
+================
+
+DONE: Migrate test from argv.c, dict_stream.c
+
+Implement proper tests for vstream.c
+
+================
+
+DONE Add msg_output test that a popped handler accepts no further logging.
+
+=====================
+
+DONE: msg_output_pop(context) also pops all handlers that were
+registered later. This makes tests more robust and relaxes some
+awkward requirements in msg_output_test.c.
+
+======================
+
+Should we include all test helpers in <testing.h>? Otherwis
+test code would have to include
+separate files for matchers, to_string converters,
+with and without networking.
+
+No, testing.h should not pull in network-related code.
+
+============
+
+The *test.o files need to depend on ../../conf/makedefs.out
+
+=============
+
+wrap system library functions, so that we can mock the wrappers.
+
+And don't use the MOCKABLE (weak symbol) annotation, it breaks
+non-test code!
+
+=================
+
+make_sockaddr() should take an address family argument.
+
+=================
+
+Add a 'type' to the format strings that *print* support.
+
+vbuf_print_register(int char, callback)
+
+void callback(VBUF *bp, int width, int prec, va_list ap)
+
+But would the compiler's format-string checks complain,
+if the new 'type' appears amidst known types?
+
+==================
+
+Should we mock out getaddrinfo() and getnameinfo(), like we mocked
+out getservbyname? It would simplify a few tests, with aome risk of
+less realism. It could also provide a test bed for workarounds.
+
+===================
+
+Cleaning up the dns_lookup/dns_get_h_errno mess.
+
+Ideally, dns_get_h_errno() is removed from the API and all dns_lookup()
+functions return the last h_errno value. But deleting a function
+is bad.
+
+Maybe the mock set_dns_h_errno() can set an expectation for the next
+dns_get_h_errno() calls, then, dns_get_h_errno() would return that.
+
+Problem: dns_lookup_v() and dns_lookup_l() make multiple dns_lookup_x()
+calls, and not every call is followed by a dns_get_h_errno() call.
+So we would need to be able to control the order of mock calls.
+
+Solution: expect_dns_lookup_x() takes an expected h_errno value.
+Calling dns_lookup_x() will update a global variable that is shared with
+get_dns_h_errno() and set_dns_h_errno().
+
+================
+
+Would be nice to shut up msg_vstream() output whle a test runs so that
+logging goes only to the test_log_event() msg_output handler.
+
+Solution: add a msg_vstream_enable(int yesno) function.
+
+================
+
+Really would like to specify a logging expectation inside a test, 
+instead of being required to put that outside a test function.
+
+Could it be folded into the test_error() infrastructure? Maybe generalize
+TEST_ERR_INFO  interface (and rename it).
+
+Strawman:
+
+	test_log_setup(t)
+		create VSTRING memory stream buffer
+		push test_log_event() msg_output handler, with 't'
+		as callback context
+	expect_log(t, "blah blah")
+		append text to expected ll be made whose formatted text
+	test_log_wrapup(t)
+		pop msg_output handler
+		close memory stream
+		report mismatches between expected argv and actual logging.
+		delete the expected argv
+		delete VSTRING memory stream buffer
+
+One limitation is that code being tested should not push an output
+handler if it may triger a test_fatal() or msg_{fatal,panic}() call
+because their output handlers would persist.
+
+==============
+
+Perhaps add test_info(), test_error(), and test_fatal() for things
+that could be reported directly instead of through logging diffs.
+Question is where to keep the error state. In an object that is
+passed by reference, like other test system do.
+
+The test_xxx() would have to be callable from mock helpers so they
+can't be declared in mock_main.h. The would have to be declared in
+a different header file. For example, testing.h.
+
+Then we no longer rely on result values from test actions.
+
+Will this still work with testing the test system itself, for
+example, to test that eq_dns_rr() really reports all the expected
+differences?
+
+One could add an 'expect this error' method. At test wrap-up time,
+raise a new error when the expected error did not happen.
+
+How does the mock infrastructure know where to report errors?  There
+can be only one test main active at a time, It could call a mock_setup
+function that storea a local pointer.
+
+Passing the test object pointer during call expectation setting
+like __FILE__ and __LINE__? That does not work for a mock call that
+has no expectation.  This test object pointer would then be an
+eq_mumble argument.
+
+=====================
+
+Replace gethostby* with myaddrinfo calls.
+
+$ grep -l gethostby ../*/*c
+../local/biff_notify.c DONE
+../util/find_inet.c	deprecate
+
+$ grep -l getservby ../*/*c
+../local/biff_notify.c DONE
+../posttls-finger/posttls-finger.c
+../smtp/smtp_connect.c	
+../util/find_inet.c	USE SURROGATE getservbyname
+
+Or deprecate find_inet.c. It's used only in:
+grep -l find_inet.h ../*/*c
+../global/dict_mysql.c	
+

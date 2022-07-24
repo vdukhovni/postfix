@@ -243,6 +243,7 @@ master_ent.o: ../../include/vbuf.h
 master_ent.o: ../../include/vstream.h
 master_ent.o: ../../include/vstring.h
 master_ent.o: ../../include/wildcard_inet_addr.h
+master_ent.o: ../../include/wrap_netdb.h
 master_ent.o: master.h
 master_ent.o: master_ent.c
 master_ent.o: master_proto.h
@@ -268,6 +269,7 @@ master_listen.o: ../../include/stringops.h
 master_listen.o: ../../include/sys_defs.h
 master_listen.o: ../../include/vbuf.h
 master_listen.o: ../../include/vstring.h
+master_listen.o: ../../include/wrap_netdb.h
 master_listen.o: master.h
 master_listen.o: master_listen.c
 master_monitor.o: ../../include/iostuff.h

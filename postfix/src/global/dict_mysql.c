@@ -890,7 +890,9 @@ static HOST *host_init(const char *hostname)
     }
     host->name = mystrdup(d);
     if ((s = split_at_right(host->name, ':')) != 0)
-	host->port = ntohs(find_inet_port(s, "tcp"));
+	if ((host->port = find_inet_service(s, "tcp")) < 0)
+	    /* TODO: return null and create a surrogate dictionary. */
+	    msg_fatal("unknown service: %s/tcp", s);
     if (strcasecmp(host->name, "localhost") == 0) {
 	/* The MySQL way: this will actually connect over the UNIX socket */
 	myfree(host->name);

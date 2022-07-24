@@ -81,4 +81,5 @@ dnsblog.o: ../../include/valid_hostname.h
 dnsblog.o: ../../include/vbuf.h
 dnsblog.o: ../../include/vstream.h
 dnsblog.o: ../../include/vstring.h
+dnsblog.o: ../../include/wrap_netdb.h
 dnsblog.o: dnsblog.c

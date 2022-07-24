@@ -330,3 +330,15 @@ XXX  XXX
 USE_FNV_32BIT  USE_FNV_32BIT 
 void  void cleanup_milter_receive state count 
  struct DICT open const char int int dict_xx_open 
+void  void msg_printf level format 
+application  application specific 
+void  void dns_set_h_errno int herrval 
+application  application sans mock_ prefix 
+int  int eq_enum 
+int  int eq_str 
+void  void defer_ctx 
+ To undo a test_defer call call the function with a
+ static const struct mumble mumble 
+ Null name or name name 
+copy_addrinfo  copy_addrinfo expectation helper 
+ To undo a ptest_defer call call the function with a

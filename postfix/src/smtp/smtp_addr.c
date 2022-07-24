@@ -22,7 +22,7 @@
 /*	lookups are done via the Internet domain name service (DNS).
 /*	A reasonable number of CNAME indirections is permitted. When
 /*	DNS lookups are disabled, host address lookup is done with
-/*	getnameinfo() or gethostbyname().
+/*	myaddrinfo(3).
 /*
 /*	smtp_domain_addr() looks up the network addresses for mail
 /*	exchanger hosts listed for the named domain. Addresses are
