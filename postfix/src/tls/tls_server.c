@@ -751,6 +751,7 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 				       sizeof(server_session_id_context));
 	SSL_CTX_set_session_cache_mode(server_ctx,
 				       SSL_SESS_CACHE_SERVER |
+				       SSL_SESS_CACHE_NO_INTERNAL |
 				       SSL_SESS_CACHE_NO_AUTO_CLEAR);
 	if (cachable) {
 	    app_ctx->cache_type = mystrdup(props->cache_type);

@@ -2589,7 +2589,7 @@ number of messages delivered per second.
 .PP
 Specify 0 to disable the feature. Valid delays are 0..10.
 .SH inet_interfaces (default: all)
-The network interface addresses that this mail system receives
+The local network interface addresses that this mail system receives
 mail on. Specify "all" to receive mail on all network
 interfaces (default), and "loopback\-only" to receive mail
 on loopback network interfaces only (Postfix version 2.2 and later).  The
@@ -5835,7 +5835,7 @@ propagate_unmatched_extensions = canonical, virtual
 .ad
 .ft R
 .SH proxy_interfaces (default: empty)
-The network interface addresses that this mail system receives mail
+The remote network interface addresses that this mail system receives mail
 on by way of a proxy or network address translation unit.
 .PP
 This feature is available in Postfix 2.0 and later.

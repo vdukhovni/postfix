@@ -26533,3 +26533,32 @@ Apologies for any names omitted.
 
 	Documentation: edit text for clarity. File:
 	proto/MILTER_README.html.
+
+20220529
+
+	Documentation: Cyrus SASL configuration file location.
+	Viktor Dukhovni. File: proto/SASL_README.html.
+
+20220617
+
+	Cleanup: missing <stdio.h> include was causing a warning
+	on some platform. posttls-finger/posttls-finger.c.
+
+20220620
+
+	Documentation: inet_interfaces and proxy_interfaces
+	descriptions. File: proto/postconf.proto.
+
+
+20220719
+
+	Cleanup: debug logging noise in map_search_create(). Files:
+	global/map_search.c, global/map_search.ref.
+
+20220724
+
+	Workaround: in a TLS server disable Postfix's 1-element
+	internal session cache, to work around an OpenSSL 3.0
+	regression that broke TLS handshakes. It is rarely useful.
+	Report by Spil Oss, fix by Viktor Dukhovni. File:
+	tls/tls_server.c.

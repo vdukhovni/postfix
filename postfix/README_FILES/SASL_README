@@ -174,9 +174,17 @@ You can read more about the following topics:
 
   * Cyrus SASL version 2.1.22 and newer additionally search in /etc/sasl2/.
 
-  * Some Postfix distributions are modified and look for the Cyrus SASL
-    configuration file in /etc/postfix/sasl/, /var/lib/sasl2/ etc. See the
-    distribution-specific documentation to determine the expected location.
+  * li>
+    With Postfix 2.5 and later you can explicitly configure the search path via
+    the cyrus_sasl_config_path configuration parameter. Specify zero or more
+    colon-separated directories. If set empty (the default value) the search
+    path is the one compiled into the Cyrus SASL library.
+
+Some Postfix distributions employ a non-empty default value for
+cyrus_sasl_config_path to look for the Cyrus SASL configuration file in /etc/
+postfix/sasl/, /var/lib/sasl2/ etc. See the output of postconf
+cyrus_sasl_config_path and/or the distribution-specific documentation to
+determine the expected location.
 
     NNoottee
 
