@@ -253,6 +253,7 @@
 #include <attr_override.h>
 #include <map_search.h>
 #include <info_log_addr_form.h>
+#include <mail_version.h>
 
 /* Application-specific. */
 
@@ -4101,6 +4102,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 					policy_clnt->policy_context),
 			  SEND_ATTR_STR(MAIL_ATTR_COMPAT_LEVEL,
 					var_compatibility_level),
+			  SEND_ATTR_STR(MAIL_ATTR_MAIL_VERSION,
+					var_mail_version),
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
 			  RECV_ATTR_STR(MAIL_ATTR_ACTION, action),
