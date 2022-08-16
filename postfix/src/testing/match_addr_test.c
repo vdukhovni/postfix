@@ -25,6 +25,31 @@ typedef struct PTEST_CASE {
     void    (*action) (PTEST_CTX *t, const struct PTEST_CASE *);
 } PTEST_CASE;
 
+static void test_eq_addrinfo_equal(PTEST_CTX *t, const PTEST_CASE *unused)
+{
+    struct addrinfo hints;
+    struct addrinfo *want_addrinfo;
+
+    /*
+     * Set up expectations.
+     */
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = PF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    want_addrinfo = make_addrinfo(&hints, "localhost", "127.0.0.1", 25);
+
+    /*
+     * Verify that this addrinfo matches itself.
+     */
+    if (!eq_addrinfo(t, "addrinfo", want_addrinfo, want_addrinfo))
+	ptest_error(t, "eq_addrinfo() returned false for identical objects");
+
+    /*
+     * Clean up.
+     */
+    freeaddrinfo(want_addrinfo);
+}
+
 static void test_eq_addrinfo_diff(PTEST_CTX *t, const PTEST_CASE *unused)
 {
     struct addrinfo hints;
@@ -121,6 +146,9 @@ static void test_eq_sockaddr_diff(PTEST_CTX *t, const PTEST_CASE *unused)
   * Test cases.
   */
 const PTEST_CASE ptestcases[] = {
+    {
+	"Compare equal IPv4 addrinfos", test_eq_addrinfo_equal,
+    },
     {
 	"Compare different IPv4 addrinfos", test_eq_addrinfo_diff,
     },

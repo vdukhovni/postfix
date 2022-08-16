@@ -1,6 +1,6 @@
  /*
-  * Test program to exercise the msg_output module. See comments in
-  * ptest_main.h for documented examples.
+  * Test program to exercise the msg_output module. See PTEST_README for
+  * documentation.
   */
 
  /*

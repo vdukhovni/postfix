@@ -303,6 +303,7 @@ $readme_directory/MEMCACHE_README:f:root:-:644
 $readme_directory/MILTER_README:f:root:-:644
 $readme_directory/MULTI_INSTANCE_README:f:root:-:644
 $readme_directory/MYSQL_README:f:root:-:644
+$readme_directory/PTEST_README:f:root:-:644
 $readme_directory/SMTPUTF8_README:f:root:-:644
 $readme_directory/SQLITE_README:f:root:-:644
 $readme_directory/NFS_README:f:root:-:644
@@ -364,6 +365,7 @@ $html_directory/MEMCACHE_README.html:f:root:-:644
 $html_directory/MILTER_README.html:f:root:-:644
 $html_directory/MULTI_INSTANCE_README.html:f:root:-:644
 $html_directory/MYSQL_README.html:f:root:-:644
+$html_directory/PTEST_README.html:f:root:-:644
 $html_directory/SMTPUTF8_README.html:f:root:-:644
 $html_directory/SQLITE_README.html:f:root:-:644
 $html_directory/NFS_README.html:f:root:-:644

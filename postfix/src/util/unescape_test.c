@@ -1,6 +1,5 @@
  /*
-  * Test program to exercise unescape.c. See ptest_main.h for a documented
-  * example.
+  * Test program to exercise unescape.c. See PTEST_README for documentation.
   */
 
  /*

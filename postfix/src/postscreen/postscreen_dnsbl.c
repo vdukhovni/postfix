@@ -15,10 +15,12 @@
 /*
 /*	int	psc_dnsbl_retrieve(client_addr, dnsbl_name, dnsbl_index,
 /*					dnsbl_ttl)
-/*	char	*client_addr;
+/*	const char *client_addr;
 /*	const char **dnsbl_name;
 /*	int	dnsbl_index;
 /*	int	*dnsbl_ttl;
+/* AUXILIARY FUNCTIONS
+/*	void	psc_dnsbl_deinit(void)
 /* DESCRIPTION
 /*	This module implements preliminary support for DNSBL lookups.
 /*	Multiple requests for the same information are handled with
@@ -44,6 +46,9 @@
 /*	reference count. The reply TTL value is clamped to
 /*	postscreen_dnsbl_min_ttl and postscreen_dnsbl_max_ttl.  It
 /*	is an error to retrieve a score without requesting it first.
+/*
+/*	psc_dnsbl_deinit() tries to reset state so that psc_dnsbl_init()
+/*	can be called again. This is to support tests only.
 /* LICENSE
 /* .ad
 /* .fi
@@ -115,9 +120,22 @@ static HTABLE *dnsbl_site_cache;	/* indexed by DNSBNL domain */
 static HTABLE_INFO **dnsbl_site_list;	/* flattened cache */
 
 typedef struct {
-    const char *safe_dnsbl;		/* from postscreen_dnsbl_reply_map */
+    char   *safe_dnsbl;			/* from postscreen_dnsbl_reply_map */
     struct PSC_DNSBL_SITE *first;	/* list of (filter, weight) tuples */
 } PSC_DNSBL_HEAD;
+
+static void psc_dnsbl_site_free(void *ptr);
+
+static void psc_dnsbl_head_free(void *ptr)
+{
+    PSC_DNSBL_HEAD *head = (PSC_DNSBL_HEAD *) ptr;
+
+    if (head->safe_dnsbl)
+	myfree(head->safe_dnsbl);
+    if (head->first)
+	psc_dnsbl_site_free(head->first);
+    myfree(head);
+};
 
 typedef struct PSC_DNSBL_SITE {
     char   *filter;			/* printable filter (default: null) */
@@ -125,6 +143,19 @@ typedef struct PSC_DNSBL_SITE {
     int     weight;			/* reply weight (default: 1) */
     struct PSC_DNSBL_SITE *next;	/* linked list */
 } PSC_DNSBL_SITE;
+
+static void psc_dnsbl_site_free(void *ptr)
+{
+    PSC_DNSBL_SITE *site = (PSC_DNSBL_SITE *) ptr;
+
+    if (site->filter)
+	myfree(site->filter);
+    if (site->byte_codes)
+	myfree(site->byte_codes);
+    if (site->next)
+	psc_dnsbl_site_free(site->next);
+    myfree(site);
+}
 
  /*
   * Per-client DNSBL scores.
@@ -162,6 +193,13 @@ typedef struct {
     PSC_CALL_BACK_ENTRY table[1];	/* actually a bunch */
 } PSC_DNSBL_SCORE;
 
+static void psc_dnsbl_score_free(void *ptr)
+{
+    PSC_DNSBL_SCORE *score = (PSC_DNSBL_SCORE *) ptr;
+
+    myfree(score);
+}
+
 #define PSC_CALL_BACK_INIT(sp) do { \
 	(sp)->limit = 0; \
 	(sp)->index = 0; \
@@ -197,8 +235,10 @@ typedef struct {
     } while (0)
 
 #define PSC_CALL_BACK_NOTIFY(sp, ev) do { \
+	PSC_CALL_BACK_ENTRY *_table_ = (sp)->table; \
+	int _index_ = (sp)->index; \
 	PSC_CALL_BACK_ENTRY *_cb_; \
-	for (_cb_ = (sp)->table; _cb_ < (sp)->table + (sp)->index; _cb_++) \
+	for (_cb_ = _table_; _cb_ < _table_ + _index_; _cb_++) \
 	    if (_cb_->callback != 0) \
 		_cb_->callback((ev), _cb_->context); \
     } while (0)
@@ -231,7 +271,7 @@ static void psc_dnsbl_add_site(const char *site)
     int     weight;
     HTABLE_INFO *ht;
     char   *parse_err;
-    const char  *safe_dnsbl;
+    const char *safe_dnsbl;
 
     /*
      * Parse the required DNSBL domain name, the optional reply filter and
@@ -480,6 +520,8 @@ static void psc_dnsbl_receive(int event, void *context)
     vstream_fclose(stream);
 }
 
+static int request_count;
+
 /* psc_dnsbl_request  - send dnsbl query, increment reference count */
 
 int     psc_dnsbl_request(const char *client_addr,
@@ -492,7 +534,6 @@ int     psc_dnsbl_request(const char *client_addr,
     HTABLE_INFO **ht;
     PSC_DNSBL_SCORE *score;
     HTABLE_INFO *hash_node;
-    static int request_count;
 
     /*
      * Some spambots make several connections at nearly the same time,
@@ -621,4 +662,42 @@ void    psc_dnsbl_init(void)
     reply_client = vstring_alloc(100);
     reply_dnsbl = vstring_alloc(100);
     reply_addr = vstring_alloc(100);
+
+    /*
+     * Reset the request ID seed, to make tests predictable.
+     */
+    request_count = 0;
+}
+
+/* psc_dnsbl_deinit - helper for tests only */
+
+void    psc_dnsbl_deinit(void)
+{
+    if (psc_dnsbl_service) {
+	myfree(psc_dnsbl_service);
+	psc_dnsbl_service = 0;
+    }
+    if (dnsbl_site_cache) {
+	htable_free(dnsbl_site_cache, psc_dnsbl_head_free);
+	dnsbl_site_cache = 0;
+    }
+    if (dnsbl_site_list) {
+	myfree(dnsbl_site_list);
+	dnsbl_site_list = 0;
+    }
+    if (dnsbl_score_cache) {
+	htable_free(dnsbl_score_cache, psc_dnsbl_score_free);
+	dnsbl_score_cache = 0;
+    }
+    if (reply_client) {
+	vstring_free(reply_client);
+	reply_client = 0;
+    }
+    if (reply_dnsbl) {
+	vstring_free(reply_dnsbl), reply_dnsbl = 0;
+    }
+    if (reply_addr) {
+	vstring_free(reply_addr);
+	reply_addr = 0;
+    }
 }

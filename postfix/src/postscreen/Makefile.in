@@ -10,11 +10,12 @@ OBJS	= postscreen.o postscreen_dict.o postscreen_dnsbl.o \
 	postscreen_starttls.o postscreen_expand.o postscreen_endpt.o \
 	postscreen_haproxy.o
 HDRS	= 
-TESTSRC	=
+TESTSRC	= postscreen_dnsbl_test.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
-TESTPROG=
+TESTPROG= postscreen_dnsbl_test
 PROG	= postscreen
+TEST_LIB= ../../lib/libtesting.a ../../lib/libptest.a
 INC_DIR = ../../include
 LIBS	= ../../lib/lib$(LIB_PREFIX)master$(LIB_SUFFIX) \
 	../../lib/lib$(LIB_PREFIX)tls$(LIB_SUFFIX) \
@@ -34,7 +35,7 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:	test
+tests:	test_postscreen_dnsbl
 
 root_tests:
 
@@ -58,6 +59,14 @@ clean:
 	rm -rf printfck
 
 tidy:	clean
+
+postscreen_dnsbl_test: postscreen_dnsbl_test.o postscreen_dnsbl.o \
+	../../lib//mock_server.o $(TEST_LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o postscreen_dnsbl.o \
+	../../lib//mock_server.o $(TEST_LIB) $(LIBS) $(SYSLIBS)
+	
+test_postscreen_dnsbl: update postscreen_dnsbl_test 
+	$(SHLIB_ENV) ${VALGRIND} ./postscreen_dnsbl_test
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -156,6 +165,42 @@ postscreen_dnsbl.o: ../../include/vstring.h
 postscreen_dnsbl.o: ../../include/wrap_netdb.h
 postscreen_dnsbl.o: postscreen.h
 postscreen_dnsbl.o: postscreen_dnsbl.c
+postscreen_dnsbl_test.o: ../../include/addr_match_list.h
+postscreen_dnsbl_test.o: ../../include/argv.h
+postscreen_dnsbl_test.o: ../../include/attr.h
+postscreen_dnsbl_test.o: ../../include/check_arg.h
+postscreen_dnsbl_test.o: ../../include/connect.h
+postscreen_dnsbl_test.o: ../../include/dict.h
+postscreen_dnsbl_test.o: ../../include/dict_cache.h
+postscreen_dnsbl_test.o: ../../include/events.h
+postscreen_dnsbl_test.o: ../../include/htable.h
+postscreen_dnsbl_test.o: ../../include/iostuff.h
+postscreen_dnsbl_test.o: ../../include/mail_params.h
+postscreen_dnsbl_test.o: ../../include/mail_proto.h
+postscreen_dnsbl_test.o: ../../include/make_attr.h
+postscreen_dnsbl_test.o: ../../include/maps.h
+postscreen_dnsbl_test.o: ../../include/match_list.h
+postscreen_dnsbl_test.o: ../../include/mock_server.h
+postscreen_dnsbl_test.o: ../../include/msg.h
+postscreen_dnsbl_test.o: ../../include/msg_output.h
+postscreen_dnsbl_test.o: ../../include/msg_vstream.h
+postscreen_dnsbl_test.o: ../../include/myaddrinfo.h
+postscreen_dnsbl_test.o: ../../include/myflock.h
+postscreen_dnsbl_test.o: ../../include/mymalloc.h
+postscreen_dnsbl_test.o: ../../include/nvtable.h
+postscreen_dnsbl_test.o: ../../include/pmock_expect.h
+postscreen_dnsbl_test.o: ../../include/ptest.h
+postscreen_dnsbl_test.o: ../../include/ptest_main.h
+postscreen_dnsbl_test.o: ../../include/server_acl.h
+postscreen_dnsbl_test.o: ../../include/string_list.h
+postscreen_dnsbl_test.o: ../../include/stringops.h
+postscreen_dnsbl_test.o: ../../include/sys_defs.h
+postscreen_dnsbl_test.o: ../../include/vbuf.h
+postscreen_dnsbl_test.o: ../../include/vstream.h
+postscreen_dnsbl_test.o: ../../include/vstring.h
+postscreen_dnsbl_test.o: ../../include/wrap_netdb.h
+postscreen_dnsbl_test.o: postscreen.h
+postscreen_dnsbl_test.o: postscreen_dnsbl_test.c
 postscreen_early.o: ../../include/addr_match_list.h
 postscreen_early.o: ../../include/argv.h
 postscreen_early.o: ../../include/check_arg.h

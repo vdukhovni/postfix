@@ -128,7 +128,6 @@ static void test_map_search(PTEST_CTX *t, const struct PTEST_CASE *unused)
 
     for (tp = test_cases; tp->map_spec; tp++) {
 	vstring_sprintf(test_label, "test %d", (int) (tp - test_cases));
-/**INDENT** Error@126: Unbalanced parens */
 	PTEST_RUN(t, STR(test_label), {
 	    for (cpp = tp->want_log; cpp < tp->want_log + MAX_WANT_LOG && *cpp; cpp++)
 		expect_ptest_log_event(t, *cpp);
@@ -171,7 +170,6 @@ static void test_map_search(PTEST_CTX *t, const struct PTEST_CASE *unused)
 			    escape_order(want_escaped,
 				     string_or_null(tp->exp_search_order)));
 	    }
-/**INDENT** Warning@168: Extra ) */
 	});
     }
     vstring_free(want_escaped);

@@ -87,6 +87,7 @@ a delegated SMTPD access policy request:
     server_port=54321
     PPoossttffiixx vveerrssiioonn 33..88 aanndd llaatteerr::
     compatibility_level=major.minor.patch
+    mail_version=3.8.0
     [empty line]
 
 Notes:
@@ -169,6 +170,10 @@ Notes:
   * The "compatibility_level" attribute corresponds to the compatibility_level
     parameter value. It has the form major.minor.patch where minor and patch
     may be absent.
+
+  * The "mail_version" attribute corresponds to the mail_version parameter
+    value. It has the form major.minor.patch for stable releases, and
+    major.minor-yyyymmdd for unstable releases.
 
 The following is specific to SMTPD delegated policy requests:
 

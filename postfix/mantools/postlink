@@ -1171,6 +1171,18 @@ while (<>) {
     s/(ftp:\/\/[^ ,"\(\)]*[^ ,"\(\):;!?.])/<a href="$1">$1<\/a>/;
     s/\bRFC\s*([1-9]\d*)/<a href="https:\/\/tools.ietf.org\/html\/rfc$1">$&<\/a>/g;
 
+    # Ptest hyperlinks
+
+    s;\bptest_error\b;<a href="PTEST_README.html#$&">$&</a>;g;
+    s;\bptest_fatal\b;<a href="PTEST_README.html#$&">$&</a>;g;
+    s;\bptest_info\b;<a href="PTEST_README.html#$&">$&</a>;g;
+    s;\bexpect_ptest_error\b;<a href="PTEST_README.html#$&">$&</a>;g;
+    s;\bexpect_ptest_log_event\b;<a href="PTEST_README.html#$&">$&</a>;g;
+    s;\bPTEST_RUN\b;<a href="PTEST_README.html#$&">$&</a>;g;
+    s;\bptest_skip\b;<a href="PTEST_README.html#$&">$&</a>;g;
+    s;\bptest_return\b;<a href="PTEST_README.html#$&">$&</a>;g;
+    s;\bptest_defer\b;<a href="PTEST_README.html#$&">$&</a>;g;
+
     # Split README/RFC/parameter/restriction hyperlinks that span line breaks
 
     s/(<a href="[^"]*">)([-A-Za-z0-9_]*)\b([-<\/bB>]*\n *[<bB>]*)\b([-A-Za-z0-9_]*)(<\/a>)/$1$2$5$3$1$4$5/;

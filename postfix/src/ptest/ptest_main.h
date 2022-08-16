@@ -130,6 +130,14 @@ int     main(int argc, char **argv)
     int     fail;
 
     /*
+     * This must be set BEFORE the first hash table call.
+     */
+#ifndef DORANDOMIZE
+    if (putenv("NORANDOMIZE=") != 0)
+	msg_fatal("putenv() failed: %m");
+#endif
+
+    /*
      * Send msg(3) logging to stderr by default.
      */
     msg_vstream_init(basename(argv[0]), VSTREAM_ERR);
@@ -147,9 +155,7 @@ int     main(int argc, char **argv)
      * data, instead of having to store all test data in a PTEST_CASE
      * structure.
      */
-#define NROF(x) (sizeof(x)/sizeof((x)[0]))
-
-    for (tp = ptestcases; tp < ptestcases + NROF(ptestcases); tp++) {
+    for (tp = ptestcases; tp < ptestcases + PTEST_NROF(ptestcases); tp++) {
 	if (tp->testname == 0)
 	    msg_fatal("Null testname in ptestcases array!");
 	PTEST_RUN(t, tp->testname, {

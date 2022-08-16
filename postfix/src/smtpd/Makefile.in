@@ -342,6 +342,7 @@ smtpd_check.o: ../../include/mail_error.h
 smtpd_check.o: ../../include/mail_params.h
 smtpd_check.o: ../../include/mail_proto.h
 smtpd_check.o: ../../include/mail_stream.h
+smtpd_check.o: ../../include/mail_version.h
 smtpd_check.o: ../../include/map_search.h
 smtpd_check.o: ../../include/maps.h
 smtpd_check.o: ../../include/match_list.h

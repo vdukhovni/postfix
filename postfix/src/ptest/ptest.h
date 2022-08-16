@@ -113,6 +113,11 @@ extern void ptest_defer(PTEST_CTX *, PTEST_DEFER_FN, void *);
     t = parent; \
 } while (0)
 
+ /*
+  * How many elements in a test case array.
+  */
+#define PTEST_NROF(x) (sizeof(x)/sizeof((x)[0]))
+
 /* LICENSE
 /* .ad
 /* .fi

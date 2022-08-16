@@ -1,0 +1,599 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+<head>
+
+<title>Writing Postfix unit tests </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+</head>
+
+<body>
+
+<h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">Writing
+Postfix unit tests </h1>
+
+<hr>
+
+<h2> Overview </h2>
+
+<p> This document covers, Ptest, a simple unit test framework that
+was introduced with Postfix version 3.8. It is modeled after Go
+tests, with primitives such as <a href="PTEST_README.html#ptest_error">ptest_error</a>() and <a href="PTEST_README.html#ptest_fatal">ptest_fatal</a>() that
+report test failures, and <a href="PTEST_README.html#PTEST_RUN">PTEST_RUN</a>() that supports subtests. </p>
+
+<p> Ptest is light-weight compared to more powerful framweworks
+such as Gtest, but it avoids the need for adding a large Postfix
+dependency (a dependency that would not affect Postfix distributors,
+but developers only). </p>
+
+<ul>
+
+<li> <p> <a href="#simple_example"> Simple example </a> </p>
+
+<li> <p> <a href="#test_case_data"> Testing one function with
+TEST_CASE data </a> </p>
+
+<li> <p> <a href="#sub_tests"> Testing functions with subtests </a> </p>
+
+<li> <p> <a href="#style"> Suggestions for writing tests </a> </p>
+
+<li> <p> <a href="#api_reference"> Ptest API reference  </a> </p>
+
+</ul>
+
+<h2> <a name="simple_example"> Simple example </a> </h2>
+
+<p> Simple tests exercise one function under test, one scenario at
+a time.  Each scenario calls the function under test with good or
+bad inputs, and verifies that the function behaves as expected. The
+code in Postfix <tt>mymalloc_test.c</tt> file is a good example. </p>
+
+<p> After some <tt>#include</tt> statements, the file goes like
+this: </p>
+
+<blockquote>
+<pre>
+ 27 typedef struct PTEST_CASE {
+ 28     const char *testname;               /* Human-readable description */
+ 29     void    (*action) (PTEST_CTX *, const struct PTEST_CASE *);
+ 30 } PTEST_CASE;
+ 31 
+ 32 /* Test functions. */
+ 33 
+ 34 static void test_mymalloc_normal(PTEST_CTX *t, const PTEST_CASE *tp)
+ 35 {
+ 36     void   *ptr;
+ 37 
+ 38     ptr = mymalloc(100);
+ 39     myfree(ptr);
+ 40 }
+ 41 
+ 42 static void test_mymalloc_panic_too_small(PTEST_CTX *t, const PTEST_CASE *tp)
+ 43 {
+ 44     <a href="PTEST_README.html#expect_ptest_log_event">expect_ptest_log_event</a>(t, "panic: mymalloc: requested length 0");
+ 45     (void) mymalloc(0);
+ 46     <a href="PTEST_README.html#ptest_fatal">ptest_fatal</a>(t, "mymalloc(0) returned");
+ 47 }
+...     // Test functions for myrealloc(), mystrdup(), mymemdup().
+260
+261 static const PTEST_CASE ptestcases[] = {
+262     {"mymalloc + myfree normal case", test_mymalloc_normal,
+263     },
+264     {"mymalloc panic for too small request", test_mymalloc_panic_too_small,
+265     },
+...     // Test cases for myrealloc(), mystrdup(), mymemdup().
+306 };
+307 
+308 #include &lt;ptest_main.h&gt;
+</pre>
+</blockquote>
+
+<p> To run the test: </p>
+
+<blockquote>
+<pre>
+$ make test_mymalloc
+... compiler output...
+LD_LIBRARY_PATH=/path/to/postfix-source/lib ./mymalloc_test
+RUN  mymalloc + myfree normal case
+PASS mymalloc + myfree normal case
+RUN  mymalloc panic for too small request
+PASS mymalloc panic for too small request
+... results for myrealloc(), mystrdup(), mymemdup()...
+mymalloc_test: PASS: 22, SKIP: 0, FAIL: 0
+</pre>
+</blockquote>
+
+<p> This simple example already shows several key features of the ptest
+framework. </p>
+
+<ul>
+
+<li> <p> Each test is implemented as a separate function
+(<tt>test_mymalloc_normal()</tt>, <tt>test_mymalloc_panic_too_small()</tt>,
+and so on). </p>
+
+<li> <p> The first test verifies 'normal' behavior: it verifies that
+<tt>mymalloc()</tt> will allocate a small amount of memory, and that
+<tt>myfree()</tt> will accept the result from <tt>mymalloc()</tt>.
+When the test is run under a memory checker such as Valgrind, the
+memory checker will report no memory leak or other error. </p>
+
+<li> <p> The second test is more interesting. </p>
+
+<ul>
+
+<li> <p> The test verifies that <tt>mymalloc()</tt> will call
+<tt>msg_panic()</tt> when the requested amount of memory is too
+small. But in this test the <tt>msg_panic()</tt> call will not
+terminate the process like it normally would. The Ptest framework
+changes the control flow of <tt>msg_panic()</tt> and <tt>msg_fatal()</tt>
+such that these functions will terminate their test, instead of
+their process. </p>
+
+<li> <p> The <tt><a href="PTEST_README.html#expect_ptest_log_event">expect_ptest_log_event</a>()</tt> call sets up an
+expectation that <tt>msg_panic()</tt> will produce a specific error
+message; the test would fail if the expectation remains unsatisfied.
+</p>
+
+<li> <p> The <tt><a href="PTEST_README.html#ptest_fatal">ptest_fatal</a>()</tt> call at the end of the second
+test is not needed; this call can only be reached if <tt>mymalloc()</tt>
+does not call <tt>msg_panic()</tt>. But then the expected panic
+message will not be logged, and the test will fail anyway. </p>
+
+</ul>
+
+<li> <p> The <tt>ptestcases[]</tt> table near the end of the example
+contains for each test the name and a pointer to function. As we
+show in a later example, the <tt>ptestcases[]</tt> table can also
+contain test inputs and expectations. </p>
+
+<li> <p> The "<tt>#include &lt;ptest_main.h&gt;</tt>" at the end pulls
+in the code that iterates over the <tt>ptestcases[]</tt> table and
+logs progress.
+
+<li> <p> The test run output shows that the <tt>msg_panic()</tt>
+output in the second test is silenced; only output from unexpected
+<tt>msg_panic()</tt> or other unexpected <tt>msg(3)</tt> calls would
+show up in test run output. </p>
+
+</ul>
+
+<h2> <a name="test_case_data"> Testing one function with
+TEST_CASE data </a> </h2>
+
+<p> Often, we want to test a module that contains only one function. In
+that case we can store all the test inputs and expected results in the
+PTEST_CASE structure. </p>
+
+<p> The examples below are taken from the <tt>dict_union_test.c</tt>
+file which test the <tt>unionmap</tt> implementation in the file.
+<tt>dict_union.c</tt>. </p>
+
+<p> Background: a unionmap creates a union of tables. For example,
+the lookup table "<tt><a href="DATABASE_README.html#types">unionmap</a>:{<a href="DATABASE_README.html#types">inline</a>:{foo=one},<a href="DATABASE_README.html#types">inline</a>:{foo=two}}</tt>"
+will return ("<tt>one, two</tt>", DICT_STAT_SUCCESS) when queried
+with <tt>foo</tt>, and will return (NOTFOUND, DICT_STAT_SUCCESS)
+otherwise. </p>
+
+<p> First, we present the TEST_CASE structure with additional fields
+for inputs and expected results. </p>
+
+<blockquote>
+<pre>
+ 29 #define MAX_PROBE       5
+ 30 
+ 31 struct probe {
+ 32     const char *query;
+ 33     const char *want_value;
+ 34     int     want_error;
+ 35 };
+ 36 
+ 37 typedef struct PTEST_CASE {
+ 38     const char *testname;
+ 39     void    (*action) (PTEST_CTX *, const struct PTEST_CASE *);
+ 40     const char *type_name;
+ 41     const struct probe probes[MAX_PROBE];
+ 42 } PTEST_CASE;
+</pre>
+</blockquote>
+
+<p> In the PTEST_CASE structure above: </p>
+
+<ul>
+
+<li> <p> The <tt>testname</tt> and <tt>action</tt> fields are
+standard. We have seen these already in the simple example above.
+<p>
+
+<li> <p> The <tt>type_name</tt> field will contain the name of the table,
+for example <tt><a href="DATABASE_README.html#types">unionmap</a>:{<a href="DATABASE_README.html#types">static</a>:one,<a href="DATABASE_README.html#types">inline</a>:{foo=two}}</tt>. </p>
+
+<li> <p> The <tt>probes</tt> field contains a list of (query, expected
+result value, expected error code) that will be used to query the unionmap
+and to verify the result value and error code.
+</p>
+
+</ul>
+
+<p> Next we show the test data. Every test calls the same
+<tt>test_dict_union()</tt> function with a different <tt>unionmap</tt>
+configuration and with a list of queries with expected results. The
+implementation of that function follows after the test data. </p>
+
+<blockquote>
+<pre>
+ 78 static const PTEST_CASE ptestcases[] = {
+ 79     {
+ 80          /* testname */ "successful lookup: static map + inline map",
+ 81          /* action */ test_dict_union,
+ 82          /* type_name */ "<a href="DATABASE_README.html#types">unionmap</a>:{<a href="DATABASE_README.html#types">static</a>:one,<a href="DATABASE_README.html#types">inline</a>:{foo=two}}",
+ 83          /* probes */ {
+ 84             {"foo", "one,two", DICT_STAT_SUCCESS},
+ 85             {"bar", "one", DICT_STAT_SUCCESS},
+ 86         },
+ 87     }, {
+ 88          /* testname */ "error propagation: static map + fail map",
+ 89          /* action */ test_dict_union,
+ 90          /* type_name */ "<a href="DATABASE_README.html#types">unionmap</a>:{<a href="DATABASE_README.html#types">static</a>:one,<a href="DATABASE_README.html#types">fail</a>:fail}",
+ 91          /* probes */ {
+ 92             {"foo", 0, DICT_STAT_ERROR},
+ 93         },
+...
+102 };
+103 
+104 #include &lt;ptest_main.h&gt;
+</pre>
+</blockquote>
+
+<p> Finally, here is the <tt>test_dict_union()</tt> function that
+tests the <tt>unionmap</tt> implementation with a given configuration
+and test queries. </p>
+
+<blockquote>
+<pre>
+ 44 #define STR_OR_NULL(s)  ((s) ? (s) : "null")
+ 45 
+ 46 static void test_dict_union(PTEST_CTX *t, const struct PTEST_CASE *tp)
+ 47 {
+ 48     DICT   *dict;
+ 49     const struct probe *pp;
+ 50     const char *got_value;
+ 51     int     got_error;
+ 52 
+ 53     if ((dict = dict_open(tp->type_name, O_RDONLY, 0)) == 0)
+ 54         <a href="PTEST_README.html#ptest_fatal">ptest_fatal</a>(t, "dict_open(\"%s\", O_RDONLY, 0) failed: %m",
+ 55                     tp->type_name);
+ 56     for (pp = tp->probes; pp < tp->probes + MAX_PROBE && pp->query != 0; pp++) {
+ 57         got_value = dict_get(dict, pp->query);
+ 58         got_error = dict->error;
+ 59         if (got_value == 0 && pp->want_value == 0)
+ 60             continue;
+ 61         if (got_value == 0 || pp->want_value == 0) {
+ 62             <a href="PTEST_README.html#ptest_error">ptest_error</a>(t, "dict_get(dict, \"%s\"): got '%s', want '%s'",
+ 63                         pp->query, STR_OR_NULL(got_value),
+ 64                         STR_OR_NULL(pp->want_value));
+ 65             break;
+ 66         }
+ 67         if (strcmp(got_value, pp->want_value) != 0) {
+ 68             <a href="PTEST_README.html#ptest_error">ptest_error</a>(t, "dict_get(dict, \"%s\"): got '%s', want '%s'",
+ 69                         pp->query, got_value, pp->want_value);
+ 70         }
+ 71         if (got_error != pp->want_error)
+ 72             <a href="PTEST_README.html#ptest_error">ptest_error</a>(t, "dict_get(dict,\"%s\") <a href="error.8.html">error</a>: got %d, want %d",
+ 73                         pp->query, got_error, pp->want_error);
+ 74     }
+ 75     dict_free(dict);
+ 76 }
+</pre> 
+</blockquote>
+
+<p> A test run looks like this: </p>
+
+<blockquote>
+<pre>
+$ make test_dict_union
+...compiler output...
+LD_LIBRARY_PATH=/path/to/postfix-source/lib ./dict_union_test
+RUN  successful lookup: static map + inline map
+PASS successful lookup: static map + inline map
+RUN  error propagation: static map + fail map
+PASS error propagation: static map + fail map
+...
+dict_union_test: PASS: 3, SKIP: 0, FAIL: 0
+</pre>
+</blockquote>
+
+<h2> <a name="sub_tests"> Testing functions with subtests </a> </h2>
+
+<p> Sometimes it is not convenient to store test data in a PTEST_CASE
+structure. This can happen when converting an existing test into
+Ptest, or when the module under test contains multiple functions
+that need different kinds of test data. The solution is to create
+a <tt>_test.c</tt> file with the structure shown below. The example
+is based on code in <tt>map_search_test.c</tt> that was converted
+from an existing test into Ptest. </p>
+
+<ul>
+
+<li> <p> One PTEST_CASE structure definition without test data. </p>
+
+<pre>
+ 50 typedef struct PTEST_CASE {
+ 51     const char *testname;
+ 52     void    (*action) (PTEST_CTX *, const struct PTEST_CASE *);
+ 53 } PTEST_CASE;
+</pre>
+
+<li> <p> One test function for each module function that needs to
+be tested, and one table with test cases for that module function.
+In this case there is only one module function (<tt>map_search()</tt>)
+that needs to be tested, so there is only one test function
+(<tt>test_map_search()</tt>). </p>
+
+<pre>
+ 67 #define MAX_WANT_LOG    5
+ 68 
+ 69 static void test_map_search(PTEST_CTX *t, const struct PTEST_CASE *unused)
+ 70 {
+ 71     /* Test cases with inputs and expected outputs. */
+ 72     struct test {
+ 73         const char *map_spec;
+ 74         int     want_return;            /* 0=fail, 1=success */
+ 75         const char *want_log[MAX_WANT_LOG];
+ 76         const char *want_map_type_name; /* 0 or match */
+ 77         const char *exp_search_order;   /* 0 or match */
+ 78     };
+ 79     static struct test test_cases[] = {
+ 80         { /* 0 */ "type", 0, {
+ 81                 "malformed map specification: 'type'",
+ 82                 "expected maptype:mapname instead of 'type'",
+ 83         }, 0},
+...        // ...other test cases...
+111     };
+</pre>
+
+<li> <p> In a test function, iterate over its table with test cases,
+using <tt><a href="PTEST_README.html#PTEST_RUN">PTEST_RUN</a>()</tt> to run each test case in its own subtest.
+</p>
+
+<pre>
+129     for (tp = test_cases; tp->map_spec; tp++) {
+130         vstring_sprintf(test_label, "test %d", (int) (tp - test_cases));
+131         <a href="PTEST_README.html#PTEST_RUN">PTEST_RUN</a>(t, STR(test_label), {
+132             for (cpp = tp->want_log; cpp < tp->want_log + MAX_WANT_LOG && *cpp; cpp++)
+133                 <a href="PTEST_README.html#expect_ptest_log_event">expect_ptest_log_event</a>(t, *cpp);
+134             map_search_from_create = map_search_create(tp->map_spec);
+...            // ...verify that the result is as expected...
+...            // ...use <a href="PTEST_README.html#ptest_return">ptest_return</a>() or <a href="PTEST_README.html#ptest_fatal">ptest_fatal</a>() to exit from a test...
+173         });
+174     }
+...
+178 }
+</pre>
+
+<li> <p> Create a <tt>ptestcases[]</tt> table to call each test
+function once, and include the Ptest main program. </p>
+
+<pre>
+183 static const PTEST_CASE ptestcases[] = {
+184     "test_map_search", test_map_search,
+185 };
+186 
+187 #include &lt;ptest_main.h&gt;
+</pre>
+
+</ul>
+
+<p> See the file <tt>map_search_test.c</tt> for a complete example.
+</p>
+
+<p> This is what a test run looks like: </p>
+
+<blockquote>
+<pre>
+$ make test_map_search
+...compiler output...
+LD_LIBRARY_PATH=/path/to/postfix-source/lib  ./map_search_test
+RUN  test_map_search
+RUN  test_map_search/test 0
+PASS test_map_search/test 0
+....
+PASS test_map_search
+map_search_test: PASS: 13, SKIP: 0, FAIL: 0
+</pre>
+</blockquote>
+
+<p> This shows that the subtest name is appended to the parent test
+name, formatted as <i>parent-name/child-name</i>. </p>
+
+<h2> <a name="style"> Suggestions for writing tests </a> </h2>
+
+<p> Ptest is loosely inspired on Go test, especially its top-level
+test functions and its methods <tt>T.run()</tt>, <tt>T.error()</tt>
+and <tt>T.fatal()</tt>. </p>
+
+<p> Suggestions for test style may look familiar to Go programmers:
+</p>
+
+<ul>
+
+<li> <p> Use variables named <tt>got_xxx</tt> and <tt>want_xxx</tt>,
+and when a test result is unexpected, log the discrepancy as "got
+&lt;what you got&gt;, want &lt;what you want&gt;".  </p>
+
+<li> <p> Report discrepancies with <tt><a href="PTEST_README.html#ptest_error">ptest_error</a>()</tt> if possible;
+use <tt><a href="PTEST_README.html#ptest_fatal">ptest_fatal</a>()</tt> only when continuing the test would
+produce nonsensical results. </p>
+
+<li> <p> Where it makes sense use a table with testcases and use
+<tt><a href="PTEST_README.html#PTEST_RUN">PTEST_RUN</a>()</tt> to run each testcase in its own subtest. </p>
+
+</ul>
+
+<p> Other suggestions: </p>
+
+<ul>
+
+<li> <p> Consider running tests under a memory checker such as
+Valgrind. Use <tt><a href="PTEST_README.html#ptest_defer">ptest_defer</a>()</tt> to avoid memory leaks when a
+test may terminate early. </p>
+
+<li> <p> Always test non-error and error cases, to cover all code
+paths in the function under test. </p>
+
+</ul>
+
+<h2> <a name="api_reference"> Ptest API reference </a> </h2>
+
+<ul>
+
+<li> <p> <a href="#managing_errors">Managing test errors</a>
+
+<li> <p> <a href="#managing_logs">Managing log events</a>
+
+<li> <p> <a href="#managing_flows">Managing test execution </a>
+
+</ul>
+
+<h2> <a name="managing_errors"> Managing test errors</a> </h2>
+
+<p> As one might expect, Ptest has support to flag unexpected test
+results as errors. </p>
+
+<dl>
+
+<dt> <b> <a name="ptest_error"> <tt>void ptest_error(PTEST_CTX *t,
+const char *format, ...)</tt> </a> </b> </dt>
+
+<dd> Called from inside a test to report an unexpected test result,
+and to flag the test as failed without terminating the test. This
+call can be ignored with <tt><a href="PTEST_README.html#expect_ptest_error">expect_ptest_error</a>()</tt>. <br> <br> </dd>
+
+<dt> <b> <a name="ptest_fatal"> <tt>void ptest_fatal(PTEST_CTX *t,
+const char *format, ...)</tt> </a> </b> </dt>
+
+<dd> Called from inside a test to report an unexpected test result,
+to flag the test as failed, and to terminate the test. This call
+cannot be ignored with <tt><a href="PTEST_README.html#expect_ptest_error">expect_ptest_error</a>()</tt>. </dd>
+
+</dl>
+
+<p> For convenience, Ptest has can also report non-error information.
+</p>
+
+<dl>
+
+<dt> <b> <a name="ptest_info"> <tt>void ptest_info(PTEST_CTX *t,
+const char *format, ...)</tt> </a> </b> </dt>
+
+<dd> Called from inside a test to report a non-error condition
+without terminating the test. This call cannot be ignored with
+<tt><a href="PTEST_README.html#expect_ptest_error">expect_ptest_error</a>()</tt>. </dd>
+
+</dl>
+
+<p> Finally, Ptest has support to test <tt><a href="PTEST_README.html#ptest_error">ptest_error</a>()</tt> itself,
+to verify that an intentional error is reported as expected. </p>
+
+<dl>
+
+<dt> <b> <a name="expect_ptest_error"> <tt>void
+expect_ptest_error(PTEST_CTX *t, const char *text)</tt> </a> </b>
+</dt>
+
+<dd> Called from inside a test to expect exactly one <tt><a href="PTEST_README.html#ptest_error">ptest_error</a>()</tt>
+call with the specified text, and to ignore that <tt><a href="PTEST_README.html#ptest_error">ptest_error</a>()</tt>
+call (i.e. don't flag the test as failed). To ignore multiple calls,
+call <tt><a href="PTEST_README.html#expect_ptest_error">expect_ptest_error</a>()</tt> multiple times. A test is flagged
+as failed when an expected error is not reported (and of course
+when an error is reported that is not expected with
+<tt><a href="PTEST_README.html#expect_ptest_error">expect_ptest_error</a>()</tt>). </dd>
+
+</dl>
+
+<h2> <a name="managing_logs"> Managing log events</a> </h2>
+
+<p> Ptest integrates with Postfix <tt>msg(3)</tt> logging. </p>
+
+<ul>
+
+<li> <p> Ptest changes the control flow of <tt>msg_fatal()</tt> and
+<tt>msg_panic()</tt>. When these functions are called during a test,
+Ptest flags a test as failed and terminates the test instead of the
+process. </p>
+
+<li> <p> Ptest silences the output from <tt>msg_info()</tt> and
+other <tt>msg(3)</tt> calls, and installs a log event listener tp
+monitor Postfix logging. </p>
+
+</ul>
+
+<p> Ptest provides the following API to manage log events: </p>
+
+<dl>
+
+<dt> <b> <a name="expect_ptest_log_event"> <tt>void
+expect_ptest_log_event(PTEST_CTX *t, const char *text)</tt> </a>
+</b> </dt>
+
+<dd> Called from inside a test to expect exactly one <tt>msg(3)</tt>
+call with the specified text. To expect multiple events, call
+<tt><a href="PTEST_README.html#expect_ptest_log_event">expect_ptest_log_event</a>()</tt> multiple times. A test is flagged
+as failed when expected text is not logged, or when text is logged
+that is not expected with <tt><a href="PTEST_README.html#expect_ptest_log_event">expect_ptest_log_event</a>()</tt>. </dd>
+
+</dl>
+
+<h2> <a name="managing_flows"> Managing test execution </a> </h2>
+
+<p> Ptest has a number of primitives that control test execution.
+</p>
+
+<dl>
+
+<dt> <b> <a name="PTEST_RUN"> <tt>void PTEST_RUN(PTEST_CTX *t, const
+char *test_name, { code in braces })</tt> </a> </b> </dt>
+
+<dd> Called from inside a test to run the <tt>{ code in braces
+}</tt> in it own subtest environment. In the test progress report,
+the subtest name is appended to the parent test name, formatted as
+<i>parent-name/child-name</i>. <br> <br> NOTE: because <tt><a href="PTEST_README.html#PTEST_RUN">PTEST_RUN</a>()
+</tt> is a macro, the <tt>{ code in braces }</tt> must not contain
+a <tt>return</tt> statement; use <tt><a href="PTEST_README.html#ptest_return">ptest_return</a>()</tt> instead.
+It is OK for <tt>{ code in braces }</tt> to call a function that
+uses <tt>return</tt>. <br> <br> </dd>
+
+<dt> <b> <a name="ptest_skip"> <tt>NORETURN ptest_skip(PTEST_CTX
+*t)</tt> </a> </b> </dt>
+
+<dd> Called from inside a test to flag a test as skipped, and to
+terminate the test without terminating the process. Use this to
+disable tests that are not applicable for a specific system type
+or build configuration. <br> <br> </dd>
+
+<dt> <b> <a name="ptest_return"> <tt>NORETURN ptest_return(PTEST_CTX
+*t)</tt> </a> </b> </dt>
+
+<dd> Called from inside a test to terminate the test without
+terminating the process. <br> <br> </dd>
+
+<dt> <b> <a name="ptest_defer"> <tt>void ptest_defer(PTEST_CTX *t,
+void (*defer_fn)(void *), void  *defer_ctx)</tt> </a> </b> </dt>
+
+<dd> Called once from inside a test, to call <tt>defer_fn(defer_ctx)</tt>
+after the test completes. This is typically used to eliminate a
+resource leak in tests that terminate the test early. <br> <br>
+NOTE: The deferred function is designed to run outside a test, and
+therefore it must not call Ptest functions. </dd>
+
+</dl>
+
+</body>
+
+</html>
+

@@ -1838,3 +1838,10 @@ ptestcase
 ptestcases
 subtests
 case's
+HAPROXY
+SRVR
+Deserialize
+SNDBUF
+deserialize
+deserialized
+NORAMDOMIZE

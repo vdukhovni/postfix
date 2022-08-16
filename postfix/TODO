@@ -1,3 +1,59 @@
+Consolidate postscreen_dnsbl tests that differ only in data.
+
+Add a mock_server_test case for a non-matching request (error propagation
+check).
+
+DONE postscreen_dnsbl_test.c. The code structure is 
+
+void    psc_dnsbl_init(void) // one-time initialization
+
+int     psc_dnsbl_request(const char *client_addr,
+                                  void (*callback) (int, void *),
+                                  void *context)
+
+Calls LOCAL_CONNECT() which would need to be mocked (this calls
+unix_connect() on solaris 9+ and all other systems).  Returns a request
+index that must be passed to psc_dnsbl_retrieve().
+
+psc_dnsbl_retrieve() is called before the pregreet_wait timer expires when
+a client hangs up, when postscreen drops the client, or by the callback.
+the pregreet_wait timer expires, or by the callback.
+
+In the following paragraph, a direct call is a call that is not made
+through the events framework (for example, using event_request_timer()
+with a zero delay).
+
+The callback is called directly when the complete score for client_addr
+is known before the pregreet_wait timer expires.  The callback then
+directly calls psc_dnsbl_retrieve().
+
+Test structure:
+
+- We need a mock attribute server (in-process or in-child process) that
+responds to requests. Or do we? It could be all memory streams that read
+from prepared VSTRINGs
+
+How do we test a program that uses the events framework? 
+
+- Use a socketpair or pipe and write messages smaller than the buffer
+size, so that writes would not block (or use non-blocking writes to be
+informed when a write is too large). A pipe will accept 16384
+bytes on NetBSD 9.2 and OmniOS 5.11 (Solaris), and 65536 bytes
+on FreeBSD 13.0, macOS 11.6.1, and  Linux 5.8.15 / Fedora 33.
+With socketpairs the results vary.
+https://www.netmeister.org/blog/ipcbufs.html
+
+- Async mock client/server: create pipe; write request, and set up a
+read request that will wake up the mock server, compare serialized
+request against expectation, write prepared serialized reponse.
+
+
+================
+DONE Split documentation into PTEST_README and PMOCK_README
+
+PTEST_README: intro, links to all sections, simple example, more complex
+example, managing errors, managing logs, managing flows.
+
 TODO write a TEST_README that summarizes how to write simple tests
 that don't need custom PTEST_CASE fields (use the example in
 ptest_main.h), how to report test errors and how to require them,
@@ -7,8 +63,9 @@ and how to mock out dependencies (use example in pmock_expect_test.c).
 
 TODO document NO_MOCK_WRAPPERS in makedefs.
 
-TODO move PCRE tests to src/global, and either make them skippable 
-(#ifndef USE_DYNAMIC_MAPS) or support dynamic loading in tests.
+TODO make PCRE tests skippable (#ifndef USE_DYNAMIC_MAPS), or move
+them to src/global and implement support for dynamic loading
+in tests.
 
 DONE Need a way to SKIP tests, and report those in the summmary.
 
@@ -23,6 +80,8 @@ DONE Port hfrom_format.c to use PTEST.
 TODO Port haproxy_srvr.c, to use PTEST.
 
 TODO Test that eq_sockaddr() and eq_addrinfo compare all fields for equality.
+
+TODO Add the missing tests in myaddrinfo_test.c.
 
 ==============
 
@@ -56,21 +115,21 @@ In-line code, single-macro alternative:
 
     RUN_TEST(t, name, {
 	/* do actual test */
-   });
+    });
 
 Now we're talking!
 
-Both Linux gcc 11.3.1 and FreeBSD clang version 11.0.1 pre-process {}
-inside () without problems.
+Both Linux gcc 11.3.1 and FreeBSD clang version 11.0.1 have no
+problems with compiling compile code with {} inside a macro argument.
 
 indent complains about "Unbalanced parens" before the '(' and "Extra
 )" before the ')', but formats the code correctly.
 
-clang-format 12.0.1 handles {} inside (), but needs comments with /*
-clang-format off */ and /* clang-format on */ to avoid messing up the
-macro definition (it removes the '\' at the end of the lines).
+clang-format 12.0.1 handles {} inside a macro argument, but needs comments
+with /* clang-format off */ and /* clang-format on */ to avoid messing
+up the macro definition (it removes the '\' at the end of the lines).
 
-TODO: make sure that a subtest within a subtest propagates
+DONE: make sure that a subtest within a subtest propagates
 the number of subtests passed/failed.
 
 Assume that there always is a parent (the root is special).

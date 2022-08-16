@@ -1,6 +1,6 @@
  /*
-  * Test program to exercise known_tcp_ports.c. See ptest_main.h for a
-  * documented example.
+  * Test program to exercise known_tcp_ports.c. See PTEST_README for
+  * documentation.
   */
 
  /*

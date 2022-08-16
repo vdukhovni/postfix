@@ -1,6 +1,6 @@
  /*
-  * Test program to exercise the hash_fnv implementation. See comments in
-  * ptest_main.h for a documented example.
+  * Test program to exercise the hash_fnv implementation. See PTEST_README
+  * for documentation.
   */
 
  /*

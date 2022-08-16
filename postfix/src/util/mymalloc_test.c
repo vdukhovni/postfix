@@ -1,7 +1,6 @@
  /*
-  * Tests to verify malloc sanity checks. See comments in ptest_main.h for a
-  * documented example. The test code depends on the real mymalloc library,
-  * so we can 't do destructive tests.
+  * Tests to verify mymalloc sanity checks. See PTEST_README for
+  * documentation.
   */
 
  /*
@@ -221,7 +220,7 @@ static void test_mystrndup_static_empty(PTEST_CTX *t,
 		    got, want);
 
     /*
-     * myfree() is a NOOP.
+     * myfree() is a NOOP for "empty" mystrdup() or mystrndup() results.
      */
     myfree(want);
     myfree(got);
@@ -258,7 +257,7 @@ static void test_mymemdup_fatal_out_of_mem(PTEST_CTX *t, const PTEST_CASE *tp)
     ptest_fatal(t, "mymemdup(_, SSIZE_T_MAX-100) returned");
 }
 
-const PTEST_CASE ptestcases[] = {
+static const PTEST_CASE ptestcases[] = {
     {"mymalloc + myfree normal case", test_mymalloc_normal,
     },
     {"mymalloc panic for too small request", test_mymalloc_panic_too_small,

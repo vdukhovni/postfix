@@ -26590,10 +26590,42 @@ Apologies for any names omitted.
 	Report by Spil Oss, fix by Viktor Dukhovni. File:
 	tls/tls_server.c.
 
+20220802
+
+	Documentation: in the aliases(5) manpage, more specific
+	pointers to the local(8) manpage sections for delivery to
+	file, command execution, and delivery rights. File:
+	proto/aliases.
+
+20220805
+
+	Feature: "mail_version" attribute in the SMTPD policy
+	protocol, with the value of the "mail_version" configuration
+	parameter. This differs from the "compatibility_level"
+	attribute, because "mail_version" indicates the presence
+	of new features, while "compatibility_level" concerns changes
+	in default settings. Files: global/mail_proto.h,
+	proto/SMTPD_POLICY_README.html, smtpd/smtpd_check.c.
+
+20220808
+
+	Documentation: some Debian releases hard-code the search
+	path for Cyrus SASL application configuration files,
+	overriding the cyrus_sasl_config_path setting. Viktor
+	Dukhovni. File: proto/SASL_README.html.
+
+20220815
+
+	Updated the postscreen_dnsbl_sites documentation, based
+	on questions on the postfix-users mailing list.  File:
+	proto/postconf.proto.
+
 	Feature: 'ptest' infrastructure for unit tests, and 'pmock'
 	infrastructure to make tests independent of host configuration,
 	network configuration, or DNS. ptest looks like Go test,
-	while pmock implements a few ideas from Google gmock.
+	while pmock implements a few ideas from Google gmock. The
+	PTEST_README file has some information about how Postfix
+	unit tests work.
 
 	This changes the Postfix file footprint as follows:
 

@@ -118,6 +118,7 @@ server_address=10.3.2.1
 server_port=54321
 <b>Postfix version 3.8 and later:</b>
 compatibility_level=<i>major</i>.<i>minor</i>.<i>patch</i>
+mail_version=3.8.0
 [empty line]
 </pre>
 </blockquote>
@@ -219,6 +220,12 @@ compatibility_level=<i>major</i>.<i>minor</i>.<i>patch</i>
    compatibility_level parameter value. It has the form
    <i>major</i>.<i>minor</i>.<i>patch</i> where <i>minor</i> and
    <i>patch</i> may be absent. </p>
+
+   <li> <p> The "mail_version" attribute corresponds to the
+   mail_version parameter value. It has the form
+   <i>major</i>.<i>minor</i>.<i>patch</i> for stable releases, and
+   <i>major</i>.<i>minor</i>-<i>yyyymmdd</i> for unstable releases.
+   </p>
 
 </ul>
 

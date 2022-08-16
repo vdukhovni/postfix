@@ -83,7 +83,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 MAP_OBJ = dict_ldap.o dict_mysql.o dict_pgsql.o dict_sqlite.o
 TEST_OBJ = normalize_mailhost_addr_test.o smtp_reply_footer_test.o \
 	login_sender_match_test.o map_search_test.o delivered_hdr_test.o \
-	config_known_tcp_ports_test.o hfrom_format_test.o
+	config_known_tcp_ports_test.o hfrom_format_test.o haproxy_srvr_test.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -133,12 +133,13 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
 	mail_version mail_dict server_acl uxtext mail_parm_split \
 	fold_addr smtp_reply_footer_test mail_addr_map \
-	normalize_mailhost_addr_test haproxy_srvr map_search_test \
+	normalize_mailhost_addr_test haproxy_srvr_test map_search_test \
 	delivered_hdr_test login_sender_match_test \
 	compat_level config_known_tcp_ports_test hfrom_format_test
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
-TEST_LIB= ../../lib/libtesting.a ../../lib/libptest.a
+PTEST_LIB= ../../lib/libptest.a
+PMOCK_LIB= ../../lib/libtesting.a
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 PLUGIN_MAP_SO = $(LIB_PREFIX)ldap$(LIB_SUFFIX) $(LIB_PREFIX)mysql$(LIB_SUFFIX) \
@@ -390,7 +391,7 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	safe_ultostr_test mail_parm_split_test fold_addr_test \
 	test_smtp_reply_footer off_cvt_test mail_addr_crunch_test \
 	mail_addr_find_test mail_addr_map_test quote_822_local_test \
-	test_normalize_mailhost_addr haproxy_srvr_test test_map_search \
+	test_normalize_mailhost_addr test_haproxy_srvr test_map_search \
 	delivered_hdr_test test_login_sender_match compat_level_test \
 	test_config_known_tcp_ports test_hfrom_format
 
@@ -674,8 +675,8 @@ fold_addr_test: fold_addr fold_addr_test.in fold_addr_test.ref
 	diff fold_addr_test.ref fold_addr_test.tmp
 	rm -f fold_addr_test.tmp
 
-smtp_reply_footer_test: smtp_reply_footer_test.o $(TEST_LIB) $(LIB) $(LIBS)
-	 $(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
+smtp_reply_footer_test: smtp_reply_footer_test.o $(PTEST_LIB) $(LIB) $(LIBS)
+	 $(CC) $(CFLAGS) -o $@ $@.o $(PTEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
 
 test_smtp_reply_footer: smtp_reply_footer_test
 	$(SHLIB_ENV) $(VALGRIND) ./smtp_reply_footer_test
@@ -707,32 +708,34 @@ quote_822_local_test: update quote_822_local quote_822_local.in quote_822_local.
 	rm -f quote_822_local.tmp
 
 normalize_mailhost_addr_test: normalize_mailhost_addr_test.o \
-	$(TEST_LIB) $(LIB) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
+	$(PTEST_LIB) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(PTEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
 
 test_normalize_mailhost_addr: update normalize_mailhost_addr_test
 	$(SHLIB_ENV) $(VALGRIND) ./normalize_mailhost_addr_test
 
-haproxy_srvr_test: update haproxy_srvr
-	-$(SHLIB_ENV) $(VALGRIND) ./haproxy_srvr >haproxy_srvr.tmp 2>&1
-	diff /dev/null haproxy_srvr.tmp
-	rm -f haproxy_srvr.tmp
+haproxy_srvr_test: haproxy_srvr_test.o \
+	$(PTEST_LIB) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(PTEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
 
-map_search_test: map_search_test.o $(TEST_LIB) $(LIB) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
+test_haproxy_srvr: update haproxy_srvr_test
+	$(SHLIB_ENV) $(VALGRIND) ./haproxy_srvr_test
+
+map_search_test: map_search_test.o $(PTEST_LIB) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(PTEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
 
 test_map_search: update map_search_test 
 	$(SHLIB_ENV) $(VALGRIND) ./map_search_test
 
-delivered_hdr_test: delivered_hdr_test.o $(TEST_LIB) $(LIB) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
+delivered_hdr_test: delivered_hdr_test.o $(PTEST_LIB) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(PTEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
 
 test_delivered_hdr: update delivered_hdr_test 
 	$(SHLIB_ENV) $(VALGRIND) ./delivered_hdr_test
 
 login_sender_match_test: login_sender_match_test.o \
-	$(TEST_LIB) $(LIB) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
+	$(PTEST_LIB) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(PTEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
 
 test_login_sender_match: update login_sender_match_test
 	$(SHLIB_ENV) $(VALGRIND) ./login_sender_match_test
@@ -751,14 +754,14 @@ compat_level_convert_test: update compat_level compat_level_convert.in \
 	diff compat_level_convert.ref compat_level_convert.tmp
 	rm -f compat_level_convert.tmp
 
-config_known_tcp_ports_test: config_known_tcp_ports_test.o $(TEST_LIB) $(LIB) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
+config_known_tcp_ports_test: config_known_tcp_ports_test.o $(PTEST_LIB) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(PTEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
 
 test_config_known_tcp_ports: update config_known_tcp_ports_test
 	$(SHLIB_ENV) $(VALGRIND) ./config_known_tcp_ports_test
 
-hfrom_format_test: hfrom_format_test.o $(TEST_LIB) $(LIB) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $@.o $(TEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
+hfrom_format_test: hfrom_format_test.o $(PTEST_LIB) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(PTEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
 
 test_hfrom_format: update hfrom_format_test
 	$(SHLIB_ENV) $(VALGRIND) ./hfrom_format_test
@@ -1197,26 +1200,8 @@ delivered_hdr_test.o: fold_addr.h
 delivered_hdr_test.o: mail_params.h
 delivered_hdr_test.o: rec_type.h
 delivered_hdr_test.o: record.h
-dict_ldap.o: ../../include/argv.h
-dict_ldap.o: ../../include/binhash.h
-dict_ldap.o: ../../include/check_arg.h
-dict_ldap.o: ../../include/dict.h
-dict_ldap.o: ../../include/match_list.h
-dict_ldap.o: ../../include/msg.h
-dict_ldap.o: ../../include/myflock.h
-dict_ldap.o: ../../include/mymalloc.h
-dict_ldap.o: ../../include/name_code.h
-dict_ldap.o: ../../include/stringops.h
 dict_ldap.o: ../../include/sys_defs.h
-dict_ldap.o: ../../include/vbuf.h
-dict_ldap.o: ../../include/vstream.h
-dict_ldap.o: ../../include/vstring.h
-dict_ldap.o: cfg_parser.h
-dict_ldap.o: db_common.h
 dict_ldap.o: dict_ldap.c
-dict_ldap.o: dict_ldap.h
-dict_ldap.o: mail_conf.h
-dict_ldap.o: string_list.h
 dict_memcache.o: ../../include/argv.h
 dict_memcache.o: ../../include/auto_clnt.h
 dict_memcache.o: ../../include/check_arg.h
@@ -1236,47 +1221,10 @@ dict_memcache.o: dict_memcache.c
 dict_memcache.o: dict_memcache.h
 dict_memcache.o: memcache_proto.h
 dict_memcache.o: string_list.h
-dict_mysql.o: ../../include/argv.h
-dict_mysql.o: ../../include/check_arg.h
-dict_mysql.o: ../../include/dict.h
-dict_mysql.o: ../../include/events.h
-dict_mysql.o: ../../include/find_inet.h
-dict_mysql.o: ../../include/match_list.h
-dict_mysql.o: ../../include/msg.h
-dict_mysql.o: ../../include/myflock.h
-dict_mysql.o: ../../include/mymalloc.h
-dict_mysql.o: ../../include/myrand.h
-dict_mysql.o: ../../include/split_at.h
-dict_mysql.o: ../../include/stringops.h
 dict_mysql.o: ../../include/sys_defs.h
-dict_mysql.o: ../../include/vbuf.h
-dict_mysql.o: ../../include/vstream.h
-dict_mysql.o: ../../include/vstring.h
-dict_mysql.o: cfg_parser.h
-dict_mysql.o: db_common.h
 dict_mysql.o: dict_mysql.c
-dict_mysql.o: dict_mysql.h
-dict_mysql.o: string_list.h
-dict_pgsql.o: ../../include/argv.h
-dict_pgsql.o: ../../include/check_arg.h
-dict_pgsql.o: ../../include/dict.h
-dict_pgsql.o: ../../include/events.h
-dict_pgsql.o: ../../include/match_list.h
-dict_pgsql.o: ../../include/msg.h
-dict_pgsql.o: ../../include/myflock.h
-dict_pgsql.o: ../../include/mymalloc.h
-dict_pgsql.o: ../../include/myrand.h
-dict_pgsql.o: ../../include/split_at.h
-dict_pgsql.o: ../../include/stringops.h
 dict_pgsql.o: ../../include/sys_defs.h
-dict_pgsql.o: ../../include/vbuf.h
-dict_pgsql.o: ../../include/vstream.h
-dict_pgsql.o: ../../include/vstring.h
-dict_pgsql.o: cfg_parser.h
-dict_pgsql.o: db_common.h
 dict_pgsql.o: dict_pgsql.c
-dict_pgsql.o: dict_pgsql.h
-dict_pgsql.o: string_list.h
 dict_proxy.o: ../../include/argv.h
 dict_proxy.o: ../../include/attr.h
 dict_proxy.o: ../../include/check_arg.h
@@ -1298,23 +1246,8 @@ dict_proxy.o: dict_proxy.c
 dict_proxy.o: dict_proxy.h
 dict_proxy.o: mail_params.h
 dict_proxy.o: mail_proto.h
-dict_sqlite.o: ../../include/argv.h
-dict_sqlite.o: ../../include/check_arg.h
-dict_sqlite.o: ../../include/dict.h
-dict_sqlite.o: ../../include/match_list.h
-dict_sqlite.o: ../../include/msg.h
-dict_sqlite.o: ../../include/myflock.h
-dict_sqlite.o: ../../include/mymalloc.h
-dict_sqlite.o: ../../include/stringops.h
 dict_sqlite.o: ../../include/sys_defs.h
-dict_sqlite.o: ../../include/vbuf.h
-dict_sqlite.o: ../../include/vstream.h
-dict_sqlite.o: ../../include/vstring.h
-dict_sqlite.o: cfg_parser.h
-dict_sqlite.o: db_common.h
 dict_sqlite.o: dict_sqlite.c
-dict_sqlite.o: dict_sqlite.h
-dict_sqlite.o: string_list.h
 domain_list.o: ../../include/argv.h
 domain_list.o: ../../include/check_arg.h
 domain_list.o: ../../include/match_list.h
@@ -1506,6 +1439,24 @@ haproxy_srvr.o: ../../include/vstring.h
 haproxy_srvr.o: ../../include/wrap_netdb.h
 haproxy_srvr.o: haproxy_srvr.c
 haproxy_srvr.o: haproxy_srvr.h
+haproxy_srvr_test.o: ../../include/argv.h
+haproxy_srvr_test.o: ../../include/check_arg.h
+haproxy_srvr_test.o: ../../include/msg.h
+haproxy_srvr_test.o: ../../include/msg_output.h
+haproxy_srvr_test.o: ../../include/msg_vstream.h
+haproxy_srvr_test.o: ../../include/myaddrinfo.h
+haproxy_srvr_test.o: ../../include/pmock_expect.h
+haproxy_srvr_test.o: ../../include/ptest.h
+haproxy_srvr_test.o: ../../include/ptest_main.h
+haproxy_srvr_test.o: ../../include/sock_addr.h
+haproxy_srvr_test.o: ../../include/stringops.h
+haproxy_srvr_test.o: ../../include/sys_defs.h
+haproxy_srvr_test.o: ../../include/vbuf.h
+haproxy_srvr_test.o: ../../include/vstream.h
+haproxy_srvr_test.o: ../../include/vstring.h
+haproxy_srvr_test.o: ../../include/wrap_netdb.h
+haproxy_srvr_test.o: haproxy_srvr.h
+haproxy_srvr_test.o: haproxy_srvr_test.c
 header_body_checks.o: ../../include/argv.h
 header_body_checks.o: ../../include/check_arg.h
 header_body_checks.o: ../../include/dict.h

@@ -1,8 +1,8 @@
  /*
   * Test program for the myaddrinfo module. The purpose is to verify that the
   * myaddrinfo functions make the expected calls, and that they forward the
-  * expected results. See comments in ptest_main.h and pmock_expect_test.c
-  * for a documented example.
+  * expected results. See comments in pmock_expect_test.c, and PTEST_README
+  * for documentation.
   */
 
  /*

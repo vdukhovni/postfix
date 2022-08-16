@@ -1,6 +1,6 @@
  /*
   * Test program to exercise find_inet_service.c. See pmock_expect_test.c and
-  * ptest_main.h for a documented example.
+  * PTEST_README for documentation.
   */
 
  /*

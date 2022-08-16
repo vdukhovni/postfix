@@ -14354,13 +14354,16 @@ The default time unit is s (seconds).  </p>
 
 %PARAM postscreen_dnsbl_sites
 
-<p>Optional list of DNS allow/denylist domains, filters and weight
+<p>Optional list of patterns with DNS allow/denylist domains, filters
+and weight
 factors. When the list is non-empty, the dnsblog(8) daemon will
-query these domains with the IP addresses of remote SMTP clients,
+query these domains with the reversed IP addresses of remote SMTP
+clients,
 and postscreen(8) will update an SMTP client's DNSBL score with
-each non-error reply. </p>
+each non-error reply as described below. </p>
 
-<p> Caution: when postscreen rejects mail, it replies with the DNSBL
+<p> Caution: when postscreen rejects mail, its SMTP response contains
+the DNSBL
 domain name. Use the postscreen_dnsbl_reply_map feature to hide
 "password" information in DNSBL domain names. </p>
 
@@ -14368,26 +14371,25 @@ domain name. Use the postscreen_dnsbl_reply_map feature to hide
 specified with postscreen_dnsbl_threshold, postscreen(8) can drop
 the connection with the remote SMTP client. </p>
 
-<p> Specify a list of domain=filter*weight entries, separated by
+<p> Specify a list of domain=filter*weight patterns, separated by
 comma or whitespace.  </p>
 
 <ul>
 
-<li> <p> When no "=filter" is specified, postscreen(8) will use any
-non-error DNSBL reply.  Otherwise, postscreen(8) uses only DNSBL
-replies that match the filter. The filter has the form d.d.d.d,
+<li> <p> When a pattern specifies no "=filter", postscreen(8) will
+use any non-error DNSBL query result.  Otherwise, postscreen(8)
+will use only DNSBL
+query results that match the filter. The filter has the form d.d.d.d,
 where each d is a number, or a pattern inside [] that contains one
 or more ";"-separated numbers or number..number ranges.  </p>
 
-<li> <p> When no "*weight" is specified, postscreen(8) increments
-the remote SMTP client's DNSBL score by 1.  Otherwise, the weight must be
-an integral number, and postscreen(8) adds the specified weight to
-the remote SMTP client's DNSBL score.  Specify a negative number for
-allowlisting.  </p>
+<li> <p> When a pattern specifies no "*weight", the weight of the
+pattern is 1.  Otherwise, the weight must be an integral number.
+Specify a negative number for allowlisting.  </p>
 
-<li> <p> When one postscreen_dnsbl_sites entry produces multiple
-DNSBL responses, postscreen(8) applies the weight at most once.
-</p>
+<li> <p> When a pattern matches one or more DNSBL query results,
+postscreen(8) adds that pattern's weight once to the remote SMTP
+client's DNSBL score. </p>
 
 </ul>
 

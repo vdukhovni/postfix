@@ -8609,13 +8609,16 @@ the file is read). </p>
 <DT><b><a name="postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>
 (default: empty)</b></DT><DD>
 
-<p>Optional list of DNS allow/denylist domains, filters and weight
+<p>Optional list of patterns with DNS allow/denylist domains, filters
+and weight
 factors. When the list is non-empty, the <a href="dnsblog.8.html">dnsblog(8)</a> daemon will
-query these domains with the IP addresses of remote SMTP clients,
+query these domains with the reversed IP addresses of remote SMTP
+clients,
 and <a href="postscreen.8.html">postscreen(8)</a> will update an SMTP client's DNSBL score with
-each non-error reply. </p>
+each non-error reply as described below. </p>
 
-<p> Caution: when postscreen rejects mail, it replies with the DNSBL
+<p> Caution: when postscreen rejects mail, its SMTP response contains
+the DNSBL
 domain name. Use the <a href="postconf.5.html#postscreen_dnsbl_reply_map">postscreen_dnsbl_reply_map</a> feature to hide
 "password" information in DNSBL domain names. </p>
 
@@ -8623,26 +8626,25 @@ domain name. Use the <a href="postconf.5.html#postscreen_dnsbl_reply_map">postsc
 specified with <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a>, <a href="postscreen.8.html">postscreen(8)</a> can drop
 the connection with the remote SMTP client. </p>
 
-<p> Specify a list of domain=filter*weight entries, separated by
+<p> Specify a list of domain=filter*weight patterns, separated by
 comma or whitespace.  </p>
 
 <ul>
 
-<li> <p> When no "=filter" is specified, <a href="postscreen.8.html">postscreen(8)</a> will use any
-non-error DNSBL reply.  Otherwise, <a href="postscreen.8.html">postscreen(8)</a> uses only DNSBL
-replies that match the filter. The filter has the form d.d.d.d,
+<li> <p> When a pattern specifies no "=filter", <a href="postscreen.8.html">postscreen(8)</a> will
+use any non-error DNSBL query result.  Otherwise, <a href="postscreen.8.html">postscreen(8)</a>
+will use only DNSBL
+query results that match the filter. The filter has the form d.d.d.d,
 where each d is a number, or a pattern inside [] that contains one
 or more ";"-separated numbers or number..number ranges.  </p>
 
-<li> <p> When no "*weight" is specified, <a href="postscreen.8.html">postscreen(8)</a> increments
-the remote SMTP client's DNSBL score by 1.  Otherwise, the weight must be
-an integral number, and <a href="postscreen.8.html">postscreen(8)</a> adds the specified weight to
-the remote SMTP client's DNSBL score.  Specify a negative number for
-allowlisting.  </p>
+<li> <p> When a pattern specifies no "*weight", the weight of the
+pattern is 1.  Otherwise, the weight must be an integral number.
+Specify a negative number for allowlisting.  </p>
 
-<li> <p> When one <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> entry produces multiple
-DNSBL responses, <a href="postscreen.8.html">postscreen(8)</a> applies the weight at most once.
-</p>
+<li> <p> When a pattern matches one or more DNSBL query results,
+<a href="postscreen.8.html">postscreen(8)</a> adds that pattern's weight once to the remote SMTP
+client's DNSBL score. </p>
 
 </ul>
 

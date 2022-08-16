@@ -17,13 +17,13 @@
 /*
 /*	void	ptest_defer(
 /*	PTEST_CTX *t,
-/*	void	(*defer_fn)(void *)
+/*	void	(*defer_fn)(void *),
 /*	void	*defer_ctx)
 /* DESCRIPTION
 /*	PTEST_RUN() is called from inside a test to run a subtest.
 /*
 /*	PTEST_RUN() is a macro that runs the { body_in_braces }
-/*	with msg(3) logging temporarily redirected to a buffer, and
+/*	with msg(3) logging temporarily redirected to a listener, and
 /*	with panic, fatal, error, and non-error functions that
 /*	terminate a test without terminating the process.
 /*

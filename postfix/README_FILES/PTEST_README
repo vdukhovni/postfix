@@ -1,0 +1,444 @@
+WWrriittiinngg PPoossttffiixx uunniitt tteessttss
+
+-------------------------------------------------------------------------------
+
+OOvveerrvviieeww
+
+This document covers, Ptest, a simple unit test framework that was introduced
+with Postfix version 3.8. It is modeled after Go tests, with primitives such as
+ptest_error() and ptest_fatal() that report test failures, and PTEST_RUN() that
+supports subtests.
+
+Ptest is light-weight compared to more powerful framweworks such as Gtest, but
+it avoids the need for adding a large Postfix dependency (a dependency that
+would not affect Postfix distributors, but developers only).
+
+  * Simple example
+
+  * Testing one function with TEST_CASE data
+
+  * Testing functions with subtests
+
+  * Suggestions for writing tests
+
+  * Ptest API reference
+
+SSiimmppllee eexxaammppllee
+
+Simple tests exercise one function under test, one scenario at a time. Each
+scenario calls the function under test with good or bad inputs, and verifies
+that the function behaves as expected. The code in Postfix mymalloc_test.c file
+is a good example.
+
+After some #include statements, the file goes like this:
+
+     27 typedef struct PTEST_CASE {
+     28     const char *testname;               /* Human-readable description
+    */
+     29     void    (*action) (PTEST_CTX *, const struct PTEST_CASE *);
+     30 } PTEST_CASE;
+     31
+     32 /* Test functions. */
+     33
+     34 static void test_mymalloc_normal(PTEST_CTX *t, const PTEST_CASE *tp)
+     35 {
+     36     void   *ptr;
+     37
+     38     ptr = mymalloc(100);
+     39     myfree(ptr);
+     40 }
+     41
+     42 static void test_mymalloc_panic_too_small(PTEST_CTX *t, const
+    PTEST_CASE *tp)
+     43 {
+     44     expect_ptest_log_event(t, "panic: mymalloc: requested length 0");
+     45     (void) mymalloc(0);
+     46     ptest_fatal(t, "mymalloc(0) returned");
+     47 }
+    ...     // Test functions for myrealloc(), mystrdup(), mymemdup().
+    260
+    261 static const PTEST_CASE ptestcases[] = {
+    262     {"mymalloc + myfree normal case", test_mymalloc_normal,
+    263     },
+    264     {"mymalloc panic for too small request",
+    test_mymalloc_panic_too_small,
+    265     },
+    ...     // Test cases for myrealloc(), mystrdup(), mymemdup().
+    306 };
+    307
+    308 #include <ptest_main.h>
+
+To run the test:
+
+    $ make test_mymalloc
+    ... compiler output...
+    LD_LIBRARY_PATH=/path/to/postfix-source/lib ./mymalloc_test
+    RUN  mymalloc + myfree normal case
+    PASS mymalloc + myfree normal case
+    RUN  mymalloc panic for too small request
+    PASS mymalloc panic for too small request
+    ... results for myrealloc(), mystrdup(), mymemdup()...
+    mymalloc_test: PASS: 22, SKIP: 0, FAIL: 0
+
+This simple example already shows several key features of the ptest framework.
+
+  * Each test is implemented as a separate function (test_mymalloc_normal(),
+    test_mymalloc_panic_too_small(), and so on).
+
+  * The first test verifies 'normal' behavior: it verifies that mymalloc() will
+    allocate a small amount of memory, and that myfree() will accept the result
+    from mymalloc(). When the test is run under a memory checker such as
+    Valgrind, the memory checker will report no memory leak or other error.
+
+  * The second test is more interesting.
+
+      o The test verifies that mymalloc() will call msg_panic() when the
+        requested amount of memory is too small. But in this test the msg_panic
+        () call will not terminate the process like it normally would. The
+        Ptest framework changes the control flow of msg_panic() and msg_fatal()
+        such that these functions will terminate their test, instead of their
+        process.
+
+      o The expect_ptest_log_event() call sets up an expectation that msg_panic
+        () will produce a specific error message; the test would fail if the
+        expectation remains unsatisfied.
+
+      o The ptest_fatal() call at the end of the second test is not needed;
+        this call can only be reached if mymalloc() does not call msg_panic().
+        But then the expected panic message will not be logged, and the test
+        will fail anyway.
+
+  * The ptestcases[] table near the end of the example contains for each test
+    the name and a pointer to function. As we show in a later example, the
+    ptestcases[] table can also contain test inputs and expectations.
+
+  * The "#include <ptest_main.h>" at the end pulls in the code that iterates
+    over the ptestcases[] table and logs progress.
+
+  * The test run output shows that the msg_panic() output in the second test is
+    silenced; only output from unexpected msg_panic() or other unexpected msg
+    (3) calls would show up in test run output.
+
+TTeessttiinngg oonnee ffuunnccttiioonn wwiitthh TTEESSTT__CCAASSEE ddaattaa
+
+Often, we want to test a module that contains only one function. In that case
+we can store all the test inputs and expected results in the PTEST_CASE
+structure.
+
+The examples below are taken from the dict_union_test.c file which test the
+unionmap implementation in the file. dict_union.c.
+
+Background: a unionmap creates a union of tables. For example, the lookup table
+"unionmap:{inline:{foo=one},inline:{foo=two}}" will return ("one, two",
+DICT_STAT_SUCCESS) when queried with foo, and will return (NOTFOUND,
+DICT_STAT_SUCCESS) otherwise.
+
+First, we present the TEST_CASE structure with additional fields for inputs and
+expected results.
+
+     29 #define MAX_PROBE       5
+     30
+     31 struct probe {
+     32     const char *query;
+     33     const char *want_value;
+     34     int     want_error;
+     35 };
+     36
+     37 typedef struct PTEST_CASE {
+     38     const char *testname;
+     39     void    (*action) (PTEST_CTX *, const struct PTEST_CASE *);
+     40     const char *type_name;
+     41     const struct probe probes[MAX_PROBE];
+     42 } PTEST_CASE;
+
+In the PTEST_CASE structure above:
+
+  * The testname and action fields are standard. We have seen these already in
+    the simple example above.
+
+  * The type_name field will contain the name of the table, for example
+    unionmap:{static:one,inline:{foo=two}}.
+
+  * The probes field contains a list of (query, expected result value, expected
+    error code) that will be used to query the unionmap and to verify the
+    result value and error code.
+
+Next we show the test data. Every test calls the same test_dict_union()
+function with a different unionmap configuration and with a list of queries
+with expected results. The implementation of that function follows after the
+test data.
+
+     78 static const PTEST_CASE ptestcases[] = {
+     79     {
+     80          /* testname */ "successful lookup: static map + inline map",
+     81          /* action */ test_dict_union,
+     82          /* type_name */ "unionmap:{static:one,inline:{foo=two}}",
+     83          /* probes */ {
+     84             {"foo", "one,two", DICT_STAT_SUCCESS},
+     85             {"bar", "one", DICT_STAT_SUCCESS},
+     86         },
+     87     }, {
+     88          /* testname */ "error propagation: static map + fail map",
+     89          /* action */ test_dict_union,
+     90          /* type_name */ "unionmap:{static:one,fail:fail}",
+     91          /* probes */ {
+     92             {"foo", 0, DICT_STAT_ERROR},
+     93         },
+    ...
+    102 };
+    103
+    104 #include <ptest_main.h>
+
+Finally, here is the test_dict_union() function that tests the unionmap
+implementation with a given configuration and test queries.
+
+     44 #define STR_OR_NULL(s)  ((s) ? (s) : "null")
+     45
+     46 static void test_dict_union(PTEST_CTX *t, const struct PTEST_CASE *tp)
+     47 {
+     48     DICT   *dict;
+     49     const struct probe *pp;
+     50     const char *got_value;
+     51     int     got_error;
+     52
+     53     if ((dict = dict_open(tp->type_name, O_RDONLY, 0)) == 0)
+     54         ptest_fatal(t, "dict_open(\"%s\", O_RDONLY, 0) failed: %m",
+     55                     tp->type_name);
+     56     for (pp = tp->probes; pp < tp->probes + MAX_PROBE && pp->query !=
+    0; pp++) {
+     57         got_value = dict_get(dict, pp->query);
+     58         got_error = dict->error;
+     59         if (got_value == 0 && pp->want_value == 0)
+     60             continue;
+     61         if (got_value == 0 || pp->want_value == 0) {
+     62             ptest_error(t, "dict_get(dict, \"%s\"): got '%s', want
+    '%s'",
+     63                         pp->query, STR_OR_NULL(got_value),
+     64                         STR_OR_NULL(pp->want_value));
+     65             break;
+     66         }
+     67         if (strcmp(got_value, pp->want_value) != 0) {
+     68             ptest_error(t, "dict_get(dict, \"%s\"): got '%s', want
+    '%s'",
+     69                         pp->query, got_value, pp->want_value);
+     70         }
+     71         if (got_error != pp->want_error)
+     72             ptest_error(t, "dict_get(dict,\"%s\") error: got %d, want
+    %d",
+     73                         pp->query, got_error, pp->want_error);
+     74     }
+     75     dict_free(dict);
+     76 }
+
+A test run looks like this:
+
+    $ make test_dict_union
+    ...compiler output...
+    LD_LIBRARY_PATH=/path/to/postfix-source/lib ./dict_union_test
+    RUN  successful lookup: static map + inline map
+    PASS successful lookup: static map + inline map
+    RUN  error propagation: static map + fail map
+    PASS error propagation: static map + fail map
+    ...
+    dict_union_test: PASS: 3, SKIP: 0, FAIL: 0
+
+TTeessttiinngg ffuunnccttiioonnss wwiitthh ssuubbtteessttss
+
+Sometimes it is not convenient to store test data in a PTEST_CASE structure.
+This can happen when converting an existing test into Ptest, or when the module
+under test contains multiple functions that need different kinds of test data.
+The solution is to create a _test.c file with the structure shown below. The
+example is based on code in map_search_test.c that was converted from an
+existing test into Ptest.
+
+  * One PTEST_CASE structure definition without test data.
+
+     50 typedef struct PTEST_CASE {
+     51     const char *testname;
+     52     void    (*action) (PTEST_CTX *, const struct PTEST_CASE *);
+     53 } PTEST_CASE;
+
+  * One test function for each module function that needs to be tested, and one
+    table with test cases for that module function. In this case there is only
+    one module function (map_search()) that needs to be tested, so there is
+    only one test function (test_map_search()).
+
+     67 #define MAX_WANT_LOG    5
+     68
+     69 static void test_map_search(PTEST_CTX *t, const struct PTEST_CASE
+    *unused)
+     70 {
+     71     /* Test cases with inputs and expected outputs. */
+     72     struct test {
+     73         const char *map_spec;
+     74         int     want_return;            /* 0=fail, 1=success */
+     75         const char *want_log[MAX_WANT_LOG];
+     76         const char *want_map_type_name; /* 0 or match */
+     77         const char *exp_search_order;   /* 0 or match */
+     78     };
+     79     static struct test test_cases[] = {
+     80         { /* 0 */ "type", 0, {
+     81                 "malformed map specification: 'type'",
+     82                 "expected maptype:mapname instead of 'type'",
+     83         }, 0},
+    ...        // ...other test cases...
+    111     };
+
+  * In a test function, iterate over its table with test cases, using PTEST_RUN
+    () to run each test case in its own subtest.
+
+    129     for (tp = test_cases; tp->map_spec; tp++) {
+    130         vstring_sprintf(test_label, "test %d", (int) (tp -
+    test_cases));
+    131         PTEST_RUN(t, STR(test_label), {
+    132             for (cpp = tp->want_log; cpp < tp->want_log + MAX_WANT_LOG
+    && *cpp; cpp++)
+    133                 expect_ptest_log_event(t, *cpp);
+    134             map_search_from_create = map_search_create(tp->map_spec);
+    ...            // ...verify that the result is as expected...
+    ...            // ...use ptest_return() or ptest_fatal() to exit from a
+    test...
+    173         });
+    174     }
+    ...
+    178 }
+
+  * Create a ptestcases[] table to call each test function once, and include
+    the Ptest main program.
+
+    183 static const PTEST_CASE ptestcases[] = {
+    184     "test_map_search", test_map_search,
+    185 };
+    186
+    187 #include <ptest_main.h>
+
+See the file map_search_test.c for a complete example.
+
+This is what a test run looks like:
+
+    $ make test_map_search
+    ...compiler output...
+    LD_LIBRARY_PATH=/path/to/postfix-source/lib  ./map_search_test
+    RUN  test_map_search
+    RUN  test_map_search/test 0
+    PASS test_map_search/test 0
+    ....
+    PASS test_map_search
+    map_search_test: PASS: 13, SKIP: 0, FAIL: 0
+
+This shows that the subtest name is appended to the parent test name, formatted
+as parent-name/child-name.
+
+SSuuggggeessttiioonnss ffoorr wwrriittiinngg tteessttss
+
+Ptest is loosely inspired on Go test, especially its top-level test functions
+and its methods T.run(), T.error() and T.fatal().
+
+Suggestions for test style may look familiar to Go programmers:
+
+  * Use variables named got_xxx and want_xxx, and when a test result is
+    unexpected, log the discrepancy as "got <what you got>, want <what you
+    want>".
+
+  * Report discrepancies with ptest_error() if possible; use ptest_fatal() only
+    when continuing the test would produce nonsensical results.
+
+  * Where it makes sense use a table with testcases and use PTEST_RUN() to run
+    each testcase in its own subtest.
+
+Other suggestions:
+
+  * Consider running tests under a memory checker such as Valgrind. Use
+    ptest_defer() to avoid memory leaks when a test may terminate early.
+
+  * Always test non-error and error cases, to cover all code paths in the
+    function under test.
+
+PPtteesstt AAPPII rreeffeerreennccee
+
+  * Managing test errors
+
+  * Managing log events
+
+  * Managing test execution
+
+MMaannaaggiinngg tteesstt eerrrroorrss
+
+As one might expect, Ptest has support to flag unexpected test results as
+errors.
+
+vvooiidd pptteesstt__eerrrroorr((PPTTEESSTT__CCTTXX **tt,, ccoonnsstt cchhaarr **ffoorrmmaatt,, ......))
+    Called from inside a test to report an unexpected test result, and to flag
+    the test as failed without terminating the test. This call can be ignored
+    with expect_ptest_error().
+
+vvooiidd pptteesstt__ffaattaall((PPTTEESSTT__CCTTXX **tt,, ccoonnsstt cchhaarr **ffoorrmmaatt,, ......))
+    Called from inside a test to report an unexpected test result, to flag the
+    test as failed, and to terminate the test. This call cannot be ignored with
+    expect_ptest_error().
+For convenience, Ptest has can also report non-error information.
+
+vvooiidd pptteesstt__iinnffoo((PPTTEESSTT__CCTTXX **tt,, ccoonnsstt cchhaarr **ffoorrmmaatt,, ......))
+    Called from inside a test to report a non-error condition without
+    terminating the test. This call cannot be ignored with expect_ptest_error
+    ().
+Finally, Ptest has support to test ptest_error() itself, to verify that an
+intentional error is reported as expected.
+
+vvooiidd eexxppeecctt__pptteesstt__eerrrroorr((PPTTEESSTT__CCTTXX **tt,, ccoonnsstt cchhaarr **tteexxtt))
+    Called from inside a test to expect exactly one ptest_error() call with the
+    specified text, and to ignore that ptest_error() call (i.e. don't flag the
+    test as failed). To ignore multiple calls, call expect_ptest_error()
+    multiple times. A test is flagged as failed when an expected error is not
+    reported (and of course when an error is reported that is not expected with
+    expect_ptest_error()).
+
+MMaannaaggiinngg lloogg eevveennttss
+
+Ptest integrates with Postfix msg(3) logging.
+
+  * Ptest changes the control flow of msg_fatal() and msg_panic(). When these
+    functions are called during a test, Ptest flags a test as failed and
+    terminates the test instead of the process.
+
+  * Ptest silences the output from msg_info() and other msg(3) calls, and
+    installs a log event listener tp monitor Postfix logging.
+
+Ptest provides the following API to manage log events:
+
+vvooiidd eexxppeecctt__pptteesstt__lloogg__eevveenntt((PPTTEESSTT__CCTTXX **tt,, ccoonnsstt cchhaarr **tteexxtt))
+    Called from inside a test to expect exactly one msg(3) call with the
+    specified text. To expect multiple events, call expect_ptest_log_event()
+    multiple times. A test is flagged as failed when expected text is not
+    logged, or when text is logged that is not expected with
+    expect_ptest_log_event().
+
+MMaannaaggiinngg tteesstt eexxeeccuuttiioonn
+
+Ptest has a number of primitives that control test execution.
+
+vvooiidd PPTTEESSTT__RRUUNN((PPTTEESSTT__CCTTXX **tt,, ccoonnsstt cchhaarr **tteesstt__nnaammee,, {{ ccooddee iinn bbrraacceess }}))
+    Called from inside a test to run the { code in braces } in it own subtest
+    environment. In the test progress report, the subtest name is appended to
+    the parent test name, formatted as parent-name/child-name.
+
+    NOTE: because PTEST_RUN() is a macro, the { code in braces } must not
+    contain a return statement; use ptest_return() instead. It is OK for { code
+    in braces } to call a function that uses return.
+
+NNOORREETTUURRNN pptteesstt__sskkiipp((PPTTEESSTT__CCTTXX **tt))
+    Called from inside a test to flag a test as skipped, and to terminate the
+    test without terminating the process. Use this to disable tests that are
+    not applicable for a specific system type or build configuration.
+
+NNOORREETTUURRNN pptteesstt__rreettuurrnn((PPTTEESSTT__CCTTXX **tt))
+    Called from inside a test to terminate the test without terminating the
+    process.
+
+vvooiidd pptteesstt__ddeeffeerr((PPTTEESSTT__CCTTXX **tt,, vvooiidd ((**ddeeffeerr__ffnn))((vvooiidd **)),, vvooiidd **ddeeffeerr__ccttxx))
+    Called once from inside a test, to call defer_fn(defer_ctx) after the test
+    completes. This is typically used to eliminate a resource leak in tests
+    that terminate the test early.
+
+    NOTE: The deferred function is designed to run outside a test, and
+    therefore it must not call Ptest functions.

@@ -1,6 +1,6 @@
  /*
-  * Test program to exercise dict_union.c. See ptest_main.h for a documented
-  * example.
+  * Test program to exercise dict_union.c. See PTEST_README for
+  * documentation.
   */
 
  /*
@@ -77,7 +77,7 @@ static void test_dict_union(PTEST_CTX *t, const struct PTEST_CASE *tp)
 
 static const PTEST_CASE ptestcases[] = {
     {
-	 /* name */ "successful lookup: static map + inline map",
+	 /* testname */ "successful lookup: static map + inline map",
 	 /* action */ test_dict_union,
 	 /* type_name */ "unionmap:{static:one,inline:{foo=two}}",
 	 /* probes */ {
@@ -85,14 +85,14 @@ static const PTEST_CASE ptestcases[] = {
 	    {"bar", "one"},
 	},
     }, {
-	 /* name */ "error propagation: static map + fail map",
+	 /* testname */ "error propagation: static map + fail map",
 	 /* action */ test_dict_union,
 	 /* type_name */ "unionmap:{static:one,fail:fail}",
 	 /* probes */ {
 	    {"foo", 0, DICT_STAT_ERROR},
 	},
     }, {
-	 /* name */ "error propagation: fail map + static map",
+	 /* testname */ "error propagation: fail map + static map",
 	 /* action */ test_dict_union,
 	 /* type_name */ "unionmap:{fail:fail,static:one}",
 	 /* probes */ {

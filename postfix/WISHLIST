@@ -9,6 +9,8 @@ Wish list:
 	Scan Postfix code with github.com/googleprojectzero/weggli
 	(depends on "rust").
 
+	Migrate masquerade_domains from ARGV to STRING_LIST.
+
 	Enforce var_line_limit in util/attr_scan*c.
 
 	Investigate clang-format compatibility compared to indent.
@@ -25,8 +27,6 @@ Wish list:
 	<ef7c661c-d86a-2366-6a73-ec8d51d75012@dev.snart.me>
 
 	WARN_IF_REJECT like prefix that disables the error counter increment.
-
-	Send the Postfix version in a policy server request.
 
 	postscreen_dnsbl_sites is evaluated in the reverse order, breaking
 	expectations when different reply patterns have different weights.
