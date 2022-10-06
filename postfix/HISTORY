@@ -26592,3 +26592,35 @@ Apologies for any names omitted.
 	Updated the postscreen_dnsbl_sites documentation, based
 	on questions on the postfix-users mailing list.  File:
 	proto/postconf.proto.
+
+20220905
+
+	Cleanup: uninitialized verify_append() request status in case
+	of a null original recipient address. File: global/verify.c.
+
+20220907
+
+	Support for Linux 6.x. Eray Aslan. Files: makedefs,
+	util/sys_defs.h.
+
+20220930
+
+	Documented the use of the JSON LINES format in the postqueue(1)
+	manpage. File: postqueue/postqueue.c.
+
+20221006
+
+	Bugfix (introduced: Postfix 3.7). A message could falsely
+	be flagged as corrupt with "warning: Unexpected record type
+	'X'. Such messages were moved to the "corrupt" queue
+	directory, where they may still be found.
+
+	This could happen for messages with 500 or more recipients,
+	or with fewer recipients on a busy mail server. Problem
+	reported by Frank Brendel, reproduced by John Alex. Files:
+	qmgr/qmgr_message.c, oqmgr/qmgr_message.c.
+
+	A file in the "corrupt" queue directory may be inspected
+	with the command "postcat /var/spool/postfix/corrupt/<filename>.
+	If delivery of the file is still desired, the file can be
+	moved back to /var/spool/postfix/incoming.

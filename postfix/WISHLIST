@@ -9,11 +9,15 @@ Wish list:
 	Scan Postfix code with github.com/googleprojectzero/weggli
 	(depends on "rust").
 
-	Migrate masquerade_domains from ARGV to STRING_LIST.
+	Migrate masquerade_domains from ARGV to STRING_LIST, or
+	deprecate this feature because it breaks table-driven address
+	validation.
 
-	Enforce var_line_limit in util/attr_scan*c.
+	Enforce var_line_limit in util/attr_scan*c. This is needed if
+	we want to expose Postfix RPC protocols externally.
 
-	Investigate clang-format compatibility compared to indent.
+	Investigate clang-format compatibility as a possible migration
+	away from indent. This requires that the output is stable.
 
 	Can tests use LD_PRELOAD to inject fake modules such as
 	fake_dns(3), fake_msg(3), fake_myaddrinfo(3) and so on?
@@ -28,17 +32,25 @@ Wish list:
 
 	WARN_IF_REJECT like prefix that disables the error counter increment.
 
-	postscreen_dnsbl_sites is evaluated in the reverse order, breaking
-	expectations when different reply patterns have different weights.
-	We need a compatibility_level feature to correct this.
+	Consider migrating Postfix server sockets from directory
+	$queue_directory/public to $queue_directory/protected. The
+	directory $queue_directory/public can then be used for
+	non-Postfix listeners (one subdirectory per application).
 
 	FILTER_README needs some text on multi-instance implementations,
 	and existing multi-instance references need to be updated.
 
 	Fix code that still uses "long" for data_size and data_offset,
-	and that uses "%ld" in sscanf().
+	and sscanf("%ld or strtou?l()). This seems relevant for 32-bit
+	systems. This would use a new REC_TYPE_OFFS with a corresponding
+	data type of off_t, using off_cvt() for conversion from string,
+	and new code to convert off_t to string.
 
 	A smart query service for live Postfix tables that outputs JSON?
+	If the idea is to introspect on a running Postfix system, this
+	involves adding an RPC endpoint to specific Postfix services.
+	That could work for single-instance services like qmgr, verify,
+	postscreen.
 
 	JSON logging?
 
