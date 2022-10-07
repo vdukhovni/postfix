@@ -24798,3 +24798,23 @@ Apologies for any names omitted.
 	chroot jail. Problem reported by Jesper Dybdal. Files:
 	cleanup/cleanup.h, cleanup/cleanup_init.c,
 	cleanup/cleanup_milter.c, cleanup/cleanup_state.c.
+
+20220724
+
+	Workaround: in a TLS server disable Postfix's 1-element
+	internal session cache, to work around an OpenSSL 3.0
+	regression that broke TLS handshakes. It is rarely useful.
+	Report by Spil Oss, fix by Viktor Dukhovni. File:
+	tls/tls_server.c.
+
+20220905
+
+	Cleanup: Postfix 3.3.0 introduced an uninitialized
+	verify_append() request status in case of a null original
+	recipient address.  File: global/verify.c.
+
+20220906
+
+	Cleanup: Postfix 3.4.26 introduced a missing msg_panic()
+	argument (in code that never executes). File:
+	cleanup/cleanup_milter.c.
