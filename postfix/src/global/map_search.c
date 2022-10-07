@@ -188,7 +188,6 @@ const MAP_SEARCH *map_search_create(const char *map_spec)
 		    MAP_SEARCH_CREATE_RETURN(0);
 		}
 	    }
-	    msg_info("split_nameval(\"%s\"", attr_name_val);
 	    if ((const_err = split_nameval(attr_name_val, &attr_name,
 					   &attr_value)) != 0) {
 		msg_warn("malformed map attribute in '%s': '%s'",
