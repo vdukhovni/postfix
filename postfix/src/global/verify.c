@@ -108,6 +108,8 @@ int     verify_append(const char *queue_id, MSG_STATS *stats,
 	if (recipient->orig_addr[0])
 	    req_stat = verify_clnt_update(recipient->orig_addr, vrfy_stat,
 					  my_dsn.reason);
+	else
+	    req_stat = VRFY_STAT_OK;
 	/* Two verify updates for one verify request! */
 	if (req_stat == VRFY_STAT_OK
 	    && strcmp(recipient->address, recipient->orig_addr) != 0)
