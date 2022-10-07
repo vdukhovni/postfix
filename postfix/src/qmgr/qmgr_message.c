@@ -505,9 +505,15 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 			message->rflags |= QMGR_READ_FLAG_SEEN_ALL_NON_RCPT;
 			break;
 		    }
-		    /* Examine non-recipient records in extracted segment. */
-		    if (vstream_fseek(message->fp, message->data_offset
-				      + message->data_size, SEEK_SET) < 0)
+
+		    /*
+		     * Examine non-recipient records in the extracted
+		     * segment. Note that this skips to the message start
+		     * record, because the handler for that record changes
+		     * the expectations for allowed record types.
+		     */
+		    if (vstream_fseek(message->fp, message->data_offset,
+				      SEEK_SET) < 0)
 			msg_fatal("seek file %s: %m", VSTREAM_PATH(message->fp));
 		    continue;
 		}

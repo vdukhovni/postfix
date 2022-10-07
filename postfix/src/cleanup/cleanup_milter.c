@@ -530,7 +530,7 @@ void    cleanup_milter_header_checks_init(void)
 	msg_panic("%s: %s is empty", myname, VAR_MILT_HEAD_CHECKS);
 
     if (cleanup_milter_hbc_checks)
-	msg_panic("%s: cleanup_milter_hbc_checks is not null");
+	msg_panic("%s: cleanup_milter_hbc_checks is not null", myname);
     cleanup_milter_hbc_checks =
 	hbc_header_checks_create(VAR_MILT_HEAD_CHECKS, var_milt_head_checks,
 				 NO_MIME_HDR_NAME, NO_MIME_HDR_VALUE,
@@ -538,7 +538,7 @@ void    cleanup_milter_header_checks_init(void)
 				 &call_backs);
 
     if (cleanup_milter_hbc_reply)
-	msg_panic("%s: cleanup_milter_hbc_reply is not null");
+	msg_panic("%s: cleanup_milter_hbc_reply is not null", myname);
     cleanup_milter_hbc_reply = vstring_alloc(100);
 }
 

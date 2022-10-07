@@ -25,6 +25,26 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Bugfix for messages not delivered after "warning: Unexpected record type 'X'
+============================================================================
+
+Due to a bug introduced in Postfix 3.7.0, a message could falsely
+be flagged as corrupt with "warning: Unexpected record type 'X'".
+
+Such messages were moved to the "corrupt" queue directory, where
+they may still be found. See below for instructions to deal with
+these falsely flagged messages.
+
+This could happen for messages with 5000 or more recipients, or
+with fewer recipients on a busy mail server. The problem was first
+reported by Frank Brendel, reproduced by John Alex.
+
+A file in the "corrupt" queue directory may be inspected with the
+command "postcat /var/spool/postfix/corrupt/<filename>. If delivery
+of the file is still desired, the file can be moved back to
+/var/spool/postfix/incoming after updating Postfix and executing
+"postfix reload".
+
 Major changes - configuration
 -----------------------------
 
