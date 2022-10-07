@@ -26552,8 +26552,9 @@ Apologies for any names omitted.
 
 20220719
 
-	Cleanup: debug logging noise in map_search_create(). Files:
-	global/map_search.c, global/map_search.ref.
+	Cleanup: Postfix 3.5.0 introduced debug logging noise in
+	map_search_create(). Files: global/map_search.c,
+	global/map_search.ref.
 
 20220724
 
@@ -26610,12 +26611,13 @@ Apologies for any names omitted.
 
 20221006
 
-	Bugfix (introduced: Postfix 3.7). A message could falsely
+	Bugfix (introduced: Postfix 3.7.0). A message could falsely
 	be flagged as corrupt with "warning: Unexpected record type
 	'X'. Such messages were moved to the "corrupt" queue
-	directory, where they may still be found.
+	directory, where they may still be found. See below for
+	instructions to deal with these falsely flagged messages.
 
-	This could happen for messages with 500 or more recipients,
+	This could happen for messages with 5000 or more recipients,
 	or with fewer recipients on a busy mail server. Problem
 	reported by Frank Brendel, reproduced by John Alex. Files:
 	qmgr/qmgr_message.c, oqmgr/qmgr_message.c.
@@ -26623,4 +26625,13 @@ Apologies for any names omitted.
 	A file in the "corrupt" queue directory may be inspected
 	with the command "postcat /var/spool/postfix/corrupt/<filename>.
 	If delivery of the file is still desired, the file can be
-	moved back to /var/spool/postfix/incoming.
+	moved back to /var/spool/postfix/incoming after updating
+	Postfix and executing "postfix reload".
+
+20221007
+
+	Ran "make manpages", updated the change log and release
+	notes for consistency with new stable releases, update
+	pre-release-checks stop filters.  Files: RELEASE_NOTES,
+	HISTORY, stop.spell-history, stop.double-history,
+	stop.spell-proto-html, postqueue.1, postqueue.1.html.

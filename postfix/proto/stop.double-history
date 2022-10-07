@@ -8,3 +8,4 @@
  cleanup cleanup h cleanup cleanup_init c 
  src global mail_dict c src postalias postalias c 
  src postmap postmap c 
+ manpage File postqueue postqueue c 
