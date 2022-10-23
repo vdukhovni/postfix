@@ -26635,3 +26635,27 @@ Apologies for any names omitted.
 	pre-release-checks stop filters.  Files: RELEASE_NOTES,
 	HISTORY, stop.spell-history, stop.double-history,
 	stop.spell-proto-html, postqueue.1, postqueue.1.html.
+
+20221008
+
+	Cleanup: in the default master.cf file, unconditionally
+	enable header rewriting and missing header insertion, for
+	the submission and smtps services. Dan Mahoney. File
+	conf/master.cf.
+
+20221017
+
+	Robustness: unconditionally disable a CPU resource attack
+	requesting TLS renegotiation. There's no good reason to
+	support this in the middle of an SMTP connection. Viktor
+	Dukhovni. File: tls/tls_misc.c.
+
+20221023
+
+	Documentation: describe limitations of smtpd(8) features
+	that cannot work with smtpd_proxy_filter. File:
+	proto/SMTPD_PROXY_README.html.
+
+	Documentation: the local_header_rewrite_clients and
+	remote_header_rewrite_domain features also enable adding
+	missing headers. File: proto/postconf.proto.

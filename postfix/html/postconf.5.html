@@ -5902,16 +5902,16 @@ into concurrency per domain.  </p>
 <DT><b><a name="local_header_rewrite_clients">local_header_rewrite_clients</a>
 (default: <a href="postconf.5.html#permit_inet_interfaces">permit_inet_interfaces</a>)</b></DT><DD>
 
-<p> Rewrite message header addresses in mail from these clients and
-update incomplete addresses with the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or
-$<a href="postconf.5.html#mydomain">mydomain</a>; either don't rewrite message headers from other clients
-at all, or rewrite message headers and update incomplete addresses
-with the domain specified in the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a>
-parameter.  </p>
+<p> Rewrite or add message headers in mail from these clients,
+updating incomplete addresses with the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or
+$<a href="postconf.5.html#mydomain">mydomain</a>, and adding missing headers. </p>
 
 <p> See the <a href="postconf.5.html#append_at_myorigin">append_at_myorigin</a> and <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a> parameters
 for details of how domain names are appended to incomplete addresses.
 </p>
+
+<p> See <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> to optionally rewrite or add
+message headers in mail from other clients. </p>
 
 <p> Specify a list of zero or more of the following:  </p>
 
@@ -10182,9 +10182,13 @@ Examples:
 <DT><b><a name="remote_header_rewrite_domain">remote_header_rewrite_domain</a>
 (default: empty)</b></DT><DD>
 
-<p> Don't rewrite message headers from remote clients at all when
-this parameter is empty; otherwise, rewrite message headers and
-append the specified domain name to incomplete addresses.  The
+<p> Rewrite or add message headers in mail from remote clients if
+the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter value is non-empty,
+updating incomplete addresses with the domain specified in the
+<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter, and adding missing headers.
+</p>
+
+<p> The
 <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter controls what clients Postfix
 considers local. </p>
 

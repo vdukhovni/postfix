@@ -1369,6 +1369,12 @@ long    tls_bug_bits(void)
      * options just in case.
      */
     bits |= SSL_OP_SINGLE_ECDH_USE | SSL_OP_SINGLE_DH_USE;
+
+    /*
+     * Unconditionally disable a CPU resource attack. There's no good reason
+     * to enable TLS renegotiation in the middle of an SMTP connection.
+     */
+    bits |= SSL_OP_NO_RENEGOTIATION;
     return (bits);
 }
 

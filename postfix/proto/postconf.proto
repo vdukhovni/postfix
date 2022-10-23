@@ -9358,9 +9358,13 @@ physical endpoints. </p>
 
 %PARAM remote_header_rewrite_domain 
 
-<p> Don't rewrite message headers from remote clients at all when
-this parameter is empty; otherwise, rewrite message headers and
-append the specified domain name to incomplete addresses.  The
+<p> Rewrite or add message headers in mail from remote clients if
+the remote_header_rewrite_domain parameter value is non-empty,
+updating incomplete addresses with the domain specified in the
+remote_header_rewrite_domain parameter, and adding missing headers.
+</p>
+
+<p> The
 local_header_rewrite_clients parameter controls what clients Postfix
 considers local. </p>
 
@@ -9387,16 +9391,16 @@ remote_header_rewrite_domain =
 
 %PARAM local_header_rewrite_clients permit_inet_interfaces
 
-<p> Rewrite message header addresses in mail from these clients and
-update incomplete addresses with the domain name in $myorigin or
-$mydomain; either don't rewrite message headers from other clients
-at all, or rewrite message headers and update incomplete addresses
-with the domain specified in the remote_header_rewrite_domain
-parameter.  </p>
+<p> Rewrite or add message headers in mail from these clients,
+updating incomplete addresses with the domain name in $myorigin or
+$mydomain, and adding missing headers. </p>
 
 <p> See the append_at_myorigin and append_dot_mydomain parameters
 for details of how domain names are appended to incomplete addresses.
 </p>
+
+<p> See remote_header_rewrite_domain to optionally rewrite or add
+message headers in mail from other clients. </p>
 
 <p> Specify a list of zero or more of the following:  </p>
 

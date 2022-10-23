@@ -9,6 +9,14 @@ Wish list:
 	Scan Postfix code with github.com/googleprojectzero/weggli
 	(depends on "rust").
 
+	Consider renaming local_header_rewrite_clients to
+	local_header_canonicalize_clients, as a more accurate name.
+	Optionally support "local_header_canonicalize_classes =
+	rewrite_addresses, add_missing_headers" (default setting).
+
+	And ditto for remote_header_rewrite_domain, whether it
+	should rewrite address, add missing headers, or both.
+
 	Migrate masquerade_domains from ARGV to STRING_LIST, or
 	deprecate this feature because it breaks table-driven address
 	validation.

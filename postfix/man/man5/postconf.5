@@ -3584,15 +3584,15 @@ Setting this parameter to a value > 1 changes the meaning of
 local_destination_concurrency_limit from concurrency per recipient
 into concurrency per domain.
 .SH local_header_rewrite_clients (default: permit_inet_interfaces)
-Rewrite message header addresses in mail from these clients and
-update incomplete addresses with the domain name in $myorigin or
-$mydomain; either don't rewrite message headers from other clients
-at all, or rewrite message headers and update incomplete addresses
-with the domain specified in the remote_header_rewrite_domain
-parameter.
+Rewrite or add message headers in mail from these clients,
+updating incomplete addresses with the domain name in $myorigin or
+$mydomain, and adding missing headers.
 .PP
 See the append_at_myorigin and append_dot_mydomain parameters
 for details of how domain names are appended to incomplete addresses.
+.PP
+See remote_header_rewrite_domain to optionally rewrite or add
+message headers in mail from other clients.
 .PP
 Specify a list of zero or more of the following:
 .IP "\fBpermit_inet_interfaces\fR"
@@ -6440,9 +6440,12 @@ relocated_maps = hash:/etc/postfix/relocated
 .ad
 .ft R
 .SH remote_header_rewrite_domain (default: empty)
-Don't rewrite message headers from remote clients at all when
-this parameter is empty; otherwise, rewrite message headers and
-append the specified domain name to incomplete addresses.  The
+Rewrite or add message headers in mail from remote clients if
+the remote_header_rewrite_domain parameter value is non\-empty,
+updating incomplete addresses with the domain specified in the
+remote_header_rewrite_domain parameter, and adding missing headers.
+.PP
+The
 local_header_rewrite_clients parameter controls what clients Postfix
 considers local.
 .PP

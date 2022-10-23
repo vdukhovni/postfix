@@ -21,6 +21,7 @@ smtp      inet  n       -       n       -       -       smtpd
 #  -o smtpd_tls_security_level=encrypt
 #  -o smtpd_sasl_auth_enable=yes
 #  -o smtpd_tls_auth_only=yes
+#  -o local_header_rewrite_clients=static:all
 #  -o smtpd_reject_unlisted_recipient=no
 #     Instead of specifying complex smtpd_<xxx>_restrictions here,
 #     specify "smtpd_<xxx>_restrictions=$mua_<xxx>_restrictions"
@@ -38,6 +39,7 @@ smtp      inet  n       -       n       -       -       smtpd
 #  -o syslog_name=postfix/submissions
 #  -o smtpd_tls_wrappermode=yes
 #  -o smtpd_sasl_auth_enable=yes
+#  -o local_header_rewrite_clients=static:all
 #  -o smtpd_reject_unlisted_recipient=no
 #     Instead of specifying complex smtpd_<xxx>_restrictions here,
 #     specify "smtpd_<xxx>_restrictions=$mua_<xxx>_restrictions"
