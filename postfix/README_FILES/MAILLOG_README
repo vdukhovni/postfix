@@ -4,7 +4,7 @@ PPoossttffiixx llooggggiinngg ttoo ffiillee oorr ssttdd
 
 OOvveerrvviieeww
 
-Postfix supports it own logging system as an alternative to syslog (which
+Postfix supports its own logging system as an alternative to syslog (which
 remains the default). This is available with Postfix version 3.4 or later.
 
 Topics covered in this document:

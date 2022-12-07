@@ -6,6 +6,10 @@
 /* SYNOPSIS
 /*	#include <tls.h>
 /*
+/*	EVP_MD *tls_digest_byname(const char *mdalg, EVP_MD_CTX **mdctxPtr)
+/*	const char *mdalg;
+/*	EVP_MD_CTX **mdctxPtr;
+/*
 /*	char	*tls_serverid_digest(TLScontext, props, ciphers)
 /*	TLS_SESS_STATE *TLScontext;
 /*	const TLS_CLIENT_START_PROPS *props;
@@ -23,6 +27,13 @@
 /*	X509	*peercert;
 /*	const char *mdalg;
 /* DESCRIPTION
+/*	tls_digest_byname() constructs, and optionally returns, an EVP_MD_CTX
+/*	handle for performing digest operations with the algorithm named by the
+/*	mdalg parameter.  The return value is non-null on success, and holds a
+/*	digest algorithm handle.  If the mdctxPtr argument is non-null the
+/*	created context is returned to the caller, who is then responsible for
+/*	deleting it by calling EVP_MD_ctx_free() once it is no longer needed.
+/*
 /*	tls_digest_encode() converts a binary message digest to a hex ASCII
 /*	format with ':' separators between each pair of hex digits.
 /*	The return value is dynamically allocated with mymalloc(),
@@ -50,6 +61,8 @@
 /*	free it with myfree().
 /*
 /*	Arguments:
+/* .IP mdalg
+/*	A digest algorithm name, such as "sha256".
 /* .IP peercert
 /*	Server or client X.509 certificate.
 /* .IP md_buf
@@ -60,6 +73,9 @@
 /*	Name of a message digest algorithm suitable for computing secure
 /*	(1st pre-image resistant) message digests of certificates. For now,
 /*	md5, sha1, or member of SHA-2 family if supported by OpenSSL.
+/* .IP mdctxPtr
+/*	Pointer to an (EVP_MD_CTX *) handle, or NULL if only probing for
+/*	algorithm support without immediate use in mind.
 /* .IP buf
 /*	Input data for the message digest algorithm mdalg.
 /* .IP len
@@ -114,7 +130,7 @@
 
 static const char hexcodes[] = "0123456789ABCDEF";
 
-#define checkok(ret)	(ok &= ((ret) ? 1 : 0))
+#define checkok(stillok) (ok = ok && (stillok))
 #define digest_object(p) digest_data((unsigned char *)(p), sizeof(*(p)))
 #define digest_data(p, l) checkok(digest_bytes(mdctx, (p), (l)))
 #define digest_string(s) checkok(digest_chars(mdctx, (s)))
@@ -182,6 +198,44 @@ static int tls_digest_tlsa(EVP_MD_CTX *mdctx, TLS_TLSA *tlsa)
     return (ok);
 }
 
+/* tls_digest_byname - test availability or prepare to use digest */
+
+const EVP_MD *tls_digest_byname(const char *mdalg, EVP_MD_CTX **mdctxPtr)
+{
+    const EVP_MD *md;
+    EVP_MD_CTX *mdctx = NULL;
+    int     ok = 1;
+
+    /*
+     * In OpenSSL 3.0, because of dynamically variable algorithm providers,
+     * there is a time-of-check/time-of-use issue that means that abstract
+     * algorithm handles returned by EVP_get_digestbyname() can (and not
+     * infrequently do) return ultimately unusable algorithms, to check for
+     * actual availability, one needs to use the new EVP_MD_fetch() API, or
+     * indirectly check usability by creating a concrete context. We take the
+     * latter approach here (works for 1.1.1 without #ifdef).
+     * 
+     * Note that EVP_MD_CTX_{create,destroy} were renamed to, respectively,
+     * EVP_MD_CTX_{new,free} in OpenSSL 1.1.0.
+     */
+    checkok(md = EVP_get_digestbyname(mdalg));
+
+    /*
+     * Sanity check: Newer shared libraries could (hypothentical ABI break)
+     * allow larger digests, we avoid such poison algorithms.
+     */
+    checkok(EVP_MD_size(md) <= EVP_MAX_MD_SIZE);
+    checkok(mdctx = EVP_MD_CTX_new());
+    checkok(EVP_DigestInit_ex(mdctx, md, NULL));
+
+
+    if (ok && mdctxPtr != 0)
+	*mdctxPtr = mdctx;
+    else
+	EVP_MD_CTX_free(mdctx);
+    return (ok ? md : 0);
+}
+
 /* tls_serverid_digest - suffix props->serverid with parameter digest */
 
 char   *tls_serverid_digest(TLS_SESS_STATE *TLScontext,
@@ -189,7 +243,6 @@ char   *tls_serverid_digest(TLS_SESS_STATE *TLScontext,
 			            const char *ciphers)
 {
     EVP_MD_CTX *mdctx;
-    const EVP_MD *md;
     const char *mdalg;
     unsigned char md_buf[EVP_MAX_MD_SIZE];
     unsigned int md_len;
@@ -205,17 +258,17 @@ char   *tls_serverid_digest(TLS_SESS_STATE *TLScontext,
      * default digest, but DANE requires sha256 and sha512, so if we must
      * fall back to our default digest, DANE support won't be available.  We
      * panic if the fallback algorithm is not available, as it was verified
-     * available in tls_client_init() and must not simply vanish.
+     * available in tls_client_init() and must not simply vanish.  Our
+     * provider set is not expected to change once the OpenSSL library is
+     * initialised.
      */
-    if ((md = EVP_get_digestbyname(mdalg = "sha256")) == 0
-	&& (md = EVP_get_digestbyname(mdalg = props->mdalg)) == 0)
-	msg_panic("digest algorithm \"%s\" not found", mdalg);
+    if (tls_digest_byname(mdalg = LN_sha256, &mdctx) == 0
+	&& tls_digest_byname(mdalg = props->mdalg, &mdctx) == 0)
+	msg_panic("digest algorithm \"%s\" not found", props->mdalg);
 
     /* Salt the session lookup key with the OpenSSL runtime version. */
     sslversion = OpenSSL_version_num();
 
-    mdctx = EVP_MD_CTX_create();
-    checkok(EVP_DigestInit_ex(mdctx, md, NULL));
     digest_string(props->helo ? props->helo : "");
     digest_object(&sslversion);
     digest_string(props->protocols);
@@ -306,18 +359,15 @@ char   *tls_digest_encode(const unsigned char *md_buf, int md_len)
 
 static char *tls_data_fprint(const unsigned char *buf, int len, const char *mdalg)
 {
-    EVP_MD_CTX *mdctx;
-    const EVP_MD *md;
+    EVP_MD_CTX *mdctx = NULL;
     unsigned char md_buf[EVP_MAX_MD_SIZE];
     unsigned int md_len;
     int     ok = 1;
 
     /* Previously available in "init" routine. */
-    if ((md = EVP_get_digestbyname(mdalg)) == 0)
+    if (tls_digest_byname(mdalg, &mdctx) == 0)
 	msg_panic("digest algorithm \"%s\" not found", mdalg);
 
-    mdctx = EVP_MD_CTX_create();
-    checkok(EVP_DigestInit_ex(mdctx, md, NULL));
     digest_data(buf, len);
     checkok(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
     EVP_MD_CTX_destroy(mdctx);

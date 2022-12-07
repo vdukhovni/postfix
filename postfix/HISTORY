@@ -26659,3 +26659,37 @@ Apologies for any names omitted.
 	Documentation: the local_header_rewrite_clients and
 	remote_header_rewrite_domain features also enable adding
 	missing headers. File: proto/postconf.proto.
+
+20221125
+
+	Bugfix (introduced: Postfix 3.6): the Postfix TLS client
+	logged a TLS connection as 'Untrusted' instead of 'Trusted',
+	when a matching DANE record was found but the MX RRset was
+	insecure. Fix by Viktor Dukhovni. File: tls/tls_client.c.
+
+20221128
+
+	Bugfix (introduced: Postfix 2.2): the smtpd_proxy_client
+	code mis-parsed the last XFORWARD attribute name in the
+	SMTP server's EHLO response. The result was that the
+	smtpd_proxy_client code failed to forward the IDENT attribute.
+	Fix by Andreas Weigel. File: smtpd/smtpd_proxy.c.
+
+	Typo in MAILLOG_README. Paul Menzel.
+
+20221207
+
+	Workaround: OpenSSL 3.x EVP_get_digestbyname() can return
+	lazily bound handles that may fail to work when one attempts
+	to use them, because no provider search happens until one
+	constructs an actual operation context. In sufficiently
+	hostile configurations, Postfix could mistakenly believe
+	that an algorithm is available, when in fact it is not. A
+	similar workaround may be needed for EVP_get_cipherbyname().
+	Fix by Viktor Dukhovni. Files: tls/tls.h, tls/tls_dane.c,
+	tls/tls_fprint.c, tls/tls_misc.c.
+
+	Bugfix (introduced: Postfix 2.11): the checkok() macro in
+	tls/tls_fprint.c evaluated its argument unconditionally;
+	it should evaluate the argument only if there was no prior
+	error. Found during code review. File: tls/tls_fprint.c.

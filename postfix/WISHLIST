@@ -9,6 +9,14 @@ Wish list:
 	Scan Postfix code with github.com/googleprojectzero/weggli
 	(depends on "rust").
 
+	In tls_fprint.c() rename unsafe macros to upper-case names.
+	For example, checkok() has a function-like name, but it
+	evaluates arguments conditionally. Rename all macros that
+	invoke checkok().
+
+	Update TLS_README diagram, tlsmgr no longer manages cert
+	info.
+
 	Consider renaming local_header_rewrite_clients to
 	local_header_canonicalize_clients, as a more accurate name.
 	Optionally support "local_header_canonicalize_classes =
@@ -16,6 +24,13 @@ Wish list:
 
 	And ditto for remote_header_rewrite_domain, whether it
 	should rewrite address, add missing headers, or both.
+
+	Add weight factors to randmap, for example randmap:{{result1}*99,
+	{result2}*1}. To parse out weights, see postscreen.
+
+	randmap already allows randmap:{{result}, ...}, to support
+	whitespace and comma in result values, but it should also
+	extract the value from {}.
 
 	Migrate masquerade_domains from ARGV to STRING_LIST, or
 	deprecate this feature because it breaks table-driven address

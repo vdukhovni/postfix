@@ -172,12 +172,9 @@
 /* .PP
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBlocal_header_rewrite_clients (permit_inet_interfaces)\fR"
-/*	Rewrite message header addresses in mail from these clients and
-/*	update incomplete addresses with the domain name in $myorigin or
-/*	$mydomain; either don't rewrite message headers from other clients
-/*	at all, or rewrite message headers and update incomplete addresses
-/*	with the domain specified in the remote_header_rewrite_domain
-/*	parameter.
+/*	Rewrite or add message headers in mail from these clients,
+/*	updating incomplete addresses with the domain name in $myorigin or
+/*	$mydomain, and adding missing headers.
 /* BEFORE-SMTPD PROXY AGENT
 /* .ad
 /* .fi
@@ -439,7 +436,7 @@
 /*	With mandatory TLS encryption, require a trusted remote SMTP client
 /*	certificate in order to allow TLS connections to proceed.
 /* .IP "\fBsmtpd_tls_wrappermode (no)\fR"
-/*	Run the Postfix SMTP server in the non-standard "wrapper" mode,
+/*	Run the Postfix SMTP server in TLS "wrapper" mode,
 /*	instead of using the STARTTLS command.
 /* .IP "\fBtls_daemon_random_bytes (32)\fR"
 /*	The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
@@ -546,7 +543,7 @@
 /*	Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
 /* .IP "\fBsmtputf8_enable (yes)\fR"
 /*	Enable preliminary SMTPUTF8 support for the protocols described
-/*	in RFC 6531..6533.
+/*	in RFC 6531, RFC 6532, and RFC 6533.
 /* .IP "\fBstrict_smtputf8 (no)\fR"
 /*	Enable stricter enforcement of the SMTPUTF8 protocol.
 /* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
@@ -650,10 +647,10 @@
 /*	The list of domains that are delivered via the $local_transport
 /*	mail delivery transport.
 /* .IP "\fBinet_interfaces (all)\fR"
-/*	The network interface addresses that this mail system receives
+/*	The local network interface addresses that this mail system receives
 /*	mail on.
 /* .IP "\fBproxy_interfaces (empty)\fR"
-/*	The network interface addresses that this mail system receives mail
+/*	The remote network interface addresses that this mail system receives mail
 /*	on by way of a proxy or network address translation unit.
 /* .IP "\fBinet_protocols (see 'postconf -d output')\fR"
 /*	The Internet protocols Postfix will attempt to use when making
@@ -682,12 +679,12 @@
 /*	Parameters concerning known/unknown recipients in virtual alias
 /*	domains:
 /* .IP "\fBvirtual_alias_domains ($virtual_alias_maps)\fR"
-/*	Postfix is final destination for the specified list of virtual
+/*	Postfix is the final destination for the specified list of virtual
 /*	alias domains, that is, domains for which all addresses are aliased
 /*	to addresses in other local or remote domains.
 /* .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
 /*	Optional lookup tables that alias specific mail addresses or domains
-/*	to other local or remote address.
+/*	to other local or remote addresses.
 /* .IP "\fBunknown_virtual_alias_reject_code (550)\fR"
 /*	The Postfix SMTP server reply code when a recipient address matches
 /*	$virtual_alias_domains, and $virtual_alias_maps specifies a list
@@ -696,7 +693,7 @@
 /*	Parameters concerning known/unknown recipients in virtual mailbox
 /*	domains:
 /* .IP "\fBvirtual_mailbox_domains ($virtual_mailbox_maps)\fR"
-/*	Postfix is final destination for the specified list of domains;
+/*	Postfix is the final destination for the specified list of domains;
 /*	mail is delivered via the $virtual_transport mail delivery transport.
 /* .IP "\fBvirtual_mailbox_maps (empty)\fR"
 /*	Optional lookup tables with all valid addresses in the domains that

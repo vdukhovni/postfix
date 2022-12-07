@@ -324,6 +324,7 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
      * checks are now performed internally in OpenSSL.
      */
     if (SSL_get_verify_result(TLScontext->con) == X509_V_OK) {
+	TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
 	if (TLScontext->must_fail) {
 	    msg_panic("%s: cert valid despite trust init failure",
 		      TLScontext->namaddr);
@@ -352,8 +353,7 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
 			     TLScontext->namaddr, peername);
 		tls_dane_log(TLScontext);
 	    }
-	} else
-	    TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
+	}
     }
 
     /*

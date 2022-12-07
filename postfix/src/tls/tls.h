@@ -647,6 +647,7 @@ extern TLS_TLSA *tlsa_prepend(TLS_TLSA *, uint8_t, uint8_t, uint8_t,
  /*
   * tls_fprint.c
   */
+extern const EVP_MD *tls_digest_byname(const char *, EVP_MD_CTX **);
 extern char *tls_digest_encode(const unsigned char *, int);
 extern char *tls_cert_fprint(X509 *, const char *);
 extern char *tls_pkey_fprint(X509 *, const char *);
