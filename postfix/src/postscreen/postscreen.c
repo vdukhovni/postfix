@@ -190,11 +190,12 @@
 /*	with the postscreen_dnsbl_sites and postscreen_dnsbl_threshold
 /*	parameters).
 /* .IP "\fBpostscreen_dnsbl_reply_map (empty)\fR"
-/*	A mapping from actual DNSBL domain name which includes a secret
+/*	A mapping from an actual DNSBL domain name which includes a secret
 /*	password, to the DNSBL domain name that postscreen will reply with
 /*	when it rejects mail.
 /* .IP "\fBpostscreen_dnsbl_sites (empty)\fR"
-/*	Optional list of DNS allow/denylist domains, filters and weight
+/*	Optional list of patterns with DNS allow/denylist domains, filters
+/*	and weight
 /*	factors.
 /* .IP "\fBpostscreen_dnsbl_threshold (1)\fR"
 /*	The inclusive lower bound for blocking a remote SMTP client, based on
@@ -1174,7 +1175,7 @@ int     main(int argc, char **argv)
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {
-	VAR_PSC_DNSBL_THRESH, DEF_PSC_DNSBL_THRESH, &var_psc_dnsbl_thresh, 0, 0,
+	VAR_PSC_DNSBL_THRESH, DEF_PSC_DNSBL_THRESH, &var_psc_dnsbl_thresh, 1, 0,
 	VAR_PSC_CMD_COUNT, DEF_PSC_CMD_COUNT, &var_psc_cmd_count, 1, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
 	0,

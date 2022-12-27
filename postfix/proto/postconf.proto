@@ -436,7 +436,7 @@ Examples:
 
 <pre>
 address_verify_sender = &lt;&gt;
-address_verify_sender = postmaster@my.domain
+address_verify_sender = postmaster@mydomain
 </pre>
 
 <p>
@@ -3607,7 +3607,7 @@ This feature is available in Postfix 2.1 and later.
 
 <p>
 Optional BCC (blind carbon-copy) address lookup tables, indexed by
-recipient address.  The BCC address (multiple results are not
+envelope recipient address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.
 </p>
 
@@ -3955,7 +3955,7 @@ that rewrite into a form that ends in the "@" null domain.  </p>
 %PARAM sender_bcc_maps
 
 <p> Optional BCC (blind carbon-copy) address lookup tables, indexed
-by sender address.  The BCC address (multiple results are not
+by envelope sender address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.  </p>
 
 <p>
@@ -4029,9 +4029,9 @@ The table format and lookups are documented in canonical(5).
 </p>
 
 <p>
-Example: you want to rewrite the SENDER address "user@ugly.domain"
-to "user@pretty.domain", while still being able to send mail to
-the RECIPIENT address "user@ugly.domain".
+Example: you want to rewrite the SENDER address "user@ugly.example"
+to "user@pretty.example", while still being able to send mail to
+the RECIPIENT address "user@ugly.example".
 </p>
 
 <p>
@@ -10902,7 +10902,7 @@ parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM lmtp_line_length_limit 990
+%PARAM lmtp_line_length_limit 998
 
 <p> The LMTP-specific version of the smtp_line_length_limit
 configuration parameter.  See there for details. </p>

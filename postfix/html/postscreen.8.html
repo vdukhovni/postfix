@@ -195,13 +195,13 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a> parameters).
 
        <b><a href="postconf.5.html#postscreen_dnsbl_reply_map">postscreen_dnsbl_reply_map</a> (empty)</b>
-              A  mapping from actual DNSBL domain name which includes a secret
-              password, to the DNSBL domain name that  postscreen  will  reply
-              with when it rejects mail.
+              A  mapping  from  an  actual  DNSBL domain name which includes a
+              secret password, to the DNSBL domain name that  postscreen  will
+              reply with when it rejects mail.
 
        <b><a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> (empty)</b>
-              Optional  list of DNS allow/denylist domains, filters and weight
-              factors.
+              Optional  list of patterns with DNS allow/denylist domains, fil-
+              ters and weight factors.
 
        <b><a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a> (1)</b>
               The inclusive lower bound for blocking  a  remote  SMTP  client,

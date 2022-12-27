@@ -1786,3 +1786,5 @@ deinit
 reinit
 COMPAR
 deduplicate
+digestbyname
+mdctxPtr

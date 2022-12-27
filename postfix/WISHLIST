@@ -80,11 +80,16 @@ Wish list:
 	default_transport_maps? This would simplify configuration.
 
 	Add a pointer to
+	https://fabianlee.org/2019/10/23/docker-running-a-postfix-container-for-testing-mail-during-development/
+	and https://github.com/docker-mailserver/docker-mailserver
+
+	Add a pointer to
+	https://github.com/tarickb/sasl-xoauth2 and/or
 	http://mmogilvi.users.sourceforge.net/software/oauthbearer.html
 	in documentation or on-line howtos.
 
-	Read http://mmogilvi.users.sourceforge.net/software/oauthbearer.html
-	and see how we can improve on the Postfix side.
+	Read the above links and see how we can improve usability on
+	the Postfix side.
 
 	Add verp=+= to the qmgr "from=" logging. This is already
 	implemented but not yet integrated.

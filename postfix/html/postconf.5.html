@@ -475,7 +475,7 @@ Examples:
 
 <pre>
 <a href="postconf.5.html#address_verify_sender">address_verify_sender</a> = &lt;&gt;
-<a href="postconf.5.html#address_verify_sender">address_verify_sender</a> = postmaster@my.domain
+<a href="postconf.5.html#address_verify_sender">address_verify_sender</a> = postmaster@<a href="postconf.5.html#mydomain">mydomain</a>
 </pre>
 
 <p>
@@ -4939,7 +4939,7 @@ and for receiving the initial remote LMTP server response. </p>
 </DD>
 
 <DT><b><a name="lmtp_line_length_limit">lmtp_line_length_limit</a>
-(default: 990)</b></DT><DD>
+(default: 998)</b></DT><DD>
 
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_line_length_limit">smtp_line_length_limit</a>
 configuration parameter.  See there for details. </p>
@@ -9704,7 +9704,7 @@ This feature is available in Postfix 2.1 and later.
 
 <p>
 Optional BCC (blind carbon-copy) address lookup tables, indexed by
-recipient address.  The BCC address (multiple results are not
+envelope recipient address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.
 </p>
 
@@ -10407,7 +10407,7 @@ in Postfix version 2.3.
 (default: empty)</b></DT><DD>
 
 <p> Optional BCC (blind carbon-copy) address lookup tables, indexed
-by sender address.  The BCC address (multiple results are not
+by envelope sender address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.  </p>
 
 <p>
@@ -10500,9 +10500,9 @@ The table format and lookups are documented in <a href="canonical.5.html">canoni
 </p>
 
 <p>
-Example: you want to rewrite the SENDER address "user@ugly.domain"
-to "user@pretty.domain", while still being able to send mail to
-the RECIPIENT address "user@ugly.domain".
+Example: you want to rewrite the SENDER address "user@ugly.example"
+to "user@pretty.example", while still being able to send mail to
+the RECIPIENT address "user@ugly.example".
 </p>
 
 <p>

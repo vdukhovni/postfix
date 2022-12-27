@@ -26693,3 +26693,31 @@ Apologies for any names omitted.
 	tls/tls_fprint.c evaluated its argument unconditionally;
 	it should evaluate the argument only if there was no prior
 	error. Found during code review. File: tls/tls_fprint.c.
+
+20221215
+
+	Foolproofing: postscreen segfault with postscreen_dnsbl_threshold
+	< 1. It should reject such input with a fatal error instead.
+	Discovered by Benny Pedersen. File: postscreen/postscreen.c.
+
+	Documentation: replaced instances of '.domain' in some
+	examples; clarified that bcc maps are indexed by envelope
+	address; lmtp_line_length_limit default wasn't updated to
+	998. File: proto/postconf.proto.
+
+20221227
+
+	Documentation: the mysql_table(5) manpage did not document
+	the tls_ciphers feature that was added in Postfix 2.11.
+	File: proto/mysql_table.
+
+	Cleanup: added a pre-release check that the parameter lists
+	in the proto/*_table documentation match the global/dict*.c
+	implementations. Files: Makefile.in, mantools/check-table-proto
+
+	Documentation: consistent xxxx_table formatting to make
+	parameter documentation easier to match against the
+	corresponding implementation. Files: proto/mysql_table,
+	proto/pgsql_table, proto/ldap_table.
+
+	Typofixes for changes made 20221207. File: tls/tls_fprint.c.

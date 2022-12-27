@@ -61,7 +61,8 @@
 #	The hosts are tried in random order. The connections are
 #	automatically closed after being idle for about 1 minute,
 #	and are re-opened as necessary.
-# .IP "\fBuser, password\fR"
+# .IP "\fBuser\fR"
+# .IP "\fBpassword\fR"
 #	The user name and password to log into the pgsql server.
 #	Example:
 # .nf

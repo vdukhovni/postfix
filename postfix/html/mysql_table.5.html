@@ -60,7 +60,9 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
               TCP you have to specify
                   hosts = 127.0.0.1
 
-       <b>user, password</b>
+       <b>user</b>
+
+       <b>password</b>
               The  user name and password to log into the mysql server.  Exam-
               ple:
                   user = someone
@@ -249,6 +251,11 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
        <b>tls_CApath</b>
               Directory containing X509 Certification  Authority  certificates
               in separate individual files.
+
+              This parameter is available with Postfix 2.11 and later.
+
+       <b>tls_ciphers</b>
+              The list of permissible ciphers for SSL encryption.
 
               This parameter is available with Postfix 2.11 and later.
 

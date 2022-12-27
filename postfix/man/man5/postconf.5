@@ -287,7 +287,7 @@ Examples:
 .na
 .ft C
 address_verify_sender = <>
-address_verify_sender = postmaster@my.domain
+address_verify_sender = postmaster@mydomain
 .fi
 .ad
 .ft R
@@ -3113,7 +3113,7 @@ and for receiving the initial remote LMTP server response.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).  The default time unit is s (seconds).
-.SH lmtp_line_length_limit (default: 990)
+.SH lmtp_line_length_limit (default: 998)
 The LMTP\-specific version of the smtp_line_length_limit
 configuration parameter.  See there for details.
 .PP
@@ -6089,7 +6089,7 @@ receive_override_options = no_address_mappings
 This feature is available in Postfix 2.1 and later.
 .SH recipient_bcc_maps (default: empty)
 Optional BCC (blind carbon\-copy) address lookup tables, indexed by
-recipient address.  The BCC address (multiple results are not
+envelope recipient address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
@@ -6594,7 +6594,7 @@ This parameter should not be used. It was replaced by sender_dependent_relayhost
 in Postfix version 2.3.
 .SH sender_bcc_maps (default: empty)
 Optional BCC (blind carbon\-copy) address lookup tables, indexed
-by sender address.  The BCC address (multiple results are not
+by envelope sender address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
@@ -6658,9 +6658,9 @@ Optional address mapping lookup tables for envelope and header
 sender addresses.
 The table format and lookups are documented in \fBcanonical\fR(5).
 .PP
-Example: you want to rewrite the SENDER address "user@ugly.domain"
-to "user@pretty.domain", while still being able to send mail to
-the RECIPIENT address "user@ugly.domain".
+Example: you want to rewrite the SENDER address "user@ugly.example"
+to "user@pretty.example", while still being able to send mail to
+the RECIPIENT address "user@ugly.example".
 .PP
 Note: $sender_canonical_maps is processed before $canonical_maps.
 .PP

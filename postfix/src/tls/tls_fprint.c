@@ -221,7 +221,7 @@ const EVP_MD *tls_digest_byname(const char *mdalg, EVP_MD_CTX **mdctxPtr)
     checkok(md = EVP_get_digestbyname(mdalg));
 
     /*
-     * Sanity check: Newer shared libraries could (hypothentical ABI break)
+     * Sanity check: Newer shared libraries could (hypothetical ABI break)
      * allow larger digests, we avoid such poison algorithms.
      */
     checkok(EVP_MD_size(md) <= EVP_MAX_MD_SIZE);
@@ -260,7 +260,7 @@ char   *tls_serverid_digest(TLS_SESS_STATE *TLScontext,
      * panic if the fallback algorithm is not available, as it was verified
      * available in tls_client_init() and must not simply vanish.  Our
      * provider set is not expected to change once the OpenSSL library is
-     * initialised.
+     * initialized.
      */
     if (tls_digest_byname(mdalg = LN_sha256, &mdctx) == 0
 	&& tls_digest_byname(mdalg = props->mdalg, &mdctx) == 0)
