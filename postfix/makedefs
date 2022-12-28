@@ -206,6 +206,10 @@ do
     esac
 done || exit 1
 
+# Suggest a fix for systems without grep -E or -F flags.
+(echo foo | grep -E foo 2>/dev/null | grep -F foo >/dev/null 2>/dev/null) || 
+    error "No grep -[EF] support. See auxiliary/fix-grep for a conversion tool."
+
 # Emit system-dependent Makefile macro definitions to standard output.
 
 echo "#----------------------------------------------------------------"

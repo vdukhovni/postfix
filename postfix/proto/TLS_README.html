@@ -2908,7 +2908,7 @@ erase all the SMTP client TLS settings and then enable client TLS: </p>
 
 <blockquote>
 <pre>
-# postconf -X `postconf -nH | egrep '^smtp(_|_enforce_|_use_)tls'`
+# postconf -X `postconf -nH | grep -E '^smtp(_|_enforce_|_use_)tls'`
 # postfix tls enable-client
 # postfix reload
 </pre>
@@ -2941,7 +2941,7 @@ all the SMTP server TLS settings and then enable server TLS: </p>
 
 <blockquote>
 <pre>
-# postconf -X `postconf -nH | egrep '^smtpd(_|_enforce_|_use_)tls'`
+# postconf -X `postconf -nH | grep -E '^smtpd(_|_enforce_|_use_)tls'`
 # postfix tls enable-server
 # postfix reload
 </pre>

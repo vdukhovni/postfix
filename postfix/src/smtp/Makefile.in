@@ -45,7 +45,7 @@ update: ../../libexec/$(PROG)
 smtp.o:	smtp.c smtp_params.c lmtp_params.c
 
 lmtp_params.c: smtp_params.c
-	egrep -v -f smtp-only smtp_params.c | \
+	grep -E -v -f smtp-only smtp_params.c | \
 	    sed 's/SMTP/LMTP/g; s/smtp_\([a-z]*_table\)/lmtp_\1/' >$@
 
 printfck: $(OBJS) $(PROG)

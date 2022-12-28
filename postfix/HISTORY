@@ -26721,3 +26721,16 @@ Apologies for any names omitted.
 	proto/pgsql_table, proto/ldap_table.
 
 	Typofixes for changes made 20221207. File: tls/tls_fprint.c.
+
+20221228
+
+	Long ago, a committee decided that "grep -E" and "grep -F"
+	are better than "egrep" and "fgrep". This could not be an
+	optimization for ease of use: the new command syntax requires
+	mixed case for common usage, and the new command is longer.
+	To make things better, some implementation now warns when
+	the "obsolete" syntax is used. To address this, all Postfix
+	code and documentation has been converted; a script
+	auxiliary/fix-grep/fix-grep.sh can revert the syntax if you
+	want to build Postfix on an older platform. Files: too many
+	to mention here.

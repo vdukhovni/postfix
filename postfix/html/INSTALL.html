@@ -1185,7 +1185,7 @@ file. </p>
 
 <blockquote>
 <pre>
-$ egrep '(reject|warning|error|fatal|panic):' /some/log/file
+$ grep -E '(reject|warning|error|fatal|panic):' /some/log/file
 </pre>
 </blockquote>
 
@@ -1266,7 +1266,7 @@ file. </p>
 
 <blockquote>
 <pre>
-$ egrep '(reject|warning|error|fatal|panic):' /some/log/file
+$ grep -E '(reject|warning|error|fatal|panic):' /some/log/file
 </pre>
 </blockquote>
 
@@ -1331,7 +1331,7 @@ file. </p>
 
 <blockquote>
 <pre>
-$ egrep '(reject|warning|error|fatal|panic):' /some/log/file
+$ grep -E '(reject|warning|error|fatal|panic):' /some/log/file
 </pre>
 </blockquote>
 
@@ -1650,7 +1650,7 @@ idea to run every night before the syslog files are rotated: </p>
 <blockquote>
 <pre>
 # postfix check
-# egrep '(reject|warning|error|fatal|panic):' /some/log/file
+# grep -E '(reject|warning|error|fatal|panic):' /some/log/file
 </pre>
 </blockquote>
 

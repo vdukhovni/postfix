@@ -4,6 +4,6 @@
 
 LANG=C; export LANG
 
-sed '1,/^2022/d' HISTORY | spell | fgrep -vxf proto/stop | \
-	fgrep -vxf proto/stop.spell-cc | \
-	fgrep -vxf proto/stop.spell-history
+sed '1,/^2022/d' HISTORY | spell | grep -F -vxf proto/stop | \
+	grep -F -vxf proto/stop.spell-cc | \
+	grep -F -vxf proto/stop.spell-history

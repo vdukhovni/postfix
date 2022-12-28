@@ -4,4 +4,4 @@
 
 LANG=C; export LANG
 
-sed '1,/^2022/d' HISTORY | mantools/find-double | fgrep -vxf proto/stop.double-history
+sed '1,/^2022/d' HISTORY | mantools/find-double | grep -F -vxf proto/stop.double-history

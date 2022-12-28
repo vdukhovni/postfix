@@ -328,7 +328,7 @@ check-warn)
 	# Check Postfix mail_owner-owned directory tree owner.
 
 	find `ls -d $queue_directory/* | \
-	    egrep '/(saved|incoming|active|defer|deferred|bounce|hold|trace|corrupt|public|private|flush)$'` \
+	    grep -E '/(saved|incoming|active|defer|deferred|bounce|hold|trace|corrupt|public|private|flush)$'` \
 	    ! \( -type p -o -type s \) ! -user $mail_owner \
 		-exec $WARN not owned by $mail_owner: {} \;
 

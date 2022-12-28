@@ -241,7 +241,7 @@ cd
 chmod
 config
 defs
-egrep
+grep -E
 ifdef
 init
 libexec
@@ -1568,3 +1568,5 @@ mkmap
 Brendel
 Bugfix
 https
+egrep
+fgrep

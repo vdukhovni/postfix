@@ -44,6 +44,14 @@ Please see https://www.postfix.org/announcements/postfix-3.7.3 for
 instructions to identify falsely flagged messages in the Postfix
 queue, and what actions may be taken.
 
+Incompatible changes with snapshot 20221228
+===========================================
+
+Postfix documentation and code have been converted to use "grep -E"
+and "grep -F" instead of the historical forms egrep and fgrep.  To
+build Postfix on a system that supports only the historical forms,
+run the script auxiliary/fix-grep/fix-grep.sh to revert this change.
+
 Incompatible changes with snapshot 20220507
 ===========================================
 
