@@ -664,11 +664,13 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     tls_tmp_dh(sni_ctx, 1);
 
     /*
-     * Enable EECDH if available, errors are not fatal, we just keep going
-     * with any remaining key-exchange algorithms.
+     * Enable EECDH if available, errors are not fatal, we just keep going with
+     * any remaining key-exchange algorithms.  With OpenSSL 3.0 and TLS 1.3,
+     * the same applies to the FFDHE groups which become part of a unified
+     * "groups" list.
      */
-    tls_auto_eecdh_curves(server_ctx, var_tls_eecdh_auto);
-    tls_auto_eecdh_curves(sni_ctx, var_tls_eecdh_auto);
+    tls_auto_groups(server_ctx, var_tls_eecdh_auto, var_tls_ffdhe_auto);
+    tls_auto_groups(sni_ctx, var_tls_eecdh_auto, var_tls_ffdhe_auto);
 
     /*
      * If we want to check client certificates, we have to indicate it in

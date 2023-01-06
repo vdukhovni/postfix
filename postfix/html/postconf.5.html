@@ -19247,11 +19247,10 @@ be using 0.9.6! </dd>
 
 <p> The prioritized list of elliptic curves supported by the Postfix
 SMTP client and server.  These curves are used by the Postfix SMTP
-server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = auto".  The selected curves
-must be implemented by OpenSSL and be standardized for use in TLS
-(<a href="https://tools.ietf.org/html/rfc8422">RFC 8422</a>).  It is unwise to list only
-"bleeding-edge" curves supported by a small subset of clients.  The
-default list is suitable for most users. </p>
+server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = auto".  The selected curves must be
+implemented by OpenSSL and be standardized for use in TLS (<a href="https://tools.ietf.org/html/rfc8422">RFC 8422</a>).
+It is unwise to list only "bleeding-edge" curves supported by a small
+subset of clients.  The default list is suitable for most users. </p>
 
 <p> Postfix skips curve names that are unknown to OpenSSL, or that
 are known but not yet implemented.  This makes it possible to
@@ -19261,6 +19260,11 @@ available.  In particular, in some OpenSSL versions, the new <a href="https://to
 support for either or both may be missing.  These curves may appear
 in the default value of this parameter, even though they'll only
 be usable with later versions of OpenSSL.  </p>
+
+<p> See also the "<a href="postconf.5.html#tls_ffdhe_auto_groups">tls_ffdhe_auto_groups</a>" parameter, which supports
+customizing the list of FFDHE groups enabled with TLS 1.3.  That setting
+is introduced with Postfix 3.8, when built against OpenSSL 3.0 or later.
+</p>
 
 <p> This feature is available in Postfix 3.2 and later, when it is
 compiled and linked with OpenSSL 1.0.2 or later on platforms where
@@ -19375,6 +19379,49 @@ down a TLS session, until Postfix times out. With this enabled,
 Postfix will not wait for the remote TLS peer to respond to a TLS
 'close' notification. This behavior is recommended for TLSv1.0 and
 later. </p>
+
+
+</DD>
+
+<DT><b><a name="tls_ffdhe_auto_groups">tls_ffdhe_auto_groups</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> The prioritized list of finite-field Diffie-Hellman ephemeral
+(FFDHE) key exchange groups supported by the Postfix SMTP client and
+server.  OpenSSL 3.0 adds support for FFDHE key agreement in TLS 1.3.
+In OpenSSL 1.1.1, TLS 1.3 was only supported with elliptic-curve based
+key agreement.  The "<a href="postconf.5.html#tls_ffdhe_auto_groups">tls_ffdhe_auto_groups</a>" parameter makes it possible
+to configure the list of FFDHE groups that the Postfix client or server
+will enable in OpenSSL 3.0 and up.  This parameter has no effect when
+Postfix is built against earlier OpenSSL versions. </p>
+
+<p> The default list of FFDHE groups that Postfix enables in OpenSSL 3.0
+and up includes just the 2048 and 3072-bit groups.  Stronger FFDHE
+groups perform poorly and EC groups are a much better choice for the
+same security level.  Postfix ignores group names that are unknown to
+OpenSSL, or that are known but not yet implemented.  The FFDHE groups
+are largely a backup, in case some peer does not support EC key
+exchange, or EC key exchange needs to be disabled for some pressing
+reason. </p>
+
+<p> Setting this parameter empty disables FFDHE support in TLS 1.3.
+Whether FFDHE key agreement is enabled in TLS 1.2 and earlier depends
+on whether any of the "kDHE" ciphers are included in the cipherlist.
+</p>
+
+<p> Conversely, setting "<a href="postconf.5.html#tls_eecdh_auto_curves">tls_eecdh_auto_curves</a>" empty disables TLS 1.3
+EC key agreement in OpenSSL 3.0 and later.  Note that at least one of
+"<a href="postconf.5.html#tls_eecdh_auto_curves">tls_eecdh_auto_curves</a>" and "<a href="postconf.5.html#tls_ffdhe_auto_groups">tls_ffdhe_auto_groups</a>" must be non-empty,
+this is required by OpenSSL 3.0.  If both are inadvertently set empty,
+Postfix will fall back to the compiled-in defaults. </p>
+
+<p> All the default groups and EC curves should sufficiently strong
+to make "pruning" the defaults unwise.  At a minimum, "X25519" and
+"P-256" (a.k.a. "prime256v1") should be among the enabled EC curves,
+while "dhe2048" and "dhe3072" should be among the FFDHE groups. </p>
+
+<p> This feature is available in Postfix 3.8 and later, when it is
+compiled and linked with OpenSSL 3.0 or later on platforms. </p>
 
 
 </DD>

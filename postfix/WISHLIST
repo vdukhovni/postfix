@@ -9,6 +9,12 @@ Wish list:
 	Scan Postfix code with github.com/googleprojectzero/weggli
 	(depends on "rust").
 
+	In smtpd.c, move the comment block with info_log_address_format.
+
+	Is there any code that calls attr_scan*() and that works
+	when the number of attributes received < the expected number?
+	If there is no such code, then we can simplify a few things.
+
 	In tls_fprint.c() rename unsafe macros to upper-case names.
 	For example, checkok() has a function-like name, but it
 	evaluates arguments conditionally. Rename all macros that

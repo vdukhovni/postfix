@@ -625,7 +625,7 @@ extern int tls_bio(int, int, TLS_SESS_STATE *,
   */
 extern void tls_set_dh_from_file(const char *);
 extern void tls_tmp_dh(SSL_CTX *, int);
-extern void tls_auto_eecdh_curves(SSL_CTX *, const char *);
+extern void tls_auto_groups(SSL_CTX *, const char *, const char *);
 
  /*
   * tls_verify.c

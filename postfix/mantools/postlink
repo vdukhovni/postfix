@@ -770,6 +770,7 @@ while (<>) {
     s;\btls_eecdh_auto_curves\b;<a href="postconf.5.html#tls_eecdh_auto_curves">$&</a>;g;
     s;\btls_eecdh_strong_curve\b;<a href="postconf.5.html#tls_eecdh_strong_curve">$&</a>;g;
     s;\btls_eecdh_ultra_curve\b;<a href="postconf.5.html#tls_eecdh_ultra_curve">$&</a>;g;
+    s;\btls_ffdhe_auto_groups\b;<a href="postconf.5.html#tls_ffdhe_auto_groups">$&</a>;g;
     s;\btls_preempt_cipherlist\b;<a href="postconf.5.html#tls_preempt_cipherlist">$&</a>;g;
     s;\btls_disable_workarounds\b;<a href="postconf.5.html#tls_disable_workarounds">$&</a>;g;
     s;\btls_append_default_CA\b;<a href="postconf.5.html#tls_append_default_CA">$&</a>;g;
