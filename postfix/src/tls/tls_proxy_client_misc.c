@@ -74,6 +74,7 @@ TLS_CLIENT_PARAMS *tls_proxy_client_param_from_config(TLS_CLIENT_PARAMS *params)
 		     tls_eecdh_auto = var_tls_eecdh_auto,
 		     tls_eecdh_strong = var_tls_eecdh_strong,
 		     tls_eecdh_ultra = var_tls_eecdh_ultra,
+		     tls_ffdhe_auto = var_tls_ffdhe_auto,
 		     tls_bug_tweaks = var_tls_bug_tweaks,
 		     tls_ssl_options = var_tls_ssl_options,
 		     tls_dane_digests = var_tls_dane_digests,

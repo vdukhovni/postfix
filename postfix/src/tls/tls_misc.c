@@ -37,6 +37,7 @@
 /*	char	*var_tls_eecdh_auto;
 /*	char	*var_tls_eecdh_strong;
 /*	char	*var_tls_eecdh_ultra;
+/*	char	*var_tls_ffdhe_auto;
 /*	char	*var_tls_dane_digests;
 /*	int	var_tls_daemon_rand_bytes;
 /*	bool	var_tls_append_def_CA;
@@ -285,6 +286,7 @@ int     var_tls_daemon_rand_bytes;
 char   *var_tls_eecdh_auto;
 char   *var_tls_eecdh_strong;
 char   *var_tls_eecdh_ultra;
+char   *var_tls_ffdhe_auto;
 char   *var_tls_dane_digests;
 bool    var_tls_append_def_CA;
 char   *var_tls_bug_tweaks;
@@ -649,9 +651,10 @@ void    tls_param_init(void)
 	VAR_TLS_LOW_CLIST, DEF_TLS_LOW_CLIST, &var_tls_low_clist, 1, 0,
 	VAR_TLS_EXPORT_CLIST, DEF_TLS_EXPORT_CLIST, &var_tls_export_clist, 1, 0,
 	VAR_TLS_NULL_CLIST, DEF_TLS_NULL_CLIST, &var_tls_null_clist, 1, 0,
-	VAR_TLS_EECDH_AUTO, DEF_TLS_EECDH_AUTO, &var_tls_eecdh_auto, 1, 0,
+	VAR_TLS_EECDH_AUTO, DEF_TLS_EECDH_AUTO, &var_tls_eecdh_auto, 0, 0,
 	VAR_TLS_EECDH_STRONG, DEF_TLS_EECDH_STRONG, &var_tls_eecdh_strong, 1, 0,
 	VAR_TLS_EECDH_ULTRA, DEF_TLS_EECDH_ULTRA, &var_tls_eecdh_ultra, 1, 0,
+	VAR_TLS_FFDHE_AUTO, DEF_TLS_FFDHE_AUTO, &var_tls_ffdhe_auto, 0, 0,
 	VAR_TLS_BUG_TWEAKS, DEF_TLS_BUG_TWEAKS, &var_tls_bug_tweaks, 0, 0,
 	VAR_TLS_SSL_OPTIONS, DEF_TLS_SSL_OPTIONS, &var_tls_ssl_options, 0, 0,
 	VAR_TLS_DANE_DIGESTS, DEF_TLS_DANE_DIGESTS, &var_tls_dane_digests, 1, 0,

@@ -129,6 +129,7 @@ void    tls_proxy_client_param_free(TLS_CLIENT_PARAMS *params)
     myfree(params->tls_eecdh_auto);
     myfree(params->tls_eecdh_strong);
     myfree(params->tls_eecdh_ultra);
+    myfree(params->tls_ffdhe_auto);
     myfree(params->tls_bug_tweaks);
     myfree(params->tls_ssl_options);
     myfree(params->tls_dane_digests);
@@ -153,6 +154,7 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     VSTRING *tls_eecdh_auto = vstring_alloc(25);
     VSTRING *tls_eecdh_strong = vstring_alloc(25);
     VSTRING *tls_eecdh_ultra = vstring_alloc(25);
+    VSTRING *tls_ffdhe_auto = vstring_alloc(25);
     VSTRING *tls_bug_tweaks = vstring_alloc(25);
     VSTRING *tls_ssl_options = vstring_alloc(25);
     VSTRING *tls_dane_digests = vstring_alloc(25);
@@ -175,6 +177,7 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 		  RECV_ATTR_STR(VAR_TLS_EECDH_AUTO, tls_eecdh_auto),
 		  RECV_ATTR_STR(VAR_TLS_EECDH_STRONG, tls_eecdh_strong),
 		  RECV_ATTR_STR(VAR_TLS_EECDH_ULTRA, tls_eecdh_ultra),
+		  RECV_ATTR_STR(VAR_TLS_FFDHE_AUTO, tls_ffdhe_auto),
 		  RECV_ATTR_STR(VAR_TLS_BUG_TWEAKS, tls_bug_tweaks),
 		  RECV_ATTR_STR(VAR_TLS_SSL_OPTIONS, tls_ssl_options),
 		  RECV_ATTR_STR(VAR_TLS_DANE_DIGESTS, tls_dane_digests),
@@ -200,13 +203,14 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     params->tls_eecdh_auto = vstring_export(tls_eecdh_auto);
     params->tls_eecdh_strong = vstring_export(tls_eecdh_strong);
     params->tls_eecdh_ultra = vstring_export(tls_eecdh_ultra);
+    params->tls_ffdhe_auto = vstring_export(tls_ffdhe_auto);
     params->tls_bug_tweaks = vstring_export(tls_bug_tweaks);
     params->tls_ssl_options = vstring_export(tls_ssl_options);
     params->tls_dane_digests = vstring_export(tls_dane_digests);
     params->tls_mgr_service = vstring_export(tls_mgr_service);
     params->tls_tkt_cipher = vstring_export(tls_tkt_cipher);
 
-    ret = (ret == 18 ? 1 : -1);
+    ret = (ret == 19 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_client_param_free(params);
 	params = 0;

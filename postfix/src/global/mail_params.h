@@ -3384,6 +3384,22 @@ extern char *var_tls_eecdh_strong;
 #define DEF_TLS_EECDH_ULTRA	"secp384r1"
 extern char *var_tls_eecdh_ultra;
 
+#if defined(SN_ffdhe2048) && defined(NID_ffdhe2048)
+#define DEF_TLS_FFDHE_AUTO_1 SN_ffdhe2048 " "
+#else
+#define DEF_TLS_FFDHE_AUTO_1 ""
+#endif
+#if defined(SN_ffdhe3072) && defined(NID_ffdhe3072)
+#define DEF_TLS_FFDHE_AUTO_2 SN_ffdhe3072 " "
+#else
+#define DEF_TLS_FFDHE_AUTO_2 ""
+#endif
+
+#define VAR_TLS_FFDHE_AUTO	"tls_ffdhe_auto_groups"
+#define DEF_TLS_FFDHE_AUTO      DEF_TLS_FFDHE_AUTO_1 \
+                                DEF_TLS_FFDHE_AUTO_2
+extern char *var_tls_ffdhe_auto;
+
 #define VAR_TLS_PREEMPT_CLIST	"tls_preempt_cipherlist"
 #define DEF_TLS_PREEMPT_CLIST	0
 extern bool var_tls_preempt_clist;

@@ -629,6 +629,13 @@ SMTPD(8)                                                              SMTPD(8)
               The  email  address  form that will be used in non-debug logging
               (info, warning, etc.).
 
+       Available in Postfix version 3.8 and later:
+
+       <b><a href="postconf.5.html#tls_ffdhe_auto_groups">tls_ffdhe_auto_groups</a> (see 'postconf -d' output)</b>
+              The prioritized list of  finite-field  Diffie-Hellman  ephemeral
+              (FFDHE) key exchange groups supported by the Postfix SMTP client
+              and server.
+
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The following configuration parameters  exist  for  compatibility  with
        Postfix  versions  before  2.3.  Support for these will be removed in a

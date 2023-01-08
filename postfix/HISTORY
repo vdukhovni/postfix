@@ -26734,3 +26734,46 @@ Apologies for any names omitted.
 	auxiliary/fix-grep/fix-grep.sh can revert the syntax if you
 	want to build Postfix on an older platform. Files: too many
 	to mention here.
+
+20230101
+
+	Documentation: add text that cidr:, pcre: and regexp: tables
+	support inline specification only in Postfix 3.7 and later.
+	Files: proto/cidr_table, proto/pcre_table, proto/regexp_table.
+
+20230102
+
+	Cleanup: in internal documentation, text about DHE was under
+	the corresponding ECDHE function.  Viktor Dukhovni. File:
+	tls/tls_dh.c.
+
+20230103
+
+	Bugfix (introduced: Postfix 2.7): the verify daemon logged
+	a garbled cache name when terminating a cache scan in
+	progress. Reported by Phil Biggs, fix by Viktor Dukhovni.
+	File: util/dict_cache.c.
+
+20220104
+
+	Feature: configuration parameter tls_ffdhe_auto_groups for
+	FFDHE support in TLS 1.3 with OpenSSL 3.0. Viktor Dukhovni.
+	Files: mantools/postlink, proto/FORWARD_SECRECY_README.html,
+	proto/postconf.proto, src/tlsproxy/tlsproxy.c, src/smtpd/smtpd.c,
+	src/tls/tls.h, src/tls/tls_proxy_client_misc.c, src/tls/tls_misc.c,
+	src/tls/tls_dh.c, src/tls/tls_proxy_client_scan.c,
+	src/tls/tls_server.c, src/tls/tls_client.c,
+	src/tls/tls_proxy_client_print.c, src/tls/tls_proxy.h,
+	src/global/mail_params.h, src/smtp/smtp.c.
+
+	Documentation: remove text for behavior that is no longer
+	implemented in Postfix or in other relevant systems. Viktor
+	Dukhovni. File: proto/FORWARD_SECRECY_README.html.
+
+	Bitrot: fixes for linker warnings from newer Darwin (MacOS)
+	versions. Viktor Dukhovni. File: makedefs.
+
+20220108
+
+	Minor wordsmithing. Files: text in proto/postconf.proto,
+	warning message tls.tls_dh.c.

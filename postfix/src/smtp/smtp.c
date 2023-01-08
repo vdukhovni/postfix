@@ -567,6 +567,11 @@
 /*	nexthop destination security level is \fBdane\fR, but the MX
 /*	record was found via an "insecure" MX lookup.
 /* .PP
+/*	Available in Postfix version 3.2 and later:
+/* .IP "\fBtls_eecdh_auto_curves (see 'postconf -d' output)\fR"
+/*	The prioritized list of elliptic curves supported by the Postfix
+/*	SMTP client and server.
+/* .PP
 /*	Available in Postfix version 3.4 and later:
 /* .IP "\fBsmtp_tls_connection_reuse (no)\fR"
 /*	Try to make multiple deliveries per TLS-encrypted connection.
@@ -581,6 +586,12 @@
 /* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
 /*	A workaround for implementations that hang Postfix while shutting
 /*	down a TLS session, until Postfix times out.
+/* .PP
+/*	Available in Postfix version 3.8 and later:
+/* .IP "\fBtls_ffdhe_auto_groups (see 'postconf -d' output)\fR"
+/*	The prioritized list of finite-field Diffie-Hellman ephemeral
+/*	(FFDHE) key exchange groups supported by the Postfix SMTP client and
+/*	server.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -767,7 +778,7 @@
 /* .IP "\fBdisable_dns_lookups (no)\fR"
 /*	Disable DNS lookups in the Postfix SMTP and LMTP clients.
 /* .IP "\fBinet_interfaces (all)\fR"
-/*	The network interface addresses that this mail system receives
+/*	The local network interface addresses that this mail system receives
 /*	mail on.
 /* .IP "\fBinet_protocols (see 'postconf -d output')\fR"
 /*	The Internet protocols Postfix will attempt to use when making
@@ -793,7 +804,7 @@
 /* .IP "\fBprocess_name (read-only)\fR"
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBproxy_interfaces (empty)\fR"
-/*	The network interface addresses that this mail system receives mail
+/*	The remote network interface addresses that this mail system receives mail
 /*	on by way of a proxy or network address translation unit.
 /* .IP "\fBsmtp_address_preference (any)\fR"
 /*	The address type ("ipv6", "ipv4" or "any") that the Postfix
@@ -827,8 +838,9 @@
 /* .PP
 /*	Available with Postfix 2.3 and later:
 /* .IP "\fBsmtp_fallback_relay ($fallback_relay)\fR"
-/*	Optional list of relay hosts for SMTP destinations that can't be
-/*	found or that are unreachable.
+/*	Optional list of relay destinations that will be used when an
+/*	SMTP destination is not found, or when delivery fails due to a
+/*	non-permanent error.
 /* .PP
 /*	Available with Postfix 3.0 and later:
 /* .IP "\fBsmtp_address_verify_target (rcpt)\fR"

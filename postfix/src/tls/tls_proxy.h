@@ -52,6 +52,7 @@ typedef struct TLS_CLIENT_PARAMS {
     char   *tls_eecdh_auto;
     char   *tls_eecdh_strong;
     char   *tls_eecdh_ultra;
+    char   *tls_ffdhe_auto;
     char   *tls_bug_tweaks;
     char   *tls_ssl_options;
     char   *tls_dane_digests;
@@ -65,12 +66,12 @@ typedef struct TLS_CLIENT_PARAMS {
 } TLS_CLIENT_PARAMS;
 
 #define TLS_PROXY_PARAMS(params, a1, a2, a3, a4, a5, a6, a7, a8, \
-    a9, a10, a11, a12, a13, a14, a15, a16, a17, a18) \
+    a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19) \
     (((params)->a1), ((params)->a2), ((params)->a3), \
     ((params)->a4), ((params)->a5), ((params)->a6), ((params)->a7), \
     ((params)->a8), ((params)->a9), ((params)->a10), ((params)->a11), \
     ((params)->a12), ((params)->a13), ((params)->a14), ((params)->a15), \
-    ((params)->a16), ((params)->a17), ((params)->a18))
+    ((params)->a16), ((params)->a17), ((params)->a18), ((params)->a19))
 
  /*
   * tls_proxy_client_param_misc.c, tls_proxy_client_param_print.c, and

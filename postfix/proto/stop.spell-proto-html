@@ -350,3 +350,7 @@ ng
 rsyslogd
 hardcode
 pattern's
+FFDHE
+dhe
+ffdhe
+kDHE

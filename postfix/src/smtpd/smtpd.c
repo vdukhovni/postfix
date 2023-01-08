@@ -522,6 +522,12 @@
 /* .IP "\fBinfo_log_address_format (external)\fR"
 /*	The email address form that will be used in non-debug logging
 /*	(info, warning, etc.).
+/* .PP
+/*	Available in Postfix version 3.8 and later:
+/* .IP "\fBtls_ffdhe_auto_groups (see 'postconf -d' output)\fR"
+/*	The prioritized list of finite-field Diffie-Hellman ephemeral
+/*	(FFDHE) key exchange groups supported by the Postfix SMTP client and
+/*	server.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi

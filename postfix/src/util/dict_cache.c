@@ -108,8 +108,9 @@
 /*	Log cache statistics after each cache cleanup run.
 /* .RE
 /* .IP "CA_DICT_CACHE_CTL_INTERVAL(int interval)"
-/*	The interval between cache cleanup runs.  Specify a null
-/*	validator or interval to stop cache cleanup.
+/*	The interval between cache cleanup runs. Specify a null
+/*	validator or interval to stop cache cleanup and log cache
+/*	statistics if a cleanup run was in progress.
 /* .IP "CA_DICT_CACHE_CTL_VALIDATOR(DICT_CACHE_VALIDATOR_FN validator)"
 /*	An application call-back routine that returns non-zero when
 /*	a cache entry should be kept. The call-back function should
@@ -657,10 +658,15 @@ void    dict_cache_close(DICT_CACHE *cp)
 {
 
     /*
+     * Cancel the cache cleanup thread. This also logs (and resets)
+     * statistics for a scan that is in progress.
+     */
+    dict_cache_control(cp, DICT_CACHE_CTL_INTERVAL, 0, DICT_CACHE_CTL_END);
+
+    /*
      * Destroy the DICT_CACHE object.
      */
     myfree(cp->name);
-    dict_cache_control(cp, DICT_CACHE_CTL_INTERVAL, 0, DICT_CACHE_CTL_END);
     dict_close(cp->db);
     if (cp->saved_curr_key)
 	myfree(cp->saved_curr_key);
