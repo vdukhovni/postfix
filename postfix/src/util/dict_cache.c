@@ -659,8 +659,8 @@ void    dict_cache_close(DICT_CACHE *cp)
     /*
      * Destroy the DICT_CACHE object.
      */
-    myfree(cp->name);
     dict_cache_control(cp, DICT_CACHE_CTL_INTERVAL, 0, DICT_CACHE_CTL_END);
+    myfree(cp->name);
     dict_close(cp->db);
     if (cp->saved_curr_key)
 	myfree(cp->saved_curr_key);

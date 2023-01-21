@@ -324,6 +324,7 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
      * checks are now performed internally in OpenSSL.
      */
     if (SSL_get_verify_result(TLScontext->con) == X509_V_OK) {
+	TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
 	if (TLScontext->must_fail) {
 	    msg_panic("%s: cert valid despite trust init failure",
 		      TLScontext->namaddr);
@@ -352,8 +353,7 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
 			     TLScontext->namaddr, peername);
 		tls_dane_log(TLScontext);
 	    }
-	} else
-	    TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
+	}
     }
 
     /*
@@ -712,6 +712,15 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
 	return (0);
     }
     tls_dane_digest_init(client_ctx, fpt_alg);
+
+    /*
+     * Presently we use TLS only with SMTP where truncation attacks are not
+     * possible as a result of application framing.  If we ever use TLS in
+     * some other application protocol where truncation could be relevant,
+     * we'd need to disable truncation detection conditionally, or explicitly
+     * clear the option in that code path.
+     */
+    off |= SSL_OP_IGNORE_UNEXPECTED_EOF;
 
     /*
      * Protocol selection is destination dependent, so we delay the protocol
