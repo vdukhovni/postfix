@@ -1513,25 +1513,13 @@ long    tls_bio_dump_cb(BIO *bio, int cmd, const char *argp, int argi,
 const EVP_MD *tls_validate_digest(const char *dgst)
 {
     const EVP_MD *md_alg;
-    unsigned int md_len;
 
     /*
      * If the administrator specifies an unsupported digest algorithm, fail
      * now, rather than in the middle of a TLS handshake.
      */
-    if ((md_alg = EVP_get_digestbyname(dgst)) == 0) {
+    if ((md_alg = tls_digest_byname(dgst, NULL)) == 0)
 	msg_warn("Digest algorithm \"%s\" not found", dgst);
-	return (0);
-    }
-
-    /*
-     * Sanity check: Newer shared libraries may use larger digests.
-     */
-    if ((md_len = EVP_MD_size(md_alg)) > EVP_MAX_MD_SIZE) {
-	msg_warn("Digest algorithm \"%s\" output size %u too large",
-		 dgst, md_len);
-	return (0);
-    }
     return md_alg;
 }
 
