@@ -387,6 +387,13 @@ extern void tls_param_init(void);
 #define SSL_OP_NO_TLSv1_3	0L	/* Noop */
 #endif
 
+/*
+ * Always used when defined, SMTP has no truncation attacks.
+ */
+#ifndef SSL_OP_IGNORE_UNEXPECTED_EOF
+#define SSL_OP_IGNORE_UNEXPECTED_EOF    0L
+#endif
+
 #define TLS_KNOWN_PROTOCOLS \
 	( TLS_PROTOCOL_SSLv2 | TLS_PROTOCOL_SSLv3 | TLS_PROTOCOL_TLSv1 \
 	   | TLS_PROTOCOL_TLSv1_1 | TLS_PROTOCOL_TLSv1_2 | TLS_PROTOCOL_TLSv1_3 )
@@ -403,7 +410,8 @@ extern void tls_param_init(void);
  * just exposed via hex codes or named elements of tls_ssl_options.
  */
 #define TLS_SSL_OP_MANAGED_BITS \
-	(SSL_OP_CIPHER_SERVER_PREFERENCE | TLS_SSL_OP_PROTOMASK(~0))
+	(SSL_OP_CIPHER_SERVER_PREFERENCE | SSL_OP_IGNORE_UNEXPECTED_EOF | \
+	 TLS_SSL_OP_PROTOMASK(~0))
 
 extern int tls_proto_mask_lims(const char *, int *, int *);
 

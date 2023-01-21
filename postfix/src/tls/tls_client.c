@@ -714,6 +714,15 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     tls_dane_digest_init(client_ctx, fpt_alg);
 
     /*
+     * Presently we use TLS only with SMTP where truncation attacks are not
+     * possible as a result of application framing.  If we ever use TLS in
+     * some other application protocol where truncation could be relevant,
+     * we'd need to disable truncation detection conditionally, or explicitly
+     * clear the option in that code path.
+     */
+    off |= SSL_OP_IGNORE_UNEXPECTED_EOF;
+
+    /*
      * Protocol selection is destination dependent, so we delay the protocol
      * selection options to the per-session SSL object.
      */

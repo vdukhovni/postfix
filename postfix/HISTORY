@@ -26777,3 +26777,12 @@ Apologies for any names omitted.
 
 	Minor wordsmithing. Files: text in proto/postconf.proto,
 	warning message tls.tls_dh.c.
+
+20230115
+	Workaround for a breaking change in OpenSSL 3: always turn
+	on SSL_OP_IGNORE_UNEXPECTED_EOF, to avoid warning messages
+	and missed opportunities for TLS session reuse. This is
+	safe because the SMTP protocol implements application-level
+	framing, and is therefore not affected by TLS truncation
+	attacks. Fix by Viktor Dukhovni. Files: tls/tls.h, tls_client.c,
+	tls/tls_server.c.

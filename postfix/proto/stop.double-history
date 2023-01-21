@@ -15,3 +15,4 @@
  proto postconf proto src tlsproxy tlsproxy c src smtpd smtpd c 
  src tls tls h src tls tls_proxy_client_misc c src tls tls_misc c 
  src global mail_params h src smtp smtp c 
+ attacks Fix by Viktor Dukhovni Files tls tls h tls_client c 
