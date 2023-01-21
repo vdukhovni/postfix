@@ -80,6 +80,12 @@ extern int strncasecmp_utf8x(int, const char *, const char *, ssize_t);
 #define strncasecmp_utf8(s1, s2, l) \
     strncasecmp_utf8x(util_utf8_enable ? CASEF_FLAG_UTF8 : 0, (s1), (s2), (l))
 
+ /*
+  * Use STRREF(x) instead of x, to shut up compiler warnings when the operand
+  * is a string literal.
+  */
+#define STRREF(x)		(&x[0])
+
 /* LICENSE
 /* .ad
 /* .fi

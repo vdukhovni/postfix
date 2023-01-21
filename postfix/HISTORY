@@ -24818,3 +24818,62 @@ Apologies for any names omitted.
 	Cleanup: Postfix 3.4.26 introduced a missing msg_panic()
 	argument (in code that never executes). File:
 	cleanup/cleanup_milter.c.
+
+20221128
+
+	Bugfix (introduced: Postfix 2.2): the smtpd_proxy_client
+	code mis-parsed the last XFORWARD attribute name in the
+	SMTP server's EHLO response. The result was that the
+	smtpd_proxy_client code failed to forward the IDENT attribute.
+	Fix by Andreas Weigel. File: smtpd/smtpd_proxy.c.
+
+20221201
+
+	Portability: LINUX6 support. Files: makedefs, util/sys_defs.h.
+
+20221207
+
+	Workaround: OpenSSL 3.x EVP_get_digestbyname() can return
+	lazily bound handles that may fail to work when one attempts
+	to use them, because no provider search happens until one
+	constructs an actual operation context. In sufficiently
+	hostile configurations, Postfix could mistakenly believe
+	that an algorithm is available, when in fact it is not. A
+	similar workaround may be needed for EVP_get_cipherbyname().
+	Fix by Viktor Dukhovni. Files: tls/tls.h, tls/tls_dane.c,
+	tls/tls_fprint.c, tls/tls_misc.c.
+
+	Bugfix (introduced: Postfix 2.11): the checkok() macro in
+	tls/tls_fprint.c evaluated its argument unconditionally;
+	it should evaluate the argument only if there was no prior
+	error. Found during code review. File: tls/tls_fprint.c.
+
+20221215
+
+	Foolproofing: postscreen segfault with postscreen_dnsbl_threshold
+	< 1. It should reject such input with a fatal error instead.
+	Discovered by Benny Pedersen. File: postscreen/postscreen.c.
+
+20230103
+
+	Bugfix (introduced: Postfix 2.7): the verify daemon logged
+	a garbled cache name when terminating a cache scan in
+	progress. Reported by Phil Biggs, fix by Viktor Dukhovni.
+	File: util/dict_cache.c.
+
+	Bitrot: fixes for linker warnings from newer Darwin (MacOS)
+	versions. Viktor Dukhovni. File: makedefs.
+
+20230115
+
+	Workaround: STRREF() macro to shut up compiler warnings for
+	legitimate string comparison expressions. Back-ported from
+	Postfix 3.6 and later. Files: util/stringops.h, flush/flush.c.
+
+	Workaround for a breaking change in OpenSSL 3: always turn
+	on SSL_OP_IGNORE_UNEXPECTED_EOF, to avoid warning messages
+	and missed opportunities for TLS session reuse. This is
+	safe because the SMTP protocol implements application-level
+	framing, and is therefore not affected by TLS truncation
+	attacks. Fix by Viktor Dukhovni. Files: tls/tls.h, tls_client.c,
+	tls/tls_server.c.
