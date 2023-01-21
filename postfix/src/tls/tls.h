@@ -415,6 +415,13 @@ extern void tls_param_init(void);
 #define SSL_OP_NO_TLSv1_3	0L	/* Noop */
 #endif
 
+/*
+ * Always used when defined, SMTP has no truncation attacks.
+ */
+#ifndef SSL_OP_IGNORE_UNEXPECTED_EOF
+#define SSL_OP_IGNORE_UNEXPECTED_EOF    0L
+#endif
+
 #define TLS_KNOWN_PROTOCOLS \
 	( TLS_PROTOCOL_SSLv2 | TLS_PROTOCOL_SSLv3 | TLS_PROTOCOL_TLSv1 \
 	   | TLS_PROTOCOL_TLSv1_1 | TLS_PROTOCOL_TLSv1_2 | TLS_PROTOCOL_TLSv1_3 )
@@ -431,7 +438,8 @@ extern void tls_param_init(void);
  * just exposed via hex codes or named elements of tls_ssl_options.
  */
 #define TLS_SSL_OP_MANAGED_BITS \
-	(SSL_OP_CIPHER_SERVER_PREFERENCE | TLS_SSL_OP_PROTOMASK(~0))
+	(SSL_OP_CIPHER_SERVER_PREFERENCE | SSL_OP_IGNORE_UNEXPECTED_EOF | \
+	 TLS_SSL_OP_PROTOMASK(~0))
 
 extern int tls_protocol_mask(const char *);
 
@@ -679,6 +687,7 @@ extern void tls_dane_set_callback(SSL_CTX *, TLS_SESS_STATE *);
  /*
   * tls_fprint.c
   */
+extern const EVP_MD *tls_digest_byname(const char *, EVP_MD_CTX **);
 extern char *tls_digest_encode(const unsigned char *, int);
 extern char *tls_data_fprint(const char *, int, const char *);
 extern char *tls_cert_fprint(X509 *, const char *);

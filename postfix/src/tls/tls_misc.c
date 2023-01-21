@@ -1515,7 +1515,6 @@ long    tls_bio_dump_cb(BIO *bio, int cmd, const char *argp, int argi,
 int     tls_validate_digest(const char *dgst)
 {
     const EVP_MD *md_alg;
-    unsigned int md_len;
 
     /*
      * Register SHA-2 digests, if implemented and not already registered.
@@ -1523,15 +1522,15 @@ int     tls_validate_digest(const char *dgst)
      * deploy SHA-2 certificates.  Also facilitates DANE and TA support.
      */
 #if defined(LN_sha256) && defined(NID_sha256) && !defined(OPENSSL_NO_SHA256)
-    if (!EVP_get_digestbyname(LN_sha224))
+    if (!tls_digest_byname(LN_sha224, NULL))
 	EVP_add_digest(EVP_sha224());
-    if (!EVP_get_digestbyname(LN_sha256))
+    if (!tls_digest_byname(LN_sha256, NULL))
 	EVP_add_digest(EVP_sha256());
 #endif
 #if defined(LN_sha512) && defined(NID_sha512) && !defined(OPENSSL_NO_SHA512)
-    if (!EVP_get_digestbyname(LN_sha384))
+    if (!tls_digest_byname(LN_sha384, NULL))
 	EVP_add_digest(EVP_sha384());
-    if (!EVP_get_digestbyname(LN_sha512))
+    if (!tls_digest_byname(LN_sha512, NULL))
 	EVP_add_digest(EVP_sha512());
 #endif
 
@@ -1539,17 +1538,8 @@ int     tls_validate_digest(const char *dgst)
      * If the administrator specifies an unsupported digest algorithm, fail
      * now, rather than in the middle of a TLS handshake.
      */
-    if ((md_alg = EVP_get_digestbyname(dgst)) == 0) {
+    if ((md_alg = tls_digest_byname(dgst, NULL)) == 0) {
 	msg_warn("Digest algorithm \"%s\" not found", dgst);
-	return (0);
-    }
-
-    /*
-     * Sanity check: Newer shared libraries may use larger digests.
-     */
-    if ((md_len = EVP_MD_size(md_alg)) > EVP_MAX_MD_SIZE) {
-	msg_warn("Digest algorithm \"%s\" output size %u too large",
-		 dgst, md_len);
 	return (0);
     }
     return (1);
