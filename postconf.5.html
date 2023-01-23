@@ -475,7 +475,7 @@ Examples:
 
 <pre>
 <a href="postconf.5.html#address_verify_sender">address_verify_sender</a> = &lt;&gt;
-<a href="postconf.5.html#address_verify_sender">address_verify_sender</a> = postmaster@my.domain
+<a href="postconf.5.html#address_verify_sender">address_verify_sender</a> = postmaster@<a href="postconf.5.html#mydomain">mydomain</a>
 </pre>
 
 <p>
@@ -4047,6 +4047,16 @@ environment.  Examples of relevant environment variables: </p>
 
 <dd>Needed to make "<b>postfix -c</b>" work. </dd>
 
+<dt><b>POSTLOG_SERVICE</b></dt>
+
+<dd>Needed to make "<b><a href="postconf.5.html#maillog_file">maillog_file</a></b>" work during daemon
+process initialization. </dd>
+
+<dt><b>POSTLOG_HOSTNAME</b></dt>
+
+<dd>Needed to make "<b><a href="postconf.5.html#maillog_file">maillog_file</a></b>" work during daemon
+process initialization. </dd>
+
 </dl>
 
 <p> Specify a list of names and/or name=value pairs, separated by
@@ -4084,7 +4094,7 @@ Specify 0 to disable the feature. Valid delays are 0..10.
 <DT><b><a name="inet_interfaces">inet_interfaces</a>
 (default: all)</b></DT><DD>
 
-<p> The network interface addresses that this mail system receives
+<p> The local network interface addresses that this mail system receives
 mail on. Specify "all" to receive mail on all network
 interfaces (default), and "loopback-only" to receive mail
 on loopback network interfaces only (Postfix version 2.2 and later).  The
@@ -4929,7 +4939,7 @@ and for receiving the initial remote LMTP server response. </p>
 </DD>
 
 <DT><b><a name="lmtp_line_length_limit">lmtp_line_length_limit</a>
-(default: 990)</b></DT><DD>
+(default: 998)</b></DT><DD>
 
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_line_length_limit">smtp_line_length_limit</a>
 configuration parameter.  See there for details. </p>
@@ -5892,16 +5902,16 @@ into concurrency per domain.  </p>
 <DT><b><a name="local_header_rewrite_clients">local_header_rewrite_clients</a>
 (default: <a href="postconf.5.html#permit_inet_interfaces">permit_inet_interfaces</a>)</b></DT><DD>
 
-<p> Rewrite message header addresses in mail from these clients and
-update incomplete addresses with the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or
-$<a href="postconf.5.html#mydomain">mydomain</a>; either don't rewrite message headers from other clients
-at all, or rewrite message headers and update incomplete addresses
-with the domain specified in the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a>
-parameter.  </p>
+<p> Rewrite or add message headers in mail from these clients,
+updating incomplete addresses with the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or
+$<a href="postconf.5.html#mydomain">mydomain</a>, and adding missing headers. </p>
 
 <p> See the <a href="postconf.5.html#append_at_myorigin">append_at_myorigin</a> and <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a> parameters
 for details of how domain names are appended to incomplete addresses.
 </p>
+
+<p> See <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> to optionally rewrite or add
+message headers in mail from other clients. </p>
 
 <p> Specify a list of zero or more of the following:  </p>
 
@@ -8599,13 +8609,16 @@ the file is read). </p>
 <DT><b><a name="postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>
 (default: empty)</b></DT><DD>
 
-<p>Optional list of DNS allow/denylist domains, filters and weight
+<p>Optional list of patterns with DNS allow/denylist domains, filters
+and weight
 factors. When the list is non-empty, the <a href="dnsblog.8.html">dnsblog(8)</a> daemon will
-query these domains with the IP addresses of remote SMTP clients,
+query these domains with the reversed IP addresses of remote SMTP
+clients,
 and <a href="postscreen.8.html">postscreen(8)</a> will update an SMTP client's DNSBL score with
-each non-error reply. </p>
+each non-error reply as described below. </p>
 
-<p> Caution: when postscreen rejects mail, it replies with the DNSBL
+<p> Caution: when postscreen rejects mail, its SMTP response contains
+the DNSBL
 domain name. Use the <a href="postconf.5.html#postscreen_dnsbl_reply_map">postscreen_dnsbl_reply_map</a> feature to hide
 "password" information in DNSBL domain names. </p>
 
@@ -8613,26 +8626,25 @@ domain name. Use the <a href="postconf.5.html#postscreen_dnsbl_reply_map">postsc
 specified with <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a>, <a href="postscreen.8.html">postscreen(8)</a> can drop
 the connection with the remote SMTP client. </p>
 
-<p> Specify a list of domain=filter*weight entries, separated by
+<p> Specify a list of domain=filter*weight patterns, separated by
 comma or whitespace.  </p>
 
 <ul>
 
-<li> <p> When no "=filter" is specified, <a href="postscreen.8.html">postscreen(8)</a> will use any
-non-error DNSBL reply.  Otherwise, <a href="postscreen.8.html">postscreen(8)</a> uses only DNSBL
-replies that match the filter. The filter has the form d.d.d.d,
+<li> <p> When a pattern specifies no "=filter", <a href="postscreen.8.html">postscreen(8)</a> will
+use any non-error DNSBL query result.  Otherwise, <a href="postscreen.8.html">postscreen(8)</a>
+will use only DNSBL
+query results that match the filter. The filter has the form d.d.d.d,
 where each d is a number, or a pattern inside [] that contains one
 or more ";"-separated numbers or number..number ranges.  </p>
 
-<li> <p> When no "*weight" is specified, <a href="postscreen.8.html">postscreen(8)</a> increments
-the remote SMTP client's DNSBL score by 1.  Otherwise, the weight must be
-an integral number, and <a href="postscreen.8.html">postscreen(8)</a> adds the specified weight to
-the remote SMTP client's DNSBL score.  Specify a negative number for
-allowlisting.  </p>
+<li> <p> When a pattern specifies no "*weight", the weight of the
+pattern is 1.  Otherwise, the weight must be an integral number.
+Specify a negative number for allowlisting.  </p>
 
-<li> <p> When one <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> entry produces multiple
-DNSBL responses, <a href="postscreen.8.html">postscreen(8)</a> applies the weight at most once.
-</p>
+<li> <p> When a pattern matches one or more DNSBL query results,
+<a href="postscreen.8.html">postscreen(8)</a> adds that pattern's weight once to the remote SMTP
+client's DNSBL score. </p>
 
 </ul>
 
@@ -9227,7 +9239,7 @@ Examples:
 (default: empty)</b></DT><DD>
 
 <p>
-The network interface addresses that this mail system receives mail
+The remote network interface addresses that this mail system receives mail
 on by way of a proxy or network address translation unit.
 </p>
 
@@ -9692,7 +9704,7 @@ This feature is available in Postfix 2.1 and later.
 
 <p>
 Optional BCC (blind carbon-copy) address lookup tables, indexed by
-recipient address.  The BCC address (multiple results are not
+envelope recipient address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.
 </p>
 
@@ -10170,9 +10182,13 @@ Examples:
 <DT><b><a name="remote_header_rewrite_domain">remote_header_rewrite_domain</a>
 (default: empty)</b></DT><DD>
 
-<p> Don't rewrite message headers from remote clients at all when
-this parameter is empty; otherwise, rewrite message headers and
-append the specified domain name to incomplete addresses.  The
+<p> Rewrite or add message headers in mail from remote clients if
+the <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter value is non-empty,
+updating incomplete addresses with the domain specified in the
+<a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter, and adding missing headers.
+</p>
+
+<p> The
 <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter controls what clients Postfix
 considers local. </p>
 
@@ -10391,7 +10407,7 @@ in Postfix version 2.3.
 (default: empty)</b></DT><DD>
 
 <p> Optional BCC (blind carbon-copy) address lookup tables, indexed
-by sender address.  The BCC address (multiple results are not
+by envelope sender address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.  </p>
 
 <p>
@@ -10484,9 +10500,9 @@ The table format and lookups are documented in <a href="canonical.5.html">canoni
 </p>
 
 <p>
-Example: you want to rewrite the SENDER address "user@ugly.domain"
-to "user@pretty.domain", while still being able to send mail to
-the RECIPIENT address "user@ugly.domain".
+Example: you want to rewrite the SENDER address "user@ugly.example"
+to "user@pretty.example", while still being able to send mail to
+the RECIPIENT address "user@ugly.example".
 </p>
 
 <p>
@@ -16602,27 +16618,11 @@ access restriction is specified. This prevents the Postfix queue
 from filling up with undeliverable MAILER-DAEMON messages.
 </p>
 
-<p> An address is always considered "known" when it matches a
-<a href="virtual.5.html">virtual(5)</a> alias or a <a href="canonical.5.html">canonical(5)</a> mapping.
-
-<ul>
-
-<li> The recipient domain matches $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
-or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, but the recipient is not listed in
-$<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>, and $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> is not null.
-
-<li> The recipient domain matches $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a> but the
-recipient is not listed in $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>.
-
-<li> The recipient domain matches $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> but the
-recipient is not listed in $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>, and $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>
-is not null.
-
-<li> The recipient domain matches $<a href="postconf.5.html#relay_domains">relay_domains</a> but the recipient
-is not listed in $<a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a>, and $<a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a>
-is not null.
-
-</ul>
+<p> An address is considered "unknown" when 1) it does not match a
+<a href="virtual.5.html">virtual(5)</a> alias or <a href="canonical.5.html">canonical(5)</a> mapping, and 2) the address is not
+valid for its address class. For a definition of class-based address
+validation, see <a href="ADDRESS_CLASS_README.html#classes">
+ADDRESS_CLASS_README</a>. </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -16637,29 +16637,13 @@ This feature is available in Postfix 2.1 and later.
 <p> Request that the Postfix SMTP server rejects mail from unknown
 sender addresses, even when no explicit <a href="postconf.5.html#reject_unlisted_sender">reject_unlisted_sender</a>
 access restriction is specified. This can slow down an explosion
-of forged mail from worms or viruses.  </p>
+of forged mail from worms or viruses. </p>
 
-<p> An address is always considered "known" when it matches a
-<a href="virtual.5.html">virtual(5)</a> alias or a <a href="canonical.5.html">canonical(5)</a> mapping.
-
-<ul>
-
-<li> The sender domain matches $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or
-$<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, but the sender is not listed in
-$<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>, and $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> is not null.
-
-<li> The sender domain matches $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a> but the sender
-is not listed in $<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>.
-
-<li> The sender domain matches $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a> but the
-sender is not listed in $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>, and $<a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a>
-is not null.
-
-<li> The sender domain matches $<a href="postconf.5.html#relay_domains">relay_domains</a> but the sender is
-not listed in $<a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a>, and $<a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a> is
-not null.
-
-</ul>
+<p> An address is considered "unknown" when 1) it does not match a
+<a href="virtual.5.html">virtual(5)</a> alias or <a href="canonical.5.html">canonical(5)</a> mapping, and 2) the address is not
+valid for its address class. For a definition of class-based address
+validation, see <a href="ADDRESS_CLASS_README.html#classes">
+ADDRESS_CLASS_README</a>. </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
@@ -17203,15 +17187,30 @@ feature is available in Postfix 2.1 and later.  </dd>
 
 <dt><b><a name="reject_authenticated_sender_login_mismatch">reject_authenticated_sender_login_mismatch</a></b></dt>
 
-<dd>Enforces the <a href="postconf.5.html#reject_sender_login_mismatch">reject_sender_login_mismatch</a> restriction for
-authenticated clients only. This feature is available in
-Postfix version 2.1 and later. </dd>
+<dd> Reject the request when the client is authenticated with SASL,
+but either the MAIL FROM address is not listed in $<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>,
+or the SASL login name is not an owner for that address.
+<br>
+This prevents an authenticated client from using a MAIL FROM address
+that they do not explicitly own.
+<br>
+This feature is available in Postfix version 2.1 and later. </dd>
 
 <dt><b><a name="reject_known_sender_login_mismatch">reject_known_sender_login_mismatch</a></b></dt>
 
-<dd>Apply the <a href="postconf.5.html#reject_sender_login_mismatch">reject_sender_login_mismatch</a> restriction only to MAIL
-FROM addresses that are known in $<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>.  This
-feature is available in Postfix version 2.11 and later. </dd>
+<dd> When the client is authenticated with SASL, reject the request
+when the MAIL FROM address is listed in $<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>,
+but the SASL login name is not an owner for that address.
+<br>
+When the client is not authenticated with SASL, reject the request
+when SASL is enabled, and the MAIL FROM address is listed in
+$<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>.
+<br>
+This protects any MAIL FROM address that is listed in
+$<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>, while still allowing a client to use any
+unlisted MAIL FROM address.
+<br>
+This feature is available in Postfix version 2.11 and later.</dd>
 
 <dt><b><a name="reject_non_fqdn_sender">reject_non_fqdn_sender</a></b></dt>
 
@@ -17239,17 +17238,20 @@ This feature is available in Postfix 2.0 and later.</dd>
 
 <dt><b><a name="reject_sender_login_mismatch">reject_sender_login_mismatch</a></b></dt>
 
-<dd>Reject the request when $<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a> specifies an
-owner for the MAIL FROM address, but the client is not (SASL) logged
-in as that MAIL FROM address owner; or when the client is (SASL)
-logged in, but the client login name doesn't own the MAIL FROM
-address according to $<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>.</dd>
+<dd> As of Postfix 2.1, this is an alias for
+"<a href="postconf.5.html#reject_authenticated_sender_login_mismatch">reject_authenticated_sender_login_mismatch</a>,
+<a href="postconf.5.html#reject_unauthenticated_sender_login_mismatch">reject_unauthenticated_sender_login_mismatch</a>".</dd>
 
 <dt><b><a name="reject_unauthenticated_sender_login_mismatch">reject_unauthenticated_sender_login_mismatch</a></b></dt>
 
-<dd>Enforces the <a href="postconf.5.html#reject_sender_login_mismatch">reject_sender_login_mismatch</a> restriction for
-unauthenticated clients only. This feature is available in
-Postfix version 2.1 and later. </dd>
+<dd> Reject the request when SASL is enabled, the MAIL FROM address
+is listed in $<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>, but the client is not
+authenticated with SASL.
+<br>
+With SASL enabled, this prevents an unauthenticated client from
+using any MAIL FROM address that is listed in $<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>.
+<br>
+This feature is available in Postfix version 2.1 and later.</dd>
 
 <dt><b><a name="reject_unknown_sender_domain">reject_unknown_sender_domain</a></b></dt>
 
@@ -19245,11 +19247,10 @@ be using 0.9.6! </dd>
 
 <p> The prioritized list of elliptic curves supported by the Postfix
 SMTP client and server.  These curves are used by the Postfix SMTP
-server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = auto".  The selected curves
-must be implemented by OpenSSL and be standardized for use in TLS
-(<a href="https://tools.ietf.org/html/rfc8422">RFC 8422</a>).  It is unwise to list only
-"bleeding-edge" curves supported by a small subset of clients.  The
-default list is suitable for most users. </p>
+server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = auto".  The selected curves must be
+implemented by OpenSSL and be standardized for use in TLS (<a href="https://tools.ietf.org/html/rfc8422">RFC 8422</a>).
+It is unwise to list only "bleeding-edge" curves supported by a small
+subset of clients.  The default list is suitable for most users. </p>
 
 <p> Postfix skips curve names that are unknown to OpenSSL, or that
 are known but not yet implemented.  This makes it possible to
@@ -19259,6 +19260,11 @@ available.  In particular, in some OpenSSL versions, the new <a href="https://to
 support for either or both may be missing.  These curves may appear
 in the default value of this parameter, even though they'll only
 be usable with later versions of OpenSSL.  </p>
+
+<p> See also the "<a href="postconf.5.html#tls_ffdhe_auto_groups">tls_ffdhe_auto_groups</a>" parameter, which supports
+customizing the list of FFDHE groups enabled with TLS 1.3.  That setting
+is introduced with Postfix 3.8, when built against OpenSSL 3.0 or later.
+</p>
 
 <p> This feature is available in Postfix 3.2 and later, when it is
 compiled and linked with OpenSSL 1.0.2 or later on platforms where
@@ -19373,6 +19379,49 @@ down a TLS session, until Postfix times out. With this enabled,
 Postfix will not wait for the remote TLS peer to respond to a TLS
 'close' notification. This behavior is recommended for TLSv1.0 and
 later. </p>
+
+
+</DD>
+
+<DT><b><a name="tls_ffdhe_auto_groups">tls_ffdhe_auto_groups</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> The prioritized list of finite-field Diffie-Hellman ephemeral
+(FFDHE) key exchange groups supported by the Postfix SMTP client and
+server.  OpenSSL 3.0 adds support for FFDHE key agreement in TLS 1.3.
+In OpenSSL 1.1.1, TLS 1.3 was only supported with elliptic-curve based
+key agreement.  The "<a href="postconf.5.html#tls_ffdhe_auto_groups">tls_ffdhe_auto_groups</a>" parameter makes it possible
+to configure the list of FFDHE groups that the Postfix client or server
+will enable in OpenSSL 3.0 and up.  This parameter has no effect when
+Postfix is built against earlier OpenSSL versions. </p>
+
+<p> The default list of FFDHE groups that Postfix enables in OpenSSL 3.0
+and up includes just the 2048 and 3072-bit groups.  Stronger FFDHE
+groups perform poorly and EC groups are a much better choice for the
+same security level.  Postfix ignores group names that are unknown to
+OpenSSL, or that are known but not yet implemented.  The FFDHE groups
+are largely a backup, in case some peer does not support EC key
+exchange, or EC key exchange needs to be disabled for some pressing
+reason. </p>
+
+<p> Setting this parameter empty disables FFDHE support in TLS 1.3.
+Whether FFDHE key agreement is enabled in TLS 1.2 and earlier depends
+on whether any of the "kDHE" ciphers are included in the cipherlist.
+</p>
+
+<p> Conversely, setting "<a href="postconf.5.html#tls_eecdh_auto_curves">tls_eecdh_auto_curves</a>" empty disables TLS 1.3
+EC key agreement in OpenSSL 3.0 and later.  Note that at least one of
+"<a href="postconf.5.html#tls_eecdh_auto_curves">tls_eecdh_auto_curves</a>" and "<a href="postconf.5.html#tls_ffdhe_auto_groups">tls_ffdhe_auto_groups</a>" must be non-empty,
+this is required by OpenSSL 3.0.  If both are inadvertently set empty,
+Postfix will fall back to the compiled-in defaults. </p>
+
+<p> All the default groups and EC curves should sufficiently strong
+to make "pruning" the defaults unwise.  At a minimum, "X25519" and
+"P-256" (a.k.a. "prime256v1") should be among the enabled EC curves,
+while "dhe2048" and "dhe3072" should be among the FFDHE groups. </p>
+
+<p> This feature is available in Postfix 3.8 and later, when it is
+compiled and linked with OpenSSL 3.0 or later. </p>
 
 
 </DD>
