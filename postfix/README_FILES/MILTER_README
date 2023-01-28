@@ -24,6 +24,7 @@ implementations.
 This document provides information on the following topics:
 
   * How Milter applications plug into Postfix
+  * When Postfix and Milters inspect an SMTP session
   * Building Milter applications
   * Running Milter applications
   * Configuring Postfix
@@ -79,6 +80,41 @@ Postfix architecture).
                       :
 
     Local   -> sendmail(1)
+
+WWhheenn PPoossttffiixx aanndd MMiilltteerrss iinnssppeecctt aann SSMMTTPP sseessssiioonn
+
+Generally, Postfix inspects information first, then the first configured
+Milter, the second configured Milter, and so on.
+
+  * With most SMTP commands: Postfix reviews one SMTP command, and if Postfix
+    does not reject it, Postfix passes the command to the first configured
+    Milter. If the first Milter does not reject the command, Postfix passes it
+    to the second configured Milter, and so on. This includes commands with an
+    envelope sender (MAIL FROM) or envelope recipient (RCPT TO). Postfix stores
+    the same envelope records in a queue file as when no Milters are
+    configured, including rewritten envelope addresses, expanded virtual
+    aliases, BCC addresses from sender/recipient_bcc_maps, and so on.
+
+  * With header/body content: Postfix may rewrite or reject header/body content
+    before it stores that content in the queue file; Postfix stores the same
+    header/body content as when no Milters are configured. If Postfix does not
+    reject the header/body content, Postfix passes it to the first configured
+    Milter which may modify or reject that content or may modify the stored
+    envelope. If the first Milter does not reject the header/body content,
+    Postfix passes it to the second configured Milter, and so on.
+
+Details:
+
+  * Postfix hides its own Postfix-prepended Received: header, for compatibility
+    with Sendmail. Postfix does not hide other headers that Postfix or Milters
+    added or modified.
+
+  * When the Postfix SMTP server receives a sequence of one or more valid BDAT
+    commands, it generates one DATA command for the Milters.
+
+  * The Milter API does not support inspection of SMTP commands such as QUIT,
+    NOOP, or VRFY; the API supports only commands that are needed for email
+    delivery.
 
 BBuuiillddiinngg MMiilltteerr aapppplliiccaattiioonnss
 
