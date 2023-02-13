@@ -49,6 +49,9 @@
 /*	DNS_RR	*dns_rr_remove(list, record)
 /*	DNS_RR	*list;
 /*	DNS_RR	*record;
+/*
+/*	DNS_RR	*dns_srv_rr_sort(list)
+/*	DNS_RR	*list;
 /* DESCRIPTION
 /*	The routines in this module maintain memory for DNS resource record
 /*	information, and maintain lists of DNS resource records.
@@ -81,6 +84,9 @@
 /*	dns_rr_remove() removes the specified record from the specified list.
 /*	The updated list is the result value.
 /*	The record MUST be a list member.
+/*
+/*	dns_srv_rr_sort() sorts a list of SRV records according to
+/*	their priority and weight as described in RFC 2782.
 /* LICENSE
 /* .ad
 /* .fi
@@ -90,6 +96,15 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
+/*
+/*	SRV Support by 
+/*	Tomas Korbar
+/*	Red Hat, Inc.
 /*--*/
 
 /* System library. */
@@ -113,6 +128,7 @@
 DNS_RR *dns_rr_create(const char *qname, const char *rname,
 		              ushort type, ushort class,
 		              unsigned int ttl, unsigned pref,
+		              unsigned weight, unsigned port,
 		              const char *data, size_t data_len)
 {
     DNS_RR *rr;
@@ -125,6 +141,8 @@ DNS_RR *dns_rr_create(const char *qname, const char *rname,
     rr->ttl = ttl;
     rr->dnssec_valid = 0;
     rr->pref = pref;
+    rr->weight = weight;
+    rr->port = port;
     if (data && data_len > 0)
 	memcpy(rr->data, data, data_len);
     rr->data_len = data_len;
@@ -343,5 +361,145 @@ DNS_RR *dns_rr_remove(DNS_RR *list, DNS_RR *record)
     } else {
 	list->next = dns_rr_remove(list->next, record);
     }
+    return (list);
+}
+
+static void weight_order(DNS_RR **array, int count)
+{
+    /* Compute sum of weights. */
+    int     weight_sum = 0;
+    int     i;
+
+    for (i = 0; i < count; i++)
+	weight_sum += array[i]->weight;
+
+    /* If weights are not supplied then we do not have to order records. */
+    if (weight_sum == 0)
+	return;
+
+    /* First move records with weight 0 to the beginning. */
+    int     swap_place = 0;
+    DNS_RR *temp;
+
+    for (i = 0; i < count; i++) {
+	if (array[i]->weight == 0) {
+	    temp = array[swap_place];
+	    array[swap_place] = array[i];
+	    array[i] = temp;
+	    swap_place++;
+	}
+    }
+
+    int     random;
+
+    unsigned int running_sums[count];
+
+    for (i = 0; i < count - 1; i++) {
+	running_sums[i] = array[i]->weight;
+	/* Calculate running sums of records. */
+	int     x;
+
+	for (x = i + 1; x < count; x++)
+	    running_sums[x] = array[x]->weight + running_sums[x - 1];
+
+	random = myrand() % (weight_sum + 1);
+
+	/*
+	 * Find first record that has running sum greater or equal to the
+	 * random number
+	 */
+	int     k;
+
+	for (k = i; k < count; k++) {
+	    if (running_sums[k] >= random) {
+		weight_sum -= array[k]->weight;
+		temp = array[i];
+		array[i] = array[k];
+		array[k] = temp;
+		break;
+	    }
+	}
+    }
+}
+
+/* dns_srv_rr_sort - sort resource record list */
+
+DNS_RR *dns_srv_rr_sort(DNS_RR *list)
+{
+    int     (*saved_user) (DNS_RR *, DNS_RR *);
+    DNS_RR **rr_array;
+    DNS_RR *rr;
+    int     len;
+    int     i;
+    int     r;
+
+    /*
+     * Save state and initialize.
+     */
+    saved_user = dns_rr_sort_user;
+    dns_rr_sort_user = dns_rr_compare_pref_any;
+
+    /*
+     * Build linear array with pointers to each list element.
+     */
+    for (len = 0, rr = list; rr != 0; len++, rr = rr->next)
+	 /* void */ ;
+    rr_array = (DNS_RR **) mymalloc(len * sizeof(*rr_array));
+    for (len = 0, rr = list; rr != 0; len++, rr = rr->next)
+	rr_array[len] = rr;
+
+    /*
+     * Shuffle resource records. Every element has an equal chance of landing
+     * in slot 0.  After that every remaining element has an equal chance of
+     * landing in slot 1, ...  This is exactly n! states for n! permutations.
+     */
+    for (i = 0; i < len - 1; i++) {
+	r = i + (myrand() % (len - i));		/* Victor&Son */
+	rr = rr_array[i];
+	rr_array[i] = rr_array[r];
+	rr_array[r] = rr;
+    }
+
+    /* First order the records by preference. */
+    qsort((void *) rr_array, len, sizeof(*rr_array), dns_rr_sort_callback);
+
+    int     cur_pref = rr_array[0]->pref;
+    int     left_bound = 0;
+    int     right_bound = 0;
+
+    /*
+     * Walk through records and sort every partition with the same
+     * preference, according to their weight.
+     */
+    int     k;
+
+    for (k = 1; k < len; k++) {
+	if (rr_array[k]->pref != cur_pref) {
+	    if (left_bound != right_bound) {
+		weight_order(&rr_array[left_bound], right_bound - left_bound + 1);
+	    }
+	    cur_pref = rr_array[k]->pref;
+	    left_bound = k;
+	}
+	right_bound = k;
+    }
+    /* We need to check whether there is not one more partition to sort. */
+    if (left_bound != right_bound) {
+	weight_order(&rr_array[left_bound], right_bound - left_bound + 1);
+    }
+
+    /*
+     * Fix the links.
+     */
+    for (i = 0; i < len - 1; i++)
+	rr_array[i]->next = rr_array[i + 1];
+    rr_array[i]->next = 0;
+    list = rr_array[0];
+
+    /*
+     * Cleanup.
+     */
+    myfree((void *) rr_array);
+    dns_rr_sort_user = saved_user;
     return (list);
 }

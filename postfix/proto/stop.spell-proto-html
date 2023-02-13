@@ -354,3 +354,5 @@ FFDHE
 dhe
 ffdhe
 kDHE
+srv
+wraptls

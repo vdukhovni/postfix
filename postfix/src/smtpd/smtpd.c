@@ -145,6 +145,11 @@
 /* .IP "\fBsmtpd_dns_reply_filter (empty)\fR"
 /*	Optional filter for Postfix SMTP server DNS lookup results.
 /* .PP
+/*	Available in Postfix 3.5 and later:
+/* .IP "\fBinfo_log_address_format (external)\fR"
+/*	The email address form that will be used in non-debug logging
+/*	(info, warning, etc.).
+/* .PP
 /*	Available in Postfix version 3.6 and later:
 /* .IP "\fBsmtpd_relay_before_recipient_restrictions (see 'postconf -d' output)\fR"
 /*	Evaluate smtpd_relay_restrictions before smtpd_recipient_restrictions.
@@ -517,11 +522,6 @@
 /* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
 /*	A workaround for implementations that hang Postfix while shutting
 /*	down a TLS session, until Postfix times out.
-/* .PP
-/*	Available in Postfix 3.5 and later:
-/* .IP "\fBinfo_log_address_format (external)\fR"
-/*	The email address form that will be used in non-debug logging
-/*	(info, warning, etc.).
 /* .PP
 /*	Available in Postfix version 3.8 and later:
 /* .IP "\fBtls_ffdhe_auto_groups (see 'postconf -d' output)\fR"

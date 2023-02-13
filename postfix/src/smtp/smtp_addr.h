@@ -18,6 +18,7 @@
   */
 extern DNS_RR *smtp_host_addr(const char *, int, DSN_BUF *);
 extern DNS_RR *smtp_domain_addr(const char *, DNS_RR **, int, DSN_BUF *, int *);
+extern DNS_RR *smtp_service_addr(const char *, const char *, DNS_RR **, int, DSN_BUF *, int *);
 
 /* LICENSE
 /* .ad
@@ -28,4 +29,9 @@ extern DNS_RR *smtp_domain_addr(const char *, DNS_RR **, int, DSN_BUF *, int *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/

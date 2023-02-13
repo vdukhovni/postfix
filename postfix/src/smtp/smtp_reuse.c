@@ -172,6 +172,11 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
     SMTP_ITERATOR *iter = state->iterator;
     SMTP_SESSION *session;
 
+    if (msg_verbose) {
+	msg_info("%s: dest_prop='%s'", myname, STR(state->dest_prop));
+	msg_info("%s: endp_prop='%s'", myname, STR(state->endp_prop));
+    }
+
     /*
      * Re-activate the SMTP_SESSION object.
      */
@@ -211,6 +216,7 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
 
 SMTP_SESSION *smtp_reuse_nexthop(SMTP_STATE *state, int name_key_flags)
 {
+    const char *myname = "smtp_reuse_nexthop";
     SMTP_SESSION *session;
     int     fd;
 
@@ -219,6 +225,8 @@ SMTP_SESSION *smtp_reuse_nexthop(SMTP_STATE *state, int name_key_flags)
      */
     smtp_key_prefix(state->dest_label, SMTP_REUSE_KEY_DELIM_NA,
 		    state->iterator, name_key_flags);
+    if (msg_verbose)
+	msg_info("%s: dest_label='%s'", myname, STR(state->dest_label));
     if ((fd = scache_find_dest(smtp_scache, STR(state->dest_label),
 			       state->dest_prop, state->endp_prop)) < 0)
 	return (0);
@@ -235,6 +243,7 @@ SMTP_SESSION *smtp_reuse_nexthop(SMTP_STATE *state, int name_key_flags)
 
 SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, int endp_key_flags)
 {
+    const char *myname = "smtp_reuse_addr";
     SMTP_SESSION *session;
     int     fd;
 
@@ -253,6 +262,8 @@ SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, int endp_key_flags)
      */
     smtp_key_prefix(state->endp_label, SMTP_REUSE_KEY_DELIM_NA,
 		    state->iterator, endp_key_flags);
+    if (msg_verbose)
+	msg_info("%s: endp_label='%s'", myname, STR(state->endp_label));
     if ((fd = scache_find_endp(smtp_scache, STR(state->endp_label),
 			       state->endp_prop)) < 0)
 	return (0);

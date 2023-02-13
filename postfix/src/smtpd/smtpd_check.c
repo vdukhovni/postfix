@@ -3065,7 +3065,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	|| type == T_AAAA
 #endif
 	) {
-	server_list = dns_rr_create(domain, domain, T_MX, C_IN, 0, 0,
+	server_list = dns_rr_create(domain, domain, T_MX, C_IN, 0, 0, 0, 0,
 				    domain, strlen(domain) + 1);
     } else {
 	dns_status = dns_lookup(domain, type, 0, &server_list,
@@ -3075,7 +3075,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	if (dns_status == DNS_NOTFOUND /* Not: h_errno == NO_DATA */ ) {
 	    if (type == T_MX) {
 		server_list = dns_rr_create(domain, domain, type, C_IN, 0, 0,
-					    domain, strlen(domain) + 1);
+					    0, 0, domain, strlen(domain) + 1);
 		dns_status = DNS_OK;
 	    } else if (type == T_NS /* && h_errno == NO_DATA */ ) {
 		while ((domain = strchr(domain, '.')) != 0 && domain[1]) {

@@ -29,6 +29,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -75,6 +80,7 @@ int     unix_send_fd(int fd, int sendfd)
     struct cmsghdr *cmptr;
 
     memset((void *) &msg, 0, sizeof(msg));	/* Fix 200512 */
+    memset((void *) &control_un, 0, sizeof(control_un));	/* Fix 202302 */
     msg.msg_control = control_un.control;
     if (unix_pass_fd_fix & UNIX_PASS_FD_FIX_CMSG_LEN) {
 	msg.msg_controllen = CMSG_LEN(sizeof(sendfd));	/* Fix 200506 */

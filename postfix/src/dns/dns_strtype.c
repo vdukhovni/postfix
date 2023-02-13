@@ -180,6 +180,9 @@ static struct dns_type_map dns_type_map[] = {
 #ifdef T_ANY
     T_ANY, "ANY",
 #endif
+#ifdef T_SRV
+    T_SRV, "SRV",
+#endif
 };
 
 /* dns_strtype - translate DNS query type to string */

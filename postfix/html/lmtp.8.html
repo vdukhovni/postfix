@@ -152,6 +152,7 @@ SMTP(8)                                                                SMTP(8)
        <a href="https://tools.ietf.org/html/rfc2046">RFC 2046</a> (MIME: Media Types)
        <a href="https://tools.ietf.org/html/rfc2554">RFC 2554</a> (AUTH command)
        <a href="https://tools.ietf.org/html/rfc2821">RFC 2821</a> (SMTP protocol)
+       <a href="https://tools.ietf.org/html/rfc2782">RFC 2782</a> (SRV resource records)
        <a href="https://tools.ietf.org/html/rfc2920">RFC 2920</a> (SMTP Pipelining)
        <a href="https://tools.ietf.org/html/rfc3207">RFC 3207</a> (STARTTLS command)
        <a href="https://tools.ietf.org/html/rfc3461">RFC 3461</a> (SMTP DSN Extension)
@@ -394,6 +395,21 @@ SMTP(8)                                                                SMTP(8)
 
        <b><a href="postconf.5.html#header_from_format">header_from_format</a> (standard)</b>
               The format of the Postfix-generated <b>From:</b> header.
+
+       Available in Postfix version 3.8 and later:
+
+       <b><a href="postconf.5.html#use_srv_lookup">use_srv_lookup</a> (empty)</b>
+              Enables discovery for the specified  service(s)  using  DNS  SRV
+              records.
+
+       <b><a href="postconf.5.html#ignore_srv_lookup_error">ignore_srv_lookup_error</a> (no)</b>
+              When  SRV  record  lookup  fails,  fall back to MX or IP address
+              lookup as if SRV record lookups were not enabled.
+
+       <b><a href="postconf.5.html#allow_srv_lookup_fallback">allow_srv_lookup_fallback</a> (no)</b>
+              When SRV record lookup fails or no SRV record exists, fall  back
+              to  MX  or  IP  address lookup as if SRV record lookups were not
+              enabled.
 
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:

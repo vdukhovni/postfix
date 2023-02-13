@@ -174,24 +174,23 @@ You can read more about the following topics:
 
   * Cyrus SASL version 2.1.22 and newer additionally search in /etc/sasl2/.
 
-  * li>
-    With Postfix 2.5 and later you can explicitly configure the search path via
+  * With Postfix 2.5 and later you can explicitly configure the search path via
     the cyrus_sasl_config_path configuration parameter. Specify zero or more
     colon-separated directories. If set empty (the default value) the search
     path is the one compiled into the Cyrus SASL library.
 
-Some Postfix distributions employ a non-empty default value for
-cyrus_sasl_config_path to look for the Cyrus SASL configuration file in /etc/
-postfix/sasl/, /var/lib/sasl2/ etc. See the output of postconf
-cyrus_sasl_config_path and/or the distribution-specific documentation to
-determine the expected location.
+  * Some Postfix distributions employ a non-empty default value for
+    cyrus_sasl_config_path to look for the Cyrus SASL configuration file in /
+    etc/postfix/sasl/, /var/lib/sasl2/ etc. See the output of postconf
+    cyrus_sasl_config_path and/or the distribution-specific documentation to
+    determine the expected location.
 
-Some Debian-based Postfix distributions patch Postfix to hardcode a non-default
-search path, making it impossible to set an alternate search path via the
-"cyrus_sasl_config_path" parameter. This is likely to be the case when the
-distribution documents a Postfix-specific path (e.g. /etc/postfix/sasl/) that
-is different from the default value of "cyrus_sasl_config_path" (which then is
-likely to be empty).
+  * Some Debian-based Postfix distributions patch Postfix to hardcode a non-
+    default search path, making it impossible to set an alternate search path
+    via the "cyrus_sasl_config_path" parameter. This is likely to be the case
+    when the distribution documents a Postfix-specific path (e.g. /etc/postfix/
+    sasl/) that is different from the default value of "cyrus_sasl_config_path"
+    (which then is likely to be empty).
 
     NNoottee
 

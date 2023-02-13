@@ -4364,6 +4364,21 @@ extern char *var_dnssec_probe;
 		"lmtp=24, smtp=25, smtps=submissions=465, submission=587"
 extern char *var_known_tcp_ports;
 
+ /*
+  * SRV lookup support.
+  */
+#define VAR_USE_SRV_LOOKUP	"use_srv_lookup"
+#define DEF_USE_SRV_LOOKUP	""
+extern char *var_use_srv_lookup;
+
+#define VAR_IGN_SRV_LOOKUP_ERR	"ignore_srv_lookup_error"
+#define DEF_IGN_SRV_LOOKUP_ERR	0
+extern bool var_ign_srv_lookup_err;
+
+#define VAR_ALLOW_SRV_FALLBACK	"allow_srv_lookup_fallback"
+#define DEF_ALLOW_SRV_FALLBACK	0
+extern bool var_allow_srv_fallback;
+
 /* LICENSE
 /* .ad
 /* .fi

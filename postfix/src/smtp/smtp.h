@@ -84,6 +84,14 @@ typedef struct SMTP_ITERATOR {
 	vstring_strcpy((iter)->dest, STR((iter)->saved_dest)); \
     } while (0)
 
+#define SMTP_ITER_UPDATE_HOST(iter, _host, _addr, _rr) do { \
+	vstring_strcpy((iter)->host, (_host)); \
+	vstring_strcpy((iter)->addr, (_addr)); \
+	(iter)->rr = (_rr); \
+	if ((_rr)->port) \
+	    (iter)->port = htons((_rr)->port); /* SRV port override */ \
+    } while (0)
+
  /*
   * TLS Policy support.
   */
@@ -273,6 +281,7 @@ typedef struct SMTP_STATE {
 #define SMTP_MISC_FLAG_COMPLETE_SESSION	(1<<7)
 #define SMTP_MISC_FLAG_PREF_IPV6	(1<<8)
 #define SMTP_MISC_FLAG_PREF_IPV4	(1<<9)
+#define SMTP_MISC_FLAG_FALLBACK_SRV_TO_MX (1<<10)
 
 #define SMTP_MISC_FLAG_CONN_CACHE_MASK \
 	(SMTP_MISC_FLAG_CONN_LOAD | SMTP_MISC_FLAG_CONN_STORE)
@@ -311,6 +320,8 @@ extern MAPS *smtp_pix_bug_maps;		/* PIX workarounds */
 extern MAPS *smtp_generic_maps;		/* make internal address valid */
 extern int smtp_ext_prop_mask;		/* address extension propagation */
 extern unsigned smtp_dns_res_opt;	/* DNS query flags */
+
+extern STRING_LIST *smtp_use_srv_lookup;/* services with SRV record lookup */
 
 #ifdef USE_TLS
 
