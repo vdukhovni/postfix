@@ -180,6 +180,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
 		msg_fatal("host %s: conversion error for address family "
 			  "%d: %m", host, res0->ai_addr->sa_family);
 	    addr_list = dns_rr_append(addr_list, addr);
+	    addr->pref = pref;
+	    addr->port = port;
 	    if (msg_verbose)
 		msg_info("%s: using numerical host %s", myname, host);
 	    freeaddrinfo(res0);

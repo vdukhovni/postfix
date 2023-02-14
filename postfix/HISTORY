@@ -26845,3 +26845,15 @@ Apologies for any names omitted.
 	smtp/smtp_connect.c, smtp/smtp.h, smtp/smtp_params.c,
 	smtp/smtp_session.c, smtpd/smtpd_check.c, util/attr.h,
 	util/unix_send_fd.c, mantools/postlink, proto/postconf.proto.
+
+20230214
+
+	SRV lookup: propagate preference and port information when
+	converting a numerical hostname to IP address. File:
+	smtp/smtp_addr.c.
+
+	SRV lookup: add SRV support to the posttls-finger command.
+	File: posttls-finger/posttls-finger.c.
+
+	SRV lookup: updated documentation examples. File:
+	proto/postconf.proto.

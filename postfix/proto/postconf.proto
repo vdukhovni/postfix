@@ -18491,8 +18491,8 @@ process. </p>
 
 <p> Specify zero or more service names separated by comma and/or
 whitespace. Any name in the services(5) database may be specified,
-though in practice only submission, smtps, and smtp make sense.
-</p>
+though in practice only submission, submissions, and smtp make
+sense.  </p>
 
 <p> When SRV record lookup is enabled with use_srv_lookup, you can
 enclose a domain name in "[]" to force IP address lookups instead
@@ -18507,23 +18507,28 @@ STARTTLS. </p>
     use_srv_lookup = submission
     relayhost = example.com:submission
     smtp_tls_security_level = may
+    ...see SASL_README for sasl configuration...
 </pre>
 
 <p> Example 2: MUA-to-MTA submission using SRV record lookup for
-the smtps service. This uses a dedicated SMTP delivery agent
+the submissions service. This uses a dedicated SMTP delivery agent
 (smtp-wraptls) with tls_wrappermode turned on. </p>
+
+<p> Note: some providers do not have DNS SRV records for "submissions".
+In that case, try the older name "smtps" instead. </p>
 
 <pre>
 /etc/postfix/main.cf:
-    use_srv_lookup = smtps
-    default_transport = smtp-wraptls:example.org:smtps
+    use_srv_lookup = submissions
+    default_transport = smtp-wraptls:example.org:submissions
+    ...see SASL_README for sasl configuration...
 </pre>
 
 <pre>
 /etc/postfix/master.cf:
     smtp-wraptls   unix   ...   ...   ...   ...   ...   smtp
-	-o { smtp_tls_wrappermode = yes }
-	-o { smtp_tls_security_level = encrypt }
+        -o { smtp_tls_wrappermode = yes }
+        -o { smtp_tls_security_level = encrypt }
 </pre>
 
 <p> Example 3: Sender-dependent selection for a combination of
@@ -18533,26 +18538,28 @@ examples of how to disable SRV record lookup for selected destinations.
 
 <pre>
 /etc/postfix/main.cf:
-    use_srv_lookup = submission, smtps
+    use_srv_lookup = submission, submissions
     sender_dependent_default_transport_maps = inline:{
-	# Destinations that support SRV record lookup.
-	{ user1@example.com = smtp:example.com:submission }
-	{ user2@example.org = smtp-wraptls:example.org:smtps }
-	# Use [destination] to force IP address lookups.
-	{ user3@example.net = smtp:[smtp-relay.example.net]:submission } }
-	{ user4@other.example = smtp-wraptls:[smtp-relay.other.example]:smtps } }
+        # Destinations that support SRV record lookup.
+        { user1@example.com = smtp:example.com:submission }
+        { user2@example.org = smtp-wraptls:example.org:submissions }
+        # Use [destination] to force IP address lookups.
+        { user3@example.net = smtp:[smtp-relay.example.net]:submission }
+        { user4@other.example =
+              smtp-wraptls:[smtp-relay.other.example]:submissions } }
+    ...see SASL_README for sasl configuration...
 </pre>
 
-<p> Example 4: MTA-to-MTA traffic only, using SRV record lookup for
-the smtp service. This is unrealistic, and mainly for illustration.
-Since most destinations will not support SRV record lookup, we allow
-fallback to conventional MX and address lookup. </p>
+<p> Example 4: MTA-to-MTA traffic only, using SRV record lookup for the
+SMTP service. This is useful for Postfix tests, and may be useful in
+environments where ports are dynamically assigned to servers. </p>
 
 <pre>
 /etc/postfix/main.cf:
     use_srv_lookup = smtp
-    allow_srv_lookup_fallback = yes
-    ignore_srv_lookup_error = yes
+    # Fall back to MX record lookup when SRV records are unavailable.
+    #allow_srv_lookup_fallback = yes
+    #ignore_srv_lookup_error = yes
 </pre>
 
 <p> This feature is available in Postfix 3.8 and later. </p>

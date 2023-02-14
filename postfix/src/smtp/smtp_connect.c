@@ -28,7 +28,8 @@
 /*	destinations may be specified as "unix:pathname", "inet:host"
 /*	or "inet:host:port".
 /*
-/*	With SMTP, the Internet domain name service is queried for mail
+/*	With SMTP, or with SRV record lookup enabled, the Internet
+/*	domain name service is queried for mail
 /*	exchanger hosts. Quote the domain name with `[' and `]' to
 /*	suppress mail exchanger lookups.
 /*
@@ -662,6 +663,9 @@ static void smtp_update_addr_list(DNS_RR **addr_list, const char *server_addr,
      * XXX Extend the SMTP_SESSION structure with sockaddr information so that
      * we can avoid repeated string->binary transformations for the same
      * address.
+     * 
+     * XXX SRV support: this should match the port, too, otherwise we may
+     * eliminate too many list entries.
      */
     if ((aierr = hostaddr_to_sockaddr(server_addr, (char *) 0, 0, &res0)) != 0) {
 	msg_warn("hostaddr_to_sockaddr %s: %s",
