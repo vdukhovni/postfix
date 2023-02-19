@@ -7380,7 +7380,7 @@ instead.
 </p>
 
 <p>
-Note 1: this feature is enabled by default. If disabled, users will not be
+Note 1: When disabled (Postfix 3.0 and later), users will not be
 able to send mail to "user@partialdomainname" but will have to
 specify full domain names instead.
 </p>
@@ -18478,3 +18478,110 @@ Postfix SMTP client will continue delivery after logging a warning.
 configuration parameter. See there for details. </p>
 
 <p> This feature is available in Postfix 3.7 and later. </p>
+
+%PARAM use_srv_lookup
+
+<p> Enables discovery for the specified service(s) using DNS SRV
+records. For example, with "use_srv_lookup = submission" and
+"relayhost = example.com:submission", the Postfix SMTP client will
+look up DNS SRV records for _submission._tcp.example.com, and will
+relay email through the hosts and ports that are specified with
+those records. See RFC 2782 for details of the host selection
+process. </p>
+
+<p> Specify zero or more service names separated by comma and/or
+whitespace. Any name in the services(5) database may be specified,
+though in practice only submission, submissions, and smtp make
+sense.  </p>
+
+<p> When SRV record lookup is enabled with use_srv_lookup, you can
+enclose a domain name in "[]" to force IP address lookup instead
+of SRV record lookup. </p>
+
+<p> Example 1: MUA-to-MTA submission using SRV record lookup for
+the "submission" service for domain "example.com". This uses the
+default SMTP delivery agent with STARTTLS, and looks up SRV records
+for "_submission._tcp.example.com". </p>
+
+<pre>
+/etc/postfix/main.cf:
+    use_srv_lookup = submission
+    relayhost = example.com:submission
+    smtp_tls_security_level = may
+    ...see SASL_README for sasl configuration...
+</pre>
+
+<p> Example 2: MUA-to-MTA submission using SRV record lookup for
+the "submissions" service for domain "example.org". This uses a
+dedicated SMTP delivery agent (smtp-wraptls) with tls_wrappermode
+turned on, and looks up SRV records for "_submissions._tcp.example.org".
+</p>
+
+<p> Note: specify the older name "smtps" instead of "submissions"
+when a provider has DNS SRV records like "_smtps._tcp.example.org"
+instead of "_submissions._tcp.example.org". </p>
+
+<pre>
+/etc/postfix/main.cf:
+    use_srv_lookup = submissions
+    default_transport = smtp-wraptls:example.org:submissions
+    ...see SASL_README for sasl configuration...
+</pre>
+
+<pre>
+/etc/postfix/master.cf:
+    smtp-wraptls   unix   ...   ...   ...   ...   ...   smtp
+        -o { smtp_tls_wrappermode = yes }
+        -o { smtp_tls_security_level = encrypt }
+</pre>
+
+<p> Example 3: Sender-dependent selection for a combination of
+MUA-to-MTA submission services. This combines examples 1 and 2 with
+examples of how to disable SRV and look up IP address records for
+"smtp-relay.example.net" and "smtp-relay.other.example".  Again,
+specify the older name "smtps" instead of "submissions" when a
+provider has DNS SRV records like "_smtps._tcp.example.org" instead
+of "_submissions._tcp.example.org". </p>
+
+<pre>
+/etc/postfix/main.cf:
+    use_srv_lookup = submission, submissions
+    sender_dependent_default_transport_maps = inline:{
+        # Destinations that support SRV record lookup.
+        { user1@example.com = smtp:example.com:submission }
+        { user2@example.org = smtp-wraptls:example.org:submissions }
+        # Use [destination] to force IP address lookups.
+        { user3@example.net = smtp:[smtp-relay.example.net]:submission }
+        { user4@other.example =
+              smtp-wraptls:[smtp-relay.other.example]:submissions } }
+    ...see SASL_README for sasl configuration...
+</pre>
+
+<p> Example 4: MTA-to-MTA traffic, using SRV record lookup for the
+SMTP service. This is useful for Postfix tests, and may be useful
+in environments where ports are dynamically assigned to servers.
+</p>
+
+<pre>
+/etc/postfix/main.cf:
+    use_srv_lookup = smtp
+    # Fall back to MX record lookup when SRV records are unavailable.
+    #allow_srv_lookup_fallback = yes
+    #ignore_srv_lookup_error = yes
+</pre>
+
+<p> This feature is available in Postfix 3.8 and later. </p>
+
+%PARAM ignore_srv_lookup_error no
+
+<p> When SRV record lookup fails, fall back to MX or IP address
+lookup as if SRV record lookup was not enabled. </>
+
+<p> This feature is available in Postfix 3.8 and later. </p>
+
+%PARAM allow_srv_lookup_fallback no
+
+<p> When SRV record lookup fails or no SRV record exists, fall back
+to MX or IP address lookup as if SRV record lookup was not enabled. <p>
+
+<p> This feature is available in Postfix 3.8 and later. </p>

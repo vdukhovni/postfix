@@ -146,6 +146,7 @@
 /*	RFC 2046 (MIME: Media Types)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
+/*	RFC 2782 (SRV resource records)
 /*	RFC 2920 (SMTP Pipelining)
 /*	RFC 3207 (STARTTLS command)
 /*	RFC 3461 (SMTP DSN Extension)
@@ -352,6 +353,17 @@
 /*	DATA requests, when deadlines are enabled with smtp_per_request_deadline.
 /* .IP "\fBheader_from_format (standard)\fR"
 /*	The format of the Postfix-generated \fBFrom:\fR header.
+/* .PP
+/*	Available in Postfix version 3.8 and later:
+/* .IP "\fBuse_srv_lookup (empty)\fR"
+/*	Enables discovery for the specified service(s) using DNS SRV
+/*	records.
+/* .IP "\fBignore_srv_lookup_error (no)\fR"
+/*	When SRV record lookup fails, fall back to MX or IP address
+/*	lookup as if SRV record lookups were not enabled.
+/* .IP "\fBallow_srv_lookup_fallback (no)\fR"
+/*	When SRV record lookup fails or no SRV record exists, fall back
+/*	to MX or IP address lookup as if SRV record lookups were not enabled.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -1095,6 +1107,9 @@ char   *var_smtp_dns_re_filter;
 bool    var_smtp_balance_inet_proto;
 bool    var_smtp_req_deadline;
 int     var_smtp_min_data_rate;
+char   *var_use_srv_lookup;
+bool	var_ign_srv_lookup_err;
+bool	var_allow_srv_fallback;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -1121,6 +1136,7 @@ HBC_CHECKS *smtp_header_checks;		/* limited header checks */
 HBC_CHECKS *smtp_body_checks;		/* limited body checks */
 SMTP_CLI_ATTR smtp_cli_attr;		/* parsed command-line */
 int     smtp_hfrom_format;		/* postmaster notifications */
+STRING_LIST *smtp_use_srv_lookup;
 
 #ifdef USE_TLS
 
@@ -1411,6 +1427,14 @@ static void post_init(char *unused_name, char **argv)
      * header_from format, for postmaster notifications.
      */
     smtp_hfrom_format = hfrom_format_parse(VAR_HFROM_FORMAT, var_hfrom_format);
+
+    /*
+     * Service discovery with SRV record lookup.
+     */
+    if (*var_use_srv_lookup)
+	smtp_use_srv_lookup = string_list_init(VAR_USE_SRV_LOOKUP,
+					       MATCH_FLAG_RETURN,
+					       var_use_srv_lookup);
 }
 
 /* pre_init - pre-jail initialization */

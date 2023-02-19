@@ -164,6 +164,7 @@ RFC 2045 (MIME: Format of Internet Message Bodies)
 RFC 2046 (MIME: Media Types)
 RFC 2554 (AUTH command)
 RFC 2821 (SMTP protocol)
+RFC 2782 (SRV resource records)
 RFC 2920 (SMTP Pipelining)
 RFC 3207 (STARTTLS command)
 RFC 3461 (SMTP DSN Extension)
@@ -378,6 +379,17 @@ The minimum plaintext data transfer rate in bytes/second for
 DATA requests, when deadlines are enabled with smtp_per_request_deadline.
 .IP "\fBheader_from_format (standard)\fR"
 The format of the Postfix\-generated \fBFrom:\fR header.
+.PP
+Available in Postfix version 3.8 and later:
+.IP "\fBuse_srv_lookup (empty)\fR"
+Enables discovery for the specified service(s) using DNS SRV
+records.
+.IP "\fBignore_srv_lookup_error (no)\fR"
+When SRV record lookup fails, fall back to MX or IP address
+lookup as if SRV record lookups were not enabled.
+.IP "\fBallow_srv_lookup_fallback (no)\fR"
+When SRV record lookup fails or no SRV record exists, fall back
+to MX or IP address lookup as if SRV record lookups were not enabled.
 .SH "MIME PROCESSING CONTROLS"
 .na
 .nf

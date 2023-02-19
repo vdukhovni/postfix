@@ -16,3 +16,11 @@
  src tls tls h src tls tls_proxy_client_misc c src tls tls_misc c 
  src global mail_params h src smtp smtp c 
  attacks Fix by Viktor Dukhovni Files tls tls h tls_client c 
+ proto stop spell proto html dns dns h dns dns_lookup c 
+ smtp smtp_addr h smtp smtp c smtp smtp_connect c 
+ smtp smtp h smtp smtp_params c smtp smtp_session c 
+ File smtpd smtpd c 
+ smtp smtp_addr c smtp smtp_addr h smtp smtp c 
+ smtp smtp_connect c smtp smtp h smtp smtp_params c 
+ arguments Files src dns dns h src dns dns_rr_eq_sa c 
+ only a subset of all arguments Files src dns dns h 

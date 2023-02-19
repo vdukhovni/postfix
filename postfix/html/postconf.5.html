@@ -764,6 +764,17 @@ Example:
 
 </DD>
 
+<DT><b><a name="allow_srv_lookup_fallback">allow_srv_lookup_fallback</a>
+(default: no)</b></DT><DD>
+
+<p> When SRV record lookup fails or no SRV record exists, fall back
+to MX or IP address lookup as if SRV record lookup was not enabled. <p>
+
+<p> This feature is available in Postfix 3.8 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="allow_untrusted_routing">allow_untrusted_routing</a>
 (default: no)</b></DT><DD>
 
@@ -946,7 +957,7 @@ instead.
 </p>
 
 <p>
-Note 1: this feature is enabled by default. If disabled, users will not be
+Note 1: When disabled (Postfix 3.0 and later), users will not be
 able to send mail to "user@partialdomainname" but will have to
 specify full domain names instead.
 </p>
@@ -4015,6 +4026,17 @@ Specify "<a href="postconf.5.html#ignore_mx_lookup_error">ignore_mx_lookup_error
 lookup instead. This violates the SMTP standard and can result in
 mis-delivery of mail.
 </p>
+
+
+</DD>
+
+<DT><b><a name="ignore_srv_lookup_error">ignore_srv_lookup_error</a>
+(default: no)</b></DT><DD>
+
+<p> When SRV record lookup fails, fall back to MX or IP address
+lookup as if SRV record lookup was not enabled. </>
+
+<p> This feature is available in Postfix 3.8 and later. </p>
 
 
 </DD>
@@ -21245,6 +21267,103 @@ for opportunities to reject mail, and defers the client request
 only if it would otherwise be accepted. </p>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="use_srv_lookup">use_srv_lookup</a>
+(default: empty)</b></DT><DD>
+
+<p> Enables discovery for the specified service(s) using DNS SRV
+records. For example, with "<a href="postconf.5.html#use_srv_lookup">use_srv_lookup</a> = submission" and
+"<a href="postconf.5.html#relayhost">relayhost</a> = example.com:submission", the Postfix SMTP client will
+look up DNS SRV records for _submission._tcp.example.com, and will
+relay email through the hosts and ports that are specified with
+those records. See <a href="https://tools.ietf.org/html/rfc2782">RFC 2782</a> for details of the host selection
+process. </p>
+
+<p> Specify zero or more service names separated by comma and/or
+whitespace. Any name in the services(5) database may be specified,
+though in practice only submission, submissions, and smtp make
+sense.  </p>
+
+<p> When SRV record lookup is enabled with <a href="postconf.5.html#use_srv_lookup">use_srv_lookup</a>, you can
+enclose a domain name in "[]" to force IP address lookup instead
+of SRV record lookup. </p>
+
+<p> Example 1: MUA-to-MTA submission using SRV record lookup for
+the "submission" service for domain "example.com". This uses the
+default SMTP delivery agent with STARTTLS, and looks up SRV records
+for "_submission._tcp.example.com". </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#use_srv_lookup">use_srv_lookup</a> = submission
+    <a href="postconf.5.html#relayhost">relayhost</a> = example.com:submission
+    <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
+    ...see <a href="SASL_README.html">SASL_README</a> for sasl configuration...
+</pre>
+
+<p> Example 2: MUA-to-MTA submission using SRV record lookup for
+the "submissions" service for domain "example.org". This uses a
+dedicated SMTP delivery agent (smtp-wraptls) with tls_wrappermode
+turned on, and looks up SRV records for "_submissions._tcp.example.org".
+</p>
+
+<p> Note: specify the older name "smtps" instead of "submissions"
+when a provider has DNS SRV records like "_smtps._tcp.example.org"
+instead of "_submissions._tcp.example.org". </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#use_srv_lookup">use_srv_lookup</a> = submissions
+    <a href="postconf.5.html#default_transport">default_transport</a> = smtp-wraptls:example.org:submissions
+    ...see <a href="SASL_README.html">SASL_README</a> for sasl configuration...
+</pre>
+
+<pre>
+/etc/postfix/<a href="master.5.html">master.cf</a>:
+    smtp-wraptls   unix   ...   ...   ...   ...   ...   smtp
+        -o { <a href="postconf.5.html#smtp_tls_wrappermode">smtp_tls_wrappermode</a> = yes }
+        -o { <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = encrypt }
+</pre>
+
+<p> Example 3: Sender-dependent selection for a combination of
+MUA-to-MTA submission services. This combines examples 1 and 2 with
+examples of how to disable SRV and look up IP address records for
+"smtp-relay.example.net" and "smtp-relay.other.example".  Again,
+specify the older name "smtps" instead of "submissions" when a
+provider has DNS SRV records like "_smtps._tcp.example.org" instead
+of "_submissions._tcp.example.org". </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#use_srv_lookup">use_srv_lookup</a> = submission, submissions
+    <a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a> = <a href="DATABASE_README.html#types">inline</a>:{
+        # Destinations that support SRV record lookup.
+        { user1@example.com = <a href="smtp.8.html">smtp</a>:example.com:submission }
+        { user2@example.org = smtp-wraptls:example.org:submissions }
+        # Use [destination] to force IP address lookups.
+        { user3@example.net = <a href="smtp.8.html">smtp</a>:[smtp-relay.example.net]:submission }
+        { user4@other.example =
+              smtp-wraptls:[smtp-relay.other.example]:submissions } }
+    ...see <a href="SASL_README.html">SASL_README</a> for sasl configuration...
+</pre>
+
+<p> Example 4: MTA-to-MTA traffic, using SRV record lookup for the
+SMTP service. This is useful for Postfix tests, and may be useful
+in environments where ports are dynamically assigned to servers.
+</p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#use_srv_lookup">use_srv_lookup</a> = smtp
+    # Fall back to MX record lookup when SRV records are unavailable.
+    #<a href="postconf.5.html#allow_srv_lookup_fallback">allow_srv_lookup_fallback</a> = yes
+    #<a href="postconf.5.html#ignore_srv_lookup_error">ignore_srv_lookup_error</a> = yes
+</pre>
+
+<p> This feature is available in Postfix 3.8 and later. </p>
 
 
 </DD>

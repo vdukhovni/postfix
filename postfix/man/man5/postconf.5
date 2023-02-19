@@ -468,6 +468,11 @@ allow_percent_hack = no
 .fi
 .ad
 .ft R
+.SH allow_srv_lookup_fallback (default: no)
+When SRV record lookup fails or no SRV record exists, fall back
+to MX or IP address lookup as if SRV record lookup was not enabled.
+.PP
+This feature is available in Postfix 3.8 and later.
 .SH allow_untrusted_routing (default: no)
 Forward mail with sender\-specified routing (user[@%!]remote[@%!]site)
 from untrusted clients to destinations matching $relay_domains.
@@ -568,7 +573,7 @@ addresses that have no ".domain" information. With remotely submitted
 mail, append the string ".$remote_header_rewrite_domain"
 instead.
 .PP
-Note 1: this feature is enabled by default. If disabled, users will not be
+Note 1: When disabled (Postfix 3.0 and later), users will not be
 able to send mail to "user@partialdomainname" but will have to
 specify full domain names instead.
 .PP
@@ -2543,6 +2548,11 @@ delay.  This behavior is required by the SMTP standard.
 Specify "ignore_mx_lookup_error = yes" to force a DNS A record
 lookup instead. This violates the SMTP standard and can result in
 mis\-delivery of mail.
+.SH ignore_srv_lookup_error (default: no)
+When SRV record lookup fails, fall back to MX or IP address
+lookup as if SRV record lookup was not enabled. </>
+.PP
+This feature is available in Postfix 3.8 and later.
 .SH import_environment (default: see "postconf \-d" output)
 The list of environment variables that a privileged Postfix
 process will import from a non\-Postfix parent process, or name=value
@@ -14934,6 +14944,115 @@ for opportunities to reject mail, and defers the client request
 only if it would otherwise be accepted.
 .PP
 This feature is available in Postfix 2.6 and later.
+.SH use_srv_lookup (default: empty)
+Enables discovery for the specified service(s) using DNS SRV
+records. For example, with "use_srv_lookup = submission" and
+"relayhost = example.com:submission", the Postfix SMTP client will
+look up DNS SRV records for _submission._tcp.example.com, and will
+relay email through the hosts and ports that are specified with
+those records. See RFC 2782 for details of the host selection
+process.
+.PP
+Specify zero or more service names separated by comma and/or
+whitespace. Any name in the \fBservices\fR(5) database may be specified,
+though in practice only submission, submissions, and smtp make
+sense.
+.PP
+When SRV record lookup is enabled with use_srv_lookup, you can
+enclose a domain name in "[]" to force IP address lookup instead
+of SRV record lookup.
+.PP
+Example 1: MUA\-to\-MTA submission using SRV record lookup for
+the "submission" service for domain "example.com". This uses the
+default SMTP delivery agent with STARTTLS, and looks up SRV records
+for "_submission._tcp.example.com".
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    use_srv_lookup = submission
+    relayhost = example.com:submission
+    smtp_tls_security_level = may
+    ...see SASL_README for sasl configuration...
+.fi
+.ad
+.ft R
+.PP
+Example 2: MUA\-to\-MTA submission using SRV record lookup for
+the "submissions" service for domain "example.org". This uses a
+dedicated SMTP delivery agent (smtp\-wraptls) with tls_wrappermode
+turned on, and looks up SRV records for "_submissions._tcp.example.org".
+.PP
+Note: specify the older name "smtps" instead of "submissions"
+when a provider has DNS SRV records like "_smtps._tcp.example.org"
+instead of "_submissions._tcp.example.org".
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    use_srv_lookup = submissions
+    default_transport = smtp\-wraptls:example.org:submissions
+    ...see SASL_README for sasl configuration...
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/master.cf:
+    smtp\-wraptls   unix   ...   ...   ...   ...   ...   smtp
+        \-o { smtp_tls_wrappermode = yes }
+        \-o { smtp_tls_security_level = encrypt }
+.fi
+.ad
+.ft R
+.PP
+Example 3: Sender\-dependent selection for a combination of
+MUA\-to\-MTA submission services. This combines examples 1 and 2 with
+examples of how to disable SRV and look up IP address records for
+"smtp\-relay.example.net" and "smtp\-relay.other.example".  Again,
+specify the older name "smtps" instead of "submissions" when a
+provider has DNS SRV records like "_smtps._tcp.example.org" instead
+of "_submissions._tcp.example.org".
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    use_srv_lookup = submission, submissions
+    sender_dependent_default_transport_maps = inline:{
+        # Destinations that support SRV record lookup.
+        { user1@example.com = smtp:example.com:submission }
+        { user2@example.org = smtp\-wraptls:example.org:submissions }
+        # Use [destination] to force IP address lookups.
+        { user3@example.net = smtp:[smtp\-relay.example.net]:submission }
+        { user4@other.example =
+              smtp\-wraptls:[smtp\-relay.other.example]:submissions } }
+    ...see SASL_README for sasl configuration...
+.fi
+.ad
+.ft R
+.PP
+Example 4: MTA\-to\-MTA traffic, using SRV record lookup for the
+SMTP service. This is useful for Postfix tests, and may be useful
+in environments where ports are dynamically assigned to servers.
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    use_srv_lookup = smtp
+    # Fall back to MX record lookup when SRV records are unavailable.
+    #allow_srv_lookup_fallback = yes
+    #ignore_srv_lookup_error = yes
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 3.8 and later.
 .SH verp_delimiter_filter (default: \-=+)
 The characters Postfix accepts as VERP delimiter characters on the
 Postfix \fBsendmail\fR(1) command line and in SMTP commands.

@@ -26808,3 +26808,73 @@ Apologies for any names omitted.
 
 	Portability: MacOS support for the postfix-env.sh test
 	script.
+
+20230129
+
+	Documentation: in the postconf(5) manpage, the text for
+	append_dot_mydomain described old default behavior. File:
+	proto/postconf.proto.
+
+	Documentation: in the smtpd(8) manpage, the text for the
+	info_log_address_format parameter was in the wrong place.
+	File: smtpd/smtpd.c.
+
+20230202
+
+	Documentation: fixed a broken HTML tag in SASL_README.html.
+
+20230209
+
+	Cleanup: noise suppression for resolver-related macros.
+	Viktor Dukhovni. Files: dns/dns_str_resflags.c, util/sys_defs.h.
+
+20230212
+
+	Cleanup: valgrind complained about uninitialized padding.
+	File: util/unix_send_fd.c
+
+20230213
+
+	Feature: SRV lookup support in the Postfix SMTP/LMTP client.
+	See https://www.postfix.org/postconf.5.html#use_srv_lookup.
+	Based on code by Tomas Korbar (Red Hat). Files: proto/stop,
+	proto/stop.spell-proto-html, dns/dns.h, dns/dns_lookup.c,
+	dns/dns_rr.c, dns/dns_sa_to_rr.c, dns/dns_strrecord.c,
+	dns/dns_strtype.c, global/mail_params.h, smtp/lmtp_params.c,
+	smtp/smtp_addr.c, smtp/smtp_addr.h, smtp/smtp.c,
+	smtp/smtp_connect.c, smtp/smtp.h, smtp/smtp_params.c,
+	smtp/smtp_session.c, smtpd/smtpd_check.c, util/attr.h,
+	util/unix_send_fd.c, mantools/postlink, proto/postconf.proto.
+
+20230214
+
+	SRV lookup: propagate preference and port information when
+	converting a numerical hostname to IP address. File:
+	smtp/smtp_addr.c.
+
+	SRV lookup: add SRV support to the posttls-finger command.
+	File: posttls-finger/posttls-finger.c.
+
+	SRV lookup: updated documentation examples. File:
+	proto/postconf.proto.
+
+20230219
+
+	Code health: replaced a proliferation of 'bare' zero arguments
+	with named constants: DNS_RR_NOPREF, DNS_RR_NOWEIGHT,
+	DNS_RR_NOPORT, and added convenience wrappers for
+	dns_rr_create(), to simplify code that needs to specify
+	only a subset of all arguments. Files: src/dns/dns.h,
+	src/dns/dns_rr_eq_sa.c, src/dns/dns_sa_to_rr.c,
+	src/smtpd/smtpd_check.c.
+
+	Code health: updated internal documentation. Files:
+	dns/dns_rr.c, smtp/smtp_connect.c.
+
+	Compatibility: downgraded some modernisms to avoid breaking
+	builds on older test systems. File: dns/dns_rr.c.
+
+	Code health: simplified the SRV record priority grouping
+	and record ordering code. Eliminated some special-case
+	handling of zero-weight records (that was already started
+	in the initial implementation). File: dns/dns_rr.c.

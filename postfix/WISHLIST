@@ -9,7 +9,12 @@ Wish list:
 	Scan Postfix code with github.com/googleprojectzero/weggli
 	(depends on "rust").
 
-	In smtpd.c, move the comment block with info_log_address_format.
+	Follow https://github.com/vdukhovni/postfix/commits/rpk
+
+	Multi-recipient support in sender/recipient_bcc_maps and
+	always_bcc.
+
+	Should "postconf -f" pretty-print text inside {}?
 
 	Is there any code that calls attr_scan*() and that works
 	when the number of attributes received < the expected number?
