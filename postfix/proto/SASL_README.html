@@ -2044,8 +2044,8 @@ the Postfix top-level directory: </p>
 <blockquote>
 <pre>
 % <strong>make tidy</strong> # if you have left-over files from a previous build
-% <strong>make makefiles CCARGS='-DUSE_SASL_AUTH \
-    -DDEF_SERVER_SASL_TYPE=\"dovecot\"'</strong>
+% <strong>make makefiles CCARGS="-DUSE_SASL_AUTH \
+    -DDEF_SERVER_SASL_TYPE=\\\"dovecot\\\""</strong>
 </pre>
 </blockquote>
 
@@ -2058,7 +2058,7 @@ the INSTALL document. </p>
 
 <li>
 
-<p> The <code>-DDEF_SERVER_SASL_TYPE=\"dovecot\"</code> is not
+<p> The <code>-DDEF_SERVER_SASL_TYPE=\\\"dovecot\\\"</code> is not
 necessary; it just makes Postfix configuration a little more
 convenient because you don't have to specify the SASL plug-in type
 in the Postfix main.cf file (but this may cause surprises when you
@@ -2077,10 +2077,10 @@ TLS_README for details.  </p>
 <blockquote>
 <pre>
 % <strong>make tidy</strong> # if you have left-over files from a previous build
-% <strong>make makefiles CCARGS='-DUSE_SASL_AUTH \
-    -DDEF_SERVER_SASL_TYPE=\"dovecot\" \
-    ...<i>CCARGS options for LDAP or TLS etc.</i>...' \
-   AUXLIBS='...<i>AUXLIBS options for LDAP or TLS etc.</i>...'</strong>
+% <strong>make makefiles CCARGS="-DUSE_SASL_AUTH \
+    -DDEF_SERVER_SASL_TYPE=\\\"dovecot\\\" \
+    ...<i>CCARGS options for LDAP or TLS etc.</i>..." \
+   AUXLIBS="...<i>AUXLIBS options for LDAP or TLS etc.</i>..."</strong>
 </pre>
 </blockquote>
 

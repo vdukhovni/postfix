@@ -360,10 +360,10 @@
 /*	records.
 /* .IP "\fBignore_srv_lookup_error (no)\fR"
 /*	When SRV record lookup fails, fall back to MX or IP address
-/*	lookup as if SRV record lookups were not enabled.
+/*	lookup as if SRV record lookup was not enabled.
 /* .IP "\fBallow_srv_lookup_fallback (no)\fR"
 /*	When SRV record lookup fails or no SRV record exists, fall back
-/*	to MX or IP address lookup as if SRV record lookups were not enabled.
+/*	to MX or IP address lookup as if SRV record lookup was not enabled.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -506,13 +506,15 @@
 /*	The OpenSSL cipherlist for "high" grade ciphers.
 /* .IP "\fBtls_medium_cipherlist (see 'postconf -d' output)\fR"
 /*	The OpenSSL cipherlist for "medium" or higher grade ciphers.
+/* .IP "\fBtls_null_cipherlist (eNULL:!aNULL)\fR"
+/*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
+/*	authentication without encryption.
+/* .PP
+/*	Available in in Postfix version 2.3..3.7:
 /* .IP "\fBtls_low_cipherlist (see 'postconf -d' output)\fR"
 /*	The OpenSSL cipherlist for "low" or higher grade ciphers.
 /* .IP "\fBtls_export_cipherlist (see 'postconf -d' output)\fR"
 /*	The OpenSSL cipherlist for "export" or higher grade ciphers.
-/* .IP "\fBtls_null_cipherlist (eNULL:!aNULL)\fR"
-/*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
-/*	authentication without encryption.
 /* .PP
 /*	Available in Postfix version 2.4 and later:
 /* .IP "\fBsmtp_sasl_tls_verified_security_options ($smtp_sasl_tls_security_options)\fR"

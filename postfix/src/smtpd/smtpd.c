@@ -451,13 +451,15 @@
 /*	The OpenSSL cipherlist for "high" grade ciphers.
 /* .IP "\fBtls_medium_cipherlist (see 'postconf -d' output)\fR"
 /*	The OpenSSL cipherlist for "medium" or higher grade ciphers.
+/* .IP "\fBtls_null_cipherlist (eNULL:!aNULL)\fR"
+/*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
+/*	authentication without encryption.
+/* .PP
+/*	Available in Postfix version 2.3..3.7:
 /* .IP "\fBtls_low_cipherlist (see 'postconf -d' output)\fR"
 /*	The OpenSSL cipherlist for "low" or higher grade ciphers.
 /* .IP "\fBtls_export_cipherlist (see 'postconf -d' output)\fR"
 /*	The OpenSSL cipherlist for "export" or higher grade ciphers.
-/* .IP "\fBtls_null_cipherlist (eNULL:!aNULL)\fR"
-/*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
-/*	authentication without encryption.
 /* .PP
 /*	Available in Postfix version 2.5 and later:
 /* .IP "\fBsmtpd_tls_fingerprint_digest (see 'postconf -d' output)\fR"

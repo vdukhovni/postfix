@@ -25,24 +25,20 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
-Bugfix for messages not delivered after "warning: Unexpected record type 'X'
-============================================================================
+Incompatible changes with snapshot 20221228
+===========================================
 
-Due to a bug introduced in Postfix 3.7.0, a message could falsely
-be flagged as corrupt with "warning: Unexpected record type 'X'".
+This introduces the following changes in Postfix TLS support:
 
-Such messages were moved to the "corrupt" queue directory, where
-they may still be found. See below for instructions to deal with
-these falsely flagged messages.
+- Postfix ignores "export" and "low" cipher list settings, and
+  treats the "export" and "low" cipher grade settings as "medium".
+  These grades are no longer supported in OpenSSL 1.1.1, the minimum
+  version that Postfix requires.
 
-This problem could happen for messages with 5000 or more recipients,
-or with fewer recipients on a busy mail server. The problem was
-first reported by Frank Brendel, and the error conditions were
-reproduced by John Alex.
-
-Please see https://www.postfix.org/announcements/postfix-3.7.3 for
-instructions to identify falsely flagged messages in the Postfix
-queue, and what actions may be taken.
+- Postfix default settings now exclude the following deprecated or
+  unused ciphers (SEED, IDEA, 3DES, RC2, RC4, RC5), digest (MD5),
+  key exchange algorithms (DH, ECDH), and public key algorithm
+  (DSS).
 
 Incompatible changes with snapshot 20221228
 ===========================================

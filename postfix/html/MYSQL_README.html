@@ -56,8 +56,8 @@ the mysqlclient library (and libm) to <a href="MYSQL_README.html">AUXLIBS_MYSQL<
 <blockquote>
 <pre>
 make -f Makefile.init makefiles \
-    'CCARGS=-DHAS_MYSQL -I/usr/local/mysql/include' \
-    '<a href="MYSQL_README.html">AUXLIBS_MYSQL</a>=-L/usr/local/mysql/lib -lmysqlclient -lz -lm'
+    "CCARGS=-DHAS_MYSQL -I/usr/local/mysql/include" \
+    "<a href="MYSQL_README.html">AUXLIBS_MYSQL</a>=-L/usr/local/mysql/lib -lmysqlclient -lz -lm"
 </pre>
 </blockquote>
 
@@ -85,9 +85,9 @@ what dynamic database client loading was meant to avoid. </p>
 <blockquote>
 <pre>
 make -f Makefile.init makefiles \
-    'CCARGS=-DHAS_MYSQL -I/usr/local/mysql/include' \
-    '<a href="MYSQL_README.html">AUXLIBS_MYSQL</a>=-L/usr/local/mysql/lib -R/usr/local/mysql/lib \
-        -lmysqlclient -lz -lm'
+    "CCARGS=-DHAS_MYSQL -I/usr/local/mysql/include" \
+    "<a href="MYSQL_README.html">AUXLIBS_MYSQL</a>=-L/usr/local/mysql/lib -R/usr/local/mysql/lib \
+        -lmysqlclient -lz -lm"
 </pre>
 </blockquote>
 

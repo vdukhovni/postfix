@@ -26878,3 +26878,31 @@ Apologies for any names omitted.
 	and record ordering code. Eliminated some special-case
 	handling of zero-weight records (that was already started
 	in the initial implementation). File: dns/dns_rr.c.
+
+20230224
+
+	Documentation fix (error introduced: Postfix 2.7): In a
+	"make makefiles" example in SASL_README, a backslash-newline
+	inside single quotes produced a broken Makefile. Problem
+	reported by James Brown (Bordo International). Updated "make
+	makefiles" examples, replacing single quotes with double
+	quotes, and inside those quotes replacing \" with \\\" to
+	protect a string-valued macro definition. Files:
+	proto/INSTALL.html, proto/MYSQL_README.html,
+	proto/PGSQL_README.html, proto/postconf.proto,
+	proto/SASL_README.html, proto/SQLITE_README.html.
+
+20230303
+
+	Cleanup: Postfix TLS configuration. Treat "export" and "low"
+	cipher grades as "medium", and ignore "export" and "low"
+	cipherlist settings. These grades are no longer supported
+	in OpenSSL 1.1.1, the minimum version that Postfix requires.
+	Also, update Postfix default settings to exclude the following
+	deprecated or unused ciphers (SEED, IDEA, 3DES, RC2, RC4,
+	RC5), digest (MD5), key exchange algorithms (DH, ECDH), and
+	public key algorithm (DSS). Viktor Dukhovni. Files:
+	proto/postconf.proto, global/mail_params.h, smtp/smtp.c,
+	smtpd/smtpd.c, tls/tls_misc.c, tls/tls_proxy_client_misc.c,
+	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
+	tls/tls_proxy.h, tlsproxy/tlsproxy.c.

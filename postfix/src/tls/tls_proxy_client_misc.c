@@ -68,8 +68,6 @@ TLS_CLIENT_PARAMS *tls_proxy_client_param_from_config(TLS_CLIENT_PARAMS *params)
     TLS_PROXY_PARAMS(params,
 		     tls_high_clist = var_tls_high_clist,
 		     tls_medium_clist = var_tls_medium_clist,
-		     tls_low_clist = var_tls_low_clist,
-		     tls_export_clist = var_tls_export_clist,
 		     tls_null_clist = var_tls_null_clist,
 		     tls_eecdh_auto = var_tls_eecdh_auto,
 		     tls_eecdh_strong = var_tls_eecdh_strong,

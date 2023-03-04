@@ -24,3 +24,9 @@
  smtp smtp_connect c smtp smtp h smtp smtp_params c 
  arguments Files src dns dns h src dns dns_rr_eq_sa c 
  only a subset of all arguments Files src dns dns h 
+ global mail_params h smtp smtp c smtpd smtpd c tls tls_misc c 
+ global mail_params h smtp smtp c smtpd smtpd c tls tls_misc c 
+ tls tls_proxy_client_scan c tls tls_proxy h tlsproxy tlsproxy c 
+ smtp smtp c smtpd smtpd c tls tls_misc c 
+ smtp smtp c smtpd smtpd c tls tls_misc c 
+proto  proto SASL_README html proto SQLITE_README html 

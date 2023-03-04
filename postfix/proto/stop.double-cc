@@ -330,3 +330,4 @@ XXX  XXX
 USE_FNV_32BIT  USE_FNV_32BIT 
 void  void cleanup_milter_receive state count 
  struct DICT open const char int int dict_xx_open 
+ Available in in Postfix version 2 3 3 7 

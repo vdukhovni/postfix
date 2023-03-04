@@ -31,8 +31,6 @@
 /*
 /*	char	*var_tls_high_clist;
 /*	char	*var_tls_medium_clist;
-/*	char	*var_tls_low_clist;
-/*	char	*var_tls_export_clist;
 /*	char	*var_tls_null_clist;
 /*	char	*var_tls_eecdh_auto;
 /*	char	*var_tls_eecdh_strong;
@@ -169,11 +167,10 @@
 /*	contains invalid protocol names, TLS_PROTOCOL_INVALID is returned and
 /*	no warning is logged.
 /*
-/*	tls_cipher_grade() converts a case-insensitive cipher grade
-/*	name (high, medium, low, export, null) to the corresponding
-/*	TLS_CIPHER_ constant.  When the input specifies an unrecognized
-/*	grade, tls_cipher_grade() logs no warning, and returns
-/*	TLS_CIPHER_NONE.
+/*	tls_cipher_grade() converts a case-insensitive cipher grade name (high,
+/*	medium, null) to the corresponding TLS_CIPHER_ constant.  When the
+/*	input specifies an unrecognized grade, tls_cipher_grade() logs no
+/*	warning, and returns TLS_CIPHER_NONE.
 /*
 /*	str_tls_cipher_grade() converts a cipher grade to a name.
 /*	When the input specifies an undefined grade, str_tls_cipher_grade()
@@ -279,8 +276,8 @@
   */
 char   *var_tls_high_clist;
 char   *var_tls_medium_clist;
-char   *var_tls_low_clist;
-char   *var_tls_export_clist;
+char   *var_tls_low_ignored;
+char   *var_tls_export_ignored;
 char   *var_tls_null_clist;
 int     var_tls_daemon_rand_bytes;
 char   *var_tls_eecdh_auto;
@@ -498,8 +495,8 @@ static const LONG_NAME_MASK ssl_op_tweaks[] = {
 const NAME_CODE tls_cipher_grade_table[] = {
     "high", TLS_CIPHER_HIGH,
     "medium", TLS_CIPHER_MEDIUM,
-    "low", TLS_CIPHER_LOW,
-    "export", TLS_CIPHER_EXPORT,
+    "low", TLS_CIPHER_MEDIUM,
+    "export", TLS_CIPHER_MEDIUM,
     "null", TLS_CIPHER_NULL,
     "invalid", TLS_CIPHER_NONE,
     0, TLS_CIPHER_NONE,
@@ -648,8 +645,8 @@ void    tls_param_init(void)
     static const CONFIG_STR_TABLE str_table[] = {
 	VAR_TLS_HIGH_CLIST, DEF_TLS_HIGH_CLIST, &var_tls_high_clist, 1, 0,
 	VAR_TLS_MEDIUM_CLIST, DEF_TLS_MEDIUM_CLIST, &var_tls_medium_clist, 1, 0,
-	VAR_TLS_LOW_CLIST, DEF_TLS_LOW_CLIST, &var_tls_low_clist, 1, 0,
-	VAR_TLS_EXPORT_CLIST, DEF_TLS_EXPORT_CLIST, &var_tls_export_clist, 1, 0,
+	VAR_TLS_LOW_CLIST, DEF_TLS_LOW_CLIST, &var_tls_low_ignored, 0, 0,
+	VAR_TLS_EXPORT_CLIST, DEF_TLS_EXPORT_CLIST, &var_tls_export_ignored, 0, 0,
 	VAR_TLS_NULL_CLIST, DEF_TLS_NULL_CLIST, &var_tls_null_clist, 1, 0,
 	VAR_TLS_EECDH_AUTO, DEF_TLS_EECDH_AUTO, &var_tls_eecdh_auto, 0, 0,
 	VAR_TLS_EECDH_STRONG, DEF_TLS_EECDH_STRONG, &var_tls_eecdh_strong, 1, 0,
@@ -815,12 +812,6 @@ const char *tls_set_ciphers(TLS_SESS_STATE *TLScontext, const char *grade,
 	break;
     case TLS_CIPHER_MEDIUM:
 	vstring_strcpy(buf, var_tls_medium_clist);
-	break;
-    case TLS_CIPHER_LOW:
-	vstring_strcpy(buf, var_tls_low_clist);
-	break;
-    case TLS_CIPHER_EXPORT:
-	vstring_strcpy(buf, var_tls_export_clist);
 	break;
     case TLS_CIPHER_NULL:
 	vstring_strcpy(buf, var_tls_null_clist);

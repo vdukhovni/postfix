@@ -12198,17 +12198,11 @@ one "medium" or "high" grade cipher. </p>
 <p> The following cipher grades are supported: </p>
 
 <dl>
-<dt><b>export</b></dt>
-<dd> Enable "EXPORT" grade or stronger OpenSSL ciphers.  The
-underlying cipherlist is specified via the tls_export_cipherlist
-configuration parameter, which you are strongly encouraged not to
-change.  This choice is insecure and SHOULD NOT be used.  </dd>
-
-<dt><b>low</b></dt>
-<dd> Enable "LOW" grade or stronger OpenSSL ciphers. The underlying
-cipherlist is specified via the tls_low_cipherlist configuration
-parameter, which you are strongly encouraged not to change.  This
-choice is insecure and SHOULD NOT be used.  </dd>
+<dt><b>high</b></dt>
+<dd> Enable only "HIGH" grade OpenSSL ciphers. The
+underlying cipherlist is specified via the tls_high_cipherlist
+configuration parameter, which you are strongly encouraged to
+not change. </dd>
 
 <dt><b>medium</b></dt>
 <dd> Enable "MEDIUM" grade or stronger OpenSSL ciphers. These use 128-bit
@@ -12217,12 +12211,6 @@ strength for mandatory TLS encryption. The underlying cipherlist is
 specified via the tls_medium_cipherlist configuration parameter, which
 you are strongly encouraged not to change. </dd>
 
-<dt><b>high</b></dt>
-<dd> Enable only "HIGH" grade OpenSSL ciphers. The
-underlying cipherlist is specified via the tls_high_cipherlist
-configuration parameter, which you are strongly encouraged to
-not change. </dd>
-
 <dt><b>null</b></dt>
 <dd> Enable only the "NULL" OpenSSL ciphers, these provide authentication
 without encryption.  This setting is only appropriate in the rare
@@ -12230,6 +12218,24 @@ case that all clients are prepared to use NULL ciphers (not normally
 enabled in TLS clients). The underlying cipherlist is specified via the
 tls_null_cipherlist configuration parameter, which you are strongly
 encouraged not to change. </dd>
+
+<dt><b>low</b></dt>
+<dd> Enable "LOW" grade or stronger OpenSSL ciphers.  In Postfix
+&ge; 3.8 this cipher grade is always identical to "medium".  Recent
+versions of OpenSSL do not support any "LOW" grade ciphers.  In
+earlier Postfix releases the underlying cipherlist was specified
+via the tls_low_cipherlist configuration parameter, which you are
+strongly encouraged not to change.  This obsolete cipher grade
+SHOULD NOT be used.  </dd>
+
+<dt><b>export</b></dt>
+<dd> Enable "EXPORT" grade or stronger OpenSSL ciphers.  In Postfix
+&ge; 3.8 this cipher grade is always identical to "medium".  Recent
+versions of OpenSSL do not support any "EXPORT" grade ciphers.  In
+earlier Postfix releases the underlying cipherlist was specified
+via the tls_export_cipherlist configuration parameter, which you are
+strongly encouraged not to change.  This obsolete cipher grade
+SHOULD NOT be used.  </dd>
 
 </dl>
 
@@ -12304,24 +12310,6 @@ on a per-destination basis. </p>
 <p> The following cipher grades are supported: </p>
 
 <dl>
-<dt><b>export</b></dt>
-<dd> Enable "EXPORT" grade or better OpenSSL ciphers.  The underlying
-cipherlist is specified via the tls_export_cipherlist configuration
-parameter, which you are strongly encouraged not to change.  This
-choice is insecure and SHOULD NOT be used.  </dd>
-
-<dt><b>low</b></dt>
-<dd> Enable "LOW" grade or better OpenSSL ciphers.  The underlying
-cipherlist is specified via the tls_low_cipherlist configuration
-parameter, which you are strongly encouraged not to change.  This
-choice is insecure and SHOULD NOT be used.  </dd>
-
-<dt><b>medium</b></dt>
-<dd> Enable "MEDIUM" grade or better OpenSSL ciphers.
-The underlying cipherlist is specified via the tls_medium_cipherlist
-configuration parameter, which you are strongly encouraged not to change.
-</dd>
-
 <dt><b>high</b></dt>
 <dd> Enable only "HIGH" grade OpenSSL ciphers.  This setting may
 be appropriate when all mandatory TLS destinations (e.g. when all
@@ -12329,6 +12317,12 @@ mail is routed to a suitably capable relayhost) support at least one
 "HIGH" grade cipher. The underlying cipherlist is specified via the
 tls_high_cipherlist configuration parameter, which you are strongly
 encouraged not to change. </dd>
+
+<dt><b>medium</b></dt>
+<dd> Enable "MEDIUM" grade or better OpenSSL ciphers.
+The underlying cipherlist is specified via the tls_medium_cipherlist
+configuration parameter, which you are strongly encouraged not to change.
+</dd>
 
 <dt><b>null</b></dt>
 <dd> Enable only the "NULL" OpenSSL ciphers, these provide authentication
@@ -12339,6 +12333,24 @@ UNIX-domain socket that is configured to support "NULL" ciphers. The
 underlying cipherlist is specified via the tls_null_cipherlist
 configuration parameter, which you are strongly encouraged not to
 change. </dd>
+
+<dt><b>low</b></dt>
+<dd> Enable "LOW" grade or stronger OpenSSL ciphers.  In Postfix
+&ge; 3.8 this cipher grade is always identical to "medium".  Recent
+versions of OpenSSL do not support any "LOW" grade ciphers.  In
+earlier Postfix releases the underlying cipherlist was specified
+via the tls_low_cipherlist configuration parameter, which you are
+strongly encouraged not to change.  This obsolete cipher grade
+SHOULD NOT be used.  </dd>
+
+<dt><b>export</b></dt>
+<dd> Enable "EXPORT" grade or stronger OpenSSL ciphers.  In Postfix
+&ge; 3.8 this cipher grade is always identical to "medium".  Recent
+versions of OpenSSL do not support any "EXPORT" grade ciphers.  In
+earlier Postfix releases the underlying cipherlist was specified
+via the tls_export_cipherlist configuration parameter, which you are
+strongly encouraged not to change.  This obsolete cipher grade
+SHOULD NOT be used.  </dd>
 
 </dl>
 
@@ -12423,26 +12435,27 @@ to change this setting.  </p>
 
 %PARAM tls_low_cipherlist see "postconf -d" output
 
-<p> The OpenSSL cipherlist for "low" or higher grade ciphers. This defines
-the meaning of the "low" setting in smtpd_tls_ciphers,
-smtpd_tls_mandatory_ciphers, smtp_tls_ciphers, smtp_tls_mandatory_ciphers,
-lmtp_tls_ciphers, and lmtp_tls_mandatory_ciphers. You are strongly
-encouraged not to change this setting.  </p>
+<p> The OpenSSL cipherlist for "low" or higher grade ciphers.
+Ignored as of Postfix 3.8.  In earlier Postfix releases this
+defined the meaning of the "low" setting in smtpd_tls_ciphers,
+smtpd_tls_mandatory_ciphers, smtp_tls_ciphers,
+smtp_tls_mandatory_ciphers, lmtp_tls_ciphers, and
+lmtp_tls_mandatory_ciphers. You are strongly encouraged not to
+change this setting.  </p>
 
-<p> This feature is available in Postfix 2.3 and later. </p>
+<p> This feature is available in Postfix 2.3 and later.  </p>
 
 %PARAM tls_export_cipherlist see "postconf -d" output
 
-<p> The OpenSSL cipherlist for "export" or higher grade ciphers. This
-defines the meaning of the "export" setting in smtpd_tls_ciphers,
-smtpd_tls_mandatory_ciphers, smtp_tls_ciphers, smtp_tls_mandatory_ciphers,
-lmtp_tls_ciphers, and lmtp_tls_mandatory_ciphers.  With Postfix
-releases before the middle of 2015 this is the default cipherlist
-for the opportunistic ("may") TLS client security level and also
-the default cipherlist for the SMTP server. You are strongly
-encouraged not to change this setting.  </p>
+<p> The OpenSSL cipherlist for "export" or higher grade ciphers.
+Ignored as of Postfix 3.8.  In earlier Postfix releases this
+defined the meaning of the "export" setting in smtpd_tls_ciphers,
+smtpd_tls_mandatory_ciphers, smtp_tls_ciphers,
+smtp_tls_mandatory_ciphers, lmtp_tls_ciphers, and
+lmtp_tls_mandatory_ciphers.  You are strongly encouraged not to
+change this setting.  </p>
 
-<p> This feature is available in Postfix 2.3 and later. </p>
+<p> This feature is available in Postfix 2.3 and later.  </p>
 
 %PARAM tls_null_cipherlist eNULL:!aNULL
 
@@ -18575,7 +18588,7 @@ in environments where ports are dynamically assigned to servers.
 %PARAM ignore_srv_lookup_error no
 
 <p> When SRV record lookup fails, fall back to MX or IP address
-lookup as if SRV record lookup was not enabled. </>
+lookup as if SRV record lookup was not enabled. </p>
 
 <p> This feature is available in Postfix 3.8 and later. </p>
 

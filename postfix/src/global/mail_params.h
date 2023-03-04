@@ -3322,24 +3322,32 @@ extern bool var_smtp_cname_overr;
  /*
   * TLS cipherlists
   */
+ /* Deprecated and unused cipher, key exchange and public key algorithms */
+#define TLS_EXCL_CIPHS	    ":!SEED:!IDEA:!3DES:!RC2:!RC4:!RC5"
+#define TLS_EXCL_KEXCH	    ":!kDH:!kECDH"
+#define TLS_EXCL_PKEYS	    ":!aDSS"
+#define TLS_EXCL_DGSTS	    ":!MD5"
+#define TLS_EXCL	    TLS_EXCL_CIPHS TLS_EXCL_REST
+#define TLS_EXCL_REST	    TLS_EXCL_KEXCH TLS_EXCL_PKEYS TLS_EXCL_DGSTS
+
 #define VAR_TLS_HIGH_CLIST	"tls_high_cipherlist"
-#define DEF_TLS_HIGH_CLIST	"aNULL:-aNULL:HIGH:@STRENGTH"
+#define DEF_TLS_HIGH_CLIST	"aNULL:-aNULL:HIGH" TLS_EXCL ":@STRENGTH"
 extern char *var_tls_high_clist;
 
 #define VAR_TLS_MEDIUM_CLIST	"tls_medium_cipherlist"
-#define DEF_TLS_MEDIUM_CLIST	"aNULL:-aNULL:HIGH:MEDIUM:+RC4:@STRENGTH"
+#define DEF_TLS_MEDIUM_CLIST	"aNULL:-aNULL:HIGH:MEDIUM" TLS_EXCL ":+RC4:@STRENGTH"
 extern char *var_tls_medium_clist;
 
 #define VAR_TLS_LOW_CLIST	"tls_low_cipherlist"
-#define DEF_TLS_LOW_CLIST	"aNULL:-aNULL:HIGH:MEDIUM:LOW:+RC4:@STRENGTH"
-extern char *var_tls_low_clist;
+#define DEF_TLS_LOW_CLIST	""
+extern char *var_tls_low_ignored;
 
 #define VAR_TLS_EXPORT_CLIST	"tls_export_cipherlist"
-#define DEF_TLS_EXPORT_CLIST	"aNULL:-aNULL:HIGH:MEDIUM:LOW:EXPORT:+RC4:@STRENGTH"
-extern char *var_tls_export_clist;
+#define DEF_TLS_EXPORT_CLIST	""
+extern char *var_tls_export_ignored;
 
 #define VAR_TLS_NULL_CLIST	"tls_null_cipherlist"
-#define DEF_TLS_NULL_CLIST	"eNULL:!aNULL"
+#define DEF_TLS_NULL_CLIST	"eNULL" TLS_EXCL_REST ":!aNULL"
 extern char *var_tls_null_clist;
 
 #if defined(SN_X25519) && defined(NID_X25519)

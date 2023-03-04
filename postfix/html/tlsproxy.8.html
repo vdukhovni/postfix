@@ -75,12 +75,6 @@ TLSPROXY(8)                                                        TLSPROXY(8)
        <b><a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a> (see 'postconf -d' output)</b>
               The OpenSSL cipherlist for "medium" or higher grade ciphers.
 
-       <b><a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> (see 'postconf -d' output)</b>
-              The OpenSSL cipherlist for "low" or higher grade ciphers.
-
-       <b><a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> (see 'postconf -d' output)</b>
-              The OpenSSL cipherlist for "export" or higher grade ciphers.
-
        <b><a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a> (eNULL:!aNULL)</b>
               The OpenSSL cipherlist for "NULL"  grade  ciphers  that  provide
               authentication without encryption.
@@ -100,6 +94,14 @@ TLSPROXY(8)                                                        TLSPROXY(8)
               With SSLv3 and later, use the Postfix SMTP server's cipher pref-
               erence order instead of the remote  client's  cipher  preference
               order.
+
+       Available in Postfix version 2.8..3.7:
+
+       <b><a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> (see 'postconf -d' output)</b>
+              The OpenSSL cipherlist for "low" or higher grade ciphers.
+
+       <b><a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> (see 'postconf -d' output)</b>
+              The OpenSSL cipherlist for "export" or higher grade ciphers.
 
        Available in Postfix version 2.9 and later:
 

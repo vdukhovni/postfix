@@ -74,10 +74,6 @@
 /*	The OpenSSL cipherlist for "high" grade ciphers.
 /* .IP "\fBtls_medium_cipherlist (see 'postconf -d' output)\fR"
 /*	The OpenSSL cipherlist for "medium" or higher grade ciphers.
-/* .IP "\fBtls_low_cipherlist (see 'postconf -d' output)\fR"
-/*	The OpenSSL cipherlist for "low" or higher grade ciphers.
-/* .IP "\fBtls_export_cipherlist (see 'postconf -d' output)\fR"
-/*	The OpenSSL cipherlist for "export" or higher grade ciphers.
 /* .IP "\fBtls_null_cipherlist (eNULL:!aNULL)\fR"
 /*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
 /*	authentication without encryption.
@@ -95,6 +91,12 @@
 /*	With SSLv3 and later, use the Postfix SMTP server's cipher
 /*	preference order instead of the remote client's cipher preference
 /*	order.
+/* .PP
+/*	Available in Postfix version 2.8..3.7:
+/* .IP "\fBtls_low_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "low" or higher grade ciphers.
+/* .IP "\fBtls_export_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "export" or higher grade ciphers.
 /* .PP
 /*	Available in Postfix version 2.9 and later:
 /* .IP "\fBtls_legacy_public_key_fingerprints (no)\fR"

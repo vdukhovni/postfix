@@ -466,7 +466,7 @@ configuration file, except for one: the parameter that specifies the location
 of Postfix configuration files. In order to build Postfix with a configuration
 directory other than /etc/postfix, use:
 
-    $ make makefiles CCARGS='-DDEF_CONFIG_DIR=\"/some/where\"'
+    $ make makefiles CCARGS="-DDEF_CONFIG_DIR=\\\"/some/where\\\""
     $ make
 
 IMPORTANT: Be sure to get the quotes right. These details matter a lot.

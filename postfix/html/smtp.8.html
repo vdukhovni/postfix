@@ -404,11 +404,11 @@ SMTP(8)                                                                SMTP(8)
 
        <b><a href="postconf.5.html#ignore_srv_lookup_error">ignore_srv_lookup_error</a> (no)</b>
               When  SRV  record  lookup  fails,  fall back to MX or IP address
-              lookup as if SRV record lookups were not enabled.
+              lookup as if SRV record lookup was not enabled.
 
        <b><a href="postconf.5.html#allow_srv_lookup_fallback">allow_srv_lookup_fallback</a> (no)</b>
               When SRV record lookup fails or no SRV record exists, fall  back
-              to  MX  or  IP  address lookup as if SRV record lookups were not
+              to  MX  or  IP  address  lookup  as if SRV record lookup was not
               enabled.
 
 <b>MIME PROCESSING CONTROLS</b>
@@ -585,15 +585,17 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a> (see 'postconf -d' output)</b>
               The OpenSSL cipherlist for "medium" or higher grade ciphers.
 
+       <b><a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a> (eNULL:!aNULL)</b>
+              The  OpenSSL  cipherlist  for  "NULL" grade ciphers that provide
+              authentication without encryption.
+
+       Available in in Postfix version 2.3..3.7:
+
        <b><a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> (see 'postconf -d' output)</b>
               The OpenSSL cipherlist for "low" or higher grade ciphers.
 
        <b><a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> (see 'postconf -d' output)</b>
               The OpenSSL cipherlist for "export" or higher grade ciphers.
-
-       <b><a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a> (eNULL:!aNULL)</b>
-              The  OpenSSL  cipherlist  for  "NULL" grade ciphers that provide
-              authentication without encryption.
 
        Available in Postfix version 2.4 and later:
 

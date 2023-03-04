@@ -52,8 +52,8 @@ the location of the libpq library file. </p>
 <pre>
 % make tidy
 % make -f Makefile.init makefiles \
-        'CCARGS=-DHAS_PGSQL -I/usr/local/include/pgsql' \
-        'AUXLIBS_PGSQL=-L/usr/local/lib -lpq'
+        "CCARGS=-DHAS_PGSQL -I/usr/local/include/pgsql" \
+        "AUXLIBS_PGSQL=-L/usr/local/lib -lpq"
 </pre>
 </blockquote>
 
