@@ -26906,3 +26906,18 @@ Apologies for any names omitted.
 	smtpd/smtpd.c, tls/tls_misc.c, tls/tls_proxy_client_misc.c,
 	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
 	tls/tls_proxy.h, tlsproxy/tlsproxy.c.
+
+20230308
+
+	Documentation: basic style sheet. Files: conf/postfix-files,
+	html/postfix-doc.css, mantools/make_soho_readme,
+	mantools/makemanidx, mantools/man2html, proto/[A-Z]*.html,
+	proto/postconf.html.prolog.
+
+	Cleanup: the postfix(1) and postlog(1) commands now produce
+	stderr output even when stderr is not connected to a terminal.
+	This eliminates an inconsistency, and makes these programs
+	easier to use in some automated procedures. The canonical
+	example is to capture output from "postmulti -p status" to
+	figure out which instances are or are not running. Files:
+	postfix/postfix.c, postlog/postlog.c.

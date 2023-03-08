@@ -437,6 +437,7 @@ $html_directory/postfix-manuals.html:f:root:-:644
 $html_directory/postfix-tls.1.html:f:root:-:644
 $html_directory/postfix-wrapper.5.html:f:root:-:644
 $html_directory/postfix.1.html:f:root:-:644
+$html_directory/postfix-doc.css:f:root:-:644
 $html_directory/postkick.1.html:f:root:-:644
 $html_directory/postlock.1.html:f:root:-:644
 $html_directory/postlog.1.html:f:root:-:644

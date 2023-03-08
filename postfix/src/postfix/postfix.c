@@ -68,7 +68,8 @@
 /*	Re-read configuration files. Running processes terminate at their
 /*	earliest convenience.
 /* .IP \fBstatus\fR
-/*	Indicate if the Postfix mail system is currently running.
+/*	Indicate if the Postfix mail system is currently running
+/*	(zero exit status) or stopped (non-zero exit status).
 /* .IP "\fBset-permissions\fR [\fIname\fR=\fIvalue ...\fR]"
 /*	Set the ownership and permissions of Postfix related files and
 /*	directories, as specified in the \fBpostfix-files\fR file.
@@ -516,8 +517,7 @@ int     main(int argc, char **argv)
      */
     if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
-    if (isatty(STDERR_FILENO))
-	msg_vstream_init(argv[0], VSTREAM_ERR);
+    msg_vstream_init(argv[0], VSTREAM_ERR);
     maillog_client_init(argv[0], MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 
     /*

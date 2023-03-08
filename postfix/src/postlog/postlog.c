@@ -67,7 +67,7 @@
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a privileged Postfix
+/*	The list of environment variables that a privileged Postfix
 /*	process will import from a non-Postfix parent process, or name=value
 /*	environment overrides.
 /* .IP "\fBsyslog_facility (mail)\fR"
@@ -267,8 +267,7 @@ int     main(int argc, char **argv)
      */
     argv[0] = POSTLOG_CMD;
     tag = mail_task(argv[0]);
-    if (isatty(STDERR_FILENO))
-	msg_vstream_init(tag, VSTREAM_ERR);
+    msg_vstream_init(tag, VSTREAM_ERR);
     maillog_client_init(tag, MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 
     /*

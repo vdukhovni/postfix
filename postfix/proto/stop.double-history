@@ -30,3 +30,8 @@
  smtp smtp c smtpd smtpd c tls tls_misc c 
  smtp smtp c smtpd smtpd c tls tls_misc c 
 proto  proto SASL_README html proto SQLITE_README html 
+ proto postconf proto global mail_params h smtp smtp c 
+ smtpd smtpd c tls tls_misc c tls tls_proxy_client_misc c 
+ tls tls_proxy h tlsproxy tlsproxy c 
+ postfix postfix c postlog postlog c 
+ postfix postfix c postlog postlog c 
