@@ -3198,6 +3198,16 @@ extern int var_smtpd_cntls_limit;
 #define DEF_SMTPD_CAUTH_LIMIT		0
 extern int var_smtpd_cauth_limit;
 
+#define VAR_SMTPD_CIPV4_PREFIX		"smtpd_client_ipv4_prefix_length"
+#define DEF_SMTPD_CIPV4_PREFIX		32
+#define MAX_SMTPD_CIPV4_PREFIX		32
+extern int var_smtpd_cipv4_prefix;
+
+#define VAR_SMTPD_CIPV6_PREFIX		"smtpd_client_ipv6_prefix_length"
+#define DEF_SMTPD_CIPV6_PREFIX		72
+#define MAX_SMTPD_CIPV6_PREFIX		128
+extern int var_smtpd_cipv6_prefix;
+
 #define VAR_SMTPD_HOGGERS		"smtpd_client_event_limit_exceptions"
 #define DEF_SMTPD_HOGGERS		"${smtpd_client_connection_limit_exceptions:$" VAR_MYNETWORKS "}"
 extern char *var_smtpd_hoggers;

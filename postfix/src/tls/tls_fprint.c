@@ -130,11 +130,11 @@
 
 static const char hexcodes[] = "0123456789ABCDEF";
 
-#define checkok(stillok) (ok = ok && (stillok))
-#define digest_object(p) digest_data((unsigned char *)(p), sizeof(*(p)))
-#define digest_data(p, l) checkok(digest_bytes(mdctx, (p), (l)))
-#define digest_string(s) checkok(digest_chars(mdctx, (s)))
-#define digest_dane(tlsa) checkok(tls_digest_tlsa(mdctx, tlsa))
+#define CHECK_OK_AND(stillok) (ok = ok && (stillok))
+#define CHECK_OK_AND_DIGEST_OBJECT(m, p) \
+	CHECK_OK_AND_DIGEST_DATA((m), (unsigned char *)(p), sizeof(*(p)))
+#define CHECK_OK_AND_DIGEST_DATA(m, p, l) CHECK_OK_AND(digest_bytes((m), (p), (l)))
+#define CHECK_OK_AND_DIGEST_CHARS(m, s) CHECK_OK_AND(digest_chars((m), (s)))
 
 /* digest_bytes - hash octet string of given length */
 
@@ -186,13 +186,13 @@ static int tls_digest_tlsa(EVP_MD_CTX *mdctx, TLS_TLSA *tlsa)
 	arr[i++] = (void *) p;
     qsort(arr, n, sizeof(arr[0]), tlsa_cmp);
 
-    digest_object(&n);
+    CHECK_OK_AND_DIGEST_OBJECT(mdctx, &n);
     for (i = 0; i < n; ++i) {
-	digest_object(&arr[i]->usage);
-	digest_object(&arr[i]->selector);
-	digest_object(&arr[i]->mtype);
-	digest_object(&arr[i]->length);
-	digest_data(arr[i]->data, arr[i]->length);
+	CHECK_OK_AND_DIGEST_OBJECT(mdctx, &arr[i]->usage);
+	CHECK_OK_AND_DIGEST_OBJECT(mdctx, &arr[i]->selector);
+	CHECK_OK_AND_DIGEST_OBJECT(mdctx, &arr[i]->mtype);
+	CHECK_OK_AND_DIGEST_OBJECT(mdctx, &arr[i]->length);
+	CHECK_OK_AND_DIGEST_DATA(mdctx, arr[i]->data, arr[i]->length);
     }
     myfree((void *) arr);
     return (ok);
@@ -218,15 +218,15 @@ const EVP_MD *tls_digest_byname(const char *mdalg, EVP_MD_CTX **mdctxPtr)
      * Note that EVP_MD_CTX_{create,destroy} were renamed to, respectively,
      * EVP_MD_CTX_{new,free} in OpenSSL 1.1.0.
      */
-    checkok(md = EVP_get_digestbyname(mdalg));
+    CHECK_OK_AND(md = EVP_get_digestbyname(mdalg));
 
     /*
      * Sanity check: Newer shared libraries could (hypothetical ABI break)
      * allow larger digests, we avoid such poison algorithms.
      */
-    checkok(EVP_MD_size(md) <= EVP_MAX_MD_SIZE);
-    checkok(mdctx = EVP_MD_CTX_new());
-    checkok(EVP_DigestInit_ex(mdctx, md, NULL));
+    CHECK_OK_AND(EVP_MD_size(md) <= EVP_MAX_MD_SIZE);
+    CHECK_OK_AND(mdctx = EVP_MD_CTX_new());
+    CHECK_OK_AND(EVP_DigestInit_ex(mdctx, md, NULL));
 
 
     if (ok && mdctxPtr != 0)
@@ -269,10 +269,10 @@ char   *tls_serverid_digest(TLS_SESS_STATE *TLScontext,
     /* Salt the session lookup key with the OpenSSL runtime version. */
     sslversion = OpenSSL_version_num();
 
-    digest_string(props->helo ? props->helo : "");
-    digest_object(&sslversion);
-    digest_string(props->protocols);
-    digest_string(ciphers);
+    CHECK_OK_AND_DIGEST_CHARS(mdctx, props->helo ? props->helo : "");
+    CHECK_OK_AND_DIGEST_OBJECT(mdctx, &sslversion);
+    CHECK_OK_AND_DIGEST_CHARS(mdctx, props->protocols);
+    CHECK_OK_AND_DIGEST_CHARS(mdctx, ciphers);
 
     /*
      * Ensure separation of caches for sessions where DANE trust
@@ -280,7 +280,7 @@ char   *tls_serverid_digest(TLS_SESS_STATE *TLScontext,
      * should always see a certificate validation failure, both on initial
      * handshake and on resumption.
      */
-    digest_object(&TLScontext->must_fail);
+    CHECK_OK_AND_DIGEST_OBJECT(mdctx, &TLScontext->must_fail);
 
     /*
      * DNS-based or synthetic DANE trust settings are potentially used at all
@@ -288,11 +288,11 @@ char   *tls_serverid_digest(TLS_SESS_STATE *TLScontext,
      */
     if (TLScontext->level > TLS_LEV_ENCRYPT
 	&& props->dane && props->dane->tlsa) {
-	digest_dane(props->dane->tlsa);
+	CHECK_OK_AND(tls_digest_tlsa(mdctx, props->dane->tlsa));
     } else {
 	int     none = 0;		/* Record a TLSA RR count of zero */
 
-	digest_object(&none);
+	CHECK_OK_AND_DIGEST_OBJECT(mdctx, &none);
     }
 
     /*
@@ -300,11 +300,11 @@ char   *tls_serverid_digest(TLS_SESS_STATE *TLScontext,
      * selection.
      */
     if (TLScontext->level > TLS_LEV_ENCRYPT && TLScontext->peer_sni)
-	digest_string(TLScontext->peer_sni);
+	CHECK_OK_AND_DIGEST_CHARS(mdctx, TLScontext->peer_sni);
     else
-	digest_string("");
+	CHECK_OK_AND_DIGEST_CHARS(mdctx, "");
 
-    checkok(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
+    CHECK_OK_AND(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
     EVP_MD_CTX_destroy(mdctx);
     if (!ok)
 	msg_fatal("error computing %s message digest", mdalg);
@@ -368,8 +368,8 @@ static char *tls_data_fprint(const unsigned char *buf, int len, const char *mdal
     if (tls_digest_byname(mdalg, &mdctx) == 0)
 	msg_panic("digest algorithm \"%s\" not found", mdalg);
 
-    digest_data(buf, len);
-    checkok(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
+    CHECK_OK_AND_DIGEST_DATA(mdctx, buf, len);
+    CHECK_OK_AND(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
     EVP_MD_CTX_destroy(mdctx);
     if (!ok)
 	msg_fatal("error computing %s message digest", mdalg);

@@ -77,6 +77,7 @@ typedef struct {
     char   *addr;			/* client host address string */
     char   *port;			/* port for logging */
     char   *namaddr;			/* name[address]:port */
+    char   *anvil_range;		/* client address or network/length */
     char   *rfc_addr;			/* address for RFC 2821 */
     int     addr_family;		/* address family */
     char   *dest_addr;			/* Dovecot AUTH, Milter {daemon_addr} */

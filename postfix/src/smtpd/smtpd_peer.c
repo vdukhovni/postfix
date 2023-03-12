@@ -139,6 +139,7 @@
 #include <sock_addr.h>
 #include <inet_proto.h>
 #include <split_at.h>
+#include <net_mask_top.h>
 
 /* Global library. */
 
@@ -250,10 +251,12 @@ static int smtpd_peer_sockaddr_to_hostaddr(SMTPD_STATE *state)
 		state->addr = mystrdup(colonp + 1);
 		state->rfc_addr = mystrdup(colonp + 1);
 		state->addr_family = AF_INET;
-		aierr = hostaddr_to_sockaddr(state->addr, (char *) 0, 0, &res0);
+		aierr =
+		    hostaddr_to_sockaddr(state->addr, state->port, 0, &res0);
 		if (aierr)
-		    msg_fatal("%s: cannot convert %s from string to binary: %s",
-			      myname, state->addr, MAI_STRERROR(aierr));
+		    msg_fatal("%s: cannot convert [%s]:%s to binary: %s",
+			      myname, state->addr, state->port,
+			      MAI_STRERROR(aierr));
 		sa_length = res0->ai_addrlen;
 		if (sa_length > sizeof(state->sockaddr))
 		    sa_length = sizeof(state->sockaddr);
@@ -264,10 +267,10 @@ static int smtpd_peer_sockaddr_to_hostaddr(SMTPD_STATE *state)
 	    /*
 	     * Following RFC 2821 section 4.1.3, an IPv6 address literal gets
 	     * a prefix of 'IPv6:'. We do this consistently for all IPv6
-	     * addresses that appear in headers or envelopes. The fact
-	     * that valid_mailhost_addr() enforces the form helps of course.
-	     * We use the form without IPV6: prefix when doing access
-	     * control, or when accessing the connection cache.
+	     * addresses that appear in headers or envelopes. The fact that
+	     * valid_mailhost_addr() enforces the form helps of course. We
+	     * use the form without IPV6: prefix when doing access control,
+	     * or when accessing the connection cache.
 	     */
 	    else {
 		state->addr = mystrdup(client_addr.buf);
@@ -581,6 +584,7 @@ static void smtpd_peer_from_proxy(SMTPD_STATE *state)
 
 void    smtpd_peer_init(SMTPD_STATE *state)
 {
+    int     af;
 
     /*
      * Initialize.
@@ -599,6 +603,7 @@ void    smtpd_peer_init(SMTPD_STATE *state)
     state->namaddr = 0;
     state->rfc_addr = 0;
     state->port = 0;
+    state->anvil_range = 0;
     state->dest_addr = 0;
     state->dest_port = 0;
 
@@ -633,6 +638,16 @@ void    smtpd_peer_init(SMTPD_STATE *state)
      */
     state->namaddr = SMTPD_BUILD_NAMADDRPORT(state->name, state->addr,
 					     state->port);
+
+    /*
+     * Generate 'address' or 'net/mask' index for anvil event aggregation.
+     */
+    af = SOCK_ADDR_FAMILY(&(state->sockaddr));
+    state->anvil_range = net_mask_top(af,
+				      SOCK_ADDR_ADDRP(&(state->sockaddr)),
+				      af == AF_INET ?
+				      var_smtpd_cipv4_prefix :
+				      var_smtpd_cipv6_prefix);
 }
 
 /* smtpd_peer_reset - destroy peer information */
@@ -655,4 +670,6 @@ void    smtpd_peer_reset(SMTPD_STATE *state)
 	myfree(state->dest_addr);
     if (state->dest_port)
 	myfree(state->dest_port);
+    if (state->anvil_range)
+	myfree(state->anvil_range);
 }

@@ -244,7 +244,7 @@ static void cleanup_milter_hbc_log(void *context, const char *action,
     const CLEANUP_STATE *state = (CLEANUP_STATE *) context;
     const char *attr;
 
-    vstring_sprintf(state->temp1, "%s: milter-%s-%s: %s %.60s from %s[%s];",
+    vstring_sprintf(state->temp1, "%s: milter-%s-%s: %s %.200s from %s[%s];",
 		    state->queue_id, where, action, where, line,
 		    state->client_name, state->client_addr);
     if (state->sender)

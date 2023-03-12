@@ -840,7 +840,6 @@ DNS_RR *smtp_service_addr(const char *name, const char *service, DNS_RR **mxrr,
 	dsb_status(why, "5.4.4");
 	break;
     }
-    *found_myself |= (self != 0);
 
     /*
      * If permitted, fall back to non-SRV record lookups.
@@ -853,6 +852,13 @@ DNS_RR *smtp_service_addr(const char *name, const char *service, DNS_RR **mxrr,
 					 found_myself);
 	else
 	    addr_list = smtp_host_addr(name, misc_flags, why);
+    }
+
+    /*
+     * Only if we're not falling back.
+     */ 
+    else {
+	*found_myself |= (self != 0);
     }
     return (addr_list);
 }

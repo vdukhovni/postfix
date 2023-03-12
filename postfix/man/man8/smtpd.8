@@ -841,6 +841,14 @@ DATA and BDAT requests, when deadlines are enabled with
 smtpd_per_request_deadline.
 .IP "\fBheader_from_format (standard)\fR"
 The format of the Postfix\-generated \fBFrom:\fR header.
+.PP
+Available in Postfix version 3.8 and later:
+.IP "\fBsmtpd_client_ipv4_prefix_length (32)\fR"
+Aggregate smtpd_client_*_count and smtpd_client_*_rate statistics
+by IPv4 network blocks with the specified network prefix.
+.IP "\fBsmtpd_client_ipv6_prefix_length (72)\fR"
+Aggregate smtpd_client_*_count and smtpd_client_*_rate statistics
+by IPv6 network blocks with the specified network prefix.
 .SH "TARPIT CONTROLS"
 .na
 .nf

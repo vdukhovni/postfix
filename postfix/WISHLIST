@@ -14,6 +14,13 @@ Wish list:
 	Multi-recipient support in sender/recipient_bcc_maps and
 	always_bcc.
 
+	mail_conf_xxx supprt for non-negative numbers (i.e. 
+	numbers with a lower bound of zero).
+
+	Log anvil transgressions with their address range (in
+	addition to the offending IP address. We should not disclose
+	to random clients how we aggregate anvil event counters.
+
 	Should "postconf -f" pretty-print text inside {}?
 
 	Is there any code that calls attr_scan*() and that works

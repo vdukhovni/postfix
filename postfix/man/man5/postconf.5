@@ -9956,6 +9956,20 @@ parent_domain_matches_subdomains parameter value (Postfix 3.0 and
 later).
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtpd_client_ipv4_prefix_length (default: 32)
+Aggregate smtpd_client_*_count and smtpd_client_*_rate statistics
+by IPv4 network blocks with the specified network prefix. Aggregation
+reduces the \fBanvil\fR(8) resources needed to maintain counters. By
+default, aggregation is disabled for IPv4.
+.PP
+This feature is available in Postfix 3.8 and later.
+.SH smtpd_client_ipv6_prefix_length (default: 72)
+Aggregate smtpd_client_*_count and smtpd_client_*_rate statistics
+by IPv6 network blocks with the specified network prefix. Aggregation
+reduces the \fBanvil\fR(8) resources needed to maintain counters. By
+default, aggregation is enabled for IPv6.
+.PP
+This feature is available in Postfix 3.8 and later.
 .SH smtpd_client_message_rate_limit (default: 0)
 The maximal number of message delivery requests that any client is
 allowed to make to this service per time unit, regardless of whether

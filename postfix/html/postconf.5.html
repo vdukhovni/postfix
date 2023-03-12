@@ -14641,6 +14641,33 @@ This feature is available in Postfix 2.2 and later.
 
 </DD>
 
+<DT><b><a name="smtpd_client_ipv4_prefix_length">smtpd_client_ipv4_prefix_length</a>
+(default: 32)</b></DT><DD>
+
+<p> Aggregate smtpd_client_*_count and smtpd_client_*_rate statistics
+by IPv4 network blocks with the specified network prefix. Aggregation
+reduces the <a href="anvil.8.html">anvil(8)</a> resources needed to maintain counters. By
+default, aggregation is disabled for IPv4. </p>
+
+<p> This feature is available in Postfix 3.8 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_client_ipv6_prefix_length">smtpd_client_ipv6_prefix_length</a>
+(default: 72)</b></DT><DD>
+
+<p> Aggregate smtpd_client_*_count and smtpd_client_*_rate statistics
+by IPv6 network blocks with the specified network prefix. Aggregation
+reduces the <a href="anvil.8.html">anvil(8)</a> resources needed to maintain counters. By
+default, aggregation is enabled for IPv6.
+</p>
+
+<p> This feature is available in Postfix 3.8 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_client_message_rate_limit">smtpd_client_message_rate_limit</a>
 (default: 0)</b></DT><DD>
 

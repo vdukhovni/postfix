@@ -795,6 +795,14 @@
 /*	smtpd_per_request_deadline.
 /* .IP "\fBheader_from_format (standard)\fR"
 /*	The format of the Postfix-generated \fBFrom:\fR header.
+/* .PP
+/*	Available in Postfix version 3.8 and later:
+/* .IP "\fBsmtpd_client_ipv4_prefix_length (32)\fR"
+/*	Aggregate smtpd_client_*_count and smtpd_client_*_rate statistics
+/*	by IPv4 network blocks with the specified network prefix.
+/* .IP "\fBsmtpd_client_ipv6_prefix_length (72)\fR"
+/*	Aggregate smtpd_client_*_count and smtpd_client_*_rate statistics
+/*	by IPv6 network blocks with the specified network prefix.
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -1411,6 +1419,8 @@ int     var_smtpd_cmail_limit;
 int     var_smtpd_crcpt_limit;
 int     var_smtpd_cntls_limit;
 int     var_smtpd_cauth_limit;
+int     var_smtpd_cipv4_prefix;
+int     var_smtpd_cipv6_prefix;
 char   *var_smtpd_hoggers;
 char   *var_local_rwr_clients;
 char   *var_smtpd_ehlo_dis_words;
@@ -2054,7 +2064,7 @@ static int smtpd_sasl_auth_cmd_wrapper(SMTPD_STATE *state, int argc,
 	&& anvil_clnt
 	&& var_smtpd_cauth_limit > 0
 	&& !namadr_list_match(hogger_list, state->name, state->addr)
-	&& anvil_clnt_auth(anvil_clnt, state->service, state->addr,
+	&& anvil_clnt_auth(anvil_clnt, state->service, state->anvil_range,
 			   &rate) == ANVIL_STAT_OK
 	&& rate > var_smtpd_cauth_limit) {
 	state->error_mask |= MAIL_ERROR_POLICY;
@@ -2512,7 +2522,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	&& anvil_clnt
 	&& var_smtpd_cmail_limit > 0
 	&& !namadr_list_match(hogger_list, state->name, state->addr)
-	&& anvil_clnt_mail(anvil_clnt, state->service, state->addr,
+	&& anvil_clnt_mail(anvil_clnt, state->service, state->anvil_range,
 			   &rate) == ANVIL_STAT_OK
 	&& rate > var_smtpd_cmail_limit) {
 	state->error_mask |= MAIL_ERROR_POLICY;
@@ -2906,7 +2916,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	&& anvil_clnt
 	&& var_smtpd_crcpt_limit > 0
 	&& !namadr_list_match(hogger_list, state->name, state->addr)
-	&& anvil_clnt_rcpt(anvil_clnt, state->service, state->addr,
+	&& anvil_clnt_rcpt(anvil_clnt, state->service, state->anvil_range,
 			   &rate) == ANVIL_STAT_OK
 	&& rate > var_smtpd_crcpt_limit) {
 	state->error_mask |= MAIL_ERROR_POLICY;
@@ -4230,7 +4240,7 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	&& anvil_clnt
 	&& var_smtpd_crcpt_limit > 0
 	&& !namadr_list_match(hogger_list, state->name, state->addr)
-	&& anvil_clnt_rcpt(anvil_clnt, state->service, state->addr,
+	&& anvil_clnt_rcpt(anvil_clnt, state->service, state->anvil_range,
 			   &rate) == ANVIL_STAT_OK
 	&& rate > var_smtpd_crcpt_limit) {
 	state->error_mask |= MAIL_ERROR_POLICY;
@@ -5146,7 +5156,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 	&& !xclient_allowed
 	&& anvil_clnt
 	&& !namadr_list_match(hogger_list, state->name, state->addr)
-	&& anvil_clnt_newtls(anvil_clnt, state->service, state->addr,
+	&& anvil_clnt_newtls(anvil_clnt, state->service, state->anvil_range,
 			     &rate) == ANVIL_STAT_OK
 	&& rate > var_smtpd_cntls_limit) {
 	state->error_mask |= MAIL_ERROR_POLICY;
@@ -5292,8 +5302,8 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	&& !xclient_allowed
 	&& anvil_clnt
 	&& !namadr_list_match(hogger_list, state->name, state->addr)
-	&& anvil_clnt_newtls_stat(anvil_clnt, state->service, state->addr,
-				  &rate) == ANVIL_STAT_OK
+	&& anvil_clnt_newtls_stat(anvil_clnt, state->service,
+				  state->anvil_range, &rate) == ANVIL_STAT_OK
 	&& rate > var_smtpd_cntls_limit) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	msg_warn("Refusing STARTTLS request from %s for service %s",
@@ -5560,7 +5570,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 		&& anvil_clnt
 		&& !namadr_list_match(hogger_list, state->name, state->addr)
 		&& anvil_clnt_newtls_stat(anvil_clnt, state->service,
-				    state->addr, &tls_rate) == ANVIL_STAT_OK
+			     state->anvil_range, &tls_rate) == ANVIL_STAT_OK
 		&& tls_rate > var_smtpd_cntls_limit) {
 		state->error_mask |= MAIL_ERROR_POLICY;
 		msg_warn("Refusing TLS service request from %s for service %s",
@@ -5586,8 +5596,9 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    && !xclient_allowed
 	    && anvil_clnt
 	    && !namadr_list_match(hogger_list, state->name, state->addr)
-	    && anvil_clnt_connect(anvil_clnt, state->service, state->addr,
-				  &state->conn_count, &state->conn_rate)
+	    && anvil_clnt_connect(anvil_clnt, state->service,
+				  state->anvil_range, &state->conn_count,
+				  &state->conn_rate)
 	    == ANVIL_STAT_OK) {
 	    if (var_smtpd_cconn_limit > 0
 		&& state->conn_count > var_smtpd_cconn_limit) {
@@ -5845,7 +5856,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 	&& !xclient_allowed
 	&& anvil_clnt
 	&& !namadr_list_match(hogger_list, state->name, state->addr))
-	anvil_clnt_disconnect(anvil_clnt, state->service, state->addr);
+	anvil_clnt_disconnect(anvil_clnt, state->service, state->anvil_range);
 
     /*
      * Log abnormal session termination, in case postmaster notification has
@@ -6427,6 +6438,8 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_CRCPT_LIMIT, DEF_SMTPD_CRCPT_LIMIT, &var_smtpd_crcpt_limit, 0, 0,
 	VAR_SMTPD_CNTLS_LIMIT, DEF_SMTPD_CNTLS_LIMIT, &var_smtpd_cntls_limit, 0, 0,
 	VAR_SMTPD_CAUTH_LIMIT, DEF_SMTPD_CAUTH_LIMIT, &var_smtpd_cauth_limit, 0, 0,
+	VAR_SMTPD_CIPV4_PREFIX, DEF_SMTPD_CIPV4_PREFIX, &var_smtpd_cipv4_prefix, 0, MAX_SMTPD_CIPV4_PREFIX,
+	VAR_SMTPD_CIPV6_PREFIX, DEF_SMTPD_CIPV6_PREFIX, &var_smtpd_cipv6_prefix, 0, MAX_SMTPD_CIPV6_PREFIX,
 #ifdef USE_TLS
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
 #endif

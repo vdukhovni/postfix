@@ -26921,3 +26921,31 @@ Apologies for any names omitted.
 	example is to capture output from "postmulti -p status" to
 	figure out which instances are or are not running. Files:
 	postfix/postfix.c, postlog/postlog.c.
+
+20230209
+
+	Cleanup: in smtp_service_addr() refined the loop detection
+	code for SRV lookup. File: smtp/smtp_addr.c.
+
+	Cleanup: renamed macros with invisible side effects and
+	implicit inputs to upper case.  Verified that the compiled
+	code did not change. File: tls_fprint.c.
+
+20230310
+
+	Cleanup: the milter header/body checks logged less text (up
+	to 60 bytes) than the 'original' header/body checks (up to
+	200 bytes). Problem reported by Aleksandr Stankevic. Fixed
+	the same inconsistency in the Postfix SMTP client. Files:
+	cleanup/cleanup_milter.c, smtp/smtp_proto.c.
+
+20230311
+
+	Hardening: the Postfix SMTP server can now aggregate
+	smtpd_client_*_rate and smtpd_client_*_count statistics by
+	network block, as specified with smtpd_client_ipv4_prefix_length
+	(default 32, no aggregation) and smtpd_client_ipv6_prefix_length
+	(default 72, aggregation by /72 network blocks). The latter
+	raises the bar for a memory exhaustion attack. Files:
+	util/net_mask_top.[hc], smtpd/smtpd.c, smtpd/smtpd_peer.c,
+	mantools/postlink, proto/postconf.proto.
