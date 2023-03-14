@@ -44,7 +44,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	msg_logger.c logwriter.c unix_dgram_connect.c unix_dgram_listen.c \
 	byte_mask.c known_tcp_ports.c argv_split_at.c dict_stream.c \
 	sane_strtol.c hash_fnv.c ldseed.c mkmap_cdb.c mkmap_db.c mkmap_dbm.c \
-	mkmap_fail.c mkmap_lmdb.c mkmap_open.c mkmap_sdbm.c net_mask_top.c
+	mkmap_fail.c mkmap_lmdb.c mkmap_open.c mkmap_sdbm.c inet_prefix_top.c \
+	inet_addr_sizes.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -90,7 +91,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	msg_logger.o logwriter.o unix_dgram_connect.o unix_dgram_listen.o \
 	byte_mask.o known_tcp_ports.o argv_split_at.o dict_stream.o \
 	sane_strtol.o hash_fnv.o ldseed.o mkmap_db.o mkmap_dbm.o \
-	mkmap_fail.o mkmap_open.o net_mask_top.o
+	mkmap_fail.o mkmap_open.o inet_prefix_top.o inet_addr_sizes.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -122,7 +123,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	valid_utf8_hostname.h midna_domain.h dict_union.h dict_inline.h \
 	check_arg.h argv_attr.h msg_logger.h logwriter.h byte_mask.h \
 	known_tcp_ports.h sane_strtol.h hash_fnv.h ldseed.h mkmap.h \
-	net_mask_top.h
+	inet_prefix_top.h inet_addr_sizes.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -2024,6 +2025,11 @@ inet_addr_local.o: sock_addr.h
 inet_addr_local.o: sys_defs.h
 inet_addr_local.o: vbuf.h
 inet_addr_local.o: vstring.h
+inet_addr_sizes.o: inet_addr_sizes.c
+inet_addr_sizes.o: inet_addr_sizes.h
+inet_addr_sizes.o: msg.h
+inet_addr_sizes.o: myaddrinfo.h
+inet_addr_sizes.o: sys_defs.h
 inet_connect.o: connect.h
 inet_connect.o: host_port.h
 inet_connect.o: inet_connect.c
@@ -2048,6 +2054,15 @@ inet_listen.o: mymalloc.h
 inet_listen.o: sane_accept.h
 inet_listen.o: sock_addr.h
 inet_listen.o: sys_defs.h
+inet_prefix_top.o: check_arg.h
+inet_prefix_top.o: inet_addr_sizes.h
+inet_prefix_top.o: inet_prefix_top.c
+inet_prefix_top.o: inet_prefix_top.h
+inet_prefix_top.o: mask_addr.h
+inet_prefix_top.o: msg.h
+inet_prefix_top.o: sys_defs.h
+inet_prefix_top.o: vbuf.h
+inet_prefix_top.o: vstring.h
 inet_proto.o: check_arg.h
 inet_proto.o: inet_proto.c
 inet_proto.o: inet_proto.h
@@ -2416,15 +2431,6 @@ nbbio.o: mymalloc.h
 nbbio.o: nbbio.c
 nbbio.o: nbbio.h
 nbbio.o: sys_defs.h
-net_mask_top.o: check_arg.h
-net_mask_top.o: mask_addr.h
-net_mask_top.o: msg.h
-net_mask_top.o: myaddrinfo.h
-net_mask_top.o: net_mask_top.c
-net_mask_top.o: net_mask_top.h
-net_mask_top.o: sys_defs.h
-net_mask_top.o: vbuf.h
-net_mask_top.o: vstring.h
 netstring.o: check_arg.h
 netstring.o: compat_va_copy.h
 netstring.o: msg.h

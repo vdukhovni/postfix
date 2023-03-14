@@ -26947,5 +26947,31 @@ Apologies for any names omitted.
 	(default 32, no aggregation) and smtpd_client_ipv6_prefix_length
 	(default 72, aggregation by /72 network blocks). The latter
 	raises the bar for a memory exhaustion attack. Files:
-	util/net_mask_top.[hc], smtpd/smtpd.c, smtpd/smtpd_peer.c,
+	util/inet_prefix_top.[hc], smtpd/smtpd.c, smtpd/smtpd_peer.c,
 	mantools/postlink, proto/postconf.proto.
+
+20230313
+
+	Factored out a function that may be generally useful, and
+	made a vstring_alloc() argument more precise to avoid memory
+	reallocation. Files: util/inet_prefix_top.c,
+	util/inet_addr_sizes.[hc].
+
+20230314
+
+	Bugfix (introduced: Postfix 3.5): check_ccert_access did
+	not parse inline map specifications. Report and fix by
+	Sean Gallagher. File: global/map_search.c.
+
+	Cleanup: don't do smtpd_client_*_rate and smtpd_client_*_count
+	address range computations when "/usr/sbin/sendmail -bs"
+	is not talking to a network client. File: smtpd/smtpd_peer.c.
+
+	Cleanup: renamed net_mask_top.* to inet_prefix_top.*.
+
+	Cleanup: updated unit tests. Files: smtpd/smtod_check.c,
+	smtpd/smtpd_server.in, smtpd/smtpd_server.ref.
+
+	Increased the smtpd_client_ipv6_prefix_length to 84 bits,
+	which should prevent anvil exhaustion attacks from a typical
+	/64 consumer network, without penalizing legitimate usage.

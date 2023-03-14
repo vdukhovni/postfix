@@ -481,6 +481,7 @@ smtpd_peer.o: ../../include/check_arg.h
 smtpd_peer.o: ../../include/dns.h
 smtpd_peer.o: ../../include/haproxy_srvr.h
 smtpd_peer.o: ../../include/htable.h
+smtpd_peer.o: ../../include/inet_prefix_top.h
 smtpd_peer.o: ../../include/inet_proto.h
 smtpd_peer.o: ../../include/iostuff.h
 smtpd_peer.o: ../../include/mail_params.h
@@ -492,7 +493,6 @@ smtpd_peer.o: ../../include/myaddrinfo.h
 smtpd_peer.o: ../../include/mymalloc.h
 smtpd_peer.o: ../../include/name_code.h
 smtpd_peer.o: ../../include/name_mask.h
-smtpd_peer.o: ../../include/net_mask_top.h
 smtpd_peer.o: ../../include/nvtable.h
 smtpd_peer.o: ../../include/sock_addr.h
 smtpd_peer.o: ../../include/split_at.h

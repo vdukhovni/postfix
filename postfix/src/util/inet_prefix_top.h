@@ -1,20 +1,20 @@
-#ifndef _NET_MASK_TOP_H_INCLUDED_
-#define _NET_MASK_TOP_H_INCLUDED_
+#ifndef _INET_MASK_TOP_H_INCLUDED_
+#define _INET_MASK_TOP_H_INCLUDED_
 
 /*++
 /* NAME
-/*	net_mask_top 3h
+/*	inet_prefix_top 3h
 /* SUMMARY
 /*	convert net/mask to printable string
 /* SYNOPSIS
-/*	#include <net_mask_top.h>
+/*	#include <inet_prefix_top.h>
 /* DESCRIPTION
 /* .nf
 
  /*
   * External interface.
   */
-extern char *net_mask_top(int, const void *, int);
+extern char *inet_prefix_top(int, const void *, int);
 
 /* LICENSE
 /* .ad

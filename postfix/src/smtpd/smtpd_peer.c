@@ -139,7 +139,7 @@
 #include <sock_addr.h>
 #include <inet_proto.h>
 #include <split_at.h>
-#include <net_mask_top.h>
+#include <inet_prefix_top.h>
 
 /* Global library. */
 
@@ -641,13 +641,16 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 
     /*
      * Generate 'address' or 'net/mask' index for anvil event aggregation.
+     * Don't do this for non-socket input. See smtpd_peer_not_inet().
      */
-    af = SOCK_ADDR_FAMILY(&(state->sockaddr));
-    state->anvil_range = net_mask_top(af,
-				      SOCK_ADDR_ADDRP(&(state->sockaddr)),
-				      af == AF_INET ?
-				      var_smtpd_cipv4_prefix :
-				      var_smtpd_cipv6_prefix);
+    if (state->addr_family != AF_UNSPEC) {
+	af = SOCK_ADDR_FAMILY(&(state->sockaddr));
+	state->anvil_range = inet_prefix_top(af,
+					SOCK_ADDR_ADDRP(&(state->sockaddr)),
+					     af == AF_INET ?
+					     var_smtpd_cipv4_prefix :
+					     var_smtpd_cipv6_prefix);
+    }
 }
 
 /* smtpd_peer_reset - destroy peer information */

@@ -1796,3 +1796,7 @@ nopref
 ADDRP
 iffalse
 iftrue
+Stringify
+bitcount
+bytecount
+ipproto

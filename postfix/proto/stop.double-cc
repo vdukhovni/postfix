@@ -332,3 +332,4 @@ void  void cleanup_milter_receive state count
  struct DICT open const char int int dict_xx_open 
  Available in in Postfix version 2 3 3 7 
 length  length of 0 31 0 127 
+address  address string length 

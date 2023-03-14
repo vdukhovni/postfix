@@ -3204,7 +3204,7 @@ extern int var_smtpd_cauth_limit;
 extern int var_smtpd_cipv4_prefix;
 
 #define VAR_SMTPD_CIPV6_PREFIX		"smtpd_client_ipv6_prefix_length"
-#define DEF_SMTPD_CIPV6_PREFIX		72
+#define DEF_SMTPD_CIPV6_PREFIX		84
 #define MAX_SMTPD_CIPV6_PREFIX		128
 extern int var_smtpd_cipv6_prefix;
 

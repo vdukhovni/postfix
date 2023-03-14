@@ -18603,17 +18603,16 @@ to MX or IP address lookup as if SRV record lookup was not enabled. <p>
 
 <p> Aggregate smtpd_client_*_count and smtpd_client_*_rate statistics
 by IPv4 network blocks with the specified network prefix. Aggregation
-reduces the anvil(8) resources needed to maintain counters. By
-default, aggregation is disabled for IPv4. </p>
+uses fewer anvil(8) resources to maintain counters. By default,
+aggregation is disabled for IPv4. </p>
 
 <p> This feature is available in Postfix 3.8 and later. </p>
 
-%PARAM smtpd_client_ipv6_prefix_length 72
+%PARAM smtpd_client_ipv6_prefix_length 84
 
 <p> Aggregate smtpd_client_*_count and smtpd_client_*_rate statistics
 by IPv6 network blocks with the specified network prefix. Aggregation
-reduces the anvil(8) resources needed to maintain counters. By
-default, aggregation is enabled for IPv6.
-</p>
+uses fewer the anvil(8) resources to maintain counters. By default,
+aggregation is enabled for IPv6.  </p>
 
 <p> This feature is available in Postfix 3.8 and later. </p>
