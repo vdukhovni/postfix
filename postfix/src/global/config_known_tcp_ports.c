@@ -29,6 +29,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
@@ -64,7 +66,7 @@ void    config_known_tcp_ports(const char *source, const char *settings)
      * The settings is in the form of associations separated by comma. Split
      * it into separate associations.
      */
-    associations = argv_split(settings, ",");
+    associations = argv_split(settings, ",");	/* blame later */
     if (associations->argc == 0) {
 	argv_free(associations);
 	return;
@@ -79,7 +81,7 @@ void    config_known_tcp_ports(const char *source, const char *settings)
     for (cpp = associations->argv; *cpp != 0; cpp++) {
 	char   *temp = concatenate(" ", *cpp, " ", (char *) 0);
 
-	association = argv_split_at(temp, '=');
+	association = argv_split_at(temp, '=');	/* blame later */
 	myfree(temp);
 
 	if (association->argc == 0) {
@@ -97,6 +99,8 @@ void    config_known_tcp_ports(const char *source, const char *settings)
 	    bp = association->argv[association->argc - 1];
 	    if ((rhs = mystrtok(&bp, CHARS_SPACE)) == 0) {
 		err = "missing port value after \"=\"";
+	    } else if (*rhs == '#') {
+		err = "#comment after other text is not allowed";
 	    } else if (mystrtok(&bp, CHARS_SPACE) != 0) {
 		err = "whitespace in port number";
 	    } else {
@@ -106,6 +110,8 @@ void    config_known_tcp_ports(const char *source, const char *settings)
 		    bp = association->argv[n];
 		    if ((lhs = mystrtok(&bp, CHARS_SPACE)) == 0) {
 			new_err = "missing service name before \"=\"";
+		    } else if (*lhs == '#') {
+			err = "#comment after other text is not allowed";
 		    } else if (mystrtok(&bp, CHARS_SPACE) != 0) {
 			new_err = "whitespace in service name";
 		    } else {

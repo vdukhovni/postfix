@@ -26,6 +26,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -135,7 +137,8 @@ static void header_drop_init(void)
      * 
      * Thus, it is unlikely that all header flags will become configurable.
      */
-    hdr_drop_list = argv_split(var_drop_hdrs, CHARS_COMMA_SP);
+    hdr_drop_list = argv_split_cw(var_drop_hdrs, CHARS_COMMA_SP,
+				  VAR_DROP_HDRS);
     for (cpp = hdr_drop_list->argv; *cpp; cpp++) {
 	lowercase(*cpp);
 	if ((ht = htable_locate(header_hash, *cpp)) == 0) {

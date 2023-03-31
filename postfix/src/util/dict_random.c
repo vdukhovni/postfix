@@ -36,6 +36,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -93,7 +95,7 @@ static char *dict_random_parse_name(DICT *dict, ARGV **argv,
     VSTRING *b64 = 0;
     char   *err = 0;
 
-    while ((arg = mystrtokq(&bp, delim, parens)) != 0) {
+    while ((arg = mystrtokq_cw(&bp, delim, parens, string)) != 0) {
 	if (dict->flags & DICT_FLAG_SRC_RHS_IS_FILE) {
 	    if ((b64 = dict_file_to_b64(dict, arg)) != 0) {
 		argv_add(argvp, vstring_str(b64), (char *) 0);

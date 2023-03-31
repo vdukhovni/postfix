@@ -37,6 +37,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -141,8 +143,8 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
      */
     if ((len = balpar(name, CHARS_BRACE)) == 0 || name[len] != 0
 	|| *(saved_name = mystrndup(name + 1, len - 2)) == 0
-	|| ((argv = argv_splitq(saved_name, CHARS_COMMA_SP, CHARS_BRACE)),
-	    (argv->argc == 0)))
+	|| ((argv = argv_splitq_cw(saved_name, CHARS_COMMA_SP, CHARS_BRACE,
+				   name)), (argv->argc == 0)))
 	DICT_PIPE_RETURN(dict_surrogate(DICT_TYPE_PIPE, name,
 					open_flags, dict_flags,
 					"bad syntax: \"%s:%s\"; "

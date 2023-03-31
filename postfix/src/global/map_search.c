@@ -63,6 +63,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
@@ -158,8 +160,8 @@ const MAP_SEARCH *map_search_create(const char *map_spec)
 	if ((heap_err = extpar(&bp, CHARS_BRACE, EXTPAR_FLAG_STRIP)) != 0) {
 	    msg_warn("malformed map specification: '%s'", heap_err);
 	    MAP_SEARCH_CREATE_RETURN(0);
-	} else if ((map_type_name = mystrtokq(&bp, CHARS_COMMA_SP,
-					      CHARS_BRACE)) == 0) {
+	} else if ((map_type_name = mystrtokq_cw(&bp, CHARS_COMMA_SP,
+					     CHARS_BRACE, map_spec)) == 0) {
 	    msg_warn("empty map specification: '%s'", map_spec);
 	    MAP_SEARCH_CREATE_RETURN(0);
 	}
@@ -181,7 +183,8 @@ const MAP_SEARCH *map_search_create(const char *map_spec)
      * with the same attribute name.
      */
     if (bp != 0) {
-	while ((attr_name_val = mystrtokq(&bp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
+	while ((attr_name_val = mystrtokq_cw(&bp, CHARS_COMMA_SP, CHARS_BRACE,
+					     map_spec)) != 0) {
 	    if (*attr_name_val == CHARS_BRACE[0]) {
 		if ((heap_err = extpar(&attr_name_val, CHARS_BRACE,
 				       EXTPAR_FLAG_STRIP)) != 0) {
@@ -208,7 +211,8 @@ const MAP_SEARCH *map_search_create(const char *map_spec)
      */
     if (attr_name != 0) {
 	search_order = vstring_alloc(10);
-	while ((atom = mystrtok(&attr_value, CHARS_COMMA_SP)) != 0) {
+	while ((atom = mystrtok_cw(&attr_value, CHARS_COMMA_SP,
+				   map_spec)) != 0) {
 	    if ((code = name_code(map_search_actions, NAME_CODE_FLAG_NONE,
 				  atom)) == MAP_SEARCH_CODE_UNKNOWN) {
 		msg_warn("unknown search type '%s' in '%s'", atom, map_spec);
@@ -310,6 +314,9 @@ int     main(int argc, char **argv)
 	{"{type:name {search_order=one, two, bad}}", 0, 0, 0},
 	{"{inline:{a=b} {search_order=one, two}}", 1, "inline:{a=b}", "\01\02"},
 	{"{inline:{a=b, c=d} {search_order=one, two}}", 1, "inline:{a=b, c=d}", "\01\02"},
+	{"#after text", 0, 0, 0},
+	{"{type:name, #after text}", 1, "type:name", 0},
+	{"{type:name {search_order=one, two, #after text}}", 1, "type:name", "\01\02"},
 	{0},
     };
     TEST_CASE *test_case;

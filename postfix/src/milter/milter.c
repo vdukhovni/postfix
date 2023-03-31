@@ -235,6 +235,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -280,7 +282,8 @@ HTABLE *milter_macro_defaults_create(const char *macro_defaults)
     VSTRING *canon_buf = 0;
     char   *nameval;
 
-    while ((nameval = mystrtokq(&cp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
+    while ((nameval = mystrtokq_cw(&cp, CHARS_COMMA_SP, CHARS_BRACE,
+				   VAR_MILT_MACRO_DEFLTS)) != 0) {
 	const char *err;
 	char   *name;
 	char   *value;
@@ -335,7 +338,8 @@ static ARGV *milter_macro_lookup(MILTERS *milters, const char *macro_names)
     const char *name;
     const char *cname;
 
-    while ((name = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
+    /* XXX Which parameter to blame? */
+    while ((name = mystrtok_cw(&cp, CHARS_COMMA_SP, "milter_macros")) != 0) {
 	if (msg_verbose)
 	    msg_info("%s: \"%s\"", myname, name);
 	if (*name != '{')			/* } */
@@ -684,10 +688,13 @@ MILTERS *milter_new(const char *names,
 	char   *op;
 	char   *err;
 
+	/* XXX Which parameter to blame? */
+	char   *blame = "milters";
+
 	/*
 	 * Instantiate Milters, allowing for per-Milter overrides.
 	 */
-	while ((name = mystrtokq(&cp, sep, parens)) != 0) {
+	while ((name = mystrtokq_cw(&cp, sep, parens, blame)) != 0) {
 	    my_conn_timeout = conn_timeout;
 	    my_cmd_timeout = cmd_timeout;
 	    my_msg_timeout = msg_timeout;
@@ -697,9 +704,9 @@ MILTERS *milter_new(const char *names,
 		op = name;
 		if ((err = extpar(&op, parens, EXTPAR_FLAG_NONE)) != 0)
 		    msg_fatal("milter service syntax error: %s", err);
-		if ((name = mystrtok(&op, sep)) == 0)
+		if ((name = mystrtok_cw(&op, sep, blame)) == 0)
 		    msg_fatal("empty milter definition: \"%s\"", names);
-		attr_override(op, sep, parens,
+		attr_override(blame, op, sep, parens,
 			      CA_ATTR_OVER_STR_TABLE(str_table),
 			      CA_ATTR_OVER_TIME_TABLE(time_table),
 			      CA_ATTR_OVER_END);

@@ -69,6 +69,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
@@ -251,7 +253,7 @@ static void dymap_read_conf(const char *path, const char *path_base)
 		linenum++;
 		if (*cp == '#' || *cp == '\0')
 		    continue;
-		argv = argv_split(cp, " \t");
+		argv = argv_split_cw(cp, " \t", path);
 		if (argv->argc != 3 && argv->argc != 4)
 		    msg_fatal("%s, line %d: Expected \"dict-type .so-name dict"
 			      "-function [mkmap-function]\"", path, linenum);

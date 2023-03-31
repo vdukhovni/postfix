@@ -56,6 +56,8 @@
 /*	Connection caching in cooperation with:
 /*	Victor Duchovni
 /*	Morgan Stanley
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -832,7 +834,8 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
     if (sites->argc == 0)
 	msg_panic("null destination: \"%s\"", nexthop);
     non_fallback_sites = sites->argc;
-    argv_split_append(sites, var_fallback_relay, CHARS_COMMA_SP);
+    argv_split_append_cw(sites, var_fallback_relay, CHARS_COMMA_SP,
+			 VAR_SMTP_FALLBACK);
 
     /*
      * Don't give up after a hard host lookup error until we have tried the

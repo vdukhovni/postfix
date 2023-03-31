@@ -37,7 +37,7 @@
 /*	when running as PID 1.
 /*	This command requires that multi-instance support is
 /*	disabled (i.e. the multi_instance_directories parameter
-/*	value must be empty). 
+/*	value must be empty).
 /*
 /*	When running Postfix inside a container, see MAILLOG_README
 /*	for logging to stdout. Postfix logs to syslog by default,
@@ -412,6 +412,8 @@
 /*	Jun-ichiro 'itojun' Hagino, KAME project, Japan
 /*	The Linux PLD project
 /*	Dean Strik, Eindhoven University, The Netherlands
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -634,7 +636,8 @@ int     main(int argc, char **argv)
      * Run the management script.
      */
     if (force_single_instance
-	|| argv_split(var_multi_conf_dirs, CHARS_COMMA_SP)->argc == 0) {
+	|| argv_split_cw(var_multi_conf_dirs, CHARS_COMMA_SP,
+			 VAR_MULTI_CONF_DIRS)->argc == 0) {
 	script = concatenate(var_daemon_dir, "/postfix-script", (char *) 0);
 	if (optind < 1)
 	    msg_panic("bad optind value");

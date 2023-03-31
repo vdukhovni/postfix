@@ -20,3 +20,10 @@ unknown: test case 10: '{type:name {search_order=one, two, bad}}'
 unknown: warning: unknown search type 'bad' in '{type:name {search_order=one, two, bad}}'
 unknown: test case 11: '{inline:{a=b} {search_order=one, two}}'
 unknown: test case 12: '{inline:{a=b, c=d} {search_order=one, two}}'
+unknown: test case 13: '#after text'
+unknown: warning: malformed map specification: '#after text'
+unknown: warning: expected maptype:mapname instead of '#after text'
+unknown: test case 14: '{type:name, #after text}'
+unknown: warning: {type:name, #after text}: #comment after other text is not allowed: #after text
+unknown: test case 15: '{type:name {search_order=one, two, #after text}}'
+unknown: warning: {type:name {search_order=one, two, #after text}}: #comment after other text is not allowed: #after text

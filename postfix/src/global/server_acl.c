@@ -64,6 +64,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -112,7 +114,7 @@ void    server_acl_pre_jail_init(const char *mynetworks, const char *origin)
     if (warn_compat_break_mynetworks_style)
 	server_acl_mynetworks_host =
 	    addr_match_list_init(origin, MATCH_FLAG_RETURN
-				 | match_parent_style(origin), mynetworks_host());
+			   | match_parent_style(origin), mynetworks_host());
 }
 
 /* server_acl_parse - parse access list */
@@ -132,7 +134,7 @@ SERVER_ACL *server_acl_parse(const char *extern_acl, const char *origin)
      * chroot jail, while access lists are evaluated after entering the
      * chroot jail.
      */
-    while ((acl = mystrtokq(&bp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
+    while ((acl = mystrtokq_cw(&bp, CHARS_COMMA_SP, CHARS_BRACE, origin)) != 0) {
 	if (strchr(acl, ':') != 0) {
 	    if (strchr(origin, ':') != 0) {
 		msg_warn("table %s: lookup result \"%s\" is not allowed"
@@ -240,7 +242,7 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 #include <vstring_vstream.h>
 #include <name_code.h>
 #include <split_at.h>
-    
+
 char   *var_server_acl = "";
 
 #define UPDATE_VAR(s,v) do { if (*(s)) myfree(s); (s) = mystrdup(v); } while (0)

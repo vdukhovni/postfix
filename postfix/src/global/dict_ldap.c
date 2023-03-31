@@ -175,6 +175,8 @@
 /*	Institute of Mathematics of the Romanian Academy
 /*	P.O. BOX 1-764
 /*	RO-014700 Bucharest, ROMANIA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -1016,7 +1018,7 @@ static int attrdesc_subtype(const char *a1, const char *a2)
 
 /* url_attrs - attributes we want from LDAP URL */
 
-static char **url_attrs(DICT_LDAP *dict_ldap, LDAPURLDesc * url)
+static char **url_attrs(DICT_LDAP *dict_ldap, LDAPURLDesc *url)
 {
     static ARGV *attrs;
     char  **a1;
@@ -1689,7 +1691,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int open_flags, int dict_flags)
 
     url_list = vstring_alloc(32);
     s = server_host;
-    while ((h = mystrtok(&s, CHARS_COMMA_SP)) != NULL) {
+    while ((h = mystrtok_cw(&s, CHARS_COMMA_SP, ldapsource)) != NULL) {
 #if defined(LDAP_API_FEATURE_X_OPENLDAP)
 
 	/*
@@ -1813,14 +1815,16 @@ DICT   *dict_ldap_open(const char *ldapsource, int open_flags, int dict_flags)
 
     /* Order matters, first the terminal attributes: */
     attr = cfg_get_str(dict_ldap->parser, "terminal_result_attribute", "", 0, 0);
-    dict_ldap->result_attributes = argv_split(attr, CHARS_COMMA_SP);
+    dict_ldap->result_attributes = argv_split_cw(attr, CHARS_COMMA_SP,
+						 ldapsource);
     dict_ldap->num_terminal = dict_ldap->result_attributes->argc;
     myfree(attr);
 
     /* Order matters, next the leaf-only attributes: */
     attr = cfg_get_str(dict_ldap->parser, "leaf_result_attribute", "", 0, 0);
     if (*attr)
-	argv_split_append(dict_ldap->result_attributes, attr, CHARS_COMMA_SP);
+	argv_split_append_cw(dict_ldap->result_attributes, attr,
+			     CHARS_COMMA_SP, ldapsource);
     dict_ldap->num_leaf =
 	dict_ldap->result_attributes->argc - dict_ldap->num_terminal;
     myfree(attr);
@@ -1828,14 +1832,16 @@ DICT   *dict_ldap_open(const char *ldapsource, int open_flags, int dict_flags)
     /* Order matters, next the regular attributes: */
     attr = cfg_get_str(dict_ldap->parser, "result_attribute", "maildrop", 0, 0);
     if (*attr)
-	argv_split_append(dict_ldap->result_attributes, attr, CHARS_COMMA_SP);
+	argv_split_append_cw(dict_ldap->result_attributes, attr,
+			     CHARS_COMMA_SP, ldapsource);
     dict_ldap->num_attributes = dict_ldap->result_attributes->argc;
     myfree(attr);
 
     /* Order matters, finally the special attributes: */
     attr = cfg_get_str(dict_ldap->parser, "special_result_attribute", "", 0, 0);
     if (*attr)
-	argv_split_append(dict_ldap->result_attributes, attr, CHARS_COMMA_SP);
+	argv_split_append_cw(dict_ldap->result_attributes, attr,
+			     CHARS_COMMA_SP, ldapsource);
     myfree(attr);
 
     /*

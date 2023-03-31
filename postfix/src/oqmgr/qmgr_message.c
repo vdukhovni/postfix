@@ -94,6 +94,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -1148,7 +1150,9 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 */
 	if (*var_defer_xports && (message->qflags & QMGR_FLUSH_DFXP) == 0) {
 	    if (defer_xport_argv == 0)
-		defer_xport_argv = argv_split(var_defer_xports, CHARS_COMMA_SP);
+		defer_xport_argv = argv_split_cw(var_defer_xports,
+						 CHARS_COMMA_SP,
+						 VAR_DEFER_XPORTS);
 	    for (cpp = defer_xport_argv->argv; *cpp; cpp++)
 		if (strcmp(*cpp, STR(reply.transport)) == 0)
 		    break;

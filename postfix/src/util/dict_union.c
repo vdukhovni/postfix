@@ -41,6 +41,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -154,8 +156,8 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
      */
     if ((len = balpar(name, CHARS_BRACE)) == 0 || name[len] != 0
 	|| *(saved_name = mystrndup(name + 1, len - 2)) == 0
-	|| ((argv = argv_splitq(saved_name, CHARS_COMMA_SP, CHARS_BRACE)),
-	    (argv->argc == 0)))
+	|| ((argv = argv_splitq_cw(saved_name, CHARS_COMMA_SP, CHARS_BRACE,
+				   name)), (argv->argc == 0)))
 	DICT_UNION_RETURN(dict_surrogate(DICT_TYPE_UNION, name,
 					 open_flags, dict_flags,
 					 "bad syntax: \"%s:%s\"; "

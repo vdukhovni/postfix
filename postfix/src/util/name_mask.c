@@ -176,6 +176,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -228,7 +230,7 @@ int     name_mask_delim_opt(const char *context, const NAME_MASK *table,
      * Break up the names string, and look up each component in the table. If
      * the name is found, merge its mask with the result.
      */
-    while ((name = mystrtok(&bp, delim)) != 0) {
+    while ((name = mystrtok_cw(&bp, delim, context)) != 0) {
 	for (np = table; /* void */ ; np++) {
 	    if (np->name == 0) {
 		if ((flags & NAME_MASK_NUMBER)
@@ -316,7 +318,7 @@ const char *str_name_mask_opt(VSTRING *buf, const char *context,
 /* long_name_mask_delim_opt - compute mask corresponding to list of names */
 
 long    long_name_mask_delim_opt(const char *context,
-				         const LONG_NAME_MASK * table,
+				         const LONG_NAME_MASK *table,
 			               const char *names, const char *delim,
 				         int flags)
 {
@@ -342,7 +344,7 @@ long    long_name_mask_delim_opt(const char *context,
      * Break up the names string, and look up each component in the table. If
      * the name is found, merge its mask with the result.
      */
-    while ((name = mystrtok(&bp, delim)) != 0) {
+    while ((name = mystrtok_cw(&bp, delim, context)) != 0) {
 	for (np = table; /* void */ ; np++) {
 	    if (np->name == 0) {
 		if ((flags & NAME_MASK_NUMBER)
@@ -378,7 +380,7 @@ long    long_name_mask_delim_opt(const char *context,
 /* str_long_name_mask_opt - mask to string */
 
 const char *str_long_name_mask_opt(VSTRING *buf, const char *context,
-				           const LONG_NAME_MASK * table,
+				           const LONG_NAME_MASK *table,
 				           long mask, int flags)
 {
     const char *myname = "name_mask";

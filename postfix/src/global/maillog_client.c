@@ -75,6 +75,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
@@ -209,8 +211,9 @@ void    maillog_client_init(const char *progname, int flags)
 	char   *service_path;
 
 	if (var_maillog_file && *var_maillog_file) {
-	    ARGV   *good_prefixes = argv_split(var_maillog_file_pfxs,
-					       CHARS_COMMA_SP);
+	    ARGV   *good_prefixes = argv_split_cw(var_maillog_file_pfxs,
+						  CHARS_COMMA_SP,
+						  VAR_MAILLOG_FILE_PFXS);
 	    char  **cpp;
 
 	    for (cpp = good_prefixes->argv; /* see below */ ; cpp++) {

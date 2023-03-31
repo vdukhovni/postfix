@@ -62,6 +62,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System libraries. */
@@ -213,7 +215,7 @@ static char *get_str_ent(char **bufp, char *name, char *def_val)
 {
     char   *value;
 
-    if ((value = mystrtok(bufp, master_blanks)) == 0)
+    if ((value = mystrtok_cw(bufp, master_blanks, master_conf_context())) == 0)
 	fatal_with_context("missing \"%s\" field", name);
     if (strcmp(value, "-") == 0) {
 	if (def_val == 0)
@@ -576,6 +578,11 @@ MASTER_SERV *get_master_ent()
 	argv_add(serv->args, "-s",
 	    vstring_str(vstring_sprintf(junk, "%d", serv->listen_fd_count)),
 		 (char *) 0);
+
+    /*
+     * The remaining arguments may have application-specific syntax. Do not
+     * complain about words that start with a '#'.
+     */
     while ((cp = mystrtokq(&bufp, master_blanks, CHARS_BRACE)) != 0) {
 	if (*cp == CHARS_BRACE[0]
 	    && (err = extpar(&cp, CHARS_BRACE, EXTPAR_FLAG_STRIP)) != 0)

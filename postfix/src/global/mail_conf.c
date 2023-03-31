@@ -104,6 +104,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -131,7 +133,7 @@
 
 /* mail_conf_checkdir - authorize non-default directory */
 
-void mail_conf_checkdir(const char *config_dir)
+void    mail_conf_checkdir(const char *config_dir)
 {
     VSTRING *buf;
     VSTREAM *fp;
@@ -155,7 +157,8 @@ void mail_conf_checkdir(const char *config_dir)
 	if (split_nameval(vstring_str(buf), &name, &value) == 0
 	    && (strcmp(name, VAR_CONFIG_DIRS) == 0
 		|| strcmp(name, VAR_MULTI_CONF_DIRS) == 0)) {
-	    while (found == 0 && (cp = mystrtok(&value, CHARS_COMMA_SP)) != 0)
+	    while (found == 0
+		   && (cp = mystrtok_cw(&value, CHARS_COMMA_SP, path)) != 0)
 		if (strcmp(cp, config_dir) == 0)
 		    found = 1;
 	}

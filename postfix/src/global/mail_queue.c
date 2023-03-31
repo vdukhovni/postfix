@@ -99,6 +99,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -171,7 +173,8 @@ const char *mail_queue_dir(VSTRING *buf, const char *queue_name,
     }
     if (hash_buf == 0) {
 	hash_buf = vstring_alloc(100);
-	hash_queue_names = argv_split(var_hash_queue_names, CHARS_COMMA_SP);
+	hash_queue_names = argv_split_cw(var_hash_queue_names, CHARS_COMMA_SP,
+					 VAR_HASH_QUEUE_NAMES);
     }
 
     /*

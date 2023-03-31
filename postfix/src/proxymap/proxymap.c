@@ -215,6 +215,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -685,13 +687,13 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 
 /* authorize_proxied_maps - recursively authorize maps */
 
-static void authorize_proxied_maps(char *bp)
+static void authorize_proxied_maps(char *bp, const char *blame)
 {
     const char *sep = CHARS_COMMA_SP;
     const char *parens = CHARS_BRACE;
     char   *type_name;
 
-    while ((type_name = mystrtokq(&bp, sep, parens)) != 0) {
+    while ((type_name = mystrtokq_cw(&bp, sep, parens, blame)) != 0) {
 	char   *nested_info;
 
 	/* Maybe { maptype:mapname attr=value... } */
@@ -706,7 +708,7 @@ static void authorize_proxied_maps(char *bp)
 		continue;
 	    }
 	    /* Don't try to second-guess the semantics of { }. */
-	    if ((type_name = mystrtokq(&type_name, sep, parens)) == 0)
+	    if ((type_name = mystrtokq_cw(&type_name, sep, parens, blame)) == 0)
 		continue;
 	}
 	/* Recurse into nested map (pipemap, unionmap). */
@@ -722,7 +724,7 @@ static void authorize_proxied_maps(char *bp)
 		myfree(err);
 		continue;
 	    }
-	    authorize_proxied_maps(nested_info);
+	    authorize_proxied_maps(nested_info, blame);
 	    continue;
 	}
 	if (strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN))
@@ -770,7 +772,8 @@ static void post_jail_init(char *service_name, char **unused_argv)
     saved_filter = mystrdup(proxy_writer ? var_proxy_write_maps :
 			    var_proxy_read_maps);
     proxy_auth_maps = htable_create(13);
-    authorize_proxied_maps(saved_filter);
+    authorize_proxied_maps(saved_filter, proxy_writer ? VAR_PROXY_WRITE_MAPS :
+			   VAR_PROXY_READ_MAPS);
     myfree(saved_filter);
 
     /*

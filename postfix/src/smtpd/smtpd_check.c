@@ -174,6 +174,8 @@
 /*	Allgemeine Elektrotechnik
 /*	Universitaetsplatz 3-4
 /*	D-03044 Cottbus, Germany
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -549,7 +551,7 @@ static const NAME_CODE search_actions[] = {
 
 /* policy_client_register - register policy service endpoint */
 
-static void policy_client_register(const char *name)
+static void policy_client_register(const char *name, const char *pname)
 {
     static const char myname[] = "policy_client_register";
     SMTPD_POLICY_CLNT *policy_client;
@@ -590,9 +592,9 @@ static void policy_client_register(const char *name)
 	    cp = saved_name = mystrdup(name);
 	    if ((err = extpar(&cp, parens, EXTPAR_FLAG_NONE)) != 0)
 		msg_fatal("policy service syntax error: %s", cp);
-	    if ((policy_name = mystrtok(&cp, sep)) == 0)
+	    if ((policy_name = mystrtok_cw(&cp, sep, pname)) == 0)
 		msg_fatal("empty policy service: \"%s\"", name);
-	    attr_override(cp, sep, parens,
+	    attr_override(pname, cp, sep, parens,
 			  CA_ATTR_OVER_TIME_TABLE(time_table),
 			  CA_ATTR_OVER_INT_TABLE(int_table),
 			  CA_ATTR_OVER_STR_TABLE(str_table),
@@ -651,7 +653,7 @@ static void command_map_register(const char *name)
 
 /* smtpd_check_parse - pre-parse restrictions */
 
-static ARGV *smtpd_check_parse(int flags, const char *checks)
+static ARGV *smtpd_check_parse(int flags, const char *pname, const char *checks)
 {
     char   *saved_checks = mystrdup(checks);
     ARGV   *argv = argv_alloc(1);
@@ -669,11 +671,12 @@ static ARGV *smtpd_check_parse(int flags, const char *checks)
 #define SMTPD_CHECK_PARSE_MAPS		(1<<1)
 #define SMTPD_CHECK_PARSE_ALL		(~0)
 
-    while ((name = mystrtokq(&bp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
+    while ((name = mystrtokq_cw(&bp, CHARS_COMMA_SP, CHARS_BRACE,
+				pname)) != 0) {
 	argv_add(argv, name, (char *) 0);
 	if ((flags & SMTPD_CHECK_PARSE_POLICY)
 	    && last && strcasecmp(last, CHECK_POLICY_SERVICE) == 0) {
-	    policy_client_register(name);
+	    policy_client_register(name, pname);
 	} else if ((flags & SMTPD_CHECK_PARSE_MAPS)
 		   && (*name == *CHARS_BRACE || strchr(name, ':') != 0)) {
 	    if ((map_search = map_search_create(name)) != 0)
@@ -881,23 +884,32 @@ void    smtpd_check_init(void)
      * before going to jail.
      */
     client_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					   VAR_CLIENT_CHECKS,
 					   var_client_checks);
     helo_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 VAR_HELO_CHECKS,
 					 var_helo_checks);
     mail_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 VAR_MAIL_CHECKS,
 					 var_mail_checks);
     relay_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					  VAR_RELAY_CHECKS,
 					  var_relay_checks);
     if (warn_compat_break_relay_restrictions)
 	fake_relay_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+						   "fake relay restrictions",
 						   FAKE_RELAY_CHECKS);
     rcpt_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 VAR_RCPT_CHECKS,
 					 var_rcpt_checks);
     etrn_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 VAR_ETRN_CHECKS,
 					 var_etrn_checks);
     data_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 VAR_DATA_CHECKS,
 					 var_data_checks);
     eod_restrictions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					 VAR_EOD_CHECKS,
 					 var_eod_checks);
 
     /*
@@ -906,12 +918,14 @@ void    smtpd_check_init(void)
     smtpd_rest_classes = htable_create(1);
     if (*var_rest_classes) {
 	cp = saved_classes = mystrdup(var_rest_classes);
-	while ((name = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
+	while ((name = mystrtok_cw(&cp, CHARS_COMMA_SP,
+				   VAR_REST_CLASSES)) != 0) {
 	    if ((value = mail_conf_lookup_eval(name)) == 0 || *value == 0)
 		msg_fatal("restriction class `%s' needs a definition", name);
 	    /* XXX This store operation should not be case-sensitive. */
 	    htable_enter(smtpd_rest_classes, name,
 			 (void *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+						    VAR_REST_CLASSES,
 						    value));
 	}
 	myfree(saved_classes);
@@ -928,6 +942,7 @@ void    smtpd_check_init(void)
 #endif
     htable_enter(smtpd_rest_classes, REJECT_SENDER_LOGIN_MISMATCH,
 		 (void *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					    REJECT_SENDER_LOGIN_MISMATCH,
 					    REJECT_AUTH_SENDER_LOGIN_MISMATCH
 				  " " REJECT_UNAUTH_SENDER_LOGIN_MISMATCH));
 
@@ -947,6 +962,7 @@ void    smtpd_check_init(void)
      * Local rewrite policy.
      */
     local_rewrite_clients = smtpd_check_parse(SMTPD_CHECK_PARSE_MAPS,
+					      VAR_LOC_RWR_CLIENTS,
 					      var_local_rwr_clients);
 
     /*
@@ -2743,7 +2759,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      */
 #define ADDROF(x) ((char *) &(x))
 
-    restrictions = argv_splitq(value, CHARS_COMMA_SP, CHARS_BRACE);
+    restrictions = argv_splitq_cw(value, CHARS_COMMA_SP, CHARS_BRACE, table);
     memcpy(ADDROF(savebuf), ADDROF(smtpd_check_buf), sizeof(savebuf));
     status = setjmp(smtpd_check_buf);
     if (status != 0) {
@@ -3913,7 +3929,8 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
 	if ((owners = check_mail_addr_find(state, sender, smtpd_sender_login_maps,
 				STR(reply->recipient), (char **) 0)) != 0) {
 	    cp = saved_owners = mystrdup(owners);
-	    while ((name = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
+	    while ((name = mystrtok_cw(&cp, CHARS_COMMA_SP,
+				       VAR_SMTPD_SND_AUTH_MAPS)) != 0) {
 		if (strcasecmp_utf8(state->sasl_username, name) == 0) {
 		    found = 1;
 		    break;
@@ -5920,7 +5937,7 @@ static int rest_update(char **argv)
 
 /* rest_class - (re)define a restriction class */
 
-static void rest_class(char *class)
+static void rest_class(const char *pname, char *class)
 {
     char   *cp = class;
     char   *name;
@@ -5929,13 +5946,14 @@ static void rest_class(char *class)
     if (smtpd_rest_classes == 0)
 	smtpd_rest_classes = htable_create(1);
 
-    if ((name = mystrtok(&cp, CHARS_COMMA_SP)) == 0)
+    if ((name = mystrtok_cw(&cp, CHARS_COMMA_SP, pname)) == 0)
 	msg_panic("rest_class: null class name");
     if ((entry = htable_locate(smtpd_rest_classes, name)) != 0)
 	argv_free((ARGV *) entry->value);
     else
 	entry = htable_enter(smtpd_rest_classes, name, (void *) 0);
-    entry->value = (void *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL, cp);
+    entry->value = (void *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					      pname, cp);
 }
 
 /* resolve_clnt_init - initialize reply */
@@ -6334,7 +6352,7 @@ int     main(int argc, char **argv)
 	    }
 #endif
 	    if (strcasecmp(args->argv[0], "restriction_class") == 0) {
-		rest_class(args->argv[1]);
+		rest_class("restriction_class", args->argv[1]);
 		resp = 0;
 		break;
 	    }

@@ -31,6 +31,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -112,7 +114,8 @@ DICT   *dict_inline_open(const char *name, int open_flags, int dict_flags)
      */
     dict = dict_open3(DICT_TYPE_HT, name, open_flags, dict_flags);
     dict_type_override(dict, DICT_TYPE_INLINE);
-    while ((nameval = mystrtokq(&cp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
+    while ((nameval = mystrtokq_cw(&cp, CHARS_COMMA_SP, CHARS_BRACE,
+				   name)) != 0) {
 	if (nameval[0] == CHARS_BRACE[0])
 	    err = free_me = extpar(&nameval, CHARS_BRACE, EXTPAR_FLAG_STRIP);
 	if (err != 0 || (err = split_qnameval(nameval, &vname, &value)) != 0)

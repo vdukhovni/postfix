@@ -404,6 +404,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -872,7 +874,8 @@ static void load_all_instances(void)
      * only comma characters. Count the actual number of elements, before we
      * decide that the list is empty.
      */
-    secondary_names = argv_split(var_multi_conf_dirs, CHARS_COMMA_SP);
+    secondary_names = argv_split_cw(var_multi_conf_dirs, CHARS_COMMA_SP,
+				    VAR_MULTI_CONF_DIRS);
 
     /*
      * First, the primary instance.  This is synthesized out of thin air.
@@ -1471,14 +1474,15 @@ static int run_user_command(INSTANCE *ip, int iter_cmd, int iter_flags,
 
 /* word_in_list - look up command in start, stop, or control list */
 
-static int word_in_list(char *cmdlist, const char *cmd)
+static int word_in_list(char *cmdlist, const char *cmd, const char *blame)
 {
     char   *saved;
     char   *cp;
     char   *elem;
 
     cp = saved = mystrdup(cmdlist);
-    while ((elem = mystrtok(&cp, CHARS_COMMA_SP)) != 0 && strcmp(elem, cmd) != 0)
+    while ((elem = mystrtok_cw(&cp, CHARS_COMMA_SP, blame)) != 0
+	   && strcmp(elem, cmd) != 0)
 	 /* void */ ;
     myfree(saved);
     return (elem != 0);
@@ -1497,11 +1501,13 @@ static int iterate_postfix_command(int iter_cmd, int argc, char **argv,
     /*
      * Override the iterator controls.
      */
-    if (word_in_list(var_multi_start_cmds, argv[0])) {
+    if (word_in_list(var_multi_start_cmds, argv[0], VAR_MULTI_START_CMDS)) {
 	iter_flags = ITER_FLAG_CHECK_DISABLED;
-    } else if (word_in_list(var_multi_stop_cmds, argv[0])) {
+    } else if (word_in_list(var_multi_stop_cmds, argv[0],
+			    VAR_MULTI_STOP_CMDS)) {
 	iter_flags = ITER_FLAG_SKIP_DISABLED | ITER_FLAG_REVERSE;
-    } else if (word_in_list(var_multi_cntrl_cmds, argv[0])) {
+    } else if (word_in_list(var_multi_cntrl_cmds, argv[0],
+			    VAR_MULTI_CNTRL_CMDS)) {
 	iter_flags = ITER_FLAG_SKIP_DISABLED;
     } else {
 	iter_flags = 0;

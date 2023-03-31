@@ -1800,3 +1800,4 @@ Stringify
 bitcount
 bytecount
 ipproto
+cw

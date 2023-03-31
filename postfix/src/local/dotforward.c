@@ -43,6 +43,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -194,7 +196,7 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     next = saved_forward_path;
     lookup_status = -1;
 
-    while ((lhs = mystrtok(&next, CHARS_COMMA_SP)) != 0) {
+    while ((lhs = mystrtok_cw(&next, CHARS_COMMA_SP, VAR_FORWARD_PATH)) != 0) {
 	expand_status = local_expand(path, lhs, &state, &usr_attr,
 				     var_fwd_exp_filter);
 	if ((expand_status & (MAC_PARSE_ERROR | MAC_PARSE_UNDEF)) == 0) {

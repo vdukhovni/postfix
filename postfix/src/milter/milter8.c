@@ -56,6 +56,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -1157,7 +1159,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 	    if (edit_resp == 0)
 		edit_resp = parent->repl_body(parent->chg_context,
 					      MILTER_BODY_END,
-					      /* unused*/ 0,
+					      /* unused */ 0,
 					      (VSTRING *) 0);
 	    body_edit_lockout = 1;
 	    vstring_free(body_line_buf);
@@ -1553,7 +1555,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 			body_line_buf = vstring_alloc(var_line_limit);
 			edit_resp = parent->repl_body(parent->chg_context,
 						      MILTER_BODY_START,
-						      /* unused */ 0,
+						       /* unused */ 0,
 						      (VSTRING *) 0);
 		    }
 		    /* Extract lines from the on-the-wire CRLF format. */
@@ -1671,7 +1673,7 @@ static void milter8_connect(MILTER8 *milter)
      * don't want to take the risk that a future version will be more picky.
      */
     cp = saved_version = mystrdup(milter->protocol);
-    while ((name = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
+    while ((name = mystrtok_cw(&cp, CHARS_COMMA_SP, VAR_MILT_PROTOCOL)) != 0) {
 	int     mask;
 	int     vers;
 

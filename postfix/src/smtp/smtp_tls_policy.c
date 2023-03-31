@@ -80,6 +80,8 @@
 /*	New York, NY 10011, USA
 /*
 /*	Viktor Dukhovni
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -250,7 +252,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
     }
     saved_policy = policy = mystrdup(lookup);
 
-    if ((tok = mystrtok(&policy, CHARS_COMMA_SP)) == 0) {
+    if ((tok = mystrtok_cw(&policy, CHARS_COMMA_SP, tls_policy->title)) == 0) {
 	msg_warn("%s: invalid empty policy", WHERE);
 	INVALID_RETURN(tls->why, site_level);
     }
@@ -265,7 +267,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
      * Warn about ignored attributes when TLS is disabled.
      */
     if (*site_level < TLS_LEV_MAY) {
-	while ((tok = mystrtok(&policy, CHARS_COMMA_SP)) != 0)
+	while ((tok = mystrtok_cw(&policy, CHARS_COMMA_SP, tls_policy->title)) != 0)
 	    msg_warn("%s: ignoring attribute \"%s\" with TLS disabled",
 		     WHERE, tok);
 	FREE_RETURN;
@@ -275,7 +277,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
      * Errors in attributes may have security consequences, don't ignore
      * errors that can degrade security.
      */
-    while ((tok = mystrtok(&policy, CHARS_COMMA_SP)) != 0) {
+    while ((tok = mystrtok_cw(&policy, CHARS_COMMA_SP, tls_policy->title)) != 0) {
 	if ((err = split_nameval(tok, &name, &val)) != 0) {
 	    msg_warn("%s: malformed attribute/value pair \"%s\": %s",
 		     WHERE, tok, err);
@@ -425,7 +427,7 @@ static void tls_policy_lookup(SMTP_TLS_POLICY *tls, int *site_level,
 
 /* load_tas - load one or more ta files */
 
-static int load_tas(TLS_DANE *dane, const char *files)
+static int load_tas(TLS_DANE *dane, const char *files, const char *blame)
 {
     int     ret = 0;
     char   *save = mystrdup(files);
@@ -433,7 +435,7 @@ static int load_tas(TLS_DANE *dane, const char *files)
     char   *file;
 
     do {
-	if ((file = mystrtok(&buf, CHARS_COMMA_SP)) != 0)
+	if ((file = mystrtok_cw(&buf, CHARS_COMMA_SP, blame)) != 0)
 	    ret = tls_dane_load_trustfile(dane, file);
     } while (file && ret);
 
@@ -633,14 +635,16 @@ static void *policy_create(const char *unused_key, void *context)
     case TLS_LEV_SECURE:
 	if (tls->matchargv == 0)
 	    tls->matchargv =
-		argv_split(tls->level == TLS_LEV_VERIFY ?
-			   var_smtp_tls_vfy_cmatch : var_smtp_tls_sec_cmatch,
-			   CHARS_COMMA_SP ":");
+		argv_split_cw(tls->level == TLS_LEV_VERIFY ?
+			  var_smtp_tls_vfy_cmatch : var_smtp_tls_sec_cmatch,
+			  CHARS_COMMA_SP ":", tls->level == TLS_LEV_VERIFY ?
+			VAR_SMTP_TLS_VFY_CMATCH : VAR_SMTP_TLS_SEC_CMATCH);
 	if (*var_smtp_tls_tafile) {
 	    if (tls->dane == 0)
 		tls->dane = tls_dane_alloc();
 	    if (tls->dane->tlsa == 0
-		&& !load_tas(tls->dane, var_smtp_tls_tafile)) {
+		&& !load_tas(tls->dane, var_smtp_tls_tafile,
+			     VAR_SMTP_TLS_TAFILE)) {
 		MARK_INVALID(tls->why, &tls->level);
 		return ((void *) tls);
 	    }

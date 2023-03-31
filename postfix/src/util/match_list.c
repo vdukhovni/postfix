@@ -84,6 +84,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -145,12 +147,8 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
      * If there is an error, implement graceful degradation by inserting a
      * pseudo table whose lookups fail with a warning message.
      */
-    while ((start = mystrtokq(&bp, delim, CHARS_BRACE)) != 0) {
-	if (*start == '#') {
-	    msg_warn("%s: comment at end of line is not supported: %s %s",
-		     match_list->pname, start, bp);
-	    break;
-	}
+    while ((start = mystrtokq_cw(&bp, delim, CHARS_BRACE,
+				 match_list->pname)) != 0) {
 	for (match = init_match, item = start; *item == '!'; item++)
 	    match = !match;
 	if (*item == 0)

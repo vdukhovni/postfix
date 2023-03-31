@@ -11,6 +11,12 @@
 /*	const char *delim;
 /*	const char *parens;
 /*
+/*	ARGV	*argv_splitq_cw(string, delim, parens, blame)
+/*	const char *string;
+/*	const char *delim;
+/*	const char *parens;
+/*	const char *blame;
+/*
 /*	ARGV	*argv_splitq_count(string, delim, parens, count)
 /*	const char *string;
 /*	const char *delim;
@@ -27,6 +33,12 @@
 /*	to the delimiters specified in \fIdelim\fR, while avoiding
 /*	splitting text between matching parentheses. The result is
 /*	a null-terminated string array.
+/*
+/*	argv_splitq_cw() is like argv_splitq() but stops splitting
+/*	input and logs a warning when it encounters text that looks
+/*	like a trailing comment. The \fBblame\fR argument specifies
+/*	context that is used in warning messages. Specify a null
+/*	pointer to disable the trailing comment check.
 /*
 /*	argv_splitq_count() is like argv_splitq() but stops splitting
 /*	input after at most \fIcount\fR -1 times and leaves the
@@ -48,6 +60,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System libraries. */
@@ -62,16 +76,26 @@
 #include "argv.h"
 #include "msg.h"
 
-/* argv_splitq - split string into token array */
+/* argv_splitq - ABI compatibility wrapper */
+
+#undef argv_splitq
 
 ARGV   *argv_splitq(const char *string, const char *delim, const char *parens)
+{
+    return (argv_splitq_cw(string, delim, parens, (char *) 0));
+}
+
+/* argv_splitq_cw - split string into token array */
+
+ARGV   *argv_splitq_cw(const char *string, const char *delim,
+		               const char *parens, const char *blame)
 {
     ARGV   *argvp = argv_alloc(1);
     char   *saved_string = mystrdup(string);
     char   *bp = saved_string;
     char   *arg;
 
-    while ((arg = mystrtokq(&bp, delim, parens)) != 0)
+    while ((arg = mystrtokq_cw(&bp, delim, parens, blame)) != 0)
 	argv_add(argvp, arg, (char *) 0);
     argv_terminate(argvp);
     myfree(saved_string);

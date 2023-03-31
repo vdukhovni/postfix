@@ -51,7 +51,7 @@
 /*	content as specified above.
 /* .IP st
 /*	File metadata with the file owner, or fake metadata with the
-/*	real UID and GID of the dict_stream_open() caller. This is 
+/*	real UID and GID of the dict_stream_open() caller. This is
 /*	used for "taint" tracking (zero=trusted, non-zero=untrusted).
 /* IP why
 /*	Pointer to pointer to error message storage. dict_stream_open()
@@ -66,6 +66,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
@@ -98,7 +100,8 @@ static char *dict_inline_to_multiline(VSTRING *vp, const char *mapname)
     /* Strip the {} from the map "name". */
     err = extpar(&bp, CHARS_BRACE, EXTPAR_FLAG_NONE);
     /* Extract zero or more rules inside {}. */
-    while (err == 0 && (cp = mystrtokq(&bp, CHARS_COMMA_SP, CHARS_BRACE)) != 0)
+    while (err == 0
+     && (cp = mystrtokq_cw(&bp, CHARS_COMMA_SP, CHARS_BRACE, mapname)) != 0)
 	if ((err = extpar(&cp, CHARS_BRACE, EXTPAR_FLAG_STRIP)) == 0)
 	    /* Write rule to in-memory file. */
 	    vstring_sprintf_append(vp, "%s\n", cp);
