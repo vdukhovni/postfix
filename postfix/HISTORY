@@ -26969,9 +26969,29 @@ Apologies for any names omitted.
 
 	Cleanup: renamed net_mask_top.* to inet_prefix_top.*.
 
-	Cleanup: updated unit tests. Files: smtpd/smtod_check.c,
+	Cleanup: updated unit tests. Files: smtpd/smtpd_check.c,
 	smtpd/smtpd_server.in, smtpd/smtpd_server.ref.
 
 	Increased the smtpd_client_ipv6_prefix_length to 84 bits,
 	which should prevent anvil exhaustion attacks from a typical
 	/64 consumer network, without penalizing legitimate usage.
+
+20230319
+
+	Shut up a compiler waning triggered by an extreme setting.
+	File: smtp/smtp.h.
+
+20230328
+
+	Cleanup: replaced ``argv_split_append(x, y, "")'' with
+	``argv_add(x, y, , ARGV_END)'', in two places. File:
+	posttls-finger/posttls-finger.c.
+
+20230330
+
+	Safety: the long form { name = value } in import_environment
+	or export_environment is not documented, but accepted, and
+	it was stored in the process environment as the invalid
+	form "name = value" instead of the expected "name=value".
+	Found during code maintenance. Also refined an "empty name"
+	check. Files: clean_env.c, split_nameval.c.

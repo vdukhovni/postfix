@@ -9,6 +9,13 @@ Wish list:
 	Scan Postfix code with github.com/googleprojectzero/weggli
 	(depends on "rust").
 
+	Investigate clang-format compatibility as a possible migration
+	away from indent. This requires that the output is stable.
+
+	Check out https://github.com/milter-manager/milter-manager/
+
+	Check out https://cutter.osdn.jp/ (C/C++ unit tests).
+
 	Follow https://github.com/vdukhovni/postfix/commits/rpk
 
 	Multi-recipient support in sender/recipient_bcc_maps and
@@ -26,11 +33,6 @@ Wish list:
 	Is there any code that calls attr_scan*() and that works
 	when the number of attributes received < the expected number?
 	If there is no such code, then we can simplify a few things.
-
-	In tls_fprint.c() rename unsafe macros to upper-case names.
-	For example, checkok() has a function-like name, but it
-	evaluates arguments conditionally. Rename all macros that
-	invoke checkok().
 
 	Update TLS_README diagram, tlsmgr no longer manages cert
 	info.
@@ -56,9 +58,6 @@ Wish list:
 
 	Enforce var_line_limit in util/attr_scan*c. This is needed if
 	we want to expose Postfix RPC protocols externally.
-
-	Investigate clang-format compatibility as a possible migration
-	away from indent. This requires that the output is stable.
 
 	Can tests use LD_PRELOAD to inject fake modules such as
 	fake_dns(3), fake_msg(3), fake_myaddrinfo(3) and so on?

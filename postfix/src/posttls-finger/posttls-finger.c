@@ -327,6 +327,8 @@
 /*	New York, NY 10011, USA
 /*
 /*	Viktor Dukhovni
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
@@ -2117,14 +2119,14 @@ static void parse_match(STATE *state, int argc, char *argv[])
     case TLS_LEV_SECURE:
 	state->match = argv_alloc(2);
 	while (*argv)
-	    argv_split_append(state->match, *argv++, "");
+	    argv_add(state->match, *argv++, ARGV_END);
 	if (state->match->argc == 0)
 	    argv_add(state->match, "nexthop", "dot-nexthop", ARGV_END);
 	break;
     case TLS_LEV_VERIFY:
 	state->match = argv_alloc(1);
 	while (*argv)
-	    argv_split_append(state->match, *argv++, "");
+	    argv_add(state->match, *argv++, ARGV_END);
 	if (state->match->argc == 0)
 	    argv_add(state->match, "hostname", ARGV_END);
 	break;

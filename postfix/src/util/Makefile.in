@@ -144,7 +144,8 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
-	known_tcp_ports dict_stream find_inet binhash hash_fnv argv
+	known_tcp_ports dict_stream find_inet binhash hash_fnv argv \
+	clean_env
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
@@ -500,6 +501,11 @@ sane_basename: $(LIB)
 	mv junk $@.o
 
 find_inet: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+clean_env: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o

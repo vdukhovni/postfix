@@ -43,6 +43,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System libraries. */
@@ -81,7 +83,7 @@ const char *split_nameval(char *buf, char **name, char **value)
     } while (0)
 
     SKIP(buf, np, ISSPACE(*np));		/* find name begin */
-    if (*np == 0)
+    if (*np == 0 || *np == '=')
 	return ("missing attribute name");
     SKIP(np, ep, !ISSPACE(*ep) && *ep != '=');	/* find name end */
     SKIP(ep, cp, ISSPACE(*cp));			/* skip blanks before '=' */

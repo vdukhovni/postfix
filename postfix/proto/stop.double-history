@@ -37,3 +37,4 @@ proto  proto SASL_README html proto SQLITE_README html
  postfix postfix c postlog postlog c 
  util net_mask_top hc smtpd smtpd c smtpd smtpd_peer c 
  util inet_prefix_top hc smtpd smtpd c smtpd smtpd_peer c 
+ File smtp smtp h 
