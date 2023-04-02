@@ -82,6 +82,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -255,7 +257,8 @@ VSTREAM *vstream_popen(int flags,...)
 	    execvp(args.argv[0], args.argv);
 	    msg_fatal("%s: execvp %s: %m", myname, args.argv[0]);
 	} else if (args.shell && *args.shell) {
-	    argv = argv_split(args.shell, CHARS_SPACE);
+	    /* XXX Which parameter to blame? */
+	    argv = argv_split_cw(args.shell, CHARS_SPACE, "command_shell");
 	    argv_add(argv, args.command, (char *) 0);
 	    argv_terminate(argv);
 	    execvp(argv->argv[0], argv->argv);

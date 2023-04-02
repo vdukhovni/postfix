@@ -41,6 +41,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
@@ -76,7 +78,7 @@ ARGV   *mail_parm_split(const char *name, const char *value)
      * error. In this case, mystrtokq() detects no error, extpar() signals
      * the error to its caller, and this function handles the error.
      */
-    while ((arg = mystrtokq(&bp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
+    while ((arg = mystrtokq_cw(&bp, CHARS_COMMA_SP, CHARS_BRACE, name)) != 0) {
 	if (*arg == CHARS_BRACE[0]
 	    && (err = extpar(&arg, CHARS_BRACE, EXTPAR_FLAG_STRIP)) != 0) {
 #ifndef TEST

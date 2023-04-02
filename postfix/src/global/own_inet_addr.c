@@ -42,6 +42,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -143,7 +145,7 @@ static void own_inet_addr_init(INET_ADDR_LIST *addr_list,
      */
     else {
 	bufp = hosts = mystrdup(var_inet_interfaces);
-	while ((host = mystrtok(&bufp, sep)) != 0)
+	while ((host = mystrtok_cw(&bufp, sep, VAR_INET_INTERFACES)) != 0)
 	    if (inet_addr_host(addr_list, host) == 0)
 		msg_fatal("config variable %s: host not found: %s",
 			  VAR_INET_INTERFACES, host);
@@ -191,7 +193,7 @@ static void own_inet_addr_init(INET_ADDR_LIST *addr_list,
 
 /* own_inet_addr - is this my own internet address */
 
-int     own_inet_addr(struct sockaddr * addr)
+int     own_inet_addr(struct sockaddr *addr)
 {
     int     i;
 
@@ -239,7 +241,7 @@ static void proxy_inet_addr_init(INET_ADDR_LIST *addr_list)
      */
     inet_addr_list_init(addr_list);
     bufp = hosts = mystrdup(var_proxy_interfaces);
-    while ((host = mystrtok(&bufp, sep)) != 0)
+    while ((host = mystrtok_cw(&bufp, sep, VAR_PROXY_INTERFACES)) != 0)
 	if (inet_addr_host(addr_list, host) == 0)
 	    msg_fatal("config variable %s: host not found: %s",
 		      VAR_PROXY_INTERFACES, host);
@@ -253,7 +255,7 @@ static void proxy_inet_addr_init(INET_ADDR_LIST *addr_list)
 
 /* proxy_inet_addr - is this my proxy internet address */
 
-int     proxy_inet_addr(struct sockaddr * addr)
+int     proxy_inet_addr(struct sockaddr *addr)
 {
     int     i;
 

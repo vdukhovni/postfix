@@ -31,7 +31,14 @@ extern char *concatenate(const char *,...);
 extern char *mystrtok(char **, const char *);
 extern char *mystrtokq(char **, const char *, const char *);
 extern char *mystrtokdq(char **, const char *);
+extern char *mystrtok_cw(char **, const char *, const char *);
+extern char *mystrtokq_cw(char **, const char *, const char *, const char *);
+extern char *mystrtokdq_cw(char **, const char *, const char *);
 extern char *translit(char *, const char *, const char *);
+
+#define mystrtok(cp, sp) mystrtok_cw((cp), (sp), (char *) 0)
+#define mystrtokq(cp, sp, pp) mystrtokq_cw((cp), (sp), (pp), (char *) 0)
+#define mystrtokdq(cp, sp) mystrtokdq_cw((cp), (sp), (char *) 0)
 
 #define printable(string, replacement) \
 	printable_except((string), (replacement), (char *) 0)
@@ -102,6 +109,8 @@ extern int strncasecmp_utf8x(int, const char *, const char *, ssize_t);
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 #endif

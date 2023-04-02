@@ -697,15 +697,16 @@ int     main(int argc, char **argv)
 	int     test_failed;
 	ARGV   *argvp;
 
+	msg_info("RUN  %s", tp->label);
 	argvp = argv_alloc(1);
 	if (setjmp(test_panic_jbuf) == 0)
 	    tp->populate_fn(tp, argvp);
 	test_failed = test_argv_verify(tp, argvp);
 	if (test_failed) {
-	    msg_info("%s: FAIL", tp->label);
+	    msg_info("FAIL %s", tp->label);
 	    fail++;
 	} else {
-	    msg_info("%s: PASS", tp->label);
+	    msg_info("PASS %s", tp->label);
 	    pass++;
 	}
 	argv_free(argvp);

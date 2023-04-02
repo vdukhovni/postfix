@@ -20,7 +20,7 @@ typedef struct ARGV {
     char  **argv;			/* string array */
 } ARGV;
 
-typedef int (*ARGV_COMPAR_FN)(const void *, const void *);
+typedef int (*ARGV_COMPAR_FN) (const void *, const void *);
 
 extern ARGV *argv_alloc(ssize_t);
 extern ARGV *argv_sort(ARGV *);		/* backwards compatibility */
@@ -36,15 +36,20 @@ extern void argv_delete(ARGV *, ssize_t, ssize_t);
 extern ARGV *argv_free(ARGV *);
 
 extern ARGV *argv_split(const char *, const char *);
-extern ARGV *argv_split_count(const char *, const char *, ssize_t);
+extern ARGV *argv_split_cw(const char *, const char *, const char *);
 extern ARGV *argv_split_append(ARGV *, const char *, const char *);
+extern ARGV *argv_split_append_cw(ARGV *, const char *, const char *, const char *);
+
+#define argv_split(cp, sp) argv_split_cw((cp), (sp), (char *) 0)
+#define argv_split_append(av, cp, sp) argv_split_append_cw((av), (cp), (sp), (char *) 0)
 
 extern ARGV *argv_splitq(const char *, const char *, const char *);
-extern ARGV *argv_splitq_count(const char *, const char *, const char *, ssize_t);
+extern ARGV *argv_splitq_cw(const char *, const char *, const char *, const char *);
 extern ARGV *argv_splitq_append(ARGV *, const char *, const char *, const char *);
 
+#define argv_splitq(cp, sp, pp) argv_splitq_cw((cp), (sp), (pp), (char *) 0)
+
 extern ARGV *argv_split_at(const char *, int);
-extern ARGV *argv_split_at_count(const char *, int, ssize_t);
 extern ARGV *argv_split_at_append(ARGV *, const char *, int);
 
 #define ARGV_FAKE_BEGIN(fake_argv, arg) { \
@@ -73,6 +78,8 @@ extern ARGV *argv_split_at_append(ARGV *, const char *, int);
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 #endif

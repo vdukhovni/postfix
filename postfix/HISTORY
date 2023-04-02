@@ -26996,6 +26996,47 @@ Apologies for any names omitted.
 	Found during code maintenance. Also refined an "empty name"
 	check. Files: clean_env.c, split_nameval.c.
 
+	Safety: Postfix programs log a warning when a configuration
+	parameter specifies a list that contains a #comment. Examples
+	of such parameters are smtpd_*_restrictions, check_ccert_access,
+	and restriction_classes. This affects about 70 call sites
+	where a list is parsed. Files: proto/stop.spell-cc,
+	src/cleanup/cleanup_init.c, src/global/dict_ldap.c,
+	src/global/dict_mysql.c, src/global/dict_pgsql.c,
+	src/global/dynamicmaps.c, src/global/header_opts.c,
+	src/global/login_sender_match.c, src/global/mail_conf.c,
+	src/global/maillog_client.c, src/global/mail_parm_split.c,
+	src/global/mail_queue.c, src/global/maps.c,
+	src/global/map_search.c, src/global/own_inet_addr.c,
+	src/global/server_acl.c, src/local/dotforward.c,
+	src/master/master_ent.c, src/milter/milter8.c, src/milter/milter.c,
+	src/oqmgr/qmgr_message.c, src/postfix/postfix.c,
+	src/postmulti/postmulti.c, src/postscreen/postscreen_dnsbl.c,
+	src/postsuper/postsuper.c, src/proxymap/proxymap.c,
+	src/qmgr/qmgr_message.c, src/sendmail/sendmail.c,
+	src/smtpd/smtpd_check.c, src/smtp/smtp_connect.c,
+	src/smtp/smtp_tls_policy.c, src/tls/tls_certkey.c,
+	src/tls/tls_dane.c, src/util/argv.h, src/util/argv_split.c,
+	src/util/argv_splitq.c, src/util/dict_file.c,
+	src/util/dict_inline.c, src/util/dict_pipe.c,
+	src/util/dict_random.c, src/util/dict_stream.c,
+	src/util/dict_union.c, src/util/match_list.c, src/util/mystrtok.c,
+	src/util/name_mask.c, src/util/stringops.h.
+
+20230401
+
+	Cleanup: removed never-used argv_split*_count() functions.
+	Files: argv_splitq.c, util/argv_split_at.c, util/argv_splitq.c,
+	argv.h.
+
+	Cleanup: added unit tests. Files: util/argv_split.c,
+	argv_splitq.c.
+
+	Cleanup: warning details for trailing comments. Files:
+	global/config_known_tcp_ports.c, util/dict_inline.c,
+	util/dict_pipe.c, util/dict_random.c, util/dict_stream.c,
+	util/dict_union.c.
+
 20230402
 
 	Cleanup: changed the DNS_RR data structure so that it remains
@@ -27014,3 +27055,5 @@ Apologies for any names omitted.
 	example, inline maps. Added Valgrind support to the namadr_list
 	unit test. Files: util/match_list.c, global/namadr_list.in,
 	util/Makefile.in.
+
+	TODO: attr_override tests.

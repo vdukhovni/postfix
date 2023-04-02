@@ -412,9 +412,10 @@
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
 /* .IP "\fBremote_header_rewrite_domain (empty)\fR"
-/*	Don't rewrite message headers from remote clients at all when
-/*	this parameter is empty; otherwise, rewrite message headers and
-/*	append the specified domain name to incomplete addresses.
+/*	Rewrite or add message headers in mail from remote clients if
+/*	the remote_header_rewrite_domain parameter value is non-empty,
+/*	updating incomplete addresses with the domain specified in the
+/*	remote_header_rewrite_domain parameter, and adding missing headers.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
@@ -472,6 +473,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -1482,7 +1485,8 @@ int     main(int argc, char **argv)
 	if (alias_map_from_args != 0)
 	    argv_add(ext_argv, alias_map_from_args, (char *) 0);
 	else
-	    argv_split_append(ext_argv, var_alias_db_map, CHARS_COMMA_SP);
+	    argv_split_append_cw(ext_argv, var_alias_db_map, CHARS_COMMA_SP,
+				 VAR_ALIAS_DB_MAP);
 	argv_terminate(ext_argv);
 	mail_run_replace(var_command_dir, ext_argv->argv);
 	/* NOTREACHED */

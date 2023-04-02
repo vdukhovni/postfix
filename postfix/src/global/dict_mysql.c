@@ -153,6 +153,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -790,7 +792,8 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
 
     hosts = cfg_get_str(p, "hosts", "", 0, 0);
 
-    dict_mysql->hosts = argv_split(hosts, CHARS_COMMA_SP);
+    dict_mysql->hosts = argv_split_cw(hosts, CHARS_COMMA_SP,
+				      dict_mysql->dict.name);
     if (dict_mysql->hosts->argc == 0) {
 	argv_add(dict_mysql->hosts, "localhost", ARGV_END);
 	argv_terminate(dict_mysql->hosts);

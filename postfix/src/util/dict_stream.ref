@@ -10,4 +10,11 @@ unknown: RUN test case 4 propagates extpar error for inline-file
 unknown: PASS test 4
 unknown: RUN test case 5 propagates extpar error for rule-spec
 unknown: PASS test 5
-unknown: PASS=6 FAIL=0
+unknown: RUN test case 6 comment 1
+unknown: PASS test 6
+unknown: RUN test case 7 comment 2
+unknown: PASS test 7
+unknown: RUN test case 8 comment 3
+unknown: warning: test:{...}: #comment after other text is not allowed: #{blah blah} 
+unknown: PASS test 8
+unknown: PASS=9 FAIL=0

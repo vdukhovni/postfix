@@ -29,12 +29,15 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
   * System library.
   */
 #include <sys_defs.h>
+#include <string.h>
 
  /*
   * Utility library.
@@ -57,16 +60,29 @@ void    config_known_tcp_ports(const char *source, const char *settings)
     ARGV   *associations;
     ARGV   *association;
     char  **cpp;
+    char   *copy;
+    char   *cp;
 
     clear_known_tcp_ports();
+
+    /*
+     * We can strip comments before splitting the input.
+     */
+    copy = mystrdup(settings);
+    if ((cp = strchr(copy, '#')) != 0
+	&& (cp == copy || strchr(CHARS_COMMA_SP "=", cp[-1]) != 0)) {
+	msg_warn("%s: #comment after other text is not allowed: %s", source, cp);;
+	*cp = 0;
+    }
 
     /*
      * The settings is in the form of associations separated by comma. Split
      * it into separate associations.
      */
-    associations = argv_split(settings, ",");
+    associations = argv_split(copy, ",");
     if (associations->argc == 0) {
 	argv_free(associations);
+	myfree(copy);
 	return;
     }
 
@@ -85,8 +101,10 @@ void    config_known_tcp_ports(const char *source, const char *settings)
 	if (association->argc == 0) {
 	     /* empty, ignore */ ;
 	} else if (association->argc == 1) {
-	    msg_warn("%s: in \"%s\" is not in \"name = value\" form",
-		     source, *cpp);
+	    cp = *cpp;
+	    if ((cp = mystrtok(&cp, CHARS_SPACE)) != 0)
+		msg_warn("%s: \"%s\" is not in \"name = value\" form",
+			 source, cp);
 	} else {
 	    char   *bp;
 	    char   *lhs;
@@ -122,6 +140,7 @@ void    config_known_tcp_ports(const char *source, const char *settings)
 	argv_free(association);
     }
     argv_free(associations);
+    myfree(copy);
 }
 
 #ifdef TEST
@@ -157,6 +176,34 @@ static struct test_case test_cases[] = {
 	 /* config */ "smtp = 25, smtps = submissions = 465, lmtp = 24",
 	 /* warning */ "",
 	 /* export */ "lmtp=24 smtp=25 smtps=465 submissions=465"
+    },
+    {"comment 1",
+	 /* config */ "smtp = 25,#smtps = submissions = 465, lmtp = 24",
+	 /* warning */ "config_known_tcp_ports: warning: comment 1: #comment after other text is not allowed: #smtps = submissions = 465, lmtp = 24\n",
+	 /* export */ "smtp=25"
+    },
+    {"comment 2",
+	 /* config */ "smtp = 25, smtps #= submissions = 465, lmtp = 24",
+	 /* warning */ "config_known_tcp_ports: warning: comment 2: #comment after other text is not allowed: #= submissions = 465, lmtp = 24\n"
+	"config_known_tcp_ports: warning: comment 2: \"smtps\" is not in \"name = value\" form\n",
+	 /* export */ "smtp=25"
+    },
+    {"comment 3",
+	 /* config */ "smtp = 25, smtps =#submissions = 465, lmtp = 24",
+	 /* warning */ "config_known_tcp_ports: warning: comment 3: #comment after other text is not allowed: #submissions = 465, lmtp = 24\n"
+	"config_known_tcp_ports: warning: comment 3: in \" smtps =\": missing port value after \"=\"\n",
+	 /* export */ "smtp=25"
+    },
+    {"comment 4",
+	 /* config */ "smtp = 25, smtps = submissions #= 465, lmtp = 24",
+	 /* warning */ "config_known_tcp_ports: warning: comment 4: #comment after other text is not allowed: #= 465, lmtp = 24\n"
+	"config_known_tcp_ports: warning: comment 4: in \" smtps = submissions \": non-numerical service port\n",
+	 /* export */ "smtp=25"
+    },
+    {"comment 5",
+	 /* config */ "smtp = 25, smtps = submissions = 465, #lmtp = 24",
+	 /* warning */ "config_known_tcp_ports: warning: comment 5: #comment after other text is not allowed: #lmtp = 24\n",
+	 /* export */ "smtp=25 smtps=465 submissions=465"
     },
     {"equal-equal",
 	 /* config */ "smtp = 25, smtps == submissions = 465, lmtp = 24",
@@ -217,6 +264,7 @@ int     main(int argc, char **argv)
     msg_buf = vstring_alloc(100);
     for (tp = test_cases; tp->label != 0; tp++) {
 	test_failed = 0;
+	VSTRING_RESET(msg_buf);
 	if ((memory_stream = vstream_memopen(msg_buf, O_WRONLY)) == 0)
 	    msg_fatal("open memory stream: %m");
 	vstream_swap(VSTREAM_ERR, memory_stream);
@@ -236,10 +284,9 @@ int     main(int argc, char **argv)
 			 tp->label, export, tp->exp_export);
 		test_failed = 1;
 	    }
-	    clear_known_tcp_ports();
-	    VSTRING_RESET(msg_buf);
-	    VSTRING_TERMINATE(msg_buf);
 	}
+	VSTRING_RESET(msg_buf);
+	VSTRING_TERMINATE(msg_buf);
 	if (test_failed) {
 	    msg_info("%s: FAIL", tp->label);
 	    fail++;

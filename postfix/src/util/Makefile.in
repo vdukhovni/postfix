@@ -145,7 +145,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
 	known_tcp_ports dict_stream find_inet binhash hash_fnv argv \
-	clean_env
+	clean_env argv_split argv_splitq
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
@@ -604,6 +604,16 @@ argv: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+argv_split: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+argv_splitq: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test host_port_test dict_tests \
@@ -613,7 +623,7 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	strcasecmp_utf8_test vbuf_print_test miss_endif_cidr_test \
 	miss_endif_regexp_test split_qnameval_test vstring_test \
 	vstream_test byte_mask_tests mystrtok_test known_tcp_ports_test \
-	binhash_test argv_test
+	binhash_test argv_test argv_split_test argv_splitq_test
  
 dict_tests: all dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
@@ -1074,6 +1084,12 @@ find_inet_test: find_inet find_inet.ref
 
 argv_test: argv
 	$(SHLIB_ENV) ${VALGRIND} ./argv
+
+argv_split_test: argv_split
+	$(SHLIB_ENV) ${VALGRIND} ./argv_split
+
+argv_splitq_test: argv_splitq
+	$(SHLIB_ENV) ${VALGRIND} ./argv_splitq
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -2419,6 +2435,7 @@ myrand.o: myrand.c
 myrand.o: myrand.h
 myrand.o: sys_defs.h
 mystrtok.o: check_arg.h
+mystrtok.o: msg.h
 mystrtok.o: mystrtok.c
 mystrtok.o: stringops.h
 mystrtok.o: sys_defs.h

@@ -6,7 +6,8 @@
 /* SYNOPSIS
 /*	#include <attr_override.h>
 /*
-/*	void	attr_override(bp, delimiters, parens, ... CA_ATTR_OVER_END);
+/*	void	attr_override(blame, bp, delimiters, parens, ...,
+/*				CA_ATTR_OVER_END)
 /*	char	*bp;
 /*	const char *delimiters;
 /*	const char *parens;
@@ -22,6 +23,8 @@
 /*	fall-back policies, etc.).
 /*
 /*	Arguments:
+/* .IP blame
+/*	Context for error messages.
 /* .IP bp
 /*	Pointer to input string. The input is modified.
 /* .IP "delimiters, parens"
@@ -63,6 +66,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
@@ -88,7 +93,7 @@
 
 /* attr_override - apply settings from list of attribute=value pairs */
 
-void    attr_override(char *cp, const char *sep, const char *parens,...)
+void    attr_override(const char *blame, char *cp, const char *sep, const char *parens,...)
 {
     static const char myname[] = "attr_override";
     va_list ap;
@@ -146,10 +151,16 @@ void    attr_override(char *cp, const char *sep, const char *parens,...)
 	 */
 	/* { name = value } */
 	if (*nameval == parens[0]
-	    && (err = extpar(&nameval, parens, EXTPAR_FLAG_NONE)) != 0)
+	    && (err = extpar(&nameval, parens, EXTPAR_FLAG_STRIP)) != 0)
 	    msg_fatal("%s in \"%s\"", err, nameval);
+	if (*nameval == '#')
+	    msg_fatal("%s: #comment after other text is not allowed: \"...%s...\"",
+		      blame, nameval);
 	if ((err = split_nameval(nameval, &key, &value)) != 0)
-	    msg_fatal("malformed option: %s: \"...%s...\"", err, nameval);
+	    msg_fatal("%s: malformed option: %s: \"...%s...\"", blame, err, nameval);
+	if (*value == '#')
+	    msg_fatal("%s: #comment after other text is not allowed: \"...%s %s\"",
+		      blame, key, value);
 
 	/*
 	 * Look up the name and apply the value.

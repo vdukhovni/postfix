@@ -10,11 +10,6 @@
 /*	const char *string;
 /*	int	sep;
 /*
-/*	ARGV	*argv_split_at_count(string, sep, count)
-/*	const char *string;
-/*	int	sep;
-/*	ssize_t	count;
-/*
 /*	ARGV	*argv_split_at_append(argv, string, sep)
 /*	ARGV	*argv;
 /*	const char *string;
@@ -23,11 +18,6 @@
 /*	argv_split_at() splits \fIstring\fR into fields using a
 /*	single separator specified in \fIsep\fR. The result is a
 /*	null-terminated string array.
-/*
-/*	argv_split_at_count() is like argv_split_at() but stops
-/*	splitting input after at most \fIcount\fR -1 times and
-/*	leaves the remainder, if any, in the last array element.
-/*	It is an error to specify a count < 1.
 /*
 /*	argv_split_at_append() performs the same operation as
 /*	argv_split_at(), but appends the result to an existing
@@ -75,27 +65,6 @@ ARGV   *argv_split_at(const char *string, int sep)
     char   *arg;
 
     while ((arg = split_at(bp, sep)) != 0) {
-	argv_add(argvp, bp, (char *) 0);
-	bp = arg;
-    }
-    argv_add(argvp, bp, (char *) 0);
-    argv_terminate(argvp);
-    myfree(saved_string);
-    return (argvp);
-}
-
-/* argv_split_at_count - split string into field array */
-
-ARGV   *argv_split_at_count(const char *string, int sep, ssize_t count)
-{
-    ARGV   *argvp = argv_alloc(1);
-    char   *saved_string = mystrdup(string);
-    char   *bp = saved_string;
-    char   *arg;
-
-    if (count < 1)
-	msg_panic("argv_split_at_count: bad count: %ld", (long) count);
-    while (count-- > 1 && (arg = split_at(bp, sep)) != 0) {
 	argv_add(argvp, bp, (char *) 0);
 	bp = arg;
     }

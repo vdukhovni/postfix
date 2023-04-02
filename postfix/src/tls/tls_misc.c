@@ -235,6 +235,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -611,7 +613,9 @@ int     tls_proto_mask_lims(const char *plist, int *floor, int *ceiling)
     *floor = *ceiling = 0;
 
     save = cp = mystrdup(plist);
-    while ((tok = mystrtok(&cp, CHARS_COMMA_SP ":")) != 0) {
+    /* XXX Which parameter to blame? */
+    while ((tok = mystrtok_cw(&cp, CHARS_COMMA_SP ":",
+			      "protocol exclusions")) != 0) {
 	if (strncmp(tok, ">=", 2) == 0)
 	    code = parse_tls_version(tok + 2, floor);
 	else if (strncmp(tok, "<=", 2) == 0)
@@ -833,7 +837,9 @@ const char *tls_set_ciphers(TLS_SESS_STATE *TLScontext, const char *grade,
 #define CIPHER_SEP CHARS_COMMA_SP ":"
     if (exclusions != 0) {
 	cp = save = mystrdup(exclusions);
-	while ((tok = mystrtok(&cp, CIPHER_SEP)) != 0) {
+	/* XXX Which parameter to blame? */
+	while ((tok = mystrtok_cw(&cp, CIPHER_SEP,
+				  "cipher exclusions")) != 0) {
 
 	    /*
 	     * Can't exclude ciphers that start with modifiers.

@@ -187,6 +187,8 @@
 /*	New York, NY 10011, USA
 /*
 /*	Viktor Dukhovni
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -418,7 +420,8 @@ static void dane_free(void *dane, void *unused_context)
 void    tls_dane_add_fpt_digests(TLS_DANE *dane, const char *digest,
 				         const char *delim, int smtp_mode)
 {
-    ARGV   *values = argv_split(digest, delim);
+    /* XXX Which parameter to blame? */
+    ARGV   *values = argv_split_cw(digest, delim, "fingerprint digests");
     ssize_t i;
 
     if (smtp_mode) {
@@ -850,7 +853,8 @@ void    tls_dane_digest_init(SSL_CTX *ctx, const EVP_MD *fpt_alg)
     maxtype = 2;
 
     save = cp = mystrdup(var_tls_dane_digests);
-    while ((algname = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
+    while ((algname = mystrtok_cw(&cp, CHARS_COMMA_SP,
+				  VAR_TLS_DANE_DIGESTS)) != 0) {
 	char   *algcode = split_at(algname, '=');
 	int     codepoint = -1;
 

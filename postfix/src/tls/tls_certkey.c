@@ -79,6 +79,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -460,7 +462,9 @@ static int load_pem_bio(pem_load_state_t *st, int more)
 static int load_chain_files(SSL_CTX *ctx, const char *chain_files)
 {
     pem_load_state_t st;
-    ARGV   *files = argv_split(chain_files, CHARS_COMMA_SP);
+
+    /* XXX Which parameter to blame? */
+    ARGV   *files = argv_split_cw(chain_files, CHARS_COMMA_SP, "chain files");
     char  **filep;
     int     ret = 0;
     int     more;

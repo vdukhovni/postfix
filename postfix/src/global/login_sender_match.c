@@ -79,6 +79,8 @@ r*	The lookup table(s) with (login name, sender patterns) entries.
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
@@ -201,7 +203,8 @@ int     login_sender_match(LOGIN_SENDER_MATCH *lsm, const char *login_name,
 	 */
 	cp = saved_sender_patterns = mystrdup(sender_patterns);
 	while (found_or_error == LSM_STAT_NOTFOUND
-	       && (sender_pattern = mystrtokdq(&cp, CHARS_COMMA_SP)) != 0) {
+	       && (sender_pattern = mystrtokdq_cw(&cp, CHARS_COMMA_SP,
+						  lsm->maps->title)) != 0) {
 	    /* Special pattern: @domain. */
 	    if (*sender_pattern == '@') {
 		if ((at_sender_domain = strrchr(sender_addr, '@')) != 0

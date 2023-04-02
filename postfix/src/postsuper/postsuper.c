@@ -288,7 +288,7 @@
 /*	The names of queue directories that are split across multiple
 /*	subdirectory levels.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a privileged Postfix
+/*	The list of environment variables that a privileged Postfix
 /*	process will import from a non-Postfix parent process, or name=value
 /*	environment overrides.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
@@ -321,6 +321,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -900,7 +902,9 @@ static int fix_queue_id(const char *actual_path, const char *actual_queue,
 
 static void super(const char **queues, int action)
 {
-    ARGV   *hash_queue_names = argv_split(var_hash_queue_names, CHARS_COMMA_SP);
+    ARGV   *hash_queue_names = argv_split_cw(var_hash_queue_names,
+					     CHARS_COMMA_SP,
+					     VAR_HASH_QUEUE_NAMES);
     VSTRING *actual_path = vstring_alloc(10);
     VSTRING *wanted_path = vstring_alloc(10);
     struct stat st;

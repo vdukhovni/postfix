@@ -38,4 +38,10 @@ proto  proto SASL_README html proto SQLITE_README html
  util net_mask_top hc smtpd smtpd c smtpd smtpd_peer c 
  util inet_prefix_top hc smtpd smtpd c smtpd smtpd_peer c 
  File smtp smtp h 
+ src master master_ent c src milter milter8 c src milter milter c 
+ src oqmgr qmgr_message c src postfix postfix c 
+ src postmulti postmulti c src postscreen postscreen_dnsbl c 
+ src postsuper postsuper c src proxymap proxymap c 
+ src postsuper postsuper c src proxymap proxymap c 
+ src qmgr qmgr_message c src sendmail sendmail c 
  manpage File postscreen postscreen c 

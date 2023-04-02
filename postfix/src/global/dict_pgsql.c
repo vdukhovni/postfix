@@ -135,6 +135,8 @@
 /*	Joshua Marcus
 /*	IC Group, Inc.
 /*	josh@icgroup.com
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -754,7 +756,8 @@ static void pgsql_parse_config(DICT_PGSQL *dict_pgsql, const char *pgsqlcf)
 
     hosts = cfg_get_str(p, "hosts", "", 0, 0);
 
-    dict_pgsql->hosts = argv_split(hosts, CHARS_COMMA_SP);
+    dict_pgsql->hosts = argv_split_cw(hosts, CHARS_COMMA_SP,
+				      dict_pgsql->dict.name);
     if (dict_pgsql->hosts->argc == 0) {
 	argv_add(dict_pgsql->hosts, "localhost", ARGV_END);
 	argv_terminate(dict_pgsql->hosts);

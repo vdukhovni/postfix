@@ -16,7 +16,7 @@
   */
 #include <check_arg.h>
 
-extern void attr_override(char *, const char *, const char *,...);
+extern void attr_override(const char *, char *, const char *, const char *,...);
 
 typedef struct {
     const char *name;
@@ -65,6 +65,8 @@ CHECK_CPTR_HELPER_DCL(ATTR_OVER, ATTR_OVER_INT);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 #endif

@@ -70,6 +70,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
@@ -114,7 +116,7 @@ VSTRING *dict_file_to_buf(DICT *dict, const char *pathnames)
 	return (retval); \
     } while (0);
 
-    argv = argv_split(pathnames, CHARS_COMMA_SP);
+    argv = argv_split_cw(pathnames, CHARS_COMMA_SP, dict->name);
     if (argv->argc == 0) {
 	vstring_sprintf(dict->file_buf, "empty pathname list: >>%s<<'",
 			pathnames);

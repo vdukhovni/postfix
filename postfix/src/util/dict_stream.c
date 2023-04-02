@@ -51,7 +51,7 @@
 /*	content as specified above.
 /* .IP st
 /*	File metadata with the file owner, or fake metadata with the
-/*	real UID and GID of the dict_stream_open() caller. This is 
+/*	real UID and GID of the dict_stream_open() caller. This is
 /*	used for "taint" tracking (zero=trusted, non-zero=untrusted).
 /* IP why
 /*	Pointer to pointer to error message storage. dict_stream_open()
@@ -66,6 +66,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
  /*
@@ -87,9 +89,11 @@
 
 /* dict_inline_to_multiline - convert inline map spec to multiline text */
 
-static char *dict_inline_to_multiline(VSTRING *vp, const char *mapname)
+static char *dict_inline_to_multiline(VSTRING *vp, const char *dict_type,
+				              const char *mapname)
 {
     char   *saved_name = mystrdup(mapname);
+    char   *blame = concatenate(dict_type, ":{...}", (char *) 0);
     char   *bp = saved_name;
     char   *cp;
     char   *err = 0;
@@ -98,12 +102,14 @@ static char *dict_inline_to_multiline(VSTRING *vp, const char *mapname)
     /* Strip the {} from the map "name". */
     err = extpar(&bp, CHARS_BRACE, EXTPAR_FLAG_NONE);
     /* Extract zero or more rules inside {}. */
-    while (err == 0 && (cp = mystrtokq(&bp, CHARS_COMMA_SP, CHARS_BRACE)) != 0)
+    while (err == 0
+       && (cp = mystrtokq_cw(&bp, CHARS_COMMA_SP, CHARS_BRACE, blame)) != 0)
 	if ((err = extpar(&cp, CHARS_BRACE, EXTPAR_FLAG_STRIP)) == 0)
 	    /* Write rule to in-memory file. */
 	    vstring_sprintf_append(vp, "%s\n", cp);
     VSTRING_TERMINATE(vp);
     myfree(saved_name);
+    myfree(blame);
     return (err);
 }
 
@@ -130,7 +136,8 @@ VSTREAM *dict_stream_open(const char *dict_type, const char *mapname,
 
     if (mapname[0] == CHARS_BRACE[0]) {
 	inline_buf = vstring_alloc(100);
-	if ((err = dict_inline_to_multiline(inline_buf, mapname)) != 0)
+	if ((err = dict_inline_to_multiline(inline_buf, dict_type,
+					    mapname)) != 0)
 	    RETURN_0_WITH_REASON("%s map: %s", dict_type, err);
 	map_fp = vstream_memopen(inline_buf, O_RDONLY);
 	vstream_control(map_fp, VSTREAM_CTL_OWN_VSTRING, VSTREAM_CTL_END);
@@ -187,6 +194,16 @@ int     main(int argc, char **argv)
 	},
 	{"propagates extpar error for rule-spec",
 	    "{{foo bar}, {blah blah}x}", rule_spec_error, EXP_NOCONT
+	},
+	/* Detect comments only at the top level. */
+	{"comment 1",
+	    "{{#foo bar}, {blah blah}}", EXP_NOERR, "#foo bar\nblah blah\n"
+	},
+	{"comment 2",
+	    "{{foo #bar}, {blah blah}}", EXP_NOERR, "foo #bar\nblah blah\n"
+	},
+	{"comment 3",
+	    "{{foo bar}, #{blah blah}}", EXP_NOERR, "foo bar\n"
 	},
 	0,
     };

@@ -57,6 +57,8 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -304,11 +306,11 @@ void    tls_tmp_dh(SSL_CTX *ctx, int useauto)
 /* ------------------------------------- Common API */
 
 #define AG_STAT_OK	(0)
-#define AG_STAT_NO_GROUP (-1)	/* no usable group, may retry */
-#define AG_STAT_NO_RETRY (-2)	/* other error, don't retry */
+#define AG_STAT_NO_GROUP (-1)		/* no usable group, may retry */
+#define AG_STAT_NO_RETRY (-2)		/* other error, don't retry */
 
 static int setup_auto_groups(SSL_CTX *ctx, const char *origin,
-				const char *eecdh,
+			             const char *eecdh,
 			             const char *ffdhe)
 {
 #ifndef OPENSSL_NO_ECDH
@@ -335,12 +337,16 @@ static int setup_auto_groups(SSL_CTX *ctx, const char *origin,
     } while (0)
 
     groups = save = concatenate(eecdh, " ", ffdhe, NULL);
-    if ((group = mystrtok(&groups, CHARS_COMMA_SP)) == 0) {
+    /* XXX which parameter to blame? */
+    if ((group = mystrtok_cw(&groups, CHARS_COMMA_SP,
+			     "key exchange group")) == 0) {
 	msg_warn("no %s key exchange group - OpenSSL requires at least one",
 		 origin);
 	SETUP_AG_RETURN(AG_STAT_NO_GROUP);
     }
-    for (; group != 0; group = mystrtok(&groups, CHARS_COMMA_SP)) {
+    /* XXX which parameter to blame? */
+    for (; group != 0; group = mystrtok_cw(&groups, CHARS_COMMA_SP,
+					   "key exchange group")) {
 	int     nid = EC_curve_nist2nid(group);
 
 	if (nid == NID_undef)
@@ -405,7 +411,7 @@ void    tls_auto_groups(SSL_CTX *ctx, const char *eecdh, const char *ffdhe)
      * group selection is mere performance tuning and not security critical.
      * All the groups supported for negotiation should be strong enough.
      */
-    for (origin = "configured"; /* void */ ; /* void */) {
+    for (origin = "configured"; /* void */ ; /* void */ ) {
 	switch (setup_auto_groups(ctx, origin, eecdh, ffdhe)) {
 	case AG_STAT_OK:
 	    return;
