@@ -172,8 +172,10 @@
 /*	on the same MTA. Larger sites would have to share the
 /*	\fBpostscreen\fR(8) cache between primary and backup MTAs,
 /*	which would introduce a common point of failure.
-/* .IP "\fBpostscreen_whitelist_interfaces (static:all)\fR"
-/*	Renamed to postscreen_allowlist_interfaces in Postfix 3.6.
+/* .IP "\fBpostscreen_allowlist_interfaces (static:all)\fR"
+/*	A list of local \fBpostscreen\fR(8) server IP addresses where a
+/*	non-allowlisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
+/*	allowlist status.
 /* BEFORE 220 GREETING TESTS
 /* .ad
 /* .fi

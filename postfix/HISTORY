@@ -26995,3 +26995,22 @@ Apologies for any names omitted.
 	form "name = value" instead of the expected "name=value".
 	Found during code maintenance. Also refined an "empty name"
 	check. Files: clean_env.c, split_nameval.c.
+
+20230402
+
+	Cleanup: changed the DNS_RR data structure so that it remains
+	ABI-compatible when new fields are added at the end. This
+	avoids crashing programs that are started while Postfix is
+	being updated. However, *this* specific change cannot be
+	ABI-compatible. Files: dns/dns_rr.c.
+
+	Cleanup: added missing Valgrind test support. Files:
+	dns/Makefile.in, util/Makefile.in.
+
+	Documentation: fixed a `whitelist' instance in the postscreen(8)
+	manpage. File: postscreen/postscreen.c.
+
+	Cleanup: support for multiline entities in match lists, for
+	example, inline maps. Added Valgrind support to the namadr_list
+	unit test. Files: util/match_list.c, global/namadr_list.in,
+	util/Makefile.in.

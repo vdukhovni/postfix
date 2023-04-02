@@ -163,7 +163,8 @@ typedef struct DNS_RR {
     unsigned short port;		/* T_SRV related, defined in rfc2782 */
     struct DNS_RR *next;		/* linkage */
     size_t  data_len;			/* actual data size */
-    char    data[1];			/* actually a bunch of data */
+    char    *data;			/* a bunch of data */
+     /* Add new fields at the end, for ABI forward compatibility. */
 } DNS_RR;
 
  /*

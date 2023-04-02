@@ -101,7 +101,7 @@
 #include <mymalloc.h>
 #include <vstring.h>
 #include <vstream.h>
-#include <vstring_vstream.h>
+#include <readlline.h>
 #include <stringops.h>
 #include <argv.h>
 #include <dict.h>
@@ -167,10 +167,9 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
 						 "open file %s: %m", item));
 		argv_add(pat_list, STR(buf), (char *) 0);
 	    } else {
-		while (vstring_fgets(buf, fp))
-		    if (vstring_str(buf)[0] != '#')
-			pat_list = match_list_parse(match_list, pat_list,
-						    vstring_str(buf), match);
+		while (readlline(buf, fp, (int *) 0))
+		    pat_list = match_list_parse(match_list, pat_list,
+						vstring_str(buf), match);
 		if (vstream_fclose(fp))
 		    msg_fatal("%s: read file %s: %m", myname, item);
 	    }

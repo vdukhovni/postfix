@@ -160,7 +160,7 @@ DNS_RR *dns_rr_create(const char *qname, const char *rname,
 {
     DNS_RR *rr;
 
-    rr = (DNS_RR *) mymalloc(sizeof(*rr) + data_len - 1);
+    rr = (DNS_RR *) mymalloc(sizeof(*rr));
     rr->qname = mystrdup(qname);
     rr->rname = mystrdup(rname);
     rr->type = type;
@@ -170,8 +170,12 @@ DNS_RR *dns_rr_create(const char *qname, const char *rname,
     rr->pref = pref;
     rr->weight = weight;
     rr->port = port;
-    if (data && data_len > 0)
+    if (data_len != 0) {
+	rr->data = mymalloc(data_len);
 	memcpy(rr->data, data, data_len);
+    } else {
+	rr->data = 0;
+    }
     rr->data_len = data_len;
     rr->next = 0;
     return (rr);
@@ -186,6 +190,8 @@ void    dns_rr_free(DNS_RR *rr)
 	    dns_rr_free(rr->next);
 	myfree(rr->qname);
 	myfree(rr->rname);
+	if (rr->data)
+	    myfree(rr->data);
 	myfree((void *) rr);
     }
 }
