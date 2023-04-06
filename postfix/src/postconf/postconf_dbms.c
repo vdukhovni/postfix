@@ -48,6 +48,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -77,6 +79,8 @@
 #include <dict_pgsql.h>
 #include <dict_sqlite.h>
 #include <dict_memcache.h>
+#include <dict_regexp.h>
+#include <dict_pcre.h>
 
 /* Application-specific. */
 
@@ -134,17 +138,30 @@ static const char *pcf_memcache_suffixes[] = {
   */
 typedef struct {
     const char *db_type;
+    int     db_class;
     const char **db_suffixes;
 } PCF_DBMS_INFO;
 
+#define PCF_DBMS_CLASS_CLIENT	(1)	/* DB name is client config path */
+#define PCF_DBMS_CLASS_REGEX	(2)	/* DB name contains regex patterns */
+
 static const PCF_DBMS_INFO pcf_dbms_info[] = {
-    DICT_TYPE_LDAP, pcf_ldap_suffixes,
-    DICT_TYPE_MYSQL, pcf_mysql_suffixes,
-    DICT_TYPE_PGSQL, pcf_pgsql_suffixes,
-    DICT_TYPE_SQLITE, pcf_sqlite_suffixes,
-    DICT_TYPE_MEMCACHE, pcf_memcache_suffixes,
-    0,
+    {DICT_TYPE_LDAP, PCF_DBMS_CLASS_CLIENT, pcf_ldap_suffixes},
+    {DICT_TYPE_MYSQL, PCF_DBMS_CLASS_CLIENT, pcf_mysql_suffixes},
+    {DICT_TYPE_PGSQL, PCF_DBMS_CLASS_CLIENT, pcf_pgsql_suffixes},
+    {DICT_TYPE_SQLITE, PCF_DBMS_CLASS_CLIENT, pcf_sqlite_suffixes},
+    {DICT_TYPE_MEMCACHE, PCF_DBMS_CLASS_CLIENT, pcf_memcache_suffixes},
+    {DICT_TYPE_REGEXP, PCF_DBMS_CLASS_REGEX},
+    {DICT_TYPE_PCRE, PCF_DBMS_CLASS_REGEX},
+    {0},
 };
+
+ /*
+  * Workaround to prevent a false warning about "#comment after other text",
+  * when an inline pcre or regexp pattern contains "#text".
+  */
+#define PCF_DBMS_RECURSE	1	/* Parse inline {map-entry} */
+#define PCF_DBMS_NO_RECURSE	0	/* Don't parse inline {map-entry} */
 
 /* pcf_check_dbms_client - look for unused names in client configuration */
 
@@ -216,7 +233,8 @@ static void pcf_check_dbms_client(const PCF_DBMS_INFO *dp, const char *cf_file)
 
 static void pcf_register_dbms_helper(char *str_value,
          const char *(flag_parameter) (const char *, int, PCF_MASTER_ENT *),
-				             PCF_MASTER_ENT *local_scope)
+				             PCF_MASTER_ENT *local_scope,
+				             int recurse)
 {
     const PCF_DBMS_INFO *dp;
     char   *db_type;
@@ -229,7 +247,8 @@ static void pcf_register_dbms_helper(char *str_value,
      * Naive parsing. We don't really know if this substring specifies a
      * database or some other text.
      */
-    while ((db_type = mystrtokq(&str_value, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
+    while ((db_type = mystrtokq_cw(&str_value, CHARS_COMMA_SP, CHARS_BRACE,
+		   local_scope ? MASTER_CONF_FILE : MAIN_CONF_FILE)) != 0) {
 	if (*db_type == CHARS_BRACE[0]) {
 	    if ((err = extpar(&db_type, CHARS_BRACE, EXTPAR_FLAG_NONE)) != 0) {
 		/* XXX Encapsulate this in pcf_warn() function. */
@@ -240,7 +259,9 @@ static void pcf_register_dbms_helper(char *str_value,
 		    msg_warn("%s: %s", MAIN_CONF_FILE, err);
 		myfree(err);
 	    }
-	    pcf_register_dbms_helper(db_type, flag_parameter, local_scope);
+	    if (recurse)
+		pcf_register_dbms_helper(db_type, flag_parameter, local_scope,
+					 recurse);
 	    continue;
 	}
 
@@ -267,7 +288,8 @@ static void pcf_register_dbms_helper(char *str_value,
 	if (*prefix == '/') {
 	    for (dp = pcf_dbms_info; dp->db_type != 0; dp++) {
 		if (strcmp(db_type, dp->db_type) == 0) {
-		    pcf_check_dbms_client(dp, prefix);
+		    if (dp->db_class == PCF_DBMS_CLASS_CLIENT)
+			pcf_check_dbms_client(dp, prefix);
 		    break;
 		}
 	    }
@@ -282,6 +304,8 @@ static void pcf_register_dbms_helper(char *str_value,
 	 * local or global namespace.
 	 */
 	if (*prefix != '.') {
+	    int     next_recurse = recurse;
+
 	    if (*prefix == CHARS_BRACE[0]) {
 		if ((err = extpar(&prefix, CHARS_BRACE, EXTPAR_FLAG_NONE)) != 0) {
 		    /* XXX Encapsulate this in pcf_warn() function. */
@@ -293,18 +317,28 @@ static void pcf_register_dbms_helper(char *str_value,
 			msg_warn("%s: %s", MAIN_CONF_FILE, err);
 		    myfree(err);
 		}
-		pcf_register_dbms_helper(prefix, flag_parameter, local_scope);
+		for (dp = pcf_dbms_info; dp->db_type != 0; dp++) {
+		    if (strcmp(db_type, dp->db_type) == 0) {
+			if (dp->db_class == PCF_DBMS_CLASS_REGEX)
+			    next_recurse = PCF_DBMS_NO_RECURSE;
+			break;
+		    }
+		}
+		pcf_register_dbms_helper(prefix, flag_parameter, local_scope,
+					 next_recurse);
 		continue;
 	    } else {
 		for (dp = pcf_dbms_info; dp->db_type != 0; dp++) {
 		    if (strcmp(db_type, dp->db_type) == 0) {
-			for (cpp = dp->db_suffixes; *cpp; cpp++) {
-			    vstring_sprintf(candidate ? candidate :
+			if (dp->db_class == PCF_DBMS_CLASS_CLIENT) {
+			    for (cpp = dp->db_suffixes; *cpp; cpp++) {
+				vstring_sprintf(candidate ? candidate :
 					    (candidate = vstring_alloc(30)),
-					    "%s_%s", prefix, *cpp);
-			    flag_parameter(STR(candidate),
+						"%s_%s", prefix, *cpp);
+				flag_parameter(STR(candidate),
 				  PCF_PARAM_FLAG_DBMS | PCF_PARAM_FLAG_USER,
-					   local_scope);
+					       local_scope);
+			    }
 			}
 			break;
 		    }
@@ -332,7 +366,7 @@ void    pcf_register_dbms_parameters(const char *param_value,
 	buffer = vstring_alloc(100);
     bufp = pcf_expand_parameter_value(buffer, PCF_SHOW_EVAL, param_value,
 				      local_scope);
-    pcf_register_dbms_helper(bufp, flag_parameter, local_scope);
+    pcf_register_dbms_helper(bufp, flag_parameter, local_scope, PCF_DBMS_RECURSE);
 }
 
 #endif

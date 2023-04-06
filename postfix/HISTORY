@@ -26990,11 +26990,13 @@ Apologies for any names omitted.
 20230330
 
 	Safety: the long form { name = value } in import_environment
-	or export_environment is not documented, but accepted, and
-	it was stored in the process environment as the invalid
-	form "name = value" instead of the expected "name=value".
-	Found during code maintenance. Also refined an "empty name"
-	check. Files: clean_env.c, split_nameval.c.
+	or export_environment is not documented, but it is accepted,
+	and it was stored in the process environment as the invalid
+	form "name = value, thus not setting or overriding an entry
+	for "name". This form is now stored as the expected
+	"name=value". Found during code maintenance. Also refined
+	the "missing attribute name" detection. Files: clean_env.c,
+	split_nameval.c.
 
 20230402
 
@@ -27014,3 +27016,23 @@ Apologies for any names omitted.
 	example, inline maps. Added Valgrind support to the namadr_list
 	unit test. Files: util/match_list.c, global/namadr_list.in,
 	util/Makefile.in.
+
+20240406
+
+	Bugfix (introduced: 20230402): after a change in the DNS_RR
+	structure, the dns_rr_copy() function had not been updated,
+	causing the Postfix SMTP client to panic as it detected a
+	double-free() attempt. Reported by Florian Piekert. File:
+	dns/dns_rr.c.
+
+	Usability: Postfix does not support #comments after other
+	text, but people add them anyway, with unexpected results.
+	The postconf command now warns for trailing comments in
+	main.cf files. Similar warnings are planned for database
+	client configuration files. Files: util/mystrtok.c,
+	util/mystrtok.ref, util/match_list.c, global/namadr_list.ref,
+	postconf/postconf_dbms.c, postconf/test71.ref.
+
+	TODO: #comment after text in DB client configuration files.
+
+	TOIDO: test for dns_rr_copy() + dns_rr_free().

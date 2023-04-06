@@ -18,6 +18,22 @@
 /*	char	*mystrtokdq(bufp, delimiters)
 /*	char	**bufp;
 /*	const char *delimiters;
+/*
+/*	char	*mystrtok_cw(bufp, delimiters, blame)
+/*	char	**bufp;
+/*	const char *delimiters;
+/*	const char *blame;
+/*
+/*	char	*mystrtokq_cw(bufp, delimiters, parens, blame)
+/*	char	**bufp;
+/*	const char *delimiters;
+/*	const char *parens;
+/*	const char *blame;
+/*
+/*	char	*mystrtokdq_cw(bufp, delimiters, blame)
+/*	char	**bufp;
+/*	const char *delimiters;
+/*	const char *blame;
 /* DESCRIPTION
 /*	mystrtok() splits a buffer on the specified \fIdelimiters\fR.
 /*	Tokens are delimited by runs of delimiters, so this routine
@@ -38,6 +54,12 @@
 /*
 /*	The result value is the next token, or a null pointer when the
 /*	end of the buffer was reached.
+/*
+/*	mystrtok_cw(), mystrtokq_cw(), and mystrtokdq_cw, log a
+/*	warning and return null when the result would look like
+/*	comment. The \fBblame\fR argument provides context for
+/*	warning messages. Specify a null pointer to disable the
+/*	comment check.
 /* LICENSE
 /* .ad
 /* .fi
@@ -52,20 +74,40 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
 
-#include "sys_defs.h"
+#include <sys_defs.h>
 #include <string.h>
 
 /* Utility library. */
 
-#include "stringops.h"
+#include <msg.h>
+#include <stringops.h>
+
+/* mystrtok_warn - warn for #comment after other text */
+
+static void mystrtok_warn(const char *start, const char *bufp, const char *blame)
+{
+    msg_warn("%s: #comment after other text is not allowed: %s %.20s...",
+	     blame, start, bufp);
+}
+
+/* mystrtok - ABI compatibility wrapper */
+
+#undef mystrtok
+
+char   *mystrtok(char **src, const char *sep)
+{
+    return (mystrtok_cw(src, sep, (char *) 0));
+}
 
 /* mystrtok - safe tokenizer */
 
-char   *mystrtok(char **src, const char *sep)
+char   *mystrtok_cw(char **src, const char *sep, const char *blame)
 {
     char   *start = *src;
     char   *end;
@@ -86,12 +128,28 @@ char   *mystrtok(char **src, const char *sep)
     if (*end != 0)
 	*end++ = 0;
     *src = end;
-    return (start);
+
+    if (blame && *start == '#') {
+	mystrtok_warn(start, *src, blame);
+	return (0);
+    } else {
+	return (start);
+    }
 }
 
-/* mystrtokq - safe tokenizer with quoting support */
+/* mystrtokq - ABI compatibility wrapper */
+
+#undef mystrtokq
 
 char   *mystrtokq(char **src, const char *sep, const char *parens)
+{
+    return (mystrtokq_cw(src, sep, parens, (char *) 0));
+}
+
+/* mystrtokq_cw - safe tokenizer with quoting support */
+
+char   *mystrtokq_cw(char **src, const char *sep, const char *parens,
+		             const char *blame)
 {
     char   *start = *src;
     static char *cp;
@@ -121,12 +179,27 @@ char   *mystrtokq(char **src, const char *sep, const char *parens)
 	}
     }
     *src = cp;
-    return (start);
+
+    if (blame && *start == '#') {
+	mystrtok_warn(start, *src, blame);
+	return (0);
+    } else {
+	return (start);
+    }
 }
 
-/* mystrtokdq - safe tokenizer, double quote and backslash support */
+/* mystrtokdq - ABI compatibility wrapper */
+
+#undef mystrtokdq
 
 char   *mystrtokdq(char **src, const char *sep)
+{
+    return (mystrtokdq_cw(src, sep, (char *) 0));
+}
+
+/* mystrtokdq_cw - safe tokenizer, double quote and backslash support */
+
+char   *mystrtokdq_cw(char **src, const char *sep, const char *blame)
 {
     char   *cp = *src;
     char   *start;
@@ -157,7 +230,13 @@ char   *mystrtokdq(char **src, const char *sep)
 	}
     }
     *src = cp;
-    return (start);
+
+    if (blame && start && *start == '#') {
+	mystrtok_warn(start, *src, blame);
+	return (0);
+    } else {
+	return (start);
+    }
 }
 
 #ifdef TEST
@@ -195,6 +274,12 @@ static const struct testcase testcases[] = {
     {"mystrtokdq", "  foo\\ bar  ", {"foo\\ bar"}},
     {"mystrtokdq", "  foo \\\" bar", {"foo", "\\\"", "bar"}},
     {"mystrtokdq", "  foo \" bar baz\"  ", {"foo", "\" bar baz\""}},
+    {"mystrtok_cw", "#after text"},
+    {"mystrtok_cw", "before-text #after text", {"before-text"}},
+    {"mystrtokq_cw", "#after text"},
+    {"mystrtokq_cw", "{ before text } #after text", "{ before text }"},
+    {"mystrtokdq_cw", "#after text"},
+    {"mystrtokdq_cw", "\"before text\" #after text", {"\"before text\""}},
 };
 
 int     main(void)
@@ -229,6 +314,12 @@ int     main(void)
 		actual = mystrtokq(&cp, CHARS_SPACE, CHARS_BRACE);
 	    } else if (strcmp(tp->action, "mystrtokdq") == 0) {
 		actual = mystrtokdq(&cp, CHARS_SPACE);
+	    } else if (strcmp(tp->action, "mystrtok_cw") == 0) {
+		actual = mystrtok_cw(&cp, CHARS_SPACE, "test");
+	    } else if (strcmp(tp->action, "mystrtokq_cw") == 0) {
+		actual = mystrtokq_cw(&cp, CHARS_SPACE, CHARS_BRACE, "test");
+	    } else if (strcmp(tp->action, "mystrtokdq_cw") == 0) {
+		actual = mystrtokdq_cw(&cp, CHARS_SPACE, "test");
 	    } else {
 		msg_panic("invalid command: %s", tp->action);
 	    }

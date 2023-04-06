@@ -160,6 +160,9 @@ DNS_RR *dns_rr_create(const char *qname, const char *rname,
 {
     DNS_RR *rr;
 
+    /*
+     * Note: if this function is changed, update dns_rr_copy().
+     */
     rr = (DNS_RR *) mymalloc(sizeof(*rr));
     rr->qname = mystrdup(qname);
     rr->rname = mystrdup(rname);
@@ -200,16 +203,17 @@ void    dns_rr_free(DNS_RR *rr)
 
 DNS_RR *dns_rr_copy(DNS_RR *src)
 {
-    ssize_t len = sizeof(*src) + src->data_len - 1;
     DNS_RR *dst;
 
     /*
-     * Combine struct assignment and data copy in one block copy operation.
+     * Note: struct copy, because dns_rr_create() would not copy all fields.
      */
-    dst = (DNS_RR *) mymalloc(len);
-    memcpy((void *) dst, (void *) src, len);
+    dst = (DNS_RR *) mymalloc(sizeof(*dst));
+    memcpy((void *) dst, (void *) src, sizeof(*dst));
     dst->qname = mystrdup(src->qname);
     dst->rname = mystrdup(src->rname);
+    if (dst->data)
+	dst->data = mymemdup(dst->data, dst->data_len);
     dst->next = 0;
     return (dst);
 }
