@@ -970,13 +970,19 @@ test71:	$(PROG) test71.ref
 	rm -f main.cf master.cf
 	touch main.cf master.cf
 	echo "smtpd_client_restrictions = inline:{" >>main.cf
-	echo "	{ aaa0 = #aaa1 } #aaa2" >>main.cf
+	echo "	{" >>main.cf
+	echo "	aaa0 = #aaa1" >>main.cf
+	echo "	} #aaa2" >>main.cf
 	echo " }" >>main.cf
 	echo "smtpd_helo_restrictions = pcre:{" >>main.cf
-	echo "	{ /bbb0 #bbb1/ } #bbb2" >>main.cf
+	echo "	{" >>main.cf
+	echo "	/bbb0 #bbb1/" >>main.cf
+	echo "	} #bbb2" >>main.cf
 	echo " }" >>main.cf
 	echo "smtpd_sender_restrictions = regexp:{" >>main.cf
-	echo "	{ /ccc0 #ccc1/ } #ccc2" >>main.cf
+	echo "	{" >>main.cf
+	echo "	/ccc0 #ccc1/" >>main.cf
+	echo "	} #ccc2" >>main.cf
 	echo " }" >>main.cf
 	touch -t 197101010000 main.cf
 	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc . >test71.tmp 2>&1

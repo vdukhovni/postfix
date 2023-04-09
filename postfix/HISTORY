@@ -27025,14 +27025,22 @@ Apologies for any names omitted.
 	double-free() attempt. Reported by Florian Piekert. File:
 	dns/dns_rr.c.
 
-	Usability: Postfix does not support #comments after other
-	text, but people add them anyway, with unexpected results.
-	The postconf command now warns for trailing comments in
-	main.cf files. Similar warnings are planned for database
-	client configuration files. Files: util/mystrtok.c,
+	Usability: The postconf command now warns for trailing
+	comments in Postfix parameter values. Also refactored comment
+	warnings in match lists. Files: util/mystrtok.c,
 	util/mystrtok.ref, util/match_list.c, global/namadr_list.ref,
 	postconf/postconf_dbms.c, postconf/test71.ref.
 
-	TODO: #comment after text in DB client configuration files.
+	Cleanup: some postconf warnings did not include the full
+	main.cf or master.cf pathname, complicating the analysis
+	of multi-instance configurations. Also refactored ad-hoc
+	code that computed full main.cf or master.cf pathnames.
+	Files: postconf/postconf.h, postconf/postconf_dbms.c,
+	postconf/postconf_edit.c, postconf/postconf_main.c,
+	postconf/postconf_master.c, postconf/postconf_misc.c.
 
-	TOIDO: test for dns_rr_copy() + dns_rr_free().
+	Cleanup: eliminated unused libdns dependencies. Files:
+	postlogd/Makefile.in.
+
+	Cleanup: added inet_prefix_top() tests. File:
+	util/inet_prefix_top.c.

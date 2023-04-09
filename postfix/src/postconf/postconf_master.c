@@ -137,6 +137,8 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -411,7 +413,7 @@ const char *pcf_parse_master_entry(PCF_MASTER_ENT *masterp, const char *buf)
 void    pcf_read_master(int fail_on_open_error)
 {
     const char *myname = "pcf_read_master";
-    char   *path;
+    const char *path;
     VSTRING *buf;
     VSTREAM *fp;
     const char *err;
@@ -430,7 +432,7 @@ void    pcf_read_master(int fail_on_open_error)
      */
     if (var_config_dir == 0)
 	pcf_set_config_dir();
-    path = concatenate(var_config_dir, "/", MASTER_CONF_FILE, (char *) 0);
+    path = pcf_get_master_path();
 
     /*
      * Initialize the in-memory master table.
@@ -463,7 +465,6 @@ void    pcf_read_master(int fail_on_open_error)
      * Null-terminate the master table and clean up.
      */
     pcf_master_table[entry_count].argv = 0;
-    myfree(path);
 }
 
 /* pcf_print_master_entry - print one master line */

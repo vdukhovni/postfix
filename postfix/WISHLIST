@@ -21,6 +21,9 @@ Wish list:
 	Multi-recipient support in sender/recipient_bcc_maps and
 	always_bcc.
 
+	Test for dns_rr_copy() + dns_rr_free().
+
+
 	mail_conf_xxx supprt for non-negative numbers (i.e. 
 	numbers with a lower bound of zero).
 

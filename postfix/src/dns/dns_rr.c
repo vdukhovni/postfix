@@ -209,11 +209,11 @@ DNS_RR *dns_rr_copy(DNS_RR *src)
      * Note: struct copy, because dns_rr_create() would not copy all fields.
      */
     dst = (DNS_RR *) mymalloc(sizeof(*dst));
-    memcpy((void *) dst, (void *) src, sizeof(*dst));
+    *dst = *src;
     dst->qname = mystrdup(src->qname);
     dst->rname = mystrdup(src->rname);
     if (dst->data)
-	dst->data = mymemdup(dst->data, dst->data_len);
+	dst->data = mymemdup(src->data, src->data_len);
     dst->next = 0;
     return (dst);
 }

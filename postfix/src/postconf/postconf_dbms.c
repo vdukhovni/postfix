@@ -248,15 +248,15 @@ static void pcf_register_dbms_helper(char *str_value,
      * database or some other text.
      */
     while ((db_type = mystrtokq_cw(&str_value, CHARS_COMMA_SP, CHARS_BRACE,
-		   local_scope ? MASTER_CONF_FILE : MAIN_CONF_FILE)) != 0) {
+	 local_scope ? pcf_get_master_path() : pcf_get_main_path())) != 0) {
 	if (*db_type == CHARS_BRACE[0]) {
 	    if ((err = extpar(&db_type, CHARS_BRACE, EXTPAR_FLAG_NONE)) != 0) {
 		/* XXX Encapsulate this in pcf_warn() function. */
 		if (local_scope)
-		    msg_warn("%s:%s: %s",
-			     MASTER_CONF_FILE, local_scope->name_space, err);
+		    msg_warn("%s:%s: %s", pcf_get_master_path(),
+			     local_scope->name_space, err);
 		else
-		    msg_warn("%s: %s", MAIN_CONF_FILE, err);
+		    msg_warn("%s: %s", pcf_get_main_path(), err);
 		myfree(err);
 	    }
 	    if (recurse)
@@ -310,11 +310,10 @@ static void pcf_register_dbms_helper(char *str_value,
 		if ((err = extpar(&prefix, CHARS_BRACE, EXTPAR_FLAG_NONE)) != 0) {
 		    /* XXX Encapsulate this in pcf_warn() function. */
 		    if (local_scope)
-			msg_warn("%s:%s: %s",
-				 MASTER_CONF_FILE, local_scope->name_space,
-				 err);
+			msg_warn("%s:%s: %s", pcf_get_master_path(),
+				 local_scope->name_space, err);
 		    else
-			msg_warn("%s: %s", MAIN_CONF_FILE, err);
+			msg_warn("%s: %s", pcf_get_main_path(), err);
 		    myfree(err);
 		}
 		for (dp = pcf_dbms_info; dp->db_type != 0; dp++) {

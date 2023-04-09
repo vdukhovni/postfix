@@ -39,3 +39,4 @@ proto  proto SASL_README html proto SQLITE_README html
  util inet_prefix_top hc smtpd smtpd c smtpd smtpd_peer c 
  File smtp smtp h 
  manpage File postscreen postscreen c 
+ Files postconf postconf h postconf postconf_dbms c 
