@@ -1225,6 +1225,7 @@ postconf_misc.o: ../../include/myflock.h
 postconf_misc.o: ../../include/mymalloc.h
 postconf_misc.o: ../../include/name_code.h
 postconf_misc.o: ../../include/safe.h
+postconf_misc.o: ../../include/stringops.h
 postconf_misc.o: ../../include/sys_defs.h
 postconf_misc.o: ../../include/vbuf.h
 postconf_misc.o: ../../include/vstream.h

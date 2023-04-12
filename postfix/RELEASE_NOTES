@@ -1,57 +1,27 @@
-This is the Postfix 3.8 (experimental) release.
+This is the Postfix 3.9 experimental release.
 
-The stable Postfix release is called postfix-3.7.x where 3=major
-release number, 7=minor release number, x=patchlevel.  The stable
+The stable Postfix release is called postfix-3.8.x where 3=major
+release number, 8=minor release number, x=patchlevel. The stable
 release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
 
 New features are developed in snapshot releases. These are called
-postfix-3.8-yyyymmdd where yyyymmdd is the release date (yyyy=year,
-mm=month, dd=day).  Patches are never issued for snapshot releases;
+postfix-3.9-yyyymmdd where yyyymmdd is the release date (yyyy=year,
+mm=month, dd=day). Patches are never issued for snapshot releases;
 instead, a new snapshot is released.
 
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
-If you upgrade from Postfix 3.6 or earlier, read RELEASE_NOTES-3.7
+If you upgrade from Postfix 3.7 or earlier, please read RELEASE_NOTES-3.8
 before proceeding.
 
-License change
----------------
+Dual license
+------------
 
-This software is distributed with a dual license: in addition to the
-historical IBM Public License 1.0, it is now also distributed with the
-more recent Eclipse Public License 2.0. Recipients can choose to take
-the software under the license of their choice. Those who are more
-comfortable with the IPL can continue with that license.
-
-Incompatible changes with snapshot 20230304
-===========================================
-
-This introduces the following changes in Postfix TLS support:
-
-- Postfix ignores "export" and "low" cipher list settings, and
-  treats the "export" and "low" cipher grade settings as "medium".
-  These grades are no longer supported in OpenSSL 1.1.1, the minimum
-  version that Postfix requires.
-
-- Postfix default settings now exclude the following deprecated or
-  unused ciphers (SEED, IDEA, 3DES, RC2, RC4, RC5), digest (MD5),
-  key exchange algorithms (DH, ECDH), and public key algorithm
-  (DSS).
-
-Incompatible changes with snapshot 20221228
-===========================================
-
-Postfix documentation and code have been converted to use "grep -E"
-and "grep -F" instead of the historical forms egrep and fgrep.  To
-build Postfix on a system that supports only the historical forms,
-run the script auxiliary/fix-grep/fix-grep.sh to revert this change.
-
-Incompatible changes with snapshot 20220507
-===========================================
-
-Most global/mkmap*.[hc] files have moved to the util directory;
-only global/mkmap_proxy.* remains. The old file organization was
-designed before support for dynamically-loadable databases was
-added, and the code suffered from complexity.
+As of Postfix 3.2.5 this software is distributed with a dual license:
+in addition to the historical IBM Public License (IPL) 1.0, it is
+now also distributed with the more recent Eclipse Public License
+(EPL) 2.0. Recipients can choose to take the software under the
+license of their choice. Those who are more comfortable with the
+IPL can continue with that license.
