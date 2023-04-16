@@ -965,7 +965,7 @@ case "$CC" in
 esac
 
 # Snapshot only.
-CCARGS="$CCARGS -DSNAPSHOT"
+#CCARGS="$CCARGS -DSNAPSHOT"
 
 # Non-production: needs thorough testing, or major changes are still
 # needed before the code stabilizes.

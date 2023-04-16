@@ -68,8 +68,6 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
-/*
-/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -112,7 +110,6 @@ void    pcf_read_parameters(void)
      * A direct rip-off of mail_conf_read(). XXX Avoid code duplication by
      * better code decomposition.
      */
-    pcf_set_config_dir();
     path = pcf_get_main_path();
     if (dict_load_file_xt(CONFIG_DICT, path) == 0)
 	msg_fatal("open %s: %m", path);

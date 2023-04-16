@@ -16,6 +16,7 @@
 /*	"naked" IP address or a netblock in CIDR notation.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
+/*	cidr_table(5) CIDR table configuration
 /* AUTHOR(S)
 /*	Jozsef Kadlecsik
 /*	kadlec@blackhole.kfki.hu

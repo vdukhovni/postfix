@@ -777,6 +777,4 @@ extern int smtp_hfrom_format;
 /*
 /*	Victor Duchovni
 /*	Morgan Stanley
-/*
-/*	Wietse Venema
 /*--*/
