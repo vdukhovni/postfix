@@ -327,8 +327,6 @@
 /*	New York, NY 10011, USA
 /*
 /*	Viktor Dukhovni
-/*
-/*	Wietse Venema
 /*--*/
 
  /*

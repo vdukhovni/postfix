@@ -16,6 +16,7 @@
 /*	against the table.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
+/*	pcre_table(5) PCRE table configuration
 /* AUTHOR(S)
 /*	Andrew McNamara
 /*	andrewm@connect.com.au

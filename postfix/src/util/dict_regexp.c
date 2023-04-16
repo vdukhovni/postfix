@@ -16,7 +16,7 @@
 /*	against the table.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
-/*	regexp_table(5) format of Postfix regular expression tables
+/*	regexp_table(5) regular expression table configuration
 /* AUTHOR(S)
 /*	LaMont Jones
 /*	lamont@hp.com

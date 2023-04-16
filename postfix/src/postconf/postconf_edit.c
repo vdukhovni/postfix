@@ -61,8 +61,6 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
-/*
-/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -204,7 +202,6 @@ void    pcf_edit_main(int mode, int argc, char **argv)
      * Open a temp file for the result. This uses a deterministic name so we
      * don't leave behind thrash with random names.
      */
-    pcf_set_config_dir();
     path = pcf_get_main_path();
     if ((ep = edit_file_open(path, O_CREAT | O_WRONLY, 0644)) == 0)
 	msg_fatal("open %s%s: %m", path, EDIT_FILE_SUFFIX);
@@ -401,7 +398,6 @@ void    pcf_edit_master(int mode, int argc, char **argv)
      * Open a temp file for the result. This uses a deterministic name so we
      * don't leave behind thrash with random names.
      */
-    pcf_set_config_dir();
     path = pcf_get_master_path();
     if ((ep = edit_file_open(path, O_CREAT | O_WRONLY, 0644)) == 0)
 	msg_fatal("open %s%s: %m", path, EDIT_FILE_SUFFIX);

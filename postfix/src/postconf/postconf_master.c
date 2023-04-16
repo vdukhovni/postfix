@@ -137,8 +137,6 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
-/*
-/*	Wietse Venema
 /*--*/
 
 /* System library. */
@@ -430,8 +428,6 @@ void    pcf_read_master(int fail_on_open_error)
     /*
      * Get the location of master.cf.
      */
-    if (var_config_dir == 0)
-	pcf_set_config_dir();
     path = pcf_get_master_path();
 
     /*

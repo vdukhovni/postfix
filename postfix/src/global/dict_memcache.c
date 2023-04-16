@@ -15,8 +15,6 @@
 /*	a dictionary interface for Postfix key->value mappings.
 /*	The result is a pointer to the installed dictionary.
 /*
-/*	Configuration parameters are described in memcache_table(5).
-/*
 /*	Arguments:
 /* .IP name
 /*	The path to the Postfix memcache configuration file.
@@ -27,6 +25,7 @@
 /*	See dict_open(3).
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
+/*	memcache_table(5) memcache client configuration
 /* HISTORY
 /* .ad
 /* .fi

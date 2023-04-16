@@ -109,8 +109,6 @@ extern int strncasecmp_utf8x(int, const char *, const char *, ssize_t);
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
-/*
-/*	Wietse Venema
 /*--*/
 
 #endif

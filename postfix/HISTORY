@@ -27044,3 +27044,14 @@ Apologies for any names omitted.
 
 	Cleanup: added inet_prefix_top() tests. File:
 	util/inet_prefix_top.c.
+
+20230413
+
+	Cleanup: in postconf source, removed redundant pcf_set_config_dir()
+	calls as these are made automatically when a config file
+	pathname cache is queried. Files: postconf/postconf_edit.c,
+	postconf/postconf_main.c, postconf/postconf_master.c.
+
+	Cleanup: in source-code comments, replaced redundant (and
+	sometimes incomplete) lookup table configuration info with
+	a reference to the corresponding *_table(5) manpage.
