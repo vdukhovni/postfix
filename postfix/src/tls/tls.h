@@ -83,6 +83,15 @@ extern const char *str_tls_level(int);
 #define ssl_cipher_stack_t STACK_OF(SSL_CIPHER)
 #define ssl_comp_stack_t STACK_OF(SSL_COMP)
 
+ /*-
+  * Official way to check minimum OpenSSL API version from 3.0 onward.
+  * We simply define it false for all prior versions, where we typically also
+  * need the patch level to determine API compatibility.
+  */
+#ifndef OPENSSL_VERSION_PREREQ
+#define OPENSSL_VERSION_PREREQ(m,n) 0
+#endif
+
 #if (OPENSSL_VERSION_NUMBER < 0x1010100fUL)
 #error "OpenSSL releases prior to 1.1.1 are no longer supported"
 #endif

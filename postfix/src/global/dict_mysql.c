@@ -528,7 +528,7 @@ static int plmysql_query(DICT_MYSQL *dict_mysql,
 {
     HOST   *host;
     MYSQL_RES *first_result = 0;
-    int     query_error;
+    int     query_error = 1;
 
     /*
      * Helper to avoid spamming the log with warnings.
