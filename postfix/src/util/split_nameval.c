@@ -81,7 +81,7 @@ const char *split_nameval(char *buf, char **name, char **value)
     } while (0)
 
     SKIP(buf, np, ISSPACE(*np));		/* find name begin */
-    if (*np == 0)
+    if (*np == 0 || *np == '=')
 	return ("missing attribute name");
     SKIP(np, ep, !ISSPACE(*ep) && *ep != '=');	/* find name end */
     SKIP(ep, cp, ISSPACE(*cp));			/* skip blanks before '=' */

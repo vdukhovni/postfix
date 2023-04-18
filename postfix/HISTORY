@@ -26468,3 +26468,42 @@ Apologies for any names omitted.
 	framing, and is therefore not affected by TLS truncation
 	attacks. Fix by Viktor Dukhovni. Files: tls/tls.h, tls_client.c,
 	tls/tls_server.c.
+
+20230127
+
+	Bugfix (introduced: Postfix 3.4): the posttls-finger command
+	failed to detect that a connection was resumed in the case
+	that a server did not return a certificate. Viktor Dukhovni.
+	File: posttls-finger/posttls-finger.c.
+
+	Workaround: OpenSSL 3.x EVP_get_cipherbyname() can return
+	lazily-bound handles. Postfix now checks that the expected
+	functionality will be available instead of failing later.
+	Fix by Viktor Dukhovni. File: tls/tls_server.c.
+
+	Portability: MacOS support for the postfix-env.sh test
+	script.
+
+20230314
+
+	Bugfix (introduced: Postfix 3.5): check_ccert_access did
+	not parse inline map specifications. Report and fix by Sean
+	Gallagher. File: global/map_search.c.
+
+20230330
+
+	Safety: the long form "{ name = value }" in import_environment
+	or export_environment is not documented, but accepted, and
+	it was stored in the process environment as the invalid
+	form "name = value", thus not setting or overriding an entry
+	for "name". This form is now stored as the expected
+	"name=value". Found during code maintenance. Also refined
+	the "missing attribute name" detection. Files: clean_env.c,
+	split_nameval.c.
+
+20230418
+
+	Bugfix (introduced: Postfix 3.2): the MySQL client could
+	return "not found" instead of "error" during the time that
+	all MySQL server connections were turned down after error.
+	Found during code maintenance. File: global/dict_mysql.c.
