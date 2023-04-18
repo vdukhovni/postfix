@@ -933,9 +933,9 @@ static int starttls(STATE *state)
 		print_trust_info(state);
 	    state->log_mask &= ~(TLS_LOG_CERTMATCH | TLS_LOG_PEERCERT |
 				 TLS_LOG_VERBOSE | TLS_LOG_UNTRUSTED);
-	    state->log_mask |= TLS_LOG_CACHE | TLS_LOG_SUMMARY;
-	    tls_update_app_logmask(state->tls_ctx, state->log_mask);
 	}
+	state->log_mask |= TLS_LOG_CACHE | TLS_LOG_SUMMARY;
+	tls_update_app_logmask(state->tls_ctx, state->log_mask);
     }
     return (0);
 }
