@@ -25,3 +25,11 @@ now also distributed with the more recent Eclipse Public License
 (EPL) 2.0. Recipients can choose to take the software under the
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
+
+Incompatible changes with snapshot 20230419
+===========================================
+
+The MySQL client default characterset is now configurable with the
+"charset" configuration file attribute. The default is "utf8mb4",
+consistent with the MySQL 8.0 built-in default, but different from
+earlier MySQL versions where the built-in default was "latin1".

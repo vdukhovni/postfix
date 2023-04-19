@@ -18,6 +18,9 @@ Wish list:
 
 	Follow https://github.com/vdukhovni/postfix/commits/rpk
 
+	Figure out which mysql_*escape_string*() variant to use and
+	handle error results accordingly.
+
 	Multi-recipient support in sender/recipient_bcc_maps and
 	always_bcc.
 

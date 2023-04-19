@@ -147,6 +147,7 @@ typedef struct {
     char   *username;
     char   *password;
     char   *dbname;
+    char   *charset;
     ARGV   *hosts;
     PLMYSQL *pldb;
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
@@ -439,7 +440,7 @@ static int plmysql_query(DICT_MYSQL *dict_mysql,
 {
     HOST   *host;
     MYSQL_RES *first_result = 0;
-    int     query_error;
+    int     query_error = 1;
 
     /*
      * Helper to avoid spamming the log with warnings.
@@ -602,6 +603,12 @@ static void plmysql_connect_single(DICT_MYSQL *dict_mysql, HOST *host)
 			   host->port,
 			   (host->type == TYPEUNIX ? host->name : 0),
 			   CLIENT_MULTI_RESULTS)) {
+	if (mysql_set_character_set(host->db, dict_mysql->charset) != 0) {
+	    msg_warn("dict_mysql: mysql_set_character_set '%s' failed: %s",
+		     dict_mysql->charset, mysql_error(host->db));
+	    plmysql_down_host(host);
+	    return;
+	}
 	if (msg_verbose)
 	    msg_info("dict_mysql: successful connection to host %s",
 		     host->hostname);
@@ -646,6 +653,7 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     dict_mysql->username = cfg_get_str(p, "user", "", 0, 0);
     dict_mysql->password = cfg_get_str(p, "password", "", 0, 0);
     dict_mysql->dbname = cfg_get_str(p, "dbname", "", 1, 0);
+    dict_mysql->charset = cfg_get_str(p, "charset", "utf8mb4", 1, 0);
     dict_mysql->result_format = cfg_get_str(p, "result_format", "%s", 1, 0);
     dict_mysql->option_file = cfg_get_str(p, "option_file", NULL, 0, 0);
     dict_mysql->option_group = cfg_get_str(p, "option_group", "client", 0, 0);
@@ -826,6 +834,7 @@ static void dict_mysql_close(DICT *dict)
     myfree(dict_mysql->username);
     myfree(dict_mysql->password);
     myfree(dict_mysql->dbname);
+    myfree(dict_mysql->charset);
     myfree(dict_mysql->query);
     myfree(dict_mysql->result_format);
     if (dict_mysql->option_file)

@@ -108,7 +108,7 @@
 
 #define TYPEUNIX			(1<<0)
 #define TYPEINET			(1<<1)
-#define TYPECONNSTRING			(1<<2)
+#define TYPECONNSTR			(1<<2)
 
 #define RETRY_CONN_MAX			100
 #define RETRY_CONN_INTV			60	/* 1 minute */
@@ -119,7 +119,7 @@ typedef struct {
     char   *hostname;
     char   *name;
     char   *port;
-    unsigned type;			/* TYPEUNIX | TYPEINET | TYPECONNSTRING */
+    unsigned type;			/* TYPEUNIX | TYPEINET | TYPECONNSTR */
     unsigned stat;			/* STATUNTRIED | STATFAIL | STATCUR */
     time_t  ts;				/* used for attempting reconnection */
 } HOST;
@@ -152,12 +152,11 @@ typedef struct {
 
 /* internal function declarations */
 static PLPGSQL *plpgsql_init(ARGV *);
-static PGSQL_RES *plpgsql_query(DICT_PGSQL *, const char *, VSTRING *, char *,
-				        char *, char *, char *);
+static PGSQL_RES *plpgsql_query(DICT_PGSQL *, const char *, VSTRING *);
 static void plpgsql_dealloc(PLPGSQL *);
 static void plpgsql_close_host(HOST *);
 static void plpgsql_down_host(HOST *);
-static void plpgsql_connect_single(HOST *, char *, char *, char *, char *);
+static void plpgsql_connect_single(DICT_PGSQL *, HOST *);
 static const char *dict_pgsql_lookup(DICT *, const char *);
 DICT   *dict_pgsql_open(const char *, int, int);
 static void dict_pgsql_close(DICT *);
@@ -324,11 +323,7 @@ static const char *dict_pgsql_lookup(DICT *dict, const char *name)
 	return (0);
 
     /* do the query - set dict->error & cleanup if there's an error */
-    if ((query_res = plpgsql_query(dict_pgsql, name, query,
-				   dict_pgsql->dbname,
-				   dict_pgsql->encoding,
-				   dict_pgsql->username,
-				   dict_pgsql->password)) == 0) {
+    if ((query_res = plpgsql_query(dict_pgsql, name, query)) == 0) {
 	dict->error = DICT_ERR_RETRY;
 	return 0;
     }
@@ -404,8 +399,7 @@ static HOST *dict_pgsql_find_host(PLPGSQL *PLDB, unsigned stat, unsigned type)
 
 /* dict_pgsql_get_active - get an active connection */
 
-static HOST *dict_pgsql_get_active(PLPGSQL *PLDB, char *dbname, char *encoding,
-				           char *username, char *password)
+static HOST *dict_pgsql_get_active(DICT_PGSQL *dict_pgsql, PLPGSQL *PLDB)
 {
     const char *myname = "dict_pgsql_get_active";
     HOST   *host;
@@ -414,7 +408,7 @@ static HOST *dict_pgsql_get_active(PLPGSQL *PLDB, char *dbname, char *encoding,
     /* try the active connections first; prefer the ones to UNIX sockets */
     if ((host = dict_pgsql_find_host(PLDB, STATACTIVE, TYPEUNIX)) != NULL ||
 	(host = dict_pgsql_find_host(PLDB, STATACTIVE, TYPEINET)) != NULL ||
-	(host = dict_pgsql_find_host(PLDB, STATACTIVE, TYPECONNSTRING)) != NULL) {
+     (host = dict_pgsql_find_host(PLDB, STATACTIVE, TYPECONNSTR)) != NULL) {
 	if (msg_verbose)
 	    msg_info("%s: found active connection to host %s", myname,
 		     host->hostname);
@@ -432,11 +426,11 @@ static HOST *dict_pgsql_get_active(PLPGSQL *PLDB, char *dbname, char *encoding,
 	    (host = dict_pgsql_find_host(PLDB, STATUNTRIED | STATFAIL,
 					 TYPEINET)) != NULL ||
 	    (host = dict_pgsql_find_host(PLDB, STATUNTRIED | STATFAIL,
-					 TYPECONNSTRING)) != NULL)) {
+					 TYPECONNSTR)) != NULL)) {
 	if (msg_verbose)
 	    msg_info("%s: attempting to connect to host %s", myname,
 		     host->hostname);
-	plpgsql_connect_single(host, dbname, encoding, username, password);
+	plpgsql_connect_single(dict_pgsql, host);
 	if (host->stat == STATACTIVE)
 	    return host;
     }
@@ -464,18 +458,14 @@ static void dict_pgsql_event(int unused_event, void *context)
 
 static PGSQL_RES *plpgsql_query(DICT_PGSQL *dict_pgsql,
 				        const char *name,
-				        VSTRING *query,
-				        char *dbname,
-				        char *encoding,
-				        char *username,
-				        char *password)
+				        VSTRING *query)
 {
     PLPGSQL *PLDB = dict_pgsql->pldb;
     HOST   *host;
     PGSQL_RES *res = 0;
     ExecStatusType status;
 
-    while ((host = dict_pgsql_get_active(PLDB, dbname, encoding, username, password)) != NULL) {
+    while ((host = dict_pgsql_get_active(dict_pgsql, PLDB)) != NULL) {
 
 	/*
 	 * The active host is used to escape strings in the context of the
@@ -570,13 +560,14 @@ static PGSQL_RES *plpgsql_query(DICT_PGSQL *dict_pgsql,
  * used to reconnect to a single database when one is down or none is
  * connected yet. Log all errors and set the stat field of host accordingly
  */
-static void plpgsql_connect_single(HOST *host, char *dbname, char *encoding, char *username, char *password)
+static void plpgsql_connect_single(DICT_PGSQL *dict_pgsql, HOST *host)
 {
-    if (host->type == TYPECONNSTRING) {
+    if (host->type == TYPECONNSTR) {
 	host->db = PQconnectdb(host->name);
     } else {
 	host->db = PQsetdbLogin(host->name, host->port, NULL, NULL,
-				dbname, username, password);
+				dict_pgsql->dbname, dict_pgsql->username,
+				dict_pgsql->password);
     }
     if (host->db == NULL || PQstatus(host->db) != CONNECTION_OK) {
 	msg_warn("connect to pgsql server %s: %s",
@@ -584,9 +575,9 @@ static void plpgsql_connect_single(HOST *host, char *dbname, char *encoding, cha
 	plpgsql_down_host(host);
 	return;
     }
-    if (PQsetClientEncoding(host->db, encoding) != 0) {
+    if (PQsetClientEncoding(host->db, dict_pgsql->encoding) != 0) {
 	msg_warn("dict_pgsql: cannot set the encoding to %s, skipping %s",
-		 encoding, host->hostname);
+		 dict_pgsql->encoding, host->hostname);
 	plpgsql_down_host(host);
 	return;
     }
@@ -764,7 +755,7 @@ static HOST *host_init(const char *hostname)
      * Modern syntax: "postgresql://connection-info".
      */
     if (strncmp(d, "postgresql:", 11) == 0) {
-	host->type = TYPECONNSTRING;
+	host->type = TYPECONNSTR;
 	host->name = mystrdup(d);
 	host->port = 0;
     }

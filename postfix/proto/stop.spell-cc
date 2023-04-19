@@ -1443,7 +1443,7 @@ tv
 txn
 TXT
 Typechecking
-TYPECONNSTRING
+TYPECONNSTR
 typedef
 typedefs
 TYPEINET

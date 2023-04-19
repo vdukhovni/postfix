@@ -27055,3 +27055,26 @@ Apologies for any names omitted.
 	Cleanup: in source-code comments, replaced redundant (and
 	sometimes incomplete) lookup table configuration info with
 	a reference to the corresponding *_table(5) manpage.
+
+20230417
+
+	Cleanup: in the MySQL client configuration file, the default
+	characterset is now configurable with the "charset" attribute.
+	Previously, the default was determined by the MySQL
+	implementation (utf8mb4 as of MySQL 8.0, latin1 with older
+	versions). This setting implicitly controls the collation
+	order. Files: proto/mysql_table, global/dict_mysql.c.
+
+20230418
+
+	Bugfix (introduced: Postfix 3.2): the MySQL client could
+	return "not found" instead of "error" (for example, resulting
+	in a 5XX SMTP status instead of 4XX) during the time that
+	all MySQL server connections were turned down after error.
+	Found during code maintenance. File: global/dict_mysql.c.
+
+20230419
+
+	Cleanup: in the PostgreSQL client, cosmetic changes to make
+	the code easier to maintain (in preparation for adding new
+	functionality). File: global/dict_pgsql.c.
