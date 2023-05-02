@@ -55,7 +55,8 @@ tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test31 test32 test33 test34 test35 test36 test37 test39 test40 test41 \
 	test42 test43 test44 test45 test46 test47 test48 test49 test50 test51 \
 	test52 test53 test54 test55 test56 test57 test58 test59 test60 test61 \
-	test62 test63 test64 test65 test66 test67 test68 test69 test70 test71
+	test62 test63 test64 test65 test66 test67 test68 test69 test70 test71 \
+	test72 test73 test74 test75
 
 root_tests:
 
@@ -989,6 +990,54 @@ test71:	$(PROG) test71.ref
 	diff test71.ref test71.tmp
 	rm -f main.cf master.cf test71.tmp
 
+# Different requests to add lines to master.cf.
+test72:	$(PROG) test72.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	./postconf -Mc. smtp/unix='smtp unix - n n - 0 other'
+	./postconf -Mc. smtp/abcd='smtp fifo - n n - 0 other'
+	./postconf -Mc. smtp/abcd='smtp inet - n n - 0 other'
+	touch -t 197201010000 main.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. >test72.tmp 2>&1
+	diff test72.ref test72.tmp
+	rm -f main.cf master.cf test72.tmp
+
+# Replace one entry based on the name+type in the request's service entry.
+test73:	$(PROG) test73.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	./postconf -Mc. smtp/unix='smtp unix - n n - 0 other'
+	./postconf -Mc. smtp/abcd='smtp fifo - n n - 0 other'
+	./postconf -Mc. smtp/abcd='smtp inet - n n - 0 other'
+	./postconf -Mc. smtp/abcd='smtp unix - n n - 0 otherx'
+	touch -t 197301010000 main.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. >test73.tmp 2>&1
+	diff test73.ref test73.tmp
+	rm -f main.cf master.cf test73.tmp
+
+# Replace one entry based on the name+type in the request's service pattern.
+test74:	$(PROG) test74.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	./postconf -Mc. smtp/unix='smtp unix - n n - 0 other'
+	./postconf -Mc. smtp/abcd='smtp fifo - n n - 0 other'
+	./postconf -Mc. smtp/abcd='smtp inet - n n - 0 other'
+	./postconf -Mc. smtp/fifo='lmtp unix - n n - 0 otherx'
+	touch -t 197401010000 main.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. >test74.tmp 2>&1
+	diff test74.ref test74.tmp
+	rm -f main.cf master.cf test74.tmp
+
+# Warn about skipping redundant name=value update.
+test75:	$(PROG) test75.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	./postconf -c. mail_version=x mail_version=y >test75.tmp 2>&1
+	touch -t 197501010000 main.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc. >>test75.tmp 2>&1
+	diff test75.ref test75.tmp
+	rm -f main.cf master.cf test75.tmp
+
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
 	mkdir printfck
@@ -1184,6 +1233,7 @@ postconf_main.o: postconf_main.c
 postconf_master.o: ../../include/argv.h
 postconf_master.o: ../../include/check_arg.h
 postconf_master.o: ../../include/dict.h
+postconf_master.o: ../../include/dict_ht.h
 postconf_master.o: ../../include/htable.h
 postconf_master.o: ../../include/mail_params.h
 postconf_master.o: ../../include/master_proto.h
