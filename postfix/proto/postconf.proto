@@ -1315,18 +1315,29 @@ name of the message delivery transport.
 
 <p>
 The default mail delivery transport and next-hop destination for
-destinations that do not match $mydestination, $inet_interfaces,
+the default domain class: recipient domains that do not match
+$mydestination, $inet_interfaces,
 $proxy_interfaces, $virtual_alias_domains, $virtual_mailbox_domains,
-or $relay_domains.  This information can be overruled with the
-sender_dependent_default_transport_maps parameter and with the
-transport(5) table. </p>
+or $relay_domains. This information will not be used when
+sender_dependent_default_transport_maps returns a result, and may
+be overridden with the transport(5) table. </p>
 
-<p>
-In order of decreasing precedence, the nexthop destination is taken
-from $sender_dependent_default_transport_maps, $default_transport,
-$sender_dependent_relayhost_maps, $relayhost, or from the recipient
-domain. 
+<p> For recipient domains in the default domain class: <p>
+
+<ul>
+
+<li> <p> In order of decreasing precedence, the delivery transport
+is taken from 1) $transport_maps, 2)
+$sender_dependent_default_transport_maps or $default_transport.
 </p>
+
+<li> <p> In order of decreasing precedence, the nexthop destination
+is taken from 1) $transport_maps, 2)
+$sender_dependent_default_transport_maps or $default_transport, 3)
+$sender_dependent_relayhost_maps or $relayhost or the recipient
+domain. </p>
+
+</ul>
 
 <p>
 Specify a string of the form <i>transport:nexthop</i>, where <i>transport</i>
@@ -2010,22 +2021,42 @@ Note 1: you need to stop and start Postfix when this parameter changes.
 <p> Note 2: address information may be enclosed inside <tt>[]</tt>,
 but this form is not required here. </p>
 
-<p> When inet_interfaces specifies just one IPv4 and/or IPv6 address
-that is not a loopback address, the Postfix SMTP client will use
-this address as the IP source address for outbound mail. Support
-for IPv6 is available in Postfix version 2.2 and later. </p>
+<p> When smtp_bind_address and/or smtp_bind_address6 are not
+specified, the inet_interfaces setting may constrain the source IP
+address for an outbound SMTP or LMTP connection. </p>
+
+<ul>
+
+<li> <p> When inet_interfaces specifies one IPv4 address, and that
+is not a loopback address, the Postfix SMTP client uses that as the
+source address for outbound IPv4 connections. </p>
+
+<li> <p> Otherwise, the Postfix SMTP client does not constrain the
+source IPv4 address, and connects using a system-chosen source IPv4
+address. This includes the cases where inet_interfaces is empty,
+where it specifies <b>all</b>, or where it contains no IPv4 address,
+one IPv4 address that is a loopback address, or multiple IPv4
+addresses.  </p>
+
+<li> <p> The same reasoning as above applies to the IPv6 protocol,
+and to the Postfix LMTP client. To disable IPv4 or IPv6 support in
+the Postfix SMTP and LMTP client, use inet_protocols. </p>
+
+</ul>
+
+<p> A Postfix SMTP client may fail to reach some remote SMTP servers
+when the client source IP address is constrained explicitly with
+smtp_bind_address or smtp_bind_address6, or implicitly with
+inet_interfaces. This can happen when Postfix runs on a multi-homed
+system such as a firewall, the Postfix SMTP source client IP address
+is constrained to one specific network interface, and the remote
+SMTP server must be reached through a different interface. Setting
+smtp_bind_address to 0.0.0.0 avoids the potential problem for IPv4,
+and setting smtp_bind_address6 to :: solves the problem for IPv6.
+</p>
 
 <p>
-On a multi-homed firewall with separate Postfix instances listening on the
-"inside" and "outside" interfaces, this can prevent each instance from
-being able to reach remote SMTP servers on the "other side" of the
-firewall. Setting
-smtp_bind_address to 0.0.0.0 avoids the potential problem for
-IPv4, and setting smtp_bind_address6 to :: solves the problem
-for IPv6. </p>
-
-<p>
-A better solution for multi-homed firewalls is to leave inet_interfaces
+A better solution for multi-homed systems is to leave inet_interfaces
 at the default value and instead use explicit IP addresses in
 the master.cf SMTP server definitions.  This preserves the Postfix
 SMTP client's
@@ -3846,12 +3877,30 @@ This feature is available in Postfix 2.0 and later.
 %PARAM relayhost 
 
 <p>
-The next-hop destination(s) for non-local mail; overrides non-local
-domains in recipient addresses. This information is overruled with
-relay_transport, sender_dependent_default_transport_maps,
-default_transport, sender_dependent_relayhost_maps
-and with the transport(5) table.
+The next-hop destination(s) for non-local mail; takes precedence
+over non-local domains in recipient addresses. This information
+will not be used when the sender matches $sender_dependent_relayhost_maps.
 </p>
+
+<p> In order of decreasing precedence: </p>
+
+<ul>
+
+<li> <p> For recipient domains in the relay domain address class
+(domains matching $relay_domains), the nexthop destination is taken
+from 1) $transport_maps, 2) $relay_transport, 3)
+$sender_dependent_relayhost_maps or $relayhost or the recipient
+domain. <p>
+
+<li> <p> For recipient domains in the default domain address class
+(domains that do not match $mydestination, $inet_interfaces,
+$proxy_interfaces, $virtual_alias_domains, $virtual_mailbox_domains,
+or $relay_domains), the nexthop destination is taken from 1)
+$transport_maps, 2) $sender_dependent_default_transport_maps or
+$default_transport, 3) $sender_dependent_relayhost_maps or $relayhost
+or the recipient domain. </p>
+
+</ul>
 
 <p>
 On an intranet, specify the organizational domain name. If your
@@ -6964,7 +7013,14 @@ while accessing the Postfix main.cf configuration file.
 <p>
 Optional lookup tables with mappings from recipient address to
 (message delivery transport, next-hop destination).  See transport(5)
-for details.
+for syntax details.
+</p>
+
+<p> This information may override the message delivery transport
+and/or next-hop destination that are specified with $local_transport,
+$virtual_transport, $relay_transport, $default_transport,
+$sender_dependent_relayhost_maps, $relayhost,
+$sender_dependent_default_transport_maps, or the recipient domain.
 </p>
 
 <p>
@@ -8454,12 +8510,23 @@ configure or operate a specific Postfix subsystem or feature.
 
 <p>
 The default mail delivery transport and next-hop destination for
-remote delivery to domains listed with $relay_domains. In order of
-decreasing precedence, the nexthop destination is taken from
-$relay_transport, $sender_dependent_relayhost_maps, $relayhost, or
-from the recipient domain. This information can be overruled with
-the transport(5) table.
+the relay domain address class: recipient domains that match
+$relay_domains. </p>
+
+<p> For recipient domains in the relay domain address class: </p>
+
+<ul>
+
+<li> <p> In order of decreasing precedence, the message delivery
+transport is taken from 1) $transport_maps, 2) $relay_transport.
 </p>
+
+<li> <p> In order of decreasing precedence, the nexthop destination
+is taken from 1) $transport_maps, 2) $relay_transport, 3)
+$sender_dependent_relayhost_maps or $relayhost or the recipient
+domain.  </p>
+
+</ul>
 
 <p>
 Specify a string of the form <i>transport:nexthop</i>, where <i>transport</i>
@@ -10700,9 +10767,28 @@ is placed into the Postfix configuration directory.  </p>
 setting. The tables are searched by the envelope sender address and
 @domain. A lookup result of DUNNO terminates the search without
 overriding the global relayhost parameter setting (Postfix 2.6 and
-later). This information is overruled with relay_transport,
-sender_dependent_default_transport_maps, default_transport and with
-the transport(5) table. </p>
+later). </p>
+
+<p> In order of decreasing precedence: </p>
+
+<ul> 
+
+<li> <p> For recipient domains in the relay domain address class
+(domains matching $relay_domains), the nexthop destination is taken
+from 1) $transport_maps, 2) $relay_transport, 3)
+$sender_dependent_relayhost_maps or $relayhost or the recipient
+domain. </p>
+
+<li> <p> For recipient domains in the default domain address class
+(domains that do not match mydestination, $inet_interfaces,
+$proxy_interfaces, $virtual_alias_domains, $virtual_mailbox_domains,
+$relay_domains), the nexthop destination is taken from 1)
+$transport_maps, 2) $sender_dependent_default_transport_maps or
+$default_transport, 3) $sender_dependent_relayhost_maps or $relayhost
+or the recipient domain. </p>
+
+</ul>
+
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
@@ -14810,17 +14896,37 @@ address and @domain. A lookup result of DUNNO terminates the search
 without overriding the global default_transport parameter setting.
 This information is overruled with the transport(5) table. </p>
 
-<p>
-Specify zero or more "type:name" lookup tables, separated by
-whitespace or comma. Tables will be searched in the specified order
-until a match is found.
+<p> This setting affects only the default domain address class
+(recipient domains that do not match $mydestination, $inet_interfaces,
+$proxy_interfaces, $virtual_alias_domains, $virtual_mailbox_domains,
+or $relay_domains): </p>
+
+<ul>
+
+<li> <p> In order of decreasing precedence, the delivery transport
+is taken from 1) $transport_maps, 2)
+$sender_dependent_default_transport_maps or $default_transport.
 </p>
+
+<li> <p> In order of decreasing precedence, the nexthop destination
+is taken from 1) $transport_maps, 2)
+$sender_dependent_default_transport_maps or $default_transport, 3)
+$sender_dependent_relayhost_maps or $relayhost or the recipient
+domain. </p>
+
+</ul>
 
 <p> Note: this overrides default_transport, not transport_maps, and
 therefore the expected syntax is that of default_transport, not the
 syntax of transport_maps.  Specifically, this does not support the
 transport_maps syntax for null transport, null nexthop, or null
 email addresses. </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace or comma. Tables will be searched in the specified order
+until a match is found.
+</p>
 
 <p> For safety reasons, this feature does not allow $number
 substitutions in regular expression maps. </p>

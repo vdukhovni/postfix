@@ -27081,15 +27081,15 @@ Apologies for any names omitted.
 
 20230428
 
-	Bugfix (defect introduced: Postfix 1.0): the command 'postconf
-	.. name=v1 .. name=v2 ..' (multiple instances of the same
+	Bugfix (defect introduced: Postfix 1.0): the command "postconf
+	.. name=v1 .. name=v2 .." (multiple instances of the same
 	parameter name) created multiple name=value entries with
 	the same parameter name. It now logs a warning and skips
 	the earlier update. Found during code maintenance. File:
 	postconf/postconf_edit.c
 
-	Bugfix (defect introduced: Postfix 3.3): the command 'postconf
-	-M name1/type1='name2 type2 ..." died with a segmentation
+	Bugfix (defect introduced: Postfix 3.3): the command "postconf
+	-M name1/type1='name2 type2 ...'" died with a segmentation
 	violation when the request matched multiple master.cf
 	entries. The master.cf file was not damaged. Problem reported
 	by SATOH Fumiyasu. File: postconf/postconf_master.c.
@@ -27097,10 +27097,26 @@ Apologies for any names omitted.
 20230502
 
 	Bugfix (defect introduced: Postfix 2.11): the command
-	'postconf -M name1/type1="name2 type2 ...'" could add a
+	"postconf -M name1/type1='name2 type2 ...'" could add a
 	service definition to master.cf that conflicted with an
 	already existing service definition. It now replaces all
 	existing service definitions that match the service pattern
 	'name1/type1' or the service name and type in 'name2 type2
 	...' with a single service definition 'name2 type2 ...'.
 	Problem reported by SATOH Fumiyasu. File: postconf/postconf_edit.c.
+
+20230503
+
+	Documentation: clarified the relationship between
+	smtp_bind*address, inet_interfaces, and system-chosen source
+	IP addresses for outbound SMTP/LMTP connections. File:
+	proto/postconf.proto.
+
+20230504
+
+	Documentation: clarified the relationships between
+	local_transport, virtual_mailbox_transport, relay_trainsport,
+	default_transport, relay_host, sender_dependent_relayhost_maps,
+	sender_dependent_default_transport_maps, and their precedences
+	when determining a delivery transport or next-hop destination.
+	Files: proto/postconf.5.html, proto/ADDRESS_REWRITING_README.html.
