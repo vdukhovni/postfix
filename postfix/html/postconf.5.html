@@ -612,8 +612,13 @@ Examples:
 (default: see "postconf -d" output)</b></DT><DD>
 
 <p>
-The alias databases that are used for <a href="local.8.html">local(8)</a> delivery. See
-<a href="aliases.5.html">aliases(5)</a> for syntax details.
+Optional lookup tables with aliases that apply only to <a href="local.8.html">local(8)</a>
+delivery, unlike <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> that apply to all email deliveries.
+The table format and lookups are documented in <a href="aliases.5.html">aliases(5)</a>. For an
+overview of Postfix address manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a>
+document. </p>
+
+<p>
 Specify zero or more "type:name" lookup tables, separated by
 whitespace or comma. Tables will be searched in the specified order
 until a match is found.
@@ -4133,6 +4138,8 @@ mail on. Specify "all" to receive mail on all network
 interfaces (default), and "loopback-only" to receive mail
 on loopback network interfaces only (Postfix version 2.2 and later).  The
 parameter also controls delivery of mail to <tt>user@[ip.address]</tt>.
+Specify an empty value if Postfix does not receive mail over the network,
+or if all network listeners have an explicit IP address in <a href="master.5.html">master.cf</a>.
 </p>
 
 <p>
@@ -21533,7 +21540,7 @@ This feature is available in Postfix 1.1 and later.
 
 <p>
 The maximal length of an email address after virtual alias expansion.
-This stops virtual aliasing loops that increase the address length
+This stops <a href="ADDRESS_REWRITING_README.html#virtual">virtual aliasing</a> loops that increase the address length
 exponentially.
 </p>
 
@@ -21612,8 +21619,9 @@ This feature is available in Postfix 2.1 and later.
 (default: $<a href="postconf.5.html#virtual_maps">virtual_maps</a>)</b></DT><DD>
 
 <p>
-Optional lookup tables that alias specific mail addresses or domains
-to other local or remote addresses.  The table format and lookups
+Optional lookup tables with aliases that apply to all email deliveries,
+unlike <a href="postconf.5.html#alias_maps">alias_maps</a> that apply only to <a href="local.8.html">local(8)</a> delivery.
+The table format and lookups
 are documented in <a href="virtual.5.html">virtual(5)</a>. For an overview of Postfix address
 manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> document.
 </p>

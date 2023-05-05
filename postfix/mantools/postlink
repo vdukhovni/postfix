@@ -1221,6 +1221,8 @@ while (<>) {
     s/\b"*hold"* *queues*\b/<a href="QSHAPE_README.html#hold_queue">$&<\/a>/g;
     s/\b("*hold"*),/<a href="QSHAPE_README.html#hold_queue">$1<\/a>,/g;
     s/\b(postfix  *tls)\b/<a href="postfix-tls.1.html">$1<\/a>/g;
+    s/\b(local\s*aliasing)\b/<a href="ADDRESS_REWRITING_README.html#aliases">$1<\/a>/g;
+    s/\b(virtual\s*aliasing)\b/<a href="ADDRESS_REWRITING_README.html#virtual">$1<\/a>/g;
 
     # Hyperlink map types.
 

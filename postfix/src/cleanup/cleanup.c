@@ -254,10 +254,10 @@
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBsender_bcc_maps (empty)\fR"
 /*	Optional BCC (blind carbon-copy) address lookup tables, indexed
-/*	by sender address.
+/*	by envelope sender address.
 /* .IP "\fBrecipient_bcc_maps (empty)\fR"
 /*	Optional BCC (blind carbon-copy) address lookup tables, indexed by
-/*	recipient address.
+/*	envelope recipient address.
 /* ADDRESS TRANSFORMATION CONTROLS
 /* .ad
 /* .fi
@@ -295,8 +295,8 @@
 /* .PP
 /*	Available in Postfix version 2.0 and later:
 /* .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
-/*	Optional lookup tables that alias specific mail addresses or domains
-/*	to other local or remote address.
+/*	Optional lookup tables with aliases that apply to all email deliveries,
+/*	unlike alias_maps that apply only to \fBlocal\fR(8) delivery.
 /* .PP
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBcanonical_classes (envelope_sender, envelope_recipient, header_sender, header_recipient)\fR"
@@ -308,9 +308,10 @@
 /*	What addresses are subject to sender_canonical_maps address
 /*	mapping.
 /* .IP "\fBremote_header_rewrite_domain (empty)\fR"
-/*	Don't rewrite message headers from remote clients at all when
-/*	this parameter is empty; otherwise, rewrite message headers and
-/*	append the specified domain name to incomplete addresses.
+/*	Rewrite or add message headers in mail from remote clients if
+/*	the remote_header_rewrite_domain parameter value is non-empty,
+/*	updating incomplete addresses with the domain specified in the
+/*	remote_header_rewrite_domain parameter, and adding missing headers.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -357,7 +358,7 @@
 /*	Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
 /* .IP "\fBsmtputf8_enable (yes)\fR"
 /*	Enable preliminary SMTPUTF8 support for the protocols described
-/*	in RFC 6531..6533.
+/*	in RFC 6531, RFC 6532, and RFC 6533.
 /* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
 /*	Detect that a message requires SMTPUTF8 support for the specified
 /*	mail origin classes.

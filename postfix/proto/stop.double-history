@@ -40,3 +40,8 @@ proto  proto SASL_README html proto SQLITE_README html
  File smtp smtp h 
  manpage File postscreen postscreen c 
  Files postconf postconf h postconf postconf_dbms c 
+proto  proto ADDRESS_REWRITING_README html 
+ proto postconf proto proto ADDRESS_REWRITING_README html 
+ cleanup cleanup c local local c smtpd smtpd c 
+ cleanup cleanup c local local c smtpd smtpd c 
+ cleanup cleanup c local local c smtpd smtpd c 

@@ -27115,8 +27115,21 @@ Apologies for any names omitted.
 20230504
 
 	Documentation: clarified the relationships between
-	local_transport, virtual_mailbox_transport, relay_trainsport,
+	local_transport, virtual_mailbox_transport, relay_transport,
 	default_transport, relay_host, sender_dependent_relayhost_maps,
 	sender_dependent_default_transport_maps, and their precedences
-	when determining a delivery transport or next-hop destination.
-	Files: proto/postconf.5.html, proto/ADDRESS_REWRITING_README.html.
+	when determining a delivery transport or next-hop destination,
+	in ADDRESS_REWRITING_README and in the text that defines
+	individual configuration features. Files: proto/postconf.proto,
+	proto/ADDRESS_REWRITING_README.html.
+
+20230505
+
+	Documentation: clarified the differences between virtual
+	and local aliasing, in four places. Files: mantools/postlink,
+	proto/postconf.proto, proto/ADDRESS_REWRITING_README.html.
+	cleanup/cleanup.c, local/local.c, smtpd/smtpd.c.
+
+	Usability: improved error message when master.cf specifies
+	a wild-card network listener (like "smtp inet ... smtpd")
+	while `inet_interfaces is empty. File: master/master_ent.c.

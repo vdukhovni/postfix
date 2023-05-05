@@ -413,7 +413,8 @@
 /*	home_mailbox, mail_spool_directory, fallback_transport_maps,
 /*	fallback_transport, and luser_relay.
 /* .IP "\fBalias_maps (see 'postconf -d' output)\fR"
-/*	The alias databases that are used for \fBlocal\fR(8) delivery.
+/*	Optional lookup tables with aliases that apply only to \fBlocal\fR(8)
+/*	delivery, unlike virtual_alias_maps that apply to all email deliveries.
 /* .IP "\fBforward_path (see 'postconf -d' output)\fR"
 /*	The \fBlocal\fR(8) delivery agent search list for finding a .forward
 /*	file with user-specified delivery methods.

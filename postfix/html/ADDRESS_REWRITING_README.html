@@ -771,6 +771,10 @@ may be a more appropriate vehicle. See the <a href="VIRTUAL_README.html">VIRTUAL
 for an overview of methods to host virtual domains with Postfix.
 </p>
 
+<p> Note: <a href="ADDRESS_REWRITING_README.html#virtual">virtual aliasing</a> (<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>) applies to all email
+deliveries, unlike <a href="ADDRESS_REWRITING_README.html#aliases">local aliasing</a> (<a href="postconf.5.html#alias_maps">alias_maps</a>) which applies only
+to <a href="local.8.html">local(8)</a> delivery.  </p>
+
 <p> Virtual aliasing is disabled by default. To enable, edit the
 <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> parameter in the <a href="postconf.5.html">main.cf</a> file and
 specify one or more lookup tables, separated by whitespace or
@@ -789,7 +793,7 @@ commas. </p>
 </blockquote>
 
 <p> Addresses found in virtual alias maps are subjected to another
-iteration of virtual aliasing, but are not subjected to canonical
+iteration of <a href="ADDRESS_REWRITING_README.html#virtual">virtual aliasing</a>, but are not subjected to canonical
 mapping, in order to avoid loops. </p>
 
 <p> For static mappings as shown above, lookup tables such as <a href="DATABASE_README.html#types">hash</a>:,
@@ -1055,6 +1059,10 @@ aliases are typically used to implement distribution lists, or to
 direct mail for standard aliases such as postmaster to real people.
 The table can also be used to map "Firstname.Lastname" addresses
 to login names. </p>
+
+<p> Note: <a href="ADDRESS_REWRITING_README.html#aliases">local aliasing</a> (<a href="postconf.5.html#alias_maps">alias_maps</a>) applies only to <a href="local.8.html">local(8)</a>
+delivery, unlike <a href="ADDRESS_REWRITING_README.html#virtual">virtual aliasing</a> (<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>) which applies
+to all email deliveries. </p>
 
 <p> Alias lookups are enabled by default. The default configuration
 depends on the operating system environment, but it is typically
