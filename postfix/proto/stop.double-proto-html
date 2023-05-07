@@ -246,3 +246,4 @@ dt  dt b name value b Postfix ge 3 0 dt
  parametername stress something something Other
  p Note on OpenBSD systems specify dev dev arandom when dev dev urandom
  user3 example net smtp smtp relay example net submission 
+ virtual_alias_maps hash etc postfix virtual virtual aliasing 

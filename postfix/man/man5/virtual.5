@@ -16,12 +16,13 @@ Postfix virtual alias table format
 .SH DESCRIPTION
 .ad
 .fi
-The optional \fBvirtual\fR(5) alias table rewrites recipient
-addresses for all local, all virtual, and all remote mail
-destinations.
-This is unlike the \fBaliases\fR(5) table which is used
-only for \fBlocal\fR(8) delivery. This feature is implemented
+The optional \fBvirtual\fR(5) alias table (virtual_alias_maps)
+rewrites all recipients: local(8), virtual, and remote.
+This feature is implemented
 in the Postfix \fBcleanup\fR(8) daemon before mail is queued.
+
+This is unlike the \fBaliases\fR(5) table (alias_maps) which
+is used only for \fBlocal\fR(8) delivery.
 
 Virtual aliasing is recursive; to terminate recursion for
 a specific address, alias that address to itself.
@@ -270,8 +271,9 @@ this topic. See the Postfix \fBmain.cf\fR file for syntax details
 and for default values. Use the "\fBpostfix reload\fR" command after
 a configuration change.
 .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
-Optional lookup tables that alias specific mail addresses or domains
-to other local or remote addresses.
+Optional lookup tables with aliases that apply to all email deliveries:
+\fBlocal\fR(8), virtual, and remote, unlike alias_maps that apply only
+to \fBlocal\fR(8) delivery.
 .IP "\fBvirtual_alias_domains ($virtual_alias_maps)\fR"
 Postfix is the final destination for the specified list of virtual
 alias domains, that is, domains for which all addresses are aliased
@@ -282,7 +284,7 @@ key to the lookup result.
 .PP
 Other parameters of interest:
 .IP "\fBinet_interfaces (all)\fR"
-The network interface addresses that this mail system receives
+The local network interface addresses that this mail system receives
 mail on.
 .IP "\fBmydestination ($myhostname, localhost.$mydomain, localhost)\fR"
 The list of domains that are delivered via the $local_transport
@@ -296,7 +298,7 @@ Enable special treatment for owner\-\fIlistname\fR entries in the
 \fIlistname\fR\-request address localparts when the recipient_delimiter
 is set to "\-".
 .IP "\fBproxy_interfaces (empty)\fR"
-The network interface addresses that this mail system receives mail
+The remote network interface addresses that this mail system receives mail
 on by way of a proxy or network address translation unit.
 .SH "SEE ALSO"
 .na

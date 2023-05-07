@@ -359,7 +359,8 @@ alias_database = hash:/etc/mail/aliases
 .ft R
 .SH alias_maps (default: see "postconf \-d" output)
 Optional lookup tables with aliases that apply only to \fBlocal\fR(8)
-delivery, unlike virtual_alias_maps that apply to all email deliveries.
+delivery, unlike virtual_alias_maps that apply to all email deliveries:
+\fBlocal\fR(8), virtual, and remote.
 The table format and lookups are documented in \fBaliases\fR(5). For an
 overview of Postfix address manipulations see the ADDRESS_REWRITING_README
 document.
@@ -15228,8 +15229,9 @@ from each original recipient.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH virtual_alias_maps (default: $virtual_maps)
-Optional lookup tables with aliases that apply to all email deliveries,
-unlike alias_maps that apply only to \fBlocal\fR(8) delivery.
+Optional lookup tables with aliases that apply to all email deliveries:
+\fBlocal\fR(8), virtual, and remote, unlike alias_maps that apply only
+to \fBlocal\fR(8) delivery.
 The table format and lookups
 are documented in \fBvirtual\fR(5). For an overview of Postfix address
 manipulations see the ADDRESS_REWRITING_README document.

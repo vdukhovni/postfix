@@ -303,7 +303,7 @@
 /*
 /*	Table-driven mechanisms:
 /*	access(5), Postfix SMTP access control table
-/*	aliases(5), Postfix alias database
+/*	aliases(5), Postfix local aliasing
 /*	canonical(5), Postfix input address rewriting
 /*	generic(5), Postfix output address rewriting
 /*	header_checks(5), body_checks(5), Postfix content inspection

@@ -691,8 +691,9 @@
 /*	alias domains, that is, domains for which all addresses are aliased
 /*	to addresses in other local or remote domains.
 /* .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
-/*	Optional lookup tables with aliases that apply to all email deliveries,
-/*	unlike alias_maps that apply only to \fBlocal\fR(8) delivery.
+/*	Optional lookup tables with aliases that apply to all email deliveries:
+/*	\fBlocal\fR(8), virtual, and remote, unlike alias_maps that apply only
+/*	to \fBlocal\fR(8) delivery.
 /* .IP "\fBunknown_virtual_alias_reject_code (550)\fR"
 /*	The Postfix SMTP server reply code when a recipient address matches
 /*	$virtual_alias_domains, and $virtual_alias_maps specifies a list

@@ -11,7 +11,7 @@
 /*	wildcard_inet_addr() determines all wild-card addresses
 /*	for all supported address families.
 /* DIAGNOSTICS
-/*	Fatal errors: out of memory.
+/*	Fatal errors: out of memory; no wildcard addresses.
 /* SEE ALSO
 /*	inet_addr_list(3) address list management
 /* LICENSE

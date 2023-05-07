@@ -367,17 +367,14 @@ MASTER_SERV *get_master_ent()
 	    inet_addr_list_uniq(MASTER_INET_ADDRLIST(serv));
 	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
 	} else {
-	    if (strcasecmp(saved_interfaces, INET_INTERFACES_ALL) == 0) {
-		MASTER_INET_ADDRLIST(serv) = wildcard_inet_addr_list();
-		/* Errors, and no interface found, are fatal. */
-	    } else {
-		MASTER_INET_ADDRLIST(serv) = own_inet_addr_list();
-		/* Errors are fatal, but inet_interfaces can be empty. */
-		if (MASTER_INET_ADDRLIST(serv)->used == 0)
-		    fatal_with_context("service definition requires valid"
-				       " host name or address, or non-empty"
-				       " %s setting", VAR_INET_INTERFACES);
-	    }
+	    MASTER_INET_ADDRLIST(serv) =
+		strcasecmp(saved_interfaces, INET_INTERFACES_ALL) ?
+		own_inet_addr_list() :		/* result can be empty */
+		wildcard_inet_addr_list();	/* result can't be empty */
+	    if (MASTER_INET_ADDRLIST(serv)->used == 0)
+		fatal_with_context("service definition requires valid"
+				   " host name or address, or non-empty"
+				   " %s setting", VAR_INET_INTERFACES);
 	    inet_addr_list_uniq(MASTER_INET_ADDRLIST(serv));
 	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
 	}

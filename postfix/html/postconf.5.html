@@ -613,7 +613,8 @@ Examples:
 
 <p>
 Optional lookup tables with aliases that apply only to <a href="local.8.html">local(8)</a>
-delivery, unlike <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> that apply to all email deliveries.
+delivery, unlike <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> that apply to all email deliveries:
+<a href="local.8.html">local(8)</a>, virtual, and remote.
 The table format and lookups are documented in <a href="aliases.5.html">aliases(5)</a>. For an
 overview of Postfix address manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a>
 document. </p>
@@ -21619,8 +21620,9 @@ This feature is available in Postfix 2.1 and later.
 (default: $<a href="postconf.5.html#virtual_maps">virtual_maps</a>)</b></DT><DD>
 
 <p>
-Optional lookup tables with aliases that apply to all email deliveries,
-unlike <a href="postconf.5.html#alias_maps">alias_maps</a> that apply only to <a href="local.8.html">local(8)</a> delivery.
+Optional lookup tables with aliases that apply to all email deliveries:
+<a href="local.8.html">local(8)</a>, virtual, and remote, unlike <a href="postconf.5.html#alias_maps">alias_maps</a> that apply only
+to <a href="local.8.html">local(8)</a> delivery.
 The table format and lookups
 are documented in <a href="virtual.5.html">virtual(5)</a>. For an overview of Postfix address
 manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> document.

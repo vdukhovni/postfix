@@ -14,9 +14,13 @@ ALIASES(5)                                                          ALIASES(5)
        <b>newaliases</b>
 
 <b>DESCRIPTION</b>
-       The  <a href="aliases.5.html"><b>aliases</b>(5)</a> table provides a system-wide mechanism to redirect mail
-       for local recipients. The redirections are  processed  by  the  Postfix
-       <a href="local.8.html"><b>local</b>(8)</a> delivery agent.
+       The  optional  <a href="aliases.5.html"><b>aliases</b>(5)</a>  table  (<a href="postconf.5.html#alias_maps">alias_maps</a>) redirects mail for local
+       recipients. The redirections are  processed  by  the  Postfix  <a href="local.8.html"><b>local</b>(8)</a>
+       delivery agent.
+
+       This  is  unlike <a href="virtual.5.html"><b>virtual</b>(5)</a> aliasing (<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>) which applies
+       to all recipients: <a href="local.8.html">local(8)</a>, virtual, and remote, and which  is  imple-
+       mented by the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon.
 
        Normally,  the <a href="aliases.5.html"><b>aliases</b>(5)</a> table is specified as a text file that serves
        as input to the <a href="postalias.1.html"><b>postalias</b>(1)</a> command. The result, an  indexed  file  in
@@ -144,7 +148,9 @@ ALIASES(5)                                                          ALIASES(5)
               "<b>newaliases</b>" or with "<b>sendmail -bi</b>".
 
        <b><a href="postconf.5.html#alias_maps">alias_maps</a> (see 'postconf -d' output)</b>
-              The alias databases that are used for <a href="local.8.html"><b>local</b>(8)</a> delivery.
+              Optional lookup tables with aliases that apply only to  <a href="local.8.html"><b>local</b>(8)</a>
+              delivery,  unlike  <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>  that  apply  to all email
+              deliveries: <a href="local.8.html"><b>local</b>(8)</a>, virtual, and remote.
 
        <b><a href="postconf.5.html#allow_mail_to_commands">allow_mail_to_commands</a> (alias, forward)</b>
               Restrict <a href="local.8.html"><b>local</b>(8)</a> mail delivery to external commands.

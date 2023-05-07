@@ -489,8 +489,9 @@ transform " Firstname.Lastname " back into UNIX login names, although it seems
 that local aliases may be a more appropriate vehicle. See the VIRTUAL_README
 document for an overview of methods to host virtual domains with Postfix.
 
-Note: virtual aliasing (virtual_alias_maps) applies to all email deliveries,
-unlike local aliasing (alias_maps) which applies only to local(8) delivery.
+Note: virtual aliasing (virtual_alias_maps) applies to all email deliveries:
+local(8), virtual, and remote. This is unlike local aliasing (alias_maps) which
+applies only to local(8) delivery.
 
 Virtual aliasing is disabled by default. To enable, edit the virtual_alias_maps
 parameter in the main.cf file and specify one or more lookup tables, separated
@@ -706,8 +707,9 @@ implement distribution lists, or to direct mail for standard aliases such as
 postmaster to real people. The table can also be used to map
 "Firstname.Lastname" addresses to login names.
 
-Note: local aliasing (alias_maps) applies only to local(8) delivery, unlike
-virtual aliasing (virtual_alias_maps) which applies to all email deliveries.
+Note: local aliasing (alias_maps) applies only to local(8) delivery. This is
+unlike virtual aliasing (virtual_alias_maps) which applies to all email
+deliveries: local(8), virtual, and remote.
 
 Alias lookups are enabled by default. The default configuration depends on the
 operating system environment, but it is typically one of the following:

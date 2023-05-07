@@ -490,7 +490,8 @@ alias_database = hash:/etc/mail/aliases
 
 <p>
 Optional lookup tables with aliases that apply only to local(8)
-delivery, unlike virtual_alias_maps that apply to all email deliveries.
+delivery, unlike virtual_alias_maps that apply to all email deliveries:
+local(8), virtual, and remote.
 The table format and lookups are documented in aliases(5). For an
 overview of Postfix address manipulations see the ADDRESS_REWRITING_README
 document. </p>
@@ -7284,8 +7285,9 @@ This feature is available in Postfix 2.1 and later.
 %PARAM virtual_alias_maps $virtual_maps
 
 <p>
-Optional lookup tables with aliases that apply to all email deliveries,
-unlike alias_maps that apply only to local(8) delivery.
+Optional lookup tables with aliases that apply to all email deliveries:
+local(8), virtual, and remote, unlike alias_maps that apply only
+to local(8) delivery.
 The table format and lookups
 are documented in virtual(5). For an overview of Postfix address
 manipulations see the ADDRESS_REWRITING_README document.

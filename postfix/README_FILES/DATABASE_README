@@ -28,7 +28,7 @@ Examples of lookup tables that appear often in the Postfix documentation:
         alias_maps = hash:/etc/postfix/aliases            (local aliasing)
         header_checks = regexp:/etc/postfix/header_checks (content filtering)
         transport_maps = hash:/etc/postfix/transport      (routing table)
-        virtual_alias_maps = hash:/etc/postfix/virtual    (address rewriting)
+        virtual_alias_maps = hash:/etc/postfix/virtual    (virtual aliasing)
 
 All Postfix lookup tables store information as (key, value) pairs. This
 interface may seem simplistic at first, but it turns out to be very powerful.

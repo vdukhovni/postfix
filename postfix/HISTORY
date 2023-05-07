@@ -27133,3 +27133,20 @@ Apologies for any names omitted.
 	Usability: improved error message when master.cf specifies
 	a wild-card network listener (like "smtp inet ... smtpd")
 	while `inet_interfaces is empty. File: master/master_ent.c.
+
+	More documentation updates for local aliasing versus virtual
+	aliasing. Files: proto/aliases, proto/virtual, postfix/postfix.c.
+
+20230506
+
+	Cleanup: simplified the master code to handle an empty
+	inet_interfaces setting. it is now closer to the original
+	code. Also documented what *_inet_addr_list() functions can
+	return an empty list. Files: master/master_ent.c,
+	global/own_inet_addr_list.c.
+
+20230507
+
+	Documentation: fine tuning of text about local aliasing
+	versus virtual aliasing. Files: proto/postconf.proto,
+	proto/aliases, proto/virtual, proto/ADDRESS_REWRITING_README.html.
