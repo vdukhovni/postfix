@@ -321,9 +321,9 @@ remote domains.
 .PP
 Available in Postfix version 2.0 and later:
 .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
-Optional lookup tables with aliases that apply to all email deliveries:
-\fBlocal\fR(8), virtual, and remote, unlike alias_maps that apply only
-to \fBlocal\fR(8) delivery.
+Optional lookup tables with aliases that apply to all recipients:
+\fBlocal\fR(8), virtual, and remote; this is unlike alias_maps that apply
+only to \fBlocal\fR(8) recipients.
 .PP
 Available in Postfix version 2.2 and later:
 .IP "\fBcanonical_classes (envelope_sender, envelope_recipient, header_sender, header_recipient)\fR"

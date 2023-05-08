@@ -655,8 +655,8 @@
 /*	The list of domains that are delivered via the $local_transport
 /*	mail delivery transport.
 /* .IP "\fBinet_interfaces (all)\fR"
-/*	The local network interface addresses that this mail system receives
-/*	mail on.
+/*	The local network interface addresses that this mail system
+/*	receives mail on.
 /* .IP "\fBproxy_interfaces (empty)\fR"
 /*	The remote network interface addresses that this mail system receives mail
 /*	on by way of a proxy or network address translation unit.
@@ -691,9 +691,9 @@
 /*	alias domains, that is, domains for which all addresses are aliased
 /*	to addresses in other local or remote domains.
 /* .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
-/*	Optional lookup tables with aliases that apply to all email deliveries:
-/*	\fBlocal\fR(8), virtual, and remote, unlike alias_maps that apply only
-/*	to \fBlocal\fR(8) delivery.
+/*	Optional lookup tables with aliases that apply to all recipients:
+/*	\fBlocal\fR(8), virtual, and remote; this is unlike alias_maps that apply
+/*	only to \fBlocal\fR(8) recipients.
 /* .IP "\fBunknown_virtual_alias_reject_code (550)\fR"
 /*	The Postfix SMTP server reply code when a recipient address matches
 /*	$virtual_alias_domains, and $virtual_alias_maps specifies a list

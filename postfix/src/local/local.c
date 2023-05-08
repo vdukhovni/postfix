@@ -414,8 +414,8 @@
 /*	fallback_transport, and luser_relay.
 /* .IP "\fBalias_maps (see 'postconf -d' output)\fR"
 /*	Optional lookup tables with aliases that apply only to \fBlocal\fR(8)
-/*	delivery, unlike virtual_alias_maps that apply to all email deliveries:
-/*	\fBlocal\fR(8), virtual, and remote.
+/*	recipients; this is unlike virtual_alias_maps that apply to all
+/*	recipients: \fBlocal\fR(8), virtual, and remote.
 /* .IP "\fBforward_path (see 'postconf -d' output)\fR"
 /*	The \fBlocal\fR(8) delivery agent search list for finding a .forward
 /*	file with user-specified delivery methods.

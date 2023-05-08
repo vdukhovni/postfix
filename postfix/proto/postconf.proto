@@ -490,8 +490,8 @@ alias_database = hash:/etc/mail/aliases
 
 <p>
 Optional lookup tables with aliases that apply only to local(8)
-delivery, unlike virtual_alias_maps that apply to all email deliveries:
-local(8), virtual, and remote.
+recipients; this is unlike virtual_alias_maps that apply to all
+recipients: local(8), virtual, and remote.
 The table format and lookups are documented in aliases(5). For an
 overview of Postfix address manipulations see the ADDRESS_REWRITING_README
 document. </p>
@@ -2013,14 +2013,17 @@ Specify 0 to disable the feature. Valid delays are 0..10.
 
 %PARAM inet_interfaces all
 
-<p> The local network interface addresses that this mail system receives
-mail on. Specify "all" to receive mail on all network
-interfaces (default), and "loopback-only" to receive mail
-on loopback network interfaces only (Postfix version 2.2 and later).  The
-parameter also controls delivery of mail to <tt>user@[ip.address]</tt>.
-Specify an empty value if Postfix does not receive mail over the network,
-or if all network listeners have an explicit IP address in master.cf.
-</p>
+<p> The local network interface addresses that this mail system
+receives mail on. Specify "all" to receive mail on all network
+interfaces (default), "loopback-only" to receive mail on loopback
+network interfaces only (Postfix version 2.2 and later), or zero
+or more IPv4 or IPv6 addresses (IPv6 is supported in Postfix version
+2.2 and later). The parameter also controls whether Postfix will
+accept mail for <tt>user@[ip.address]</tt>, and prevents Postfix
+from delivering mail to a host that has equal or larger MX preference.
+Specify an empty value if Postfix does not receive mail over the
+network, or if all network listeners have an explicit IP address
+in master.cf. </p>
 
 <p>
 Note 1: you need to stop and start Postfix when this parameter changes.
@@ -2031,7 +2034,13 @@ but this form is not required here. </p>
 
 <p> When smtp_bind_address and/or smtp_bind_address6 are not
 specified, the inet_interfaces setting may constrain the source IP
-address for an outbound SMTP or LMTP connection. </p>
+address for an outbound SMTP or LMTP connection as described below.
+</p>
+
+<p> The following text is specific to SMTP and IPv4. The same
+reasoning applies to the IPv6 protocol, and to the Postfix LMTP
+client. To disable IPv4 or IPv6 support in the Postfix SMTP and
+LMTP client, use inet_protocols. </p>
 
 <ul>
 
@@ -2045,10 +2054,6 @@ address. This includes the cases where inet_interfaces is empty,
 where it specifies <b>all</b>, or where it contains no IPv4 address,
 one IPv4 address that is a loopback address, or multiple IPv4
 addresses.  </p>
-
-<li> <p> The same reasoning as above applies to the IPv6 protocol,
-and to the Postfix LMTP client. To disable IPv4 or IPv6 support in
-the Postfix SMTP and LMTP client, use inet_protocols. </p>
 
 </ul>
 
@@ -7285,9 +7290,9 @@ This feature is available in Postfix 2.1 and later.
 %PARAM virtual_alias_maps $virtual_maps
 
 <p>
-Optional lookup tables with aliases that apply to all email deliveries:
-local(8), virtual, and remote, unlike alias_maps that apply only
-to local(8) delivery.
+Optional lookup tables with aliases that apply to all recipients:
+local(8), virtual, and remote; this is unlike alias_maps that apply
+only to local(8) recipients.
 The table format and lookups
 are documented in virtual(5). For an overview of Postfix address
 manipulations see the ADDRESS_REWRITING_README document.

@@ -12,12 +12,12 @@
 # 
 # DESCRIPTION
 #        The  optional  virtual(5) alias table (virtual_alias_maps)
-#        rewrites all recipients: local(8),  virtual,  and  remote.
+#        applies to all recipients: local(8), virtual, and  remote.
 #        This feature is implemented in the Postfix cleanup(8) dae-
 #        mon before mail is queued.
 # 
-#        This is unlike the aliases(5) table (alias_maps) which  is
-#        used only for local(8) delivery.
+#        This is unlike the  aliases(5)  table  (alias_maps)  which
+#        applies only to local(8) recipients.
 # 
 #        Virtual  aliasing is recursive; to terminate recursion for
 #        a specific address, alias that address to itself.
@@ -257,9 +257,9 @@
 # 
 #        virtual_alias_maps ($virtual_maps)
 #               Optional lookup tables with aliases that  apply  to
-#               all   email   deliveries:  local(8),  virtual,  and
-#               remote,  unlike  alias_maps  that  apply  only   to
-#               local(8) delivery.
+#               all recipients: local(8), virtual, and remote; this
+#               is unlike alias_maps that apply  only  to  local(8)
+#               recipients.
 # 
 #        virtual_alias_domains ($virtual_alias_maps)
 #               Postfix  is the final destination for the specified

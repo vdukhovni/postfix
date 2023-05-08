@@ -613,8 +613,8 @@ Examples:
 
 <p>
 Optional lookup tables with aliases that apply only to <a href="local.8.html">local(8)</a>
-delivery, unlike <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> that apply to all email deliveries:
-<a href="local.8.html">local(8)</a>, virtual, and remote.
+recipients; this is unlike <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> that apply to all
+recipients: <a href="local.8.html">local(8)</a>, virtual, and remote.
 The table format and lookups are documented in <a href="aliases.5.html">aliases(5)</a>. For an
 overview of Postfix address manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a>
 document. </p>
@@ -4134,14 +4134,17 @@ Specify 0 to disable the feature. Valid delays are 0..10.
 <DT><b><a name="inet_interfaces">inet_interfaces</a>
 (default: all)</b></DT><DD>
 
-<p> The local network interface addresses that this mail system receives
-mail on. Specify "all" to receive mail on all network
-interfaces (default), and "loopback-only" to receive mail
-on loopback network interfaces only (Postfix version 2.2 and later).  The
-parameter also controls delivery of mail to <tt>user@[ip.address]</tt>.
-Specify an empty value if Postfix does not receive mail over the network,
-or if all network listeners have an explicit IP address in <a href="master.5.html">master.cf</a>.
-</p>
+<p> The local network interface addresses that this mail system
+receives mail on. Specify "all" to receive mail on all network
+interfaces (default), "loopback-only" to receive mail on loopback
+network interfaces only (Postfix version 2.2 and later), or zero
+or more IPv4 or IPv6 addresses (IPv6 is supported in Postfix version
+2.2 and later). The parameter also controls whether Postfix will
+accept mail for <tt>user@[ip.address]</tt>, and prevents Postfix
+from delivering mail to a host that has equal or larger MX preference.
+Specify an empty value if Postfix does not receive mail over the
+network, or if all network listeners have an explicit IP address
+in <a href="master.5.html">master.cf</a>. </p>
 
 <p>
 Note 1: you need to stop and start Postfix when this parameter changes.
@@ -4152,7 +4155,13 @@ but this form is not required here. </p>
 
 <p> When <a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a> and/or <a href="postconf.5.html#smtp_bind_address6">smtp_bind_address6</a> are not
 specified, the <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> setting may constrain the source IP
-address for an outbound SMTP or LMTP connection. </p>
+address for an outbound SMTP or LMTP connection as described below.
+</p>
+
+<p> The following text is specific to SMTP and IPv4. The same
+reasoning applies to the IPv6 protocol, and to the Postfix LMTP
+client. To disable IPv4 or IPv6 support in the Postfix SMTP and
+LMTP client, use <a href="postconf.5.html#inet_protocols">inet_protocols</a>. </p>
 
 <ul>
 
@@ -4166,10 +4175,6 @@ address. This includes the cases where <a href="postconf.5.html#inet_interfaces"
 where it specifies <b>all</b>, or where it contains no IPv4 address,
 one IPv4 address that is a loopback address, or multiple IPv4
 addresses.  </p>
-
-<li> <p> The same reasoning as above applies to the IPv6 protocol,
-and to the Postfix LMTP client. To disable IPv4 or IPv6 support in
-the Postfix SMTP and LMTP client, use <a href="postconf.5.html#inet_protocols">inet_protocols</a>. </p>
 
 </ul>
 
@@ -21620,9 +21625,9 @@ This feature is available in Postfix 2.1 and later.
 (default: $<a href="postconf.5.html#virtual_maps">virtual_maps</a>)</b></DT><DD>
 
 <p>
-Optional lookup tables with aliases that apply to all email deliveries:
-<a href="local.8.html">local(8)</a>, virtual, and remote, unlike <a href="postconf.5.html#alias_maps">alias_maps</a> that apply only
-to <a href="local.8.html">local(8)</a> delivery.
+Optional lookup tables with aliases that apply to all recipients:
+<a href="local.8.html">local(8)</a>, virtual, and remote; this is unlike <a href="postconf.5.html#alias_maps">alias_maps</a> that apply
+only to <a href="local.8.html">local(8)</a> recipients.
 The table format and lookups
 are documented in <a href="virtual.5.html">virtual(5)</a>. For an overview of Postfix address
 manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> document.

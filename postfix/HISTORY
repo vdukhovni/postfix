@@ -27150,3 +27150,10 @@ Apologies for any names omitted.
 	Documentation: fine tuning of text about local aliasing
 	versus virtual aliasing. Files: proto/postconf.proto,
 	proto/aliases, proto/virtual, proto/ADDRESS_REWRITING_README.html.
+
+20230508
+
+	Documentation: more fine tuning of text about local aliasing
+	versus virtual aliasing, and inet_interfaces. Files:
+	proto/postconf.proto, proto/aliases, proto/virtual,
+	proto/ADDRESS_REWRITING_README.html.

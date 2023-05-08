@@ -11,12 +11,12 @@
 #	\fBpostmap -q - /etc/postfix/virtual <\fIinputfile\fR
 # DESCRIPTION
 #	The optional \fBvirtual\fR(5) alias table (virtual_alias_maps)
-#	rewrites all recipients: local(8), virtual, and remote.
+#	applies to all recipients: local(8), virtual, and remote.
 #	This feature is implemented
 #	in the Postfix \fBcleanup\fR(8) daemon before mail is queued.
 #
 #	This is unlike the \fBaliases\fR(5) table (alias_maps) which
-#	is used only for \fBlocal\fR(8) delivery.
+#	applies only to \fBlocal\fR(8) recipients.
 #
 #	Virtual aliasing is recursive; to terminate recursion for
 #	a specific address, alias that address to itself.
@@ -245,9 +245,9 @@
 #	and for default values. Use the "\fBpostfix reload\fR" command after
 #	a configuration change.
 # .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
-#	Optional lookup tables with aliases that apply to all email deliveries:
-#	\fBlocal\fR(8), virtual, and remote, unlike alias_maps that apply only
-#	to \fBlocal\fR(8) delivery.
+#	Optional lookup tables with aliases that apply to all recipients:
+#	\fBlocal\fR(8), virtual, and remote; this is unlike alias_maps that apply
+#	only to \fBlocal\fR(8) recipients.
 # .IP "\fBvirtual_alias_domains ($virtual_alias_maps)\fR"
 #	Postfix is the final destination for the specified list of virtual
 #	alias domains, that is, domains for which all addresses are aliased
@@ -258,8 +258,8 @@
 # .PP
 #	Other parameters of interest:
 # .IP "\fBinet_interfaces (all)\fR"
-#	The local network interface addresses that this mail system receives
-#	mail on.
+#	The local network interface addresses that this mail system
+#	receives mail on.
 # .IP "\fBmydestination ($myhostname, localhost.$mydomain, localhost)\fR"
 #	The list of domains that are delivered via the $local_transport
 #	mail delivery transport.
