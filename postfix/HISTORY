@@ -27157,3 +27157,18 @@ Apologies for any names omitted.
 	versus virtual aliasing, and inet_interfaces. Files:
 	proto/postconf.proto, proto/aliases, proto/virtual,
 	proto/ADDRESS_REWRITING_README.html.
+
+20230516
+
+	Bugfix (defect introduced: Postfix 3.4): the postlog(1)
+	command created a logfile with permissions 0644, but the
+	postlogd(8) daemon created it with permissions 0600, for
+	example after "postfix logrotate". The discrepancy is now
+	eliminated, and the permissions when creating a file are
+	now configurable with the "maillog_file_permissions"
+	parameter, default 0600 for backwards compatibility. Files:
+	mantools/postlink, proto/MAILLOG_README.html, proto/postconf.proto,
+	global/mail_params.c, global/mail_params.h, global/Makefile.in,
+	master/master.c, postlog/postlog.c, postlogd/postlogd.c,
+	util/logwriter.c, util/logwriter.h, util/Makefile.in,
+	util/vstream.c.

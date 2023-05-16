@@ -23,6 +23,7 @@ extern VSTREAM *logwriter_open_or_die(const char *);
 extern int logwriter_write(VSTREAM *, const char *, ssize_t);
 extern int logwriter_close(VSTREAM *);
 extern int logwriter_one_shot(const char *, const char *, ssize_t);
+extern int set_logwriter_create_perms(const char *);
 
 /* LICENSE
 /* .ad

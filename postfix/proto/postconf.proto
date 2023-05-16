@@ -18263,6 +18263,17 @@ default suffix, YYYYMMDD-HHMMSS, allows logs to be rotated frequently.
 
 <p> This feature is available in Postfix 3.4 and later. </p>
 
+%PARAM maillog_file_permissions 0600
+
+<p> The file access permissions that will be set when the file
+$maillog_file is created for the first time, or when the file is
+created after an existing file is rotated. Specify one of: <b>0600</b>
+(only super-user read/write access), <b>0640</b> (adds 'group' read
+access), or <b>0644</b> (also adds 'other' read access). The leading
+'0' is optional.  </p>
+
+<p> This feature is available in Postfix 3.9 and later. </p>
+
 %PARAM info_log_address_format external
 
 <p> The email address form that will be used in non-debug logging

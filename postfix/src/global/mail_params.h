@@ -4349,6 +4349,10 @@ extern char *var_maillog_file_comp;
 #define DEF_MAILLOG_FILE_STAMP	"%Y%m%d-%H%M%S"
 extern char *var_maillog_file_stamp;
 
+#define VAR_MAILLOG_FILE_PERMS	"maillog_file_permissions"
+#define DEF_MAILLOG_FILE_PERMS	"0600"
+extern char *var_maillog_file_perms;
+
 #define VAR_POSTLOG_SERVICE	"postlog_service_name"
 #define DEF_POSTLOG_SERVICE	MAIL_SERVICE_POSTLOG
 extern char *var_postlog_service;

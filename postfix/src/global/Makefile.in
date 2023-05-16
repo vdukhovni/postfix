@@ -1911,6 +1911,7 @@ mail_params.o: ../../include/htable.h
 mail_params.o: ../../include/inet_addr_list.h
 mail_params.o: ../../include/inet_proto.h
 mail_params.o: ../../include/iostuff.h
+mail_params.o: ../../include/logwriter.h
 mail_params.o: ../../include/midna_domain.h
 mail_params.o: ../../include/mkmap.h
 mail_params.o: ../../include/msg.h

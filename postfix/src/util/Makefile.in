@@ -2157,6 +2157,7 @@ logwriter.o: logwriter.c
 logwriter.o: logwriter.h
 logwriter.o: msg.h
 logwriter.o: mymalloc.h
+logwriter.o: name_code.h
 logwriter.o: safe_open.h
 logwriter.o: sys_defs.h
 logwriter.o: vbuf.h

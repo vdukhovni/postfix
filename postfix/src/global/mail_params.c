@@ -159,6 +159,7 @@
 /*	char	*var_maillog_file_pfxs;
 /*	char	*var_maillog_file_comp;
 /*	char	*var_maillog_file_stamp;
+/*	char	*var_maillog_file_perms;
 /*	char	*var_postlog_service;
 /*
 /*	char	*var_dnssec_probe;
@@ -226,6 +227,7 @@
 #include <vstring_vstream.h>
 #include <iostuff.h>
 #include <midna_domain.h>
+#include <logwriter.h>
 
 /* Global library. */
 
@@ -375,6 +377,7 @@ char   *var_maillog_file;
 char   *var_maillog_file_pfxs;
 char   *var_maillog_file_comp;
 char   *var_maillog_file_stamp;
+char   *var_maillog_file_perms;
 char   *var_postlog_service;
 
 char   *var_dnssec_probe;
@@ -729,6 +732,7 @@ void    mail_params_init()
 	VAR_MAILLOG_FILE_PFXS, DEF_MAILLOG_FILE_PFXS, &var_maillog_file_pfxs, 1, 0,
 	VAR_MAILLOG_FILE_COMP, DEF_MAILLOG_FILE_COMP, &var_maillog_file_comp, 1, 0,
 	VAR_MAILLOG_FILE_STAMP, DEF_MAILLOG_FILE_STAMP, &var_maillog_file_stamp, 1, 0,
+	VAR_MAILLOG_FILE_PERMS, DEF_MAILLOG_FILE_PERMS, &var_maillog_file_perms, 1, 0,
 	VAR_POSTLOG_SERVICE, DEF_POSTLOG_SERVICE, &var_postlog_service, 1, 0,
 	VAR_DNSSEC_PROBE, DEF_DNSSEC_PROBE, &var_dnssec_probe, 0, 0,
 	VAR_KNOWN_TCP_PORTS, DEF_KNOWN_TCP_PORTS, &var_known_tcp_ports, 0, 0,
@@ -979,6 +983,9 @@ void    mail_params_init()
     dict_db_cache_size = var_db_read_buf;
     dict_lmdb_map_size = var_lmdb_map_size;
     inet_windowsize = var_inet_windowsize;
+    if (set_logwriter_create_perms(var_maillog_file_perms) < 0)
+	msg_warn("ignoring bad permissions: %s = %s",
+		 VAR_MAILLOG_FILE_PERMS, var_maillog_file_perms);
 
     /*
      * Variables whose defaults are determined at runtime, after other
