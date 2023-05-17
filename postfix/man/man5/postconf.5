@@ -4150,6 +4150,15 @@ logrotate". The command is run with the rotated logfile name as its
 first argument.
 .PP
 This feature is available in Postfix 3.4 and later.
+.SH maillog_file_permissions (default: 0600)
+The file access permissions that will be set when the file
+$maillog_file is created for the first time, or when the file is
+created after an existing file is rotated. Specify one of: \fB0600\fR
+(only super\-user read/write access), \fB0640\fR (adds 'group' read
+access), or \fB0644\fR (also adds 'other' read access). The leading
+\&'0' is optional.
+.PP
+This feature is available in Postfix 3.9 and later.
 .SH maillog_file_prefixes (default: /var, /dev/stdout)
 A list of allowed prefixes for a maillog_file value. This is a
 safety feature to contain the damage from a single configuration

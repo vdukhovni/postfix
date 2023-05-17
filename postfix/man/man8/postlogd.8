@@ -66,6 +66,12 @@ The master.cf service name of a Postfix daemon process.
 .IP "\fBpostlogd_watchdog_timeout (10s)\fR"
 How much time a \fBpostlogd\fR(8) process may take to process a request
 before it is terminated by a built\-in watchdog timer.
+.PP
+Available in Postfix 3.9 and later:
+.IP "\fBmaillog_file_permissions (0600)\fR"
+The file access permissions that will be set when the file
+$maillog_file is created for the first time, or when the file is
+created after an existing file is rotated.
 .SH "SEE ALSO"
 .na
 .nf

@@ -27172,3 +27172,11 @@ Apologies for any names omitted.
 	master/master.c, postlog/postlog.c, postlogd/postlogd.c,
 	util/logwriter.c, util/logwriter.h, util/Makefile.in,
 	util/vstream.c.
+
+20230517
+
+	Bugfix (defect introduced: Postfix 3.8) the posttls-finger
+	command could access uninitialized memory when reconnecting.
+	This also fixes a warning message when a destination contains
+	":service" information. Reported by Thomas Korbar. File:
+	posttls-finger/posttls-finger.c.

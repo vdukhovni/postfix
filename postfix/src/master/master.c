@@ -135,8 +135,8 @@
 /*	The external command to execute when a Postfix daemon program is
 /*	invoked with the -D option.
 /* .IP "\fBinet_interfaces (all)\fR"
-/*	The local network interface addresses that this mail system receives
-/*	mail on.
+/*	The local network interface addresses that this mail system
+/*	receives mail on.
 /* .IP "\fBinet_protocols (see 'postconf -d output')\fR"
 /*	The Internet protocols Postfix will attempt to use when making
 /*	or accepting connections.
