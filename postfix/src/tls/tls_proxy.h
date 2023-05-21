@@ -97,11 +97,12 @@ extern VSTREAM *tls_proxy_open(const char *, int, VSTREAM *, const char *,
 			               void *, void *, void *);
 
 #define TLS_PROXY_CLIENT_INIT_PROPS(props, a1, a2, a3, a4, a5, a6, a7, a8, \
-    a9, a10, a11, a12, a13, a14) \
+    a9, a10, a11, a12, a13, a14, a15, a16) \
     (((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), ((props)->a14))
+    ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
+    ((props)->a16))
 
 #define TLS_PROXY_CLIENT_START_PROPS(props, a1, a2, a3, a4, a5, a6, a7, a8, \
     a9, a10, a11, a12, a13, a14) \
@@ -214,6 +215,8 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
  /*
   * TLS_CLIENT_INIT_PROPS attributes.
   */
+#define TLS_ATTR_CNF_FILE	"config_file"
+#define TLS_ATTR_CNF_NAME	"config_name"
 #define TLS_ATTR_LOG_PARAM	"log_param"
 #define TLS_ATTR_LOG_LEVEL	"log_level"
 #define TLS_ATTR_VERIFYDEPTH	"verifydepth"

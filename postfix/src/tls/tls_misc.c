@@ -29,6 +29,8 @@
 /*	#define TLS_INTERNAL
 /*	#include <tls.h>
 /*
+/*	char	*var_tls_cnf_file;
+/*	char	*var_tls_cnf_name;
 /*	char	*var_tls_high_clist;
 /*	char	*var_tls_medium_clist;
 /*	char	*var_tls_null_clist;
@@ -67,6 +69,8 @@
 /*	long	tls_bug_bits()
 /*
 /*	void	tls_param_init()
+/*
+/*	int     tls_library_init(void)
 /*
 /*	int	tls_proto_mask_lims(plist, floor, ceiling)
 /*	const char *plist;
@@ -155,6 +159,9 @@
 /*
 /*	tls_param_init() loads main.cf parameters used internally in
 /*	TLS library. Any errors are fatal.
+/*
+/*	tls_library_init() initializes the OpenSSL library, optionally
+/*	loading an OpenSSL configuration file.
 /*
 /*	tls_pre_jail_init() opens any tables that need to be opened before
 /*	entering a chroot jail. The "role" parameter must be TLS_ROLE_CLIENT
@@ -274,6 +281,8 @@
  /*
   * Tunable parameters.
   */
+char   *var_tls_cnf_file;
+char   *var_tls_cnf_name;
 char   *var_tls_high_clist;
 char   *var_tls_medium_clist;
 char   *var_tls_low_ignored;
@@ -643,6 +652,8 @@ void    tls_param_init(void)
 {
     /* If this changes, update TLS_CLIENT_PARAMS in tls_proxy.h. */
     static const CONFIG_STR_TABLE str_table[] = {
+	VAR_TLS_CNF_FILE, DEF_TLS_CNF_FILE, &var_tls_cnf_file, 0, 0,
+	VAR_TLS_CNF_NAME, DEF_TLS_CNF_NAME, &var_tls_cnf_name, 0, 0,
 	VAR_TLS_HIGH_CLIST, DEF_TLS_HIGH_CLIST, &var_tls_high_clist, 1, 0,
 	VAR_TLS_MEDIUM_CLIST, DEF_TLS_MEDIUM_CLIST, &var_tls_medium_clist, 1, 0,
 	VAR_TLS_LOW_CLIST, DEF_TLS_LOW_CLIST, &var_tls_low_ignored, 0, 0,
@@ -685,6 +696,88 @@ void    tls_param_init(void)
     get_mail_conf_str_table(str_table);
     get_mail_conf_int_table(int_table);
     get_mail_conf_bool_table(bool_table);
+}
+
+/* tls_library_init - perform OpenSSL library initialization */
+
+int     tls_library_init(void)
+{
+    OPENSSL_INIT_SETTINGS *init_settings = 0;
+    char   *conf_name = *var_tls_cnf_name ? var_tls_cnf_name : 0;
+    char   *conf_file = 0;
+    unsigned long init_opts = 0;
+
+    if ((init_settings = OPENSSL_INIT_new()) == 0) {
+	msg_warn("error allocating OpenSSL init settings, "
+		 "disabling TLS support");
+	return (0);
+    }
+#if OPENSSL_VERSION_NUMBER < 0x1010102fL
+
+    /*
+     * OpenSSL 1.1.0 through 1.1.1a, no support for custom configuration
+     * files, disabling loading of the file, or getting strict error
+     * handling.  Thus, the only supported configuration file is "default".
+     */
+    if (strcmp(var_tls_cnf_file, "default") != 0) {
+	msg_warn("non-default %s = %s requires OpenSSL 1.1.1b or later, "
+	       "disabling TLS support", VAR_TLS_CNF_FILE, var_tls_cnf_file);
+	return (0);
+    }
+#else
+    {
+	unsigned long init_flags = 0;
+
+	/*-
+	 * OpenSSL 1.1.1b or later:
+	 * We can now choose a non-default or configuration file, or
+	 * use none at all.  We can also request strict error
+	 * reporting.
+	 */
+	if (strcmp(var_tls_cnf_file, "default") == 0) {
+	    conf_file = 0;
+	    /* The default global config file is optional */
+	    init_flags |= CONF_MFLAGS_IGNORE_MISSING_FILE;
+	} else if (strcmp(var_tls_cnf_file, "none") == 0) {
+	    init_opts |= OPENSSL_INIT_NO_LOAD_CONFIG;
+	} else if (*var_tls_cnf_file == '/') {
+	    conf_file = var_tls_cnf_file;
+	} else {
+	    msg_warn("non-default %s = %s is not an absolute pathname, "
+	       "disabling TLS support", VAR_TLS_CNF_FILE, var_tls_cnf_file);
+	    return (0);
+	}
+
+	/*
+	 * By not including CONF_MFLAGS_IGNORE_RETURN_CODES, we get strict
+	 * error reporting.  We don't insist on a match for the requested
+	 * application name, allowing fallback to the default application
+	 * name, even when a non-default application name is specified by
+	 * always setting the CONF_MFLAGS_DEFAULT_SECTION bit.
+	 */
+	init_flags |= CONF_MFLAGS_DEFAULT_SECTION;
+	OPENSSL_INIT_set_config_file_flags(init_settings, init_flags);
+    }
+#endif
+
+    if (conf_file)
+	OPENSSL_INIT_set_config_filename(init_settings, conf_file);
+    if (conf_name)
+	OPENSSL_INIT_set_config_appname(init_settings, conf_name);
+
+    if (OPENSSL_init_ssl(init_opts, init_settings) <= 0) {
+	if ((init_opts & OPENSSL_INIT_NO_LOAD_CONFIG) == 0)
+	    msg_warn("error loading the '%s' settings from the %s OpenSSL "
+		     "configuration file, disabling TLS support",
+		     conf_name ? conf_name : "global",
+		     conf_file ? conf_file : "default");
+	else
+	    msg_warn("error initializing the OpenSSL library, "
+		     "disabling TLS support");
+	tls_print_errors();
+	return (0);
+    }
+    return (1);
 }
 
 /* tls_pre_jail_init - Load TLS related pre-jail tables */

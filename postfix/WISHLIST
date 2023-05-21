@@ -1,5 +1,9 @@
 Wish list:
 
+	In tlsproxy, diff the server-side TLS library settings
+	against those from a tlsproxy client, and make sure that
+	the diff covers the new cnf_file and cnf_name properties.
+
 	Things to do before the stable release:
 
 	make pre-release-check, HTML validator check.

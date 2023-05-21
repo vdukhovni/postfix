@@ -808,7 +808,7 @@ test58: $(PROG) test58.ref
 	echo 'yy_backup = bbb' >> main.cf
 	echo 'yy_bogus = bbb' >> main.cf
 	touch -t 197101010000 main.cf
-	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./postconf -nc. >test58.tmp 2>&1 || true
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc. >test58.tmp 2>&1 || true
 	diff test58.ref test58.tmp
 	rm -f main.cf master.cf test58.tmp
 
@@ -994,9 +994,9 @@ test71:	$(PROG) test71.ref
 test72:	$(PROG) test72.ref
 	rm -f main.cf master.cf
 	touch main.cf master.cf
-	./postconf -Mc. smtp/unix='smtp unix - n n - 0 other'
-	./postconf -Mc. smtp/abcd='smtp fifo - n n - 0 other'
-	./postconf -Mc. smtp/abcd='smtp inet - n n - 0 other'
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. smtp/unix='smtp unix - n n - 0 other'
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. smtp/abcd='smtp fifo - n n - 0 other'
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. smtp/abcd='smtp inet - n n - 0 other'
 	touch -t 197201010000 main.cf
 	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. >test72.tmp 2>&1
 	diff test72.ref test72.tmp
@@ -1006,10 +1006,10 @@ test72:	$(PROG) test72.ref
 test73:	$(PROG) test73.ref
 	rm -f main.cf master.cf
 	touch main.cf master.cf
-	./postconf -Mc. smtp/unix='smtp unix - n n - 0 other'
-	./postconf -Mc. smtp/abcd='smtp fifo - n n - 0 other'
-	./postconf -Mc. smtp/abcd='smtp inet - n n - 0 other'
-	./postconf -Mc. smtp/abcd='smtp unix - n n - 0 otherx'
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. smtp/unix='smtp unix - n n - 0 other'
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. smtp/abcd='smtp fifo - n n - 0 other'
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. smtp/abcd='smtp inet - n n - 0 other'
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. smtp/abcd='smtp unix - n n - 0 otherx'
 	touch -t 197301010000 main.cf
 	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. >test73.tmp 2>&1
 	diff test73.ref test73.tmp
@@ -1019,10 +1019,10 @@ test73:	$(PROG) test73.ref
 test74:	$(PROG) test74.ref
 	rm -f main.cf master.cf
 	touch main.cf master.cf
-	./postconf -Mc. smtp/unix='smtp unix - n n - 0 other'
-	./postconf -Mc. smtp/abcd='smtp fifo - n n - 0 other'
-	./postconf -Mc. smtp/abcd='smtp inet - n n - 0 other'
-	./postconf -Mc. smtp/fifo='lmtp unix - n n - 0 otherx'
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. smtp/unix='smtp unix - n n - 0 other'
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. smtp/abcd='smtp fifo - n n - 0 other'
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. smtp/abcd='smtp inet - n n - 0 other'
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. smtp/fifo='lmtp unix - n n - 0 otherx'
 	touch -t 197401010000 main.cf
 	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -Mc. >test74.tmp 2>&1
 	diff test74.ref test74.tmp
@@ -1032,7 +1032,7 @@ test74:	$(PROG) test74.ref
 test75:	$(PROG) test75.ref
 	rm -f main.cf master.cf
 	touch main.cf master.cf
-	./postconf -c. mail_version=x mail_version=y >test75.tmp 2>&1
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -c. mail_version=x mail_version=y >test75.tmp 2>&1
 	touch -t 197501010000 main.cf
 	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc. >>test75.tmp 2>&1
 	diff test75.ref test75.tmp

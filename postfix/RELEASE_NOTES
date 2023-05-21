@@ -26,6 +26,17 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Major changes with snapshot 20230522
+====================================
+
+Preliminary support for OpenSSL configuration files, primarily
+OpenSSL 1.1.1b and later. This introduces two new parameters
+"tls_config_file" and "tls_config_name", which can be used to limit
+collateral damage from OS distributions that crank up security to
+11, increasing the number of plaintext email deliveries. Details
+are in the postconf(5) manpage under "tls_config_file" and
+"tls_config_name".
+
 Incompatible changes with snapshot 20230419
 ===========================================
 

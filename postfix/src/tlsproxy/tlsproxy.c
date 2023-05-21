@@ -1742,6 +1742,8 @@ static void pre_jail_init_client(void)
 	 */
 	(void) tls_proxy_client_param_from_config(&tls_params);
 	(void) TLS_CLIENT_INIT_ARGS(&init_props,
+				    cnf_file = var_tls_cnf_file,
+				    cnf_name = var_tls_cnf_name,
 				    log_param = var_tlsp_clnt_logparam,
 				    log_level = var_tlsp_clnt_loglevel,
 				    verifydepth = var_tlsp_clnt_scert_vd,

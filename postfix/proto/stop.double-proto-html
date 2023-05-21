@@ -42,7 +42,6 @@ dd  dd The default algorithm is b sha256 b with Postfix ge 3 6
  dd No TLS TLS will not be used unless enabled for specific
 Dec 4 04 30 09 hostname postfix smtpd 58549 NOQUEUE reject 
  default_transport uucp uucp gateway
- different client IP addresses Lookup results override the the global
 Documentation  Documentation is available as README files start with the file
 done  done
 done done
@@ -202,8 +201,6 @@ smtp_tls_mandatory_protocols SSLv2 SSLv3 TLSv1 TLSv1 1
  SSLv3 TLSv1 TLSv1 1 TLSv1 2 and TLSv1 3 Starting with
  T 5 10 20 40 80 160 320 640 1280 1280 
  T A 5 10 20 40 80 160 320 320 
- The and match and literally Without the the
- The matches literally Without the the would
 Therefore 301 0301 0x301 and 0x0301 are all equivalent to
  The syntax of name value value name value and name value 
 the  the backed up domain tld domain This prevents your mail queue
@@ -247,3 +244,9 @@ dt  dt b name value b Postfix ge 3 0 dt
  p Note on OpenBSD systems specify dev dev arandom when dev dev urandom
  user3 example net smtp smtp relay example net submission 
  virtual_alias_maps hash etc postfix virtual virtual aliasing 
+system_wide_settings  system_wide_settings 
+ssl_library_settings  ssl_library_settings 
+initial_ssl_settings  initial_ssl_settings 
+postfix_settings  postfix_settings 
+postfix_ssl_settings  postfix_ssl_settings 
+baseline_postfix_settings  baseline_postfix_settings 

@@ -792,8 +792,8 @@
 /* .IP "\fBdisable_dns_lookups (no)\fR"
 /*	Disable DNS lookups in the Postfix SMTP and LMTP clients.
 /* .IP "\fBinet_interfaces (all)\fR"
-/*	The local network interface addresses that this mail system receives
-/*	mail on.
+/*	The local network interface addresses that this mail system
+/*	receives mail on.
 /* .IP "\fBinet_protocols (see 'postconf -d output')\fR"
 /*	The Internet protocols Postfix will attempt to use when making
 /*	or accepting connections.
@@ -1110,8 +1110,8 @@ bool    var_smtp_balance_inet_proto;
 bool    var_smtp_req_deadline;
 int     var_smtp_min_data_rate;
 char   *var_use_srv_lookup;
-bool	var_ign_srv_lookup_err;
-bool	var_allow_srv_fallback;
+bool    var_ign_srv_lookup_err;
+bool    var_allow_srv_fallback;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -1119,7 +1119,7 @@ int     var_smtp_sasl_auth_cache_time;
 bool    var_smtp_sasl_auth_soft_bounce;
 
 char   *var_hfrom_format;
-bool var_smtp_bind_addr_enforce;
+bool    var_smtp_bind_addr_enforce;
 
  /*
   * Global variables.
@@ -1512,6 +1512,8 @@ static void pre_init(char *unused_name, char **unused_argv)
 	 */
 	smtp_tls_ctx =
 	    TLS_CLIENT_INIT(&props,
+			    cnf_file = var_tls_cnf_file,
+			    cnf_name = var_tls_cnf_name,
 			    log_param = VAR_LMTP_SMTP(TLS_LOGLEVEL),
 			    log_level = var_smtp_tls_loglevel,
 			    verifydepth = var_smtp_tls_scert_vd,

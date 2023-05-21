@@ -114,7 +114,8 @@ smtpd_addr_valid_test: smtpd_check smtpd_addr_valid.in smtpd_addr_valid.ref
 
 # This requires that the DNS server can query porcupine.org.
 
-ADDRINFO_FIX = sed 's/No address associated with hostname/hostname nor servname provided, or not known/'
+ADDRINFO_FIX = sed -e 's/No address associated with hostname/hostname nor servname provided, or not known/' \
+		-e 's/Name or service not known/hostname nor servname provided, or not known/'
 
 smtpd_exp_test: smtpd_check smtpd_exp.in smtpd_exp.ref
 	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap hash:smtpd_check_access

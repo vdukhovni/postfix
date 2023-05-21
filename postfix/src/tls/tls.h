@@ -77,6 +77,7 @@ extern const char *str_tls_level(int);
 #include <openssl/evp.h>		/* New OpenSSL 3.0 EVP_PKEY APIs */
 #include <openssl/opensslv.h>		/* OPENSSL_VERSION_NUMBER */
 #include <openssl/ssl.h>
+#include <openssl/conf.h>
 
  /* Appease indent(1) */
 #define x509_stack_t STACK_OF(X509)
@@ -322,6 +323,7 @@ extern void tls_free_app_context(TLS_APPL_STATE *);
   * tls_misc.c
   */
 extern void tls_param_init(void);
+extern int tls_library_init(void);
 
  /*
   * Protocol selection.
@@ -449,6 +451,8 @@ extern void tls_get_signature_params(TLS_SESS_STATE *);
   * tls_client.c
   */
 typedef struct {
+    const char *cnf_file;
+    const char *cnf_name;
     const char *log_param;
     const char *log_level;
     int     verifydepth;
@@ -494,16 +498,16 @@ extern TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *,
 	tls_session_stop(ctx, (stream), (timeout), (failure), (TLScontext))
 
 #define TLS_CLIENT_INIT_ARGS(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13, a14) \
-    (((props)->a1), ((props)->a2), ((props)->a3), \
-    ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
-    ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), ((props)->a14), (props))
+    a10, a11, a12, a13, a14, a15, a16) \
+    (((props)->a1), ((props)->a2), ((props)->a3), ((props)->a4), \
+    ((props)->a5), ((props)->a6), ((props)->a7), ((props)->a8), \
+    ((props)->a9), ((props)->a10), ((props)->a11), ((props)->a12), \
+    ((props)->a13), ((props)->a14), ((props)->a15), ((props)->a16), (props))
 
 #define TLS_CLIENT_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13, a14) \
+    a10, a11, a12, a13, a14, a15, a16) \
     tls_client_init(TLS_CLIENT_INIT_ARGS(props, a1, a2, a3, a4, a5, \
-    a6, a7, a8, a9, a10, a11, a12, a13, a14))
+    a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16))
 
 #define TLS_CLIENT_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
     a10, a11, a12, a13, a14, a15, a16, a17) \

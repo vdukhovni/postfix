@@ -50,3 +50,6 @@ proto  proto ADDRESS_REWRITING_README html
 proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html 
  master master c postlog postlog c postlogd postlogd c 
  proto postconf proto proto aliases proto virtual 
+ posttls finger posttls finger c smtp smtp c smtp smtp_proto c 
+ tls tls_client c tls tls h tls tls_misc c 
+ tls tls_proxy h tls tls_server c tlsproxy tlsproxy c 

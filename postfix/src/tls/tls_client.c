@@ -641,6 +641,13 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     tls_check_version();
 
     /*
+     * Initialize the OpenSSL library, possibly loading its configuration
+     * file.
+     */
+    if (tls_library_init() == 0)
+	return (0);
+
+    /*
      * Create an application data index for SSL objects, so that we can
      * attach TLScontext information; this information is needed inside
      * tls_verify_certificate_callback().
@@ -788,8 +795,8 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     /*
      * With OpenSSL 1.0.2 and later the client EECDH curve list becomes
      * configurable with the preferred curve negotiated via the supported
-     * curves extension.  With OpenSSL 3.0 and TLS 1.3, the same applies
-     * to the FFDHE groups which become part of a unified "groups" list.
+     * curves extension.  With OpenSSL 3.0 and TLS 1.3, the same applies to
+     * the FFDHE groups which become part of a unified "groups" list.
      */
     tls_auto_groups(client_ctx, var_tls_eecdh_auto, var_tls_ffdhe_auto);
 

@@ -144,6 +144,10 @@ int     tls_proxy_client_init_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 #define STRING_OR_EMPTY(s) ((s) ? (s) : "")
 
     ret = print_fn(fp, flags | ATTR_FLAG_MORE,
+		   SEND_ATTR_STR(TLS_ATTR_CNF_FILE,
+				 STRING_OR_EMPTY(props->cnf_file)),
+		   SEND_ATTR_STR(TLS_ATTR_CNF_NAME,
+				 STRING_OR_EMPTY(props->cnf_name)),
 		   SEND_ATTR_STR(TLS_ATTR_LOG_PARAM,
 				 STRING_OR_EMPTY(props->log_param)),
 		   SEND_ATTR_STR(TLS_ATTR_LOG_LEVEL,

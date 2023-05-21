@@ -3330,9 +3330,19 @@ extern bool var_smtp_sender_auth;
 extern bool var_smtp_cname_overr;
 
  /*
-  * TLS cipherlists
+  * TLS library settings
   */
- /* Deprecated and unused cipher, key exchange and public key algorithms */
+#define VAR_TLS_CNF_FILE	"tls_config_file"
+#define DEF_TLS_CNF_FILE	"default"
+extern char *var_tls_cnf_file;
+
+#define VAR_TLS_CNF_NAME	"tls_config_name"
+#define DEF_TLS_CNF_NAME	""
+extern char *var_tls_cnf_name;
+
+ /*
+  * Deprecated and unused cipher, key exchange and public key algorithms
+  */
 #define TLS_EXCL_CIPHS	    ":!SEED:!IDEA:!3DES:!RC2:!RC4:!RC5"
 #define TLS_EXCL_KEXCH	    ":!kDH:!kECDH"
 #define TLS_EXCL_PKEYS	    ":!aDSS"

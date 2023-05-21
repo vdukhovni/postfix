@@ -19263,6 +19263,112 @@ with sites that don't use <a href="postconf.5.html#permit_tls_all_clientcerts">p
 
 </DD>
 
+<DT><b><a name="tls_config_file">tls_config_file</a>
+(default: default)</b></DT><DD>
+
+<p> Optional configuration file with baseline OpenSSL settings.
+OpenSSL loads any SSL settings found in the configuration file for
+the selected application name (see <a href="postconf.5.html#tls_config_name">tls_config_name</a>) or else the
+built-in application name "openssl_conf" when no application name is
+specified, or no corresponding configuration section is present.
+</p>
+
+<p> With OpenSSL releases 1.1.1 and 1.1.1a, applications (including
+Postfix) can neither specify an alternative configuration file, nor
+avoid loading the default configuration file.  </p>
+
+<p> With OpenSSL 1.1.1b or later, this parameter may be set to one of:
+</p>
+
+<dl>
+
+<dt> <b>default</b> (default) </dt> <dd> Load the system-wide
+"openssl.cnf" configuration file.  </dd>
+
+<dt> <b>none</b> (recommended, OpenSSL 1.1.1b or later only) </dt>
+<dd> This setting disables loading of  the system-wide "openssl.cnf"
+file.  </dd>
+
+<dt> <b><i>/absolute-path</i></b> (OpenSSL 1.1.1b or later only) </dt>
+<dd> Load the configuration file specified by <i>/absolute-path</i>.
+With this setting it is an error for the file to not contain any
+settings for the selected <a href="postconf.5.html#tls_config_name">tls_config_name</a>.  There is no fallback to
+the default "openssl_conf" name. </dd>
+
+</dl>
+
+<p> Failures in processing of the built-in default configuration
+file, are silently ignored with OpenSSL prior to 1.1.1b.  With later
+OpenSSL releases, any errors in loading either the default or custom
+configuration file are detected by Postfix, and cause TLS support to
+be disabled.  </p>
+
+<p> The OpenSSL configuration file format is not documented here,
+beyond giving two examples. <p>
+
+<p> Example: Default settings for all applications. </p>
+
+<blockquote>
+<pre>
+# The name 'openssl_conf' is the default application name
+# The section name to the right of the '=' sign is arbitrary,
+# any name will do, so long as it refers to the desired section.
+#
+# The name 'system_default' selects the settings applied internally
+# by the SSL library as part of SSL object creation.  Applications
+# can then apply any additional settings of their choice.
+#
+# In this example, TLS versions prior to 1.2 are disabled by default.
+#
+openssl_conf = system_wide_settings
+[system_wide_settings]
+ssl_conf = ssl_library_settings
+[ssl_library_settings]
+system_default = initial_ssl_settings
+[initial_ssl_settings]
+MinProtocol = TLSv1.2
+</pre>
+</blockquote>
+
+<p> Example: Custom settings for an application named "postfix". </p>
+
+<blockquote>
+<pre>
+# The mapping from an application name to the corresponding configuration
+# section must appear near the top of the file, (in what is sometimes called
+# the "default section") prior to the start of any explicitly named
+# "[sections]".  The named sections can appear in any order and don't nest.
+#
+postfix = postfix_settings
+[postfix_settings]
+ssl_conf = postfix_ssl_settings
+[postfix_ssl_settings]
+system_default = baseline_postfix_settings
+[baseline_postfix_settings]
+MinProtocol = TLSv1
+</pre>
+</blockquote>
+
+<p> This feature is available in Postfix &ge; 3.9. </p>
+
+
+</DD>
+
+<DT><b><a name="tls_config_name">tls_config_name</a>
+(default: empty)</b></DT><DD>
+
+<p> The application name passed by Postfix to OpenSSL library
+initialization functions.  This name is used to select the desired
+configuration "section" in the OpenSSL configuration file specified
+via the <a href="postconf.5.html#tls_config_file">tls_config_file</a> parameter.  When empty, or when the
+selected name is not present in the configuration file, the default
+application name ("openssl_conf") is used as a fallback.  </p>
+
+<p> This feature is available in Postfix &ge; 3.9.  </p>
+
+
+</DD>
+
 <DT><b><a name="tls_daemon_random_bytes">tls_daemon_random_bytes</a>
 (default: 32)</b></DT><DD>
 

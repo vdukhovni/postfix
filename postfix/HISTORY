@@ -27132,7 +27132,7 @@ Apologies for any names omitted.
 
 	Usability: improved error message when master.cf specifies
 	a wild-card network listener (like "smtp inet ... smtpd")
-	while `inet_interfaces is empty. File: master/master_ent.c.
+	while inet_interfaces is empty. File: master/master_ent.c.
 
 	More documentation updates for local aliasing versus virtual
 	aliasing. Files: proto/aliases, proto/virtual, postfix/postfix.c.
@@ -27180,3 +27180,30 @@ Apologies for any names omitted.
 	This also fixes a warning message when a destination contains
 	":service" information. Reported by Thomas Korbar. File:
 	posttls-finger/posttls-finger.c.
+
+20230519
+
+	Cleanup: fixed postconf tests for dynamically-linked builds.
+	File: postconf/Makefile.in.
+
+20230521
+
+	Bitrot: library error messages in SMTP server tests.  File:
+	smtpd/Makefile.in.
+
+	Cleanup: removed some "the the" instances. Files:
+	proto/MILTER_README.html proto/stop.double-proto-html.
+
+	Bitrot: preliminary support for OpenSSL configuration files,
+	primarily OpenSSL 1.1.1b and later. This introduces new
+	parameters "tls_config_file" and "tls_config_name", which
+	can be used to limit collateral damage from OS distributions
+	that crank up security to 11, increasing the number of
+	plaintext email deliveries. Details are in the postconf(5)
+	manpage under "tls_config_file" and "tls_config_name".
+	Viktor Dukhovni. Files: mantools/postlink, proto/postconf.proto,
+	global/mail_params.h, posttls-finger/posttls-finger.c,
+	smtp/smtp.c, smtp/smtp_proto.c, tls/tls_client.c, tls/tls.h,
+	tls/tls_misc.c, tls/tls_proxy_client_print.c,
+	tls/tls_proxy_client_scan.c, tls/tls_proxy.h, tls/tls_server.c,
+	tlsproxy/tlsproxy.c.
