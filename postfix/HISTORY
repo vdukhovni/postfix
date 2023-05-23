@@ -27207,3 +27207,16 @@ Apologies for any names omitted.
 	tls/tls_misc.c, tls/tls_proxy_client_print.c,
 	tls/tls_proxy_client_scan.c, tls/tls_proxy.h, tls/tls_server.c,
 	tlsproxy/tlsproxy.c.
+
+20230523
+
+	Cleanup: use TLS_CLIENT_PARAMS to pass the OpensSSL 'init'
+	configuration settings. These are global, i.e. apply to all
+	client TLS contexts, and they do not belong in tls_client_init()
+	or tls_client_start() calls. The tlsproxy(8) server uses
+	TLS_CLIENT_PARAMS information to warn about differences
+	between its own global TLS settings, and those from its
+	clients. Files: posttls-finger/posttls-finger.c, smtp/smtp.c,
+	smtp/smtp_proto.c, tls/tls.h, tls/tls_proxy_client_misc.c,
+	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
+	tls/tls_proxy.h, tlsproxy/tlsproxy.c.

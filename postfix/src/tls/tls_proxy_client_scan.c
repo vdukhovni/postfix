@@ -121,6 +121,8 @@
 
 void    tls_proxy_client_param_free(TLS_CLIENT_PARAMS *params)
 {
+    myfree(params->tls_cnf_file);
+    myfree(params->tls_cnf_name);
     myfree(params->tls_high_clist);
     myfree(params->tls_medium_clist);
     myfree(params->tls_null_clist);
@@ -144,6 +146,8 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     TLS_CLIENT_PARAMS *params
     = (TLS_CLIENT_PARAMS *) mymalloc(sizeof(*params));
     int     ret;
+    VSTRING *cnf_file = vstring_alloc(25);
+    VSTRING *cnf_name = vstring_alloc(25);
     VSTRING *tls_high_clist = vstring_alloc(25);
     VSTRING *tls_medium_clist = vstring_alloc(25);
     VSTRING *tls_null_clist = vstring_alloc(25);
@@ -165,6 +169,8 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
      */
     memset(params, 0, sizeof(*params));
     ret = scan_fn(fp, flags | ATTR_FLAG_MORE,
+		  RECV_ATTR_STR(TLS_ATTR_CNF_FILE, cnf_file),
+		  RECV_ATTR_STR(TLS_ATTR_CNF_NAME, cnf_name),
 		  RECV_ATTR_STR(VAR_TLS_HIGH_CLIST, tls_high_clist),
 		  RECV_ATTR_STR(VAR_TLS_MEDIUM_CLIST, tls_medium_clist),
 		  RECV_ATTR_STR(VAR_TLS_NULL_CLIST, tls_null_clist),
@@ -189,6 +195,8 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 				&params->tls_multi_wildcard),
 		  ATTR_TYPE_END);
     /* Always construct a well-formed structure. */
+    params->tls_cnf_file = vstring_export(cnf_file);
+    params->tls_cnf_name = vstring_export(cnf_name);
     params->tls_high_clist = vstring_export(tls_high_clist);
     params->tls_medium_clist = vstring_export(tls_medium_clist);
     params->tls_null_clist = vstring_export(tls_null_clist);
@@ -202,7 +210,7 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     params->tls_mgr_service = vstring_export(tls_mgr_service);
     params->tls_tkt_cipher = vstring_export(tls_tkt_cipher);
 
-    ret = (ret == 17 ? 1 : -1);
+    ret = (ret == 19 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_client_param_free(params);
 	params = 0;
@@ -217,8 +225,6 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 
 void    tls_proxy_client_init_free(TLS_CLIENT_INIT_PROPS *props)
 {
-    myfree((void *) props->cnf_file);
-    myfree((void *) props->cnf_name);
     myfree((void *) props->log_param);
     myfree((void *) props->log_level);
     myfree((void *) props->cache_type);
@@ -243,8 +249,6 @@ int     tls_proxy_client_init_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     TLS_CLIENT_INIT_PROPS *props
     = (TLS_CLIENT_INIT_PROPS *) mymalloc(sizeof(*props));
     int     ret;
-    VSTRING *cnf_file = vstring_alloc(25);
-    VSTRING *cnf_name = vstring_alloc(25);
     VSTRING *log_param = vstring_alloc(25);
     VSTRING *log_level = vstring_alloc(25);
     VSTRING *cache_type = vstring_alloc(25);
@@ -267,8 +271,6 @@ int     tls_proxy_client_init_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
      */
     memset(props, 0, sizeof(*props));
     ret = scan_fn(fp, flags | ATTR_FLAG_MORE,
-		  RECV_ATTR_STR(TLS_ATTR_CNF_FILE, cnf_file),
-		  RECV_ATTR_STR(TLS_ATTR_CNF_NAME, cnf_name),
 		  RECV_ATTR_STR(TLS_ATTR_LOG_PARAM, log_param),
 		  RECV_ATTR_STR(TLS_ATTR_LOG_LEVEL, log_level),
 		  RECV_ATTR_INT(TLS_ATTR_VERIFYDEPTH, &props->verifydepth),
@@ -285,8 +287,6 @@ int     tls_proxy_client_init_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 		  RECV_ATTR_STR(TLS_ATTR_MDALG, mdalg),
 		  ATTR_TYPE_END);
     /* Always construct a well-formed structure. */
-    props->cnf_file = vstring_export(cnf_file);
-    props->cnf_name = vstring_export(cnf_name);
     props->log_param = vstring_export(log_param);
     props->log_level = vstring_export(log_level);
     props->cache_type = vstring_export(cache_type);
@@ -300,7 +300,7 @@ int     tls_proxy_client_init_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     props->CAfile = vstring_export(CAfile);
     props->CApath = vstring_export(CApath);
     props->mdalg = vstring_export(mdalg);
-    ret = (ret == 16 ? 1 : -1);
+    ret = (ret == 14 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_client_init_free(props);
 	props = 0;

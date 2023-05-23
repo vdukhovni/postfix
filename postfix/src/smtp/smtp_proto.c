@@ -911,8 +911,6 @@ static int smtp_start_tls(SMTP_STATE *state)
 	 * Send all our wishes in one big request.
 	 */
 	TLS_PROXY_CLIENT_INIT_PROPS(&init_props,
-				    cnf_file = var_tls_cnf_file,
-				    cnf_name = var_tls_cnf_name,
 				    log_param = VAR_LMTP_SMTP(TLS_LOGLEVEL),
 				    log_level = var_smtp_tls_loglevel,
 				    verifydepth = var_smtp_tls_scert_vd,

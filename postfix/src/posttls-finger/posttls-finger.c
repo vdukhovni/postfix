@@ -793,8 +793,6 @@ static int starttls(STATE *state)
 	 * Send all our wishes in one big request.
 	 */
 	TLS_PROXY_CLIENT_INIT_PROPS(&init_props,
-				    cnf_file = var_tls_cnf_file,
-				    cnf_name = var_tls_cnf_name,
 				    log_param = "-L option",
 				    log_level = state->options.logopts,
 				    verifydepth = DEF_SMTP_TLS_SCERT_VD,
@@ -1856,8 +1854,6 @@ static void tls_init(STATE *state)
     /* Needed for tls_dane_avail() and other DANE-related processing. */
     state->tls_ctx =
 	TLS_CLIENT_INIT(&props,
-			cnf_file = var_tls_cnf_file,
-			cnf_name = var_tls_cnf_name,
 			log_param = "-L option",
 			log_level = state->options.logopts,
 			verifydepth = DEF_SMTP_TLS_SCERT_VD,

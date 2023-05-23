@@ -32,8 +32,10 @@
 #ifdef USE_TLS
 
  /*
-  * TLS_CLIENT_PARAMS structure. If this changes, update all
-  * TLS_CLIENT_PARAMS related functions in tls_proxy_client_*.c.
+  * TLS_CLIENT_PARAMS structure, to communicate global TLS library settings
+  * that are the same for all TLS client contexts. This information is used
+  * in tlsproxy(8) to detect inconsistencies. If this structure is changed,
+  * update all TLS_CLIENT_PARAMS related functions in tls_proxy_client_*.c.
   * 
   * In the serialization these attributes are identified by their configuration
   * parameter names.
@@ -44,6 +46,8 @@
   * VAR_TLS_SERVER_SNI_MAPS.
   */
 typedef struct TLS_CLIENT_PARAMS {
+    char   *tls_cnf_file;
+    char   *tls_cnf_name;
     char   *tls_high_clist;
     char   *tls_medium_clist;
     char   *tls_null_clist;
@@ -64,12 +68,12 @@ typedef struct TLS_CLIENT_PARAMS {
 } TLS_CLIENT_PARAMS;
 
 #define TLS_PROXY_PARAMS(params, a1, a2, a3, a4, a5, a6, a7, a8, \
-    a9, a10, a11, a12, a13, a14, a15, a16, a17) \
+    a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19) \
     (((params)->a1), ((params)->a2), ((params)->a3), \
     ((params)->a4), ((params)->a5), ((params)->a6), ((params)->a7), \
     ((params)->a8), ((params)->a9), ((params)->a10), ((params)->a11), \
     ((params)->a12), ((params)->a13), ((params)->a14), ((params)->a15), \
-    ((params)->a16), ((params)->a17))
+    ((params)->a16), ((params)->a17), ((params)->a18), ((params)->a19))
 
  /*
   * tls_proxy_client_param_misc.c, tls_proxy_client_param_print.c, and
@@ -97,12 +101,11 @@ extern VSTREAM *tls_proxy_open(const char *, int, VSTREAM *, const char *,
 			               void *, void *, void *);
 
 #define TLS_PROXY_CLIENT_INIT_PROPS(props, a1, a2, a3, a4, a5, a6, a7, a8, \
-    a9, a10, a11, a12, a13, a14, a15, a16) \
+    a9, a10, a11, a12, a13, a14) \
     (((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
-    ((props)->a16))
+    ((props)->a12), ((props)->a13), ((props)->a14))
 
 #define TLS_PROXY_CLIENT_START_PROPS(props, a1, a2, a3, a4, a5, a6, a7, a8, \
     a9, a10, a11, a12, a13, a14) \
