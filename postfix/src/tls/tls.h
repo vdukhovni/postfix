@@ -497,10 +497,10 @@ extern TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *,
 
 #define TLS_CLIENT_INIT_ARGS(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
     a10, a11, a12, a13, a14) \
-    (((props)->a1), ((props)->a2), ((props)->a3), ((props)->a4), \
-    ((props)->a5), ((props)->a6), ((props)->a7), ((props)->a8), \
-    ((props)->a9), ((props)->a10), ((props)->a11), ((props)->a12), \
-    ((props)->a13), ((props)->a14), (props))
+    (((props)->a1), ((props)->a2), ((props)->a3), \
+    ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
+    ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
+    ((props)->a12), ((props)->a13), ((props)->a14), (props))
 
 #define TLS_CLIENT_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
     a10, a11, a12, a13, a14) \

@@ -27220,3 +27220,12 @@ Apologies for any names omitted.
 	smtp/smtp_proto.c, tls/tls.h, tls/tls_proxy_client_misc.c,
 	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
 	tls/tls_proxy.h, tlsproxy/tlsproxy.c.
+
+20230524
+
+	Cleanup: reverted cosmetic-only changes to minimize the
+	patch footprint for OpenSSL INI file support for stable
+	releases; updated daemon manpages with the new tls_config_file
+	and tls_config_name configuration parameters. Files:
+	smtp/smtp.c, smtpd/smtpd.c, tls/tls_client.c, tls/tls.h,
+	tls/tls_server.c, tlsproxy/tlsproxy.c,
