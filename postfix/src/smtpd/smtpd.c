@@ -531,7 +531,7 @@
 /*	(FFDHE) key exchange groups supported by the Postfix SMTP client and
 /*	server.
 /* .PP
-/*	Available in Postfix version 3.9 and later:
+/*	Available in Postfix 3.9, 3.8.1, 3.7.6, 3.6.10, 3.5.20 and later:
 /* .IP "\fBtls_config_file (default)\fR"
 /*	Optional configuration file with baseline OpenSSL settings.
 /* .IP "\fBtls_config_name (empty)\fR"
@@ -5448,6 +5448,32 @@ static SMTPD_CMD smtpd_cmd_table[] = {
 static STRING_LIST *smtpd_noop_cmds;
 static STRING_LIST *smtpd_forbid_cmds;
 
+/* smtpd_flag_ill_pipelining - flag pipelining protocol violation */
+
+static int smtpd_flag_ill_pipelining(SMTPD_STATE *state)
+{
+
+    /*
+     * This code will not return after I/O error, timeout, or EOF. VSTREAM
+     * exceptions must be enabled in advance with smtp_stream_setup().
+     */
+    if (vstream_peek(state->client) == 0
+	&& peekfd(vstream_fileno(state->client)) > 0)
+	(void) vstream_ungetc(state->client, smtp_fgetc(state->client));
+    if (vstream_peek(state->client) > 0) {
+	if (state->expand_buf == 0)
+	    state->expand_buf = vstring_alloc(100);
+	escape(state->expand_buf, vstream_peek_data(state->client),
+	       vstream_peek(state->client) < 100 ?
+	       vstream_peek(state->client) : 100);
+	msg_info("improper command pipelining after %s from %s: %s",
+		 state->where, state->namaddr, STR(state->expand_buf));
+	state->flags |= SMTPD_FLAG_ILL_PIPELINING;
+	return (1);
+    }
+    return (0);
+}
+
 /* smtpd_proto - talk the SMTP protocol */
 
 static void smtpd_proto(SMTPD_STATE *state)
@@ -5588,6 +5614,16 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    smtpd_start_tls(state);
 	}
 #endif
+
+	/*
+	 * If the client spoke before the server sends the initial greeting,
+	 * raise a flag and log the content of the protocol violation. This
+	 * check MUST NOT apply to TLS wrappermode connections.
+	 */
+	if (SMTPD_STAND_ALONE(state) == 0
+	    && vstream_context(state->client) == 0	/* not postscreen */
+	    && (state->flags & SMTPD_FLAG_ILL_PIPELINING) == 0)
+	    (void) smtpd_flag_ill_pipelining(state);
 
 	/*
 	 * XXX The client connection count/rate control must be consistent in
@@ -5824,18 +5860,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    if (SMTPD_STAND_ALONE(state) == 0
 		&& (strcasecmp(state->protocol, MAIL_PROTO_ESMTP) != 0
 		    || (cmdp->flags & SMTPD_CMD_FLAG_LAST))
-		&& (state->flags & SMTPD_FLAG_ILL_PIPELINING) == 0
-		&& (vstream_peek(state->client) > 0
-		    || peekfd(vstream_fileno(state->client)) > 0)) {
-		if (state->expand_buf == 0)
-		    state->expand_buf = vstring_alloc(100);
-		escape(state->expand_buf, vstream_peek_data(state->client),
-		       vstream_peek(state->client) < 100 ?
-		       vstream_peek(state->client) : 100);
-		msg_info("improper command pipelining after %s from %s: %s",
-			 cmdp->name, state->namaddr, STR(state->expand_buf));
-		state->flags |= SMTPD_FLAG_ILL_PIPELINING;
-	    }
+		&& (state->flags & SMTPD_FLAG_ILL_PIPELINING) == 0)
+		(void) smtpd_flag_ill_pipelining(state);
 	    if (cmdp->action(state, argc, argv) != 0)
 		state->error_count++;
 	    else

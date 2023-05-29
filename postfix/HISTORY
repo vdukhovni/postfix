@@ -27210,7 +27210,7 @@ Apologies for any names omitted.
 
 20230523
 
-	Cleanup: use TLS_CLIENT_PARAMS to pass the OpensSSL 'init'
+	Cleanup: use TLS_CLIENT_PARAMS to pass the OpenSSL 'init'
 	configuration settings. These are global, i.e. apply to all
 	client TLS contexts, and they do not belong in tls_client_init()
 	or tls_client_start() calls. The tlsproxy(8) server uses
@@ -27229,3 +27229,20 @@ Apologies for any names omitted.
 	and tls_config_name configuration parameters. Files:
 	smtp/smtp.c, smtpd/smtpd.c, tls/tls_client.c, tls/tls.h,
 	tls/tls_server.c, tlsproxy/tlsproxy.c,
+
+20230526
+
+	Documentation: clarified address class descriptions; added
+	the availability of back-ported OpenSSL INI file support
+	in stable releases. Files: proto/ADDRESS_CLASS_README.html,
+	proto/postconf.proto smtp/smtp.c, smtpd/smtpd.c,
+	tlsproxy/tlsproxy.c.
+
+	Security: in the Postfix SMTP daemon, improved pipelining
+	detection and reporting; and detect illegal command pipelining
+	before the server greeting. File: smtpd/smtpd.c.
+
+20230529
+
+	Cleanup: error handling for OpenSSL INI file support. Viktor
+	Dukhovni. Files: proto/postconf.proto, tls/tls_misc.c.

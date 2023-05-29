@@ -18793,11 +18793,10 @@ the default "openssl_conf" name. </dd>
 
 </dl>
 
-<p> Failures in processing of the built-in default configuration
-file, are silently ignored with OpenSSL prior to 1.1.1b.  With later
-OpenSSL releases, any errors in loading either the default or custom
-configuration file are detected by Postfix, and cause TLS support to
-be disabled.  </p>
+<p> Failures in processing of the built-in default configuration file,
+are silently ignored.  Any errors in loading a non-default configuration
+file are detected by Postfix, and cause TLS support to be disabled.
+</p>
 
 <p> The OpenSSL configuration file format is not documented here,
 beyond giving two examples. <p>
@@ -18845,4 +18844,5 @@ MinProtocol = TLSv1
 </pre>
 </blockquote>
 
-<p> This feature is available in Postfix &ge; 3.9. </p>
+<p> This feature is available in Postfix &ge; 3.9, 3.8.1, 3.7.6,
+3.6.10, and 3.5.20. </p>

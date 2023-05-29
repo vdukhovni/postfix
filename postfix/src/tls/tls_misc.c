@@ -702,7 +702,7 @@ void    tls_param_init(void)
 
 int     tls_library_init(void)
 {
-    OPENSSL_INIT_SETTINGS *init_settings = 0;
+    OPENSSL_INIT_SETTINGS *init_settings;
     char   *conf_name = *var_tls_cnf_name ? var_tls_cnf_name : 0;
     char   *conf_file = 0;
     unsigned long init_opts = 0;
@@ -712,6 +712,10 @@ int     tls_library_init(void)
 		 "disabling TLS support");
 	return (0);
     }
+
+#define TLS_LIB_INIT_RETURN(x) \
+    do { OPENSSL_INIT_free(init_settings); return (x); } while(0)
+
 #if OPENSSL_VERSION_NUMBER < 0x1010102fL
 
     /*
@@ -722,41 +726,49 @@ int     tls_library_init(void)
     if (strcmp(var_tls_cnf_file, "default") != 0) {
 	msg_warn("non-default %s = %s requires OpenSSL 1.1.1b or later, "
 	       "disabling TLS support", VAR_TLS_CNF_FILE, var_tls_cnf_file);
-	return (0);
+	TLS_LIB_INIT_RETURN(0);
     }
 #else
     {
-	unsigned long init_flags = 0;
+	unsigned long file_flags = 0;
 
 	/*-
 	 * OpenSSL 1.1.1b or later:
-	 * We can now choose a non-default or configuration file, or
+	 * We can now use a non-default configuration file, or
 	 * use none at all.  We can also request strict error
 	 * reporting.
 	 */
-	if (strcmp(var_tls_cnf_file, "default") == 0) {
-	    conf_file = 0;
-	    /* The default global config file is optional */
-	    init_flags |= CONF_MFLAGS_IGNORE_MISSING_FILE;
-	} else if (strcmp(var_tls_cnf_file, "none") == 0) {
+	if (strcmp(var_tls_cnf_file, "none") == 0) {
 	    init_opts |= OPENSSL_INIT_NO_LOAD_CONFIG;
+	} else if (strcmp(var_tls_cnf_file, "default") == 0) {
+
+	    /*
+	     * The default global config file is optional.  With "default"
+	     * initialization we don't insist on a match for the requested
+	     * application name, allowing fallback to the default application
+	     * name, even when a non-default application name is specified.
+	     * Errors in loading the default configuration are ignored.
+	     */
+	    conf_file = 0;
+	    file_flags |= CONF_MFLAGS_IGNORE_MISSING_FILE;
+	    file_flags |= CONF_MFLAGS_DEFAULT_SECTION;
+	    file_flags |= CONF_MFLAGS_IGNORE_RETURN_CODES | CONF_MFLAGS_SILENT;
 	} else if (*var_tls_cnf_file == '/') {
+
+	    /*
+	     * A custom config file must be present, error reporting is
+	     * strict and the configuration section for the requested
+	     * application name does not fall back to "openssl_conf" when
+	     * missing.
+	     */
 	    conf_file = var_tls_cnf_file;
 	} else {
 	    msg_warn("non-default %s = %s is not an absolute pathname, "
 	       "disabling TLS support", VAR_TLS_CNF_FILE, var_tls_cnf_file);
-	    return (0);
+	    TLS_LIB_INIT_RETURN(0);
 	}
 
-	/*
-	 * By not including CONF_MFLAGS_IGNORE_RETURN_CODES, we get strict
-	 * error reporting.  We don't insist on a match for the requested
-	 * application name, allowing fallback to the default application
-	 * name, even when a non-default application name is specified by
-	 * always setting the CONF_MFLAGS_DEFAULT_SECTION bit.
-	 */
-	init_flags |= CONF_MFLAGS_DEFAULT_SECTION;
-	OPENSSL_INIT_set_config_file_flags(init_settings, init_flags);
+	OPENSSL_INIT_set_config_file_flags(init_settings, file_flags);
     }
 #endif
 
@@ -775,9 +787,9 @@ int     tls_library_init(void)
 	    msg_warn("error initializing the OpenSSL library, "
 		     "disabling TLS support");
 	tls_print_errors();
-	return (0);
+	TLS_LIB_INIT_RETURN(0);
     }
-    return (1);
+    TLS_LIB_INIT_RETURN(1);
 }
 
 /* tls_pre_jail_init - Load TLS related pre-jail tables */
