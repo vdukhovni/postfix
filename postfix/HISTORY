@@ -27239,10 +27239,21 @@ Apologies for any names omitted.
 	tlsproxy/tlsproxy.c.
 
 	Security: in the Postfix SMTP daemon, improved pipelining
-	detection and reporting; and detect illegal command pipelining
-	before the server greeting. File: smtpd/smtpd.c.
+	detection and reporting; added code to detect illegal command
+	pipelining before the server greeting. File: smtpd/smtpd.c.
 
 20230529
 
 	Cleanup: error handling for OpenSSL INI file support. Viktor
 	Dukhovni. Files: proto/postconf.proto, tls/tls_misc.c.
+
+20230602
+
+	Backwards compatibility for stable releases that originally
+	had no OpenSSL INI support. Skip the new OpenSSL INI support
+	code, unless the Postfix configuration actually specifies
+	non-default tls_config_xxx settings. File: tls/tls_misc.c.
+
+	Cleanup: added a multiple initialization guard in the
+	tls_library_init() function, and made an initialization error
+	sticky. File: tls/tls_misc.c.

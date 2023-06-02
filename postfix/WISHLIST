@@ -21,6 +21,10 @@ Wish list:
 	Figure out which mysql_*escape_string*() variant to use and
 	handle error results accordingly.
 
+	postscreen hints to smtpd to suppress the server greeating
+	after a remote SMTP client has pregreeted. This makes the
+	PIPELINING detection more meaingful.
+
 	Multi-recipient support in sender/recipient_bcc_maps and
 	always_bcc.
 

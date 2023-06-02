@@ -707,14 +707,32 @@ int     tls_library_init(void)
     char   *conf_file = 0;
     unsigned long init_opts = 0;
 
+#define TLS_LIB_INIT_TODO	(-1)
+#define TLS_LIB_INIT_ERR	(0)
+#define TLS_LIB_INIT_OK		(1)
+
+    static int init_res = TLS_LIB_INIT_TODO;
+
+    if (init_res != TLS_LIB_INIT_TODO)
+	return (init_res);
+
+    /*
+     * Backwards compatibility: skip this function unless the Postfix
+     * configuration actually has non-default tls_config_xxx settings.
+     */
+    if (strcmp(var_tls_cnf_file, DEF_TLS_CNF_FILE) == 0
+	&& strcmp(var_tls_cnf_name, DEF_TLS_CNF_NAME) == 0) {
+	if (msg_verbose)
+	    msg_info("tls_library_init: using backwards-compatible defaults");
+	return (init_res = TLS_LIB_INIT_OK);
+    }
     if ((init_settings = OPENSSL_INIT_new()) == 0) {
 	msg_warn("error allocating OpenSSL init settings, "
 		 "disabling TLS support");
-	return (0);
+	return (init_res = TLS_LIB_INIT_ERR);
     }
-
 #define TLS_LIB_INIT_RETURN(x) \
-    do { OPENSSL_INIT_free(init_settings); return (x); } while(0)
+    do { OPENSSL_INIT_free(init_settings); return (init_res = (x)); } while(0)
 
 #if OPENSSL_VERSION_NUMBER < 0x1010102fL
 
@@ -726,7 +744,7 @@ int     tls_library_init(void)
     if (strcmp(var_tls_cnf_file, "default") != 0) {
 	msg_warn("non-default %s = %s requires OpenSSL 1.1.1b or later, "
 	       "disabling TLS support", VAR_TLS_CNF_FILE, var_tls_cnf_file);
-	TLS_LIB_INIT_RETURN(0);
+	TLS_LIB_INIT_RETURN(TLS_LIB_INIT_ERR);
     }
 #else
     {
@@ -765,7 +783,7 @@ int     tls_library_init(void)
 	} else {
 	    msg_warn("non-default %s = %s is not an absolute pathname, "
 	       "disabling TLS support", VAR_TLS_CNF_FILE, var_tls_cnf_file);
-	    TLS_LIB_INIT_RETURN(0);
+	    TLS_LIB_INIT_RETURN(TLS_LIB_INIT_ERR);
 	}
 
 	OPENSSL_INIT_set_config_file_flags(init_settings, file_flags);
@@ -787,9 +805,9 @@ int     tls_library_init(void)
 	    msg_warn("error initializing the OpenSSL library, "
 		     "disabling TLS support");
 	tls_print_errors();
-	TLS_LIB_INIT_RETURN(0);
+	TLS_LIB_INIT_RETURN(TLS_LIB_INIT_ERR);
     }
-    TLS_LIB_INIT_RETURN(1);
+    TLS_LIB_INIT_RETURN(TLS_LIB_INIT_OK);
 }
 
 /* tls_pre_jail_init - Load TLS related pre-jail tables */
