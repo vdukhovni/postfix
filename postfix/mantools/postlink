@@ -557,6 +557,7 @@ while (<>) {
     s;\bsmtpd_etrn_restrictions\b;<a href="postconf.5.html#smtpd_etrn_restrictions">$&</a>;g;
     s;\bsmtpd_expansion_filter\b;<a href="postconf.5.html#smtpd_expansion_filter">$&</a>;g;
     s;\bsmtpd_for[-</bB>]*\n*[ <bB>]*bidden_commands\b;<a href="postconf.5.html#smtpd_forbidden_commands">$&</a>;g;
+    s;\bsmtpd_for[-</bB>]*\n*[ <bB>]*bid_unauth_pipelining\b;<a href="postconf.5.html#smtpd_forbid_unauth_pipelining">$&</a>;g;
     s;\bsmtpd_hard_error_limit\b;<a href="postconf.5.html#smtpd_hard_error_limit">$&</a>;g;
     s;\bsmtpd_helo_required\b;<a href="postconf.5.html#smtpd_helo_required">$&</a>;g;
     s;\bsmtpd_helo_restrictions\b;<a href="postconf.5.html#smtpd_helo_restrictions">$&</a>;g;

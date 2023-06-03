@@ -27257,3 +27257,10 @@ Apologies for any names omitted.
 	Cleanup: added a multiple initialization guard in the
 	tls_library_init() function, and made an initialization error
 	sticky. File: tls/tls_misc.c.
+
+20230603
+
+	Security: new parameter smtpd_forbid_unauth_pipelining
+	(default: yes) to disconnect remote SMTP clients that violate
+	RFC 2920 (or 5321) command pipelining constraints. Files:
+	global/mail_params.h, smtpd/smtpd.c, proto/postconf.proto.

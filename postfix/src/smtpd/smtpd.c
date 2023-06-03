@@ -811,6 +811,11 @@
 /* .IP "\fBsmtpd_client_ipv6_prefix_length (84)\fR"
 /*	Aggregate smtpd_client_*_count and smtpd_client_*_rate statistics
 /*	by IPv6 network blocks with the specified network prefix.
+/* .PP
+/*	Available in Postfix 3.9, 3.8.1, 3.7.6, 3.6.10, 3.5.20 and later:
+/* .IP "\fBsmtpd_forbid_unauth_pipelining (Postfix >= 3.9: yes)\fR"
+/*	Disconnect remote SMTP clients that violate RFC 2920 (or 5321)
+/*	command pipelining constraints.
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -1499,6 +1504,7 @@ char   *var_milt_eod_macros;
 char   *var_milt_unk_macros;
 char   *var_milt_macro_deflts;
 bool    var_smtpd_client_port_log;
+bool    var_smtpd_forbid_unauth_pipe;
 char   *var_stress;
 
 char   *var_reject_tmpf_act;
@@ -5622,8 +5628,13 @@ static void smtpd_proto(SMTPD_STATE *state)
 	 */
 	if (SMTPD_STAND_ALONE(state) == 0
 	    && vstream_context(state->client) == 0	/* not postscreen */
-	    && (state->flags & SMTPD_FLAG_ILL_PIPELINING) == 0)
-	    (void) smtpd_flag_ill_pipelining(state);
+	    && (state->flags & SMTPD_FLAG_ILL_PIPELINING) == 0
+	    && smtpd_flag_ill_pipelining(state)
+	    && var_smtpd_forbid_unauth_pipe) {
+	    smtpd_chat_reply(state,
+			  "421 4.7.0 Error: SMTP protocol synchronization");
+	    break;
+	}
 
 	/*
 	 * XXX The client connection count/rate control must be consistent in
@@ -5860,8 +5871,13 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    if (SMTPD_STAND_ALONE(state) == 0
 		&& (strcasecmp(state->protocol, MAIL_PROTO_ESMTP) != 0
 		    || (cmdp->flags & SMTPD_CMD_FLAG_LAST))
-		&& (state->flags & SMTPD_FLAG_ILL_PIPELINING) == 0)
-		(void) smtpd_flag_ill_pipelining(state);
+		&& (state->flags & SMTPD_FLAG_ILL_PIPELINING) == 0
+		&& smtpd_flag_ill_pipelining(state)
+		&& var_smtpd_forbid_unauth_pipe) {
+		smtpd_chat_reply(state,
+			  "421 4.7.0 Error: SMTP protocol synchronization");
+		break;
+	    }
 	    if (cmdp->action(state, argc, argv) != 0)
 		state->error_count++;
 	    else
@@ -6531,6 +6547,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_PEERNAME_LOOKUP, DEF_SMTPD_PEERNAME_LOOKUP, &var_smtpd_peername_lookup,
 	VAR_SMTPD_DELAY_OPEN, DEF_SMTPD_DELAY_OPEN, &var_smtpd_delay_open,
 	VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
+	VAR_SMTPD_FORBID_UNAUTH_PIPE, DEF_SMTPD_FORBID_UNAUTH_PIPE, &var_smtpd_forbid_unauth_pipe,
 	0,
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {

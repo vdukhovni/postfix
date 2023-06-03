@@ -2436,6 +2436,10 @@ extern char *var_smtpd_exp_filter;
 #define DEF_SMTPD_PEERNAME_LOOKUP	1
 extern bool var_smtpd_peername_lookup;
 
+#define VAR_SMTPD_FORBID_UNAUTH_PIPE	"smtpd_forbid_unauth_pipelining"
+#define DEF_SMTPD_FORBID_UNAUTH_PIPE	1
+extern bool var_smtpd_forbid_unauth_pipe;
+
  /*
   * Heuristic to reject unknown local recipients at the SMTP port.
   */
