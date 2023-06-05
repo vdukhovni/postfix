@@ -5632,7 +5632,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    && smtpd_flag_ill_pipelining(state)
 	    && var_smtpd_forbid_unauth_pipe) {
 	    smtpd_chat_reply(state,
-			  "421 4.7.0 Error: SMTP protocol synchronization");
+			  "554 5.5.0 Error: SMTP protocol synchronization");
 	    break;
 	}
 
@@ -5875,7 +5875,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 		&& smtpd_flag_ill_pipelining(state)
 		&& var_smtpd_forbid_unauth_pipe) {
 		smtpd_chat_reply(state,
-			  "421 4.7.0 Error: SMTP protocol synchronization");
+			  "554 5.5.0 Error: SMTP protocol synchronization");
 		break;
 	    }
 	    if (cmdp->action(state, argc, argv) != 0)

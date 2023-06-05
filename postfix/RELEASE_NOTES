@@ -31,7 +31,7 @@ Incompatible changes with snapshot 20230603
 
 Security: the Postfix SMTP server by default disconnects remote
 SMTP clients that violate RFC 2920 (or 5321) command pipelining
-constraints. The server replies with "421 4.7.0 Error: SMTP protocol
+constraints. The server replies with "554 5.5.0 Error: SMTP protocol
 synchronization" and logs the unexpected remote SMTP client input.
 Specify "smtpd_reject_unauth_pipelining = no" to disable.
 
