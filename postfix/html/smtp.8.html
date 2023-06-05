@@ -663,6 +663,15 @@ SMTP(8)                                                                SMTP(8)
               A workaround for implementations that hang Postfix  while  shut-
               ting down a TLS session, until Postfix times out.
 
+       Available in Postfix 3.9, 3.8.1, 3.7.6, 3.6.10, 3.5.20 and later:
+
+       <b><a href="postconf.5.html#tls_config_file">tls_config_file</a> (default)</b>
+              Optional configuration file with baseline OpenSSL settings.
+
+       <b><a href="postconf.5.html#tls_config_name">tls_config_name</a> (empty)</b>
+              The  application  name passed by Postfix to OpenSSL library ini-
+              tialization functions.
+
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The  following  configuration  parameters  exist for compatibility with
        Postfix versions before 2.3. Support for these will  be  removed  in  a

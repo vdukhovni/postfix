@@ -156,6 +156,7 @@
 #include <readlline.h>
 #include <stringops.h>
 #include <split_at.h>
+#include <dict_ht.h>
 
 /* Global library. */
 
@@ -393,12 +394,12 @@ const char *pcf_parse_master_entry(PCF_MASTER_ENT *masterp, const char *buf)
 	concatenate("ro", PCF_NAMESP_SEP_STR, masterp->name_space, (char *) 0);
     masterp->argv = argv;
     masterp->valid_names = 0;
+    masterp->ro_params = dict_ht_open(ro_name_space, O_CREAT | O_RDWR, 0);
     process_name = basename(argv->argv[PCF_MASTER_FLD_CMD]);
-    dict_update(ro_name_space, VAR_PROCNAME, process_name);
-    dict_update(ro_name_space, VAR_SERVNAME,
-		strcmp(process_name, argv->argv[0]) != 0 ?
-		argv->argv[0] : process_name);
-    masterp->ro_params = dict_handle(ro_name_space);
+    dict_put(masterp->ro_params, VAR_PROCNAME, process_name);
+    dict_put(masterp->ro_params, VAR_SERVNAME,
+	     strcmp(process_name, argv->argv[0]) != 0 ?
+	     argv->argv[0] : process_name);
     myfree(ro_name_space);
     masterp->all_params = 0;
     return (0);

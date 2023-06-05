@@ -95,6 +95,8 @@ int     tls_proxy_client_param_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
 	msg_info("begin tls_proxy_client_param_print");
 
     ret = print_fn(fp, flags | ATTR_FLAG_MORE,
+		   SEND_ATTR_STR(TLS_ATTR_CNF_FILE, params->tls_cnf_file),
+		   SEND_ATTR_STR(TLS_ATTR_CNF_NAME,  params->tls_cnf_name),
 		   SEND_ATTR_STR(VAR_TLS_HIGH_CLIST, params->tls_high_clist),
 		   SEND_ATTR_STR(VAR_TLS_MEDIUM_CLIST,
 				 params->tls_medium_clist),

@@ -387,6 +387,13 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 #endif
 
     /*
+     * Initialize the OpenSSL library, possibly loading its configuration
+     * file.
+     */
+    if (tls_library_init() == 0)
+	return (0);
+
+    /*
      * First validate the protocols. If these are invalid, we can't continue.
      */
     protomask = tls_protocol_mask(props->protocols);
