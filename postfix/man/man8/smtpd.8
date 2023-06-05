@@ -548,6 +548,13 @@ Available in Postfix 3.5 and later:
 .IP "\fBinfo_log_address_format (external)\fR"
 The email address form that will be used in non\-debug logging
 (info, warning, etc.).
+.PP
+Available in Postfix 3.9, 3.8.1, 3.7.6, 3.6.10, 3.5.20 and later:
+.IP "\fBtls_config_file (default)\fR"
+Optional configuration file with baseline OpenSSL settings.
+.IP "\fBtls_config_name (empty)\fR"
+The application name passed by Postfix to OpenSSL library
+initialization functions.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf
@@ -808,6 +815,11 @@ Available in Postfix version 3.1 and later:
 The maximal number of AUTH commands that any client is allowed to
 send to this service per time unit, regardless of whether or not
 Postfix actually accepts those commands.
+.PP
+Available in Postfix 3.9, 3.8.1, 3.7.6, 3.6.10, 3.5.20 and later:
+.IP "\fBsmtpd_forbid_unauth_pipelining (Postfix >= 3.9: yes)\fR"
+Disconnect remote SMTP clients that violate RFC 2920 (or 5321)
+command pipelining constraints.
 .SH "TARPIT CONTROLS"
 .na
 .nf
