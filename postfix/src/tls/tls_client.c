@@ -641,6 +641,13 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     tls_check_version();
 
     /*
+     * Initialize the OpenSSL library, possibly loading its configuration
+     * file.
+     */
+    if (tls_library_init() == 0)
+	return (0);
+
+    /*
      * Create an application data index for SSL objects, so that we can
      * attach TLScontext information; this information is needed inside
      * tls_verify_certificate_callback().

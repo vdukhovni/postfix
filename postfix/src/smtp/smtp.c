@@ -606,6 +606,13 @@
 /*	The prioritized list of finite-field Diffie-Hellman ephemeral
 /*	(FFDHE) key exchange groups supported by the Postfix SMTP client and
 /*	server.
+/* .PP
+/*	Available in Postfix 3.9, 3.8.1, 3.7.6, 3.6.10, 3.5.20 and later:
+/* .IP "\fBtls_config_file (default)\fR"
+/*	Optional configuration file with baseline OpenSSL settings.
+/* .IP "\fBtls_config_name (empty)\fR"
+/*	The application name passed by Postfix to OpenSSL library
+/*	initialization functions.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi

@@ -557,6 +557,7 @@ while (<>) {
     s;\bsmtpd_etrn_restrictions\b;<a href="postconf.5.html#smtpd_etrn_restrictions">$&</a>;g;
     s;\bsmtpd_expansion_filter\b;<a href="postconf.5.html#smtpd_expansion_filter">$&</a>;g;
     s;\bsmtpd_for[-</bB>]*\n*[ <bB>]*bidden_commands\b;<a href="postconf.5.html#smtpd_forbidden_commands">$&</a>;g;
+    s;\bsmtpd_for[-</bB>]*\n*[ <bB>]*bid_unauth_pipelining\b;<a href="postconf.5.html#smtpd_forbid_unauth_pipelining">$&</a>;g;
     s;\bsmtpd_hard_error_limit\b;<a href="postconf.5.html#smtpd_hard_error_limit">$&</a>;g;
     s;\bsmtpd_helo_required\b;<a href="postconf.5.html#smtpd_helo_required">$&</a>;g;
     s;\bsmtpd_helo_restrictions\b;<a href="postconf.5.html#smtpd_helo_restrictions">$&</a>;g;
@@ -782,6 +783,8 @@ while (<>) {
     s;\btls_session_ticket_cipher\b;<a href="postconf.5.html#tls_session_ticket_cipher">$&</a>;g;
     s;\btls_server_sni_maps\b;<a href="postconf.5.html#tls_server_sni_maps">$&</a>;g;
     s;\btls_ssl_options\b;<a href="postconf.5.html#tls_ssl_options">$&</a>;g;
+    s;\btls_config_name\b;<a href="postconf.5.html#tls_config_name">$&</a>;g;
+    s;\btls_config_file\b;<a href="postconf.5.html#tls_config_file">$&</a>;g;
     s;\btls_dane_digest_agility\b;<a href="postconf.5.html#tls_dane_digest_agility">$&</a>;g;
     s;\btls_dane_trust_anchor_digest_enable\b;<a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">$&</a>;g;
     s;\btls_fast_shutdown_enable\b;<a href="postconf.5.html#tls_fast_shutdown_enable">$&</a>;g;

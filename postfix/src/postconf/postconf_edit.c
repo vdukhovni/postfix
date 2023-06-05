@@ -192,6 +192,11 @@ void    pcf_edit_main(int mode, int argc, char **argv)
 	} else {
 	    msg_panic("pcf_edit_main: unknown mode %d", mode);
 	}
+	if ((cvalue = htable_find(table, pattern)) != 0) {
+	    msg_warn("ignoring earlier request: '%s = %s'",
+		     pattern, cvalue->value);
+	    htable_delete(table, pattern, myfree);
+	}
 	cvalue = (struct cvalue *) mymalloc(sizeof(*cvalue));
 	cvalue->value = edit_value;
 	cvalue->found = 0;
@@ -456,8 +461,38 @@ void    pcf_edit_master(int mode, int argc, char **argv)
 
 	    /*
 	     * Match each service pattern.
+	     * 
+	     * Additional care is needed when a request adds or replaces an
+	     * entire service definition, instead of a specific field or
+	     * parameter. Given a command "postconf -M name1/type1='name2
+	     * type2 ...'", where name1 and name2 may differ, and likewise
+	     * for type1 and type2:
+	     * 
+	     * - First, if an existing service definition a) matches the service
+	     * pattern 'name1/type1', or b) matches the name and type in the
+	     * new service definition 'name2 type2 ...', remove the service
+	     * definition.
+	     * 
+	     * - Then, after an a) or b) type match, add a new service
+	     * definition for 'name2 type2 ...', but only after the first
+	     * match.
+	     * 
+	     * - Finally, if a request had no a) or b) type match for any
+	     * master.cf service definition, add a new service definition for
+	     * 'name2 type2 ...'.
 	     */
 	    for (req = edit_reqs; req < edit_reqs + num_reqs; req++) {
+		PCF_MASTER_ENT *tentative_entry = 0;
+		int     use_tentative_entry = 0;
+
+		/* Additional care for whole service definition requests. */
+		if ((mode & PCF_MASTER_ENTRY) && (mode & PCF_EDIT_CONF)) {
+		    tentative_entry = (PCF_MASTER_ENT *)
+			mymalloc(sizeof(*tentative_entry));
+		    if ((err = pcf_parse_master_entry(tentative_entry,
+						      req->edit_value)) != 0)
+			msg_fatal("%s: \"%s\"", err, req->raw_text);
+		}
 		if (PCF_MATCH_SERVICE_PATTERN(req->service_pattern,
 					      service_name,
 					      service_type)) {
@@ -503,17 +538,29 @@ void    pcf_edit_master(int mode, int argc, char **argv)
 			     * Replace entire master.cf entry.
 			     */
 			case PCF_MASTER_ENTRY:
-			    if (new_entry != 0)
-				pcf_free_master_entry(new_entry);
-			    new_entry = (PCF_MASTER_ENT *)
-				mymalloc(sizeof(*new_entry));
-			    if ((err = pcf_parse_master_entry(new_entry,
-						     req->edit_value)) != 0)
-				msg_fatal("%s: \"%s\"", err, req->raw_text);
+			    if (req->match_count == 1)
+				use_tentative_entry = 1;
 			    break;
 			default:
 			    msg_panic("%s: unknown edit mode %d", myname, mode);
 			}
+		    }
+		} else if (tentative_entry != 0
+			 && PCF_MATCH_SERVICE_PATTERN(tentative_entry->argv,
+						      service_name,
+						      service_type)) {
+		    service_name_type_matched = 1;	/* Sticky flag */
+		    req->match_count += 1;
+		    if (req->match_count == 1)
+			use_tentative_entry = 1;
+		}
+		if (tentative_entry != 0) {
+		    if (use_tentative_entry) {
+			if (new_entry != 0)
+			    pcf_free_master_entry(new_entry);
+			new_entry = tentative_entry;
+		    } else {
+			pcf_free_master_entry(tentative_entry);
 		    }
 		}
 	    }

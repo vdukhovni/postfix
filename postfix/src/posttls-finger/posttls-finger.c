@@ -1590,12 +1590,13 @@ static char *parse_destination(char *destination, char *def_service,
 static void connect_remote(STATE *state, char *dest)
 {
     DNS_RR *addr;
-    char   *buf;
-    char   *domain;
-    char   *service;
 
     /* When reconnecting use IP address of previous session */
     if (state->addr == 0) {
+	char   *buf;
+	char   *domain;
+	char   *service;
+
 	buf = parse_destination(dest, state->smtp ? "smtp" : "24",
 				&domain, &service, &state->port);
 	if (!state->nexthop)
@@ -1622,8 +1623,8 @@ static void connect_remote(STATE *state, char *dest)
 
 	if (level == TLS_LEV_INVALID
 	    || (state->stream = connect_addr(state, addr)) == 0) {
-	    msg_info("Failed to establish session to %s:%s via %s:%u: %s",
-		     dest, service, HNAME(addr), addr->port,
+	    msg_info("Failed to establish session to %s via %s:%u: %s",
+		     dest, HNAME(addr), addr->port,
 		     vstring_str(state->why->reason));
 	    continue;
 	}

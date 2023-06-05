@@ -77,6 +77,7 @@ extern const char *str_tls_level(int);
 #include <openssl/evp.h>		/* New OpenSSL 3.0 EVP_PKEY APIs */
 #include <openssl/opensslv.h>		/* OPENSSL_VERSION_NUMBER */
 #include <openssl/ssl.h>
+#include <openssl/conf.h>
 
  /* Appease indent(1) */
 #define x509_stack_t STACK_OF(X509)
@@ -322,6 +323,7 @@ extern void tls_free_app_context(TLS_APPL_STATE *);
   * tls_misc.c
   */
 extern void tls_param_init(void);
+extern int tls_library_init(void);
 
  /*
   * Protocol selection.

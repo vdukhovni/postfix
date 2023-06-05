@@ -26,6 +26,23 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Major changes with Postfix 3.8.1
+================================
+
+Security: the Postfix SMTP server optionally disconnects remote
+SMTP clients that violate RFC 2920 (or 5321) command pipelining
+constraints. The server replies with "554 5.5.0 Error: SMTP protocol
+synchronization" and logs the unexpected remote SMTP client input.
+Specify "smtpd_forbid_unauth_pipelining = yes" to enable. This
+feature is enabled by default in Postfix 3.9 and later.
+
+Workaround to limit collateral damage from OS distributions that
+crank up security to 11, increasing the number of plaintext email
+deliveries. This introduces basic OpenSSL configuration file support,
+with two new parameters "tls_config_file" and "tls_config_name".
+Details are in the postconf(5) manpage under "tls_config_file" and
+"tls_config_name".
+
 Major changes - documentation and code cleanup
 ----------------------------------------------
 

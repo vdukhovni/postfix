@@ -66,6 +66,8 @@
 TLS_CLIENT_PARAMS *tls_proxy_client_param_from_config(TLS_CLIENT_PARAMS *params)
 {
     TLS_PROXY_PARAMS(params,
+		     tls_cnf_file = var_tls_cnf_file,
+		     tls_cnf_name = var_tls_cnf_name,
 		     tls_high_clist = var_tls_high_clist,
 		     tls_medium_clist = var_tls_medium_clist,
 		     tls_null_clist = var_tls_null_clist,
