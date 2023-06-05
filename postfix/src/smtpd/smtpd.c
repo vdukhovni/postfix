@@ -525,6 +525,13 @@
 /* .IP "\fBinfo_log_address_format (external)\fR"
 /*	The email address form that will be used in non-debug logging
 /*	(info, warning, etc.).
+/* .PP
+/*	Available in Postfix 3.9, 3.8.1, 3.7.6, 3.6.10, 3.5.20 and later:
+/* .IP "\fBtls_config_file (default)\fR"
+/*	Optional configuration file with baseline OpenSSL settings.
+/* .IP "\fBtls_config_name (empty)\fR"
+/*	The application name passed by Postfix to OpenSSL library
+/*	initialization functions.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -790,6 +797,11 @@
 /*	smtpd_per_request_deadline.
 /* .IP "\fBheader_from_format (standard)\fR"
 /*	The format of the Postfix-generated \fBFrom:\fR header.
+/* .PP
+/*	Available in Postfix 3.9, 3.8.1, 3.7.6, 3.6.10, 3.5.20 and later:
+/* .IP "\fBsmtpd_forbid_unauth_pipelining (Postfix >= 3.9: yes)\fR"
+/*	Disconnect remote SMTP clients that violate RFC 2920 (or 5321)
+/*	command pipelining constraints.
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -1476,6 +1488,7 @@ char   *var_milt_eod_macros;
 char   *var_milt_unk_macros;
 char   *var_milt_macro_deflts;
 bool    var_smtpd_client_port_log;
+bool    var_smtpd_forbid_unauth_pipe;
 char   *var_stress;
 
 char   *var_reject_tmpf_act;
@@ -5425,6 +5438,32 @@ static SMTPD_CMD smtpd_cmd_table[] = {
 static STRING_LIST *smtpd_noop_cmds;
 static STRING_LIST *smtpd_forbid_cmds;
 
+/* smtpd_flag_ill_pipelining - flag pipelining protocol violation */
+
+static int smtpd_flag_ill_pipelining(SMTPD_STATE *state)
+{
+
+    /*
+     * This code will not return after I/O error, timeout, or EOF. VSTREAM
+     * exceptions must be enabled in advance with smtp_stream_setup().
+     */
+    if (vstream_peek(state->client) == 0
+	&& peekfd(vstream_fileno(state->client)) > 0)
+	(void) vstream_ungetc(state->client, smtp_fgetc(state->client));
+    if (vstream_peek(state->client) > 0) {
+	if (state->expand_buf == 0)
+	    state->expand_buf = vstring_alloc(100);
+	escape(state->expand_buf, vstream_peek_data(state->client),
+	       vstream_peek(state->client) < 100 ?
+	       vstream_peek(state->client) : 100);
+	msg_info("improper command pipelining after %s from %s: %s",
+		 state->where, state->namaddr, STR(state->expand_buf));
+	state->flags |= SMTPD_FLAG_ILL_PIPELINING;
+	return (1);
+    }
+    return (0);
+}
+
 /* smtpd_proto - talk the SMTP protocol */
 
 static void smtpd_proto(SMTPD_STATE *state)
@@ -5565,6 +5604,21 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    smtpd_start_tls(state);
 	}
 #endif
+
+	/*
+	 * If the client spoke before the server sends the initial greeting,
+	 * raise a flag and log the content of the protocol violation. This
+	 * check MUST NOT apply to TLS wrappermode connections.
+	 */
+	if (SMTPD_STAND_ALONE(state) == 0
+	    && vstream_context(state->client) == 0	/* not postscreen */
+	    && (state->flags & SMTPD_FLAG_ILL_PIPELINING) == 0
+	    && smtpd_flag_ill_pipelining(state)
+	    && var_smtpd_forbid_unauth_pipe) {
+	    smtpd_chat_reply(state,
+			  "554 5.5.0 Error: SMTP protocol synchronization");
+	    break;
+	}
 
 	/*
 	 * XXX The client connection count/rate control must be consistent in
@@ -5801,16 +5855,11 @@ static void smtpd_proto(SMTPD_STATE *state)
 		&& (strcasecmp(state->protocol, MAIL_PROTO_ESMTP) != 0
 		    || (cmdp->flags & SMTPD_CMD_FLAG_LAST))
 		&& (state->flags & SMTPD_FLAG_ILL_PIPELINING) == 0
-		&& (vstream_peek(state->client) > 0
-		    || peekfd(vstream_fileno(state->client)) > 0)) {
-		if (state->expand_buf == 0)
-		    state->expand_buf = vstring_alloc(100);
-		escape(state->expand_buf, vstream_peek_data(state->client),
-		       vstream_peek(state->client) < 100 ?
-		       vstream_peek(state->client) : 100);
-		msg_info("improper command pipelining after %s from %s: %s",
-			 cmdp->name, state->namaddr, STR(state->expand_buf));
-		state->flags |= SMTPD_FLAG_ILL_PIPELINING;
+		&& smtpd_flag_ill_pipelining(state)
+		&& var_smtpd_forbid_unauth_pipe) {
+		smtpd_chat_reply(state,
+			  "554 5.5.0 Error: SMTP protocol synchronization");
+		break;
 	    }
 	    if (cmdp->action(state, argc, argv) != 0)
 		state->error_count++;
@@ -6479,6 +6528,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_PEERNAME_LOOKUP, DEF_SMTPD_PEERNAME_LOOKUP, &var_smtpd_peername_lookup,
 	VAR_SMTPD_DELAY_OPEN, DEF_SMTPD_DELAY_OPEN, &var_smtpd_delay_open,
 	VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
+	VAR_SMTPD_FORBID_UNAUTH_PIPE, DEF_SMTPD_FORBID_UNAUTH_PIPE, &var_smtpd_forbid_unauth_pipe,
 	0,
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {

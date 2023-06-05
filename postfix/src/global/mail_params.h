@@ -2436,6 +2436,10 @@ extern char *var_smtpd_exp_filter;
 #define DEF_SMTPD_PEERNAME_LOOKUP	1
 extern bool var_smtpd_peername_lookup;
 
+#define VAR_SMTPD_FORBID_UNAUTH_PIPE	"smtpd_forbid_unauth_pipelining"
+#define DEF_SMTPD_FORBID_UNAUTH_PIPE	0
+extern bool var_smtpd_forbid_unauth_pipe;
+
  /*
   * Heuristic to reject unknown local recipients at the SMTP port.
   */
@@ -3320,8 +3324,17 @@ extern bool var_smtp_sender_auth;
 extern bool var_smtp_cname_overr;
 
  /*
-  * TLS cipherlists
+  * TLS library settings
   */
+#define VAR_TLS_CNF_FILE	"tls_config_file"
+#define DEF_TLS_CNF_FILE	"default"
+extern char *var_tls_cnf_file;
+
+#define VAR_TLS_CNF_NAME	"tls_config_name"
+#define DEF_TLS_CNF_NAME	""
+extern char *var_tls_cnf_name;
+
+
 #define VAR_TLS_HIGH_CLIST	"tls_high_cipherlist"
 #define DEF_TLS_HIGH_CLIST	"aNULL:-aNULL:HIGH:@STRENGTH"
 extern char *var_tls_high_clist;

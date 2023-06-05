@@ -632,6 +632,15 @@ SMTPD(8)                                                              SMTPD(8)
               The email address form that will be used  in  non-debug  logging
               (info, warning, etc.).
 
+       Available in Postfix 3.9, 3.8.1, 3.7.6, 3.6.10, 3.5.20 and later:
+
+       <b><a href="postconf.5.html#tls_config_file">tls_config_file</a> (default)</b>
+              Optional configuration file with baseline OpenSSL settings.
+
+       <b><a href="postconf.5.html#tls_config_name">tls_config_name</a> (empty)</b>
+              The  application  name passed by Postfix to OpenSSL library ini-
+              tialization functions.
+
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The  following  configuration  parameters  exist for compatibility with
        Postfix versions before 2.3. Support for these will  be  removed  in  a
@@ -953,6 +962,12 @@ SMTPD(8)                                                              SMTPD(8)
 
        <b><a href="postconf.5.html#header_from_format">header_from_format</a> (standard)</b>
               The format of the Postfix-generated <b>From:</b> header.
+
+       Available in Postfix 3.9, 3.8.1, 3.7.6, 3.6.10, 3.5.20 and later:
+
+       <b><a href="postconf.5.html#smtpd_forbid_unauth_pipelining">smtpd_forbid_unauth_pipelining</a> (Postfix</b> &gt;<b>= 3.9: yes)</b>
+              Disconnect  remote  SMTP clients that violate <a href="https://tools.ietf.org/html/rfc2920">RFC 2920</a> (or 5321)
+              command pipelining constraints.
 
 <b>TARPIT CONTROLS</b>
        When a remote SMTP client makes errors, the  Postfix  SMTP  server  can

@@ -26507,3 +26507,90 @@ Apologies for any names omitted.
 	return "not found" instead of "error" during the time that
 	all MySQL server connections were turned down after error.
 	Found during code maintenance. File: global/dict_mysql.c.
+
+20230428
+
+	Bugfix (defect introduced: Postfix 1.0): the command "postconf
+	.. name=v1 .. name=v2 .." (multiple instances of the same
+	parameter name) created multiple name=value entries with
+	the same parameter name. It now logs a warning and skips
+	the earlier update. Found during code maintenance. File:
+	postconf/postconf_edit.c
+
+	Bugfix (defect introduced: Postfix 3.3): the command "postconf
+	-M name1/type1='name2 type2 ...'" died with a segmentation
+	violation when the request matched multiple master.cf
+	entries. The master.cf file was not damaged. Problem reported
+	by SATOH Fumiyasu. File: postconf/postconf_master.c.
+
+20230502
+
+	Bugfix (defect introduced: Postfix 2.11): the command
+	"postconf -M name1/type1='name2 type2 ...'" could add a
+	service definition to master.cf that conflicted with an
+	already existing service definition. It now replaces all
+	existing service definitions that match the service pattern
+	'name1/type1' or the service name and type in 'name2 type2
+	...' with a single service definition 'name2 type2 ...'.
+	Problem reported by SATOH Fumiyasu. File: postconf/postconf_edit.c.
+
+20230519
+
+	Bitrot: preliminary support for OpenSSL configuration files,
+	primarily OpenSSL 1.1.1b and later. This introduces new
+	parameters "tls_config_file" and "tls_config_name", which
+	can be used to limit collateral damage from OS distributions
+	that crank up security to 11, increasing the number of
+	plaintext email deliveries. Details are in the postconf(5)
+	manpage under "tls_config_file" and "tls_config_name".
+	Viktor Dukhovni. Files: mantools/postlink, proto/postconf.proto,
+	global/mail_params.h, posttls-finger/posttls-finger.c,
+	smtp/smtp.c, smtp/smtp_proto.c, tls/tls_client.c, tls/tls.h,
+	tls/tls_misc.c, tls/tls_proxy_client_print.c,
+	tls/tls_proxy_client_scan.c, tls/tls_proxy.h, tls/tls_server.c,
+	tlsproxy/tlsproxy.c.
+
+20230523
+
+	Cleanup: use TLS_CLIENT_PARAMS to pass the OpensSSL 'init'
+	configurations. This information is independent from the
+	client or server TLS context, and therefore does not belong
+	in tls_*_init() or tls_*_start() calls. The tlsproxy(8)
+	server uses TLS_CLIENT_PARAMS to report differences between
+	its own global TLS settings, and those from its clients.
+	Files: posttls-finger/posttls-finger.c, smtp/smtp.c,
+	smtp/smtp_proto.c, tls/tls.h, tls/tls_proxy_client_misc.c,
+	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
+	tls/tls_proxy.h, tlsproxy/tlsproxy.c.
+
+20230524
+
+	Cleanup: reverted cosmetic-only changes to minimize the
+	patch footprint for OpenSSL INI file support; updated daemon
+	manpages with the new tls_config_file and tls_config_name
+	configuration parameters. Files: smtp/smtp.c, smtpd/smtpd.c,
+	tls/tls_client.c, tls/tls.h, tls/tls_server.c, tlsproxy/tlsproxy.c,
+
+20230529
+
+	Cleanup: made OpenSSL 'default' INI file support error
+	handling consistent with OpenSSL default behavior. Viktor
+	Dukhovni. Files: proto/postconf.proto, tls/tls_misc.c.
+
+20230602
+
+	Backwards compatibility for stable releases that originally
+	had no OpenSSL INI support. Skip the new OpenSSL INI support
+	code, unless the Postfix configuration actually specifies
+	non-default tls_config_xxx settings. File: tls/tls_misc.c.
+
+	Cleanup: added a multiple initialization guard in the
+	tls_library_init() function, and made an initialization
+	error sticky. File: tls/tls_misc.c.
+
+20230605
+
+	Security: new parameter smtpd_forbid_unauth_pipelining
+	(default: no) to disconnect remote SMTP clients that violate
+	RFC 2920 (or 5321) command pipelining constraints. Files:
+	global/mail_params.h, smtpd/smtpd.c, proto/postconf.proto.
