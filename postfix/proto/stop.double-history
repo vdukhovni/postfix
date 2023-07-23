@@ -58,3 +58,4 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  pipelining before the server greeting File smtpd smtpd c 
  before the server greeting File smtpd smtpd c 
  global mail_params h smtpd smtpd c proto postconf proto 
+ Typo fix by Trent W Buck Files proto postconf proto proto stop 

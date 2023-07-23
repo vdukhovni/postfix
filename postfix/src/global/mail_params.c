@@ -518,9 +518,11 @@ static void check_mail_owner(void)
      */
     if ((pwd = getpwuid(var_owner_uid)) != 0
 	&& strcmp(pwd->pw_name, var_mail_owner) != 0)
-	msg_fatal("file %s/%s: parameter %s: user %s has same user ID as %s",
+	msg_fatal("file %s/%s: parameter %s: user %s has the same"
+		  " user ID %ld as user %s",
 		  var_config_dir, MAIN_CONF_FILE,
-		  VAR_MAIL_OWNER, var_mail_owner, pwd->pw_name);
+		  VAR_MAIL_OWNER, var_mail_owner, 
+		  (long) var_owner_uid, pwd->pw_name);
 }
 
 /* check_sgid_group - lookup setgid group attributes and validate */
@@ -545,9 +547,11 @@ static void check_sgid_group(void)
      */
     if ((grp = getgrgid(var_sgid_gid)) != 0
 	&& strcmp(grp->gr_name, var_sgid_group) != 0)
-	msg_fatal("file %s/%s: parameter %s: group %s has same group ID as %s",
+	msg_fatal("file %s/%s: parameter %s: group %s has the same"
+		  " group ID %ld as group %s",
 		  var_config_dir, MAIN_CONF_FILE,
-		  VAR_SGID_GROUP, var_sgid_group, grp->gr_name);
+		  VAR_SGID_GROUP, var_sgid_group, 
+		  (long) var_sgid_gid, grp->gr_name);
 }
 
 /* check_overlap - disallow UID or GID sharing */

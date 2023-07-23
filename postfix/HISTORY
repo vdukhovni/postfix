@@ -27141,8 +27141,8 @@ Apologies for any names omitted.
 
 	Cleanup: simplified the master code to handle an empty
 	inet_interfaces setting. it is now closer to the original
-	code. Also documented what *_inet_addr_list() functions can
-	return an empty list. Files: master/master_ent.c,
+	code. Also documented that wildcard_inet_addr_list() will
+	not return an empty list. Files: master/master_ent.c,
 	global/own_inet_addr_list.c.
 
 20230507
@@ -27264,3 +27264,13 @@ Apologies for any names omitted.
 	(default: yes) to disconnect remote SMTP clients that violate
 	RFC 2920 (or 5321) command pipelining constraints. Files:
 	global/mail_params.h, smtpd/smtpd.c, proto/postconf.proto.
+
+20230610
+
+	Trouble shooting: when the postfix UID or postdrop GID is
+	also used by a non-Postfix account, log the UID or GID.
+	File: global/mail_params.c.
+
+20240703
+
+	Typo fix by Trent W. Buck. Files: proto/postconf.proto, proto/stop.
