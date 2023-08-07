@@ -26,6 +26,61 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Major changes with snapshot 20230807
+====================================
+
+Optional Postfix TLS support to request an RFC7250 raw public key
+instead of an X.509 public-key certificate. The configuration
+settings for raw key public support will be ignored when there is
+no raw public key support in the local TLS implementation (i.e.
+Postfix with OpenSSL versions before 3.2).
+
+- With "smtpd_tls_enable_rpk = yes", the Postfix SMTP server will
+  request that a remote SMTP client sends an RFC7250 raw public key
+  instead of an X.509 certificate when asking for or requiring TLS
+  client authentication. The Postfix SMTP server will still accept
+  a client public-key certificate instead of a public key.
+
+- With "smtp_tls_enable_rpk = yes" (or "enable_rpk = yes" in an
+  smtp policy table) at the security levels "may", "encrypt" or
+  "fingerprint", the Postfix SMTP client will request that a remote
+  SMTP server sends an RFC7250 raw public key instead of an X.509
+  certificate. The Postfix SMTP client will still accept a server
+  public key certificate instead of a public key.
+
+- At the "dane" security level, the Postfix SMTP client will ignore
+  smtp_tls_enable_rpk or enable_rpk settings, and will request that
+  a remote SMTP server sends an RFC7250 raw public key instead of
+  an X.509 certificate when all valid TLSA records specify only
+  server public keys (no certificates). The Postfix SMTP client
+  will still accept a server public key certificate.
+
+- The Postfix SMTP client and server always send a raw public key
+  instead of a certificate, if solicited by the remote SMTP peer
+  and the local TLS implementation supports raw public keys.
+
+- If a remote SMTP client sends a server name indication with an
+  SNI TLS extension, and tls_server_sni_maps is configured, the
+  Postfix SMTP server will extract a raw public key from the indicated
+  certificate.
+
+Caution: enabling Postfix raw key support will break authentication
+based on certificate fingerprints in check_ccert_access or
+smtp_policy_maps, when a remote peer's TLS implementation starts
+to send a raw public key instead of a certificate. The solution is
+to always use public key fingerprint patterns; these will match
+not only a "raw" public key, but also the public key in a certificate.
+
+To detect such problems before they happen, the Postfix SMTP client
+and server will log a warning when they request an RFC7250 raw
+public key instead of an X.509 certificate, the remote peer sends
+a certificate instead of a public key, and check_ccert_access or
+smtp_policy_maps has a matching fingerprint for the certificate but
+not for the public key in that certificate.
+
+For instructions to generate public-key fingerprints, see the
+postconf(5) man pages for smtp_tls_enable_rpk and smtpd_tls_enable_rpk.
+
 Incompatible changes with snapshot 20230603
 ===========================================
 

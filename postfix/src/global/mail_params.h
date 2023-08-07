@@ -1321,6 +1321,10 @@ extern bool var_smtpd_tls_ask_ccert;
 #define DEF_SMTPD_TLS_RCERT	0
 extern bool var_smtpd_tls_req_ccert;
 
+#define VAR_SMTPD_TLS_ENABLE_RPK	"smtpd_tls_enable_rpk"
+#define DEF_SMTPD_TLS_ENABLE_RPK	0
+extern bool var_smtpd_tls_enable_rpk;
+
 #define VAR_SMTPD_TLS_CCERT_VD	"smtpd_tls_ccert_verifydepth"
 #define DEF_SMTPD_TLS_CCERT_VD	9
 extern int var_smtpd_tls_ccert_vd;
@@ -1554,6 +1558,12 @@ extern char *var_smtp_tls_mand_excl;
 #define DEF_LMTP_TLS_FPT_DGST	"${{$compatibility_level} <level {3.6} ? " \
                                 "{md5} : {sha256}}"
 extern char *var_smtp_tls_fpt_dgst;
+
+#define VAR_SMTP_TLS_ENABLE_RPK	"smtp_tls_enable_rpk"
+#define DEF_SMTP_TLS_ENABLE_RPK	0
+#define VAR_LMTP_TLS_ENABLE_RPK	"lmtp_tls_enable_rpk"
+#define DEF_LMTP_TLS_ENABLE_RPK	0
+extern bool var_smtp_tls_enable_rpk;
 
 #define VAR_SMTP_TLS_TAFILE	"smtp_tls_trust_anchor_file"
 #define DEF_SMTP_TLS_TAFILE	""
@@ -3981,6 +3991,10 @@ extern bool var_tlsp_tls_ask_ccert;
 #define VAR_TLSP_TLS_RCERT	"tlsproxy_tls_req_ccert"
 #define DEF_TLSP_TLS_RCERT	"$" VAR_SMTPD_TLS_RCERT
 extern bool var_tlsp_tls_req_ccert;
+
+#define VAR_TLSP_TLS_ENABLE_RPK	"tlsproxy_tls_enable_rpk"
+#define DEF_TLSP_TLS_ENABLE_RPK	"$" VAR_SMTPD_TLS_ENABLE_RPK
+extern bool var_tlsp_tls_enable_rpk;
 
 #define VAR_TLSP_TLS_CCERT_VD	"tlsproxy_tls_ccert_verifydepth"
 #define DEF_TLSP_TLS_CCERT_VD	"$" VAR_SMTPD_TLS_CCERT_VD

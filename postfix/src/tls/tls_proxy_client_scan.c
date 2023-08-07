@@ -451,6 +451,7 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     props->dane = 0;				/* scan_fn may return early */
     ret = scan_fn(fp, flags | ATTR_FLAG_MORE,
 		  RECV_ATTR_INT(TLS_ATTR_TIMEOUT, &props->timeout),
+		  RECV_ATTR_INT(TLS_ATTR_ENABLE_RPK, &props->enable_rpk),
 		  RECV_ATTR_INT(TLS_ATTR_TLS_LEVEL, &props->tls_level),
 		  RECV_ATTR_STR(TLS_ATTR_NEXTHOP, nexthop),
 		  RECV_ATTR_STR(TLS_ATTR_HOST, host),
@@ -478,7 +479,7 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     props->cipher_grade = vstring_export(cipher_grade);
     props->cipher_exclusions = vstring_export(cipher_exclusions);
     props->mdalg = vstring_export(mdalg);
-    ret = (ret == 14 ? 1 : -1);
+    ret = (ret == 15 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_client_start_free(props);
 	props = 0;

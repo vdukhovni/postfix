@@ -62,8 +62,8 @@
 /*	available as:
 /* .IP TLScontext->peer_status
 /*	A bitmask field that records the status of the peer certificate
-/*	verification. One or more of TLS_CERT_FLAG_PRESENT and
-/*	TLS_CERT_FLAG_TRUSTED.
+/*	verification. One or more of TLS_CRED_FLAG_CERT, TLS_CRED_FLAG_RPK
+/*	and TLS_CERT_FLAG_TRUSTED.
 /* .IP TLScontext->peer_CN
 /*	Extracted CommonName of the peer, or zero-length string
 /*	when information could not be extracted.
@@ -637,6 +637,13 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     }
 
     /*
+     * Always support server->client raw public keys, if they're good enough
+     * for the client, they're good enough for us.
+     */
+    tls_enable_server_rpk(server_ctx, NULL);
+    tls_enable_server_rpk(sni_ctx, NULL);
+
+    /*
      * Upref and share the cert store.  Sadly we can't yet use
      * SSL_CTX_set1_cert_store(3) which was added in OpenSSL 1.1.0.
      */
@@ -865,11 +872,19 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 	tls_free_context(TLScontext);
 	return (0);
     }
-#ifdef SSL_SECOP_PEER
-    /* When authenticating the peer, use 80-bit plus OpenSSL security level */
+
+    /*
+     * When encryption is mandatory use the 80-bit plus OpenSSL security level.
+     */
     if (props->requirecert)
 	SSL_set_security_level(TLScontext->con, 1);
-#endif
+
+    /*
+     * Also enable client->server raw public keys, provided we're not
+     * interested in client certificate fingerprints.
+     */
+    if (props->enable_rpk)
+	tls_enable_client_rpk(NULL, TLScontext->con);
 
     /*
      * Before really starting anything, try to seed the PRNG a little bit
@@ -946,6 +961,7 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 {
     const SSL_CIPHER *cipher;
     X509   *peer;
+    EVP_PKEY *pkey = 0;
     char    buf[CCERT_BUFSIZ];
 
     /* Turn off packet dump if only dumping the handshake */
@@ -966,8 +982,17 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
      * actual information. We want to save it for later use.
      */
     peer = TLS_PEEK_PEER_CERT(TLScontext->con);
+    if (peer) {
+	pkey = X509_get0_pubkey(peer);
+    }
+#if OPENSSL_VERSION_PREREQ(3,2)
+    else {
+	pkey = SSL_get0_peer_rpk(TLScontext->con);
+    }
+#endif
+
     if (peer != NULL) {
-	TLScontext->peer_status |= TLS_CERT_FLAG_PRESENT;
+	TLScontext->peer_status |= TLS_CRED_FLAG_CERT;
 	if (SSL_get_verify_result(TLScontext->con) == X509_V_OK)
 	    TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
 
@@ -981,16 +1006,23 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 	}
 	TLScontext->peer_CN = tls_peer_CN(peer, TLScontext);
 	TLScontext->issuer_CN = tls_issuer_CN(peer, TLScontext);
-	TLScontext->peer_cert_fprint = tls_cert_fprint(peer, TLScontext->mdalg);
-	TLScontext->peer_pkey_fprint = tls_pkey_fprint(peer, TLScontext->mdalg);
+	TLScontext->peer_cert_fprint =
+	    tls_cert_fprint(peer, TLScontext->mdalg);
+	TLScontext->peer_pkey_fprint =
+	    tls_pkey_fprint(pkey, TLScontext->mdalg);
 
 	if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_PEERCERT)) {
-	    msg_info("%s: subject_CN=%s, issuer=%s, fingerprint=%s"
-		     ", pkey_fingerprint=%s",
+	    msg_info("%s: subject_CN=%s, issuer=%s%s%s%s%s",
 		     TLScontext->namaddr,
 		     TLScontext->peer_CN, TLScontext->issuer_CN,
-		     TLScontext->peer_cert_fprint,
-		     TLScontext->peer_pkey_fprint);
+		     *TLScontext->peer_cert_fprint ?
+		     ", cert fingerprint=" : "",
+		     *TLScontext->peer_cert_fprint ?
+		     TLScontext->peer_cert_fprint : "",
+		     *TLScontext->peer_pkey_fprint ?
+		     ", pkey fingerprint=" : "",
+		     *TLScontext->peer_pkey_fprint ?
+		     TLScontext->peer_pkey_fprint : "");
 	}
 	TLS_FREE_PEER_CERT(peer);
 
@@ -1013,7 +1045,22 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 	TLScontext->peer_CN = mystrdup("");
 	TLScontext->issuer_CN = mystrdup("");
 	TLScontext->peer_cert_fprint = mystrdup("");
-	TLScontext->peer_pkey_fprint = mystrdup("");
+	if (!pkey) {
+	    TLScontext->peer_pkey_fprint = mystrdup("");
+	} else {
+
+	    /*
+	     * Raw public keys don't involve CA trust, and we don't have a
+	     * way to associate DANE TLSA RRs with clients just yet, we just
+	     * make the fingerprint available to the access(5) layer.
+	     */
+            TLScontext->peer_status |= TLS_CRED_FLAG_RPK;
+	    TLScontext->peer_pkey_fprint =
+		tls_pkey_fprint(pkey, TLScontext->mdalg);
+	    if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_PEERCERT))
+		msg_info("%s: raw public key fingerprint=%s",
+			 TLScontext->namaddr, TLScontext->peer_pkey_fprint);
+	}
     }
 
     /*

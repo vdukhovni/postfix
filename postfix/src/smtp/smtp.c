@@ -613,6 +613,11 @@
 /* .IP "\fBtls_config_name (empty)\fR"
 /*	The application name passed by Postfix to OpenSSL library
 /*	initialization functions.
+/* .PP
+/*	Available in Postfix version 3.9 and later:
+/* .IP "\fBsmtp_tls_enable_rpk (no)\fR"
+/*	Request that remote SMTP servers send an RFC7250 raw public key
+/*	instead of an X.509 certificate.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -1090,6 +1095,7 @@ char   *var_smtp_tls_sni;
 bool    var_smtp_tls_blk_early_mail_reply;
 bool    var_smtp_tls_force_tlsa;
 char   *var_smtp_tls_insecure_mx_policy;
+bool    var_smtp_tls_enable_rpk;
 
 #endif
 

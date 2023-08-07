@@ -1803,3 +1803,9 @@ ipproto
 cw
 uncreate
 MFLAGS
+CRED
+RPK
+RPKs
+SPKI
+peerpkey
+rpk

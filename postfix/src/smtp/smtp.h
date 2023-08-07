@@ -107,6 +107,7 @@ typedef struct SMTP_TLS_POLICY {
     TLS_DANE *dane;			/* DANE TLSA digests */
     char   *sni;			/* Optional SNI name when not DANE */
     int     conn_reuse;			/* enable connection reuse */
+    int     enable_rpk;			/* Enable server->client RPK */
 } SMTP_TLS_POLICY;
 
  /*
@@ -142,6 +143,7 @@ extern void smtp_tls_policy_cache_flush(void);
 	_tls_policy_init_tmp->dane = 0; \
 	_tls_policy_init_tmp->sni = 0; \
 	_tls_policy_init_tmp->conn_reuse = 0; \
+	_tls_policy_init_tmp->enable_rpk = 0; \
     } while (0)
 
 #endif

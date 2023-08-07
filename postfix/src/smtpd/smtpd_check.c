@@ -1588,6 +1588,7 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient);
 static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 {
 #ifdef USE_TLS
+    const char *myname = "permit_tls_clientcerts";
     const char *found = 0;
 
     if (!state->tls_context)
@@ -1602,9 +1603,9 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 
     /*
      * When directly checking the fingerprint, it is OK if the issuing CA is
-     * not trusted.
+     * not trusted.  Raw public keys are also acceptable.
      */
-    if (TLS_CERT_IS_PRESENT(state->tls_context)) {
+    if (TLS_CRED_IS_PRESENT(state->tls_context)) {
 	int     i;
 	char   *prints[2];
 
@@ -1613,12 +1614,24 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 		     VAR_SMTPD_TLS_FPT_DGST "=md5 to compute certificate "
 		     "fingerprints");
 
-	prints[0] = state->tls_context->peer_cert_fprint;
-	prints[1] = state->tls_context->peer_pkey_fprint;
+	prints[0] = state->tls_context->peer_pkey_fprint;
+	prints[1] = state->tls_context->peer_cert_fprint;
 
 	/* After lookup error, leave relay_ccerts->error at non-zero value. */
 	for (i = 0; i < 2; ++i) {
+	    /* With RFC7250 RPK, no certificate may be available */
+	    if (!*prints[i])
+		continue;
 	    found = maps_find(relay_ccerts, prints[i], DICT_FLAG_NONE);
+	    if (var_smtpd_tls_enable_rpk && i > 0 && found) {
+		msg_warn("%s: %s: %s: Fragile access policy: %s=yes, but"
+			 " public key fingerprint \"%s\" not matched, while"
+			 " certificate fingerprint \"%s\" matched",
+			 myname, state->namaddr, relay_ccerts->title,
+			 VAR_SMTPD_TLS_ENABLE_RPK,
+			 state->tls_context->peer_cert_fprint,
+			 state->tls_context->peer_pkey_fprint);
+	    }
 	    if (found != 0) {
 		if (msg_verbose)
 		    msg_info("Relaying allowed for certified client: %s", found);
@@ -3165,6 +3178,9 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 
 #ifdef USE_TLS
     const char *myname = "check_ccert_access";
+    int     cert_result = SMTPD_CHECK_DUNNO;
+    int     pkey_result = SMTPD_CHECK_DUNNO;
+    int    *respt;
     int     found;
     const MAP_SEARCH *acl;
     const char default_search[] = {
@@ -3191,9 +3207,9 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 
     /*
      * When directly checking the fingerprint, it is OK if the issuing CA is
-     * not trusted.
+     * not trusted.  Raw public keys are also acceptable.
      */
-    if (TLS_CERT_IS_PRESENT(state->tls_context)) {
+    if (TLS_CRED_IS_PRESENT(state->tls_context)) {
 	const char *action;
 	const char *match_this;
 	const char *known_action;
@@ -3202,17 +3218,19 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 	    switch (*action) {
 	    case SMTPD_ACL_SEARCH_CODE_CERT_FPRINT:
 		match_this = state->tls_context->peer_cert_fprint;
-		if (warn_compat_break_smtpd_tls_fpt_dgst)
+		if (*match_this && warn_compat_break_smtpd_tls_fpt_dgst)
 		    msg_info("using backwards-compatible default setting "
 			     VAR_SMTPD_TLS_FPT_DGST "=md5 to compute "
 			     "certificate fingerprints");
+		respt = &cert_result;
 		break;
 	    case SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT:
 		match_this = state->tls_context->peer_pkey_fprint;
-		if (warn_compat_break_smtpd_tls_fpt_dgst)
+		if (*match_this && warn_compat_break_smtpd_tls_fpt_dgst)
 		    msg_info("using backwards-compatible default setting "
 			     VAR_SMTPD_TLS_FPT_DGST "=md5 to compute "
-			     "certificate fingerprints");
+			     "public key fingerprints");
+		respt = &pkey_result;
 		break;
 	    default:
 		known_action = str_name_code(search_actions, *action);
@@ -3225,6 +3243,9 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 					   451, "4.3.5",
 					   "Server configuration error"));
 	    }
+	    /* With RFC7250 RPK, no certificate may be available */
+	    if (!*match_this)
+		continue;
 	    if (msg_verbose)
 		msg_info("%s: look up %s %s",
 			 myname, str_name_code(search_actions, *action),
@@ -3237,11 +3258,16 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 	     * "reject" event. XXX Should log the thing that is rejected
 	     * (fingerprint etc.) or would that give away too much?
 	     */
-	    result = check_access(state, acl->map_type_name, match_this,
+	    *respt = check_access(state, acl->map_type_name, match_this,
 				  DICT_FLAG_NONE, &found,
 				  state->tls_context->peer_CN,
 				  SMTPD_NAME_CCERT, def_acl);
-	    if (result != SMTPD_CHECK_DUNNO)
+	    if (*respt == SMTPD_CHECK_DUNNO)
+		continue;
+	    if (result == SMTPD_CHECK_DUNNO)
+		result = *respt;
+	    if (!var_smtpd_tls_enable_rpk
+	        || *action == SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT)
 		break;
 	}
     } else if (!var_smtpd_tls_ask_ccert) {
@@ -3250,6 +3276,17 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
     } else {
 	if (msg_verbose)
 	    msg_info("%s: no client certificate", myname);
+    }
+    if (var_smtpd_tls_enable_rpk
+	&& cert_result != SMTPD_CHECK_DUNNO
+	&& cert_result != pkey_result) {
+	msg_warn("%s: %s: %s: Fragile access policy: %s=yes, but"
+	         " the action for certificate fingerprint \"%s\" !="
+		 " the action for public key fingerprint \"%s\"",
+		 myname, state->namaddr, acl->map_type_name,
+		 VAR_SMTPD_TLS_ENABLE_RPK,
+		 state->tls_context->peer_cert_fprint,
+		 state->tls_context->peer_pkey_fprint);
     }
 #endif
     return (result);
@@ -4015,6 +4052,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
     ENCODE_CN(subject, subject_buf, state->tls_context->peer_CN);
     ENCODE_CN(issuer, issuer_buf, state->tls_context->issuer_CN);
 
+#define NONEMPTY(x) ((x) != 0 && (*x) != 0)
     /*
      * XXX: Too noisy to warn for each policy lookup, especially because we
      * don't even know whether the policy server will use the fingerprint. So
@@ -4024,12 +4062,12 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
     if (!warned
 	&& warn_compat_break_smtpd_tls_fpt_dgst
 	&& state->tls_context
-	&& state->tls_context->peer_cert_fprint
-	&& *state->tls_context->peer_cert_fprint) {
+	&& (NONEMPTY(state->tls_context->peer_cert_fprint)
+	    || NONEMPTY(state->tls_context->peer_pkey_fprint))) {
 	warned = 1;
 	msg_info("using backwards-compatible default setting "
 		 VAR_SMTPD_TLS_FPT_DGST "=md5 to compute certificate "
-		 "fingerprints");
+		 "and public key fingerprints");
     }
 #endif
 
@@ -6386,7 +6424,7 @@ int     main(int argc, char **argv)
 		    state.tls_context->peer_cert_fprint =
 			state.tls_context->peer_pkey_fprint = 0;
 		}
-		state.tls_context->peer_status |= TLS_CERT_FLAG_PRESENT;
+		state.tls_context->peer_status |= TLS_CRED_FLAG_CERT;
 		UPDATE_STRING(state.tls_context->peer_cert_fprint,
 			      args->argv[1]);
 		state.tls_context->peer_pkey_fprint =

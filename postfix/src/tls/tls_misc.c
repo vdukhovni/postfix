@@ -118,6 +118,14 @@
 /*
 /*	const EVP_MD *tls_validate_digest(dgst)
 /*	const char *dgst;
+/*
+/*	void tls_enable_client_rpk(ctx, ssl)
+/*	SSL_CTX *ctx;
+/*	SSL     *ssl;
+/*
+/*	void tls_enable_server_rpk(ctx, ssl)
+/*	SSL_CTX *ctx;
+/*	SSL     *ssl;
 /* DESCRIPTION
 /*	This module implements public and internal routines that
 /*	support the TLS client and server.
@@ -215,6 +223,12 @@
 /*
 /*	tls_validate_digest() returns a static handle for the named
 /*	digest algorithm, or NULL on error.
+/*
+/*	tls_enable_client_rpk() enables the use of raw public keys in the
+/*	client to server direction, if supported by the OpenSSL library.
+/*
+/*	tls_enable_server_rpk() enables the use of raw public keys in the
+/*	server to client direction, if supported by the OpenSSL library.
 /* LICENSE
 /* .ad
 /* .fi
@@ -1028,7 +1042,6 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
     SSL    *ssl = TLScontext->con;
     int     srvr = SSL_is_server(ssl);
     EVP_PKEY *dh_pkey = 0;
-    X509   *local_cert;
     EVP_PKEY *local_pkey = 0;
     X509   *peer_cert;
     EVP_PKEY *peer_pkey = 0;
@@ -1060,18 +1073,23 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
     }
 
     /*
-     * On the client end, the certificate may be preset, but not used, so we
+     * On the client end, the certificate may be present, but not used, so we
      * check via SSL_get_signature_nid().  This means that local signature
      * data on clients requires at least 1.1.1a.
      */
-    if (srvr || SSL_get_signature_nid(ssl, &nid))
-	local_cert = SSL_get_certificate(ssl);
-    else
-	local_cert = 0;
-
+    if (srvr || SSL_get_signature_nid(ssl, &nid)) {
+	local_pkey = SSL_get_privatekey(ssl);
+    }
     /* Signature algorithms for the local end of the connection */
-    if (local_cert) {
-	local_pkey = X509_get0_pubkey(local_cert);
+    if (local_pkey) {
+#if OPENSSL_VERSION_PREREQ(3,2)
+	if (srvr)
+	    TLScontext->stoc_rpk = TLSEXT_cert_type_rpk ==
+		SSL_get_negotiated_server_cert_type(ssl);
+	else
+	    TLScontext->ctos_rpk = TLSEXT_cert_type_rpk ==
+		SSL_get_negotiated_client_cert_type(ssl);
+#endif
 
 	/*
 	 * Override the built-in name for the "ECDSA" algorithms OID, with
@@ -1097,7 +1115,6 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 		break;
 #endif
 	    }
-	    /* No X509_free(local_cert) */
 	}
 
 	/*
@@ -1107,9 +1124,26 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	if (SSL_get_signature_nid(ssl, &nid) && nid != NID_undef)
 	    locl_sig_dgst = OBJ_nid2sn(nid);
     }
-    /* Signature algorithms for the peer end of the connection */
-    if ((peer_cert = TLS_PEEK_PEER_CERT(ssl)) != 0) {
+    peer_cert = TLS_PEEK_PEER_CERT(ssl);
+    if (peer_cert != 0) {
 	peer_pkey = X509_get0_pubkey(peer_cert);
+    }
+#if OPENSSL_VERSION_PREREQ(3,2)
+    else {
+	peer_pkey = SSL_get0_peer_rpk(ssl);
+    }
+#endif
+
+    /* Signature algorithms for the peer end of the connection */
+    if (peer_pkey != 0) {
+#if OPENSSL_VERSION_PREREQ(3,2)
+	if (srvr)
+	    TLScontext->ctos_rpk = TLSEXT_cert_type_rpk ==
+		SSL_get_negotiated_client_cert_type(ssl);
+	else
+	    TLScontext->stoc_rpk = TLSEXT_cert_type_rpk ==
+		SSL_get_negotiated_server_cert_type(ssl);
+#endif
 
 	/*
 	 * Override the built-in name for the "ECDSA" algorithms OID, with
@@ -1144,8 +1178,9 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	if (SSL_get_peer_signature_nid(ssl, &nid) && nid != NID_undef)
 	    peer_sig_dgst = OBJ_nid2sn(nid);
 
-	TLS_FREE_PEER_CERT(peer_cert);
     }
+    TLS_FREE_PEER_CERT(peer_cert);
+
     if (kex_name) {
 	TLScontext->kex_name = mystrdup(kex_name);
 	TLScontext->kex_curve = kex_curve;
@@ -1180,7 +1215,7 @@ void    tls_log_summary(TLS_ROLE role, TLS_USAGE usage, TLS_SESS_STATE *ctx)
      */
     vstring_sprintf(msg, "%s TLS connection %s %s %s%s%s: %s"
 		    " with cipher %s (%d/%d bits)",
-		    !TLS_CERT_IS_PRESENT(ctx) ? "Anonymous" :
+		    !TLS_CRED_IS_PRESENT(ctx) ? "Anonymous" :
 		    TLS_CERT_IS_SECURED(ctx) ? "Verified" :
 		    TLS_CERT_IS_TRUSTED(ctx) ? "Trusted" : "Untrusted",
 		    usage == TLS_USAGE_NEW ? "established" : "reused",
@@ -1199,9 +1234,13 @@ void    tls_log_summary(TLS_ROLE role, TLS_USAGE usage, TLS_SESS_STATE *ctx)
 	vstring_sprintf_append(msg, " server-signature %s",
 			       ctx->srvr_sig_name);
 	if (ctx->srvr_sig_curve && *ctx->srvr_sig_curve)
-	    vstring_sprintf_append(msg, " (%s)", ctx->srvr_sig_curve);
+	    vstring_sprintf_append(msg, " (%s%s)", ctx->srvr_sig_curve,
+	                           ctx->stoc_rpk ? " raw public key" : "");
 	else if (ctx->srvr_sig_bits > 0)
-	    vstring_sprintf_append(msg, " (%d bits)", ctx->srvr_sig_bits);
+	    vstring_sprintf_append(msg, " (%d bit%s)", ctx->srvr_sig_bits,
+	                           ctx->stoc_rpk ? " raw public key" : "s");
+	else if (ctx->stoc_rpk)
+	    vstring_sprintf_append(msg, " (raw public key)");
 	if (ctx->srvr_sig_dgst && *ctx->srvr_sig_dgst)
 	    vstring_sprintf_append(msg, " server-digest %s",
 				   ctx->srvr_sig_dgst);
@@ -1210,9 +1249,13 @@ void    tls_log_summary(TLS_ROLE role, TLS_USAGE usage, TLS_SESS_STATE *ctx)
 	vstring_sprintf_append(msg, " client-signature %s",
 			       ctx->clnt_sig_name);
 	if (ctx->clnt_sig_curve && *ctx->clnt_sig_curve)
-	    vstring_sprintf_append(msg, " (%s)", ctx->clnt_sig_curve);
+	    vstring_sprintf_append(msg, " (%s%s)", ctx->clnt_sig_curve,
+	                           ctx->ctos_rpk ? " raw public key" : "");
 	else if (ctx->clnt_sig_bits > 0)
-	    vstring_sprintf_append(msg, " (%d bits)", ctx->clnt_sig_bits);
+	    vstring_sprintf_append(msg, " (%d bit%s)", ctx->clnt_sig_bits,
+	                           ctx->ctos_rpk ? " raw public key" : "s");
+	else if (ctx->ctos_rpk)
+	    vstring_sprintf_append(msg, " (raw public key)");
 	if (ctx->clnt_sig_dgst && *ctx->clnt_sig_dgst)
 	    vstring_sprintf_append(msg, " client-digest %s",
 				   ctx->clnt_sig_dgst);
@@ -1288,6 +1331,8 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->cipher_name = 0;
     TLScontext->kex_name = 0;
     TLScontext->kex_curve = 0;
+    TLScontext->ctos_rpk = 0;
+    TLScontext->stoc_rpk = 0;
     TLScontext->clnt_sig_name = 0;
     TLScontext->clnt_sig_curve = 0;
     TLScontext->clnt_sig_dgst = 0;
@@ -1700,6 +1745,52 @@ const EVP_MD *tls_validate_digest(const char *dgst)
     if ((md_alg = tls_digest_byname(dgst, NULL)) == 0)
 	msg_warn("Digest algorithm \"%s\" not found", dgst);
     return md_alg;
+}
+
+void    tls_enable_client_rpk(SSL_CTX *ctx, SSL *ssl)
+{
+#if OPENSSL_VERSION_PREREQ(3,2)
+    static int warned = 0;
+    static const unsigned char cert_types_rpk[] = {
+	TLSEXT_cert_type_rpk,
+	TLSEXT_cert_type_x509
+    };
+
+    if ((ctx && !SSL_CTX_set1_client_cert_type(ctx, cert_types_rpk,
+					       sizeof(cert_types_rpk))) ||
+	(ssl && !SSL_set1_client_cert_type(ssl, cert_types_rpk,
+					   sizeof(cert_types_rpk)))) {
+	if (warned++) {
+	    ERR_clear_error();
+	    return;
+	}
+	msg_warn("Failed to enable client to server raw public key support");
+	tls_print_errors();
+    }
+#endif
+}
+
+void    tls_enable_server_rpk(SSL_CTX *ctx, SSL *ssl)
+{
+#if OPENSSL_VERSION_PREREQ(3,2)
+    static int warned = 0;
+    static const unsigned char cert_types_rpk[] = {
+	TLSEXT_cert_type_rpk,
+	TLSEXT_cert_type_x509
+    };
+
+    if ((ctx && !SSL_CTX_set1_server_cert_type(ctx, cert_types_rpk,
+					       sizeof(cert_types_rpk))) ||
+	(ssl && !SSL_set1_server_cert_type(ssl, cert_types_rpk,
+					   sizeof(cert_types_rpk)))) {
+	if (warned++) {
+	    ERR_clear_error();
+	    return;
+	}
+	msg_warn("Failed to enable server to client raw public key support");
+	tls_print_errors();
+    }
+#endif
 }
 
 #else

@@ -273,6 +273,7 @@ while (<>) {
     s;\blmtp_tls_loglevel\b;<a href="postconf.5.html#lmtp_tls_loglevel">$&</a>;g;
     s;\blmtp_tls_session_cache_database\b;<a href="postconf.5.html#lmtp_tls_session_cache_database">$&</a>;g;
     s;\blmtp_tls_session_cache_timeout\b;<a href="postconf.5.html#lmtp_tls_session_cache_timeout">$&</a>;g;
+    s;\blmtp_tls_enable_rpk\b;<a href="postconf.5.html#lmtp_tls_enable_rpk">$&</a>;g;
     s;\blmtp_tls_wrappermode\b;<a href="postconf.5.html#lmtp_tls_wrappermode">$&</a>;g;
     s;\blmtp_generic_maps\b;<a href="postconf.5.html#lmtp_generic_maps">$&</a>;g;
     s;\blmtp_pix_workaround_threshold_time\b;<a href="postconf.5.html#lmtp_pix_workaround_threshold_time">$&</a>;g;
@@ -695,6 +696,7 @@ while (<>) {
     s;\bsmtp_tls_block_early_mail_reply\b;<a href="postconf.5.html#smtp_tls_block_early_mail_reply">$&</a>;g;
     s;\bsmtp_tls_dane_insecure_mx_policy\b;<a href="postconf.5.html#smtp_tls_dane_insecure_mx_policy">$&</a>;g;
     s;\bsmtp_tls_force_insecure_host_tlsa_lookup\b;<a href="postconf.5.html#smtp_tls_force_insecure_host_tlsa_lookup">$&</a>;g;
+    s;\bsmtp_tls_enable_rpk\b;<a href="postconf.5.html#smtp_tls_enable_rpk">$&</a>;g;
     s;\bsmtp_tls_wrappermode\b;<a href="postconf.5.html#smtp_tls_wrappermode">$&</a>;g;
     s;\bsmtp_use_tls\b;<a href="postconf.5.html#smtp_use_tls">$&</a>;g;
     s;\bsmtp_header_checks\b;<a href="postconf.5.html#smtp_header_checks">$&</a>;g;
@@ -748,6 +750,7 @@ while (<>) {
     s;\bsmtpd_tls_ses[-</bB>]*\n*[ <bB>]*sion_cache_database\b;<a href="postconf.5.html#smtpd_tls_session_cache_database">$&</a>;g;
     s;\bsmtpd_tls_ses[-</bB>]*\n*[ <bB>]*sion_cache_timeout\b;<a href="postconf.5.html#smtpd_tls_session_cache_timeout">$&</a>;g;
     s;\bsmtpd_tls_always_issue_ses[-</bB>]*\n*[ <bB>]*sion_ids\b;<a href="postconf.5.html#smtpd_tls_always_issue_session_ids">$&</a>;g;
+    s;\bsmtpd_tls_enable_rpk\b;<a href="postconf.5.html#smtpd_tls_enable_rpk">$&</a>;g;
     s;\bsmtpd_tls_wrappermode\b;<a href="postconf.5.html#smtpd_tls_wrappermode">$&</a>;g;
     s;\bsmtpd_use_tls\b;<a href="postconf.5.html#smtpd_use_tls">$&</a>;g;
     s;\bsmtpd_reject_footer\b;<a href="postconf.5.html#smtpd_reject_footer">$&</a>;g;
@@ -1120,6 +1123,7 @@ while (<>) {
     s;\btlsproxy_tls_protocols\b;<a href="postconf.5.html#tlsproxy_tls_protocols">$&</a>;g;
     s;\btlsproxy_tls_req_ccert\b;<a href="postconf.5.html#tlsproxy_tls_req_ccert">$&</a>;g;
     s;\btlsproxy_tls_security_level\b;<a href="postconf.5.html#tlsproxy_tls_security_level">$&</a>;g;
+    s;\btlsproxy_tls_enable_rpk\b;<a href="postconf.5.html#tlsproxy_tls_enable_rpk">$&</a>;g;
     s;\btlsproxy_use_tls\b;<a href="postconf.5.html#tlsproxy_use_tls">$&</a>;g;
 
     s;\btlsproxy_client_CAfile\b;<a href="postconf.5.html#tlsproxy_client_CAfile">$&</a>;g;

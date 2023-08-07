@@ -86,8 +86,9 @@
 /*	available as:
 /* .IP TLScontext->peer_status
 /*	A bitmask field that records the status of the peer certificate
-/*	verification. This consists of one or more of TLS_CERT_FLAG_PRESENT,
-/*	TLS_CERT_FLAG_TRUSTED, TLS_CERT_FLAG_MATCHED and TLS_CERT_FLAG_SECURED.
+/*	verification. This consists of one or more of TLS_CRED_FLAG_CERT,
+/*	TLS_CRED_FLAG_RPK, TLS_CERT_FLAG_TRUSTED, TLS_CERT_FLAG_MATCHED and
+/*	TLS_CERT_FLAG_SECURED.
 /* .IP TLScontext->peer_CN
 /*	Extracted CommonName of the peer, or zero-length string if the
 /*	information could not be extracted.
@@ -303,15 +304,11 @@ static void uncache_session(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
     tls_mgr_delete(TLScontext->cache_type, TLScontext->serverid);
 }
 
-/* verify_extract_name - verify peer name and extract peer information */
+/* verify_x509 - process X.509 certificate verification status */
 
-static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
-				        const TLS_CLIENT_START_PROPS *props)
+static void verify_x509(TLS_SESS_STATE *TLScontext, X509 *peercert,
+			        const TLS_CLIENT_START_PROPS *props)
 {
-    int     verbose;
-
-    verbose = TLScontext->log_mask &
-	(TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE | TLS_LOG_PEERCERT);
 
     /*
      * On exit both peer_CN and issuer_CN should be set.
@@ -345,7 +342,8 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
 		TLScontext->peer_status |= TLS_CERT_FLAG_SECURED;
 	    TLScontext->peer_status |= TLS_CERT_FLAG_MATCHED;
 
-	    if (verbose) {
+	    if (TLScontext->log_mask &
+		(TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE | TLS_LOG_PEERCERT)) {
 		const char *peername = SSL_get0_peername(TLScontext->con);
 
 		if (peername)
@@ -353,6 +351,50 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
 			     TLScontext->namaddr, peername);
 		tls_dane_log(TLScontext);
 	    }
+	}
+    }
+
+    /*
+     * Give them a clue. Problems with trust chain verification are logged
+     * when the session is first negotiated, before the session is stored
+     * into the cache. We don't want mystery failures, so log the fact the
+     * real problem is to be found in the past.
+     */
+    if (!TLS_CERT_IS_MATCHED(TLScontext)
+	&& (TLScontext->log_mask & TLS_LOG_UNTRUSTED)) {
+	if (TLScontext->session_reused == 0)
+	    tls_log_verify_error(TLScontext);
+	else
+	    msg_info("%s: re-using session with untrusted peer credential, "
+		     "look for details earlier in the log", props->namaddr);
+    }
+}
+
+/* verify_rpk - process RFC7250 raw public key verification status */
+
+static void verify_rpk(TLS_SESS_STATE *TLScontext, EVP_PKEY *peerpkey,
+		               const TLS_CLIENT_START_PROPS *props)
+{
+    /* Was the raw public key (type of cert) matched? */
+    if (SSL_get_verify_result(TLScontext->con) == X509_V_OK) {
+	TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
+	if (TLScontext->must_fail) {
+	    msg_panic("%s: raw public key valid despite trust init failure",
+		      TLScontext->namaddr);
+	} else if (TLS_MUST_MATCH(TLScontext->level)) {
+
+	    /*
+	     * Fully secured only if not insecure like half-dane.  We use
+	     * TLS_CERT_FLAG_MATCHED to satisfy policy, but
+	     * TLS_CERT_FLAG_SECURED to log the effective security.
+	     */
+	    if (!TLS_NEVER_SECURED(TLScontext->level))
+		TLScontext->peer_status |= TLS_CERT_FLAG_SECURED;
+	    TLScontext->peer_status |= TLS_CERT_FLAG_MATCHED;
+
+	    if (TLScontext->log_mask &
+		(TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE | TLS_LOG_PEERCERT))
+		tls_dane_log(TLScontext);
 	}
     }
 
@@ -793,6 +835,30 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     }
 
     /*
+     * Enable support for client->server raw public keys, provided we actually
+     * have keys to send.  They'll only be used if the server also enables
+     * client RPKs.
+     *
+     * XXX: When the server requests client auth, the TLS 1.2 protocol does not
+     * provide an unambiguous mechanism for the client to not send an RPK (as
+     * it can with client X.509 certs or TLS 1.3).  This is why we don't just
+     * enable client RPK also with no keys in hand.
+     *
+     * A very unlikely scenario is that the server allows clients to not send
+     * keys, but only accepts keys for a set of algorithms we don't have.  Then
+     * we still can't send a key, but have agreed to RPK.  OpenSSL will attempt
+     * to send an empty RPK even with TLS 1.2 (and will accept such a message),
+     * but other implementations may be more strict.
+     *
+     * We could limit client RPK support to connections that support only TLS
+     * 1.3 and up, but that's practical only decades in the future, and the
+     * risk scenario is contrived and very unlikely.
+     */
+    if (SSL_CTX_get0_certificate(client_ctx) != NULL &&
+        SSL_CTX_get0_privatekey(client_ctx) != NULL)
+        tls_enable_client_rpk(client_ctx, NULL);
+
+    /*
      * With OpenSSL 1.0.2 and later the client EECDH curve list becomes
      * configurable with the preferred curve negotiated via the supported
      * curves extension.  With OpenSSL 3.0 and TLS 1.3, the same applies
@@ -1008,6 +1074,24 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     }
 
     /*
+     * Possibly enable RFC7250 raw public keys in non-DANE/non-PKI levels
+     * when the fingerprint mask includes only public keys.  For "may" and
+     * "encrypt" this is a heuristic, since we don't use the fingerprints
+     * beyond reporting them in verbose logging.  If you always want certs
+     * with "may" and "encrypt" you'll have to tolerate them with
+     * "fingerprint", or use a separate transport.
+     */
+    switch (props->tls_level) {
+    case TLS_LEV_MAY:
+    case TLS_LEV_ENCRYPT:
+    case TLS_LEV_FPRINT:
+	if (props->enable_rpk)
+	    tls_enable_server_rpk(NULL, TLScontext->con);
+    default:
+	break;
+    }
+
+    /*
      * Try to convey the configured TLSA records for this connection to the
      * OpenSSL library.  If none are "usable", we'll fall back to "encrypt"
      * when authentication is not mandatory, otherwise we must arrange to
@@ -1175,6 +1259,7 @@ TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
 {
     const SSL_CIPHER *cipher;
     X509   *peercert;
+    EVP_PKEY *peerpkey = 0;
 
     /* Turn off packet dump if only dumping the handshake */
     if ((TLScontext->log_mask & TLS_LOG_ALLPKTS) == 0)
@@ -1192,31 +1277,61 @@ TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
      * Do peername verification if requested and extract useful information
      * from the certificate for later use.
      */
-    if ((peercert = TLS_PEEK_PEER_CERT(TLScontext->con)) != 0) {
-	TLScontext->peer_status |= TLS_CERT_FLAG_PRESENT;
+    peercert = TLS_PEEK_PEER_CERT(TLScontext->con);
+    if (peercert != 0) {
+	peerpkey = X509_get0_pubkey(peercert);
+    }
+#if OPENSSL_VERSION_PREREQ(3,2)
+    else {
+	peerpkey = SSL_get0_peer_rpk(TLScontext->con);
+    }
+#endif
+
+    if (peercert != 0) {
+	TLScontext->peer_status |= TLS_CRED_FLAG_CERT;
 
 	/*
 	 * Peer name or fingerprint verification as requested.
 	 * Unconditionally set peer_CN, issuer_CN and peer_cert_fprint. Check
 	 * fingerprint first, and avoid logging verified as untrusted in the
-	 * call to verify_extract_name().
+	 * call to verify_x509().
 	 */
-	TLScontext->peer_cert_fprint = tls_cert_fprint(peercert, props->mdalg);
-	TLScontext->peer_pkey_fprint = tls_pkey_fprint(peercert, props->mdalg);
-	verify_extract_name(TLScontext, peercert, props);
+	TLScontext->peer_cert_fprint =
+	    tls_cert_fprint(peercert, props->mdalg);
+	TLScontext->peer_pkey_fprint =
+	    tls_pkey_fprint(peerpkey, props->mdalg);
+	verify_x509(TLScontext, peercert, props);
 
 	if (TLScontext->log_mask &
 	    (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE | TLS_LOG_PEERCERT))
-	    msg_info("%s: subject_CN=%s, issuer_CN=%s, "
-		     "fingerprint=%s, pkey_fingerprint=%s", props->namaddr,
+	    msg_info("%s: subject_CN=%s, issuer=%s%s%s%s%s",
+		     TLScontext->namaddr,
 		     TLScontext->peer_CN, TLScontext->issuer_CN,
-		     TLScontext->peer_cert_fprint,
-		     TLScontext->peer_pkey_fprint);
+		     *TLScontext->peer_cert_fprint ?
+		     ", cert fingerprint=" : "",
+		     *TLScontext->peer_cert_fprint ?
+		     TLScontext->peer_cert_fprint : "",
+		     *TLScontext->peer_pkey_fprint ?
+		     ", pkey fingerprint=" : "",
+		     *TLScontext->peer_pkey_fprint ?
+		     TLScontext->peer_pkey_fprint : "");
     } else {
 	TLScontext->issuer_CN = mystrdup("");
 	TLScontext->peer_CN = mystrdup("");
 	TLScontext->peer_cert_fprint = mystrdup("");
-	TLScontext->peer_pkey_fprint = mystrdup("");
+
+	if (!peerpkey) {
+	    TLScontext->peer_pkey_fprint = mystrdup("");
+	} else {
+	    TLScontext->peer_status |= TLS_CRED_FLAG_RPK;
+	    TLScontext->peer_pkey_fprint =
+		tls_pkey_fprint(peerpkey, props->mdalg);
+	    if (TLScontext->log_mask &
+		(TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE | TLS_LOG_PEERCERT))
+		msg_info("%s: raw public key fingerprint=%s", props->namaddr,
+			 TLScontext->peer_pkey_fprint);
+	    verify_rpk(TLScontext, peerpkey, props);
+	}
     }
 
     /*

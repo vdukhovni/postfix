@@ -280,6 +280,13 @@ TLSPROXY(8)                                                        TLSPROXY(8)
               Files  with  the Postfix <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a> server keys and certificate
               chains in PEM format.
 
+       Available in Postfix version 3.9 and later:
+
+       <b><a href="postconf.5.html#tlsproxy_tls_enable_rpk">tlsproxy_tls_enable_rpk</a> ($<a href="postconf.5.html#smtpd_tls_enable_rpk">smtpd_tls_enable_rpk</a>)</b>
+              Request that remote SMTP clients send an <a href="https://tools.ietf.org/html/rfc7250">RFC7250</a> raw public  key
+              instead of an X.509 certificate, when asking or requiring client
+              authentication.
+
 <b>STARTTLS CLIENT CONTROLS</b>
        These settings are clones of Postfix SMTP client settings.  They  allow
        <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a> to load the same certificate and private key information as

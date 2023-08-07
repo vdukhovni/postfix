@@ -334,9 +334,10 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 		INVALID_RETURN(tls->why, site_level);
 		break;
 	    case TLS_LEV_FPRINT:
-		if (!tls->dane)
-		    tls->dane = tls_dane_alloc();
-		tls_dane_add_fpt_digests(tls->dane, val, "|", smtp_mode);
+		if (tls->matchargv == 0)
+		    tls->matchargv = argv_split(val, "|");
+		else
+		    argv_split_append(tls->matchargv, val, "|");
 		break;
 	    case TLS_LEV_VERIFY:
 	    case TLS_LEV_SECURE:
@@ -383,6 +384,19 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 		tls->conn_reuse = 1;
 	    } else if (strcasecmp(val, "no") == 0) {
 		tls->conn_reuse = 0;
+	    } else {
+		msg_warn("%s: attribute \"%s\" has bad value: \"%s\"",
+			 WHERE, name, val);
+		INVALID_RETURN(tls->why, site_level);
+	    }
+	    continue;
+	}
+	if (!strcasecmp(name, "enable_rpk")) {
+	    /* Ultimately ignored at some security levels */
+	    if (strcasecmp(val, "yes") == 0) {
+		tls->enable_rpk = 1;
+	    } else if (strcasecmp(val, "no") == 0) {
+		tls->enable_rpk = 0;
 	    } else {
 		msg_warn("%s: attribute \"%s\" has bad value: \"%s\"",
 			 WHERE, name, val);
@@ -518,6 +532,7 @@ static void *policy_create(const char *unused_key, void *context)
 
     smtp_tls_policy_init(tls, dsb_create());
     tls->conn_reuse = var_smtp_tls_conn_reuse;
+    tls->enable_rpk = var_smtp_tls_enable_rpk;
 
     /*
      * Compute the per-site TLS enforcement level. For compatibility with the
@@ -602,6 +617,13 @@ static void *policy_create(const char *unused_key, void *context)
      */
     set_cipher_grade(tls);
 
+/*
+ * Even when soliciting raw public keys, synthesize TLSA RRs that also match
+ * certificates.  Though this is fragile, it maintains compatibility with
+ * servers that never return RPKs.
+ */
+#define DONT_SUPPRESS_CERT_MATCH	0
+
     /*
      * Use main.cf cert_match setting if not set in per-destination table.
      */
@@ -617,16 +639,26 @@ static void *policy_create(const char *unused_key, void *context)
     case TLS_LEV_FPRINT:
 	if (tls->dane == 0)
 	    tls->dane = tls_dane_alloc();
-	if (tls->dane->tlsa == 0) {
-	    tls_dane_add_fpt_digests(tls->dane, var_smtp_tls_fpt_cmatch,
-				     CHARS_COMMA_SP, smtp_mode);
-	    if (tls->dane->tlsa == 0) {
-		msg_warn("nexthop domain %s: configured at fingerprint "
-		       "security level, but with no fingerprints to match.",
-			 dest);
-		MARK_INVALID(tls->why, &tls->level);
-		return ((void *) tls);
+	/* Process the specified fingerprint match patterns */
+	if (tls->matchargv) {
+	    int     i;
+
+	    for (i = 0; i < tls->matchargv->argc; ++i) {
+		tls_dane_add_fpt_digests(tls->dane, DONT_SUPPRESS_CERT_MATCH,
+					 tls->matchargv->argv[i], "",
+					 smtp_mode);
 	    }
+	} else {
+	    tls_dane_add_fpt_digests(tls->dane, DONT_SUPPRESS_CERT_MATCH,
+				     var_smtp_tls_fpt_cmatch, CHARS_COMMA_SP,
+				     smtp_mode);
+	}
+	if (tls->dane->tlsa == 0) {
+	    msg_warn("nexthop domain %s: configured at fingerprint "
+		     "security level, but with no fingerprints to match.",
+		     dest);
+	    MARK_INVALID(tls->why, &tls->level);
+	    return ((void *) tls);
 	}
 	break;
     case TLS_LEV_VERIFY:

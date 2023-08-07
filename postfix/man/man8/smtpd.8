@@ -571,6 +571,12 @@ Optional configuration file with baseline OpenSSL settings.
 .IP "\fBtls_config_name (empty)\fR"
 The application name passed by Postfix to OpenSSL library
 initialization functions.
+.PP
+Available in Postfix version 3.9 and later:
+.IP "\fBsmtpd_tls_enable_rpk (no)\fR"
+Request that remote SMTP clients send an RFC7250 raw public key
+instead of an X.509 certificate, when asking for or requiring client
+authentication.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

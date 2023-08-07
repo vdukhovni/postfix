@@ -124,6 +124,7 @@
 	VAR_SMTP_TLS_NOTEOFFER, DEF_SMTP_TLS_NOTEOFFER, &var_smtp_tls_note_starttls_offer,
 	VAR_SMTP_TLS_BLK_EARLY_MAIL_REPLY, DEF_SMTP_TLS_BLK_EARLY_MAIL_REPLY, &var_smtp_tls_blk_early_mail_reply,
 	VAR_SMTP_TLS_FORCE_TLSA, DEF_SMTP_TLS_FORCE_TLSA, &var_smtp_tls_force_tlsa,
+	VAR_SMTP_TLS_ENABLE_RPK, DEF_SMTP_TLS_ENABLE_RPK, &var_smtp_tls_enable_rpk,
 #endif
 	VAR_SMTP_TLS_WRAPPER, DEF_SMTP_TLS_WRAPPER, &var_smtp_tls_wrappermode,
 	VAR_SMTP_SENDER_AUTH, DEF_SMTP_SENDER_AUTH, &var_smtp_sender_auth,

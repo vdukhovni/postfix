@@ -537,6 +537,12 @@
 /* .IP "\fBtls_config_name (empty)\fR"
 /*	The application name passed by Postfix to OpenSSL library
 /*	initialization functions.
+/* .PP
+/*	Available in Postfix version 3.9 and later:
+/* .IP "\fBsmtpd_tls_enable_rpk (no)\fR"
+/*	Request that remote SMTP clients send an RFC7250 raw public key
+/*	instead of an X.509 certificate, when asking for or requiring client
+/*	authentication.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -1479,6 +1485,7 @@ char   *var_smtpd_tls_eecdh;
 char   *var_smtpd_tls_eccert_file;
 char   *var_smtpd_tls_eckey_file;
 char   *var_smtpd_tls_chain_files;
+int    var_smtpd_tls_enable_rpk;
 
 #endif
 
@@ -3494,6 +3501,11 @@ static void common_pre_message_handling(SMTPD_STATE *state,
 			    "verified OK" : "not verified");
 		vstring_free(issuer_CN);
 		vstring_free(peer_CN);
+	    } else if (TLS_RPK_IS_PRESENT(state->tls_context)) {
+		out_fprintf(out_stream, REC_TYPE_NORM,
+			    "\t(Client RPK %s digest %s)",
+			    var_smtpd_tls_fpt_dgst,
+			    state->tls_context->peer_pkey_fprint);
 	    } else if (var_smtpd_tls_ask_ccert)
 		out_fprintf(out_stream, REC_TYPE_NORM,
 			    "\t(Client did not present a certificate)");
@@ -5143,6 +5155,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 			 stream = state->client,
 			 fd = -1,
 			 timeout = var_smtpd_starttls_tmout,
+			 enable_rpk = var_smtpd_tls_enable_rpk,
 			 requirecert = requirecert,
 			 serverid = state->service,
 			 namaddr = state->namaddr,
@@ -6292,7 +6305,6 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 		no_server_cert_ok = 0;
 		cert_file = var_smtpd_tls_cert_file;
 	    }
-
 	    have_server_cert = *cert_file != 0;
 	    have_server_cert |= *var_smtpd_tls_eccert_file != 0;
 	    have_server_cert |= *var_smtpd_tls_dcert_file != 0;
@@ -6541,6 +6553,7 @@ int     main(int argc, char **argv)
 #ifdef USE_TLS
 	VAR_SMTPD_TLS_ACERT, DEF_SMTPD_TLS_ACERT, &var_smtpd_tls_ask_ccert,
 	VAR_SMTPD_TLS_RCERT, DEF_SMTPD_TLS_RCERT, &var_smtpd_tls_req_ccert,
+	VAR_SMTPD_TLS_ENABLE_RPK, DEF_SMTPD_TLS_ENABLE_RPK, &var_smtpd_tls_enable_rpk,
 	VAR_SMTPD_TLS_RECHEAD, DEF_SMTPD_TLS_RECHEAD, &var_smtpd_tls_received_header,
 	VAR_SMTPD_TLS_SET_SESSID, DEF_SMTPD_TLS_SET_SESSID, &var_smtpd_tls_set_sessid,
 #endif

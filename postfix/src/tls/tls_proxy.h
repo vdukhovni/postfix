@@ -108,11 +108,11 @@ extern VSTREAM *tls_proxy_open(const char *, int, VSTREAM *, const char *,
     ((props)->a12), ((props)->a13), ((props)->a14))
 
 #define TLS_PROXY_CLIENT_START_PROPS(props, a1, a2, a3, a4, a5, a6, a7, a8, \
-    a9, a10, a11, a12, a13, a14) \
+    a9, a10, a11, a12, a13, a14, a15) \
     (((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), ((props)->a14))
+    ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15))
 
 extern TLS_SESS_STATE *tls_proxy_context_receive(VSTREAM *);
 extern void tls_proxy_context_free(TLS_SESS_STATE *);
@@ -170,6 +170,8 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
 #define TLS_ATTR_KEX_NAME	"key_exchange"
 #define TLS_ATTR_KEX_CURVE	"key_exchange_curve"
 #define TLS_ATTR_KEX_BITS	"key_exchange_bits"
+#define TLS_ATTR_CTOS_RPK	"ctos_rpk"
+#define TLS_ATTR_STOC_RPK	"stoc_rpk"
 #define TLS_ATTR_CLNT_SIG_NAME	"clnt_signature"
 #define TLS_ATTR_CLNT_SIG_CURVE	"clnt_signature_curve"
 #define TLS_ATTR_CLNT_SIG_BITS	"clnt_signature_bits"
@@ -239,6 +241,7 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
   * TLS_CLIENT_START_PROPS attributes.
   */
 #define TLS_ATTR_TIMEOUT	"timeout"
+#define TLS_ATTR_ENABLE_RPK	"enable_rpk"
 #define TLS_ATTR_TLS_LEVEL	"tls_level"
 #define TLS_ATTR_NEXTHOP	"nexthop"
 #define TLS_ATTR_HOST		"host"

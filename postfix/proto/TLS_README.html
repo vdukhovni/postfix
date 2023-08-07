@@ -2266,82 +2266,124 @@ describe the corresponding table syntax: </p>
 additional attributes are supported at this level. </dd>
 
 <dt><b>may</b></dt> <dd><a href="#client_tls_may">Opportunistic TLS</a>.
-The optional "ciphers", "exclude" and "protocols" attributes
-(available for opportunistic TLS with Postfix &ge; 2.6) override the
-"smtp_tls_ciphers", "smtp_tls_exclude_ciphers" and "smtp_tls_protocols"
-configuration parameters.  At this level and higher, the optional
-"servername" attribute (available with Postfix &ge; 3.4) overrides the
-global "smtp_tls_servername" parameter, enabling per-destination
-configuration of the SNI extension sent to the remote SMTP server. </dd>
+The optional "ciphers", "exclude", and "protocols" attributes (available
+for opportunistic TLS with Postfix &ge; 2.6) and "connection_reuse"
+attribute (Postfix &ge; 3.4) override the "smtp_tls_ciphers",
+"smtp_tls_exclude_ciphers", "smtp_tls_protocols", and
+"smtp_tls_connection_reuse" configuration parameters.  At this level and
+higher, the optional "servername" attribute (available with Postfix &ge;
+3.4) overrides the global "smtp_tls_servername" parameter, enabling
+per-destination configuration of the SNI extension sent to the remote
+SMTP server.  The optional "enable_rpk" attribute (Postfix &ge; 3.9)
+overrides the main.cf smtp_tls_enable_rpk parameter.  When opportunistic
+TLS handshakes fail, Postfix retries the connection with TLS disabled.
+This allows mail delivery to sites with non-interoperable TLS
+implementations.</dd>
 
 <dt><b>encrypt</b></dt> <dd><a href="#client_tls_encrypt"> Mandatory encryption</a>.
-Mail is delivered only if the remote SMTP server offers STARTTLS
-and the TLS handshake succeeds. At this level and higher, the optional
+Mail is delivered only if the remote SMTP server offers STARTTLS and the
+TLS handshake succeeds. At this level and higher, the optional
 "protocols" attribute overrides the main.cf smtp_tls_mandatory_protocols
-parameter, the optional "ciphers" attribute overrides the
-main.cf smtp_tls_mandatory_ciphers parameter, and the optional
-"exclude" attribute (Postfix &ge; 2.6) overrides the main.cf
-smtp_tls_mandatory_exclude_ciphers parameter.  </dd>
+parameter, the optional "ciphers" attribute overrides the main.cf
+smtp_tls_mandatory_ciphers parameter, the optional "exclude" attribute
+(Postfix &ge; 2.6) overrides the main.cf
+smtp_tls_mandatory_exclude_ciphers parameter, and the optional
+"connection_reuse" attribute (Postfix &ge; 3.4) overrides the main.cf
+smtp_tls_connection_reuse parameter. The optional "enable_rpk" attribute
+(Postfix &ge; 3.9) overrides the main.cf smtp_tls_enable_rpk parameter.
+</dd>
 
 <dt><b>dane</b></dt> <dd><a href="#client_tls_dane">Opportunistic DANE TLS</a>.
 The TLS policy for the destination is obtained via TLSA records in
-DNSSEC.  If no TLSA records are found, the effective security level
-used is <a href="#client_tls_may">may</a>.  If TLSA records are
-found, but none are usable, the effective security level is <a
-href="#client_tls_encrypt">encrypt</a>.  When usable TLSA records
-are obtained for the remote SMTP server, SSLv2+3 are automatically
-disabled (see smtp_tls_mandatory_protocols), and the server certificate
-must match the TLSA records.  RFC 7672 (DANE) TLS authentication
-and DNSSEC support is available with Postfix 2.11 and later.  </dd>
+DNSSEC.  If no TLSA records are found, the effective security level used
+is <a href="#client_tls_may">may</a>.  If TLSA records are found, but
+none are usable, the effective security level is <a
+href="#client_tls_encrypt">encrypt</a>.  When usable TLSA records are
+obtained for the remote SMTP server, the server certificate must match
+the TLSA records (and the SNI name is unconditionally set to the TLSA
+<i>base domain</i>).  RFC 7672 (DANE) TLS authentication and DNSSEC
+support is available with Postfix 2.11 and later. The optional
+"connection_reuse" attribute (Postfix &ge; 3.4) overrides the main.cf
+smtp_tls_connection_reuse parameter.  When the effective security level
+used is <a href="#client_tls_may">may</a>, the optional "ciphers",
+"exclude", and "protocols" attributes (Postfix &ge; 2.6) override the
+"smtp_tls_ciphers", "smtp_tls_exclude_ciphers", and "smtp_tls_protocols"
+configuration parameters.  When the effective security level used is <a
+href="#client_tls_encrypt">encrypt</a>, the optional "ciphers",
+"exclude", and "protocols" attributes (Postfix &ge; 2.6) override the
+"smtp_tls_mandatory_ciphers", "smtp_tls_mandatory_exclude_ciphers", and
+"smtp_tls_mandatory_protocols" configuration parameters.  </dd>
 
 <dt><b>dane-only</b></dt> <dd><a href="#client_tls_dane">Mandatory DANE TLS</a>.
 The TLS policy for the destination is obtained via TLSA records in
-DNSSEC.  If no TLSA records are found, or none are usable, no
-connection is made to the server.  When usable TLSA records are
-obtained for the remote SMTP server, SSLv2+3 are automatically disabled
-(see smtp_tls_mandatory_protocols), and the server certificate must
-match the TLSA records.  RFC 7672 (DANE) TLS authentication and
-DNSSEC support is available with Postfix 2.11 and later.  </dd>
+DNSSEC.  If no TLSA records are found, or none are usable, no connection
+is made to the server.  When usable TLSA records are obtained for the
+remote SMTP server, the server certificate must match the TLSA records.
+RFC 7672 (DANE) TLS authentication and DNSSEC support is available with
+Postfix 2.11 and later. The optional "ciphers", "exclude", and
+"protocols" attributes (Postfix &ge; 2.6) override the
+"smtp_tls_mandatory_ciphers", "smtp_tls_mandatory_exclude_ciphers", and
+"smtp_tls_mandatory_protocols" configuration parameters. The optional
+"connection_reuse" attribute (Postfix &ge; 3.4) overrides the main.cf
+smtp_tls_connection_reuse parameter.  </dd>
 
 <dt><b>fingerprint</b></dt> <dd><a href="#client_tls_fprint">Certificate
-fingerprint verification.</a> Available with Postfix 2.5 and
-later. At this security level, there are no trusted Certification
-Authorities. The certificate trust chain, expiration date, ... are
-not checked. Instead, the optional <b>match</b> attribute, or else
-the main.cf <b>smtp_tls_fingerprint_cert_match</b> parameter, lists
-the server certificate fingerprints or public key fingerprints
-(Postfix 2.9 and later).  The
-digest algorithm used to calculate fingerprints is selected by the
-<b>smtp_tls_fingerprint_digest</b> parameter. Multiple fingerprints can
-be combined with a "|" delimiter in a single match attribute, or multiple
-match attributes can be employed. The ":" character is not used as a
-delimiter as it occurs between each pair of fingerprint (hexadecimal)
-digits. </dd>
+fingerprint verification.</a> Available with Postfix 2.5 and later. At
+this security level, there are no trusted Certification Authorities. The
+certificate trust chain, expiration date, ... are not checked. Instead,
+the optional "match" attribute, or else the main.cf
+<b>smtp_tls_fingerprint_cert_match</b> parameter, lists the certificate
+fingerprints or the public key fingerprints (Postfix 2.9 and later) of
+acceptable server certificates. The digest algorithm used to calculate
+the fingerprint is selected by the <b>smtp_tls_fingerprint_digest</b>
+parameter. Multiple fingerprints can be combined with a "|" delimiter in
+a single match attribute, or multiple match attributes can be employed.
+The ":" character is not used as a delimiter as it occurs between each
+pair of fingerprint (hexadecimal) digits. The optional "ciphers",
+"exclude", and "protocols" attributes (Postfix &ge; 2.6) override the
+"smtp_tls_mandatory_ciphers", "smtp_tls_mandatory_exclude_ciphers", and
+"smtp_tls_mandatory_protocols" configuration parameters. The optional
+"connection_reuse" attribute (Postfix &ge; 3.4) overrides the main.cf
+smtp_tls_connection_reuse parameter.  The optional "enable_rpk"
+attribute (Postfix &ge; 3.9) overrides the main.cf smtp_tls_enable_rpk
+parameter. </dd>
 
 <dt><b>verify</b></dt> <dd><a href="#client_tls_verify">Mandatory
-server certificate verification</a>.  Mail is delivered only if the
-TLS handshake succeeds, if the remote SMTP server certificate can
-be validated (not expired or revoked, and signed by a trusted
-Certification Authority), and if the server certificate name matches
-the optional "match" attribute (or the main.cf smtp_tls_verify_cert_match
-parameter value when no optional "match" attribute is specified).
-With Postfix &ge; 2.11 the "tafile" attribute optionally modifies
-trust chain verification in the same manner as the
-"smtp_tls_trust_anchor_file" parameter.  The "tafile" attribute
-may be specified multiple times to load multiple trust-anchor
-files.  </dd>
+server certificate verification</a>.  Mail is delivered only if the TLS
+handshake succeeds, the remote SMTP server certificate chain can be
+validated, and a DNS name in the certificate matches the specified match
+criteria. At this security level, DNS MX lookups are presumed to be
+secure enough, and the name verified in the server certificate is
+potentially obtained via unauthenticated DNS MX lookups.  The server
+certificate name must match either the optional "match" attribute, or
+else the main.cf smtp_tls_verify_cert_match parameter value.  With
+Postfix &ge; 2.11 the "tafile" attribute optionally modifies trust chain
+verification in the same manner as the "smtp_tls_trust_anchor_file"
+parameter.  The "tafile" attribute may be specified multiple times to
+load multiple trust-anchor files. The optional "connection_reuse"
+attribute (Postfix &ge; 3.4) overrides the main.cf
+smtp_tls_connection_reuse parameter.  </dd>
 
 <dt><b>secure</b></dt> <dd><a href="#client_tls_secure">Secure certificate
-verification.</a> Mail is delivered only if the TLS handshake succeeds,
-and DNS forgery resistant remote SMTP certificate verification succeeds
-(not expired or revoked, and signed by a trusted Certification Authority),
-and if the server certificate name matches the optional "match" attribute
-(or the main.cf smtp_tls_secure_cert_match parameter value when no optional
-"match" attribute is specified).  With Postfix &ge; 2.11 the "tafile"
-attribute optionally modifies trust chain verification in the same manner
-as the "smtp_tls_trust_anchor_file" parameter.  The "tafile" attribute
-may be specified multiple times to load multiple trust-anchor
-files.  </dd>
+verification.</a>
+Mail is delivered only if the TLS handshake succeeds, the remote SMTP
+server certificate chain can be validated, and a DNS name in the
+certificate matches the specified match criteria.  At this security
+level, DNS MX lookups, though potentially used to determine the
+candidate next-hop gateway IP addresses, are <b>not</b> presumed to be
+secure enough for TLS peername verification.  Instead, the default name
+verified in the server certificate is obtained directly from the
+next-hop, or is explicitly specified via the optional "match" attribute
+which overrides the main.cf smtp_tls_secure_cert_match parameter.  The
+optional "ciphers", "exclude", and "protocols" attributes (Postfix &ge;
+2.6) override the "smtp_tls_mandatory_ciphers",
+"smtp_tls_mandatory_exclude_ciphers", and "smtp_tls_mandatory_protocols"
+configuration parameters.  With Postfix &ge; 2.11 the "tafile" attribute
+optionally modifies trust chain verification in the same manner as the
+"smtp_tls_trust_anchor_file" parameter.  The "tafile" attribute may be
+specified multiple times to load multiple trust-anchor files. The
+optional "connection_reuse" attribute (Postfix &ge; 3.4) overrides the
+main.cf smtp_tls_connection_reuse parameter.  </dd>
 
 </dl>
 

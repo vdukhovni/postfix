@@ -3446,6 +3446,11 @@ parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
 compiled and linked with OpenSSL 1.0.0 or later.
+.SH lmtp_tls_enable_rpk (default: yes)
+The LMTP\-specific version of the smtp_tls_enable_rpk
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 3.9 and later.
 .SH lmtp_tls_enforce_peername (default: yes)
 The LMTP\-specific version of the smtp_tls_enforce_peername
 configuration parameter.  See there for details.
@@ -8579,6 +8584,75 @@ to anyone else.
 .PP
 This feature is available in Postfix 2.6 and later, when Postfix is
 compiled and linked with OpenSSL 1.0.0 or later.
+.SH smtp_tls_enable_rpk (default: no)
+Request that remote SMTP servers send an RFC7250 raw public key
+instead of an X.509 certificate. This feature and the enable_rpk
+policy attribute are ignored when there is no raw public key support
+in the local TLS implementation.
+.IP \(bu
+At the "may", "encrypt" and "fingerprint" security levels,
+with parameter setting "smtp_tls_enable_rpk = yes" or with "enable_rpk
+= yes" in a policy entry, the Postfix SMTP client will indicate in
+the TLS handshake that it prefers to receive a raw server public
+key, but it will still accept a server public key certificate.
+.IP \(bu
+At the "fingerprint" security level, with parameter setting
+"smtp_tls_enable_rpk = yes" or with "enable_rpk = yes" in a policy entry,
+server authentication based on certificate fingerprints becomes more
+fragile.  Even if the server private key and certificate remain
+unchanged, the remote SMTP server will fail fingerprint authentication
+(won't match the configured list of fingerprints) when it starts sending
+a raw public key instead of a certificate, after its TLS implementation
+is updated with raw public key support.  Therefore, \fBDO NOT\fR
+enable raw public keys to remote destinations authenticated by server
+\fBcertificate\fR fingerprints.  You should enable raw public keys
+only for servers matched via their public key fingerprint.
+.IP \(bu
+At the "dane" security level, the Postfix SMTP client
+always ignores the parameter setting smtp_tls_enable_rpk or the
+enable_rpk policy attribute. When all valid TLSA records specify
+only server public keys (no certificates) and the local TLS
+implementation supports raw public keys, the client will indicate
+in the TLS handshake that it prefers to receive a raw public key,
+but it will still accept a public key certificate.
+.br
+.PP
+The Postfix SMTP client is always willing to send raw public keys
+to servers that solicit them when a client certificate is configured
+and the local TLS implementation supports raw public keys.
+.PP
+Sample commands to compute certificate and public key SHA256 digests:
+.PP
+.nf
+.na
+.ft C
+# SHA256 digest of the first certificate in "cert.pem"
+$ openssl x509 \-in cert.pem \-outform DER | openssl dgst \-sha256 \-c
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+# SHA256 digest of the SPKI of the first certificate in "cert.pem"
+$ openssl x509 \-in cert.pem \-pubkey \-noout |
+    openssl pkey \-pubin \-outform DER | openssl dgst \-sha256 \-c
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+# SHA256 digest of the SPKI of the first private key in "pkey.pem"
+$ openssl pkey \-in pkey.pem \-pubout \-outform DER |
+    openssl dgst \-sha256 \-c
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 3.9 and later.
 .SH smtp_tls_enforce_peername (default: yes)
 With mandatory TLS encryption, require that the remote SMTP
 server hostname matches the information in the remote SMTP server
@@ -9156,28 +9230,35 @@ No TLS. No additional attributes are supported at this level.
 Opportunistic TLS. Since sending in the clear is acceptable,
 demanding stronger than default TLS security merely reduces
 interoperability. The optional "ciphers", "exclude", and "protocols"
-attributes (available for opportunistic TLS with Postfix >= 2.6)
-and "connection_reuse" attribute (Postfix >= 3.4) override the
+attributes (available for opportunistic TLS with Postfix >= 2.6) and
+"connection_reuse" attribute (Postfix >= 3.4) override the
 "smtp_tls_ciphers", "smtp_tls_exclude_ciphers", "smtp_tls_protocols",
-and
-"smtp_tls_connection_reuse" configuration parameters. In the policy table,
-multiple ciphers, protocols or excluded ciphers must be separated by colons,
-as attribute values may not contain whitespace or commas. When opportunistic
-TLS handshakes fail, Postfix retries the connection with TLS disabled.
-This allows mail delivery to sites with non\-interoperable TLS
-implementations.
+and "smtp_tls_connection_reuse" configuration parameters. In the policy
+table, multiple ciphers, protocols or excluded ciphers must be separated
+by colons, as attribute values may not contain whitespace or commas.  At
+this level and higher, the optional "servername" attribute (available
+with Postfix >= 3.4) overrides the global "smtp_tls_servername"
+parameter, enabling per\-destination configuration of the SNI extension
+sent to the remote SMTP server.  The optional "enable_rpk" attribute
+(Postfix >= 3.9) overrides the main.cf smtp_tls_enable_rpk parameter.
+When opportunistic TLS handshakes fail, Postfix retries the connection
+with TLS disabled.  This allows mail delivery to sites with
+non\-interoperable TLS implementations.
 .br
 .IP "\fBencrypt\fR"
-Mandatory TLS encryption. At this level
-and higher, the optional "protocols" attribute overrides the main.cf
+Mandatory TLS encryption. Mail is delivered only if the remote SMTP
+server offers STARTTLS and the TLS handshake succeeds. At this level and
+higher, the optional "protocols" attribute overrides the main.cf
 smtp_tls_mandatory_protocols parameter, the optional "ciphers" attribute
-overrides the main.cf smtp_tls_mandatory_ciphers parameter, the
-optional "exclude" attribute (Postfix >= 2.6) overrides the main.cf
+overrides the main.cf smtp_tls_mandatory_ciphers parameter, the optional
+"exclude" attribute (Postfix >= 2.6) overrides the main.cf
 smtp_tls_mandatory_exclude_ciphers parameter, and the optional
-"connection_reuse" attribute (Postfix >= 3.4) overrides the
-main.cf smtp_tls_connection_reuse parameter. In the policy table,
-multiple ciphers, protocols or excluded ciphers must be separated by colons,
-as attribute values may not contain whitespace or commas.
+"connection_reuse" attribute (Postfix >= 3.4) overrides the main.cf
+smtp_tls_connection_reuse parameter. In the policy table, multiple
+ciphers, protocols or excluded ciphers must be separated by colons, as
+attribute values may not contain whitespace or commas.  The optional
+"enable_rpk" attribute (Postfix >= 3.9) overrides the main.cf
+smtp_tls_enable_rpk parameter.
 .br
 .IP "\fBdane\fR"
 Opportunistic DANE TLS.  The TLS policy for the destination is
@@ -9216,10 +9297,10 @@ Certificate fingerprint
 verification. Available with Postfix 2.5 and later. At this security
 level, there are no trusted Certification Authorities. The certificate
 trust chain, expiration date, ... are not checked. Instead,
-the optional "match" attribute, or else the main.cf
+the optional policy table "match" attribute, or else the main.cf
 \fBsmtp_tls_fingerprint_cert_match\fR parameter, lists the certificate
-fingerprints or the public key fingerprint (Postfix 2.9 and later)
-of the valid server certificate. The digest
+fingerprints or the public key fingerprints (Postfix 2.9 and later)
+of acceptable server certificates. The digest
 algorithm used to calculate the fingerprint is selected by the
 \fBsmtp_tls_fingerprint_digest\fR parameter. Multiple fingerprints can
 be combined with a "|" delimiter in a single match attribute, or multiple
@@ -9230,45 +9311,58 @@ digits. The optional "ciphers", "exclude", and "protocols" attributes
 "smtp_tls_mandatory_exclude_ciphers", and "smtp_tls_mandatory_protocols"
 configuration parameters. The optional "connection_reuse" attribute
 (Postfix >= 3.4) overrides the main.cf smtp_tls_connection_reuse
-parameter.
+parameter.  The optional "enable_rpk" attribute (Postfix >= 3.9)
+overrides the main.cf smtp_tls_enable_rpk parameter.
 .br
 .IP "\fBverify\fR"
-Mandatory TLS verification.  At this security
-level, DNS MX lookups are trusted to be secure enough, and the name
-verified in the server certificate is usually obtained indirectly via
-unauthenticated DNS MX lookups.  The optional "match" attribute overrides
-the main.cf smtp_tls_verify_cert_match parameter. In the policy table,
-multiple match patterns and strategies must be separated by colons.
-In practice explicit control over matching is more common with the
-"secure" policy, described below. The optional "ciphers", "exclude",
-and "protocols" attributes (Postfix >= 2.6) override the
-"smtp_tls_mandatory_ciphers", "smtp_tls_mandatory_exclude_ciphers", and
-"smtp_tls_mandatory_protocols" configuration parameters. The optional
-"connection_reuse" attribute (Postfix >= 3.4) overrides the main.cf
-smtp_tls_connection_reuse parameter.
+Mandatory TLS verification.  Mail is delivered only if the TLS
+handshake succeeds, the remote SMTP server certificate chain can be
+validated, and a DNS name in the certificate matches the specified match
+criteria. At this security level, DNS MX lookups are presumed to be
+secure enough, and the name verified in the server certificate is
+potentially obtained via unauthenticated DNS MX lookups.  The optional
+"match" attribute overrides the main.cf smtp_tls_verify_cert_match
+parameter. In the policy table, multiple match patterns and strategies
+must be separated by colons.  In practice explicit control over matching
+is more common with the "secure" policy, described below. The optional
+"ciphers", "exclude", and "protocols" attributes (Postfix >= 2.6)
+override the "smtp_tls_mandatory_ciphers",
+"smtp_tls_mandatory_exclude_ciphers", and "smtp_tls_mandatory_protocols"
+configuration parameters. With Postfix >= 2.11 the optional "tafile"
+policy table attribute modifies trust chain verification in the same
+manner as the "smtp_tls_trust_anchor_file" parameter. The "tafile"
+attribute may be specified multiple times to load multiple trust\-anchor
+files. The optional "connection_reuse" attribute (Postfix >= 3.4)
+overrides the main.cf smtp_tls_connection_reuse parameter.
 .br
 .IP "\fBsecure\fR"
-Secure\-channel TLS. At this security level, DNS
-MX lookups, though potentially used to determine the candidate next\-hop
-gateway IP addresses, are \fBnot\fR trusted to be secure enough for TLS
-peername verification. Instead, the default name verified in the server
-certificate is obtained directly from the next\-hop, or is explicitly
-specified via the optional "match" attribute which overrides the
-main.cf smtp_tls_secure_cert_match parameter. In the policy table,
-multiple match patterns and strategies must be separated by colons.
-The match attribute is most useful when multiple domains are supported by
-a common server: the policy entries for additional domains specify matching
-rules for the primary domain certificate. While transport table overrides
-that route the secondary domains to the primary nexthop also allow secure
-verification, they risk delivery to the wrong destination when domains
-change hands or are re\-assigned to new gateways. With the "match"
-attribute approach, routing is not perturbed, and mail is deferred if
-verification of a new MX host fails. The optional "ciphers", "exclude",
-and "protocols" attributes (Postfix >= 2.6) override the
-"smtp_tls_mandatory_ciphers", "smtp_tls_mandatory_exclude_ciphers", and
-"smtp_tls_mandatory_protocols" configuration parameters. The optional
-"connection_reuse" attribute (Postfix >= 3.4) overrides the main.cf
-smtp_tls_connection_reuse parameter.
+Secure certificate verification. Mail is delivered only if the TLS
+handshake succeeds, the remote SMTP server certificate chain can be
+validated, and a DNS name in the certificate matches the specified match
+criteria.  At this security level, DNS MX lookups, though potentially
+used to determine the candidate next\-hop gateway IP addresses, are
+\fBnot\fR presumed to be secure enough for TLS peername verification.
+Instead, the default name verified in the server certificate is obtained
+directly from the next\-hop, or is explicitly specified via the optional
+"match" attribute which overrides the main.cf smtp_tls_secure_cert_match
+parameter. In the policy table, multiple match patterns and strategies
+must be separated by colons.  The match attribute is most useful when
+multiple domains are supported by a common server: the policy entries
+for additional domains specify matching rules for the primary domain
+certificate. While transport table overrides that route the secondary
+domains to the primary nexthop also allow secure verification, they risk
+delivery to the wrong destination when domains change hands or are
+re\-assigned to new gateways. With the "match" attribute approach,
+routing is not perturbed, and mail is deferred if verification of a new
+MX host fails. The optional "ciphers", "exclude", and "protocols"
+attributes (Postfix >= 2.6) override the "smtp_tls_mandatory_ciphers",
+"smtp_tls_mandatory_exclude_ciphers", and "smtp_tls_mandatory_protocols"
+configuration parameters. With Postfix >= 2.11 the "tafile" attribute
+optionally modifies trust chain verification in the same manner as the
+"smtp_tls_trust_anchor_file" parameter.  The "tafile" attribute may be
+specified multiple times to load multiple trust\-anchor files. The
+optional "connection_reuse" attribute (Postfix >= 3.4) overrides the
+main.cf smtp_tls_connection_reuse parameter.
 .br
 .br
 .PP
@@ -12826,6 +12920,59 @@ Postfix uses ciphers with forward secrecy.
 This feature is available in Postfix 2.6 and later, when it is
 compiled and linked with OpenSSL 1.0.0 or later on platforms
 where EC algorithms have not been disabled by the vendor.
+.SH smtpd_tls_enable_rpk (default: no)
+Request that remote SMTP clients send an RFC7250 raw public key
+instead of an X.509 certificate, when asking for or requiring client
+authentication. This feature is ignored when there is no raw public
+key support in the local TLS implementation.
+.PP
+The Postfix SMTP server will log a warning when "smtpd_tls_enable_rpk
+= yes", but the remote SMTP client sends a certificate, the
+certificate's public key fingerprint does not match a check_ccert_access
+table, while the certificate fingerprint does match a check_ccert_access
+table. The remote SMTP client would lose access when it starts
+sending a raw public key instead of a certificate, after its TLS
+implementation is updated with raw public key support.
+.PP
+The Postfix SMTP server always sends a raw public key instead
+of a certificate, if solicited by the remote SMTP client and the
+local TLS implementation supports raw public keys. If the client
+sends a server name indication with an SNI TLS extension, and
+tls_server_sni_maps is configured, the server will extract a raw
+public key from the indicated certificate.
+.PP
+Sample commands to compute certificate and public key SHA256 digests:
+.PP
+.nf
+.na
+.ft C
+# SHA256 digest of the first certificate in "cert.pem"
+$ openssl x509 \-in cert.pem \-outform DER | openssl dgst \-sha256 \-c
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+# SHA256 digest of the SPKI of the first certificate in "cert.pem"
+$ openssl x509 \-in cert.pem \-pubkey \-noout |
+    openssl pkey \-pubin \-outform DER | openssl dgst \-sha256 \-c
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+# SHA256 digest of the SPKI of the first private key in "pkey.pem"
+$ openssl pkey \-in pkey.pem \-pubout \-outform DER |
+    openssl dgst \-sha256 \-c
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 3.9 and later.
 .SH smtpd_tls_exclude_ciphers (default: empty)
 List of ciphers or cipher types to exclude from the SMTP server
 cipher list at all TLS security levels. Excluding valid ciphers
@@ -14643,6 +14790,12 @@ elliptic\-curve Diffie\-Hellman (EECDH) key exchange. See
 smtpd_tls_eecdh_grade for further details.
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_enable_rpk (default: $smtpd_tls_enable_rpk)
+Request that remote SMTP clients send an RFC7250 raw public key
+instead of an X.509 certificate, when asking or requiring client
+authentication. See $smtpd_tls_enable_rpk for details.
+.PP
+This feature is available in Postfix 3.9 and later.
 .SH tlsproxy_tls_exclude_ciphers (default: $smtpd_tls_exclude_ciphers)
 List of ciphers or cipher types to exclude from the \fBtlsproxy\fR(8)
 server cipher list at all TLS security levels. See

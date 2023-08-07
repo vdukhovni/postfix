@@ -144,6 +144,7 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
     int     depth;
     SSL    *con;
     TLS_SESS_STATE *TLScontext;
+    EVP_PKEY *rpk = 0;
 
     /* May be NULL as of OpenSSL 1.0, thanks for the API change! */
     cert = X509_STORE_CTX_get_current_cert(ctx);
@@ -151,6 +152,10 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
     con = X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
     TLScontext = SSL_get_ex_data(con, TLScontext_index);
     depth = X509_STORE_CTX_get_error_depth(ctx);
+#if OPENSSL_VERSION_PREREQ(3,2)
+    if (cert == 0)
+	rpk = X509_STORE_CTX_get0_rpk(ctx);
+#endif
 
     /*
      * Transient failures to load the (DNS or synthetic TLSA) trust settings
@@ -174,12 +179,15 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
 	update_error_state(TLScontext, depth, cert, err);
 
     if (TLScontext->log_mask & TLS_LOG_VERBOSE) {
-	if (cert)
+	if (cert) {
 	    X509_NAME_oneline(X509_get_subject_name(cert), buf, sizeof(buf));
-	else
-	    strcpy(buf, "<unknown>");
-	msg_info("%s: depth=%d verify=%d subject=%s",
-		 TLScontext->namaddr, depth, ok, printable(buf, '?'));
+	    msg_info("%s: depth=%d verify=%d subject=%s",
+		     TLScontext->namaddr, depth, ok, printable(buf, '?'));
+	} else if (rpk) {
+	    msg_info("%s: verify=%d raw public key", TLScontext->namaddr, ok);
+	} else {
+	    msg_info("%s: depth=%d verify=%d", TLScontext->namaddr, depth, ok);
+	}
     }
     return (1);
 }

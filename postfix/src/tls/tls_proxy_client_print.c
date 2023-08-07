@@ -257,6 +257,7 @@ int     tls_proxy_client_start_print(ATTR_PRINT_COMMON_FN print_fn,
 
     ret = print_fn(fp, flags | ATTR_FLAG_MORE,
 		   SEND_ATTR_INT(TLS_ATTR_TIMEOUT, props->timeout),
+		   SEND_ATTR_INT(TLS_ATTR_ENABLE_RPK, props->enable_rpk),
 		   SEND_ATTR_INT(TLS_ATTR_TLS_LEVEL, props->tls_level),
 		   SEND_ATTR_STR(TLS_ATTR_NEXTHOP,
 				 STRING_OR_EMPTY(props->nexthop)),
