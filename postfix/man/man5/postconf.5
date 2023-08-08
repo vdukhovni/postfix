@@ -8597,21 +8597,35 @@ the TLS handshake that it prefers to receive a raw server public
 key, but it will still accept a server public key certificate.
 .IP \(bu
 At the "fingerprint" security level, with parameter setting
-"smtp_tls_enable_rpk = yes" or with "enable_rpk = yes" in a policy entry,
-server authentication based on certificate fingerprints becomes more
-fragile.  Even if the server private key and certificate remain
-unchanged, the remote SMTP server will fail fingerprint authentication
-(won't match the configured list of fingerprints) when it starts sending
-a raw public key instead of a certificate, after its TLS implementation
-is updated with raw public key support.  Therefore, \fBDO NOT\fR
-enable raw public keys to remote destinations authenticated by server
-\fBcertificate\fR fingerprints.  You should enable raw public keys
-only for servers matched via their public key fingerprint.
+"smtp_tls_enable_rpk = yes" or with "enable_rpk = yes" in a policy
+entry, server authentication based on certificate fingerprints
+becomes more fragile.  Even if the server private key and certificate
+remain unchanged, the remote SMTP server will fail fingerprint
+authentication (won't match the configured list of fingerprints)
+when it starts sending a raw public key instead of a certificate,
+after its TLS implementation is updated with raw public key support.
+Therefore, \fBDO NOT\fR enable raw public keys to remote destinations
+authenticated by server \fBcertificate\fR fingerprints.  You should
+enable raw public keys only for servers matched via their public
+key fingerprint.
 .IP \(bu
-At the "dane" security level, the Postfix SMTP client
-always ignores the parameter setting smtp_tls_enable_rpk or the
-enable_rpk policy attribute. When all valid TLSA records specify
-only server public keys (no certificates) and the local TLS
+At the "verify" and "secure" security levels, the Postfix
+SMTP client always ignores the parameter setting smtp_tls_enable_rpk
+or the enable_rpk policy attribute.
+.IP \(bu
+At the opportunistic "dane" security level, the Postfix
+SMTP client ignores the parameter setting smtp_tls_enable_rpk or
+the enable_rpk policy attribute (but it will respect them when it
+falls back to the "may" or "encrypt" level). When all valid TLSA
+records specify only server public keys (no certificates) and the
+local TLS implementation supports raw public keys, the client will
+indicate in the TLS handshake that it prefers to receive a raw
+public key, but it will still accept a public key certificate.
+.IP \(bu
+At the mandatory "dane\-only" security level, the Postfix
+SMTP client always ignores the parameter setting smtp_tls_enable_rpk
+or the enable_rpk policy attribute. When all valid TLSA records
+specify only server public keys (no certificates) and the local TLS
 implementation supports raw public keys, the client will indicate
 in the TLS handshake that it prefers to receive a raw public key,
 but it will still accept a public key certificate.

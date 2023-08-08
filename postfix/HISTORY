@@ -27283,7 +27283,7 @@ Apologies for any names omitted.
 	b) when the Postfix SMTP client initiates a TLS handshake
 	with a remote SMTP server. See RELEASE_NOTES for details.
 	Viktor Dukhovni. Files: mantools/postlink, proto/TLS_README.html,
-	proto/postconf.proto, global/mail_params.h,
+	proto/postconf.proto, RELEASE_NOTES, global/mail_params.h,
 	posttls-finger/posttls-finger.c, smtp/lmtp_params.c,
 	smtp/smtp.c, smtp/smtp.h, smtp/smtp_params.c, smtp/smtp_proto.c,
 	smtp/smtp_tls_policy.c, smtpd/smtpd.c, smtpd/smtpd_check.c,
@@ -27292,3 +27292,8 @@ Apologies for any names omitted.
 	tls/tls_proxy_client_scan.c, tls/tls_proxy_context_print.c,
 	tls/tls_proxy_context_scan.c, tls/tls_server.c, tls/tls_verify.c,
 	tlsproxy/tlsproxy.c.
+
+20230808
+
+	Documentation loose ends. Files: proto/postconf.proto,
+	RELEASE_NOTES.

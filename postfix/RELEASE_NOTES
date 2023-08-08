@@ -48,12 +48,17 @@ Postfix with OpenSSL versions before 3.2).
   certificate. The Postfix SMTP client will still accept a server
   public key certificate instead of a public key.
 
-- At the "dane" security level, the Postfix SMTP client will ignore
-  smtp_tls_enable_rpk or enable_rpk settings, and will request that
-  a remote SMTP server sends an RFC7250 raw public key instead of
-  an X.509 certificate when all valid TLSA records specify only
-  server public keys (no certificates). The Postfix SMTP client
-  will still accept a server public key certificate.
+- At the "secure" and "verify" security level, the Postfix SMTP
+  client will ignore smtp_tls_enable_rpk or enable_rpk settings,
+  because these levels require a server certificate.
+
+- At the "dane" and "dane-only" security levels, the Postfix SMTP
+  client will ignore smtp_tls_enable_rpk or enable_rpk settings,
+  and will request that a remote SMTP server sends an RFC7250 raw
+  public key instead of an X.509 certificate when all valid TLSA
+  records specify only server public keys (no certificates). The
+  Postfix SMTP client will still accept a server public key
+  certificate.
 
 - The Postfix SMTP client and server always send a raw public key
   instead of a certificate, if solicited by the remote SMTP peer
@@ -66,17 +71,17 @@ Postfix with OpenSSL versions before 3.2).
 
 Caution: enabling Postfix raw key support will break authentication
 based on certificate fingerprints in check_ccert_access or
-smtp_policy_maps, when a remote peer's TLS implementation starts
+smtp_tls_policy_maps, when a remote peer's TLS implementation starts
 to send a raw public key instead of a certificate. The solution is
-to always use public key fingerprint patterns; these will match
-not only a "raw" public key, but also the public key in a certificate.
+to always use public key fingerprint patterns; these will match not
+only a "raw" public key, but also the public key in a certificate.
 
-To detect such problems before they happen, the Postfix SMTP client
-and server will log a warning when they request an RFC7250 raw
-public key instead of an X.509 certificate, the remote peer sends
-a certificate instead of a public key, and check_ccert_access or
-smtp_policy_maps has a matching fingerprint for the certificate but
-not for the public key in that certificate.
+To detect such problems before they happen, the Postfix SMTP server
+will log a warning when it requests an RFC7250 raw public key instead
+of an X.509 certificate, the remote peer sends a certificate instead
+of a public key, and check_ccert_access has a matching fingerprint
+for the certificate but not for the public key in that certificate.
+There is no corresponding warning from the Postfix SMTP client.
 
 For instructions to generate public-key fingerprints, see the
 postconf(5) man pages for smtp_tls_enable_rpk and smtpd_tls_enable_rpk.
