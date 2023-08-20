@@ -432,6 +432,11 @@
 /* .IP "\fBsmtp_send_dummy_mail_auth (no)\fR"
 /*	Whether or not to append the "AUTH=<>" option to the MAIL
 /*	FROM command in SASL-authenticated SMTP sessions.
+/* .PP
+/*	Available in Postfix version 3.9 and later:
+/* .IP "\fBsmtp_sasl_password_result_delimiter (:)\fR"
+/*	The delimiter between username and password in sasl_passwd_maps lookup
+/*	results.
 /* STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -1025,6 +1030,7 @@ int     var_smtp_never_ehlo;
 char   *var_smtp_sasl_opts;
 char   *var_smtp_sasl_path;
 char   *var_smtp_sasl_passwd;
+char   *var_smtp_sasl_passwd_res_delim;
 bool    var_smtp_sasl_enable;
 char   *var_smtp_sasl_mechs;
 char   *var_smtp_sasl_type;

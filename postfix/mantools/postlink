@@ -231,6 +231,8 @@ while (<>) {
     s;\blmtp_min_data_rate\b;<a href="postconf.5.html#lmtp_min_data_rate">$&</a>;g;
     s;\blmtp_reply_filter\b;<a href="postconf.5.html#lmtp_reply_filter">$&</a>;g;
     s;\blmtp_sasl_password_maps\b;<a href="postconf.5.html#lmtp_sasl_password_maps">$&</a>;g;
+    s;\bsmtp_sasl_password_result_delimiter\b;<a href="postconf.5.html#smtp_sasl_password_result_delimiter">$&</a>;g;
+    s;\blmtp_sasl_password_result_delimiter\b;<a href="postconf.5.html#lmtp_sasl_password_result_delimiter">$&</a>;g;
     s;\blmtp_send_dummy_mail_auth\b;<a href="postconf.5.html#lmtp_send_dummy_mail_auth">$&</a>;g;
     s;\blmtp_balance_inet_protocols\b;<a href="postconf.5.html#lmtp_balance_inet_protocols">$&</a>;g;
     s;\blmtp_sender_dependent_authentication\b;<a href="postconf.5.html#lmtp_sender_dependent_authentication">$&</a>;g;

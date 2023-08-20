@@ -464,6 +464,11 @@ Available in Postfix version 2.9 and later:
 .IP "\fBsmtp_send_dummy_mail_auth (no)\fR"
 Whether or not to append the "AUTH=<>" option to the MAIL
 FROM command in SASL\-authenticated SMTP sessions.
+.PP
+Available in Postfix version 3.9 and later:
+.IP "\fBsmtp_sasl_password_result_delimiter (:)\fR"
+The delimiter between username and password in sasl_passwd_maps lookup
+results.
 .SH "STARTTLS SUPPORT CONTROLS"
 .na
 .nf

@@ -4,6 +4,7 @@
 	VAR_BESTMX_TRANSP, DEF_BESTMX_TRANSP, &var_bestmx_transp, 0, 0,
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_SMTP_SASL_PASSWD, DEF_SMTP_SASL_PASSWD, &var_smtp_sasl_passwd, 0, 0,
+	VAR_SMTP_SASL_PASSWD_RES_DELIM, DEF_SMTP_SASL_PASSWD_RES_DELIM, &var_smtp_sasl_passwd_res_delim, 1, 1,
 	VAR_SMTP_SASL_OPTS, DEF_SMTP_SASL_OPTS, &var_smtp_sasl_opts, 0, 0,
 	VAR_SMTP_SASL_PATH, DEF_SMTP_SASL_PATH, &var_smtp_sasl_path, 0, 0,
 #ifdef USE_TLS

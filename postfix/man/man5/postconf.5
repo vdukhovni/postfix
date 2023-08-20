@@ -3298,6 +3298,9 @@ Optional Postfix LMTP client lookup tables with one username:password entry
 per host or domain.  If a remote host or domain has no username:password
 entry, then the Postfix LMTP client will not attempt to authenticate
 to the remote host.
+.SH lmtp_sasl_password_result_delimiter (default: :)
+The LMTP\-specific version of the smtp_sasl_password_result_delimiter
+configuration parameter.  See there for details.
 .SH lmtp_sasl_path (default: empty)
 Implementation\-specific information that is passed through to
 the SASL plug\-in implementation that is selected with
@@ -7996,12 +7999,19 @@ lookup is done only when sender\-dependent authentication is enabled.
 If no username:password entry is found, then the Postfix SMTP client
 will not attempt to authenticate to the remote host.
 .PP
+Use smtp_sasl_password_result_delimiter to specify an
+alternative separator between username and password.
+.PP
 The Postfix SMTP client opens the lookup table before going to
 chroot jail, so you can leave the password file in /etc/postfix.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
 whitespace or comma. Tables will be searched in the specified order
 until a match is found.
+.SH smtp_sasl_password_result_delimiter (default: :)
+The delimiter between username and password in sasl_passwd_maps lookup
+results. Specify one non\-whitespace character that does not appear in
+the username.
 .SH smtp_sasl_path (default: empty)
 Implementation\-specific information that the Postfix SMTP client
 passes through to

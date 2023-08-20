@@ -200,7 +200,9 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
 	if (session->sasl_username)
 	    myfree(session->sasl_username);
 	session->sasl_username = mystrdup(value);
-	passwd = split_at(session->sasl_username, ':');
+	/* Historically, the delimiter may appear in the password. */
+	passwd = split_at(session->sasl_username,
+			  *var_smtp_sasl_passwd_res_delim);
 	if (session->sasl_passwd)
 	    myfree(session->sasl_passwd);
 	session->sasl_passwd = mystrdup(passwd ? passwd : "");

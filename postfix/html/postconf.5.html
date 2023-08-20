@@ -5302,6 +5302,15 @@ to the remote host.
 
 </DD>
 
+<DT><b><a name="lmtp_sasl_password_result_delimiter">lmtp_sasl_password_result_delimiter</a>
+(default: :)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_sasl_password_result_delimiter">smtp_sasl_password_result_delimiter</a>
+configuration parameter.  See there for details. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_sasl_path">lmtp_sasl_path</a>
 (default: empty)</b></DT><DD>
 
@@ -12395,6 +12404,9 @@ If no username:password entry is found, then the Postfix SMTP client
 will not attempt to authenticate to the remote host.
 </p>
 
+<p> Use <a href="postconf.5.html#smtp_sasl_password_result_delimiter">smtp_sasl_password_result_delimiter</a> to specify an
+alternative separator between username and password. </p>
+
 <p>
 The Postfix SMTP client opens the lookup table before going to
 chroot jail, so you can leave the password file in /etc/postfix.
@@ -12405,6 +12417,16 @@ Specify zero or more "type:name" lookup tables, separated by
 whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_sasl_password_result_delimiter">smtp_sasl_password_result_delimiter</a>
+(default: :)</b></DT><DD>
+
+<p> The delimiter between username and password in sasl_passwd_maps lookup
+results. Specify one non-whitespace character that does not appear in
+the username. </p>
 
 
 </DD>

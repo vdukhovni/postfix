@@ -27297,3 +27297,18 @@ Apologies for any names omitted.
 
 	Documentation loose ends. Files: proto/postconf.proto,
 	RELEASE_NOTES.
+
+20230815
+
+	Bugfix (bug introduced: 20140218): when opportunistic TLS fails
+	during or after the handshake, don't require that a probe
+	message has a minimum time-in-queue before falling back to
+	plaintext. Problem reported by Serg. File: smtp/smtp.h.
+
+20230820
+
+	Feature: smtp_sasl_password_result_delimiter, for the rare
+	case that the ":" character needs to be part of the username.
+	mantools/postlink, proto/postconf.proto, global/mail_params.h,
+	smtp/lmtp_params.c, smtp/smtp.c, smtp/smtp_params.c,
+	smtp/smtp_sasl_glue.c.

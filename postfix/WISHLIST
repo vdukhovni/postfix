@@ -6,6 +6,8 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	postfix-install should mention makedefs.out.
+
 	Deprecate permit_mx_backup. It is fundamentally incompatible
 	with recipient address validation. There is no way to fix that:
 	reject_unverified_recipient requires that the domain is reachable,

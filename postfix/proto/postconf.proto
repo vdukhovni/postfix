@@ -4687,6 +4687,9 @@ If no username:password entry is found, then the Postfix SMTP client
 will not attempt to authenticate to the remote host.
 </p>
 
+<p> Use smtp_sasl_password_result_delimiter to specify an
+alternative separator between username and password. </p>
+
 <p>
 The Postfix SMTP client opens the lookup table before going to
 chroot jail, so you can leave the password file in /etc/postfix.
@@ -4697,6 +4700,17 @@ Specify zero or more "type:name" lookup tables, separated by
 whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
+
+%PARAM lmtp_sasl_password_result_delimiter :
+
+<p> The LMTP-specific version of the smtp_sasl_password_result_delimiter
+configuration parameter.  See there for details. </p>
+
+%PARAM smtp_sasl_password_result_delimiter :
+
+<p> The delimiter between username and password in sasl_passwd_maps lookup
+results. Specify one non-whitespace character that does not appear in
+the username. </p>
 
 %PARAM smtp_sasl_security_options noplaintext, noanonymous
 
