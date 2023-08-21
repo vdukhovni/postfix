@@ -27312,3 +27312,17 @@ Apologies for any names omitted.
 	mantools/postlink, proto/postconf.proto, global/mail_params.h,
 	smtp/lmtp_params.c, smtp/smtp.c, smtp/smtp_params.c,
 	smtp/smtp_sasl_glue.c.
+
+20230819
+
+	Bugfix (defect introduced: 19980207): the valid_hostname()
+	check in the Postfix DNS client library was blocking unusual
+	but legitimate wildcard names (*.name) in some DNS lookup
+	results and lookup requests. Examples:
+
+            *.one.example   IN CNAME *.other.example
+            *.other.example IN A     10.0.0.1
+            *.other.example IN TLSA  ..certificate info...
+
+	Reported first in the context of TLSA record lookups.
+	Files: util/valid_hostname.[hc], dns/dns_lookup.c.

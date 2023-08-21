@@ -18,6 +18,8 @@
 
 #define DONT_GRIPE		0
 #define DO_GRIPE		1
+#define DONT_WILDCARD		0
+#define DO_WILDCARD		(1<<1)
 
 extern int valid_hostname(const char *, int);
 extern int valid_hostaddr(const char *, int);

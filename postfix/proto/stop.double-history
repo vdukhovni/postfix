@@ -64,3 +64,4 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  tls tls h tls tls_client c tls tls_dane c tls tls_fprint c 
  reported by Serg File smtp smtp h 
  smtp lmtp_params c smtp smtp c smtp smtp_params c 
+ plaintext Problem reported by Serg File smtp smtp h 

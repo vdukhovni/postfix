@@ -6,9 +6,9 @@
 /* SYNOPSIS
 /*	#include <valid_hostname.h>
 /*
-/*	int	valid_hostname(name, gripe)
+/*	int	valid_hostname(name, flags)
 /*	const char *name;
-/*	int	gripe;
+/*	int	flags;
 /*
 /*	int	valid_hostaddr(addr, gripe)
 /*	const char *addr;
@@ -32,6 +32,10 @@
 /*	dots, no leading or trailing dots or hyphens, no labels
 /*	longer than VALID_LABEL_LEN characters, and it should not
 /*	be all numeric.
+/*	The flags argument is the bit-wise or of zero or more of
+/*	DO_GRIPE or DO_WILDCARD (the latter allows the "*." name
+/*	prefix, which is rare but valid in some DNS responses and
+/*	queries).
 /*
 /*	valid_hostaddr() requires that the input is a valid string
 /*	representation of an IPv4 or IPv6 network address as
@@ -83,7 +87,7 @@
 
 /* valid_hostname - screen out bad hostnames */
 
-int     valid_hostname(const char *name, int gripe)
+int     valid_hostname(const char *name, int flags)
 {
     const char *myname = "valid_hostname";
     const char *cp;
@@ -91,6 +95,7 @@ int     valid_hostname(const char *name, int gripe)
     int     label_count = 0;
     int     non_numeric = 0;
     int     ch;
+    int     gripe = flags & DO_GRIPE;
 
     /*
      * Trivial cases first.
@@ -116,6 +121,15 @@ int     valid_hostname(const char *name, int gripe)
 	    }
 	    if (!ISDIGIT(ch))
 		non_numeric = 1;
+	} else if ((flags & DO_WILDCARD) && ch == '*') {
+	    if (label_length || label_count || (cp[1] && cp[1] != '.')) {
+		if (gripe)
+		    msg_warn("%s: '*' can be the first label only: %.100s", myname, name);
+		return (0);
+	    }
+	    label_count++;
+	    label_length++;
+	    non_numeric = 1;
 	} else if (ch == '.') {
 	    if (label_length == 0 || cp[1] == 0) {
 		if (gripe)
@@ -393,8 +407,9 @@ int     main(int unused_argc, char **argv)
 
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	msg_info("testing: \"%s\"", vstring_str(buffer));
-	valid_hostname(vstring_str(buffer), DO_GRIPE);
-	valid_hostaddr(vstring_str(buffer), DO_GRIPE);
+	valid_hostname(vstring_str(buffer), DO_GRIPE | DO_WILDCARD);
+	if (strchr(vstring_str(buffer), '*') == 0)
+	    valid_hostaddr(vstring_str(buffer), DO_GRIPE);
     }
     exit(0);
 }
