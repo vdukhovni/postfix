@@ -27159,3 +27159,28 @@ Apologies for any names omitted.
 	(default: no) to disconnect remote SMTP clients that violate
 	RFC 2920 (or 5321) command pipelining constraints. Files:
 	global/mail_params.h, smtpd/smtpd.c, proto/postconf.proto.
+
+20230815
+
+	Bugfix (bug introduced: 20140218): when opportunistic TLS fails
+	during or after the handshake, don't require that a probe
+	message spent a minimum time-in-queue before falling back to
+	plaintext. Problem reported by Serg. File: smtp/smtp.h.
+
+20230819
+
+	Bugfix (defect introduced: 19980207): the valid_hostname()
+	check in the Postfix DNS client library was blocking unusual
+	but legitimate wildcard names (*.name) in some DNS lookup
+	results and lookup requests. Examples:
+
+            name          class/type value
+            *.one.example   IN CNAME *.other.example
+            *.other.example IN A     10.0.0.1
+            *.other.example IN TLSA  ..certificate info...
+
+	Such syntax is blesed in RFC 1034 section 4.3.3.
+
+	This problem was reported first in the context of TLSA
+	record lookups. Files: util/valid_hostname.[hc],
+	dns/dns_lookup.c.

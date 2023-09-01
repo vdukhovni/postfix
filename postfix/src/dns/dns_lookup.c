@@ -710,7 +710,7 @@ static int valid_rr_name(const char *name, const char *location,
     if (valid_hostaddr(name, DONT_GRIPE)) {
 	result = PASS_NAME;
 	gripe = "numeric domain name";
-    } else if (!valid_hostname(name, DO_GRIPE)) {
+    } else if (!valid_hostname(name, DO_GRIPE | DO_WILDCARD)) {
 	result = REJECT_NAME;
 	gripe = "malformed domain name";
     } else {
@@ -1045,7 +1045,7 @@ int     dns_lookup_x(const char *name, unsigned type, unsigned flags,
     /*
      * The Linux resolver misbehaves when given an invalid domain name.
      */
-    if (strcmp(name, ".") && !valid_hostname(name, DONT_GRIPE)) {
+    if (strcmp(name, ".") && !valid_hostname(name, DONT_GRIPE | DO_WILDCARD)) {
 	if (why)
 	    vstring_sprintf(why,
 		   "Name service error for %s: invalid host or domain name",
