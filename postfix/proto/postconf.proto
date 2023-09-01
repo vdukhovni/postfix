@@ -2468,8 +2468,8 @@ until a match is found.
 
 <p>
 If this parameter is non-empty (the default), then the Postfix SMTP
-server will reject mail for unknown local users.
-</p>
+server will reject mail for unknown local users. Other Postfix
+interfaces may still accept an "unknown" recipient.  </p>
 
 <p>
 To turn off local recipient checking in the Postfix SMTP server,
@@ -19026,3 +19026,18 @@ SMTP client input. This feature is enabled by default with Postfix
 
 <p> This feature is available in Postfix &ge; 3.9, 3.8.1, 3.7.6,
 3.6.10, and 3.5.20. </p>
+
+%PARAM enforce_mime_input_conversion no
+
+<p> Convert content that claims to be 8-bit into quoted-printable,
+before header_checks, body_checks, Milters, and before after-queue
+content filters. This feature does not affect messages that are
+sent into smtpd_proxy_filter. </p>
+
+<p> The typical use case is an MTA that applies this conversion
+before signing outbound messages, so that the signatures will remain
+valid when a message is later delivered to an MTA that does not
+announce 8BITMIME support, or when a message line exceeds the SMTP
+length limit. </p>
+
+<p> This feature is available in Postfix &ge; 3.9. </p>

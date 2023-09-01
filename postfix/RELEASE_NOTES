@@ -26,6 +26,21 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Major changes with snapshot 20230901
+====================================
+
+New parameter enforce_mime_input_conversion (default: no) to convert
+content that claims to be 8-bit into quoted-printable, before
+header_checks, body_checks, Milters, and before after-queue content
+filters. This feature does not affect messages that are sent into
+smtpd_proxy_filter.
+
+The typical use case is an MTA that applies this conversion before
+signing outbound messages, so that the signatures will remain valid
+when a message is later handled by an MTA that does not announce
+8BITMIME support, or when a message line exceeds the SMTP length
+limit.
+
 Major changes with snapshot 20230807
 ====================================
 

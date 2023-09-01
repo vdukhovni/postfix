@@ -427,6 +427,12 @@
 /* .IP "\fBinfo_log_address_format (external)\fR"
 /*	The email address form that will be used in non-debug logging
 /*	(info, warning, etc.).
+/* .PP
+/*	Available in Postfix 3.9 and later:
+/* .IP "\fBenforce_mime_input_conversion (no)\fR"
+/*	Convert content that claims to be 8-bit into quoted-printable,
+/*	before header_checks, body_checks, Milters, and before after-queue
+/*	content filters.
 /* FILES
 /*	/etc/postfix/canonical*, canonical mapping table
 /*	/etc/postfix/virtual*, virtual mapping table

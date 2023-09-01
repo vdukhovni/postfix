@@ -57,7 +57,8 @@ all names or addresses of local recipients. A recipient address is
 local when its domain matches $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or
 $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>. If a local username or address is not listed in
 $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>, then the Postfix SMTP server will reject
-the address with "User unknown in local recipient table".  </p>
+the address with "User unknown in local recipient table". Other
+Postfix interfaces may still accept an "unknown" recipient.  </p>
 
 <p> The default setting, shown below, assumes that you use the
 default Postfix <a href="local.8.html">local(8)</a> delivery agent for local delivery, where

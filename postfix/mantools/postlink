@@ -169,6 +169,7 @@ while (<>) {
     s;\bdisable_dns_lookups\b;<a href="postconf.5.html#disable_dns_lookups">$&</a>;g;
     s;\bdisable_mime_input_processing\b;<a href="postconf.5.html#disable_mime_input_processing">$&</a>;g;
     s;\bdisable_mime_output_conversion\b;<a href="postconf.5.html#disable_mime_output_conversion">$&</a>;g;
+    s;\benforce_mime_input_conversion\b;<a href="postconf.5.html#enforce_mime_input_conversion">$&</a>;g;
     s;\bdisable_verp_bounces\b;<a href="postconf.5.html#disable_verp_bounces">$&</a>;g;
     s;\bdisable_vrfy_command\b;<a href="postconf.5.html#disable_vrfy_command">$&</a>;g;
     s;\bdont_remove\b;<a href="postconf.5.html#dont_remove">$&</a>;g;

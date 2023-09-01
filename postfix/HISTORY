@@ -27300,10 +27300,11 @@ Apologies for any names omitted.
 
 20230815
 
-	Bugfix (bug introduced: 20140218): when opportunistic TLS fails
-	during or after the handshake, don't require that a probe
-	message has a minimum time-in-queue before falling back to
-	plaintext. Problem reported by Serg. File: smtp/smtp.h.
+	Bugfix (defect introduced: 20140218): when an address
+	verification probe fails during or after an opportunistic
+	TLS handshake, immediately fall back to plaintext, without
+	enforcing a minimum time-in-queue. Problem reported by Serg.
+	File: smtp/smtp.h.
 
 20230820
 
@@ -27320,9 +27321,34 @@ Apologies for any names omitted.
 	but legitimate wildcard names (*.name) in some DNS lookup
 	results and lookup requests. Examples:
 
+            name          class/type value
             *.one.example   IN CNAME *.other.example
             *.other.example IN A     10.0.0.1
             *.other.example IN TLSA  ..certificate info...
 
-	Reported first in the context of TLSA record lookups.
-	Files: util/valid_hostname.[hc], dns/dns_lookup.c.
+	Such syntax is blesed in RFC 1034 section 4.3.3.
+
+	This problem was reported first in the context of TLSA
+	record lookups. Files: util/valid_hostname.[hc],
+	dns/dns_lookup.c.
+
+20230831
+
+	Documentation: clarify the scope of local_recipient_maps.
+	Files: proto/LOCAL_RECIPIENT_README.html, proto/postconf.proto.
+
+	Documentation loose ends. Files: HISTORY, dns/dns_lookup.c.
+
+20230901
+
+	Feature: enforce_mime_input_conversion (default: no) to
+	convert content that claims to be 8-bit into quoted-printable,
+	before header_checks, body_checks, Milters, and before
+	after-queue content filters. The typical use case is an MTA
+	that applies this conversion before signing outbound messages,
+	so that the signatures will remain valid when a message is
+	later delivered to an MTA that does not announce 8BITMIME
+	support, or when a message line exceeds the SMTP length
+	limit. Files: global/mail_params.c, cleanup/cleanup_message.c,
+	cleanup/cleanup.c, cleanup/cleanup_init.c, proto/postconf.proto,
+	mantools/postlink.

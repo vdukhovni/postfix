@@ -2206,6 +2206,19 @@ instead of deleting only the non\-delivery notification.
 .br
 .PP
 This feature is available in Postfix 3.6 and later.
+.SH enforce_mime_input_conversion (default: no)
+Convert content that claims to be 8\-bit into quoted\-printable,
+before header_checks, body_checks, Milters, and before after\-queue
+content filters. This feature does not affect messages that are
+sent into smtpd_proxy_filter.
+.PP
+The typical use case is an MTA that applies this conversion
+before signing outbound messages, so that the signatures will remain
+valid when a message is later delivered to an MTA that does not
+announce 8BITMIME support, or when a message line exceeds the SMTP
+length limit.
+.PP
+This feature is available in Postfix >= 3.9.
 .SH error_notice_recipient (default: postmaster)
 The recipient of postmaster notifications about mail delivery
 problems that are caused by policy, resource, software or protocol
@@ -3820,7 +3833,8 @@ whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 If this parameter is non\-empty (the default), then the Postfix SMTP
-server will reject mail for unknown local users.
+server will reject mail for unknown local users. Other Postfix
+interfaces may still accept an "unknown" recipient.
 .PP
 To turn off local recipient checking in the Postfix SMTP server,
 specify "local_recipient_maps =" (i.e. empty).

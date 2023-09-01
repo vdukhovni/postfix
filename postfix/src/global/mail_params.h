@@ -3088,6 +3088,10 @@ extern bool var_disable_mime_input;
 #define DEF_DISABLE_MIME_OCONV		0
 extern bool var_disable_mime_oconv;
 
+#define VAR_ENFORCE_MIME_ICONV		"enforce_mime_input_conversion"
+#define DEF_ENFORCE_MIME_ICONV		0
+extern bool var_enforce_mime_iconv;
+
 #define VAR_STRICT_8BITMIME		"strict_8bitmime"
 #define DEF_STRICT_8BITMIME		0
 extern bool var_strict_8bitmime;

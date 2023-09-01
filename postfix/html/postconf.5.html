@@ -3425,6 +3425,25 @@ instead of deleting only the non-delivery notification. </dd>
 
 </DD>
 
+<DT><b><a name="enforce_mime_input_conversion">enforce_mime_input_conversion</a>
+(default: no)</b></DT><DD>
+
+<p> Convert content that claims to be 8-bit into quoted-printable,
+before <a href="postconf.5.html#header_checks">header_checks</a>, <a href="postconf.5.html#body_checks">body_checks</a>, Milters, and before after-queue
+content filters. This feature does not affect messages that are
+sent into <a href="postconf.5.html#smtpd_proxy_filter">smtpd_proxy_filter</a>. </p>
+
+<p> The typical use case is an MTA that applies this conversion
+before signing outbound messages, so that the signatures will remain
+valid when a message is later delivered to an MTA that does not
+announce 8BITMIME support, or when a message line exceeds the SMTP
+length limit. </p>
+
+<p> This feature is available in Postfix &ge; 3.9. </p>
+
+
+</DD>
+
 <DT><b><a name="error_notice_recipient">error_notice_recipient</a>
 (default: postmaster)</b></DT><DD>
 
@@ -6176,8 +6195,8 @@ until a match is found.
 
 <p>
 If this parameter is non-empty (the default), then the Postfix SMTP
-server will reject mail for unknown local users.
-</p>
+server will reject mail for unknown local users. Other Postfix
+interfaces may still accept an "unknown" recipient.  </p>
 
 <p>
 To turn off local recipient checking in the Postfix SMTP server,
