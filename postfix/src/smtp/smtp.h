@@ -487,17 +487,19 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 	(session->state->request->msg_stats.active_arrival.tv_sec - \
 	 session->state->request->msg_stats.incoming_arrival.tv_sec)
 
+#define TRACE_REQ_ONLY	(DEL_REQ_TRACE_ONLY(state->request->flags))
+
 #define PLAINTEXT_FALLBACK_OK_AFTER_STARTTLS_FAILURE \
 	(session->tls_context == 0 \
 	    && state->tls->level == TLS_LEV_MAY \
-	    && PREACTIVE_DELAY >= var_min_backoff_time \
+	    && (TRACE_REQ_ONLY || PREACTIVE_DELAY >= var_min_backoff_time) \
 	    && !HAVE_SASL_CREDENTIALS)
 
 #define PLAINTEXT_FALLBACK_OK_AFTER_TLS_SESSION_FAILURE \
 	(session->tls_context != 0 \
 	    && SMTP_RCPT_LEFT(state) > SMTP_RCPT_MARK_COUNT(state) \
 	    && state->tls->level == TLS_LEV_MAY \
-	    && PREACTIVE_DELAY >= var_min_backoff_time \
+	    && (TRACE_REQ_ONLY || PREACTIVE_DELAY >= var_min_backoff_time) \
 	    && !HAVE_SASL_CREDENTIALS)
 
  /*
