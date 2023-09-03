@@ -26,11 +26,17 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Incompatible changes with snapshot 20230903
+===========================================
+
+The MySQL client no longer supports MySQL versions < 4.0. MySQL
+version 4.0 was released in 2003.
+
 Major changes with snapshot 20230901
 ====================================
 
-New parameter enforce_mime_input_conversion (default: no) to convert
-content that claims to be 8-bit into quoted-printable, before
+New parameter force_mime_input_conversion (default: no) to convert
+body content that claims to be 8-bit into quoted-printable, before
 header_checks, body_checks, Milters, and before after-queue content
 filters. This feature does not affect messages that are sent into
 smtpd_proxy_filter.

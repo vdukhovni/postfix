@@ -27326,7 +27326,7 @@ Apologies for any names omitted.
             *.other.example IN A     10.0.0.1
             *.other.example IN TLSA  ..certificate info...
 
-	Such syntax is blesed in RFC 1034 section 4.3.3.
+	Such syntax is blessed in RFC 1034 section 4.3.3.
 
 	This problem was reported first in the context of TLSA
 	record lookups. Files: util/valid_hostname.[hc],
@@ -27341,7 +27341,7 @@ Apologies for any names omitted.
 
 20230901
 
-	Feature: enforce_mime_input_conversion (default: no) to
+	Feature: force_mime_input_conversion (default: no) to
 	convert content that claims to be 8-bit into quoted-printable,
 	before header_checks, body_checks, Milters, and before
 	after-queue content filters. The typical use case is an MTA
@@ -27352,3 +27352,17 @@ Apologies for any names omitted.
 	limit. Files: global/mail_params.c, cleanup/cleanup_message.c,
 	cleanup/cleanup.c, cleanup/cleanup_init.c, proto/postconf.proto,
 	mantools/postlink.
+
+20230902
+
+	Cleanup: renamed enforce_mime_input_conversion to
+	force_mime_input_conversion.
+
+20230903
+
+	Cleanup: removed support for MySQL < 4.0 (released 2003),
+	removed the deprecated mysql_escape_string() call, added
+	the preferred mysql_real_escape_string_quote() call, and
+	added error handling for the unlikely case that the legacy
+	mysql_real_escape_string() returns an error. File:
+	global/dict_mysql.c.

@@ -19027,9 +19027,9 @@ SMTP client input. This feature is enabled by default with Postfix
 <p> This feature is available in Postfix &ge; 3.9, 3.8.1, 3.7.6,
 3.6.10, and 3.5.20. </p>
 
-%PARAM enforce_mime_input_conversion no
+%PARAM force_mime_input_conversion no
 
-<p> Convert content that claims to be 8-bit into quoted-printable,
+<p> Convert body content that claims to be 8-bit into quoted-printable,
 before header_checks, body_checks, Milters, and before after-queue
 content filters. This feature does not affect messages that are
 sent into smtpd_proxy_filter. </p>

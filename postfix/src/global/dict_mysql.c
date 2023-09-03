@@ -83,6 +83,10 @@
 #include <limits.h>
 #include <errno.h>
 
+#if !defined(MYSQL_VERSION_ID) || MYSQL_VERSION_ID < 40000
+#error "MySQL versions <4 are no longer supported"
+#endif
+
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
 #endif
@@ -150,7 +154,6 @@ typedef struct {
     char   *charset;
     ARGV   *hosts;
     PLMYSQL *pldb;
-#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
     HOST   *active_host;
     char   *tls_cert_file;
     char   *tls_key_file;
@@ -159,7 +162,6 @@ typedef struct {
     char   *tls_ciphers;
 #if defined(DICT_MYSQL_SSL_VERIFY_SERVER_CERT)
     int     tls_verify_cert;
-#endif
 #endif
     int     require_result_set;
 } DICT_MYSQL;
@@ -206,13 +208,21 @@ static void dict_mysql_quote(DICT *dict, const char *name, VSTRING *result)
     buflen = 2 * len + 1;
     VSTRING_SPACE(result, buflen);
 
-#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
-    if (dict_mysql->active_host)
-	mysql_real_escape_string(dict_mysql->active_host->db,
-				 vstring_end(result), name, len);
-    else
+    if (dict_mysql->active_host == 0)
+	msg_panic("dict_mysql_quote: no active host");
+#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 50700
+    mysql_real_escape_string_quote(dict_mysql->active_host->db,
+				   vstring_end(result), name, len, '\'');
+#else
+    if (mysql_real_escape_string(dict_mysql->active_host->db,
+				 vstring_end(result), name, len) ==
+	(unsigned long) -1) {
+	msg_warn("dict_mysql: host (%s) cannot escape input string: >%s<",
+		 dict_mysql->active_host->hostname,
+		 mysql_error(dict_mysql->active_host->db));
+	dict_mysql->active_host->stat = STATFAIL;
+    }
 #endif
-	mysql_escape_string(vstring_end(result), name, len);
 
     VSTRING_SKIP(result);
 }
@@ -232,7 +242,6 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
     int     numrows;
     int     expansion;
     const char *r;
-    db_quote_callback_t quote_func = dict_mysql_quote;
     int     domain_rc;
 
     dict->error = 0;
@@ -292,11 +301,8 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
      * quoting happens separately for each connection, we don't bother with
      * quoting...
      */
-#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
-    quote_func = 0;
-#endif
     if (!db_common_expand(dict_mysql->ctx, dict_mysql->query,
-			  name, 0, query, quote_func))
+			  name, 0, query, (db_quote_callback_t) 0))
 	return (0);
 
     /* do the query - set dict->error & cleanup if there's an error */
@@ -440,7 +446,11 @@ static int plmysql_query(DICT_MYSQL *dict_mysql,
 {
     HOST   *host;
     MYSQL_RES *first_result = 0;
+
+    /* In case all hosts are down. */
     int     query_error = 1;
+
+    errno = ENOTSUP;
 
     /*
      * Helper to avoid spamming the log with warnings.
@@ -455,8 +465,6 @@ static int plmysql_query(DICT_MYSQL *dict_mysql,
 
     while ((host = dict_mysql_get_active(dict_mysql)) != NULL) {
 
-#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
-
 	/*
 	 * The active host is used to escape strings in the context of the
 	 * active connection's character encoding.
@@ -466,8 +474,14 @@ static int plmysql_query(DICT_MYSQL *dict_mysql,
 	VSTRING_TERMINATE(query);
 	db_common_expand(dict_mysql->ctx, dict_mysql->query,
 			 name, 0, query, dict_mysql_quote);
+	/* Check for potential dict_mysql_quote() failure. */
+	if (host->stat == STATFAIL) {
+	    plmysql_down_host(host);
+	    continue;
+	}
+	if (msg_verbose)
+	    msg_info("expanded and quoted query: >%s<", vstring_str(query));
 	dict_mysql->active_host = 0;
-#endif
 
 	query_error = 0;
 	errno = 0;
@@ -582,7 +596,6 @@ static void plmysql_connect_single(DICT_MYSQL *dict_mysql, HOST *host)
 	mysql_options(host->db, MYSQL_READ_DEFAULT_FILE, dict_mysql->option_file);
     if (dict_mysql->option_group && dict_mysql->option_group[0])
 	mysql_options(host->db, MYSQL_READ_DEFAULT_GROUP, dict_mysql->option_group);
-#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
     if (dict_mysql->tls_key_file || dict_mysql->tls_cert_file ||
 	dict_mysql->tls_CAfile || dict_mysql->tls_CApath || dict_mysql->tls_ciphers)
 	mysql_ssl_set(host->db,
@@ -593,7 +606,6 @@ static void plmysql_connect_single(DICT_MYSQL *dict_mysql, HOST *host)
     if (dict_mysql->tls_verify_cert != -1)
 	mysql_options(host->db, DICT_MYSQL_SSL_VERIFY_SERVER_CERT,
 		      &dict_mysql->tls_verify_cert);
-#endif
 #endif
     if (mysql_real_connect(host->db,
 			   (host->type == TYPEINET ? host->name : 0),
@@ -657,7 +669,6 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     dict_mysql->result_format = cfg_get_str(p, "result_format", "%s", 1, 0);
     dict_mysql->option_file = cfg_get_str(p, "option_file", NULL, 0, 0);
     dict_mysql->option_group = cfg_get_str(p, "option_group", "client", 0, 0);
-#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
     dict_mysql->tls_key_file = cfg_get_str(p, "tls_key_file", NULL, 0, 0);
     dict_mysql->tls_cert_file = cfg_get_str(p, "tls_cert_file", NULL, 0, 0);
     dict_mysql->tls_CAfile = cfg_get_str(p, "tls_CAfile", NULL, 0, 0);
@@ -665,7 +676,6 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     dict_mysql->tls_ciphers = cfg_get_str(p, "tls_ciphers", NULL, 0, 0);
 #if defined(DICT_MYSQL_SSL_VERIFY_SERVER_CERT)
     dict_mysql->tls_verify_cert = cfg_get_bool(p, "tls_verify_cert", -1);
-#endif
 #endif
     dict_mysql->require_result_set = cfg_get_bool(p, "require_result_set", 1);
 
@@ -749,9 +759,7 @@ DICT   *dict_mysql_open(const char *name, int open_flags, int dict_flags)
     dict_mysql->dict.flags = dict_flags;
     dict_mysql->parser = parser;
     mysql_parse_config(dict_mysql, name);
-#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
     dict_mysql->active_host = 0;
-#endif
     dict_mysql->pldb = plmysql_init(dict_mysql->hosts);
     if (dict_mysql->pldb == NULL)
 	msg_fatal("couldn't initialize pldb!\n");
@@ -841,7 +849,6 @@ static void dict_mysql_close(DICT *dict)
 	myfree(dict_mysql->option_file);
     if (dict_mysql->option_group)
 	myfree(dict_mysql->option_group);
-#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
     if (dict_mysql->tls_key_file)
 	myfree(dict_mysql->tls_key_file);
     if (dict_mysql->tls_cert_file)
@@ -852,7 +859,6 @@ static void dict_mysql_close(DICT *dict)
 	myfree(dict_mysql->tls_CApath);
     if (dict_mysql->tls_ciphers)
 	myfree(dict_mysql->tls_ciphers);
-#endif
     if (dict_mysql->hosts)
 	argv_free(dict_mysql->hosts);
     if (dict_mysql->ctx)

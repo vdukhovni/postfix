@@ -2206,19 +2206,6 @@ instead of deleting only the non\-delivery notification.
 .br
 .PP
 This feature is available in Postfix 3.6 and later.
-.SH enforce_mime_input_conversion (default: no)
-Convert content that claims to be 8\-bit into quoted\-printable,
-before header_checks, body_checks, Milters, and before after\-queue
-content filters. This feature does not affect messages that are
-sent into smtpd_proxy_filter.
-.PP
-The typical use case is an MTA that applies this conversion
-before signing outbound messages, so that the signatures will remain
-valid when a message is later delivered to an MTA that does not
-announce 8BITMIME support, or when a message line exceeds the SMTP
-length limit.
-.PP
-This feature is available in Postfix >= 3.9.
 .SH error_notice_recipient (default: postmaster)
 The recipient of postmaster notifications about mail delivery
 problems that are caused by policy, resource, software or protocol
@@ -2368,6 +2355,19 @@ logfiles with the queue file names of mail that is queued for those
 destinations.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH force_mime_input_conversion (default: no)
+Convert body content that claims to be 8\-bit into quoted\-printable,
+before header_checks, body_checks, Milters, and before after\-queue
+content filters. This feature does not affect messages that are
+sent into smtpd_proxy_filter.
+.PP
+The typical use case is an MTA that applies this conversion
+before signing outbound messages, so that the signatures will remain
+valid when a message is later delivered to an MTA that does not
+announce 8BITMIME support, or when a message line exceeds the SMTP
+length limit.
+.PP
+This feature is available in Postfix >= 3.9.
 .SH fork_attempts (default: 5)
 The maximal number of attempts to fork() a child process.
 .SH fork_delay (default: 1s)

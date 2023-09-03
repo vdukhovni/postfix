@@ -429,8 +429,8 @@
 /*	(info, warning, etc.).
 /* .PP
 /*	Available in Postfix 3.9 and later:
-/* .IP "\fBenforce_mime_input_conversion (no)\fR"
-/*	Convert content that claims to be 8-bit into quoted-printable,
+/* .IP "\fBforce_mime_input_conversion (no)\fR"
+/*	Convert body content that claims to be 8-bit into quoted-printable,
 /*	before header_checks, body_checks, Milters, and before after-queue
 /*	content filters.
 /* FILES

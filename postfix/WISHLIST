@@ -9,7 +9,7 @@ Wish list:
 	postfix-install should mention makedefs.out.
 
 	Update DKIM examples for signing with the benefits of forced
-	MIME converison with "enforce_mime_input_conversion = yes"
+	MIME converison with "force_mime_input_conversion = yes"
  
 	Deprecate permit_mx_backup. It is fundamentally incompatible
 	with recipient address validation. There is no way to fix that:
