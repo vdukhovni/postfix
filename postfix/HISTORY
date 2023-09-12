@@ -27366,3 +27366,16 @@ Apologies for any names omitted.
 	added error handling for the unlikely case that the legacy
 	mysql_real_escape_string() returns an error. File:
 	global/dict_mysql.c.
+
+20230906
+
+	Documentation: the postconf(5) manpage did not document
+	that the force_mime_input_conversion feature was introduced
+	in Postfix 3.9. Viktor Dukhovni. File: proto/postconf.proto.
+
+20230912
+
+	Cleanup: record the use of a raw public key in Received:
+	headers, when the Postfix SMTP server or the remote SMTP
+	client presents a raw public key. Viktor Dukhovni. File:
+	smtpd/smtpd.c.

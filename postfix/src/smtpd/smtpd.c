@@ -1485,7 +1485,7 @@ char   *var_smtpd_tls_eecdh;
 char   *var_smtpd_tls_eccert_file;
 char   *var_smtpd_tls_eckey_file;
 char   *var_smtpd_tls_chain_files;
-int    var_smtpd_tls_enable_rpk;
+int     var_smtpd_tls_enable_rpk;
 
 #endif
 
@@ -3459,11 +3459,15 @@ static void common_pre_message_handling(SMTPD_STATE *state,
 		}
 		if (state->tls_context->srvr_sig_curve
 		    && *state->tls_context->srvr_sig_curve)
-		    vstring_sprintf_append(state->buffer, " (%s)",
-					state->tls_context->srvr_sig_curve);
+		    vstring_sprintf_append(state->buffer, " (%s%s)",
+					 state->tls_context->srvr_sig_curve,
+					   state->tls_context->stoc_rpk ?
+					   " raw public key" : "");
 		else if (state->tls_context->srvr_sig_bits > 0)
-		    vstring_sprintf_append(state->buffer, " (%d bits)",
-					 state->tls_context->srvr_sig_bits);
+		    vstring_sprintf_append(state->buffer, " (%d bit%s)",
+					   state->tls_context->srvr_sig_bits,
+					   state->tls_context->stoc_rpk ?
+					   " raw public key" : "s");
 		if (state->tls_context->srvr_sig_dgst
 		    && *state->tls_context->srvr_sig_dgst)
 		    vstring_sprintf_append(state->buffer, " server-digest %s",
@@ -3477,11 +3481,15 @@ static void common_pre_message_handling(SMTPD_STATE *state,
 				state->tls_context->clnt_sig_name);
 		if (state->tls_context->clnt_sig_curve
 		    && *state->tls_context->clnt_sig_curve)
-		    vstring_sprintf_append(state->buffer, " (%s)",
-					state->tls_context->clnt_sig_curve);
+		    vstring_sprintf_append(state->buffer, " (%s%s)",
+					 state->tls_context->clnt_sig_curve,
+					   state->tls_context->ctos_rpk ?
+					   " raw public key" : "");
 		else if (state->tls_context->clnt_sig_bits > 0)
-		    vstring_sprintf_append(state->buffer, " (%d bits)",
-					 state->tls_context->clnt_sig_bits);
+		    vstring_sprintf_append(state->buffer, " (%d bit%s)",
+					   state->tls_context->clnt_sig_bits,
+					   state->tls_context->ctos_rpk ?
+					   " raw public key" : "s");
 		if (state->tls_context->clnt_sig_dgst
 		    && *state->tls_context->clnt_sig_dgst)
 		    vstring_sprintf_append(state->buffer, " client-digest %s",
