@@ -58,7 +58,7 @@
 /*	unitialized and the process environment does not specify
 /*	POSTLOG_SERVICE, the program will log to the syslog service
 /*	instead.
-/* .IP "myhostname (default: see postconf -d output)"
+/* .IP "myhostname (default: see 'postconf -d' output)"
 /*	The internet hostname of this mail system.
 /* .IP "postlog_service_name (postlog)"
 /*	The name of the internal postlog logging service.

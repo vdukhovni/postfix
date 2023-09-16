@@ -537,7 +537,7 @@
 /*	certificate fingerprints.
 /* .PP
 /*	Available in Postfix version 2.6 and later:
-/* .IP "\fBsmtp_tls_protocols (see postconf -d output)\fR"
+/* .IP "\fBsmtp_tls_protocols (see 'postconf -d' output)\fR"
 /*	TLS protocols that the Postfix SMTP client will use with
 /*	opportunistic TLS encryption.
 /* .IP "\fBsmtp_tls_ciphers (medium)\fR"
@@ -811,7 +811,7 @@
 /* .IP "\fBinet_interfaces (all)\fR"
 /*	The local network interface addresses that this mail system
 /*	receives mail on.
-/* .IP "\fBinet_protocols (see 'postconf -d output')\fR"
+/* .IP "\fBinet_protocols (see 'postconf -d' output)\fR"
 /*	The Internet protocols Postfix will attempt to use when making
 /*	or accepting connections.
 /* .IP "\fBipc_timeout (3600s)\fR"

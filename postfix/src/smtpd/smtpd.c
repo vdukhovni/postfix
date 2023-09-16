@@ -468,7 +468,7 @@
 /*	\fBcheck_ccert_access\fR and \fBpermit_tls_clientcerts\fR.
 /* .PP
 /*	Available in Postfix version 2.6 and later:
-/* .IP "\fBsmtpd_tls_protocols (see postconf -d output)\fR"
+/* .IP "\fBsmtpd_tls_protocols (see 'postconf -d' output)\fR"
 /*	TLS protocols accepted by the Postfix SMTP server with opportunistic
 /*	TLS encryption.
 /* .IP "\fBsmtpd_tls_ciphers (medium)\fR"
@@ -673,7 +673,7 @@
 /* .IP "\fBproxy_interfaces (empty)\fR"
 /*	The remote network interface addresses that this mail system receives mail
 /*	on by way of a proxy or network address translation unit.
-/* .IP "\fBinet_protocols (see 'postconf -d output')\fR"
+/* .IP "\fBinet_protocols (see 'postconf -d' output)\fR"
 /*	The Internet protocols Postfix will attempt to use when making
 /*	or accepting connections.
 /* .IP "\fBlocal_recipient_maps (proxy:unix:passwd.byname $alias_maps)\fR"

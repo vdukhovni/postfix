@@ -27379,3 +27379,17 @@ Apologies for any names omitted.
 	headers, when the Postfix SMTP server or the remote SMTP
 	client presents a raw public key. Viktor Dukhovni. File:
 	smtpd/smtpd.c.
+
+20230923
+
+	Documentation: updated descriptions of the postscreen_*_ttl
+	and postscreen_dnsbl_allowlist_threshold parameters. Files:
+	proto/postconf.proto, postscreen/postscreen.c.
+
+20230916
+
+	Documentation: fixed missing and misplaced quotes in "see
+	'postconf -d' output". Reported by наб. Files: Makefile.in,
+	mantools/check-see-postconf-d-output, proto/postconf.proto,
+	global/maillog_client.c, master/master.c, smtp/smtp.c,
+	smtpd/smtpd.c.

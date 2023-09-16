@@ -2701,7 +2701,7 @@ inet_interfaces = 192.168.1.2, 127.0.0.1
 .fi
 .ad
 .ft R
-.SH inet_protocols (default: see 'postconf \-d output')
+.SH inet_protocols (default: see 'postconf \-d' output)
 The Internet protocols Postfix will attempt to use when making
 or accepting connections. Specify one or more of "ipv4"
 or "ipv6", separated by whitespace or commas. The form
@@ -3512,7 +3512,7 @@ The LMTP\-specific version of the smtp_tls_mandatory_exclude_ciphers
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH lmtp_tls_mandatory_protocols (default: see postconf \-d output)
+.SH lmtp_tls_mandatory_protocols (default: see 'postconf \-d' output)
 The LMTP\-specific version of the smtp_tls_mandatory_protocols
 configuration parameter. See there for details.
 .PP
@@ -3532,7 +3532,7 @@ The LMTP\-specific version of the smtp_tls_policy_maps
 configuration parameter. See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH lmtp_tls_protocols (default: see postconf \-d output)
+.SH lmtp_tls_protocols (default: see 'postconf \-d' output)
 The LMTP\-specific version of the smtp_tls_protocols configuration
 parameter. See there for details.
 .PP
@@ -5289,9 +5289,9 @@ it passes the test, before it can talk to a real Postfix SMTP server.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_bare_newline_ttl (default: 30d)
-The amount of time that \fBpostscreen\fR(8) will use the result from
-a successful "bare newline" SMTP protocol test. During this
-time, the client IP address is excluded from this test. The default
+The amount of time that \fBpostscreen\fR(8) remembers that a client
+IP address passed a "bare newline" SMTP protocol test, before it
+address is required to pass that test again. The default
 is long because a remote SMTP client must disconnect after it passes
 the test,
 before it can talk to a real Postfix SMTP server.
@@ -5451,18 +5451,19 @@ defined with the postscreen_dnsbl_sites parameter.
 Specify a negative value to enable this feature. When a client
 passes the postscreen_dnsbl_allowlist_threshold without having
 failed other tests, all pending or disabled tests are flagged as
-completed with a time\-to\-live value equal to postscreen_dnsbl_ttl.
-When a test was already completed, its time\-to\-live value is updated
-if it was less than postscreen_dnsbl_ttl.
+completed with an expiration time based on the DNS reply TTL.
+When a test was already completed, its expiration time is updated
+if it was less than the value based on the DNS reply TTL. See
+also postscreen_dnsbl_max_ttl and postscreen_dnsbl_min_ttl.
 .PP
 This feature is available in Postfix 3.6 and later.
 .PP
 Available as postscreen_dnsbl_whitelist_threshold in Postfix 2.11
 \- 3.5.
 .SH postscreen_dnsbl_max_ttl (default: ${postscreen_dnsbl_ttl?{$postscreen_dnsbl_ttl}:{1}}h)
-The maximum amount of time that \fBpostscreen\fR(8) will use the
-result from a successful DNS\-based reputation test before a
-client IP address is required to pass that test again. If the DNS
+The maximum amount of time that \fBpostscreen\fR(8) remembers that a
+client IP address passed a DNS\-based reputation test, before it is
+required to pass that test again. If the DNS
 reply specifies a shorter TTL value, that value will be used unless
 it would be smaller than postscreen_dnsbl_min_ttl.
 .PP
@@ -5474,9 +5475,9 @@ The default time unit is h (hours).
 This feature is available in Postfix 3.1. The default setting
 is backwards\-compatible with older Postfix versions.
 .SH postscreen_dnsbl_min_ttl (default: 60s)
-The minimum amount of time that \fBpostscreen\fR(8) will use the
-result from a successful DNS\-based reputation test before a
-client IP address is required to pass that test again. If the DNS
+The minimum amount of time that \fBpostscreen\fR(8) remembers that a
+client IP address passed a DNS\-based reputation test, before it
+is required to pass that test again. If the DNS
 reply specifies a larger TTL value, that value will be used unless
 it would be larger than postscreen_dnsbl_max_ttl.
 .PP
@@ -5599,9 +5600,9 @@ The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 3.0.
 .SH postscreen_dnsbl_ttl (default: 1h)
-The amount of time that \fBpostscreen\fR(8) will use the result from
-a successful DNS\-based reputation test before a client
-IP address is required to pass that test again.
+The amount of time that \fBpostscreen\fR(8) remembers that a client
+IP address passed a DNS\-based reputation test, before it is required
+to pass that test again.
 .PP
 Specify a non\-zero time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
@@ -5668,9 +5669,9 @@ value to disable this feature.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_greet_ttl (default: 1d)
-The amount of time that \fBpostscreen\fR(8) will use the result from
-a successful PREGREET test. During this time, the client IP address
-is excluded from this test. The default is relatively short, because
+The amount of time that \fBpostscreen\fR(8) remembers that a client
+IP address passed a PREGREET test, before it is required to pass
+that test again. The default is relatively short, because
 a good client can immediately talk to a real Postfix SMTP server.
 .PP
 Specify a non\-zero time value (an integral value plus an optional
@@ -5728,9 +5729,9 @@ test, before it can talk to a real Postfix SMTP server.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_non_smtp_command_ttl (default: 30d)
-The amount of time that \fBpostscreen\fR(8) will use the result from
-a successful "non_smtp_command" SMTP protocol test. During this
-time, the client IP address is excluded from this test. The default
+The amount of time that \fBpostscreen\fR(8) remembers that a client
+IP address passed a "non_smtp_command" SMTP protocol test, before
+it is required to pass that test again. The default
 is long because a client must disconnect after it passes the test,
 before it can talk to a real Postfix SMTP server.
 .PP
@@ -5772,9 +5773,9 @@ server.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_pipelining_ttl (default: 30d)
-The amount of time that \fBpostscreen\fR(8) will use the result from
-a successful "pipelining" SMTP protocol test. During this time, the
-client IP address is excluded from this test. The default is
+The amount of time that \fBpostscreen\fR(8) remembers that a client
+IP address passed a "pipelining" SMTP protocol test, before it is
+required to pass that test again. The default is
 long because a good client must disconnect after it passes the test,
 before it can talk to a real Postfix SMTP server.
 .PP
@@ -9449,7 +9450,7 @@ DNS forgery. Do not use the "hostname" strategy for secure\-channel
 configurations in environments where DNS security is not assured.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH smtp_tls_protocols (default: see postconf \-d output)
+.SH smtp_tls_protocols (default: see 'postconf \-d' output)
 TLS protocols that the Postfix SMTP client will use with
 opportunistic TLS encryption.  In main.cf the values are separated by
 whitespace, commas or colons. In the policy table "protocols" attribute
@@ -13343,7 +13344,7 @@ smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
 .ft R
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH smtpd_tls_protocols (default: see postconf \-d output)
+.SH smtpd_tls_protocols (default: see 'postconf \-d' output)
 TLS protocols accepted by the Postfix SMTP server with opportunistic
 TLS encryption. If the list is empty, the server supports all available
 TLS protocol versions.  A non\-empty value is a list of protocol names to

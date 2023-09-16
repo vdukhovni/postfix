@@ -4241,7 +4241,7 @@ Examples:
 </DD>
 
 <DT><b><a name="inet_protocols">inet_protocols</a>
-(default: see 'postconf -d output')</b></DT><DD>
+(default: see 'postconf -d' output)</b></DT><DD>
 
 <p> The Internet protocols Postfix will attempt to use when making
 or accepting connections. Specify one or more of "ipv4"
@@ -5740,7 +5740,7 @@ configuration parameter.  See there for details. </p>
 </DD>
 
 <DT><b><a name="lmtp_tls_mandatory_protocols">lmtp_tls_mandatory_protocols</a>
-(default: see postconf -d output)</b></DT><DD>
+(default: see 'postconf -d' output)</b></DT><DD>
 
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>
 configuration parameter. See there for details. </p>
@@ -5784,7 +5784,7 @@ configuration parameter. See there for details. </p>
 </DD>
 
 <DT><b><a name="lmtp_tls_protocols">lmtp_tls_protocols</a>
-(default: see postconf -d output)</b></DT><DD>
+(default: see 'postconf -d' output)</b></DT><DD>
 
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> configuration
 parameter. See there for details. </p>
@@ -8387,9 +8387,9 @@ it passes the test, before it can talk to a real Postfix SMTP server.
 <DT><b><a name="postscreen_bare_newline_ttl">postscreen_bare_newline_ttl</a>
 (default: 30d)</b></DT><DD>
 
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
-a successful "bare newline" SMTP protocol test. During this
-time, the client IP address is excluded from this test. The default
+<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> remembers that a client
+IP address passed a "bare newline" SMTP protocol test, before it
+address is required to pass that test again. The default
 is long because a remote SMTP client must disconnect after it passes
 the test,
 before it can talk to a real Postfix SMTP server. </p>
@@ -8645,9 +8645,10 @@ defined with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dns
 <p> Specify a negative value to enable this feature. When a client
 passes the <a href="postconf.5.html#postscreen_dnsbl_allowlist_threshold">postscreen_dnsbl_allowlist_threshold</a> without having
 failed other tests, all pending or disabled tests are flagged as
-completed with a time-to-live value equal to <a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>.
-When a test was already completed, its time-to-live value is updated
-if it was less than <a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>. </p>
+completed with an expiration time based on the DNS reply TTL.
+When a test was already completed, its expiration time is updated
+if it was less than the value based on the DNS reply TTL. See
+also <a href="postconf.5.html#postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a> and <a href="postconf.5.html#postscreen_dnsbl_min_ttl">postscreen_dnsbl_min_ttl</a>. </p>
 
 <p> This feature is available in Postfix 3.6 and later.  </p>
 
@@ -8660,9 +8661,9 @@ if it was less than <a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dn
 <DT><b><a name="postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a>
 (default: ${<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>?{$<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>}:{1}}h)</b></DT><DD>
 
-<p> The maximum amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the
-result from a successful DNS-based reputation test before a
-client IP address is required to pass that test again. If the DNS
+<p> The maximum amount of time that <a href="postscreen.8.html">postscreen(8)</a> remembers that a
+client IP address passed a DNS-based reputation test, before it is
+required to pass that test again. If the DNS
 reply specifies a shorter TTL value, that value will be used unless
 it would be smaller than <a href="postconf.5.html#postscreen_dnsbl_min_ttl">postscreen_dnsbl_min_ttl</a>.  </p>
 
@@ -8680,9 +8681,9 @@ is backwards-compatible with older Postfix versions. </p>
 <DT><b><a name="postscreen_dnsbl_min_ttl">postscreen_dnsbl_min_ttl</a>
 (default: 60s)</b></DT><DD>
 
-<p> The minimum amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the
-result from a successful DNS-based reputation test before a
-client IP address is required to pass that test again. If the DNS
+<p> The minimum amount of time that <a href="postscreen.8.html">postscreen(8)</a> remembers that a
+client IP address passed a DNS-based reputation test, before it
+is required to pass that test again. If the DNS
 reply specifies a larger TTL value, that value will be used unless
 it would be larger than <a href="postconf.5.html#postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a>.  </p>
 
@@ -8823,9 +8824,9 @@ The default time unit is s (seconds).  </p>
 <DT><b><a name="postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>
 (default: 1h)</b></DT><DD>
 
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
-a successful DNS-based reputation test before a client
-IP address is required to pass that test again.  </p>
+<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> remembers that a client
+IP address passed a DNS-based reputation test, before it is required
+to pass that test again.  </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
@@ -8941,9 +8942,9 @@ value to disable this feature.  </p>
 <DT><b><a name="postscreen_greet_ttl">postscreen_greet_ttl</a>
 (default: 1d)</b></DT><DD>
 
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
-a successful PREGREET test. During this time, the client IP address
-is excluded from this test. The default is relatively short, because
+<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> remembers that a client
+IP address passed a PREGREET test, before it is required to pass
+that test again. The default is relatively short, because
 a good client can immediately talk to a real Postfix SMTP server. </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
@@ -9037,9 +9038,9 @@ test, before it can talk to a real Postfix SMTP server. </p>
 <DT><b><a name="postscreen_non_smtp_command_ttl">postscreen_non_smtp_command_ttl</a>
 (default: 30d)</b></DT><DD>
 
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
-a successful "non_smtp_command" SMTP protocol test. During this
-time, the client IP address is excluded from this test. The default
+<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> remembers that a client
+IP address passed a "non_smtp_command" SMTP protocol test, before
+it is required to pass that test again. The default
 is long because a client must disconnect after it passes the test,
 before it can talk to a real Postfix SMTP server. </p>
 
@@ -9105,9 +9106,9 @@ server. </p>
 <DT><b><a name="postscreen_pipelining_ttl">postscreen_pipelining_ttl</a>
 (default: 30d)</b></DT><DD>
 
-<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
-a successful "pipelining" SMTP protocol test. During this time, the
-client IP address is excluded from this test. The default is
+<p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> remembers that a client
+IP address passed a "pipelining" SMTP protocol test, before it is
+required to pass that test again. The default is
 long because a good client must disconnect after it passes the test,
 before it can talk to a real Postfix SMTP server. </p>
 
@@ -14050,7 +14051,7 @@ configurations in environments where DNS security is not assured. </p>
 </DD>
 
 <DT><b><a name="smtp_tls_protocols">smtp_tls_protocols</a>
-(default: see postconf -d output)</b></DT><DD>
+(default: see 'postconf -d' output)</b></DT><DD>
 
 <p> TLS protocols that the Postfix SMTP client will use with
 opportunistic TLS encryption.  In <a href="postconf.5.html">main.cf</a> the values are separated by
@@ -18798,7 +18799,7 @@ releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2).  </p>
 </DD>
 
 <DT><b><a name="smtpd_tls_protocols">smtpd_tls_protocols</a>
-(default: see postconf -d output)</b></DT><DD>
+(default: see 'postconf -d' output)</b></DT><DD>
 
 <p> TLS protocols accepted by the Postfix SMTP server with opportunistic
 TLS encryption. If the list is empty, the server supports all available

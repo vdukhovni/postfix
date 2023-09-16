@@ -2097,7 +2097,7 @@ inet_interfaces = 127.0.0.1, [::1] (Postfix version 2.2 and later)
 inet_interfaces = 192.168.1.2, 127.0.0.1
 </pre>
 
-%PARAM inet_protocols see 'postconf -d output'
+%PARAM inet_protocols see 'postconf -d' output
 
 <p> The Internet protocols Postfix will attempt to use when making
 or accepting connections. Specify one or more of "ipv4"
@@ -11858,7 +11858,7 @@ configuration parameter. See there for details. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM lmtp_tls_mandatory_protocols see postconf -d output
+%PARAM lmtp_tls_mandatory_protocols see 'postconf -d' output
 
 <p> The LMTP-specific version of the smtp_tls_mandatory_protocols
 configuration parameter. See there for details. </p>
@@ -13036,7 +13036,7 @@ the hostname and IP address. The logging format is "host[address]:port".
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
-%PARAM smtp_tls_protocols see postconf -d output
+%PARAM smtp_tls_protocols see 'postconf -d' output
 
 <p> TLS protocols that the Postfix SMTP client will use with
 opportunistic TLS encryption.  In main.cf the values are separated by
@@ -13116,7 +13116,7 @@ smtp_tls_protocols = !SSLv2, !SSLv3
 
 <p> This feature is available in Postfix 2.6 and later. </p>
 
-%PARAM smtpd_tls_protocols see postconf -d output
+%PARAM smtpd_tls_protocols see 'postconf -d' output
 
 <p> TLS protocols accepted by the Postfix SMTP server with opportunistic
 TLS encryption. If the list is empty, the server supports all available
@@ -13182,7 +13182,7 @@ smtpd_tls_protocols = !SSLv2, !SSLv3
 
 <p> This feature is available in Postfix 2.6 and later. </p>
 
-%PARAM lmtp_tls_protocols see postconf -d output
+%PARAM lmtp_tls_protocols see 'postconf -d' output
 
 <p> The LMTP-specific version of the smtp_tls_protocols configuration
 parameter. See there for details. </p>
@@ -14487,9 +14487,9 @@ receive a 421 response. </p>
 
 %PARAM postscreen_greet_ttl 1d
 
-<p> The amount of time that postscreen(8) will use the result from
-a successful PREGREET test. During this time, the client IP address
-is excluded from this test. The default is relatively short, because
+<p> The amount of time that postscreen(8) remembers that a client
+IP address passed a PREGREET test, before it is required to pass
+that test again. The default is relatively short, because
 a good client can immediately talk to a real Postfix SMTP server. </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
@@ -15092,9 +15092,10 @@ defined with the postscreen_dnsbl_sites parameter.  </p>
 <p> Specify a negative value to enable this feature. When a client
 passes the postscreen_dnsbl_allowlist_threshold without having
 failed other tests, all pending or disabled tests are flagged as
-completed with a time-to-live value equal to postscreen_dnsbl_ttl.
-When a test was already completed, its time-to-live value is updated
-if it was less than postscreen_dnsbl_ttl. </p>
+completed with an expiration time based on the DNS reply TTL.
+When a test was already completed, its expiration time is updated
+if it was less than the value based on the DNS reply TTL. See
+also postscreen_dnsbl_max_ttl and postscreen_dnsbl_min_ttl. </p>
 
 <p> This feature is available in Postfix 3.6 and later.  </p>
 
@@ -15120,9 +15121,9 @@ built-in SMTP protocol engine. </p>
 
 %PARAM postscreen_dnsbl_ttl 1h
 
-<p> The amount of time that postscreen(8) will use the result from
-a successful DNS-based reputation test before a client
-IP address is required to pass that test again.  </p>
+<p> The amount of time that postscreen(8) remembers that a client
+IP address passed a DNS-based reputation test, before it is required
+to pass that test again.  </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
@@ -15134,9 +15135,9 @@ replaced by postscreen_dnsbl_max_ttl in Postfix 3.1.  </p>
 
 %PARAM postscreen_dnsbl_min_ttl 60s
 
-<p> The minimum amount of time that postscreen(8) will use the
-result from a successful DNS-based reputation test before a
-client IP address is required to pass that test again. If the DNS
+<p> The minimum amount of time that postscreen(8) remembers that a
+client IP address passed a DNS-based reputation test, before it
+is required to pass that test again. If the DNS
 reply specifies a larger TTL value, that value will be used unless
 it would be larger than postscreen_dnsbl_max_ttl.  </p>
 
@@ -15149,9 +15150,9 @@ The default time unit is s (seconds).  </p>
 
 %PARAM postscreen_dnsbl_max_ttl ${postscreen_dnsbl_ttl?{$postscreen_dnsbl_ttl}:{1}}h
 
-<p> The maximum amount of time that postscreen(8) will use the
-result from a successful DNS-based reputation test before a
-client IP address is required to pass that test again. If the DNS
+<p> The maximum amount of time that postscreen(8) remembers that a
+client IP address passed a DNS-based reputation test, before it is
+required to pass that test again. If the DNS
 reply specifies a shorter TTL value, that value will be used unless
 it would be smaller than postscreen_dnsbl_min_ttl.  </p>
 
@@ -15197,9 +15198,9 @@ this test the next time the client connects. </dd>
 
 %PARAM postscreen_pipelining_ttl 30d
 
-<p> The amount of time that postscreen(8) will use the result from
-a successful "pipelining" SMTP protocol test. During this time, the
-client IP address is excluded from this test. The default is
+<p> The amount of time that postscreen(8) remembers that a client
+IP address passed a "pipelining" SMTP protocol test, before it is
+required to pass that test again. The default is
 long because a good client must disconnect after it passes the test,
 before it can talk to a real Postfix SMTP server. </p>
 
@@ -15294,9 +15295,9 @@ feature.  </dd>
 
 %PARAM postscreen_non_smtp_command_ttl 30d
 
-<p> The amount of time that postscreen(8) will use the result from
-a successful "non_smtp_command" SMTP protocol test. During this
-time, the client IP address is excluded from this test. The default
+<p> The amount of time that postscreen(8) remembers that a client
+IP address passed a "non_smtp_command" SMTP protocol test, before
+it is required to pass that test again. The default
 is long because a client must disconnect after it passes the test,
 before it can talk to a real Postfix SMTP server. </p>
 
@@ -15387,9 +15388,9 @@ this test the next time the client connects.  </dd>
 
 %PARAM postscreen_bare_newline_ttl 30d
 
-<p> The amount of time that postscreen(8) will use the result from
-a successful "bare newline" SMTP protocol test. During this
-time, the client IP address is excluded from this test. The default
+<p> The amount of time that postscreen(8) remembers that a client
+IP address passed a "bare newline" SMTP protocol test, before it
+address is required to pass that test again. The default
 is long because a remote SMTP client must disconnect after it passes
 the test,
 before it can talk to a real Postfix SMTP server. </p>

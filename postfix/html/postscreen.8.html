@@ -315,31 +315,35 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               porary allowlist entry before it is removed.
 
        <b><a href="postconf.5.html#postscreen_bare_newline_ttl">postscreen_bare_newline_ttl</a> (30d)</b>
-              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the result from a
-              successful "bare newline" SMTP protocol test.
+              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> remembers that a client IP
+              address passed a "bare newline" SMTP protocol  test,  before  it
+              address is required to pass that test again.
 
        <b><a href="postconf.5.html#postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a></b>
        <b>(${<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>?{$<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>}:{1}}h)</b>
-              The maximum amount of  time  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  will  use  the
-              result  from  a  successful  DNS-based  reputation test before a
-              client IP address is required to pass that test again.
+              The  maximum  amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> remembers that a
+              client IP address passed a DNS-based reputation test, before  it
+              is required to pass that test again.
 
        <b><a href="postconf.5.html#postscreen_dnsbl_min_ttl">postscreen_dnsbl_min_ttl</a> (60s)</b>
-              The minimum amount of  time  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  will  use  the
-              result  from  a  successful  DNS-based  reputation test before a
-              client IP address is required to pass that test again.
+              The  minimum  amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> remembers that a
+              client IP address passed a DNS-based reputation test, before  it
+              is required to pass that test again.
 
        <b><a href="postconf.5.html#postscreen_greet_ttl">postscreen_greet_ttl</a> (1d)</b>
-              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the result from a
-              successful PREGREET test.
+              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> remembers that a client IP
+              address passed a PREGREET test, before it is  required  to  pass
+              that test again.
 
        <b><a href="postconf.5.html#postscreen_non_smtp_command_ttl">postscreen_non_smtp_command_ttl</a> (30d)</b>
-              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the result from a
-              successful "non_smtp_command" SMTP protocol test.
+              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> remembers that a client IP
+              address passed a "non_smtp_command" SMTP protocol  test,  before
+              it is required to pass that test again.
 
        <b><a href="postconf.5.html#postscreen_pipelining_ttl">postscreen_pipelining_ttl</a> (30d)</b>
-              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the result from a
-              successful "pipelining" SMTP protocol test.
+              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> remembers that a client IP
+              address passed a "pipelining" SMTP protocol test, before  it  is
+              required to pass that test again.
 
 <b>RESOURCE CONTROLS</b>
        <b><a href="postconf.5.html#line_length_limit">line_length_limit</a> (2048)</b>
