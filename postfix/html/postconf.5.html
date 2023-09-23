@@ -13770,11 +13770,13 @@ lookup key, and overrides the global <a href="postconf.5.html#smtp_use_tls">smtp
 and <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> settings. </dd>
 
 <dt> MAY </dt> <dd> Try to use TLS if the server announces support,
-otherwise use an unencrypted connection. This has less precedence
+otherwise use an unencrypted connection; after a failed TLS handshake
+or TLS session, fall back to plaintext if the message has spent
+<a href="postconf.5.html#minimal_backoff_time">minimal_backoff_time</a> in the mail queue. This level has less precedence
 than a more specific result (including <b>NONE</b>) from the alternate
 host or next-hop lookup key, and has less precedence than the more
 specific global "<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> = yes" or "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>
-= yes".  </dd>
+= yes". </dd>
 
 <dt> MUST_NOPEERMATCH </dt> <dd> Require TLS encryption, but do not
 require that the remote SMTP server hostname matches the information
@@ -14219,7 +14221,9 @@ destinations via <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_
 
 <dt><b><a href="TLS_README.html#client_tls_may">may</a></b></dt>
 <dd> Opportunistic TLS. Use TLS if this is supported by the remote
-SMTP server, otherwise use plaintext. Since
+SMTP server, otherwise use plaintext; after a failed TLS handshake
+or TLS session, fall back to plaintext if the message has spent
+<a href="postconf.5.html#minimal_backoff_time">minimal_backoff_time</a> in the mail queue. Since
 sending in the clear is acceptable, demanding stronger than default TLS
 security merely reduces interoperability.
 The "<a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>" and "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>" (Postfix &ge; 2.6)

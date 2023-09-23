@@ -27393,3 +27393,32 @@ Apologies for any names omitted.
 	mantools/check-see-postconf-d-output, proto/postconf.proto,
 	global/maillog_client.c, master/master.c, smtp/smtp.c,
 	smtpd/smtpd.c.
+
+20230917
+
+	Documentation: added a note to smtp_tls_security_level and
+	smtp_tls_policy_maps, that the level "MAY" will fall back
+	to plaintext after TLS failure, when a message has spent
+	minimal_backoff_time in the mail queue. File: proto/postconf.proto.
+
+20230929
+
+	Bugfix (bug introduced Postfix 2.5, 20080104): the Postfix
+	SMTP server was waiting for a client command instead of
+	replying immediately, after a client certificate verification
+	error in TLS wrappermode. Reported by Andreas Kinzler. File:
+	smtpd/smtpd.c.
+
+20230923
+
+	This changes the smtp-source test program, to avoid the
+	need to configure a large number of "valid" recipient
+	addresses in Postfix, by using a recipient address extension
+	in the form of a sequence number. The change is to append
+	the optional recipient address sequence number to the
+	recipient address localpart, instead of prepending it. To
+	use that sequence number as a recipient address extension,
+	specify an explicit address delimiter in the address
+	localpart, as in "-t localpart+@domain" or "-t localpart+"
+	where "+" is the Postfix recipient address delimiter. File:
+	smtpstone/smtp-source.c.

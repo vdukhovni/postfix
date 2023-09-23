@@ -9184,7 +9184,9 @@ and smtp_tls_enforce_peername settings.
 .br
 .IP "MAY"
 Try to use TLS if the server announces support,
-otherwise use an unencrypted connection. This has less precedence
+otherwise use an unencrypted connection; after a failed TLS handshake
+or TLS session, fall back to plaintext if the message has spent
+minimal_backoff_time in the mail queue. This level has less precedence
 than a more specific result (including \fBNONE\fR) from the alternate
 host or next\-hop lookup key, and has less precedence than the more
 specific global "smtp_enforce_tls = yes" or "smtp_tls_enforce_peername
@@ -9613,7 +9615,9 @@ destinations via smtp_tls_policy_maps.
 .br
 .IP "\fBmay\fR"
 Opportunistic TLS. Use TLS if this is supported by the remote
-SMTP server, otherwise use plaintext. Since
+SMTP server, otherwise use plaintext; after a failed TLS handshake
+or TLS session, fall back to plaintext if the message has spent
+minimal_backoff_time in the mail queue. Since
 sending in the clear is acceptable, demanding stronger than default TLS
 security merely reduces interoperability.
 The "smtp_tls_ciphers" and "smtp_tls_protocols" (Postfix >= 2.6)
