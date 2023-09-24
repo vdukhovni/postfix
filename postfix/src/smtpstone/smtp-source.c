@@ -42,7 +42,7 @@
 /*	Don't disconnect after sending a message; send the next
 /*	message over the same connection.
 /* .IP "\fB-f \fIfrom\fR"
-/*	Use the specified sender address (default: <foo@myhostname>).
+/*	Use the specified sender address (default: <foo@my-hostname>).
 /* .IP "\fB-F \fIfile\fR"
 /*	Send the pre-formatted message header and body in the
 /*	specified \fIfile\fR, while prepending '.' before lines that
@@ -54,36 +54,40 @@
 /*	Speak LMTP rather than SMTP.
 /* .IP "\fB-m \fImessage_count\fR"
 /*	Send the specified number of messages (default: 1).
-/* .IP "\fB-M \fImyhostname\fR"
+/* .IP "\fB-M \fImy-hostname\fR"
 /*	Use the specified hostname or [address] in the HELO command
 /*	and in the default sender and recipient addresses, instead
 /*	of the machine hostname.
 /* .IP "\fB-N\fR"
 /*	Generate each recipient address by appending a number (a
 /*	per-process recipient counter) to the recipient address
-/*	localpart specified with the \fB-t\fR option. This avoids
-/*	an artificial 100% hit rate in the trivial-rewrite daemon's
-/*	resolve and rewrite client caches, better approximating
-/*	Postfix performance under real-life work-loads.
-/*
-/*	Note: to use the number as an address extension, specify
-/*	an explicit address delimiter at the end of the recipient
-/*	localpart, as in "\fB-t localpart+@domain\fR" or "\fB-t
-/*	localpart+\fR", where "\fB+\fR" is the recipient address
-/*	delimiter.
-/* .IP \fB-o\fR
-/*	Old mode: don't send HELO, and don't send message headers.
-/* .IP "\fB-r \fIrecipient_count\fR"
-/*	Send the specified number of recipients per transaction (default: 1).
-/*	Generate each recipient address by appending a number (a
-/*	per-connection recipient counter) to the recipient address
 /*	localpart specified with the \fB-t\fR option.
 /*
 /*	Note: to use the number as an address extension, specify
 /*	an explicit address delimiter at the end of the recipient
 /*	localpart, as in "\fB-t localpart+@domain\fR" or "\fB-t
-/*	localpart+\fR", where "\fB+\fR" is the recipient address
-/*	delimiter.
+/*	localpart+\fR", where "\fB+\fR" is a Postfix recipient
+/*	address delimiter.
+/*
+/*	Benefits:
+/* .RS
+/* .IP \(bu
+/*	A non-constant recipient address avoids an unrealistic 100%
+/*	cache hit rate in clients of the Postfix trivial-rewrite
+/*	service, better approximating performance under real-life
+/*	work-loads.
+/* .IP \(bu
+/*	A fixed recipient address local-part with a non-constant
+/*	address extension avoids the need to configure a large
+/*	number of valid recipient addresses in the receiving Postfix
+/*	server.
+/* .RE
+/* .IP \fB-o\fR
+/*	Old mode: don't send HELO, and don't send message headers.
+/* .IP "\fB-r \fIrecipient_count\fR"
+/*	Send the specified number of recipients per transaction
+/*	(default: 1), and generate recipient addresses as described
+/*	under the \fB-N\fR option.
 /* .IP "\fB-R \fIinterval\fR"
 /*	Wait a random time (0 <= n <= \fIinterval\fR) between messages.
 /*	Suspending one thread does not affect other delivery threads.
@@ -92,7 +96,7 @@
 /* .IP "\fB-S \fIsubject\fR"
 /*	Send mail with the named subject line (default: none).
 /* .IP "\fB-t \fIto\fR"
-/*	Use the specified recipient address (default: <foo@myhostname>).
+/*	Use the specified recipient address (default: <foo@my-hostname>).
 /* .IP "\fB-T \fIwindowsize\fR"
 /*	Override the default TCP window size. To work around
 /*	broken TCP window scaling implementations, specify a
@@ -163,7 +167,6 @@
 #include <valid_hostname.h>
 #include <valid_mailhost_addr.h>
 #include <compat_va_copy.h>
-#include <mymalloc.h>
 
 /* Global library. */
 
@@ -187,6 +190,7 @@ typedef struct SESSION {
     int     rcpt_done;			/* # of recipients done */
     int     rcpt_count;			/* # of recipients to go */
     int     rcpt_accepted;		/* # of recipients accepted */
+    int     rcpt_sample;		/* Sample recipient # for To: header */
     VSTREAM *stream;			/* open connection */
     int     connect_count;		/* # of connect()s to retry */
     struct SESSION *next;		/* connect() queue linkage */
@@ -216,7 +220,6 @@ static struct sockaddr_un sun;
 static struct sockaddr *sa;
 static int sa_length;
 static int recipients = 1;
-static int session_rcpt_suffix = 0;
 static char *defaddr;
 typedef struct {
     char   *local;
@@ -690,12 +693,10 @@ static void send_rcpt(int unused_event, void *context)
     if ((except = vstream_setjmp(session->stream)) != 0)
 	msg_fatal("%s while sending recipient", exception_text(except));
 
-    if (session_rcpt_suffix)
+    if (global_rcpt_suffix)
 	command(session->stream, "RCPT TO:<%s%d%s>",
-		recipient->local, session->rcpt_done, recipient->at_domain);
-    else if (global_rcpt_suffix)
-	command(session->stream, "RCPT TO:<%s%d%s>",
-		recipient->local, global_rcpt_done++, recipient->at_domain);
+		recipient->local, session->rcpt_sample = global_rcpt_done++,
+		recipient->at_domain);
     else
 	command(session->stream, "RCPT TO:<%s%s>",
 		recipient->local, recipient->at_domain);
@@ -805,10 +806,7 @@ static void data_done(int unused, void *context)
 	smtp_printf(session->stream, "From: <%s>", sender);
 	if (global_rcpt_suffix)
 	    smtp_printf(session->stream, "To: <%s%d%s>", recipient->local,
-			global_rcpt_done - 1, recipient->at_domain);
-	else if (session_rcpt_suffix)
-	    smtp_printf(session->stream, "To: <%s%d%s>", recipient->local,
-			session->rcpt_done - 1, recipient->at_domain);
+			session->rcpt_sample, recipient->at_domain);
 	else
 	    smtp_printf(session->stream, "To: <%s%s>",
 			recipient->local, recipient->at_domain);
@@ -1068,8 +1066,6 @@ int     main(int argc, char **argv)
 	    var_myhostname = optarg;
 	    break;
 	case 'N':
-	    if (session_rcpt_suffix)
-		msg_fatal("do not use -N and -r options at the same time");
 	    global_rcpt_suffix = 1;
 	    break;
 	case 'o':
@@ -1077,13 +1073,9 @@ int     main(int argc, char **argv)
 	    send_headers = 0;
 	    break;
 	case 'r':
-	    if (global_rcpt_suffix)
-		msg_fatal("do not use -N and -r options at the same time");
-	    if (session_rcpt_suffix)
-		msg_fatal("do not use -r option multiple times");
 	    if ((recipients = atoi(optarg)) <= 0)
 		msg_fatal("bad recipient count: %s", optarg);
-	    session_rcpt_suffix = 1;
+	    global_rcpt_suffix = 1;
 	    break;
 	case 'R':
 	    if (fixed_delay > 0)

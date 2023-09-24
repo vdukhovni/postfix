@@ -15023,11 +15023,15 @@ IPv6 connectivity: </p>
 <ul>
 
 <li> <p> The setting "smtp_address_preference = ipv6" is unsafe.
-It can fail to deliver mail when there is an outage that affects
-IPv6, while the destination is still reachable over IPv4. </p>
+All deliveries will suffer delays when IPv6 is not available even
+while the destination is still reachable over IPv4. Mail may be
+stuck in the queue with Postfix versions &lt; 3.3 that do not
+implement "smtp_balance_inet_protocols". For similar reasons, the
+setting "smtp_address_preference = ipv4" is also unsafe. </p>
 
 <li> <p> The setting "smtp_address_preference = any" is safe. With
-this, mail will eventually be delivered even if there is an outage
+this, and "smtp_balance_inet_protocols = yes" (the default), only
+half of deliveries will suffer delays if there is an outage
 that affects IPv6 or IPv4, as long as it does not affect both. </p>
 
 </ul>

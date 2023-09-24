@@ -27422,3 +27422,12 @@ Apologies for any names omitted.
 	localpart, as in "-t localpart+@domain" or "-t localpart+"
 	where "+" is the Postfix recipient address delimiter. File:
 	smtpstone/smtp-source.c.
+
+20230924
+
+	Cleanup: simplified the smtp-source numbered recipient
+	implementation and documentation. File: smtpstone/smtp-source.c.
+
+	Documentation: added smtp_balance_inet_protocols to the
+	text with smtp_address_preference caveats. File:
+	proto/postconf.proto.
