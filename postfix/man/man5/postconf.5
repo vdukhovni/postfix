@@ -6966,7 +6966,7 @@ Notes for mail delivery between sites that have both IPv4 and
 IPv6 connectivity:
 .IP \(bu
 The setting "smtp_address_preference = ipv6" is unsafe.
-All deliveries will suffer delays when IPv6 is not available even
+All deliveries will suffer delays during an IPv6 outage, even
 while the destination is still reachable over IPv4. Mail may be
 stuck in the queue with Postfix versions < 3.3 that do not
 implement "smtp_balance_inet_protocols". For similar reasons, the
@@ -6976,6 +6976,35 @@ The setting "smtp_address_preference = any" is safe. With
 this, and "smtp_balance_inet_protocols = yes" (the default), only
 half of deliveries will suffer delays if there is an outage
 that affects IPv6 or IPv4, as long as it does not affect both.
+.IP \(bu
+The setting "smtp_address_preference = ipv4" is not a
+solution for remote servers that flag email received over IPv6 as
+more 'spammy' (the client IPv6 address has a bad or missing PTR or
+AAAA record, bad network neighbors, etc.). Instead, configure Postfix
+to receive mail over both IPv4 and IPv6, and to deliver mail over
+only IPv4.
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    inet_protocols = all
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/master.cf
+    smtp ...other fields... smtp \-o inet_protocols=ipv4
+.fi
+.ad
+.ft R
+.in -4
 .br
 .PP
 This feature is available in Postfix 2.8 and later.

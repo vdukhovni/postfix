@@ -10,23 +10,16 @@
 /*	const char *str;
 /*	ssize_t	len;
 /* DESCRIPTION
-/*	valid_utf8_string() determines if a string satisfies the UTF-8
-/*	definition in RFC 3629. That is, it contains proper encodings
-/*	of code points U+0000..U+10FFFF, excluding over-long encodings
-/*	and excluding U+D800..U+DFFF surrogates.
+/*	valid_utf8_string() determines if all bytes in a string
+/*	satisfy parse_utf8_char(3h) checks. See there for any
+/*	implementation limitations.
 /*
 /*	A zero-length string is considered valid.
 /* DIAGNOSTICS
 /*	The result value is zero when the caller specifies a negative
-/*	length, or a string that violates RFC 3629, for example a
-/*	string that is truncated in the middle of a multi-byte
-/*	sequence.
-/* BUGS
-/*	But wait, there is more. Code points in the range U+FDD0..U+FDEF
-/*	and ending in FFFE or FFFF are non-characters in UNICODE. This
-/*	function does not block these.
+/*	length, or a string that does not pass parse_utf8_char(3h) checks.
 /* SEE ALSO
-/*	RFC 3629
+/*	parse_utf8_char(3h), parse one UTF-8 multibyte character
 /* LICENSE
 /* .ad
 /* .fi
@@ -36,6 +29,10 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
+/*	Amawalk, NY 10501, USA
 /*--*/
 
 /* System library. */
@@ -45,14 +42,15 @@
 /* Utility library. */
 
 #include <stringops.h>
+#include <parse_utf8_char.h>
 
 /* valid_utf8_string - validate string according to RFC 3629 */
 
 int     valid_utf8_string(const char *str, ssize_t len)
 {
-    const unsigned char *end = (const unsigned char *) str + len;
-    const unsigned char *cp;
-    unsigned char c0, ch;
+    const char *ep = str + len;
+    const char *cp;
+    const char *last;
 
     if (len < 0)
 	return (0);
@@ -60,51 +58,13 @@ int     valid_utf8_string(const char *str, ssize_t len)
 	return (1);
 
     /*
-     * Optimized for correct input, time, space, and for CPUs that have a
-     * decent number of registers.
+     * Ideally, the compiler will inline parse_utf8_char().
      */
-    for (cp = (const unsigned char *) str; cp < end; cp++) {
-	/* Single-byte encodings. */
-	if (EXPECTED((c0 = *cp) <= 0x7f) /* we know that c0 >= 0x0 */ ) {
-	     /* void */ ;
-	}
-	/* Two-byte encodings. */
-	else if (EXPECTED(c0 <= 0xdf) /* we know that c0 >= 0x80 */ ) {
-	    /* Exclude over-long encodings. */
-	    if (UNEXPECTED(c0 < 0xc2)
-		|| UNEXPECTED(cp + 1 >= end)
-	    /* Require UTF-8 tail byte. */
-		|| UNEXPECTED(((ch = *++cp) & 0xc0) != 0x80))
-		return (0);
-	}
-	/* Three-byte encodings. */
-	else if (EXPECTED(c0 <= 0xef) /* we know that c0 >= 0xe0 */ ) {
-	    if (UNEXPECTED(cp + 2 >= end)
-	    /* Exclude over-long encodings. */
-		|| UNEXPECTED((ch = *++cp) < (c0 == 0xe0 ? 0xa0 : 0x80))
-	    /* Exclude U+D800..U+DFFF. */
-		|| UNEXPECTED(ch > (c0 == 0xed ? 0x9f : 0xbf))
-	    /* Require UTF-8 tail byte. */
-		|| UNEXPECTED(((ch = *++cp) & 0xc0) != 0x80))
-		return (0);
-	}
-	/* Four-byte encodings. */
-	else if (EXPECTED(c0 <= 0xf4) /* we know that c0 >= 0xf0 */ ) {
-	    if (UNEXPECTED(cp + 3 >= end)
-	    /* Exclude over-long encodings. */
-		|| UNEXPECTED((ch = *++cp) < (c0 == 0xf0 ? 0x90 : 0x80))
-	    /* Exclude code points above U+10FFFF. */
-		|| UNEXPECTED(ch > (c0 == 0xf4 ? 0x8f : 0xbf))
-	    /* Require UTF-8 tail byte. */
-		|| UNEXPECTED(((ch = *++cp) & 0xc0) != 0x80)
-	    /* Require UTF-8 tail byte. */
-		|| UNEXPECTED(((ch = *++cp) & 0xc0) != 0x80))
-		return (0);
-	}
-	/* Invalid: c0 >= 0xf5 */
-	else {
+    for (cp = str; cp < ep; cp++) {
+	if ((last = parse_utf8_char(cp, ep)) != 0)
+	    cp = last;
+	else
 	    return (0);
-	}
     }
     return (1);
 }

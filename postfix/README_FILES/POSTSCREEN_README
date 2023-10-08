@@ -78,7 +78,7 @@ Zombies have challenges too: they have only a limited amount of time to deliver
 spam before their IP address becomes denylisted. To speed up spam deliveries,
 zombies make compromises in their SMTP protocol implementation. For example,
 they speak before their turn, or they ignore responses from SMTP servers and
-continue sending mail even when the server tells them to go away.
+continue sending commands even when the server tells them to go away.
 
 postscreen(8) uses a variety of measurements to recognize zombies. First,
 postscreen(8) determines if the remote SMTP client IP address is denylisted.

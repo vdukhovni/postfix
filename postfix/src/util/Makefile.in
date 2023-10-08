@@ -145,7 +145,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
 	known_tcp_ports dict_stream find_inet binhash hash_fnv argv \
-	clean_env inet_prefix_top
+	clean_env inet_prefix_top printable
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
@@ -361,6 +361,11 @@ watchdog: $(LIB)
 	mv junk $@.o
 
 unescape: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+printable: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -618,7 +623,7 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	strcasecmp_utf8_test vbuf_print_test miss_endif_cidr_test \
 	miss_endif_regexp_test split_qnameval_test vstring_test \
 	vstream_test byte_mask_tests mystrtok_test known_tcp_ports_test \
-	binhash_test argv_test inet_prefix_top_test
+	binhash_test argv_test inet_prefix_top_test printable_test
  
 dict_tests: all dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
@@ -649,6 +654,11 @@ unescape_test: unescape unescape.in unescape.ref
 #	$(SHLIB_ENV) ${VALGRIND} ./unescape <unescape.in | $(SHLIB_ENV) ${VALGRIND} ./unescape -e >unescape.tmp
 #	diff unescape.in unescape.tmp
 	rm -f unescape.tmp
+
+printable_test: printable printable.in
+	$(SHLIB_ENV) ${VALGRIND} ./printable <printable.in > printable.tmp
+	diff -b printable.ref printable.tmp
+	rm -f printable.tmp
 
 hex_quote_test: hex_quote
 	$(SHLIB_ENV) ${VALGRIND} ./hex_quote <hex_quote.c | od -cb >hex_quote.tmp
@@ -2526,6 +2536,7 @@ posix_signals.o: posix_signals.c
 posix_signals.o: posix_signals.h
 posix_signals.o: sys_defs.h
 printable.o: check_arg.h
+printable.o: parse_utf8_char.h
 printable.o: printable.c
 printable.o: stringops.h
 printable.o: sys_defs.h
@@ -2849,6 +2860,7 @@ valid_utf8_hostname.o: valid_utf8_hostname.h
 valid_utf8_hostname.o: vbuf.h
 valid_utf8_hostname.o: vstring.h
 valid_utf8_string.o: check_arg.h
+valid_utf8_string.o: parse_utf8_char.h
 valid_utf8_string.o: stringops.h
 valid_utf8_string.o: sys_defs.h
 valid_utf8_string.o: valid_utf8_string.c

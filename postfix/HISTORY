@@ -27431,3 +27431,26 @@ Apologies for any names omitted.
 	Documentation: added smtp_balance_inet_protocols to the
 	text with smtp_address_preference caveats. File:
 	proto/postconf.proto.
+
+20230926
+
+	Documentation: added a section to smtp_balance_inet_protocols
+	to address the problem that servers may flag mail received
+	over IPv6 as more spammy. File: proto/postconf.proto.
+
+20231006
+
+	Cleanup: attempt to log the SASL username after authentication
+	failure. This appends ", sasl_username=xxx" to SASL authentication
+	failure logging. Based on code by Jozsef Kadlecsik. Files:
+	xsasl/xsasl_server.c, xsasl/xsasl_cyrus_server.c,
+	smtpd/smtpd_sasl_glue.c.
+
+20231008
+
+	Cleanup: enforce stricter UTF8 checks in printable(). Factor
+	out the UTF8 parser, so that it can be shared between
+	valid_utf8_string() and printable(). Wietse Venema, with
+	tests by Viktor Dukhovni. Files: util/valid_utf8_string.c,
+	util/printable.c, util/parse_utf8_char.c, util/printable.in,
+	util/printable.ref.

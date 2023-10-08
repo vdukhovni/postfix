@@ -45,6 +45,10 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
+/*	Amawalk, NY 10501, USA
 /*--*/
 
 /* System library. */
@@ -56,6 +60,7 @@
 /* Utility library. */
 
 #include "stringops.h"
+#include "parse_utf8_char.h"
 
 int util_utf8_enable = 0;
 
@@ -74,27 +79,54 @@ char   *printable(char *string, int replacement)
 
 char   *printable_except(char *string, int replacement, const char *except)
 {
-    unsigned char *cp;
+    char   *cp;
+    char   *ep = string + strlen(string);
+    char   *last;
     int     ch;
 
     /*
-     * XXX Replace invalid UTF8 sequences (too short, over-long encodings,
-     * out-of-range code points, etc). See valid_utf8_string.c.
+     * In case of a non-UTF8 sequence (bad leader byte, bad non-leader byte,
+     * over-long encodings, out-of-range code points, etc), replace the first
+     * byte, and try to resynchronize at the next byte.
      */
-    cp = (unsigned char *) string;
-    while ((ch = *cp) != 0) {
-	if (ISASCII(ch) && (ISPRINT(ch) || (except && strchr(except, ch)))) {
-	    /* ok */
-	} else if (util_utf8_enable && ch >= 194 && ch <= 254
-		   && cp[1] >= 128 && cp[1] < 192) {
-	    /* UTF8; skip the rest of the bytes in the character. */
-	    while (cp[1] >= 128 && cp[1] < 192)
-		cp++;
-	} else {
-	    /* Not ASCII and not UTF8. */
-	    *cp = replacement;
+#define PRINT_OR_EXCEPT(ch) (ISPRINT(ch) || (except && strchr(except, ch)))
+
+    for (cp = string; (ch = *(unsigned char *) cp) != 0; cp++) {
+	if (util_utf8_enable == 0) {
+	    if (ISASCII(ch) && PRINT_OR_EXCEPT(ch))
+		continue;
+	} else if ((last = parse_utf8_char(cp, ep)) == cp) {	/* ASCII */
+	    if (PRINT_OR_EXCEPT(ch))
+		continue;
+	} else if (last > cp) {			/* Other UTF8 */
+	    cp = last;
+	    continue;
 	}
-	cp++;
+	*cp = replacement;
     }
     return (string);
 }
+
+#ifdef TEST
+
+#include <stdlib.h>
+#include <string.h>
+#include <msg.h>
+#include <vstring_vstream.h>
+
+int     main(int argc, char **argv)
+{
+    VSTRING *in = vstring_alloc(10);
+
+    util_utf8_enable = 1;
+
+    while (vstring_fgets_nonl(in, VSTREAM_IN)) {
+        printable(vstring_str(in), '?');
+        vstream_fwrite(VSTREAM_OUT, vstring_str(in), VSTRING_LEN(in));
+        VSTREAM_PUTC('\n', VSTREAM_OUT);
+    }
+    vstream_fflush(VSTREAM_OUT);
+    exit(0);
+}
+
+#endif
