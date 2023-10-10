@@ -54,7 +54,7 @@ int     valid_utf8_string(const char *str, ssize_t len)
 
     if (len < 0)
 	return (0);
-    if (len <= 0)
+    if (len == 0)
 	return (1);
 
     /*
@@ -74,26 +74,96 @@ int     valid_utf8_string(const char *str, ssize_t len)
   */
 #ifdef TEST
 #include <stdlib.h>
+#include <string.h>
+#include <msg.h>
 #include <vstream.h>
-#include <vstring.h>
-#include <vstring_vstream.h>
+#include <msg_vstream.h>
 
-#define STR(x) vstring_str(x)
-#define LEN(x) VSTRING_LEN(x)
+ /*
+  * Test cases for 1-, 2-, and 3-byte encodings. See printable() tests for
+  * provenance.
+  * 
+  * XXX Need a test for 4-byte encodings, preferably with strings that can be
+  * displayed.
+  */
+struct testcase {
+    const char *name;
+    const char *input;
+    int     expected;
+};
 
-int     main(void)
+static const struct testcase testcases[] = {
+    {"Printable ASCII",
+	"printable", 1,
+    },
+    {"Latin accented text, no error",
+	"na\303\257ve", 1,
+    },
+    {"Latin text, with error",
+	"na\303ve", 0,
+    },
+    {"Viktor, Cyrillic, no error",
+	"\320\262\320\270\320\272\321\202\320\276\321\200", 1,
+    },
+    {"Viktor, Cyrillic, two errors",
+	"\320\262\320\320\272\272\321\202\320\276\321\200", 0,
+    },
+    {"Viktor, Hebrew, no error",
+	"\327\225\327\231\327\247\327\230\327\225\326\274\327\250", 1,
+    },
+    {"Viktor, Hebrew, with error",
+	"\327\225\231\327\247\327\230\327\225\326\274\327\250", 0,
+    },
+    {"Chinese (Simplified), no error",
+	"\344\270\255\345\233\275\344\272\222\350\201\224\347\275\221\347"
+	"\273\234\345\217\221\345\261\225\347\212\266\345\206\265\347\273"
+	"\237\350\256\241\346\212\245\345\221\212", 1,
+    },
+    {"Chinese (Simplified), with errors",
+	"\344\270\255\345\344\272\222\350\224\347\275\221\347"
+	"\273\234\345\217\221\345\261\225\347\212\266\345\206\265\347\273"
+	"\237\350\256\241\346\212\245\345", 0,
+    },
+};
+
+int     main(int argc, char **argv)
 {
-    VSTRING *buf = vstring_alloc(1);
+    const struct testcase *tp;
+    int     pass;
+    int     fail;
 
-    while (vstring_get_nonl(buf, VSTREAM_IN) != VSTREAM_EOF) {
-	vstream_printf("%c", (LEN(buf) && !valid_utf8_string(STR(buf), LEN(buf))) ?
-		       '!' : ' ');
-	vstream_fwrite(VSTREAM_OUT, STR(buf), LEN(buf));
-	vstream_printf("\n");
+#define NUM_TESTS       sizeof(testcases)/sizeof(testcases[0])
+
+    msg_vstream_init(basename(argv[0]), VSTREAM_ERR);
+    util_utf8_enable = 1;
+
+    for (pass = fail = 0, tp = testcases; tp < testcases + NUM_TESTS; tp++) {
+	int     actual;
+
+	/*
+	 * Notes:
+	 * 
+	 * - The msg(3) functions use printable() which interferes when logging
+	 * inputs and outputs. Use vstream_fprintf() instead.
+	 */
+	vstream_fprintf(VSTREAM_ERR, "RUN  %s\n", tp->name);
+	actual = valid_utf8_string(tp->input, strlen(tp->input));
+
+	if (actual == tp->expected) {
+	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, want and got: >%s<\n",
+			    tp->input, actual ? "valid" : "not valid");
+	    vstream_fprintf(VSTREAM_ERR, "PASS %s\n", tp->name);
+	    pass++;
+	} else {
+	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, want: >%s<, got: >%s<\n",
+			    tp->input, tp->expected ? "valid" : "not valid",
+			    actual ? "valid" : "not valid");
+	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
+	    fail++;
+	}
     }
-    vstream_fflush(VSTREAM_OUT);
-    vstring_free(buf);
-    exit(0);
+    msg_info("PASS=%d FAIL=%d", pass, fail);
+    return (fail > 0);
 }
 
 #endif

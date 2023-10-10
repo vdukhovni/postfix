@@ -623,7 +623,8 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	strcasecmp_utf8_test vbuf_print_test miss_endif_cidr_test \
 	miss_endif_regexp_test split_qnameval_test vstring_test \
 	vstream_test byte_mask_tests mystrtok_test known_tcp_ports_test \
-	binhash_test argv_test inet_prefix_top_test printable_test
+	binhash_test argv_test inet_prefix_top_test printable_test \
+	valid_utf8_string_test
  
 dict_tests: all dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
@@ -655,10 +656,11 @@ unescape_test: unescape unescape.in unescape.ref
 #	diff unescape.in unescape.tmp
 	rm -f unescape.tmp
 
-printable_test: printable printable.in
-	$(SHLIB_ENV) ${VALGRIND} ./printable <printable.in > printable.tmp
-	diff -b printable.ref printable.tmp
-	rm -f printable.tmp
+printable_test: printable
+	$(SHLIB_ENV) ${VALGRIND} ./printable 
+
+valid_utf8_string_test: valid_utf8_string
+	$(SHLIB_ENV) ${VALGRIND} ./valid_utf8_string 
 
 hex_quote_test: hex_quote
 	$(SHLIB_ENV) ${VALGRIND} ./hex_quote <hex_quote.c | od -cb >hex_quote.tmp

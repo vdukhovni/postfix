@@ -6,20 +6,24 @@
 /* SYNOPSIS
 /*	#include <parse_utf8_char.h>
 /*
-/*	char	*parse_utf8_char(str, len)
+/*	char	*parse_utf8_char(str, end)
 /*	const char *str;
-/*	ssize_t len;
+/*	const char *end;
 /* DESCRIPTION
-/*	parse_utf8_char() determines if the \fBlen\fR bytes starting
-/*	at \fBstr\fR begin with a complete UTF-8 multi-byte character
-/*	as defined in RFC 3629. That is, it contains a proper
-/*	encoding of code points U+0000..U+10FFFF, excluding over-long
-/*	encodings and excluding U+D800..U+DFFF surrogates.
+/*	parse_utf8_char() determines if the byte sequence starting
+/*	at \fBstr\fR begins with a complete UTF-8 character as
+/*	defined in RFC 3629. That is, a proper encoding of code
+/*	points U+0000..U+10FFFF, excluding over-long encodings and
+/*	excluding U+D800..U+DFFF surrogates.
 /*
-/*	When the \fBlen\fR bytes starting at \fBstr\fR begin with
-/*	a complete UTF-8 multi-byte character, this function returns
-/*	a pointer to the last byte in that character. Otherwise,
-/*	it returns a null pointer.
+/*	When the byte sequence starting at \fBstr\fR begins with a
+/*	complete UTF-8 character, this function returns a pointer
+/*	to the last byte in that character. Otherwise, it returns
+/*	a null pointer.
+/*
+/*	The \fBend\fR argument is either null (the byte sequence
+/*	starting at \fBstr\fR must be null terminated), or \fBend
+/*	- str\fR specifies the length of the byte sequence.
 /* BUGS
 /*	Code points in the range U+FDD0..U+FDEF and ending in FFFE
 /*	or FFFF are non-characters in UNICODE. This function does
@@ -58,7 +62,16 @@ static inline char *parse_utf8_char(const char *str, const char *end)
 
     /*
      * Optimized for correct input, time, space, and for CPUs that have a
-     * decent number of registers.
+     * decent number of registers. Other implementation considerations:
+     * 
+     * - In the UTF-8 encoding, a non-leading byte is never null. Therefore,
+     * this function will correctly reject a partial UTF-8 character at the
+     * end of a null-terminated string.
+     * 
+     * - If the "end" argument is a null constant, and if this function is
+     * inlined, then an optimizing compiler should propagate the constant
+     * through the "ep" variable, and eliminate any code branches that
+     * require ep != 0.
      */
     /* Single-byte encodings. */
     if (EXPECTED((c0 = *cp) <= 0x7f) /* we know that c0 >= 0x0 */ ) {
@@ -68,7 +81,7 @@ static inline char *parse_utf8_char(const char *str, const char *end)
     else if (EXPECTED(c0 <= 0xdf) /* we know that c0 >= 0x80 */ ) {
 	/* Exclude over-long encodings. */
 	if (UNEXPECTED(c0 < 0xc2)
-	    || UNEXPECTED(cp + 1 >= ep)
+	    || UNEXPECTED(ep && cp + 1 >= ep)
 	/* Require UTF-8 tail byte. */
 	    || UNEXPECTED(((ch = *++cp) & 0xc0) != 0x80))
 	    return (0);
@@ -76,7 +89,7 @@ static inline char *parse_utf8_char(const char *str, const char *end)
     }
     /* Three-byte encodings. */
     else if (EXPECTED(c0 <= 0xef) /* we know that c0 >= 0xe0 */ ) {
-	if (UNEXPECTED(cp + 2 >= ep)
+	if (UNEXPECTED(ep && cp + 2 >= ep)
 	/* Exclude over-long encodings. */
 	    || UNEXPECTED((ch = *++cp) < (c0 == 0xe0 ? 0xa0 : 0x80))
 	/* Exclude U+D800..U+DFFF. */
@@ -88,7 +101,7 @@ static inline char *parse_utf8_char(const char *str, const char *end)
     }
     /* Four-byte encodings. */
     else if (EXPECTED(c0 <= 0xf4) /* we know that c0 >= 0xf0 */ ) {
-	if (UNEXPECTED(cp + 3 >= ep)
+	if (UNEXPECTED(ep && cp + 3 >= ep)
 	/* Exclude over-long encodings. */
 	    || UNEXPECTED((ch = *++cp) < (c0 == 0xf0 ? 0x90 : 0x80))
 	/* Exclude code points above U+10FFFF. */

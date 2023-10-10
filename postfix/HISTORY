@@ -27452,5 +27452,14 @@ Apologies for any names omitted.
 	out the UTF8 parser, so that it can be shared between
 	valid_utf8_string() and printable(). Wietse Venema, with
 	tests by Viktor Dukhovni. Files: util/valid_utf8_string.c,
-	util/printable.c, util/parse_utf8_char.c, util/printable.in,
+	util/printable.c, util/parse_utf8_char.h, util/printable.in,
 	util/printable.ref.
+
+20231010
+
+	Cleanup: printable() uses once again a single-pass algorithm.
+	Converted printable() test files to built-in test cases with
+	proper logging, and removed the printable() test files and
+	git metadata.  Added similar tests for the valid_utf8_string()
+	function. Files: util/valid_utf8_string.c, util/printable.c,
+	util/parse_utf8_char.h, util/Makefile.in.

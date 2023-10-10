@@ -80,7 +80,6 @@ char   *printable(char *string, int replacement)
 char   *printable_except(char *string, int replacement, const char *except)
 {
     char   *cp;
-    char   *ep = string + strlen(string);
     char   *last;
     int     ch;
 
@@ -95,10 +94,10 @@ char   *printable_except(char *string, int replacement, const char *except)
 	if (util_utf8_enable == 0) {
 	    if (ISASCII(ch) && PRINT_OR_EXCEPT(ch))
 		continue;
-	} else if ((last = parse_utf8_char(cp, ep)) == cp) {	/* ASCII */
+	} else if ((last = parse_utf8_char(cp, 0)) == cp) {	/* ASCII */
 	    if (PRINT_OR_EXCEPT(ch))
 		continue;
-	} else if (last > cp) {			/* Other UTF8 */
+	} else if (last != 0) {			/* Other UTF8 */
 	    cp = last;
 	    continue;
 	}
@@ -112,21 +111,111 @@ char   *printable_except(char *string, int replacement, const char *except)
 #include <stdlib.h>
 #include <string.h>
 #include <msg.h>
-#include <vstring_vstream.h>
+#include <msg_vstream.h>
+#include <mymalloc.h>
+#include <vstream.h>
+
+ /*
+  * Test cases for 1-, 2-, and 3-byte encodings. Originally contributed by
+  * Viktor Dukhovni, and annotated using translate.google.com.
+  * 
+  * XXX Need a test for 4-byte encodings, preferably with strings that can be
+  * displayed.
+  */
+struct testcase {
+    const char *name;
+    const char *input;
+    const char *expected;;
+};
+static const struct testcase testcases[] = {
+    {"Printable ASCII",
+	"printable", "printable"
+    },
+    {"ASCII with control character",
+	"non\bn-printable", "non?n-printable"
+    },
+    {"Latin accented text, no error",
+	"na\303\257ve", "na\303\257ve"
+    },
+    {"Latin text, with error",
+	"na\303ve", "na?ve"
+    },
+    {"Viktor, Cyrillic, no error",
+	"\320\262\320\270\320\272\321\202\320\276\321\200",
+	"\320\262\320\270\320\272\321\202\320\276\321\200"
+    },
+    {"Viktor, Cyrillic, two errors",
+	"\320\262\320\320\272\272\321\202\320\276\321\200",
+	"\320\262?\320\272?\321\202\320\276\321\200"
+    },
+    {"Viktor, Hebrew, no error",
+	"\327\225\327\231\327\247\327\230\327\225\326\274\327\250",
+	"\327\225\327\231\327\247\327\230\327\225\326\274\327\250"
+    },
+    {"Viktor, Hebrew, with error",
+	"\327\225\231\327\247\327\230\327\225\326\274\327\250",
+	"\327\225?\327\247\327\230\327\225\326\274\327\250"
+    },
+    {"Chinese (Simplified), no error",
+	"\344\270\255\345\233\275\344\272\222\350\201\224\347\275\221\347"
+	"\273\234\345\217\221\345\261\225\347\212\266\345\206\265\347\273"
+	"\237\350\256\241\346\212\245\345\221\212",
+	"\344\270\255\345\233\275\344\272\222\350\201\224\347\275\221\347"
+	"\273\234\345\217\221\345\261\225\347\212\266\345\206\265\347\273"
+	"\237\350\256\241\346\212\245\345\221\212"
+    },
+    {"Chinese (Simplified), with errors",
+	"\344\270\255\345\344\272\222\350\224\347\275\221\347"
+	"\273\234\345\217\221\345\261\225\347\212\266\345\206\265\347\273"
+	"\237\350\256\241\346\212\245\345",
+	"\344\270\255?\344\272\222??\347\275\221\347"
+	"\273\234\345\217\221\345\261\225\347\212\266\345\206\265\347\273"
+	"\237\350\256\241\346\212\245?"
+    },
+};
 
 int     main(int argc, char **argv)
 {
-    VSTRING *in = vstring_alloc(10);
+    const struct testcase *tp;
+    int     pass;
+    int     fail;
 
+#define NUM_TESTS	sizeof(testcases)/sizeof(testcases[0])
+
+    msg_vstream_init(basename(argv[0]), VSTREAM_ERR);
     util_utf8_enable = 1;
 
-    while (vstring_fgets_nonl(in, VSTREAM_IN)) {
-        printable(vstring_str(in), '?');
-        vstream_fwrite(VSTREAM_OUT, vstring_str(in), VSTRING_LEN(in));
-        VSTREAM_PUTC('\n', VSTREAM_OUT);
+    for (pass = fail = 0, tp = testcases; tp < testcases + NUM_TESTS; tp++) {
+	char   *input;
+	char   *actual;
+
+	/*
+	 * Notes:
+	 * 
+	 * - The input is modified, therefore it must be copied.
+	 * 
+	 * - The msg(3) functions use printable() which interferes when logging
+	 * inputs and outputs. Use vstream_fprintf() instead.
+	 */
+	vstream_fprintf(VSTREAM_ERR, "RUN  %s\n", tp->name);
+	input = mystrdup(tp->input);
+	actual = printable(input, '?');
+
+	if (strcmp(actual, tp->expected) == 0) {
+	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, want and got: >%s<\n",
+			    tp->input, actual);
+	    vstream_fprintf(VSTREAM_ERR, "PASS %s\n", tp->name);
+	    pass++;
+	} else {
+	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, want: >%s<, got: >%s<\n",
+			    tp->input, tp->expected, actual);
+	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
+	    fail++;
+	}
+	myfree(input);
     }
-    vstream_fflush(VSTREAM_OUT);
-    exit(0);
+    msg_info("PASS=%d FAIL=%d", pass, fail);
+    return (fail > 0);
 }
 
 #endif
