@@ -8,6 +8,14 @@ Wish list:
 
 	postfix-install should mention makedefs.out.
 
+	In valid_utf8_string.c, add tests for over-long encodings
+	and surrogates. Can we add tests for 4-byte encodings with
+	strings that are displayable?
+
+	Add a pre-release check for '.' instead of ','. Generalize
+	from grep '[a-zA-Z0-9]\.  *[a-z]' proto/*|egrep -v
+	'i\.e\.|etc\.|e\.g\.|\.  *[a-zA-Z0-9]*\('
+
 	Update DKIM examples for signing with the benefits of forced
 	MIME converison with "force_mime_input_conversion = yes"
  

@@ -85,6 +85,8 @@ int     valid_utf8_string(const char *str, ssize_t len)
   * 
   * XXX Need a test for 4-byte encodings, preferably with strings that can be
   * displayed.
+  * 
+  * XXX Need tests for over-long encodings and surrogates.
   */
 struct testcase {
     const char *name;
@@ -92,37 +94,65 @@ struct testcase {
     int     expected;
 };
 
+#define T_VALID		(1)
+#define T_INVALID	(0)
+#define valid_to_str(v)	((v) ? "VALID" : "INVALID")
+
 static const struct testcase testcases[] = {
     {"Printable ASCII",
-	"printable", 1,
+	"printable", T_VALID,
     },
-    {"Latin accented text, no error",
-	"na\303\257ve", 1,
+    {"Latin script, accented, no error",
+	"na\303\257ve", T_VALID,
     },
-    {"Latin text, with error",
-	"na\303ve", 0,
+    {"Latin script, accented, missing non-leading byte",
+	"na\303ve", T_INVALID,
+    },
+    {"Latin script, accented, missing leading byte",
+	"na\257ve", T_INVALID,
     },
     {"Viktor, Cyrillic, no error",
-	"\320\262\320\270\320\272\321\202\320\276\321\200", 1,
+	"\320\262\320\270\320\272\321\202\320\276\321\200", T_VALID,
     },
-    {"Viktor, Cyrillic, two errors",
-	"\320\262\320\320\272\272\321\202\320\276\321\200", 0,
+    {"Viktor, Cyrillic, missing non-leading byte",
+	"\320\262\320\320\272\321\202\320\276\321\200", T_INVALID,
+    },
+    {"Viktor, Cyrillic, missing leading byte",
+	"\320\262\270\320\272\321\202\320\276\321\200", T_INVALID,
+    },
+    {"Viktor, Cyrillic, truncated",
+	"\320\262\320\270\320\272\321\202\320\276\321", T_INVALID,
     },
     {"Viktor, Hebrew, no error",
-	"\327\225\327\231\327\247\327\230\327\225\326\274\327\250", 1,
+	"\327\225\327\231\327\247\327\230\327\225\326\274\327\250", T_VALID,
     },
-    {"Viktor, Hebrew, with error",
-	"\327\225\231\327\247\327\230\327\225\326\274\327\250", 0,
+    {"Viktor, Hebrew, missing leading byte",
+	"\327\225\231\327\247\327\230\327\225\326\274\327\250", T_INVALID,
     },
     {"Chinese (Simplified), no error",
 	"\344\270\255\345\233\275\344\272\222\350\201\224\347\275\221\347"
 	"\273\234\345\217\221\345\261\225\347\212\266\345\206\265\347\273"
-	"\237\350\256\241\346\212\245\345\221\212", 1,
+	"\237\350\256\241\346\212\245\345\221\212", T_VALID,
     },
-    {"Chinese (Simplified), with errors",
-	"\344\270\255\345\344\272\222\350\224\347\275\221\347"
+    {"Chinese (Simplified), missing leading byte",
+	"\344\270\255\345\233\275\344\272\222\350\201\224\275\221\347"
 	"\273\234\345\217\221\345\261\225\347\212\266\345\206\265\347\273"
-	"\237\350\256\241\346\212\245\345", 0,
+	"\237\350\256\241\346\212\245\345\221\212", T_INVALID,
+    },
+    {"Chinese (Simplified), missing first non-leading byte",
+	"\344\270\255\345\233\275\344\272\222\350\201\224\347\221\347"
+	"\273\234\345\217\221\345\261\225\347\212\266\345\206\265\347\273"
+	"\237\350\256\241\346\212\245\345\221\212", T_INVALID,
+    },
+    {"Chinese (Simplified), missing second non-leading byte",
+	"\344\270\255\345\233\275\344\272\222\350\201\224\347\275\347"
+	"\273\234\345\217\221\345\261\225\347\212\266\345\206\265\347\273"
+	"\237\350\256\241\346\212\245\345\221\212", T_INVALID,
+    },
+    {"Chinese (Simplified), truncated",
+	"\344\270\255\345\233\275\344\272\222\350\201\224\347\275\221\347"
+	"\273\234\345\217\221\345\261\225\347\212\266\345\206\265\347\273"
+	"\237\350\256\241\346\212\245\345", T_INVALID,
     },
 };
 
@@ -151,13 +181,13 @@ int     main(int argc, char **argv)
 
 	if (actual == tp->expected) {
 	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, want and got: >%s<\n",
-			    tp->input, actual ? "valid" : "not valid");
+			    tp->input, valid_to_str(actual));
 	    vstream_fprintf(VSTREAM_ERR, "PASS %s\n", tp->name);
 	    pass++;
 	} else {
 	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, want: >%s<, got: >%s<\n",
-			    tp->input, tp->expected ? "valid" : "not valid",
-			    actual ? "valid" : "not valid");
+			    tp->input, valid_to_str(tp->expected),
+			    valid_to_str(actual));
 	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
 	    fail++;
 	}
