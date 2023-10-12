@@ -148,7 +148,7 @@ off_t   cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
     }
     /* Fix 20140711: Auto-detect an UTF8 sender. */
     if (var_smtputf8_enable && *STR(clean_addr) && !allascii(STR(clean_addr))
-	&& valid_utf8_string(STR(clean_addr), LEN(clean_addr))) {
+	&& valid_utf8_stringz(STR(clean_addr))) {
 	state->smtputf8 |= SMTPUTF8_FLAG_SENDER;
 	/* Fix 20140713: request SMTPUTF8 support selectively. */
 	if (state->flags & CLEANUP_FLAG_AUTOUTF8)
@@ -216,7 +216,7 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
     }
     /* Fix 20140711: Auto-detect an UTF8 recipient. */
     if (var_smtputf8_enable && *STR(clean_addr) && !allascii(STR(clean_addr))
-	&& valid_utf8_string(STR(clean_addr), LEN(clean_addr))) {
+	&& valid_utf8_stringz(STR(clean_addr))) {
 	/* Fix 20140713: request SMTPUTF8 support selectively. */
 	if (state->flags & CLEANUP_FLAG_AUTOUTF8)
 	    state->smtputf8 |= SMTPUTF8_FLAG_REQUESTED;
@@ -275,7 +275,7 @@ void    cleanup_addr_bcc_dsn(CLEANUP_STATE *state, const char *bcc,
     }
     /* Fix 20140711: Auto-detect an UTF8 recipient. */
     if (var_smtputf8_enable && *STR(clean_addr) && !allascii(STR(clean_addr))
-	&& valid_utf8_string(STR(clean_addr), LEN(clean_addr))) {
+	&& valid_utf8_stringz(STR(clean_addr))) {
 	/* Fix 20140713: request SMTPUTF8 support selectively. */
 	if (state->flags & CLEANUP_FLAG_AUTOUTF8)
 	    state->smtputf8 |= SMTPUTF8_FLAG_REQUESTED;

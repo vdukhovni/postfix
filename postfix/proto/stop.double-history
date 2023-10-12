@@ -69,3 +69,6 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  smtpd smtpd c 
  proto postconf proto postscreen postscreen c 
  global maillog_client c master master c smtp smtp c 
+ src postalias postalias c src postmap postmap c 
+ src postalias postalias c src postmap postmap c 
+ src smtpd smtpd c src smtpd smtpd_check c 

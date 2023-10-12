@@ -62,7 +62,7 @@
 #include "stringops.h"
 #include "parse_utf8_char.h"
 
-int util_utf8_enable = 0;
+int     util_utf8_enable = 0;
 
 /* printable -  binary compatibility */
 
@@ -118,6 +118,8 @@ char   *printable_except(char *string, int replacement, const char *except)
  /*
   * Test cases for 1-, 2-, and 3-byte encodings. Originally contributed by
   * Viktor Dukhovni, and annotated using translate.google.com.
+  * 
+  * See valid_utf8_string.c for single-error tests.
   * 
   * XXX Need a test for 4-byte encodings, preferably with strings that can be
   * displayed.
@@ -201,16 +203,16 @@ int     main(int argc, char **argv)
 	input = mystrdup(tp->input);
 	actual = printable(input, '?');
 
-	if (strcmp(actual, tp->expected) == 0) {
-	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, want and got: >%s<\n",
+	if (strcmp(actual, tp->expected) != 0) {
+	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, got: >%s<, want: >%s<\n",
+			    tp->input, actual, tp->expected);
+	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
+	    fail++;
+	} else {
+	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, got and want: >%s<\n",
 			    tp->input, actual);
 	    vstream_fprintf(VSTREAM_ERR, "PASS %s\n", tp->name);
 	    pass++;
-	} else {
-	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, want: >%s<, got: >%s<\n",
-			    tp->input, tp->expected, actual);
-	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
-	    fail++;
 	}
 	myfree(input);
     }

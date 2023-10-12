@@ -160,7 +160,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
      */
     for (recipient = list.info; recipient < list.info + list.len; recipient++)
 	if (var_smtputf8_enable && (addr = recipient->address)[0]
-	    && !allascii(addr) && valid_utf8_string(addr, strlen(addr))) {
+	    && !allascii(addr) && valid_utf8_stringz(addr)) {
 	    smtputf8 |= SMTPUTF8_FLAG_RECIPIENT;
 	    if (message->verp_delims)
 		smtputf8 |= SMTPUTF8_FLAG_SENDER;

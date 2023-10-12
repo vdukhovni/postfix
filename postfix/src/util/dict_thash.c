@@ -127,7 +127,7 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
 	     */
 	    if ((dict->flags & DICT_FLAG_UTF8_ACTIVE)
 		&& allascii(STR(line_buffer)) == 0
-	    && valid_utf8_string(STR(line_buffer), LEN(line_buffer)) == 0) {
+		&& valid_utf8_stringz(STR(line_buffer)) == 0) {
 		msg_warn("%s, line %d: non-UTF-8 input \"%s\""
 			 " -- ignoring this line",
 			 VSTREAM_PATH(fp), lineno, STR(line_buffer));
@@ -181,8 +181,8 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
 			 " is this an alias file?", path, lineno);
 
 	    /*
-	     * Optionally treat the value as a filename, and replace the value
-	     * with the BASE64-encoded content of the named file.
+	     * Optionally treat the value as a filename, and replace the
+	     * value with the BASE64-encoded content of the named file.
 	     */
 	    if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
 		VSTRING *base64_buf;

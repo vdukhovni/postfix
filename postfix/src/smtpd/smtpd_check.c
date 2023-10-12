@@ -3267,7 +3267,7 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 	    if (result == SMTPD_CHECK_DUNNO)
 		result = *respt;
 	    if (!var_smtpd_tls_enable_rpk
-	        || *action == SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT)
+		|| *action == SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT)
 		break;
 	}
     } else if (!var_smtpd_tls_ask_ccert) {
@@ -3281,7 +3281,7 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 	&& cert_result != SMTPD_CHECK_DUNNO
 	&& cert_result != pkey_result) {
 	msg_warn("%s: %s: %s: Fragile access policy: %s=yes, but"
-	         " the action for certificate fingerprint \"%s\" !="
+		 " the action for certificate fingerprint \"%s\" !="
 		 " the action for public key fingerprint \"%s\"",
 		 myname, state->namaddr, acl->map_type_name,
 		 VAR_SMTPD_TLS_ENABLE_RPK,
@@ -3997,7 +3997,7 @@ static int valid_utf8_action(const char *server, const char *action)
 {
     int     retval;
 
-    if ((retval = valid_utf8_string(action, strlen(action))) == 0)
+    if ((retval = valid_utf8_stringz(action)) == 0)
 	msg_warn("malformed UTF-8 in policy server %s response: \"%s\"",
 		 server, action);
     return (retval);
@@ -4053,6 +4053,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
     ENCODE_CN(issuer, issuer_buf, state->tls_context->issuer_CN);
 
 #define NONEMPTY(x) ((x) != 0 && (*x) != 0)
+
     /*
      * XXX: Too noisy to warn for each policy lookup, especially because we
      * don't even know whether the policy server will use the fingerprint. So

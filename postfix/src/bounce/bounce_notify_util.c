@@ -773,15 +773,14 @@ int     bounce_header_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
     post_mail_fprintf(bounce, "X-%s-Queue-ID: %s",
 		      bounce_info->mail_name, bounce_info->queue_id);
 
-#define IS_UTF8_ADDRESS(str, len) \
-	((str)[0] != 0 && !allascii(str) && valid_utf8_string((str), (len)))
+#define IS_UTF8_ADDRESS(str) \
+	((str)[0] != 0 && !allascii(str) && valid_utf8_stringz(str))
 
     /* Fix 20140708: use "utf-8" or "rfc822" as appropriate. */
     if (VSTRING_LEN(bounce_info->sender) > 0)
 	post_mail_fprintf(bounce, "X-%s-Sender: %s; %s",
 			  bounce_info->mail_name, bounce_info->smtputf8
-			  && IS_UTF8_ADDRESS(STR(bounce_info->sender),
-					 VSTRING_LEN(bounce_info->sender)) ?
+			  && IS_UTF8_ADDRESS(STR(bounce_info->sender)) ?
 			  "utf-8" : "rfc822", STR(bounce_info->sender));
     if (bounce_info->arrival_time > 0)
 	post_mail_fprintf(bounce, "Arrival-Date: %s",
@@ -800,8 +799,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
     /* Fix 20140708: Don't send "utf-8" type with non-UTF8 address. */
     post_mail_fprintf(bounce, "Final-Recipient: %s; %s",
 		      bounce_info->smtputf8
-		      && IS_UTF8_ADDRESS(rcpt->address,
-					 strlen(rcpt->address)) ?
+		      && IS_UTF8_ADDRESS(rcpt->address) ?
 		      "utf-8" : "rfc822", rcpt->address);
 
     /*
@@ -829,8 +827,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 	/* Fix 20140708: Don't send "utf-8" type with non-UTF8 address. */
 	post_mail_fprintf(bounce, "Original-Recipient: %s; %s",
 			  bounce_info->smtputf8
-			  && IS_UTF8_ADDRESS(rcpt->orig_addr,
-					     strlen(rcpt->orig_addr)) ?
+			  && IS_UTF8_ADDRESS(rcpt->orig_addr) ?
 			  "utf-8" : "rfc822", rcpt->orig_addr);
     }
     post_mail_fprintf(bounce, "Action: %s",

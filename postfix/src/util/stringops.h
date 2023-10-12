@@ -60,6 +60,7 @@ extern int allascii_len(const char *, ssize_t);
 extern const char *WARN_UNUSED_RESULT split_nameval(char *, char **, char **);
 extern const char *WARN_UNUSED_RESULT split_qnameval(char *, char **, char **);
 extern int valid_utf8_string(const char *, ssize_t);
+extern int valid_utf8_stringz(const char *);
 extern size_t balpar(const char *, const char *);
 extern char *WARN_UNUSED_RESULT extpar(char **, const char *, int);
 extern int strcasecmp_utf8x(int, const char *, const char *);

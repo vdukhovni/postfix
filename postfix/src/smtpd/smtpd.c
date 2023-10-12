@@ -5796,8 +5796,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    watchdog_pat();
 	    smtpd_chat_query(state);
 	    /* Safety: protect internal interfaces against malformed UTF-8. */
-	    if (var_smtputf8_enable && valid_utf8_string(STR(state->buffer),
-						 LEN(state->buffer)) == 0) {
+	    if (var_smtputf8_enable
+		&& valid_utf8_stringz(STR(state->buffer)) == 0) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state, "500 5.5.2 Error: bad UTF-8 syntax");
 		state->error_count++;

@@ -9,10 +9,17 @@
 /*	int	valid_utf8_string(str, len)
 /*	const char *str;
 /*	ssize_t	len;
+/*
+/*	int	valid_utf8_stringz(str)
+/*	const char *str;
+/*	ssize_t	len;
 /* DESCRIPTION
 /*	valid_utf8_string() determines if all bytes in a string
 /*	satisfy parse_utf8_char(3h) checks. See there for any
 /*	implementation limitations.
+/*
+/*	valid_utf8_stringz() determines the same for zero-terminated
+/*	strings.
 /*
 /*	A zero-length string is considered valid.
 /* DIAGNOSTICS
@@ -69,6 +76,27 @@ int     valid_utf8_string(const char *str, ssize_t len)
     return (1);
 }
 
+/* valid_utf8_stringz - validate string according to RFC 3629 */
+
+int     valid_utf8_stringz(const char *str)
+{
+    const char *cp;
+    const char *last;
+
+    /*
+     * Ideally, the compiler will inline parse_utf8_char(), propagate the
+     * null pointer constant value, and eliminate code branches that test
+     * whether 0 != 0.
+     */
+    for (cp = str; *cp; cp++) {
+	if ((last = parse_utf8_char(cp, 0)) != 0)
+	    cp = last;
+	else
+	    return (0);
+    }
+    return (1);
+}
+
  /*
   * Stand-alone test program. Each string is a line without line terminator.
   */
@@ -80,13 +108,13 @@ int     valid_utf8_string(const char *str, ssize_t len)
 #include <msg_vstream.h>
 
  /*
-  * Test cases for 1-, 2-, and 3-byte encodings. See printable() tests for
-  * provenance.
+  * Test cases for 1-, 2-, and 3-byte encodings. See printable.c for UTF8
+  * parser resychronization tests.
   * 
   * XXX Need a test for 4-byte encodings, preferably with strings that can be
   * displayed.
   * 
-  * XXX Need tests for over-long encodings and surrogates.
+  * XXX Need tests with hand-crafted over-long encodings and surrogates.
   */
 struct testcase {
     const char *name;
@@ -168,7 +196,8 @@ int     main(int argc, char **argv)
     util_utf8_enable = 1;
 
     for (pass = fail = 0, tp = testcases; tp < testcases + NUM_TESTS; tp++) {
-	int     actual;
+	int     actual_l;
+	int     actual_z;
 
 	/*
 	 * Notes:
@@ -177,19 +206,28 @@ int     main(int argc, char **argv)
 	 * inputs and outputs. Use vstream_fprintf() instead.
 	 */
 	vstream_fprintf(VSTREAM_ERR, "RUN  %s\n", tp->name);
-	actual = valid_utf8_string(tp->input, strlen(tp->input));
+	actual_l = valid_utf8_string(tp->input, strlen(tp->input));
+	actual_z = valid_utf8_stringz(tp->input);
 
-	if (actual == tp->expected) {
-	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, want and got: >%s<\n",
-			    tp->input, valid_to_str(actual));
-	    vstream_fprintf(VSTREAM_ERR, "PASS %s\n", tp->name);
-	    pass++;
-	} else {
-	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, want: >%s<, got: >%s<\n",
-			    tp->input, valid_to_str(tp->expected),
-			    valid_to_str(actual));
+	if (actual_l != tp->expected) {
+	    vstream_fprintf(VSTREAM_ERR,
+			  "input: >%s<, 'actual_l' got: >%s<, want: >%s<\n",
+			    tp->input, valid_to_str(actual_l),
+			    valid_to_str(tp->expected));
 	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
 	    fail++;
+	} else if (actual_z != tp->expected) {
+	    vstream_fprintf(VSTREAM_ERR,
+			  "input: >%s<, 'actual_z' got: >%s<, want: >%s<\n",
+			    tp->input, valid_to_str(actual_z),
+			    valid_to_str(tp->expected));
+	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
+	    fail++;
+	} else {
+	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, got and want: >%s<\n",
+			    tp->input, valid_to_str(actual_l));
+	    vstream_fprintf(VSTREAM_ERR, "PASS %s\n", tp->name);
+	    pass++;
 	}
     }
     msg_info("PASS=%d FAIL=%d", pass, fail);

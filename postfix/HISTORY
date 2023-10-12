@@ -27471,3 +27471,23 @@ Apologies for any names omitted.
 
 	Cleanup: finer-grained unit tests for valid_utf8_string().
 	File: util/valid_utf8_string.c.
+
+	Style: converted failed test reports to "got before want"
+	order, and converted tests to "fail before pass" order.
+	Files: util/valid_utf8_string.c, util/printable.c.
+
+	Cleanup: added a valid_utf8_stringz() function to simplify
+	most calls to validate null-terminated strings, eliminating
+	the runtime cost and code maintenance cost of 17 strlen()
+	calls. Files: src/bounce/bounce_notify_util.c,
+	src/cleanup/cleanup_addr.c, src/global/dict_ldap.c,
+	src/global/dict_mysql.c, src/global/dict_pgsql.c,
+	src/global/dict_sqlite.c, src/oqmgr/qmgr_deliver.c,
+	src/postalias/postalias.c, src/postmap/postmap.c,
+	src/postscreen/postscreen_smtpd.c, src/qmgr/qmgr_deliver.c,
+	src/smtpd/smtpd.c, src/smtpd/smtpd_check.c,
+	src/trivial-rewrite/resolve.c, src/util/casefold.c,
+	src/util/dict_inline.c, src/util/dict_thash.c,
+	src/util/dict_utf8.c, src/util/midna_domain.c,
+	src/util/printable.c, src/util/stringops.h,
+	src/util/valid_utf8_string.c.

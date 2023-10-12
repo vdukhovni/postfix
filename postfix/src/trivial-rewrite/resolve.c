@@ -427,7 +427,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	if (!valid_mailhost_literal(rcpt_domain, DONT_GRIPE))
 	    *flags |= RESOLVE_FLAG_ERROR;
     } else if (var_smtputf8_enable
-	       && valid_utf8_string(STR(nextrcpt), LEN(nextrcpt)) == 0) {
+	       && valid_utf8_stringz(STR(nextrcpt)) == 0) {
 	*flags |= RESOLVE_FLAG_ERROR;
     } else if (!valid_utf8_hostname(var_smtputf8_enable, rcpt_domain,
 				    DONT_GRIPE)) {
