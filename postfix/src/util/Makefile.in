@@ -145,7 +145,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
 	known_tcp_ports dict_stream find_inet binhash hash_fnv argv \
-	clean_env inet_prefix_top printable
+	clean_env inet_prefix_top printable readlline
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
@@ -366,6 +366,11 @@ unescape: $(LIB)
 	mv junk $@.o
 
 printable: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+readlline: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -624,7 +629,7 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	miss_endif_regexp_test split_qnameval_test vstring_test \
 	vstream_test byte_mask_tests mystrtok_test known_tcp_ports_test \
 	binhash_test argv_test inet_prefix_top_test printable_test \
-	valid_utf8_string_test
+	valid_utf8_string_test readlline_test
  
 dict_tests: all dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
@@ -658,6 +663,9 @@ unescape_test: unescape unescape.in unescape.ref
 
 printable_test: printable
 	$(SHLIB_ENV) ${VALGRIND} ./printable 
+
+readlline_test: readlline
+	$(SHLIB_ENV) ${VALGRIND} ./readlline 
 
 valid_utf8_string_test: valid_utf8_string
 	$(SHLIB_ENV) ${VALGRIND} ./valid_utf8_string 

@@ -190,6 +190,7 @@ int     main(int argc, char **argv)
     for (pass = fail = 0, tp = testcases; tp < testcases + NUM_TESTS; tp++) {
 	char   *input;
 	char   *actual;
+	int     ok = 0;
 
 	/*
 	 * Notes:
@@ -206,13 +207,17 @@ int     main(int argc, char **argv)
 	if (strcmp(actual, tp->expected) != 0) {
 	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, got: >%s<, want: >%s<\n",
 			    tp->input, actual, tp->expected);
-	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
-	    fail++;
 	} else {
 	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, got and want: >%s<\n",
 			    tp->input, actual);
+	    ok = 1;
+	}
+	if (ok) {
 	    vstream_fprintf(VSTREAM_ERR, "PASS %s\n", tp->name);
 	    pass++;
+	} else {
+	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
+	    fail++;
 	}
 	myfree(input);
     }

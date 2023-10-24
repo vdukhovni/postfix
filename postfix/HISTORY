@@ -27491,3 +27491,13 @@ Apologies for any names omitted.
 	src/util/dict_utf8.c, src/util/midna_domain.c,
 	src/util/printable.c, src/util/stringops.h,
 	src/util/valid_utf8_string.c.
+
+	Cleanup: added unit tests to the readlline module, with
+	multiline input that contains embedded comments, input that
+	contains a null byte, text not ending in newline. File:
+	readlline.c.
+
+20231024
+
+	Cleanup: emit place holder text when no SASL authentication
+	failure reason is available. File: smtpd/smtpd_sasl_glue.c.

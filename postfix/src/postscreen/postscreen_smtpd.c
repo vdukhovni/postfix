@@ -930,7 +930,9 @@ static void psc_smtpd_read_event(int event, void *context)
 	}
 
 	/*
-	 * Avoid complaints from Postfix maps about malformed content.
+	 * Avoid complaints from Postfix maps about malformed content. Note:
+	 * this will stop at the first null byte, just like the code that
+	 * parses the command name or command arguments.
 	 */
 #define PSC_BAD_UTF8(str) \
 	(var_smtputf8_enable && !valid_utf8_stringz(str))

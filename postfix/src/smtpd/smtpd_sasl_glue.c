@@ -346,8 +346,8 @@ int     smtpd_sasl_authenticate(SMTPD_STATE *state,
     if (status != XSASL_AUTH_DONE) {
 	sasl_username = xsasl_server_get_username(state->sasl_server);
 	msg_warn("%s: SASL %s authentication failed: %s, sasl_username=%s",
-		 state->namaddr, sasl_method,
-		 STR(state->sasl_reply),
+		 state->namaddr, sasl_method, *STR(state->sasl_reply) ?
+		 STR(state->sasl_reply) : "(reason unavailable)",
 		 sasl_username ? sasl_username : "(unavailable)");
 	/* RFC 4954 Section 6. */
 	if (status == XSASL_AUTH_TEMP)

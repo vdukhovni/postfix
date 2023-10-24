@@ -198,6 +198,7 @@ int     main(int argc, char **argv)
     for (pass = fail = 0, tp = testcases; tp < testcases + NUM_TESTS; tp++) {
 	int     actual_l;
 	int     actual_z;
+	int     ok = 0;
 
 	/*
 	 * Notes:
@@ -214,20 +215,22 @@ int     main(int argc, char **argv)
 			  "input: >%s<, 'actual_l' got: >%s<, want: >%s<\n",
 			    tp->input, valid_to_str(actual_l),
 			    valid_to_str(tp->expected));
-	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
-	    fail++;
 	} else if (actual_z != tp->expected) {
 	    vstream_fprintf(VSTREAM_ERR,
 			  "input: >%s<, 'actual_z' got: >%s<, want: >%s<\n",
 			    tp->input, valid_to_str(actual_z),
 			    valid_to_str(tp->expected));
-	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
-	    fail++;
 	} else {
 	    vstream_fprintf(VSTREAM_ERR, "input: >%s<, got and want: >%s<\n",
 			    tp->input, valid_to_str(actual_l));
+	    ok = 1;
+	}
+	if (ok) {
 	    vstream_fprintf(VSTREAM_ERR, "PASS %s\n", tp->name);
 	    pass++;
+	} else {
+	    vstream_fprintf(VSTREAM_ERR, "FAIL %s\n", tp->name);
+	    fail++;
 	}
     }
     msg_info("PASS=%d FAIL=%d", pass, fail);
