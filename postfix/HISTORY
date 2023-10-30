@@ -27403,7 +27403,7 @@ Apologies for any names omitted.
 
 20230929
 
-	Bugfix (bug introduced Postfix 2.5, 20080104): the Postfix
+	Bugfix (defect introduced Postfix 2.5, 20080104): the Postfix
 	SMTP server was waiting for a client command instead of
 	replying immediately, after a client certificate verification
 	error in TLS wrappermode. Reported by Andreas Kinzler. File:
@@ -27501,3 +27501,22 @@ Apologies for any names omitted.
 
 	Cleanup: emit place holder text when no SASL authentication
 	failure reason is available. File: smtpd/smtpd_sasl_glue.c.
+
+20231026
+
+	Bugfix (defect introduced: Postfix 2.11): in forward_path,
+	the expression ${recipient_delimiter} would expand to an
+	empty string when a recipient address had no recipient
+	delimiter. Fixed by restoring Postfix 2.10 behavior to use
+	a configured recipient delimiter value. Reported by Tod
+	A. Sandman. Files: proto/postconf.proto, local/local_expand.c.
+
+20231027
+
+	Cleanup: missing 'smtpd_tls_enable_rpk' parameter definition
+	in test driver. File: smtpd/smtpd_check.c.
+
+20231030
+
+	Cleanup: explicit %.100s limits for client-controlled strings
+	in SASL error logging. File: smtpd/smtpd_sasl_glue.c.

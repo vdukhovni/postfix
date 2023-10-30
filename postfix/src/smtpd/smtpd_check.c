@@ -5851,6 +5851,7 @@ char   *var_smtpd_dns_re_filter;
 bool    var_smtpd_tls_ask_ccert;
 int     var_smtpd_cipv4_prefix;
 int     var_smtpd_cipv6_prefix;
+bool	var_smtpd_tls_enable_rpk;
 
 #define int_table test_int_table
 
@@ -5888,6 +5889,7 @@ static const INT_TABLE int_table[] = {
     VAR_SMTPD_TLS_ACERT, DEF_SMTPD_TLS_ACERT, &var_smtpd_tls_ask_ccert,
     VAR_SMTPD_CIPV4_PREFIX, DEF_SMTPD_CIPV4_PREFIX, &var_smtpd_cipv4_prefix,
     VAR_SMTPD_CIPV6_PREFIX, DEF_SMTPD_CIPV6_PREFIX, &var_smtpd_cipv6_prefix,
+    VAR_SMTPD_TLS_ENABLE_RPK, DEF_SMTPD_TLS_ENABLE_RPK, &var_smtpd_tls_enable_rpk,
     0,
 };
 
