@@ -1765,7 +1765,10 @@ forward_expansion_filter parameter.  </p>
 <dt><b>$recipient_delimiter</b></dt>
 
 <dd>The address extension delimiter that was found in the recipient
-address (Postfix 2.11 and later), or the system-wide recipient
+address (Postfix 2.11 and later), or the 'first' delimiter specified
+with the system-wide recipient address extension delimiter (Postfix
+3.5.22, 3.5.12, 3.7.8, 3.8.3 and later). Historically, this was
+always the system-wide recipient
 address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>${name?value}</b></dt>

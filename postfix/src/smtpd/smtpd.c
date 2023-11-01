@@ -5183,15 +5183,16 @@ static void smtpd_start_tls(SMTPD_STATE *state)
     if (requirecert && TLS_CERT_IS_TRUSTED(state->tls_context) == 0) {
 
 	/*
-	 * Fetch and reject the next command (should be EHLO), then
-	 * disconnect (side-effect of returning "421 ...".
+	 * In non-wrappermode, fetch the next command (should be EHLO). Reply
+	 * with 421, then disconnect (as a side-effect of replying with 421).
 	 */
 	cert_present = TLS_CERT_IS_PRESENT(state->tls_context);
 	msg_info("NOQUEUE: abort: TLS from %s: %s",
 		 state->namaddr, cert_present ?
 		 "Client certificate not trusted" :
 		 "No client certificate presented");
-	smtpd_chat_query(state);
+	if (var_smtpd_tls_wrappermode == 0)
+	    smtpd_chat_query(state);
 	smtpd_chat_reply(state, "421 4.7.1 %s Error: %s",
 			 var_myhostname, cert_present ?
 			 "Client certificate not trusted" :
