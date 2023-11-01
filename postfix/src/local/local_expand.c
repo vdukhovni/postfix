@@ -138,6 +138,8 @@ static const char *local_expand_lookup(const char *name, int mode, void *ptr)
     } else if (STREQ(name, "recipient_delimiter")) {
 	rcpt_delim[0] =
 	    local->state->msg_attr.local[strlen(local->state->msg_attr.user)];
+	if (rcpt_delim[0] == 0)
+	    rcpt_delim[0] = var_rcpt_delim[0];
 	rcpt_delim[1] = 0;
 	return (rcpt_delim[0] ? rcpt_delim : 0);
 #if 0
