@@ -26008,3 +26008,31 @@ Apologies for any names omitted.
 	This problem was reported first in the context of TLSA
 	record lookups. Files: util/valid_hostname.[hc],
 	dns/dns_lookup.c.
+
+20230929
+
+	Bugfix (defect introduced Postfix 2.5, 20080104): the Postfix
+	SMTP server was waiting for a client command instead of
+	replying immediately, after a client certificate verification
+	error in TLS wrappermode. Reported by Andreas Kinzler. File:
+	smtpd/smtpd.c.
+
+20231006
+
+	Usability: the Postfix SMTP server now attempts to log the
+	SASL username after authentication failure. In Postfix
+	logging, this appends ", sasl_username=xxx" after the reason
+	for SASL authentication failure. The logging replaces an
+	unavailable reason with "(reason unavailable)", and replaces
+	an unavailable sasl_username with "(unavailable)". Based
+	on code by Jozsef Kadlecsik. Files: xsasl/xsasl_server.c,
+	xsasl/xsasl_cyrus_server.c, smtpd/smtpd_sasl_glue.c.
+
+20231026
+
+	Bugfix (defect introduced: Postfix 2.11): in forward_path,
+	the expression ${recipient_delimiter} would expand to an
+	empty string when a recipient address had no recipient
+	delimiter. Fixed by restoring Postfix 2.10 behavior to use
+	a configured recipient delimiter value. Reported by Tod
+	A. Sandman. Files: proto/postconf.proto, local/local_expand.c.
