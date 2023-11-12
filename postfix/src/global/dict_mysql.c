@@ -210,7 +210,7 @@ static void dict_mysql_quote(DICT *dict, const char *name, VSTRING *result)
 
     if (dict_mysql->active_host == 0)
 	msg_panic("dict_mysql_quote: no active host");
-#if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 50700
+#if MYSQL_VERSION_ID >= 50706 && !defined(MARIADB_VERSION_ID)
     mysql_real_escape_string_quote(dict_mysql->active_host->db,
 				   vstring_end(result), name, len, '\'');
 #else

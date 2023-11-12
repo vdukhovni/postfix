@@ -76,7 +76,7 @@
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a privileged Postfix
+/*	The list of environment variables that a privileged Postfix
 /*	process will import from a non-Postfix parent process, or name=value
 /*	environment overrides.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
@@ -274,7 +274,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 		    break;
 		/* Optimization: skip to extracted segment marker. */
 		if (do_print == 0 && (flags & PC_FLAG_PRINT_ENV)
-		    && data_offset >= 0 && data_size >= 0
+		    && data_offset > 0 && data_size >= 0
 		&& vstream_fseek(fp, data_offset + data_size, SEEK_SET) < 0)
 		    msg_fatal("seek error: %m");
 	    }
@@ -289,7 +289,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 		PRINT_MARKER(flags, fp, offset, rec_type, "MESSAGE CONTENTS");
 	    /* Optimization: skip to extracted segment marker. */
 	    if ((flags & PC_MASK_PRINT_TEXT) == 0
-		&& data_offset >= 0 && data_size >= 0
+		&& data_offset > 0 && data_size >= 0
 		&& vstream_fseek(fp, data_offset + data_size, SEEK_SET) < 0)
 		msg_fatal("seek error: %m");
 	    /* Update the state machine, even when skipping. */

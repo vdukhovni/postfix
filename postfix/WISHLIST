@@ -8,9 +8,10 @@ Wish list:
 
 	postfix-install should mention makedefs.out.
 
-	In valid_utf8_string.c, add tests for over-long encodings
-	and surrogates. Can we add tests for 4-byte encodings with
-	strings that are displayable?
+	Propagate information about parsed daemon command-line
+	options to service callback functions. With this, a proxywrite
+	server can enforce a process limit of 1 without duplicating
+	libmaster's command-line parsing code.
 
 	Add a pre-release check for '.' instead of ','. Generalize
 	from grep '[a-zA-Z0-9]\.  *[a-z]' proto/*|egrep -v

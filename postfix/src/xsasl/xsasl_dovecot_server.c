@@ -543,6 +543,8 @@ static void xsasl_dovecot_parse_reply_args(XSASL_DOVECOT_SERVER *server,
 	myfree(server->username);
 	server->username = 0;
     }
+    VSTRING_RESET(reply);
+    VSTRING_TERMINATE(reply);
 
     /*
      * Note: TAB is part of the Dovecot protocol and must not appear in

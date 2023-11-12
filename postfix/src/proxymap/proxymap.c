@@ -753,7 +753,7 @@ static void post_jail_init(char *service_name, char **unused_argv)
 	proxy_writer = 1;
     else if (strcmp(service_name, MAIL_SERVICE_PROXYMAP) != 0)
 	msg_fatal("service name must be one of %s or %s",
-		  MAIL_SERVICE_PROXYMAP, MAIL_SERVICE_PROXYMAP);
+		  MAIL_SERVICE_PROXYWRITE, MAIL_SERVICE_PROXYMAP);
 
     /*
      * Pre-allocate buffers.
