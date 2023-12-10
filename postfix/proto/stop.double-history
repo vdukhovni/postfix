@@ -72,3 +72,12 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  src postalias postalias c src postmap postmap c 
  src postalias postalias c src postmap postmap c 
  src smtpd smtpd c src smtpd smtpd_check c 
+ not proxymap or proxywrite File proxymap proxymap c 
+ still has its all zero SIZE record File postcat postcat c 
+ manpage text File smtp smtp c 
+ manpage text Files smtp smtp c global mail_proto h 
+ File proxymap proxymap c 
+ on process name Files smtp smtp c global mail_proto h 
+ client process name File proxymap proxymap c 
+ available Files local command c local local c 
+ ID if available File pipe pipe c 

@@ -240,6 +240,11 @@ the domain is \fIdomain\fR.
 This information is modified by the \fBh\fR flag for case folding.
 .sp
 This feature is available as of Postfix 2.5.
+.IP \fB${envid}\fR
+This macro expands to the RFC 3461 envelope ID if available,
+otherwise the empty string.
+.sp
+This feature is available as of Postfix 3.9.
 .IP \fB${extension}\fR
 This macro expands to the extension part of a recipient address.
 For example, with an address \fIuser+foo@domain\fR the extension is

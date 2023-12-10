@@ -2138,7 +2138,15 @@ static void parse_match(STATE *state, int argc, char *argv[])
 #ifdef USE_TLS
     int     smtp_mode = 1;
 
+    /*
+     * DANE match names are configured late, once the TLSA records are in hand.
+     * For now, prepare to fall back to "secure".
+     */
     switch (state->level) {
+    default:
+	state->match = 0;
+	break;
+    case TLS_LEV_DANE:
     case TLS_LEV_SECURE:
 	state->match = argv_alloc(2);
 	while (*argv)
@@ -2158,11 +2166,6 @@ static void parse_match(STATE *state, int argc, char *argv[])
 	while (*argv)
 	    tls_dane_add_fpt_digests(state->dane, state->options.enable_rpk,
 				     *argv++, "", smtp_mode);
-	break;
-    case TLS_LEV_DANE:
-    case TLS_LEV_DANE_ONLY:
-	state->match = argv_alloc(2);
-	argv_add(state->match, "nexthop", "hostname", ARGV_END);
 	break;
     }
 #endif

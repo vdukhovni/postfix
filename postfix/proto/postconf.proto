@@ -2733,6 +2733,11 @@ and later.</dd>
 
 <dd>The domain part of the recipient address. </dd>
 
+<dt><b>ENVID</b></dt>
+
+<dd>The optional RFC 3461 envelope ID. Available in Postfix version
+3.9 and later</dd>
+
 <dt><b>EXTENSION</b></dt>
 
 <dd>The optional address extension. </dd>

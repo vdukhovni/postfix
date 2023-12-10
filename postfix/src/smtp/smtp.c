@@ -1,17 +1,21 @@
 /*++
 /* NAME
-/*	smtp 8
+/*	smtp, lmtp 8
 /* SUMMARY
 /*	Postfix SMTP+LMTP client
 /* SYNOPSIS
 /*	\fBsmtp\fR [generic Postfix daemon options] [flags=DORX]
+/*
+/*	\fBlmtp\fR [generic Postfix daemon options] [flags=DORX]
 /* DESCRIPTION
 /*	The Postfix SMTP+LMTP client implements the SMTP and LMTP mail
 /*	delivery protocols. It processes message delivery requests from
 /*	the queue manager. Each request specifies a queue file, a sender
 /*	address, a domain or host to deliver to, and recipient information.
 /*	This program expects to be run from the \fBmaster\fR(8) process
-/*	manager.
+/*	manager. The process name, \fBsmtp\fR or \fBlmtp\fR, controls
+/*	the protocol, and the names of the configuration parameters
+/*	that will be used.
 /*
 /*	The SMTP+LMTP client updates the queue file and marks recipients
 /*	as finished, or it informs the queue manager that delivery should
@@ -175,11 +179,10 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Before Postfix version 2.3, the LMTP client is a separate
-/*	program that implements only a subset of the functionality
-/*	available with SMTP: there is no support for TLS, and
-/*	connections are cached in-process, making it ineffective
-/*	when the client is used for multiple domains.
+/*	Postfix versions 2.3 and later implement the SMTP and LMTP
+/*	client with the same program, and choose the protocol and
+/*	configuration parameters based on the process name, \fBsmtp\fR
+/*	or \fBlmtp\fR.
 /*
 /*	Most smtp_\fIxxx\fR configuration parameters have an
 /*	lmtp_\fIxxx\fR "mirror" parameter for the equivalent LMTP
@@ -1471,6 +1474,19 @@ static void pre_init(char *unused_name, char **unused_argv)
     };
 
     /*
+     * The process name, "smtp" or "lmtp", determines the configuration
+     * parameters to use, protocol, DSN server reply type, SASL service
+     * information lookup, and more. We peeked at the name in the main()
+     * function before logging was initialized. Here, we detect and report an
+     * invalid process name.
+     */
+    if (strcmp(var_procname, MAIL_PROC_NAME_SMTP) != 0
+	&& strcmp(var_procname, MAIL_PROC_NAME_LMTP) != 0)
+	msg_fatal("unexpected process name \"%s\" - "
+		  "specify \"%s\" or \"%s\"", var_procname,
+		  MAIL_PROC_NAME_SMTP, MAIL_PROC_NAME_LMTP);
+
+    /*
      * Turn on per-peer debugging.
      */
     debug_peer_init();
@@ -1661,21 +1677,15 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
-     * XXX At this point, var_procname etc. are not initialized.
-     * 
-     * The process name, "smtp" or "lmtp", determines the protocol, the DSN
-     * server reply type, SASL service information lookup, and more. Prepare
-     * for the possibility there may be another personality.
+     * XXX The process name, "smtp" or "lmtp", determines what configuration
+     * parameter settings to use, and more. However, at this point, logging
+     * and var_procname are not initialized. Here, we peek at the process
+     * name to determine what configuration parameter settings to use. Later,
+     * we detect and report an invalid process name.
      */
     sane_procname = sane_basename((VSTRING *) 0, argv[0]);
-    if (strcmp(sane_procname, "smtp") == 0)
+    if (strcmp(sane_procname, MAIL_PROC_NAME_SMTP) == 0)
 	smtp_mode = 1;
-    else if (strcmp(sane_procname, "lmtp") == 0)
-	smtp_mode = 0;
-    else
-	/* TODO: logging is not initialized. */
-	msg_fatal("unexpected process name \"%s\" - "
-		  "specify \"smtp\" or \"lmtp\"", var_procname);
 
     /*
      * Initialize with the LMTP or SMTP parameter name space.

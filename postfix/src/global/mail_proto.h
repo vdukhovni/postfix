@@ -63,6 +63,13 @@
 #define MAIL_SERVICE_POSTLOG	"postlog"
 
  /*
+  * Process names: convention is to use the basename of an executable file,
+  * but there is nothing to enforce that.
+  */
+#define MAIL_PROC_NAME_SMTP	"smtp"
+#define MAIL_PROC_NAME_LMTP	"lmtp"
+
+ /*
   * Mail source classes. Used to specify policy decisions for content
   * inspection and SMTPUTF8 detection.
   */

@@ -1,14 +1,16 @@
-.TH SMTP 8 
+.TH SMTP, LMTP 8 
 .ad
 .fi
 .SH NAME
-smtp
+smtp, lmtp
 \-
 Postfix SMTP+LMTP client
 .SH "SYNOPSIS"
 .na
 .nf
 \fBsmtp\fR [generic Postfix daemon options] [flags=DORX]
+
+\fBlmtp\fR [generic Postfix daemon options] [flags=DORX]
 .SH DESCRIPTION
 .ad
 .fi
@@ -17,7 +19,9 @@ delivery protocols. It processes message delivery requests from
 the queue manager. Each request specifies a queue file, a sender
 address, a domain or host to deliver to, and recipient information.
 This program expects to be run from the \fBmaster\fR(8) process
-manager.
+manager. The process name, \fBsmtp\fR or \fBlmtp\fR, controls
+the protocol, and the names of the configuration parameters
+that will be used.
 
 The SMTP+LMTP client updates the queue file and marks recipients
 as finished, or it informs the queue manager that delivery should
@@ -199,11 +203,10 @@ address and TCP port.
 .nf
 .ad
 .fi
-Before Postfix version 2.3, the LMTP client is a separate
-program that implements only a subset of the functionality
-available with SMTP: there is no support for TLS, and
-connections are cached in\-process, making it ineffective
-when the client is used for multiple domains.
+Postfix versions 2.3 and later implement the SMTP and LMTP
+client with the same program, and choose the protocol and
+configuration parameters based on the process name, \fBsmtp\fR
+or \fBlmtp\fR.
 
 Most smtp_\fIxxx\fR configuration parameters have an
 lmtp_\fIxxx\fR "mirror" parameter for the equivalent LMTP

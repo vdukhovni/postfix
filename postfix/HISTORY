@@ -27529,8 +27529,8 @@ Apologies for any names omitted.
 	Bugfix (defect introduced: Postfix 2.3, date 20051222): the
 	Dovecot auth client did not reset the 'reason' from  a
 	previous Dovecot auth service response, before parsing the
-	next Dovecot auth server response. Reported by Stephan
-	Bosch, File: xsasl/xsasl_dovecot_server.c.
+	next Dovecot auth server response in the same SMTP session.
+	Reported by Stephan Bosch, File: xsasl/xsasl_dovecot_server.c.
 
 20231105
 
@@ -27553,3 +27553,53 @@ Apologies for any names omitted.
 
 	Robustness: don't loop on an 'unfinished' queue file that
 	still has its all-zero SIZE record. File: postcat/postcat.c.
+
+20231126
+
+	Cleanup: implementation and documentation for the selection
+	of SMTP versus LMTP client protocol and parameters, based
+	on process name. Files: smtp/smtp.c, global/mail_proto.h,
+	proto/postconf.proto.
+
+	Cleanup: documented (in proxymap source code) the complexities
+	of determining the optimal proxywrite service process limit,
+	and make the 'invalid' proxymap service name error message
+	more similar to the error message for an invalid SMTP/LMTP
+	client process name. File: proxymap/proxymap.c.
+
+20231127
+
+	Documentation: in the stock main.cf file, mailbox_command
+	uses $default_privs, not $default_user. Vijay Sarvepalli,
+	Cert/CC. File: conf/main.cf.
+
+20231202
+
+	Bugfix: posttls-finger certificate match expectations for
+	opportunistic DANE incorrectly defaulted to ("nexthop",
+	"hostname") instead of ("nexthop", "dot-nexthop"), when no
+	TLSA records were found. Viktor Dukhovni. File: posttls-finger.c.
+
+20231204
+
+	Documentation: updated comments on address validation in
+	smtpd_check.c, making them consistent with the implementation.
+	File: smtpd/smtpd_check.c.
+
+20231208
+
+	Bugfix (defect introduced: Postfix 3.1, date: 20151128):
+	"postqueue -j" produced broken JSON when escaping a control
+	character as \uXXXX. Found during code maintenance. File:
+	postqueue/showq_json.c.
+
+20231209
+
+	Feature: the local(8) delivery agent exports an ENVID
+	environment variable with the RFC 3461 envelope ID if
+	available. Files: local/command.c, local/local.c,
+	proto/postconf.proto.
+
+	Feature: the pipe(8) delivery agent supports an ${envid}
+	command-line attribute that expands to the RFC 3461 envelope
+	ID if available. File: pipe/pipe.c.

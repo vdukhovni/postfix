@@ -452,7 +452,7 @@ unknown_local_recipient_reject_code = 550
 # The mailbox_command parameter specifies the optional external
 # command to use instead of mailbox delivery. The command is run as
 # the recipient with proper HOME, SHELL and LOGNAME environment settings.
-# Exception:  delivery for root is done as $default_user.
+# Exception:  delivery for root is done as $default_privs.
 #
 # Other environment variables of interest: USER (recipient username),
 # EXTENSION (address extension), DOMAIN (domain part of address),

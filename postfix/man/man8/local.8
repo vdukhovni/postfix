@@ -223,27 +223,30 @@ are replaced with underscores.  The list of acceptable characters
 is specified with the \fBcommand_expansion_filter\fR configuration
 parameter.
 .IP \fBSHELL\fR
-The recipient user's login shell.
+The envelope recipient user's login shell.
 .IP \fBHOME\fR
-The recipient user's home directory.
+The envelope recipient user's home directory.
 .IP \fBUSER\fR
-The bare recipient name.
+The bare envelope recipient name.
 .IP \fBEXTENSION\fR
-The optional recipient address extension.
+The optional envelope recipient address extension.
 .IP \fBDOMAIN\fR
-The recipient address domain part.
+The envelope recipient address domain part.
 .IP \fBLOGNAME\fR
-The bare recipient name.
+The bare envelope recipient name.
 .IP \fBLOCAL\fR
-The entire recipient address localpart (text to the left of the
-rightmost @ character).
+The entire envelope recipient address localpart (text to
+the left of the rightmost @ character).
 .IP \fBORIGINAL_RECIPIENT\fR
-The entire recipient address, before any address rewriting
-or aliasing (Postfix 2.5 and later).
+The entire envelope recipient address, before any address
+rewriting or aliasing (Postfix 2.5 and later).
 .IP \fBRECIPIENT\fR
-The entire recipient address.
+The entire envelope recipient address.
 .IP \fBSENDER\fR
-The entire sender address.
+The entire envelope sender address.
+.IP \fBENVID\fR
+The optional RFC 3461 envelope ID. Available as of Postfix
+3.9.
 .PP
 Additional remote client information is made available via
 the following environment variables:

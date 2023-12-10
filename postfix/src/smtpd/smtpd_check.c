@@ -5274,8 +5274,9 @@ static int check_recipient_rcpt_maps(SMTPD_STATE *state, const char *recipient)
 {
 
     /*
-     * Duplicate suppression. There's an implicit check_recipient_maps
-     * restriction at the end of all recipient restrictions.
+     * Duplicate suppression. With "smtpd_reject_unlisted_recipient = yes",
+     * there's an implicit reject_unlisted_recipient restriction at the end
+     * of all recipient restrictions.
      */
     if (smtpd_input_transp_mask & INPUT_TRANSP_UNKNOWN_RCPT)
 	return (0);
@@ -5294,8 +5295,9 @@ static int check_sender_rcpt_maps(SMTPD_STATE *state, const char *sender)
 {
 
     /*
-     * Duplicate suppression. There's an implicit check_sender_maps
-     * restriction at the end of all sender restrictions.
+     * Duplicate suppression. With "smtpd_reject_unlisted_sender = yes",
+     * there's an implicit reject_unlisted_sender restriction at the end of
+     * all sender restrictions.
      */
     if (smtpd_input_transp_mask & INPUT_TRANSP_UNKNOWN_RCPT)
 	return (0);

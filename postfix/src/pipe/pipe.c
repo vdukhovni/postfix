@@ -230,6 +230,11 @@
 /*	This information is modified by the \fBh\fR flag for case folding.
 /* .sp
 /*	This feature is available as of Postfix 2.5.
+/* .IP \fB${envid}\fR
+/*	This macro expands to the RFC 3461 envelope ID if available,
+/*	otherwise the empty string.
+/* .sp
+/*	This feature is available as of Postfix 3.9.
 /* .IP \fB${extension}\fR
 /*	This macro expands to the extension part of a recipient address.
 /*	For example, with an address \fIuser+foo@domain\fR the extension is
@@ -544,6 +549,7 @@
 #define PIPE_DICT_SASL_USERNAME	"sasl_username"	/* key */
 #define PIPE_DICT_SASL_SENDER	"sasl_sender"	/* key */
 #define PIPE_DICT_QUEUE_ID	"queue_id"	/* key */
+#define PIPE_DICT_ENVID		"envid"		/* key */
 
  /*
   * Flags used to pass back the type of special parameter found by
@@ -649,6 +655,7 @@ static int parse_callback(int type, VSTRING *buf, void *context)
 	PIPE_DICT_SASL_USERNAME, 0,
 	PIPE_DICT_SASL_SENDER, 0,
 	PIPE_DICT_QUEUE_ID, 0,
+	PIPE_DICT_ENVID, 0,
 	0, 0,
     };
     struct cmd_flags *p;
@@ -1278,6 +1285,8 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 		request->sasl_sender);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_QUEUE_ID,
 		request->queue_id);
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_ENVID,
+		request->dsn_envid);
     vstring_free(buf);
 
     if ((expanded_argv = expand_argv(service, attr.command,

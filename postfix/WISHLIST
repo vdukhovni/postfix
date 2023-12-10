@@ -8,10 +8,10 @@ Wish list:
 
 	postfix-install should mention makedefs.out.
 
-	Propagate information about parsed daemon command-line
-	options to service callback functions. With this, a proxywrite
-	server can enforce a process limit of 1 without duplicating
-	libmaster's command-line parsing code.
+	In documentation and configuration file examples, replace
+	IPv4 address prefixes from Cloud9 with 192.168.* from RFC
+	1918, and replace IPv6 address prefixes with unique local
+	IPv6 address prefixes fd00:* from RFC 4193.
 
 	Add a pre-release check for '.' instead of ','. Generalize
 	from grep '[a-zA-Z0-9]\.  *[a-z]' proto/*|egrep -v
