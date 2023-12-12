@@ -839,7 +839,7 @@ static int starttls(STATE *state)
 				     state->ddane : state->dane);
 
 #define PROXY_OPEN_FLAGS \
-        (TLS_PROXY_FLAG_ROLE_CLIENT | TLS_PROXY_FLAG_SEND_CONTEXT)
+	(TLS_PROXY_FLAG_ROLE_CLIENT | TLS_PROXY_FLAG_SEND_CONTEXT)
 #define var_tlsproxy_service
 
 	if ((cwd_fd = open(".", O_RDONLY)) < 0)
@@ -900,7 +900,7 @@ static int starttls(STATE *state)
 	    if (state->tls_context) {
 		if (state->log_mask &
 		    (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE | TLS_LOG_PEERCERT)) {
-                    if (state->tls_context->stoc_rpk)
+		    if (state->tls_context->stoc_rpk)
 			msg_info("%s: pkey_fingerprint=%s", state->namaddrport,
 				 state->tls_context->peer_pkey_fprint);
 		    else
@@ -911,7 +911,7 @@ static int starttls(STATE *state)
 				 state->tls_context->issuer_CN,
 				 state->tls_context->peer_cert_fprint,
 				 state->tls_context->peer_pkey_fprint);
-                }
+		}
 		tls_log_summary(TLS_ROLE_CLIENT, TLS_USAGE_NEW,
 				state->tls_context);
 	    } else {
@@ -1252,7 +1252,7 @@ static DNS_RR *addr_one(STATE *state, DNS_RR *addr_list, const char *host,
      * should not clobber a soft error text and status code.
      */
 #define RETRY_AI_ERROR(e) \
-        ((e) == EAI_AGAIN || (e) == EAI_MEMORY || (e) == EAI_SYSTEM)
+	((e) == EAI_AGAIN || (e) == EAI_MEMORY || (e) == EAI_SYSTEM)
 #ifdef EAI_NODATA
 #define DSN_NOHOST(e) \
 	((e) == EAI_AGAIN || (e) == EAI_NODATA || (e) == EAI_NONAME)
@@ -2145,8 +2145,12 @@ static void parse_match(STATE *state, int argc, char *argv[])
     switch (state->level) {
     default:
 	state->match = 0;
+	if (*argv)
+	    msg_warn("TLS level '%s' does not implement certificate matching",
+		     str_tls_level(state->level));
 	break;
     case TLS_LEV_DANE:
+    case TLS_LEV_DANE_ONLY:
     case TLS_LEV_SECURE:
 	state->match = argv_alloc(2);
 	while (*argv)

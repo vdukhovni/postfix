@@ -27603,3 +27603,10 @@ Apologies for any names omitted.
 	Feature: the pipe(8) delivery agent supports an ${envid}
 	command-line attribute that expands to the RFC 3461 envelope
 	ID if available. File: pipe/pipe.c.
+
+20231211
+
+	Cleanup: posttls-finger certificate match expectations for
+	all TLS security levels, including warnings for levels that
+	don't implement certificate matching. Viktor Dukhovni.
+	File: posttls-finger.c.
