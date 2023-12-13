@@ -27610,3 +27610,23 @@ Apologies for any names omitted.
 	all TLS security levels, including warnings for levels that
 	don't implement certificate matching. Viktor Dukhovni.
 	File: posttls-finger.c.
+
+20231213
+
+	Bugfix (defect introduced: Postfix 2.3): after prepending
+	a message header with a Postfix access table PREPEND action,
+	a Milter request to delete or update an existing header
+	could have no effect, or it could target the wrong instance
+	of an existing header. Root cause: the fix dated 20141018
+	for the Postfix Milter client was incomplete. The client
+	did correctly hide the first, Postfix-generated, Received:
+	header when sending message header information to a Milter
+	with the smfi_header() application callback function, but
+	it was still hiding the first header (instead of the first
+	Received: header) when handling requests from a Milter to
+	delete or update an existing header. Problem report by
+	Carlos Velasco. This change was verified to have no effect
+	on requests from a Milter to add or insert a header. Files:
+	cleanup/cleanup_milter.c, cleanup/Makefile.in,
+	cleanup/test-queue-file18, cleanup/cleanup_milter.in18[a-d],
+	cleanup/cleanup_milter.ref18[a-d][12].

@@ -88,7 +88,9 @@ milter_tests: cleanup_milter_test bug_tests \
 	cleanup_milter_test15g cleanup_milter_test15h cleanup_milter_test15i \
 	cleanup_milter_test16a cleanup_milter_test16b cleanup_milter_test17a \
 	cleanup_milter_test17b cleanup_milter_test17c cleanup_milter_test17d \
-	cleanup_milter_test17e cleanup_milter_test17f cleanup_milter_test17g
+	cleanup_milter_test17e cleanup_milter_test17f cleanup_milter_test17g \
+	cleanup_milter_test18a cleanup_milter_test18b cleanup_milter_test18c \
+	cleanup_milter_test18d
 
 root_tests:
 
@@ -670,6 +672,46 @@ cleanup_milter_test17g: cleanup_milter test-queue-file17 cleanup_milter.in17g \
 	$(SHLIB_ENV) $(VALGRIND) ../postcat/postcat -ov test-queue-file17g.tmp 2>/dev/null >cleanup_milter.tmp2
 	diff cleanup_milter.ref17g2 cleanup_milter.tmp2
 	rm -f test-queue-file17g.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
+
+cleanup_milter_test18a: cleanup_milter test-queue-file18 cleanup_milter.in18a \
+	cleanup_milter.ref18a1 ../postcat/postcat cleanup_milter.ref18a2
+	cp test-queue-file18 test-queue-file18a.tmp
+	chmod u+w test-queue-file18a.tmp
+	$(SHLIB_ENV) $(VALGRIND) ./cleanup_milter <cleanup_milter.in18a 2>cleanup_milter.tmp1
+	diff cleanup_milter.ref18a1 cleanup_milter.tmp1
+	$(SHLIB_ENV) $(VALGRIND) ../postcat/postcat -ov test-queue-file18a.tmp 2>/dev/null >cleanup_milter.tmp2
+	diff cleanup_milter.ref18a2 cleanup_milter.tmp2
+	rm -f test-queue-file18a.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
+
+cleanup_milter_test18b: cleanup_milter test-queue-file18 cleanup_milter.in18b \
+	cleanup_milter.ref18b1 ../postcat/postcat cleanup_milter.ref18b2
+	cp test-queue-file18 test-queue-file18b.tmp
+	chmod u+w test-queue-file18b.tmp
+	$(SHLIB_ENV) $(VALGRIND) ./cleanup_milter <cleanup_milter.in18b 2>cleanup_milter.tmp1
+	diff cleanup_milter.ref18b1 cleanup_milter.tmp1
+	$(SHLIB_ENV) $(VALGRIND) ../postcat/postcat -ov test-queue-file18b.tmp 2>/dev/null >cleanup_milter.tmp2
+	diff cleanup_milter.ref18b2 cleanup_milter.tmp2
+	rm -f test-queue-file18b.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
+
+cleanup_milter_test18c: cleanup_milter test-queue-file18 cleanup_milter.in18c \
+	cleanup_milter.ref18c1 ../postcat/postcat cleanup_milter.ref18c2
+	cp test-queue-file18 test-queue-file18c.tmp
+	chmod u+w test-queue-file18c.tmp
+	$(SHLIB_ENV) $(VALGRIND) ./cleanup_milter <cleanup_milter.in18c 2>cleanup_milter.tmp1
+	diff cleanup_milter.ref18c1 cleanup_milter.tmp1
+	$(SHLIB_ENV) $(VALGRIND) ../postcat/postcat -ov test-queue-file18c.tmp 2>/dev/null >cleanup_milter.tmp2
+	diff cleanup_milter.ref18c2 cleanup_milter.tmp2
+	rm -f test-queue-file18c.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
+
+cleanup_milter_test18d: cleanup_milter test-queue-file18 cleanup_milter.in18d \
+	cleanup_milter.ref18d1 ../postcat/postcat cleanup_milter.ref18d2
+	cp test-queue-file18 test-queue-file18d.tmp
+	chmod u+w test-queue-file18d.tmp
+	$(SHLIB_ENV) $(VALGRIND) ./cleanup_milter <cleanup_milter.in18d 2>cleanup_milter.tmp1
+	diff cleanup_milter.ref18d1 cleanup_milter.tmp1
+	$(SHLIB_ENV) $(VALGRIND) ../postcat/postcat -ov test-queue-file18d.tmp 2>/dev/null >cleanup_milter.tmp2
+	diff cleanup_milter.ref18d2 cleanup_milter.tmp2
+	rm -f test-queue-file18d.tmp cleanup_milter.tmp1 cleanup_milter.tmp2
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
