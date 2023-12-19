@@ -82,7 +82,7 @@ Postfix releases:
     8, and that real email sometimes contains malformed headers. Instead of
     skipping non-UTF-8 content, Postfix should be able to filter it. You may
     try to enable UTF-8 processing by starting a PCRE pattern with the sequence
-    (*UTF8), but this is will result in "message not accepted, try again later"
+    (*UTF8), but this will result in "message not accepted, try again later"
     errors when the PCRE pattern matcher encounters non-UTF-8 input. Other
     features that are not UTF-8 enabled are smtpd_command_filter,
     smtp_reply_filter, the *_delivery_status_filter features, and the
