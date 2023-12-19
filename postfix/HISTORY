@@ -27630,3 +27630,13 @@ Apologies for any names omitted.
 	cleanup/cleanup_milter.c, cleanup/Makefile.in,
 	cleanup/test-queue-file18, cleanup/cleanup_milter.in18[a-d],
 	cleanup/cleanup_milter.ref18[a-d][12].
+
+20231219
+
+	Protocol enforcement: with "smtpd_forbid_bare_newline =
+	yes" (the default for Postfix 3.9), reply with "Error: bare
+	<LF> received" and disconnect when an SMTP client sends a
+	line ending in <LF>, violating the RFC 5321 requirement
+	that lines must end in <CR><LF>. Files: mantools/postlink,
+	proto/postconf.proto, global/mail_params.h, global/smtp_stream.c,
+	global/smtp_stream.h, smtpd/smtpd.c.

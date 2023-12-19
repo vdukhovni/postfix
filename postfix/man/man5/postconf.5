@@ -11003,6 +11003,17 @@ The smtpd_expansion_filter value is not subject to Postfix configuration
 parameter $name expansion.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH smtpd_forbid_bare_newline (default: Postfix >= 3.9: yes)
+Reply with "Error: bare <LF> received" and disconnect
+when a remote SMTP client sends a line ending in <LF>, violating
+the RFC 5321 requirement that lines must end in <CR><LF>.
+This feature is enabled by default with Postfix >= 3.9 but may
+not work with non\-standard clients such as netcat. Specify
+"smtpd_forbid_bare_newline = no" to disable (not recommended for
+an Internet\-connected MTA).
+.PP
+This feature is available in Postfix >= 3.9, 3.8.4, 3.7.9,
+3.6.13, and 3.5.23.
 .SH smtpd_forbid_unauth_pipelining (default: Postfix >= 3.9: yes)
 Disconnect remote SMTP clients that violate RFC 2920 (or 5321)
 command pipelining constraints. The server replies with "554 5.5.0

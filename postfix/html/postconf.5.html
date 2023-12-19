@@ -15921,6 +15921,23 @@ This feature is available in Postfix 2.0 and later.
 
 </DD>
 
+<DT><b><a name="smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a>
+(default: Postfix &ge; 3.9: yes)</b></DT><DD>
+
+<p> Reply with "Error: bare &lt;LF&gt; received" and disconnect
+when a remote SMTP client sends a line ending in &lt;LF&gt;, violating
+the <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a> requirement that lines must end in &lt;CR&gt;&lt;LF&gt;.
+This feature is enabled by default with Postfix &ge; 3.9 but may
+not work with non-standard clients such as netcat. Specify
+"<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = no" to disable (not recommended for
+an Internet-connected MTA). </p>
+
+<p> This feature is available in Postfix &ge; 3.9, 3.8.4, 3.7.9,
+3.6.13, and 3.5.23. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_forbid_unauth_pipelining">smtpd_forbid_unauth_pipelining</a>
 (default: Postfix &ge; 3.9: yes)</b></DT><DD>
 

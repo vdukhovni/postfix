@@ -81,3 +81,4 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  client process name File proxymap proxymap c 
  available Files local command c local local c 
  ID if available File pipe pipe c 
+ global smtp_stream h smtpd smtpd c 

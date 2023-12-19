@@ -822,6 +822,12 @@
 /* .IP "\fBsmtpd_forbid_unauth_pipelining (Postfix >= 3.9: yes)\fR"
 /*	Disconnect remote SMTP clients that violate RFC 2920 (or 5321)
 /*	command pipelining constraints.
+/* .PP
+/*	Available in Postfix 3.9, 3.8.3, 3.7.9, 3.6.13, 3.5.23 and later:
+/* .IP "\fBsmtpd_forbid_bare_newline (Postfix >= 3.9: yes)\fR"
+/*	Reply with "Error: bare <LF> received" and disconnect
+/*	when a remote SMTP client sends a line ending in <LF>, violating
+/*	the RFC 5321 requirement that lines must end in <CR><LF>.
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -1608,6 +1614,7 @@ static void tls_reset(SMTPD_STATE *);
 #define REASON_TIMEOUT		"timeout"
 #define REASON_LOST_CONNECTION	"lost connection"
 #define REASON_ERROR_LIMIT	"too many errors"
+#define REASON_BARE_LF		"bare <LF> received"
 
 #ifdef USE_TLS
 
@@ -4066,6 +4073,7 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     done = 0;
     do {
+	int     payload_err;
 
 	/*
 	 * Do not skip the smtp_fread_buf() call if read_len == 0. We still
@@ -4079,6 +4087,11 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtp_fread_buf(state->buffer, read_len, state->client);
 	state->bdat_get_stream = vstream_memreopen(
 			   state->bdat_get_stream, state->buffer, O_RDONLY);
+	vstream_control(state->bdat_get_stream, CA_VSTREAM_CTL_EXCEPT,
+			CA_VSTREAM_CTL_END);
+	if ((payload_err = vstream_setjmp(state->bdat_get_stream))
+	    != SMTP_ERR_NONE)
+	    vstream_longjmp(state->client, payload_err);
 
 	/*
 	 * Read lines from the fragment. The last line may continue in the
@@ -5576,6 +5589,13 @@ static void smtpd_proto(SMTPD_STATE *state)
 			     var_myhostname);
 	break;
 
+    case SMTP_ERR_LF:
+	state->reason = REASON_BARE_LF;
+	if (vstream_setjmp(state->client) == 0)
+	    smtpd_chat_reply(state, "521 5.5.2 %s Error: bare <LF> received",
+			     var_myhostname);
+	break;
+
     case 0:
 
 	/*
@@ -6570,6 +6590,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_DELAY_OPEN, DEF_SMTPD_DELAY_OPEN, &var_smtpd_delay_open,
 	VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
 	VAR_SMTPD_FORBID_UNAUTH_PIPE, DEF_SMTPD_FORBID_UNAUTH_PIPE, &var_smtpd_forbid_unauth_pipe,
+	VAR_SMTPD_FORBID_BARE_LF, DEF_SMTPD_FORBID_BARE_LF, &smtp_forbid_bare_lf,
 	0,
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {
