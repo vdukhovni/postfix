@@ -874,6 +874,9 @@ Available in Postfix 3.9, 3.8.3, 3.7.9, 3.6.13, 3.5.23 and later:
 Reply with "Error: bare <LF> received" and disconnect
 when a remote SMTP client sends a line ending in <LF>, violating
 the RFC 5321 requirement that lines must end in <CR><LF>.
+.IP "\fBsmtpd_forbid_bare_newline_exclusions ($mynetworks)\fR"
+Exclude the specified clients from smtpd_forbid_bare_newline
+enforcement.
 .SH "TARPIT CONTROLS"
 .na
 .nf

@@ -19060,10 +19060,45 @@ MinProtocol = TLSv1
 <p> Reply with "Error: bare &lt;LF&gt; received" and disconnect
 when a remote SMTP client sends a line ending in &lt;LF&gt;, violating
 the RFC 5321 requirement that lines must end in &lt;CR&gt;&lt;LF&gt;.
-This feature is enabled by default with Postfix &ge; 3.9 but may
-not work with non-standard clients such as netcat. Specify
-"smtpd_forbid_bare_newline = no" to disable (not recommended for
-an Internet-connected MTA). </p>
+This feature is enabled by default with Postfix &ge; 3.9. Use
+smtpd_forbid_bare_newline_exclusions to exclude non-standard clients
+such as netcat. Specify "smtpd_forbid_bare_newline = no" to disable
+(not recommended for an Internet-connected MTA). </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+# Disconnect remote SMTP clients that send bare newlines, but allow
+# local clients with non-standard SMTP implementations such as netcat,
+# fax machines, or load balancer health checks.
+#
+smtpd_forbid_bare_newline = yes
+smtpd_forbid_bare_newline_exclusions = $mynetworks
+</pre>
+</blockquote>
+
+<p> This feature is available in Postfix &ge; 3.9, 3.8.4, 3.7.9,
+3.6.13, and 3.5.23. </p>
+
+%PARAM smtpd_forbid_bare_newline_exclusions $mynetworks
+
+<p> Exclude the specified clients from smtpd_forbid_bare_newline
+enforcement. It uses the same syntax and parent-domain matching 
+behavior as mynetworks. </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+# Disconnect remote SMTP clients that send bare newlines, but allow
+# local clients with non-standard SMTP implementations such as netcat,
+# fax machines, or load balancer health checks.
+#
+smtpd_forbid_bare_newline = yes
+smtpd_forbid_bare_newline_exclusions = $mynetworks
+</pre>
+</blockquote>
 
 <p> This feature is available in Postfix &ge; 3.9, 3.8.4, 3.7.9,
 3.6.13, and 3.5.23. </p>

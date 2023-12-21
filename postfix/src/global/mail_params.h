@@ -4308,6 +4308,9 @@ extern char *var_smtpd_dns_re_filter;
 #define VAR_SMTPD_FORBID_BARE_LF	"smtpd_forbid_bare_newline"
 #define DEF_SMTPD_FORBID_BARE_LF	1
 
+#define VAR_SMTPD_FORBID_BARE_LF_EXCL	"smtpd_forbid_bare_newline_exclusions"
+#define DEF_SMTPD_FORBID_BARE_LF_EXCL	"$" VAR_MYNETWORKS
+
  /*
   * Share TLS sessions through tlsproxy(8).
   */

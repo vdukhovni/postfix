@@ -26,6 +26,29 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Incompatible changes with snapshot 20231221
+===========================================
+
+Postfix 3.9 by default disconnects a client that sends a 'bare
+newline' ending in SMTP. This prevents an SMTP smuggling attack
+that targets recipients at a Postfix server. For background,
+see https://www.postfix.org/smtp-smuggling.html
+
+For compatibility with non-standard clients, Postfix 3.9 by default
+excludes clients in mynetworks from this countermeasure.
+
+The Postfix 3.9 default settings are:
+
+    # Disconnect remote SMTP clients that send bare newlines, but
+    # allow local clients with non-standard SMTP implementations
+    # such as netcat, fax machines, or load balancer health checks.
+    #
+    smtpd_forbid_bare_newline = yes
+    smtpd_forbid_bare_newline_exclusions = $mynetworks
+
+This feature is back-ported to all supported stable releases, with
+the difference that "smtpd_forbid_bare_newline = no" by default.
+
 Incompatible changes with snapshot 20230903
 ===========================================
 
