@@ -763,6 +763,15 @@
 /* .IP "\fBsmtpd_forbid_unauth_pipelining (Postfix >= 3.9: yes)\fR"
 /*	Disconnect remote SMTP clients that violate RFC 2920 (or 5321)
 /*	command pipelining constraints.
+/* .PP
+/*	Available in Postfix 3.9, 3.8.4, 3.7.9, 3.6.13, 3.5.23 and later:
+/* .IP "\fBsmtpd_forbid_bare_newline (Postfix < 3.9: no)\fR"
+/*	Reply with "Error: bare <LF> received" and disconnect
+/*	when a remote SMTP client sends a line ending in <LF>, violating
+/*	the RFC 5321 requirement that lines must end in <CR><LF>.
+/* .IP "\fBsmtpd_forbid_bare_newline_exclusions ($mynetworks)\fR"
+/*	Exclude the specified clients from smtpd_forbid_bare_newline
+/*	enforcement.
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -1468,6 +1477,10 @@ char   *var_tlsproxy_service;
 char   *var_smtpd_uproxy_proto;
 int     var_smtpd_uproxy_tmout;
 
+bool    var_smtpd_forbid_bare_lf;
+char   *var_smtpd_forbid_bare_lf_excl;
+static NAMADR_LIST *bare_lf_excl;
+
  /*
   * Silly little macros.
   */
@@ -1542,6 +1555,7 @@ static void tls_reset(SMTPD_STATE *);
 #define REASON_TIMEOUT		"timeout"
 #define REASON_LOST_CONNECTION	"lost connection"
 #define REASON_ERROR_LIMIT	"too many errors"
+#define REASON_BARE_LF		"bare <LF> received"
 
 #ifdef USE_TLS
 
@@ -3968,6 +3982,7 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     done = 0;
     do {
+	int     payload_err;
 
 	/*
 	 * Do not skip the smtp_fread_buf() call if read_len == 0. We still
@@ -3981,6 +3996,10 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtp_fread_buf(state->buffer, read_len, state->client);
 	state->bdat_get_stream = vstream_memreopen(
 			   state->bdat_get_stream, state->buffer, O_RDONLY);
+	vstream_control(state->bdat_get_stream, CA_VSTREAM_CTL_EXCEPT,
+			CA_VSTREAM_CTL_END);
+	if ((payload_err = vstream_setjmp(state->bdat_get_stream)) != 0)
+	    vstream_longjmp(state->client, payload_err);
 
 	/*
 	 * Read lines from the fragment. The last line may continue in the
@@ -4656,6 +4675,9 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     xclient_allowed =
 	namadr_list_match(xclient_hosts, state->name, state->addr);
+    smtp_forbid_bare_lf = SMTPD_STAND_ALONE((state)) == 0
+	&& var_smtpd_forbid_bare_lf
+	&& !namadr_list_match(bare_lf_excl, state->name, state->addr);
     /* NOT: tls_reset() */
     if (got_helo == 0)
 	helo_reset(state);
@@ -5474,6 +5496,13 @@ static void smtpd_proto(SMTPD_STATE *state)
 			     var_myhostname);
 	break;
 
+    case SMTP_ERR_LF:
+	state->reason = REASON_BARE_LF;
+	if (vstream_setjmp(state->client) == 0)
+	    smtpd_chat_reply(state, "521 5.5.2 %s Error: bare <LF> received",
+			     var_myhostname);
+	break;
+
     case 0:
 
 	/*
@@ -6033,6 +6062,13 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
 	namadr_list_match(xforward_hosts, state.name, state.addr);
 
     /*
+     * Enforce strict SMTP line endings, with compatibility exclusions.
+     */
+    smtp_forbid_bare_lf = SMTPD_STAND_ALONE((&state)) == 0
+	&& var_smtpd_forbid_bare_lf
+	&& !namadr_list_match(bare_lf_excl, state.name, state.addr);
+
+    /*
      * See if we need to turn on verbose logging for this client.
      */
     debug_peer_check(state.name, state.addr);
@@ -6093,6 +6129,10 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     hogger_list = namadr_list_init(VAR_SMTPD_HOGGERS, MATCH_FLAG_RETURN
 				   | match_parent_style(VAR_SMTPD_HOGGERS),
 				   var_smtpd_hoggers);
+    bare_lf_excl = namadr_list_init(VAR_SMTPD_FORBID_BARE_LF_EXCL,
+				    MATCH_FLAG_RETURN
+				    | match_parent_style(VAR_MYNETWORKS),
+				    var_smtpd_forbid_bare_lf_excl);
 
     /*
      * Open maps before dropping privileges so we can read passwords etc.
@@ -6451,6 +6491,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_DELAY_OPEN, DEF_SMTPD_DELAY_OPEN, &var_smtpd_delay_open,
 	VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
 	VAR_SMTPD_FORBID_UNAUTH_PIPE, DEF_SMTPD_FORBID_UNAUTH_PIPE, &var_smtpd_forbid_unauth_pipe,
+	VAR_SMTPD_FORBID_BARE_LF, DEF_SMTPD_FORBID_BARE_LF, &var_smtpd_forbid_bare_lf,
 	0,
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {
@@ -6564,6 +6605,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_POLICY_CONTEXT, DEF_SMTPD_POLICY_CONTEXT, &var_smtpd_policy_context, 0, 0,
 	VAR_SMTPD_DNS_RE_FILTER, DEF_SMTPD_DNS_RE_FILTER, &var_smtpd_dns_re_filter, 0, 0,
 	VAR_SMTPD_REJ_FTR_MAPS, DEF_SMTPD_REJ_FTR_MAPS, &var_smtpd_rej_ftr_maps, 0, 0,
+	VAR_SMTPD_FORBID_BARE_LF_EXCL, DEF_SMTPD_FORBID_BARE_LF_EXCL, &var_smtpd_forbid_bare_lf_excl, 0, 0,
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {
