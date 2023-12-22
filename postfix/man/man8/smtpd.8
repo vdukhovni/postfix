@@ -861,6 +861,15 @@ Available in Postfix 3.9, 3.8.1, 3.7.6, 3.6.10, 3.5.20 and later:
 .IP "\fBsmtpd_forbid_unauth_pipelining (Postfix >= 3.9: yes)\fR"
 Disconnect remote SMTP clients that violate RFC 2920 (or 5321)
 command pipelining constraints.
+.PP
+Available in Postfix 3.9, 3.8.4, 3.7.9, 3.6.13, 3.5.23 and later:
+.IP "\fBsmtpd_forbid_bare_newline (Postfix < 3.9: no)\fR"
+Reply with "Error: bare <LF> received" and disconnect
+when a remote SMTP client sends a line ending in <LF>, violating
+the RFC 5321 requirement that lines must end in <CR><LF>.
+.IP "\fBsmtpd_forbid_bare_newline_exclusions ($mynetworks)\fR"
+Exclude the specified clients from smtpd_forbid_bare_newline
+enforcement.
 .SH "TARPIT CONTROLS"
 .na
 .nf

@@ -15606,6 +15606,65 @@ This feature is available in Postfix 2.0 and later.
 
 </DD>
 
+<DT><b><a name="smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a>
+(default: Postfix &lt; 3.9: no)</b></DT><DD>
+
+<p> Reply with "Error: bare &lt;LF&gt; received" and disconnect
+when a remote SMTP client sends a line ending in &lt;LF&gt;, violating
+the <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a> requirement that lines must end in &lt;CR&gt;&lt;LF&gt;.
+This feature is disbled by default with Postfix &lt; 3.9. Use
+<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> to exclude non-standard clients
+such as netcat. Specify "<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = no" to disable
+(not recommended for an Internet-connected MTA). </p>
+
+<p> See <a href="https://www.postfix.org/smtp-smuggling.html">
+https://www.postfix.org/smtp-smuggling.html</a> for details.
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+# Disconnect remote SMTP clients that send bare newlines, but allow
+# local clients with non-standard SMTP implementations such as netcat,
+# fax machines, or load balancer health checks.
+#
+<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = yes
+<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
+</pre>
+</blockquote>
+
+<p> This feature is available in Postfix &ge; 3.9, 3.8.4, 3.7.9,
+3.6.13, and 3.5.23. </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>
+(default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
+
+<p> Exclude the specified clients from <a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a>
+enforcement. It uses the same syntax and parent-domain matching
+behavior as <a href="postconf.5.html#mynetworks">mynetworks</a>. </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+# Disconnect remote SMTP clients that send bare newlines, but allow
+# local clients with non-standard SMTP implementations such as netcat,
+# fax machines, or load balancer health checks.
+#
+<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = yes
+<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
+</pre>
+</blockquote>
+
+<p> This feature is available in Postfix &ge; 3.9, 3.8.4, 3.7.9,
+3.6.13, and 3.5.23. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_forbid_unauth_pipelining">smtpd_forbid_unauth_pipelining</a>
 (default: Postfix &ge; 3.9: yes)</b></DT><DD>
 
