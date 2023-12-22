@@ -25,6 +25,31 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Major changes with Postfix 3.6.13
+=================================
+
+Security: the Postfix SMTP server optionally disconnects a remote
+SMTP client that sends a 'bare newline' line ending in SMTP. This
+prevents an SMTP smuggling attack on recipients at a Postfix server.
+For background, see https://www.postfix.org/smtp-smuggling.html
+
+Sites concerned about SMTP smuggling attacks should enable this
+feature in Internet-facing Postfix servers. For compatibility with
+non-standard clients, Postfix by default excludes clients in
+mynetworks from this countermeasure.
+
+The recommended settings are:
+
+    # Optionally disconnect remote SMTP clients that send bare newlines,
+    # but allow local clients with non-standard SMTP implementations
+    # such as netcat, fax machines, or load balancer health checks.
+    #
+    smtpd_forbid_bare_newline = no
+    smtpd_forbid_bare_newline_exclusions = $mynetworks
+
+This feature is back-ported from Postfix 3.9, with the difference
+that "smtpd_forbid_bare_newline = no" by default.
+
 Major changes with Postfix 3.6.10
 =================================
 

@@ -10415,6 +10415,61 @@ The smtpd_expansion_filter value is not subject to Postfix configuration
 parameter $name expansion.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH smtpd_forbid_bare_newline (default: Postfix < 3.9: no)
+Reply with "Error: bare <LF> received" and disconnect
+when a remote SMTP client sends a line ending in <LF>, violating
+the RFC 5321 requirement that lines must end in <CR><LF>.
+This feature is disbled by default with Postfix < 3.9. Use
+smtpd_forbid_bare_newline_exclusions to exclude non\-standard clients
+such as netcat. Specify "smtpd_forbid_bare_newline = no" to disable
+(not recommended for an Internet\-connected MTA).
+.PP
+See
+https://www.postfix.org/smtp\-smuggling.html for details.
+.PP
+Example:
+.sp
+.in +4
+.nf
+.na
+.ft C
+# Disconnect remote SMTP clients that send bare newlines, but allow
+# local clients with non\-standard SMTP implementations such as netcat,
+# fax machines, or load balancer health checks.
+#
+smtpd_forbid_bare_newline = yes
+smtpd_forbid_bare_newline_exclusions = $mynetworks
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This feature is available in Postfix >= 3.9, 3.8.4, 3.7.9,
+3.6.13, and 3.5.23.
+.SH smtpd_forbid_bare_newline_exclusions (default: $mynetworks)
+Exclude the specified clients from smtpd_forbid_bare_newline
+enforcement. It uses the same syntax and parent\-domain matching
+behavior as mynetworks.
+.PP
+Example:
+.sp
+.in +4
+.nf
+.na
+.ft C
+# Disconnect remote SMTP clients that send bare newlines, but allow
+# local clients with non\-standard SMTP implementations such as netcat,
+# fax machines, or load balancer health checks.
+#
+smtpd_forbid_bare_newline = yes
+smtpd_forbid_bare_newline_exclusions = $mynetworks
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This feature is available in Postfix >= 3.9, 3.8.4, 3.7.9,
+3.6.13, and 3.5.23.
 .SH smtpd_forbid_unauth_pipelining (default: Postfix >= 3.9: yes)
 Disconnect remote SMTP clients that violate RFC 2920 (or 5321)
 command pipelining constraints. The server replies with "554 5.5.0

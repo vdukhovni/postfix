@@ -26036,3 +26036,17 @@ Apologies for any names omitted.
 	delimiter. Fixed by restoring Postfix 2.10 behavior to use
 	a configured recipient delimiter value. Reported by Tod
 	A. Sandman. Files: proto/postconf.proto, local/local_expand.c.
+
+20231221
+
+	Security: with "smtpd_forbid_bare_newline = yes" (default
+	"no" for Postfix < 3.9), reply with "Error: bare <LF>
+	received" and disconnect when an SMTP client sends a line
+	ending in <LF>, violating the RFC 5321 requirement that
+	lines must end in <CR><LF>. This prevents SMTP smuggling
+	attacks that target a recipient at a Postfix server. For
+	backwards compatibility, local clients are excluded by
+	default with "smtpd_forbid_bare_newline_exclusions =
+	$mynetworks". Files: mantools/postlink, proto/postconf.proto,
+	global/mail_params.h, global/smtp_stream.c, global/smtp_stream.h,
+	smtpd/smtpd.c.
