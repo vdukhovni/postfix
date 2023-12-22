@@ -823,7 +823,7 @@
 /*	Disconnect remote SMTP clients that violate RFC 2920 (or 5321)
 /*	command pipelining constraints.
 /* .PP
-/*	Available in Postfix 3.9, 3.8.3, 3.7.9, 3.6.13, 3.5.23 and later:
+/*	Available in Postfix 3.9, 3.8.4, 3.7.9, 3.6.13, 3.5.23 and later:
 /* .IP "\fBsmtpd_forbid_bare_newline (Postfix >= 3.9: yes)\fR"
 /*	Reply with "Error: bare <LF> received" and disconnect
 /*	when a remote SMTP client sends a line ending in <LF>, violating
@@ -4079,7 +4079,7 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     done = 0;
     do {
-	int     payload_err;
+	int     saved_forbid_bare_lf, last;
 
 	/*
 	 * Do not skip the smtp_fread_buf() call if read_len == 0. We still
@@ -4093,21 +4093,20 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtp_fread_buf(state->buffer, read_len, state->client);
 	state->bdat_get_stream = vstream_memreopen(
 			   state->bdat_get_stream, state->buffer, O_RDONLY);
-	vstream_control(state->bdat_get_stream, CA_VSTREAM_CTL_EXCEPT,
-			CA_VSTREAM_CTL_END);
-	if ((payload_err = vstream_setjmp(state->bdat_get_stream))
-	    != SMTP_ERR_NONE)
-	    vstream_longjmp(state->client, payload_err);
 
 	/*
 	 * Read lines from the fragment. The last line may continue in the
-	 * next fragment, or in the next chunk.
+	 * next fragment, or in the next chunk. TODO(wietse) find out why a
+	 * memory stream can't have vstream exceptions.
 	 */
 	do {
-	    if (smtp_get_noexcept(state->bdat_get_buffer,
-				  state->bdat_get_stream,
-				  var_line_limit,
-				  SMTP_GET_FLAG_APPEND) == '\n') {
+	    saved_forbid_bare_lf = smtp_forbid_bare_lf;
+	    last = smtp_get_noexcept(state->bdat_get_buffer,
+				     state->bdat_get_stream,
+				     var_line_limit,
+				     SMTP_GET_FLAG_APPEND);
+	    smtp_forbid_bare_lf = saved_forbid_bare_lf;
+	    if (last == '\n') {
 		/* Stopped at end-of-line. */
 		curr_rec_type = REC_TYPE_NORM;
 	    } else if (!vstream_feof(state->bdat_get_stream)) {
