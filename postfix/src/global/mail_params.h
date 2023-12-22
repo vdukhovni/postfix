@@ -4244,6 +4244,15 @@ extern char *var_smtp_dns_re_filter;
 extern char *var_smtpd_dns_re_filter;
 
  /*
+  * Backwards compatibility.
+  */
+#define VAR_SMTPD_FORBID_BARE_LF	"smtpd_forbid_bare_newline"
+#define DEF_SMTPD_FORBID_BARE_LF	0
+
+#define VAR_SMTPD_FORBID_BARE_LF_EXCL	"smtpd_forbid_bare_newline_exclusions"
+#define DEF_SMTPD_FORBID_BARE_LF_EXCL	"$" VAR_MYNETWORKS
+
+ /*
   * Share TLS sessions through tlsproxy(8).
   */
 #define VAR_SMTP_TLS_CONN_REUSE		"smtp_tls_connection_reuse"
