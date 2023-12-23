@@ -4772,6 +4772,9 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     xclient_allowed =
 	namadr_list_match(xclient_hosts, state->name, state->addr);
+    smtp_forbid_bare_lf = SMTPD_STAND_ALONE((state)) == 0
+	&& var_smtpd_forbid_bare_lf
+	&& !namadr_list_match(bare_lf_excl, state->name, state->addr);
     /* NOT: tls_reset() */
     if (got_helo == 0)
 	helo_reset(state);
