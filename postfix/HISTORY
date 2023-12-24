@@ -27643,3 +27643,18 @@ Apologies for any names omitted.
 	"smtpd_forbid_bare_newline_exclusions = $mynetworks". Files:
 	mantools/postlink, proto/postconf.proto, global/mail_params.h,
 	global/smtp_stream.c, global/smtp_stream.h, smtpd/smtpd.c.
+
+20231222
+
+	Workaround: smtpd_forbid_bare_newline broke the BDAT command.
+	File: smtpd/smtpd.c.
+
+20231123
+
+	Bugfix: smtpd_forbid_bare_newline_exclusions should respect
+	XCLIENT overrides. File: smtpd/smtpd.c.
+
+20231224
+
+	Reverted change 20231221 and adopted a fix by Viktor. File:
+	smtpd/smtpd.c.

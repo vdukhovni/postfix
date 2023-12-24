@@ -4079,7 +4079,7 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     done = 0;
     do {
-	int     saved_forbid_bare_lf, last;
+	int     payload_err;
 
 	/*
 	 * Do not skip the smtp_fread_buf() call if read_len == 0. We still
@@ -4093,20 +4093,20 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtp_fread_buf(state->buffer, read_len, state->client);
 	state->bdat_get_stream = vstream_memreopen(
 			   state->bdat_get_stream, state->buffer, O_RDONLY);
+        vstream_control(state->bdat_get_stream, CA_VSTREAM_CTL_EXCEPT,
+                        CA_VSTREAM_CTL_END);
+        if ((payload_err = vstream_setjmp(state->bdat_get_stream)) != 0)
+            vstream_longjmp(state->client, payload_err);
 
 	/*
 	 * Read lines from the fragment. The last line may continue in the
-	 * next fragment, or in the next chunk. TODO(wietse) find out why a
-	 * memory stream can't have vstream exceptions.
+	 * next fragment, or in the next chunk.
 	 */
 	do {
-	    saved_forbid_bare_lf = smtp_forbid_bare_lf;
-	    last = smtp_get_noexcept(state->bdat_get_buffer,
-				     state->bdat_get_stream,
-				     var_line_limit,
-				     SMTP_GET_FLAG_APPEND);
-	    smtp_forbid_bare_lf = saved_forbid_bare_lf;
-	    if (last == '\n') {
+	    if (smtp_get_noexcept(state->bdat_get_buffer,
+                                     state->bdat_get_stream,
+                                     var_line_limit,
+                                     SMTP_GET_FLAG_APPEND) == '\n') {
 		/* Stopped at end-of-line. */
 		curr_rec_type = REC_TYPE_NORM;
 	    } else if (!vstream_feof(state->bdat_get_stream)) {
