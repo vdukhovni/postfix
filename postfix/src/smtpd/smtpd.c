@@ -1620,7 +1620,6 @@ static void tls_reset(SMTPD_STATE *);
 #define REASON_TIMEOUT		"timeout"
 #define REASON_LOST_CONNECTION	"lost connection"
 #define REASON_ERROR_LIMIT	"too many errors"
-#define REASON_BARE_LF		"bare <LF> received"
 
 #ifdef USE_TLS
 
@@ -3625,6 +3624,8 @@ static void receive_data_message(SMTPD_STATE *state,
 	    curr_rec_type = REC_TYPE_NORM;
 	else
 	    curr_rec_type = REC_TYPE_CONT;
+	if (smtp_seen_bare_lf)
+	    state->err |= CLEANUP_STAT_BARE_LF;
 	start = vstring_str(state->buffer);
 	len = VSTRING_LEN(state->buffer);
 	if (first) {
@@ -3792,6 +3793,12 @@ static int common_post_message_handling(SMTPD_STATE *state)
 	else
 	    smtpd_chat_reply(state,
 			     "250 2.0.0 Ok: queued as %s", state->queue_id);
+    } else if ((state->err & CLEANUP_STAT_BARE_LF) != 0) {
+	/* Disconnect immediately. */
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	msg_info("disconnect: bare <LF> received from %s", state->namaddr);
+	smtpd_chat_reply(state, "521 5.5.2 %s Error: bare <LF> received",
+			 var_myhostname);
     } else if (why && IS_SMTP_REJECT(STR(why))) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "%s", STR(why));
@@ -4079,7 +4086,6 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     done = 0;
     do {
-	int     payload_err;
 
 	/*
 	 * Do not skip the smtp_fread_buf() call if read_len == 0. We still
@@ -4093,10 +4099,6 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtp_fread_buf(state->buffer, read_len, state->client);
 	state->bdat_get_stream = vstream_memreopen(
 			   state->bdat_get_stream, state->buffer, O_RDONLY);
-        vstream_control(state->bdat_get_stream, CA_VSTREAM_CTL_EXCEPT,
-                        CA_VSTREAM_CTL_END);
-        if ((payload_err = vstream_setjmp(state->bdat_get_stream)) != 0)
-            vstream_longjmp(state->client, payload_err);
 
 	/*
 	 * Read lines from the fragment. The last line may continue in the
@@ -4104,9 +4106,9 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	 */
 	do {
 	    if (smtp_get_noexcept(state->bdat_get_buffer,
-                                     state->bdat_get_stream,
-                                     var_line_limit,
-                                     SMTP_GET_FLAG_APPEND) == '\n') {
+				  state->bdat_get_stream,
+				  var_line_limit,
+				  SMTP_GET_FLAG_APPEND) == '\n') {
 		/* Stopped at end-of-line. */
 		curr_rec_type = REC_TYPE_NORM;
 	    } else if (!vstream_feof(state->bdat_get_stream)) {
@@ -4121,6 +4123,8 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		/* Skip the out_record() and VSTRING_RESET() calls below. */
 		break;
 	    }
+	    if (smtp_seen_bare_lf)
+		state->err |= CLEANUP_STAT_BARE_LF;
 	    start = vstring_str(state->bdat_get_buffer);
 	    len = VSTRING_LEN(state->bdat_get_buffer);
 	    if (state->err == CLEANUP_STAT_OK) {
@@ -5597,13 +5601,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 			     var_myhostname);
 	break;
 
-    case SMTP_ERR_LF:
-	state->reason = REASON_BARE_LF;
-	if (vstream_setjmp(state->client) == 0)
-	    smtpd_chat_reply(state, "521 5.5.2 %s Error: bare <LF> received",
-			     var_myhostname);
-	break;
-
     case 0:
 
 	/*
@@ -5823,6 +5820,15 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    }
 	    watchdog_pat();
 	    smtpd_chat_query(state);
+	    if (smtp_seen_bare_lf) {
+		msg_info("disconnect: bare <LF> received from %s",
+			 state->namaddr);
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state,
+				 "521 5.5.2 %s Error: bare <LF> received",
+				 var_myhostname);
+		break;
+	    }
 	    /* Safety: protect internal interfaces against malformed UTF-8. */
 	    if (var_smtputf8_enable
 		&& valid_utf8_stringz(STR(state->buffer)) == 0) {
