@@ -27644,11 +27644,31 @@ Apologies for any names omitted.
 	mantools/postlink, proto/postconf.proto, global/mail_params.h,
 	global/smtp_stream.c, global/smtp_stream.h, smtpd/smtpd.c.
 
-20231226
+20240102
 
-	Cleanup: a nicer implementation of smtpd_forbid_bare_newline
-	that does not hang up the the middle of a BDAT or DATA
-	command, and that optionally includes the offending command
-	sequence in a postmaster 'protocol' notification. Files:
-	smtpd/smtpd.c, global/stp_stream.[hc], global/cleanup_user.h,
-	global/cleanup_strerror.c.
+	Cleanup: when the Postfix SMTP server rejects bare <LF>,
+	log the helo, mail and rcpt information. Files: smtpd/smtpd.c,
+	smtpd/smtpd_check.c.
+
+	Cleanup: nicer implementation of smtpd_forbid_bare_newline
+	that keeps reading message content after an unexpected
+	<LF>.<LF> or <LF>.<CR><LF>, before responding. This increases
+	the likelihood that the client will actually see the Postfix
+	response and remove the attack from their mail queue. Files:
+	smtpd/smtpd.c, global/smtp_stream.[hc], global/cleanup_user.h.
+
+	Cleanup: added smtpd_forbid_bare_newline values "disconnect",
+	"reject", and "normalize". The last one will accept bare
+	newlines from local or remote SMTP clients that send bare
+	newlines consistently. This may fail to receive email from
+	legitimate clients that send a mix of lines ending in <LF>
+	and <CR><LF>. If such legitimate clients exist, they need
+	to be excluded with smtpd_forbid_bare_newline_exclusions.
+	Files: proto/postconf.proto, global/smtp_stream.h,
+	smtpd/smtpd.c.
+
+	Changed the smtpd_forbid_bare_newline default to "normalize"
+	(see above). This setting maintains compatibility with
+	remote network infrastructure such as probers and surveys.
+	Files: proto/postconf.proto, global/mail_params.h,
+	smtpd/smtpd.c.

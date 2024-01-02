@@ -15922,17 +15922,75 @@ This feature is available in Postfix 2.0 and later.
 </DD>
 
 <DT><b><a name="smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a>
-(default: Postfix &ge; 3.9: yes)</b></DT><DD>
+(default: Postfix &ge; 3.9: normalize)</b></DT><DD>
 
-<p> Reply with "Error: bare &lt;LF&gt; received" and disconnect
-when a remote SMTP client sends a line ending in &lt;LF&gt;, violating
-the <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a> requirement that lines must end in &lt;CR&gt;&lt;LF&gt;.
-This feature is enabled by default with Postfix &ge; 3.9. Use
-<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> to exclude non-standard clients
-such as netcat. Specify "<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = no" to disable
-(not recommended for an Internet-connected MTA). </p>
+<p> Disconnect, reject, or normalize commands and email message
+content when a remote SMTP client sends lines ending in &lt;LF&gt;.
+Such line endings are commonly allowed with UNIX-based SMTP servers,
+but they violate the <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a> requirement that lines must end in
+&lt;CR&gt;&lt;LF&gt;. <.p>
 
-<p> Example: </p>
+<p> Specify one of the following values (case does not matter): </p>
+
+<dl compact>
+
+<dt> <b>normalize</b> </dt> <dd> Maintain compatibility
+with legacy SMTP clients that send lines ending in the non-standard
+form &lt;LF&gt;, and treat those line endings as if the client sent
+the standard &lt;CR&gt;&lt;LF&gt;. However, if an SMTP client sends
+any DATA content line ending in the standard &lt;CR&gt;&lt;LF&gt;,
+support only the standard End-of-DATA form
+&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;; neutralize and log
+non-standard End-of-DATA forms as:
+<blockquote>
+<pre>
+neutralizing unexpected &lt;LF&gt;.&lt;LF&gt; in DATA from...
+neutralizing unexpected &lt;LF&gt;.&lt;CR&gt;&lt;LF&gt; in DATA from...
+</pre>
+</blockquote>
+This may fail to receive email from legitimate SMTP clients that
+send DATA content with a mix of line endings. Such clients need
+to be excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
+
+<dt> <b>reject</b> </dt> <dd> When an SMTP client sends a command
+or message content line ending in &lt;LF&gt;, log a "bare &lt;LF&gt;
+received" error, and reject the command or message content. This
+will fail to receive email from legitimate SMTP clients that send
+command or message content with lines ending in &lt;LF&gt;. Such
+clients need to be excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+</dd>
+
+<dt> <b>disconnect</b> </dt> <dd> Same as "reject", but
+also disconnect the SMTP client. </dd>
+
+<dt> <b>yes</b> </dt> <dd> Backwards compatible alias for
+"disconnect". </dd>
+
+<dt> <b>no</b> </dt> <dd> Treat all lines ending in &lt;LF&gt;
+as if the client sent &lt;CR&gt;&lt;LF&gt;. This option is fully
+backwards compatible, but is not recommended for an Internet-facing
+SMTP server, because it is vulnerable to <a
+href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
+</dd>
+
+</dl>
+
+<p> Examples: </p>
+
+<blockquote>
+<pre>
+# Allow bare newlines from local and remote SMTP clients. If any DATA
+# content line ends in &lt;CR&gt;&lt;LF&gt;, require the standard End-of-DATA
+# form &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt; and neutralize non-standard
+# End-of-DATA forms.
+# This may fail to receive email from legitimate clients that send a
+# mix of lines ending in &lt;LF&gt; and &lt;CR&gt;&lt;LF&gt;. If such clients
+# exist, they need to be excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+#
+<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = normalize
+<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
+</pre>
+</blockquote>
 
 <blockquote>
 <pre>
@@ -15940,13 +15998,15 @@ such as netcat. Specify "<a href="postconf.5.html#smtpd_forbid_bare_newline">smt
 # local clients with non-standard SMTP implementations such as netcat,
 # fax machines, or load balancer health checks.
 #
-<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = yes
+<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = disconnect
 <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
 </pre>
 </blockquote>
 
-<p> This feature is available in Postfix &ge; 3.9, 3.8.4, 3.7.9,
-3.6.13, and 3.5.23. </p>
+<p> This feature with settings 'yes' and 'no' is available in Postfix
+&ge; 3.9, 3.8.4, 3.7.9, 3.6.13, and 3.5.23. The settings 'disconnect',
+'reject, and 'normalize' are available with Postfix &ge; 3.9, 3.8.5,
+3.7.10, 3.6.14, and 3.5.24. </p>
 
 
 </DD>
@@ -15958,7 +16018,22 @@ such as netcat. Specify "<a href="postconf.5.html#smtpd_forbid_bare_newline">smt
 enforcement. It uses the same syntax and parent-domain matching
 behavior as <a href="postconf.5.html#mynetworks">mynetworks</a>. </p>
 
-<p> Example: </p>
+<p> Examples: </p>
+
+<blockquote>
+<pre>
+# Allow bare newlines from local and remote SMTP clients. If any DATA
+# content line ends in &lt;CR&gt;&lt;LF&gt;, require the standard End-of-DATA
+# form &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt; and neutralize non-standard
+# End-of-DATA forms.
+# This may fail to receive email from legitimate clients that send a
+# mix of lines ending in &lt;LF&gt; and &lt;CR&gt;&lt;LF&gt;. If such clients
+# exist, they need to be excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+#
+<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = normalize
+<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
+</pre>
+</blockquote>
 
 <blockquote>
 <pre>
@@ -15966,7 +16041,7 @@ behavior as <a href="postconf.5.html#mynetworks">mynetworks</a>. </p>
 # local clients with non-standard SMTP implementations such as netcat,
 # fax machines, or load balancer health checks.
 #
-<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = yes
+<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = disconnect
 <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
 </pre>
 </blockquote>

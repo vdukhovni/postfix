@@ -26,6 +26,35 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Incompatible changes with snapshot 20240102
+===========================================
+
+The default setting for smtpd_forbid_bare_newline has changed to
+"normalize". This allows bare newlines from local and remote SMTP
+clients that send bare newlines consistently, and maintains
+compatibility with infrastructure tools such as probers and surveys.
+
+The Postfix 3.9 default settings are now:
+
+    # Allow bare newlines from local and remote SMTP clients. If any DATA
+    # content line ends in <CR><LF>, require the standard End-of-DATA form
+    # <CR><LF>.<CR><LF> and neutralize non-standard End-of-DATA forms with
+    # logging that looks like:
+    #
+    #    neutralizing unexpected <LF>.<LF> in DATA from...
+    #    neutralizing unexpected <LF>.<CR><LF> in DATA from...
+    #
+    # This may fail to receive email from legitimate clients that send a
+    # mix of lines ending in <LF> and <CR><LF>. If such clients exist,
+    # they need to be excluded with smtpd_forbid_bare_newline_exclusions.
+    #
+    smtpd_forbid_bare_newline = normalize
+    smtpd_forbid_bare_newline_exclusions = $mynetworks
+
+Older settings still have the same effect: the smtpd_forbid_bare_newline
+setting "yes" has become an alias for "disconnect", and the setting "no"
+has not changed. It remains vulnerable to SMTP smuggling.
+
 Incompatible changes with snapshot 20231221
 ===========================================
 
