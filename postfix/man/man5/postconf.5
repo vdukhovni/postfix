@@ -11012,21 +11012,21 @@ but they violate the RFC 5321 requirement that lines must end in
 .PP
 Specify one of the following values (case does not matter):
 .IP "\fBnormalize\fR"
-Maintain compatibility
-with legacy SMTP clients that send lines ending in the non\-standard
-form <LF>, and treat those line endings as if the client sent
-the standard <CR><LF>. However, if an SMTP client sends
-any DATA content line ending in the standard <CR><LF>,
-support only the standard End\-of\-DATA form
-<CR><LF>.<CR><LF>; neutralize and log
-non\-standard End\-of\-DATA forms as:
+Maintain compatibility with legacy
+SMTP clients that send lines ending in the non\-standard <LF>,
+and treat those line endings as if the client sent the standard
+<CR><LF>. However, if an SMTP client sends any DATA
+content line ending in the standard <CR><LF>, support
+only the standard End\-of\-DATA form
+<CR><LF>.<CR><LF>, and skip non\-standard
+End\-of\-DATA forms after logging them as:
 .sp
 .in +4
 .nf
 .na
 .ft C
-neutralizing unexpected <LF>.<LF> in DATA from...
-neutralizing unexpected <LF>.<CR><LF> in DATA from...
+skipping unexpected <LF>.<LF> in DATA from...
+skipping unexpected <LF>.<CR><LF> in DATA from...
 .fi
 .ad
 .ft R
@@ -11065,13 +11065,12 @@ Examples:
 .nf
 .na
 .ft C
-# Allow bare newlines from local and remote SMTP clients. If any DATA
-# content line ends in <CR><LF>, require the standard End\-of\-DATA
-# form <CR><LF>.<CR><LF> and neutralize non\-standard
-# End\-of\-DATA forms.
+# Allow bare newlines from local and remote SMTP clients. If any
+# DATA content line ends in <CR><LF>, require the standard End\-of\-DATA
+# form <CR><LF>.<CR><LF> and skip plus log non\-standard forms.
 # This may fail to receive email from legitimate clients that send a
-# mix of lines ending in <LF> and <CR><LF>. If such clients
-# exist, they need to be excluded with smtpd_forbid_bare_newline_exclusions.
+# mix of lines ending in <LF> and <CR><LF>. If such clients exist,
+# they need to be excluded with smtpd_forbid_bare_newline_exclusions.
 #
 smtpd_forbid_bare_newline = normalize
 smtpd_forbid_bare_newline_exclusions = $mynetworks
@@ -11103,42 +11102,6 @@ This feature with settings 'yes' and 'no' is available in Postfix
 Exclude the specified clients from smtpd_forbid_bare_newline
 enforcement. It uses the same syntax and parent\-domain matching
 behavior as mynetworks.
-.PP
-Examples:
-.sp
-.in +4
-.nf
-.na
-.ft C
-# Allow bare newlines from local and remote SMTP clients. If any DATA
-# content line ends in <CR><LF>, require the standard End\-of\-DATA
-# form <CR><LF>.<CR><LF> and neutralize non\-standard
-# End\-of\-DATA forms.
-# This may fail to receive email from legitimate clients that send a
-# mix of lines ending in <LF> and <CR><LF>. If such clients
-# exist, they need to be excluded with smtpd_forbid_bare_newline_exclusions.
-#
-smtpd_forbid_bare_newline = normalize
-smtpd_forbid_bare_newline_exclusions = $mynetworks
-.fi
-.ad
-.ft R
-.in -4
-.sp
-.in +4
-.nf
-.na
-.ft C
-# Disconnect remote SMTP clients that send bare newlines, but allow
-# local clients with non\-standard SMTP implementations such as netcat,
-# fax machines, or load balancer health checks.
-#
-smtpd_forbid_bare_newline = disconnect
-smtpd_forbid_bare_newline_exclusions = $mynetworks
-.fi
-.ad
-.ft R
-.in -4
 .PP
 This feature is available in Postfix >= 3.9, 3.8.4, 3.7.9,
 3.6.13, and 3.5.23.

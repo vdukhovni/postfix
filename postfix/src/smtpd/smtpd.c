@@ -3669,14 +3669,13 @@ static void receive_data_message(SMTPD_STATE *state,
 		out_record(out_stream, REC_TYPE_NORM, "", 0);
 	}
 	if (prev_rec_type != REC_TYPE_CONT && *start == '.') {
-	    if (len == 1 && IS_BARE_LF_NORMALIZE(prev_seen_bare_lf)
-		&& expect_crlf_dot) {
-		msg_info("neutralizing unexpected <LF>.%s in DATA from %s",
-			 smtp_seen_bare_lf ? "<LF>" : "<CR><LF>",
-			 state->namaddr);
-		VSTRING_ADDCH(state->buffer, '.');
-		start = vstring_str(state->buffer);
-		len += 1;
+	    if (len == 1 && prev_seen_bare_lf && expect_crlf_dot) {
+		if (IS_BARE_LF_NORMALIZE(prev_seen_bare_lf))
+		    msg_info("%s: skipping unexpected <LF>.%s in DATA from %s",
+			     state->queue_id ? state->queue_id : "NOQUEUE",
+			     smtp_seen_bare_lf ? "<LF>" : "<CR><LF>",
+			     state->namaddr);
+		continue;
 	    }
 	    if (proxy == 0 ? (++start, --len) == 0 : len == 1)
 		break;

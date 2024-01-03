@@ -27672,3 +27672,7 @@ Apologies for any names omitted.
 	remote network infrastructure such as probers and surveys.
 	Files: proto/postconf.proto, global/mail_params.h,
 	smtpd/smtpd.c.
+
+	Tooling: mantools/dehtml was breaking words in code examples,
+	causing false spellchecker errors. File: mantools/dehtml,
+	proto/stop.double-proto-html.

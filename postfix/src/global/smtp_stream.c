@@ -136,7 +136,7 @@
 /*	smtp_get_noexcept() implements the subset of smtp_get()
 /*	without timeouts and without making long jumps. Instead,
 /*	query the stream status with vstream_feof() etc.
-/*	This function will set smtp_forbid_bare_lf when flagging
+/*	This function will set smtp_seen_bare_lf when flagging
 /*	input with a bare newline byte.
 /*
 /*	smtp_timeout_setup() is a backwards-compatibility interface
