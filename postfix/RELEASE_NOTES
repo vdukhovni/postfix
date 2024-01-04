@@ -26,6 +26,56 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Major changes with snapshot 20240102
+====================================
+
+This updates Postfix fixes for SMTP smuggling attacks, For background,
+see https://www.postfix.org/smtp-smuggling.html
+
+This release improves configuration (see below) and logging (it now
+includes helo, mail, and rcpt information if available).
+
+- The new setting "smtpd_forbid_bare_newline = normalize" allows
+  bare newlines from local and remote SMTP clients that send bare
+  newlines consistently, and maintains more compatibility with
+  infrastructure tools such as probers and surveys.
+
+- The new setting "smtpd_forbid_bare_newline = reject" rejects a
+  command or message that contains a bare newline. To disconnect
+  the client, specify "smtpd_forbid_bare_newline_reject_code = 521".
+
+- The old setting "yes" has become an alias for "normalize".
+
+- The old setting "no" has not changed, and allows SMTP smuggling.
+
+The recommended Postfix 3.9 settings (i.e. the defaults) are now:
+
+    # Allow bare newlines from local and remote SMTP clients. If any DATA
+    # content line ends in <CR><LF>, require the standard End-of-DATA form
+    # <CR><LF>.<CR><LF> and skip non-standard End-of-DATA forms with
+    # logging that looks like:
+    #
+    #    skipping unexpected <LF>.<LF> in DATA from...
+    #    skipping unexpected <LF>.<CR><LF> in DATA from...
+    #
+    # This may fail to receive email from legitimate clients that send a
+    # mix of lines ending in <LF> and <CR><LF>. If such clients exist,
+    # they need to be excluded with smtpd_forbid_bare_newline_exclusions.
+    #
+    smtpd_forbid_bare_newline = normalize
+    smtpd_forbid_bare_newline_exclusions = $mynetworks
+
+Alternative settings:
+
+    # Reject bare newlines from remote SMTP clients, but allow them from
+    # local non-standard clients such as netcat, fax machines, or load
+    # balancer health checks.
+    #
+    smtpd_forbid_bare_newline = reject
+    smtpd_forbid_bare_newline_exclusions = $mynetworks
+
+This will be back ported to Postfix 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
+
 Incompatible changes with snapshot 20231221
 ===========================================
 

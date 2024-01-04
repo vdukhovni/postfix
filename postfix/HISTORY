@@ -27644,11 +27644,31 @@ Apologies for any names omitted.
 	mantools/postlink, proto/postconf.proto, global/mail_params.h,
 	global/smtp_stream.c, global/smtp_stream.h, smtpd/smtpd.c.
 
-20231226
+20240104
 
-	Cleanup: a nicer implementation of smtpd_forbid_bare_newline
-	that does not hang up the the middle of a BDAT or DATA
-	command, and that optionally includes the offending command
-	sequence in a postmaster 'protocol' notification. Files:
-	smtpd/smtpd.c, global/stp_stream.[hc], global/cleanup_user.h,
-	global/cleanup_strerror.c.
+	Cleanup: when the Postfix SMTP server rejects bare <LF>,
+	log the helo, mail and rcpt information if available. Files:
+	smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+	Cleanup: when the Postfix SMTP server rejects bare <LF>,
+	keep reading message content after an unexpected <LF>.<LF>
+	or <LF>.<CR><LF>, before responding. This increases the
+	likelihood that the client will actually see the Postfix
+	response and remove the attack from their mail queue. Files:
+	smtpd/smtpd.c, global/smtp_stream.[hc], global/cleanup_user.h.
+
+	Cleanup: added smtpd_forbid_bare_newline settings "reject"
+	and "normalize". The default setting "normalize" (and "yes")
+	will accept bare newlines from local or remote SMTP clients,
+	but if any DATA content line ends in <CR><LF>, require the
+	standard End-of-DATA form <CR><LF>.<CR><LF> and skip plus
+	log non-standard End-of-DATA forms. This may fail to receive
+	email from legitimate clients that send a mix of lines
+	ending in <LF> and <CR><LF>. If such clients exist, they
+	need to be excluded with smtpd_forbid_bare_newline_exclusions.
+	Files: proto/postconf.proto, global/mail_params.h,
+	smtpd/smtpd.c.
+
+	Tooling: mantools/dehtml was breaking words in code examples,
+	causing false spellchecker errors. File: mantools/dehtml,
+	proto/stop.double-proto-html.

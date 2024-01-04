@@ -11003,58 +11003,111 @@ The smtpd_expansion_filter value is not subject to Postfix configuration
 parameter $name expansion.
 .PP
 This feature is available in Postfix 2.0 and later.
-.SH smtpd_forbid_bare_newline (default: Postfix >= 3.9: yes)
-Reply with "Error: bare <LF> received" and disconnect
-when a remote SMTP client sends a line ending in <LF>, violating
-the RFC 5321 requirement that lines must end in <CR><LF>.
-This feature is enabled by default with Postfix >= 3.9. Use
-smtpd_forbid_bare_newline_exclusions to exclude non\-standard clients
-such as netcat. Specify "smtpd_forbid_bare_newline = no" to disable
-(not recommended for an Internet\-connected MTA).
+.SH smtpd_forbid_bare_newline (default: Postfix >= 3.9: normalize)
+Disconnect, reject, or normalize commands and email message
+content when a remote SMTP client sends lines ending in <LF>.
+Such line endings are commonly allowed with UNIX\-based SMTP servers,
+but they violate the RFC 5321 requirement that lines must end in
+<CR><LF>. <.p>
 .PP
-Example:
+Specify one of the following values (case does not matter):
+.IP "\fBnormalize\fR"
+Maintain compatibility with legacy
+SMTP clients that send lines ending in the non\-standard <LF>,
+and treat those line endings as if the client sent the standard
+<CR><LF>. However, if an SMTP client sends any DATA
+content line ending in the standard <CR><LF>, support
+only the standard End\-of\-DATA form
+<CR><LF>.<CR><LF>, and skip non\-standard
+End\-of\-DATA forms after logging them as:
 .sp
 .in +4
 .nf
 .na
 .ft C
-# Disconnect remote SMTP clients that send bare newlines, but allow
-# local clients with non\-standard SMTP implementations such as netcat,
-# fax machines, or load balancer health checks.
+skipping unexpected <LF>.<LF> in DATA from...
+skipping unexpected <LF>.<CR><LF> in DATA from...
+.fi
+.ad
+.ft R
+.in -4
+This may fail to receive email from legitimate SMTP clients that
+send DATA content with a mix of line endings. Such clients need
+to be excluded with smtpd_forbid_bare_newline_exclusions.
+.br
+.IP "\fByes\fR"
+Alias for "normalize".
+.br
+.IP "\fBreject\fR"
+When an SMTP client sends a command
+or message content line ending in <LF>, log a "bare <LF>
+received" error, and reject the command or message content with
+smtpd_forbid_bare_newline_reject_code. This will fail to receive
+email from legitimate SMTP clients that send command or message
+content with lines ending in <LF>. Such clients need to be
+excluded with smtpd_forbid_bare_newline_exclusions.
+.br
+.IP "\fBno\fR"
+Treat all lines ending in <LF>
+as if the client sent <CR><LF>. This option is fully
+backwards compatible, but is not recommended for an Internet\-facing
+SMTP server, because it is vulnerable to  SMTP smuggling.
+.br
+.br
+.PP
+Examples:
+.sp
+.in +4
+.nf
+.na
+.ft C
+# Allow bare newlines from local and remote SMTP clients. If any
+# DATA content line ends in <CR><LF>, require the standard End\-of\-DATA
+# form <CR><LF>.<CR><LF> and skip plus log non\-standard forms.
+# This may fail to receive email from legitimate clients that send a
+# mix of lines ending in <LF> and <CR><LF>. If such clients exist,
+# they need to be excluded with smtpd_forbid_bare_newline_exclusions.
 #
-smtpd_forbid_bare_newline = yes
+smtpd_forbid_bare_newline = normalize
+smtpd_forbid_bare_newline_exclusions = $mynetworks
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+# Reject bare newlines from remote SMTP clients, but allow them from
+# local non\-standard clients such as netcat, fax machines, or load
+# balancer health checks.
+#
+smtpd_forbid_bare_newline = reject
 smtpd_forbid_bare_newline_exclusions = $mynetworks
 .fi
 .ad
 .ft R
 .in -4
 .PP
-This feature is available in Postfix >= 3.9, 3.8.4, 3.7.9,
-3.6.13, and 3.5.23.
+This feature with settings 'yes' and 'no' is available in Postfix
+>= 3.9, 3.8.4, 3.7.9, 3.6.13, and 3.5.23. The settings 'reject'
+and 'normalize' are available with Postfix >= 3.9, 3.8.5, 3.7.10,
+3.6.14, and 3.5.24.
 .SH smtpd_forbid_bare_newline_exclusions (default: $mynetworks)
 Exclude the specified clients from smtpd_forbid_bare_newline
 enforcement. It uses the same syntax and parent\-domain matching
 behavior as mynetworks.
 .PP
-Example:
-.sp
-.in +4
-.nf
-.na
-.ft C
-# Disconnect remote SMTP clients that send bare newlines, but allow
-# local clients with non\-standard SMTP implementations such as netcat,
-# fax machines, or load balancer health checks.
-#
-smtpd_forbid_bare_newline = yes
-smtpd_forbid_bare_newline_exclusions = $mynetworks
-.fi
-.ad
-.ft R
-.in -4
-.PP
 This feature is available in Postfix >= 3.9, 3.8.4, 3.7.9,
 3.6.13, and 3.5.23.
+.SH smtpd_forbid_bare_newline_reject_code (default: 550)
+The numerical Postfix SMTP server response code when a request
+is rejected by the \fBsmtpd_forbid_bare_newline\fR feature.
+Specify a 5XX status code (521 to disconnect).
+.PP
+This feature is available in Postfix >= 3.9, 3.8.5, 3.7.10,
+3.6.14, and 3.5.24.
 .SH smtpd_forbid_unauth_pipelining (default: Postfix >= 3.9: yes)
 Disconnect remote SMTP clients that violate RFC 2920 (or 5321)
 command pipelining constraints. The server replies with "554 5.5.0

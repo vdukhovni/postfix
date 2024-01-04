@@ -82,3 +82,9 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  available Files local command c local local c 
  ID if available File pipe pipe c 
  global smtp_stream h smtpd smtpd c 
+ global smtp_stream c global smtp_stream h smtpd smtpd c 
+ log the helo mail and rcpt information Files smtpd smtpd c 
+ LF LF or LF CR LF before responding This increases
+ smtpd smtpd c global smtp_stream hc global cleanup_user h 
+ smtpd smtpd c smtpd smtpd_check c 
+ keep reading message content after an unexpected LF LF 

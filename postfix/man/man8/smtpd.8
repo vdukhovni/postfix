@@ -870,13 +870,18 @@ Disconnect remote SMTP clients that violate RFC 2920 (or 5321)
 command pipelining constraints.
 .PP
 Available in Postfix 3.9, 3.8.4, 3.7.9, 3.6.13, 3.5.23 and later:
-.IP "\fBsmtpd_forbid_bare_newline (Postfix >= 3.9: yes)\fR"
-Reply with "Error: bare <LF> received" and disconnect
-when a remote SMTP client sends a line ending in <LF>, violating
-the RFC 5321 requirement that lines must end in <CR><LF>.
+.IP "\fBsmtpd_forbid_bare_newline (Postfix >= 3.9: normalize)\fR"
+Disconnect, reject, or normalize commands and email message
+content when a remote SMTP client sends lines ending in <LF>.
 .IP "\fBsmtpd_forbid_bare_newline_exclusions ($mynetworks)\fR"
 Exclude the specified clients from smtpd_forbid_bare_newline
 enforcement.
+.PP
+Available in Postfix 3.9, 3.8.5, 3.7.10, 3.6.14, 3.5.24 and
+later:
+.IP "\fBsmtpd_forbid_bare_newline_reject_code (550)\fR"
+The numerical Postfix SMTP server response code when a request
+is rejected by the \fBsmtpd_forbid_bare_newline\fR feature.
 .SH "TARPIT CONTROLS"
 .na
 .nf

@@ -4306,10 +4306,13 @@ extern char *var_smtpd_dns_re_filter;
   * Backwards compatibility.
   */
 #define VAR_SMTPD_FORBID_BARE_LF	"smtpd_forbid_bare_newline"
-#define DEF_SMTPD_FORBID_BARE_LF	1
+#define DEF_SMTPD_FORBID_BARE_LF	"normalize"
 
 #define VAR_SMTPD_FORBID_BARE_LF_EXCL	"smtpd_forbid_bare_newline_exclusions"
 #define DEF_SMTPD_FORBID_BARE_LF_EXCL	"$" VAR_MYNETWORKS
+
+#define VAR_SMTPD_FORBID_BARE_LF_CODE	"smtpd_forbid_bare_newline_reject_code"
+#define DEF_SMTPD_FORBID_BARE_LF_CODE	550
 
  /*
   * Share TLS sessions through tlsproxy(8).
