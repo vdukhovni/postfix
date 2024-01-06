@@ -431,11 +431,15 @@ int     smtp_get_noexcept(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags
 	 */
     case '\n':
 	vstring_truncate(vp, VSTRING_LEN(vp) - 1);
-	if (smtp_forbid_bare_lf
-	    && (VSTRING_LEN(vp) == 0 || vstring_end(vp)[-1] != '\r'))
-	    smtp_seen_bare_lf = smtp_forbid_bare_lf;
-	while (VSTRING_LEN(vp) > 0 && vstring_end(vp)[-1] == '\r')
-	    vstring_truncate(vp, VSTRING_LEN(vp) - 1);
+	if (smtp_forbid_bare_lf) {
+	    if (VSTRING_LEN(vp) == 0 || vstring_end(vp)[-1] != '\r')
+		smtp_seen_bare_lf = smtp_forbid_bare_lf;
+	    else
+		vstring_truncate(vp, VSTRING_LEN(vp) - 1);
+	} else {
+	    while (VSTRING_LEN(vp) > 0 && vstring_end(vp)[-1] == '\r')
+		vstring_truncate(vp, VSTRING_LEN(vp) - 1);
+	}
 	VSTRING_TERMINATE(vp);
 	/* FALLTRHOUGH */
 

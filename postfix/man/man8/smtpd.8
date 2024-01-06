@@ -871,8 +871,8 @@ command pipelining constraints.
 .PP
 Available in Postfix 3.9, 3.8.4, 3.7.9, 3.6.13, 3.5.23 and later:
 .IP "\fBsmtpd_forbid_bare_newline (Postfix >= 3.9: normalize)\fR"
-Disconnect, reject, or normalize commands and email message
-content when a remote SMTP client sends lines ending in <LF>.
+Reject or normalize commands and email message content when a
+remote SMTP client sends lines ending in <LF>.
 .IP "\fBsmtpd_forbid_bare_newline_exclusions ($mynetworks)\fR"
 Exclude the specified clients from smtpd_forbid_bare_newline
 enforcement.

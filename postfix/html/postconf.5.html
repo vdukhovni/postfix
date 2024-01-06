@@ -15924,10 +15924,10 @@ This feature is available in Postfix 2.0 and later.
 <DT><b><a name="smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a>
 (default: Postfix &ge; 3.9: normalize)</b></DT><DD>
 
-<p> Disconnect, reject, or normalize commands and email message
-content when a remote SMTP client sends lines ending in &lt;LF&gt;.
-Such line endings are commonly allowed with UNIX-based SMTP servers,
-but they violate the <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a> requirement that lines must end in
+<p> Reject or normalize commands and email message content when a
+remote SMTP client sends lines ending in &lt;LF&gt;. Such line
+endings are commonly allowed with UNIX-based SMTP servers, but they
+violate the <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a> requirement that lines must end in
 &lt;CR&gt;&lt;LF&gt;. <.p>
 
 <p> Specify one of the following values (case does not matter): </p>
@@ -15938,29 +15938,25 @@ but they violate the <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a> 
 SMTP clients that send lines ending in the non-standard &lt;LF&gt;,
 and treat those line endings as if the client sent the standard
 &lt;CR&gt;&lt;LF&gt;. However, if an SMTP client sends any DATA
-content line ending in the standard &lt;CR&gt;&lt;LF&gt;, support
-only the standard End-of-DATA form
-&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;, and skip non-standard
-End-of-DATA forms after logging them as:
-<blockquote>
-<pre>
-skipping unexpected &lt;LF&gt;.&lt;LF&gt; in DATA from...
-skipping unexpected &lt;LF&gt;.&lt;CR&gt;&lt;LF&gt; in DATA from...
-</pre>
-</blockquote>
-This may fail to receive email from legitimate SMTP clients that
-send DATA content with a mix of line endings. Such clients need
-to be excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
+content line ending in the standard &lt;CR&gt;&lt;LF&gt;, require
+the standard End-of-DATA form &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;,
+and skip non-standard End-of-DATA forms. <br> This may fail to
+receive email from legitimate SMTP clients that send non-standard
+line endings such web applications, netcat, fax machines, or load
+balancer health checks. Such clients need to be excluded with
+<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
 
 <dt> <b>yes</b> </dt> <dd> Alias for "normalize". </dd>
 
 <dt> <b>reject</b> </dt> <dd> When an SMTP client sends a command
 or message content line ending in &lt;LF&gt;, log a "bare &lt;LF&gt;
-received" error, and reject the command or message content with
-<a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a>. This will fail to receive
-email from legitimate SMTP clients that send command or message
-content with lines ending in &lt;LF&gt;. Such clients need to be
-excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.  </dd>
+received" error, reject the command or message content with
+<a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a>, and require the standard
+End-of-DATA form &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. <br>
+This will fail to receive email from legitimate SMTP clients that
+send non-standard line endings such web applications, netcat, fax
+machines, or load balancer health checks. Such clients need to be
+excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
 
 <dt> <b>no</b> </dt> <dd> Treat all lines ending in &lt;LF&gt;
 as if the client sent &lt;CR&gt;&lt;LF&gt;. This option is fully
@@ -15975,12 +15971,14 @@ href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
 
 <blockquote>
 <pre>
-# Allow bare newlines from local and remote SMTP clients. If any
-# DATA content line ends in &lt;CR&gt;&lt;LF&gt;, require the standard End-of-DATA
-# form &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt; and skip plus log non-standard forms.
-# This may fail to receive email from legitimate clients that send a
-# mix of lines ending in &lt;LF&gt; and &lt;CR&gt;&lt;LF&gt;. If such clients exist,
-# they need to be excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+# Allow bare newlines from local and remote SMTP clients. If any DATA
+# content line ends in &lt;CR&gt;&lt;LF&gt;, require the standard End-of-DATA form
+# &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt; and skip other End-of-DATA forms.
+#
+# This may cause problems for legitimate clients that send
+# non-standard line endings such as web applications, netcat, fax
+# machines, or load balancer health checks. Such clients need to be
+# excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
 #
 <a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = normalize
 <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
@@ -15989,9 +15987,13 @@ href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
 
 <blockquote>
 <pre>
-# Reject bare newlines from remote SMTP clients, but allow them from
-# local non-standard clients such as netcat, fax machines, or load
-# balancer health checks.
+# Reject bare newlines from remote SMTP clients. Require the standard
+# End-of-DATA form &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
+#
+# This will cause problems for legitimate clients that send
+# non-standard line endings such as web applications, netcat, fax
+# machines, or load balancer health checks. Such clients need to be
+# excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
 #
 <a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = reject
 <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>

@@ -27661,8 +27661,8 @@ Apologies for any names omitted.
 	and "normalize". The default setting "normalize" (and "yes")
 	will accept bare newlines from local or remote SMTP clients,
 	but if any DATA content line ends in <CR><LF>, require the
-	standard End-of-DATA form <CR><LF>.<CR><LF> and skip plus
-	log non-standard End-of-DATA forms. This may fail to receive
+	standard End-of-DATA form <CR><LF>.<CR><LF> and skip
+	non-standard End-of-DATA forms. This may fail to receive
 	email from legitimate clients that send a mix of lines
 	ending in <LF> and <CR><LF>. If such clients exist, they
 	need to be excluded with smtpd_forbid_bare_newline_exclusions.
@@ -27672,3 +27672,16 @@ Apologies for any names omitted.
 	Tooling: mantools/dehtml was breaking words in code examples,
 	causing false spellchecker errors. File: mantools/dehtml,
 	proto/stop.double-proto-html.
+
+20240105
+
+	Cleanup: don't spam the log with unexpected End-of-DATA
+	forms. Files: proto/postconf.proto, smtpd/smtpd.c,
+	RELEASE_NOTES.
+
+20240106
+
+	Bugfix: with smtpd_forbid_bare_newline enabled, do not
+	"strip" extra <CR> characters before <LF>. This avoids
+	ambiguity when a client sends extra <CR> characters as in
+	<CR><LF>.<CR><CR><LF>. File: global/smtp_stream.c.

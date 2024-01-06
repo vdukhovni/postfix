@@ -825,8 +825,8 @@
 /* .PP
 /*	Available in Postfix 3.9, 3.8.4, 3.7.9, 3.6.13, 3.5.23 and later:
 /* .IP "\fBsmtpd_forbid_bare_newline (Postfix >= 3.9: normalize)\fR"
-/*	Disconnect, reject, or normalize commands and email message
-/*	content when a remote SMTP client sends lines ending in <LF>.
+/*	Reject or normalize commands and email message content when a
+/*	remote SMTP client sends lines ending in <LF>.
 /* .IP "\fBsmtpd_forbid_bare_newline_exclusions ($mynetworks)\fR"
 /*	Exclude the specified clients from smtpd_forbid_bare_newline
 /*	enforcement.
@@ -3623,7 +3623,7 @@ static void receive_data_message(SMTPD_STATE *state,
     int     prev_rec_type;
     int     first = 1;
     int     prev_seen_bare_lf = 0;
-    int     expect_crlf_dot = 0;
+    int     expect_crlf_dot = IS_BARE_LF_REJECT(smtp_forbid_bare_lf);
 
     /*
      * If deadlines are enabled, increase the time budget as message content
@@ -3667,14 +3667,9 @@ static void receive_data_message(SMTPD_STATE *state,
 		out_record(out_stream, REC_TYPE_NORM, "", 0);
 	}
 	if (prev_rec_type != REC_TYPE_CONT && *start == '.') {
-	    if (len == 1 && prev_seen_bare_lf && expect_crlf_dot) {
-		if (IS_BARE_LF_NORMALIZE(prev_seen_bare_lf))
-		    msg_info("%s: skipping unexpected <LF>.%s in DATA from %s",
-			     state->queue_id ? state->queue_id : "NOQUEUE",
-			     smtp_seen_bare_lf ? "<LF>" : "<CR><LF>",
-			     state->namaddr);
+	    if (len == 1 && expect_crlf_dot
+		&& (smtp_seen_bare_lf || prev_seen_bare_lf))
 		continue;
-	    }
 	    if (proxy == 0 ? (++start, --len) == 0 : len == 1)
 		break;
 	}
