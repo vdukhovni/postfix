@@ -4314,6 +4314,10 @@ extern char *var_smtpd_dns_re_filter;
 #define VAR_SMTPD_FORBID_BARE_LF_CODE	"smtpd_forbid_bare_newline_reject_code"
 #define DEF_SMTPD_FORBID_BARE_LF_CODE	550
 
+#define VAR_CLEANUP_MASK_STRAY_CR_LF	"cleanup_replace_stray_cr_lf"
+#define DEF_CLEANUP_MASK_STRAY_CR_LF	1
+extern int var_cleanup_mask_stray_cr_lf;
+
  /*
   * Share TLS sessions through tlsproxy(8).
   */

@@ -40,3 +40,4 @@ root  root you
  user foo domain user domain domain 
 virtual  virtual alias domain anything right hand content does not matter 
  skipping unexpected LF LF in DATA from 
+Inbound SMTP smuggling strip extra CR in CR LF CR CR LF 

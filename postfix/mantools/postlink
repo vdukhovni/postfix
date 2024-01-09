@@ -564,6 +564,7 @@ while (<>) {
     s;\bsmtpd_for[-</bB>]*\n*[ <bB>]*bid_bare_newline\b;<a href="postconf.5.html#smtpd_forbid_bare_newline">$&</a>;g;
     s;\bsmtpd_for[-</bB>]*\n*[ <bB>]*bid_bare_newline_reject_code\b;<a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">$&</a>;g;
     s;\bsmtpd_for[-</bB>]*\n*[ <bB>]*bid_bare_newline_exclusions\b;<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">$&</a>;g;
+    s;\bcleanup_replace_stray_cr_lf\b;<a href="postconf.5.html#cleanup_replace_stray_cr_lf">$&</a>;g;
     s;\bsmtpd_for[-</bB>]*\n*[ <bB>]*bid_unauth_pipelining\b;<a href="postconf.5.html#smtpd_forbid_unauth_pipelining">$&</a>;g;
     s;\bsmtpd_hard_error_limit\b;<a href="postconf.5.html#smtpd_hard_error_limit">$&</a>;g;
     s;\bsmtpd_helo_required\b;<a href="postconf.5.html#smtpd_helo_required">$&</a>;g;

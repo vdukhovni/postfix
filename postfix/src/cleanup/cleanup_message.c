@@ -925,6 +925,23 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
     char   *dst;
 
     /*
+     * Replace each stray CR or LF with one space. These are not allowed in
+     * SMTP, and can be used to enable outbound (remote) SMTP smuggling.
+     * Replacing these early ensures that our later DKIM etc. signature will
+     * not be invalidated. Besides preventing SMTP smuggling, replacing stray
+     * <CR> or <LF> ensures that the result of signature validation by a
+     * later mail system will not depend on how that mail system handles
+     * those stray characters in an implementation-dependent manner.
+     * 
+     * The input length is not changed, therefore it is safe to overwrite the
+     * input.
+     */
+    if (var_cleanup_mask_stray_cr_lf)
+	for (dst = (char *) buf; dst < buf + len; dst++)
+	    if (*dst == '\r' || *dst == '\n')
+		*dst = ' ';
+
+    /*
      * Reject unwanted characters.
      * 
      * XXX Possible optimization: simplify the loop when the "reject" set

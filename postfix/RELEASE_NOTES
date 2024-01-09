@@ -26,6 +26,32 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Incompatibility with snapshot 20240109
+=======================================
+
+Outbound SMTP smuggling: with "cleanup_replace_stray_cr_lf = yes", the
+cleanup daemon replaces each stray <CR> or <LF> character in message
+content with a space character. The replacement happens before any other
+content management.
+
+This prevents outbound SMTP smuggling, where an attacker uses Postfix
+to send a non-standard End-of-DATA sequence that triggers inbound
+SMTP smuggling at a remote SMTP server.
+
+This also ensures that the evaluation of Postfix-added DKIM etc.
+signatures will not depend on how a remote mail server handles stray <CR>
+or <LF> characters.
+
+This feature applies to all email that Postfix locally or remotely
+out. It is not allowlisted based on client identity.
+
+Major changes with snapshot 20240106
+====================================
+
+Inbound SMTP smuggling: strip extra <CR> in <CR><LF>.<CR><CR><LF>,
+to silence some tools that send attack sequences that are not viable.
+Details at https://www.postfix.org/false-smuggling-claims.html
+
 Major changes with snapshot 20240102
 ====================================
 
@@ -35,10 +61,6 @@ see https://www.postfix.org/smtp-smuggling.html
 This release improves configuration (see below) and logging for rejected
 input (it now includes helo, mail, and rcpt information if available).
 This will be back ported to Postfix 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
-
-- Stricter enforcement of <CR><LF>.<CR><LF>; earlier versions ignored
-  extra <CR> before <LF>, causing ambiguity about what the client
-  actually sent.
 
 - The new setting "smtpd_forbid_bare_newline = normalize" allows
   bare newlines from local and remote SMTP clients that send bare

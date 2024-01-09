@@ -11240,17 +11240,6 @@ is rejected by the <b>reject_plaintext_session</b> restriction.
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM smtpd_forbid_bare_newline_reject_code 550
-
-<p>
-The numerical Postfix SMTP server response code when a request
-is rejected by the <b>smtpd_forbid_bare_newline</b> feature.
-Specify a 5XX status code (521 to disconnect).
-</p>
-
-<p> This feature is available in Postfix &ge; 3.9, 3.8.5, 3.7.10,
-3.6.14, and 3.5.24. </p>
-
 %PARAM resolve_numeric_domain no
 
 <p> Resolve "user@ipaddress" as "user@[ipaddress]", instead of
@@ -19157,6 +19146,47 @@ behavior as mynetworks. </p>
 
 <p> This feature is available in Postfix &ge; 3.9, 3.8.4, 3.7.9,
 3.6.13, and 3.5.23. </p>
+
+%PARAM smtpd_forbid_bare_newline_reject_code 550
+
+<p>
+The numerical Postfix SMTP server response code when a request
+is rejected by the <b>smtpd_forbid_bare_newline</b> feature.
+Specify a 5XX status code (521 to disconnect).
+</p>
+
+<p> This feature is available in Postfix &ge; 3.9, 3.8.5, 3.7.10,
+3.6.14, and 3.5.24. </p>
+
+%PARAM cleanup_replace_stray_cr_lf yes
+
+<p> Replace each stray &lt;CR&gt; or &lt;LF&gt; character in message
+content with a space character, to prevent outbound SMTP smuggling,
+and to make the evaluation of Postfix-added DKIM etc. signatures
+independent from how a remote mail server handles such characters.
+</p>
+
+<p> SMTP does not allow such characters unless they are part of a
+&lt;CR&gt;&lt;LF&gt; sequence, and different mail systems handle
+such stray characters in an implementation-dependent manner. Stray
+&lt;CR&gt; or &lt;LF&gt; characters could be used for outbound
+SMTP smuggling, where an attacker uses a Postfix server to send
+message content with a non-standard End-of-DATA sequence that
+triggers inbound SMTP smuggling at a remote SMTP server.</p>
+
+<p> The replacement happens before all other content management,
+and before Postfix may add a DKIM etc. signature; if the signature
+were created first, the replacement could invalidate the signature.
+</p>
+
+<p> In addition to preventing SMTP smuggling, replacing stray
+&lt;CR&gt; or &lt;LF&gt; characters ensures that the result of
+signature validation by later mail system will not depend on how
+that mail system handles those stray characters in an
+implementation-dependent manner. </p>
+
+<p> This feature is available in Postfix &ge; 3.9, 3.8.5, 3.7.10,
+3.6.14, and 3.5.24. </p>
 
 %PARAM smtpd_forbid_unauth_pipelining Postfix &ge; 3.9: yes
 

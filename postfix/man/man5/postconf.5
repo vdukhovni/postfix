@@ -883,6 +883,32 @@ canonical_maps = hash:/etc/postfix/canonical
 .fi
 .ad
 .ft R
+.SH cleanup_replace_stray_cr_lf (default: yes)
+Replace each stray <CR> or <LF> character in message
+content with a space character, to prevent outbound SMTP smuggling,
+and to make the evaluation of Postfix\-added DKIM etc. signatures
+independent from how a remote mail server handles such characters.
+.PP
+SMTP does not allow such characters unless they are part of a
+<CR><LF> sequence, and different mail systems handle
+such stray characters in an implementation\-dependent manner. Stray
+<CR> or <LF> characters could be used for outbound
+SMTP smuggling, where an attacker uses a Postfix server to send
+message content with a non\-standard End\-of\-DATA sequence that
+triggers inbound SMTP smuggling at a remote SMTP server.
+.PP
+The replacement happens before all other content management,
+and before Postfix may add a DKIM etc. signature; if the signature
+were created first, the replacement could invalidate the signature.
+.PP
+In addition to preventing SMTP smuggling, replacing stray
+<CR> or <LF> characters ensures that the result of
+signature validation by later mail system will not depend on how
+that mail system handles those stray characters in an
+implementation\-dependent manner.
+.PP
+This feature is available in Postfix >= 3.9, 3.8.5, 3.7.10,
+3.6.14, and 3.5.24.
 .SH cleanup_service_name (default: cleanup)
 The name of the \fBcleanup\fR(8) service. This service rewrites addresses
 into the standard form, and performs \fBcanonical\fR(5) address mapping

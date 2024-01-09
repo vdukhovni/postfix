@@ -27681,7 +27681,24 @@ Apologies for any names omitted.
 
 20240106
 
-	Bugfix: with smtpd_forbid_bare_newline enabled, do not
-	"strip" extra <CR> characters before <LF>. This avoids
+	Inbound smuggling: with smtpd_forbid_bare_newline enabled,
+	do not "strip" extra <CR> characters before <LF>. This avoids
 	ambiguity when a client sends extra <CR> characters as in
-	<CR><LF>.<CR><CR><LF>. File: global/smtp_stream.c.
+	<CR><LF>.<CR><CR><LF>. There is no smuggling vulnerability
+	because there is no mail system will send the above
+	sequence (mail systems send <CR><LF>..<CR><CR><LF> instead).
+	But this change will silence some testing tools. More at
+	https://www.postfix.org/false-smuggling-claims.html. File:
+	global/smtp_stream.c.
+
+20240109
+
+	Outbound smuggling: with "cleanup_replace_stray_cr_lf =
+	yes" (the default) Postfix will replace stray <CR> or <LF>
+	characters in message content with a space character. This
+	prevents Postfix from enabling outbound (remote) SMTP
+	smuggling, and it also makes evaluation of Postfix-added
+	DKIM etc. signatures independent from how a remote mail
+	server handles stray <CR> or <LF> characters. Files:
+	global/mail_params.h, cleanup/cleanup.c, cleanup/cleanup_message.c,
+	mantools/postlink, proto/postconf.proto.

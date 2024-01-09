@@ -3622,8 +3622,8 @@ static void receive_data_message(SMTPD_STATE *state,
     int     curr_rec_type;
     int     prev_rec_type;
     int     first = 1;
-    int     prev_seen_bare_lf = 0;
-    int     expect_crlf_dot = IS_BARE_LF_REJECT(smtp_forbid_bare_lf);
+    int     prev_detected_bare_lf = 0;
+    int     require_crlf_dot_crlf = IS_BARE_LF_REJECT(smtp_forbid_bare_lf);
 
     /*
      * If deadlines are enabled, increase the time budget as message content
@@ -3645,14 +3645,16 @@ static void receive_data_message(SMTPD_STATE *state,
      * because sendmail permits it.
      */
     for (prev_rec_type = 0; /* void */ ; prev_rec_type = curr_rec_type,
-	 expect_crlf_dot = (expect_crlf_dot || smtp_seen_bare_lf == 0),
-	 prev_seen_bare_lf = smtp_seen_bare_lf) {
+	 require_crlf_dot_crlf = (require_crlf_dot_crlf ||
+				  (IS_BARE_LF_NORMALIZE(smtp_forbid_bare_lf)
+				   && smtp_detected_bare_lf == 0)),
+	 prev_detected_bare_lf = smtp_detected_bare_lf) {
 	if (smtp_get(state->buffer, state->client, var_line_limit,
 		     SMTP_GET_FLAG_NONE) == '\n')
 	    curr_rec_type = REC_TYPE_NORM;
 	else
 	    curr_rec_type = REC_TYPE_CONT;
-	if (IS_BARE_LF_REJECT(smtp_seen_bare_lf))
+	if (IS_BARE_LF_REJECT(smtp_detected_bare_lf))
 	    state->err |= CLEANUP_STAT_BARE_LF;
 	start = vstring_str(state->buffer);
 	len = VSTRING_LEN(state->buffer);
@@ -3667,8 +3669,8 @@ static void receive_data_message(SMTPD_STATE *state,
 		out_record(out_stream, REC_TYPE_NORM, "", 0);
 	}
 	if (prev_rec_type != REC_TYPE_CONT && *start == '.') {
-	    if (len == 1 && expect_crlf_dot
-		&& (smtp_seen_bare_lf || prev_seen_bare_lf))
+	    if (len == 1 && require_crlf_dot_crlf
+		&& (smtp_detected_bare_lf || prev_detected_bare_lf))
 		continue;
 	    if (proxy == 0 ? (++start, --len) == 0 : len == 1)
 		break;
@@ -4154,7 +4156,7 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		/* Skip the out_record() and VSTRING_RESET() calls below. */
 		break;
 	    }
-	    if (IS_BARE_LF_REJECT(smtp_seen_bare_lf))
+	    if (IS_BARE_LF_REJECT(smtp_detected_bare_lf))
 		state->err |= CLEANUP_STAT_BARE_LF;
 	    start = vstring_str(state->bdat_get_buffer);
 	    len = VSTRING_LEN(state->bdat_get_buffer);
@@ -5851,7 +5853,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    }
 	    watchdog_pat();
 	    smtpd_chat_query(state);
-	    if (IS_BARE_LF_REJECT(smtp_seen_bare_lf)) {
+	    if (IS_BARE_LF_REJECT(smtp_detected_bare_lf)) {
 		log_whatsup(state, "reject", "bare <LF> received");
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state, "%d 5.5.2 %s Error: bare <LF> received",

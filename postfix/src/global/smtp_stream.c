@@ -54,7 +54,7 @@
 /*	va_list	ap;
 /*
 /*	int	smtp_forbid_bare_lf;
-/*	int	smtp_seen_bare_lf;
+/*	int	smtp_detected_bare_lf;
 /* AUXILIARY API
 /*	int	smtp_get_noexcept(vp, stream, maxlen, flags)
 /*	VSTRING	*vp;
@@ -136,15 +136,15 @@
 /*	smtp_get_noexcept() implements the subset of smtp_get()
 /*	without timeouts and without making long jumps. Instead,
 /*	query the stream status with vstream_feof() etc.
-/*	This function will set smtp_seen_bare_lf when flagging
+/*	This function will set smtp_detected_bare_lf when flagging
 /*	input with a bare newline byte.
 /*
 /*	smtp_timeout_setup() is a backwards-compatibility interface
 /*	for programs that don't require deadline or data-rate support.
 /*
 /*	smtp_forbid_bare_lf controls whether smtp_get_noexcept()
-/*	will set smtp_seen_bare_lf when the line that was read last
-/*	ended with a bare newline byte.
+/*	will set smtp_detected_bare_lf when the line that was read
+/*	last ended with a bare newline byte.
 /* DIAGNOSTICS
 /* .fi
 /* .ad
@@ -224,7 +224,7 @@
   * body content one line at a time.
   */
 int     smtp_forbid_bare_lf;
-int     smtp_seen_bare_lf;
+int     smtp_detected_bare_lf;
 
 /* smtp_timeout_reset - reset per-stream error flags */
 
@@ -387,7 +387,7 @@ int     smtp_get_noexcept(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags
     int     last_char;
     int     next_char;
 
-    smtp_seen_bare_lf = 0;
+    smtp_detected_bare_lf = 0;
 
     /*
      * It's painful to do I/O with records that may span multiple buffers.
@@ -433,7 +433,7 @@ int     smtp_get_noexcept(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags
 	vstring_truncate(vp, VSTRING_LEN(vp) - 1);
 	if (smtp_forbid_bare_lf) {
 	    if (VSTRING_LEN(vp) == 0 || vstring_end(vp)[-1] != '\r')
-		smtp_seen_bare_lf = smtp_forbid_bare_lf;
+		smtp_detected_bare_lf = smtp_forbid_bare_lf;
 	    else
 		vstring_truncate(vp, VSTRING_LEN(vp) - 1);
 	} else {
