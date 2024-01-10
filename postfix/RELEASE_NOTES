@@ -26,7 +26,7 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
-Incompatibility with snapshot 20240109
+Incompatibility with snapshot 20240110
 =======================================
 
 Outbound SMTP smuggling: with "cleanup_replace_stray_cr_lf = yes", the
@@ -35,40 +35,36 @@ content with a space character. The replacement happens before any other
 content management.
 
 This prevents outbound SMTP smuggling, where an attacker uses Postfix
-to send a non-standard End-of-DATA sequence that triggers inbound
-SMTP smuggling at a remote SMTP server.
+to send email with a non-standard End-of-DATA sequence that exploits
+inbound SMTP smuggling at a vulnerable SMTP server.
 
-This also ensures that the evaluation of Postfix-added DKIM etc.
-signatures will not depend on how a remote mail server handles stray <CR>
-or <LF> characters.
+This also ensures that the evaluation of Postfix-added DKIM and
+other signatures will not depend on how a remote mail server handles
+stray <CR> or <LF> characters.
 
 This feature applies to all email that Postfix locally or remotely
-out. It is not allowlisted based on client identity.
+sends out. It is not allowlisted based on client identity.
 
-Major changes with snapshot 20240106
-====================================
-
-Inbound SMTP smuggling: strip extra <CR> in <CR><LF>.<CR><CR><LF>,
-to silence some tools that send attack sequences that are not viable.
-Details at https://www.postfix.org/false-smuggling-claims.html
-
-Major changes with snapshot 20240102
+Major changes with snapshot 20240110
 ====================================
 
 This updates Postfix fixes for SMTP smuggling attacks, For background,
 see https://www.postfix.org/smtp-smuggling.html
 
-This release improves configuration (see below) and logging for rejected
-input (it now includes helo, mail, and rcpt information if available).
 This will be back ported to Postfix 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
 
-- The new setting "smtpd_forbid_bare_newline = normalize" allows
-  bare newlines from local and remote SMTP clients that send bare
-  newlines consistently, and maintains more compatibility with
-  infrastructure tools such as probers and surveys.
+- Improved logging for rejected input (it now includes queue ID,
+  helo, mail, and rcpt, if available).
 
-- The new setting "smtpd_forbid_bare_newline = reject" rejects a
-  command or message that contains a bare newline. To disconnect
+- The new default setting "smtpd_forbid_bare_newline = normalize"
+  requires the standard End-of-DATA sequence <CR><LF>.<CR><LF>, and
+  allows bare newlines from local and remote SMTP clients, maintaining
+  more compatibility with infrastructure tools such as probers and
+  surveys.
+
+- The new setting "smtpd_forbid_bare_newline = reject" requires
+  the standard End-of-DATA sequence <CR><LF>.<CR><LF>, and rejects
+  a command or message that contains a bare newline. To disconnect
   the client, specify "smtpd_forbid_bare_newline_reject_code = 521".
 
 - The old setting "yes" has become an alias for "normalize".
@@ -77,30 +73,36 @@ This will be back ported to Postfix 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
 
 The recommended Postfix 3.9 settings (i.e. the defaults) are now:
 
-    # Allow bare newlines from local and remote SMTP clients. If any DATA
-    # content line ends in <CR><LF>, require the standard End-of-DATA form
-    # <CR><LF>.<CR><LF>, and skip other End-of-DATA forms.
+    # Require the standard End-of-DATA sequence <CR><LF>.<CR><LF>.
+    # Allow bare newlines from local and remote SMTP clients.
     #
-    # This may cause problems for legitimate clients that send
-    # non-standard line endings such web applications, netcat, fax
-    # machines, or load balancer health checks. Such clients need to be
-    # excluded with smtpd_forbid_bare_newline_exclusions.
+    # This will cause problems for legitimate clients that send a
+    # non-standard End-of-DATA sequence such as web applications, netcat,
+    # fax machines, or load balancer health checks. Such clients need
+    # to be excluded with smtpd_forbid_bare_newline_exclusions.
     #
     smtpd_forbid_bare_newline = normalize
     smtpd_forbid_bare_newline_exclusions = $mynetworks
 
 Alternative settings:
 
-    # Reject bare newlines from remote SMTP clients. Require the standard
-    # End-of-DATA form <CR><LF>.<CR><LF>.
+    # Require the standard End-of-DATA sequence <CR><LF>.<CR><LF>.
+    # Reject bare newlines from remote SMTP clients.
     #
-    # This will cause problems for legitimate clients that send
-    # non-standard line endings such web applications, netcat, fax
+    # This will cause problems for legitimate clients that send any
+    # non-standard line endings such as web applications, netcat, fax
     # machines, or load balancer health checks. Such clients need to be
     # excluded with smtpd_forbid_bare_newline_exclusions.
     #
     smtpd_forbid_bare_newline = reject
     smtpd_forbid_bare_newline_exclusions = $mynetworks
+
+Major changes with snapshot 20240106
+====================================
+
+Inbound SMTP smuggling: strip extra <CR> in <CR><LF>.<CR><CR><LF>,
+to silence some tools that send attack sequences that are not viable.
+Details at https://www.postfix.org/false-smuggling-claims.html
 
 Incompatible changes with snapshot 20231221
 ===========================================

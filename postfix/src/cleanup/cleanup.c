@@ -153,7 +153,8 @@
 /* .IP "\fBcleanup_replace_stray_cr_lf (yes)\fR"
 /*	Replace each stray <CR> or <LF> character in message
 /*	content with a space character, to prevent outbound SMTP smuggling,
-/*	and to make the evaluation of Postfix-added DKIM etc.
+/*	and to make the evaluation of Postfix-added DKIM or other signatures
+/*	independent from how a remote mail server handles such characters.
 /* BEFORE QUEUE MILTER CONTROLS
 /* .ad
 /* .fi

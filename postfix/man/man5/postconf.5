@@ -886,7 +886,7 @@ canonical_maps = hash:/etc/postfix/canonical
 .SH cleanup_replace_stray_cr_lf (default: yes)
 Replace each stray <CR> or <LF> character in message
 content with a space character, to prevent outbound SMTP smuggling,
-and to make the evaluation of Postfix\-added DKIM etc. signatures
+and to make the evaluation of Postfix\-added DKIM or other signatures
 independent from how a remote mail server handles such characters.
 .PP
 SMTP does not allow such characters unless they are part of a
@@ -11030,37 +11030,33 @@ parameter $name expansion.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH smtpd_forbid_bare_newline (default: Postfix >= 3.9: normalize)
-Reject or normalize commands and email message content when a
-remote SMTP client sends lines ending in <LF>. Such line
-endings are commonly allowed with UNIX\-based SMTP servers, but they
-violate the RFC 5321 requirement that lines must end in
-<CR><LF>. <.p>
+Reject or normalize commands and email message content when an
+SMTP client sends lines ending in <LF>. Such line endings are
+commonly allowed with UNIX\-based SMTP servers, but they violate the
+RFC 5321 requirement that lines must end in <CR><LF>.
 .PP
 Specify one of the following values (case does not matter):
-.IP "\fBnormalize\fR"
-Maintain compatibility with legacy
-SMTP clients that send lines ending in the non\-standard <LF>,
-and treat those line endings as if the client sent the standard
-<CR><LF>. However, if an SMTP client sends any DATA
-content line ending in the standard <CR><LF>, require
-the standard End\-of\-DATA form <CR><LF>.<CR><LF>,
-and skip non\-standard End\-of\-DATA forms.
+.IP "\fBnormalize\fR (default)"
+Require the standard
+End\-of\-DATA sequence <CR><LF>.<CR><LF>.
+Otherwise, maintain compatibility with legacy SMTP clients that
+send lines ending in the non\-standard <LF>, and treat those
+line endings as if the client sent the standard <CR><LF>.
 .br
-This may fail to
-receive email from legitimate SMTP clients that send non\-standard
-line endings such web applications, netcat, fax machines, or load
-balancer health checks. Such clients need to be excluded with
+This may fail to receive email from legitimate SMTP clients
+such web applications, netcat, fax machines, or load balancer health
+checks.  Such clients need to be excluded with
 smtpd_forbid_bare_newline_exclusions.
 .br
 .IP "\fByes\fR"
 Alias for "normalize".
 .br
 .IP "\fBreject\fR"
-When an SMTP client sends a command
-or message content line ending in <LF>, log a "bare <LF>
-received" error, reject the command or message content with
-smtpd_forbid_bare_newline_reject_code, and require the standard
-End\-of\-DATA form <CR><LF>.<CR><LF>.
+Require the standard End\-of\-DATA
+sequence <CR><LF>.<CR><LF>. When an SMTP
+client sends a command or message content line ending in <LF>,
+log a "bare <LF> received" error, and reject the command or
+message content with $smtpd_forbid_bare_newline_reject_code.
 .br
 This will fail to receive email from legitimate SMTP clients that
 send non\-standard line endings such web applications, netcat, fax
@@ -11081,14 +11077,13 @@ Examples:
 .nf
 .na
 .ft C
-# Allow bare newlines from local and remote SMTP clients. If any DATA
-# content line ends in <CR><LF>, require the standard End\-of\-DATA form
-# <CR><LF>.<CR><LF> and skip other End\-of\-DATA forms.
+# Require the standard End\-of\-DATA sequence <CR><LF>.<CR><LF>.
+# Allow bare newlines from local and remote SMTP clients.
 #
-# This may cause problems for legitimate clients that send
-# non\-standard line endings such as web applications, netcat, fax
-# machines, or load balancer health checks. Such clients need to be
-# excluded with smtpd_forbid_bare_newline_exclusions.
+# This will cause problems for legitimate clients that send a
+# non\-standard End\-of\-DATA sequence such as web applications, netcat,
+# fax machines, or load balancer health checks. Such clients need
+# to be excluded with smtpd_forbid_bare_newline_exclusions.
 #
 smtpd_forbid_bare_newline = normalize
 smtpd_forbid_bare_newline_exclusions = $mynetworks
@@ -11101,10 +11096,10 @@ smtpd_forbid_bare_newline_exclusions = $mynetworks
 .nf
 .na
 .ft C
-# Reject bare newlines from remote SMTP clients. Require the standard
-# End\-of\-DATA form <CR><LF>.<CR><LF>.
+# Require the standard End\-of\-DATA sequence <CR><LF>.<CR><LF>.
+# Reject bare newlines from remote SMTP clients.
 #
-# This will cause problems for legitimate clients that send
+# This will cause problems for legitimate clients that send any
 # non\-standard line endings such as web applications, netcat, fax
 # machines, or load balancer health checks. Such clients need to be
 # excluded with smtpd_forbid_bare_newline_exclusions.

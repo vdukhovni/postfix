@@ -825,8 +825,8 @@
 /* .PP
 /*	Available in Postfix 3.9, 3.8.4, 3.7.9, 3.6.13, 3.5.23 and later:
 /* .IP "\fBsmtpd_forbid_bare_newline (Postfix >= 3.9: normalize)\fR"
-/*	Reject or normalize commands and email message content when a
-/*	remote SMTP client sends lines ending in <LF>.
+/*	Reject or normalize commands and email message content when an
+/*	SMTP client sends lines ending in <LF>.
 /* .IP "\fBsmtpd_forbid_bare_newline_exclusions ($mynetworks)\fR"
 /*	Exclude the specified clients from smtpd_forbid_bare_newline
 /*	enforcement.
@@ -1656,8 +1656,8 @@ int     smtpd_hfrom_format;
 #define BARE_LF_FLAG_NORMALIZE	(1<<0)	/* Best effort */
 #define BARE_LF_FLAG_REJECT	(1<<1)	/* Purist */
 
-#define IS_BARE_LF_NORMALIZE(m)	((m) & BARE_LF_FLAG_NORMALIZE)
 #define IS_BARE_LF_REJECT(m)	((m) & BARE_LF_FLAG_REJECT)
+#define IS_BARE_LF_DETECT(m)	((m) != 0)
 
 static const NAME_CODE bare_lf_masks[] = {
     "normalize", BARE_LF_FLAG_NORMALIZE,
@@ -3623,7 +3623,7 @@ static void receive_data_message(SMTPD_STATE *state,
     int     prev_rec_type;
     int     first = 1;
     int     prev_detected_bare_lf = 0;
-    int     require_crlf_dot_crlf = IS_BARE_LF_REJECT(smtp_forbid_bare_lf);
+    int     require_crlf_dot_crlf = IS_BARE_LF_DETECT(smtp_forbid_bare_lf);
 
     /*
      * If deadlines are enabled, increase the time budget as message content
@@ -3645,9 +3645,6 @@ static void receive_data_message(SMTPD_STATE *state,
      * because sendmail permits it.
      */
     for (prev_rec_type = 0; /* void */ ; prev_rec_type = curr_rec_type,
-	 require_crlf_dot_crlf = (require_crlf_dot_crlf ||
-				  (IS_BARE_LF_NORMALIZE(smtp_forbid_bare_lf)
-				   && smtp_detected_bare_lf == 0)),
 	 prev_detected_bare_lf = smtp_detected_bare_lf) {
 	if (smtp_get(state->buffer, state->client, var_line_limit,
 		     SMTP_GET_FLAG_NONE) == '\n')

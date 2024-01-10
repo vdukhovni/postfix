@@ -27702,3 +27702,10 @@ Apologies for any names omitted.
 	server handles stray <CR> or <LF> characters. Files:
 	global/mail_params.h, cleanup/cleanup.c, cleanup/cleanup_message.c,
 	mantools/postlink, proto/postconf.proto.
+
+20240110
+
+	Cleanup: the smtpd_forbid_bare_newline settings "normalize"
+	and "reject" are now more similar. Both now unconditionally
+	require the standard End-of-DATA sequence <CR><LF>.<CR><LF>.
+	Files: smtpd/smtpd.c, proto/postconf.proto, RELEASE_NOTES.
