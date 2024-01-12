@@ -27709,3 +27709,9 @@ Apologies for any names omitted.
 	and "reject" are now more similar. Both now unconditionally
 	require the standard End-of-DATA sequence <CR><LF>.<CR><LF>.
 	Files: smtpd/smtpd.c, proto/postconf.proto, RELEASE_NOTES.
+
+20240112
+
+	Cleanup: updated comments and identifiers because the bare
+	newline handling has evolved. Files: global/smtp_stream.[hc],
+	Files: global/smtp_stream.[hc], smtpd/smtpd.c.

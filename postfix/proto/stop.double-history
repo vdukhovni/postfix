@@ -93,3 +93,6 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  CR LF CR CR LF There is no smuggling vulnerability
  sequence mail systems send CR LF CR CR LF instead 
  global mail_params h cleanup cleanup c cleanup cleanup_message c 
+ Files smtpd smtpd c proto postconf proto RELEASE_NOTES 
+ stable releases Files global smtp_stream hc smtpd smtpd c
+ Files global smtp_stream hc smtpd smtpd c 
