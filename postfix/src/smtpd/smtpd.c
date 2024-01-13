@@ -824,9 +824,9 @@
 /*	command pipelining constraints.
 /* .PP
 /*	Available in Postfix 3.9, 3.8.4, 3.7.9, 3.6.13, 3.5.23 and later:
-/* .IP "\fBsmtpd_forbid_bare_newline (Postfix >= 3.9: normalize)\fR"
-/*	Reject or normalize commands and email message content when an
-/*	SMTP client sends lines ending in <LF>.
+/* .IP "\fBsmtpd_forbid_bare_newline (Postfix >= 3.9: require_std_end_of_data)\fR"
+/*	Reject or restrict input lines from an SMTP client that end in
+/*	<LF> instead of the standard <CR><LF>.
 /* .IP "\fBsmtpd_forbid_bare_newline_exclusions ($mynetworks)\fR"
 /*	Exclude the specified clients from smtpd_forbid_bare_newline
 /*	enforcement.
@@ -1677,7 +1677,10 @@ int     smtpd_hfrom_format;
 #define IS_BARE_LF_REPLY_REJECT(m)	((m) & BARE_LF_FLAG_REPLY_REJECT)
 
 static const NAME_CODE bare_lf_mask_table[] = {
-    "normalize", BARE_LF_FLAG_WANT_STD_EOD,	/* The new default */
+    "require_std_end_of_data", BARE_LF_FLAG_WANT_STD_EOD,	/* Default */
+#ifdef SNAPSHOT
+    "normalize", BARE_LF_FLAG_WANT_STD_EOD,	/* Migration aid */
+#endif
     "yes", BARE_LF_FLAG_WANT_STD_EOD,	/* Migration aid */
     "reject", BARE_LF_FLAG_WANT_STD_EOD | BARE_LF_FLAG_REPLY_REJECT,
     "no", 0,

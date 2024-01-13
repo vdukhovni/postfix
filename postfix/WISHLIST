@@ -6,6 +6,9 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Maybe add a pre-release check that stable releases cannot
+	have -DSNAPSHOT and -DNONPROD.
+
 	postfix-install should mention makedefs.out.
 
 	Remove .printfck directories, and remove printfck targets

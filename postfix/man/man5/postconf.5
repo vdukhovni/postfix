@@ -11029,45 +11029,53 @@ The smtpd_expansion_filter value is not subject to Postfix configuration
 parameter $name expansion.
 .PP
 This feature is available in Postfix 2.0 and later.
-.SH smtpd_forbid_bare_newline (default: Postfix >= 3.9: normalize)
-Reject or normalize commands and email message content when an
-SMTP client sends lines ending in <LF>. Such line endings are
-commonly allowed with UNIX\-based SMTP servers, but they violate the
-RFC 5321 requirement that lines must end in <CR><LF>.
+.SH smtpd_forbid_bare_newline (default: Postfix >= 3.9: require_std_end_of_data)
+Reject or restrict input lines from an SMTP client that end in
+<LF> instead of the standard <CR><LF>. Such line
+endings are commonly allowed with UNIX\-based SMTP servers, but they
+violate RFC 5321, and allowing such line endings can make a server
+vulnerable to
+SMTP smuggling.
 .PP
 Specify one of the following values (case does not matter):
-.IP "\fBnormalize\fR (default)"
-Require the standard
-End\-of\-DATA sequence <CR><LF>.<CR><LF>.
-Otherwise, maintain compatibility with legacy SMTP clients that
-send lines ending in the non\-standard <LF>, and treat those
-line endings as if the client sent the standard <CR><LF>.
+.IP "\fBrequire_std_end_of_data\fR (default)"
+Require the
+standard End\-of\-DATA sequence <CR><LF>.<CR><LF>.
+Otherwise, allow input lines ending in the non\-standard <LF>,
+and process those as if the client sent inputs with the standard
+<CR><LF>.
 .br
-This may fail to receive email from legitimate SMTP clients
-such web applications, netcat, fax machines, or load balancer health
-checks.  Such clients need to be excluded with
-smtpd_forbid_bare_newline_exclusions.
+This maintains compatibility with many
+legitimate SMTP client applications that send a mix of standard and
+non\-standard line endings, but will fail to receive email from
+client implementations that do not send
+<CR><LF>.<CR><LF>. Such clients need to be
+excluded with \fBsmtpd_forbid_bare_newline_exclusions\fR.
 .br
 .IP "\fByes\fR"
-Alias for "normalize".
+Compatibility alias for
+\fBrequire_std_end_of_data\fR.
 .br
 .IP "\fBreject\fR"
-Require the standard End\-of\-DATA
-sequence <CR><LF>.<CR><LF>. When an SMTP
-client sends a command or message content line ending in <LF>,
-log a "bare <LF> received" error, and reject the command or
-message content with $smtpd_forbid_bare_newline_reject_code.
+Reject a command or message content
+when a line ends in <LF>, log a "bare <LF> received"
+error, and reject the command or message content with
+$\fBsmtpd_forbid_bare_newline_reject_code\fR. Require that input
+lines end in <CR><LF>, and require the standard End\-of\-DATA
+sequence <CR><LF>.<CR><LF>.
 .br
-This will fail to receive email from legitimate SMTP clients that
-send non\-standard line endings such web applications, netcat, fax
-machines, or load balancer health checks. Such clients need to be
-excluded with smtpd_forbid_bare_newline_exclusions.
+This will
+very likely cause problems for SMTP clients that send non\-standard
+line endings such as web applications, netcat, or load balancer
+health checks. Such clients need to be excluded with
+\fBsmtpd_forbid_bare_newline_exclusions\fR.
 .br
 .IP "\fBno\fR"
-Treat all lines ending in <LF>
-as if the client sent <CR><LF>. This option is fully
-backwards compatible, but is not recommended for an Internet\-facing
-SMTP server, because it is vulnerable to  SMTP smuggling.
+Treat a bare <LF> as if the client
+sent <CR><LF>. This option is fully backwards compatible,
+but is not recommended for an Internet\-facing SMTP server, because
+it is vulnerable to
+SMTP smuggling.
 .br
 .br
 .PP
@@ -11078,14 +11086,18 @@ Examples:
 .na
 .ft C
 # Require the standard End\-of\-DATA sequence <CR><LF>.<CR><LF>.
-# Allow bare newlines from local and remote SMTP clients.
+# Otherwise, allow bare <LF> and process it as if the client sent
+# <CR><LF>.
 #
-# This will cause problems for legitimate clients that send a
-# non\-standard End\-of\-DATA sequence such as web applications, netcat,
-# fax machines, or load balancer health checks. Such clients need
-# to be excluded with smtpd_forbid_bare_newline_exclusions.
+# Exclude local SMTP clients from enforcement.
 #
-smtpd_forbid_bare_newline = normalize
+# This maintains compatibility with many legitimate SMTP client
+# applications that send a mix of standard and non\-standard line
+# endings, but will fail to receive email from client implementations
+# that do not send <CR><LF>.<CR><LF>. Such clients need to be
+# excluded with smtpd_forbid_bare_newline_exclusions.
+#
+smtpd_forbid_bare_newline = require_std_end_of_data
 smtpd_forbid_bare_newline_exclusions = $mynetworks
 .fi
 .ad
@@ -11096,13 +11108,16 @@ smtpd_forbid_bare_newline_exclusions = $mynetworks
 .nf
 .na
 .ft C
-# Require the standard End\-of\-DATA sequence <CR><LF>.<CR><LF>.
-# Reject bare newlines from remote SMTP clients.
+# Reject input lines that end in <LF>, require that input lines
+# end in <CR><LF>, and require the standard End\-of\-DATA sequence
+# <CR><LF>.<CR><LF>.
 #
-# This will cause problems for legitimate clients that send any
-# non\-standard line endings such as web applications, netcat, fax
-# machines, or load balancer health checks. Such clients need to be
-# excluded with smtpd_forbid_bare_newline_exclusions.
+# Exclude local SMTP clients from enforcement.
+#
+# This will very likely cause problems for SMTP clients that send
+# non\-standard line endings such as web applications, netcat, or
+# load balancer health checks. Such clients need to be excluded with
+# smtpd_forbid_bare_newline_exclusions.
 #
 smtpd_forbid_bare_newline = reject
 smtpd_forbid_bare_newline_exclusions = $mynetworks
@@ -11111,10 +11126,10 @@ smtpd_forbid_bare_newline_exclusions = $mynetworks
 .ft R
 .in -4
 .PP
-This feature with settings 'yes' and 'no' is available in Postfix
->= 3.9, 3.8.4, 3.7.9, 3.6.13, and 3.5.23. The settings 'reject'
-and 'normalize' are available with Postfix >= 3.9, 3.8.5, 3.7.10,
-3.6.14, and 3.5.24.
+This feature with settings \fByes\fR and \fBno\fR is available
+in Postfix 3.8.4, 3.7.9, 3.6.13, and 3.5.23. Additionally, the
+settings \fBreject\fR, and \fBrequire_std_end_of_data\fR are
+available with Postfix >= 3.9, 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
 .SH smtpd_forbid_bare_newline_exclusions (default: $mynetworks)
 Exclude the specified clients from smtpd_forbid_bare_newline
 enforcement. It uses the same syntax and parent\-domain matching

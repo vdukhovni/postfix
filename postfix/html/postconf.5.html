@@ -15956,46 +15956,49 @@ This feature is available in Postfix 2.0 and later.
 </DD>
 
 <DT><b><a name="smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a>
-(default: Postfix &ge; 3.9: normalize)</b></DT><DD>
+(default: Postfix &ge; 3.9: require_std_end_of_data)</b></DT><DD>
 
-<p> Reject or normalize commands and email message content when an
-SMTP client sends lines ending in &lt;LF&gt;. Such line endings are
-commonly allowed with UNIX-based SMTP servers, but they violate the
-<a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a> requirement that lines must end in &lt;CR&gt;&lt;LF&gt;.
-</p>
+<p> Reject or restrict input lines from an SMTP client that end in
+&lt;LF&gt; instead of the standard &lt;CR&gt;&lt;LF&gt;. Such line
+endings are commonly allowed with UNIX-based SMTP servers, but they
+violate <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>, and allowing such line endings can make a server
+vulnerable to <a href="https://www.postfix.org/smtp-smuggling.html">
+SMTP smuggling</a>.  </p>
 
 <p> Specify one of the following values (case does not matter): </p>
 
 <dl compact>
 
-<dt> <b>normalize</b> (default)</dt> <dd> Require the standard
-End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
-Otherwise, maintain compatibility with legacy SMTP clients that
-send lines ending in the non-standard &lt;LF&gt;, and treat those
-line endings as if the client sent the standard &lt;CR&gt;&lt;LF&gt;.
-<br> This may fail to receive email from legitimate SMTP clients
-such web applications, netcat, fax machines, or load balancer health
-checks.  Such clients need to be excluded with
-<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.  </dd>
+<dt> <b>require_std_end_of_data</b> (default)</dt> <dd> Require the
+standard End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
+Otherwise, allow input lines ending in the non-standard &lt;LF&gt;,
+and process those as if the client sent inputs with the standard
+&lt;CR&gt;&lt;LF&gt;. <br> This maintains compatibility with many
+legitimate SMTP client applications that send a mix of standard and
+non-standard line endings, but will fail to receive email from
+client implementations that do not send
+&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Such clients need to be
+excluded with <b><a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a></b>. </dd>
 
-<dt> <b>yes</b> </dt> <dd> Alias for "normalize". </dd>
+<dt> <b>yes</b> </dt> <dd> Compatibility alias for
+<b>require_std_end_of_data</b>.  </dd>
 
-<dt> <b>reject</b> </dt> <dd> Require the standard End-of-DATA
-sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. When an SMTP
-client sends a command or message content line ending in &lt;LF&gt;,
-log a "bare &lt;LF&gt; received" error, and reject the command or
-message content with $<a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a>. <br>
-This will fail to receive email from legitimate SMTP clients that
-send non-standard line endings such web applications, netcat, fax
-machines, or load balancer health checks. Such clients need to be
-excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
+<dt> <b>reject</b> </dt> <dd> Reject a command or message content
+when a line ends in &lt;LF&gt;, log a "bare &lt;LF&gt; received"
+error, and reject the command or message content with
+$<b><a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a></b>. Require that input
+lines end in &lt;CR&gt;&lt;LF&gt;, and require the standard End-of-DATA
+sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. <br> This will
+very likely cause problems for SMTP clients that send non-standard
+line endings such as web applications, netcat, or load balancer
+health checks. Such clients need to be excluded with
+<b><a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a></b>. </dd>
 
-<dt> <b>no</b> </dt> <dd> Treat all lines ending in &lt;LF&gt;
-as if the client sent &lt;CR&gt;&lt;LF&gt;. This option is fully
-backwards compatible, but is not recommended for an Internet-facing
-SMTP server, because it is vulnerable to <a
-href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
-</dd>
+<dt> <b>no</b> </dt> <dd> Treat a bare &lt;LF&gt; as if the client
+sent &lt;CR&gt;&lt;LF&gt;. This option is fully backwards compatible,
+but is not recommended for an Internet-facing SMTP server, because
+it is vulnerable to <a href="https://www.postfix.org/smtp-smuggling.html">
+SMTP smuggling</a>.  </dd>
 
 </dl>
 
@@ -16004,37 +16007,45 @@ href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
 <blockquote>
 <pre>
 # Require the standard End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
-# Allow bare newlines from local and remote SMTP clients.
+# Otherwise, allow bare &lt;LF&gt; and process it as if the client sent
+# &lt;CR&gt;&lt;LF&gt;.
 #
-# This will cause problems for legitimate clients that send a
-# non-standard End-of-DATA sequence such as web applications, netcat,
-# fax machines, or load balancer health checks. Such clients need
-# to be excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+# Exclude local SMTP clients from enforcement.
 #
-<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = normalize
+# This maintains compatibility with many legitimate SMTP client
+# applications that send a mix of standard and non-standard line
+# endings, but will fail to receive email from client implementations
+# that do not send &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Such clients need to be
+# excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+#
+<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = require_std_end_of_data
 <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
 </pre>
 </blockquote>
 
 <blockquote>
 <pre>
-# Require the standard End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
-# Reject bare newlines from remote SMTP clients.
+# Reject input lines that end in &lt;LF&gt;, require that input lines
+# end in &lt;CR&gt;&lt;LF&gt;, and require the standard End-of-DATA sequence
+# &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
 #
-# This will cause problems for legitimate clients that send any
-# non-standard line endings such as web applications, netcat, fax
-# machines, or load balancer health checks. Such clients need to be
-# excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+# Exclude local SMTP clients from enforcement.
+#
+# This will very likely cause problems for SMTP clients that send
+# non-standard line endings such as web applications, netcat, or
+# load balancer health checks. Such clients need to be excluded with
+# <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
 #
 <a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = reject
 <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
 </pre>
 </blockquote>
 
-<p> This feature with settings 'yes' and 'no' is available in Postfix
-&ge; 3.9, 3.8.4, 3.7.9, 3.6.13, and 3.5.23. The settings 'reject'
-and 'normalize' are available with Postfix &ge; 3.9, 3.8.5, 3.7.10,
-3.6.14, and 3.5.24. </p>
+<p> This feature with settings <b>yes</b> and <b>no</b> is available
+in Postfix 3.8.4, 3.7.9, 3.6.13, and 3.5.23. Additionally, the
+settings <b>reject</b>, and <b>require_std_end_of_data</b> are
+available with Postfix &ge; 3.9, 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
+</p>
 
 
 </DD>
