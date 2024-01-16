@@ -824,7 +824,7 @@
 /*	command pipelining constraints.
 /* .PP
 /*	Available in Postfix 3.9, 3.8.4, 3.7.9, 3.6.13, 3.5.23 and later:
-/* .IP "\fBsmtpd_forbid_bare_newline (Postfix >= 3.9: require_std_end_of_data)\fR"
+/* .IP "\fBsmtpd_forbid_bare_newline (Postfix >= 3.9: normalize)\fR"
 /*	Reject or restrict input lines from an SMTP client that end in
 /*	<LF> instead of the standard <CR><LF>.
 /* .IP "\fBsmtpd_forbid_bare_newline_exclusions ($mynetworks)\fR"
@@ -834,8 +834,8 @@
 /*	Available in Postfix 3.9, 3.8.5, 3.7.10, 3.6.14, 3.5.24 and
 /*	later:
 /* .IP "\fBsmtpd_forbid_bare_newline_reject_code (550)\fR"
-/*	The numerical Postfix SMTP server response code when a request
-/*	is rejected by the \fBsmtpd_forbid_bare_newline\fR feature.
+/*	The numerical Postfix SMTP server response code when rejecting a
+/*	request with "smtpd_forbid_bare_newline = reject".
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -1677,10 +1677,7 @@ int     smtpd_hfrom_format;
 #define IS_BARE_LF_REPLY_REJECT(m)	((m) & BARE_LF_FLAG_REPLY_REJECT)
 
 static const NAME_CODE bare_lf_mask_table[] = {
-    "require_std_end_of_data", BARE_LF_FLAG_WANT_STD_EOD,	/* Default */
-#ifdef SNAPSHOT
-    "normalize", BARE_LF_FLAG_WANT_STD_EOD,	/* Migration aid */
-#endif
+    "normalize", BARE_LF_FLAG_WANT_STD_EOD,	/* Default */
     "yes", BARE_LF_FLAG_WANT_STD_EOD,	/* Migration aid */
     "reject", BARE_LF_FLAG_WANT_STD_EOD | BARE_LF_FLAG_REPLY_REJECT,
     "no", 0,

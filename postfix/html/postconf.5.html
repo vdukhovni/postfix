@@ -15956,7 +15956,7 @@ This feature is available in Postfix 2.0 and later.
 </DD>
 
 <DT><b><a name="smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a>
-(default: Postfix &ge; 3.9: require_std_end_of_data)</b></DT><DD>
+(default: Postfix &ge; 3.9: normalize)</b></DT><DD>
 
 <p> Reject or restrict input lines from an SMTP client that end in
 &lt;LF&gt; instead of the standard &lt;CR&gt;&lt;LF&gt;. Such line
@@ -15969,36 +15969,36 @@ SMTP smuggling</a>.  </p>
 
 <dl compact>
 
-<dt> <b>require_std_end_of_data</b> (default)</dt> <dd> Require the
-standard End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
-Otherwise, allow input lines ending in the non-standard &lt;LF&gt;,
-and process those as if the client sent inputs with the standard
-&lt;CR&gt;&lt;LF&gt;. <br> This maintains compatibility with many
-legitimate SMTP client applications that send a mix of standard and
-non-standard line endings, but will fail to receive email from
-client implementations that do not send
+<dt> <b>normalize</b> (default)</dt> <dd> Require the standard
+End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
+Otherwise, allow command or message content lines ending in the
+non-standard &lt;LF&gt;, and process them as if the client sent the
+standard &lt;CR&gt;&lt;LF&gt;. <br> <br> This maintains compatibility
+with many legitimate SMTP client applications that send a mix of
+standard and non-standard line endings, but will fail to receive
+email from client implementations that do not send
 &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Such clients need to be
-excluded with <b><a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a></b>. </dd>
+excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
 
-<dt> <b>yes</b> </dt> <dd> Compatibility alias for
-<b>require_std_end_of_data</b>.  </dd>
+<dt> <b>yes</b> </dt> <dd> Compatibility alias for <b>normalize</b>. </dd>
 
-<dt> <b>reject</b> </dt> <dd> Reject a command or message content
-when a line ends in &lt;LF&gt;, log a "bare &lt;LF&gt; received"
-error, and reject the command or message content with
-$<b><a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a></b>. Require that input
-lines end in &lt;CR&gt;&lt;LF&gt;, and require the standard End-of-DATA
-sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. <br> This will
-very likely cause problems for SMTP clients that send non-standard
+<dt> <b>reject</b> </dt> <dd> Require the standard End-of-DATA
+sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Reject a command
+or message content when a line ends in &lt;LF&gt;, log a "bare
+&lt;LF&gt; received" error, and reply with the SMTP status code in
+$<a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a>. <br> <br> This will fail
+to receive email from SMTP clients that may send any non-standard
 line endings such as web applications, netcat, or load balancer
 health checks. Such clients need to be excluded with
-<b><a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a></b>. </dd>
+<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
 
-<dt> <b>no</b> </dt> <dd> Treat a bare &lt;LF&gt; as if the client
-sent &lt;CR&gt;&lt;LF&gt;. This option is fully backwards compatible,
-but is not recommended for an Internet-facing SMTP server, because
-it is vulnerable to <a href="https://www.postfix.org/smtp-smuggling.html">
-SMTP smuggling</a>.  </dd>
+<dt> <b>no</b> </dt> <dd> Do not require the standard End-of-DATA
+sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Always process
+a bare &lt;LF&gt; as if the client sent &lt;CR&gt;&lt;LF&gt;. This
+option is fully backwards compatible, but is not recommended for
+an Internet-facing SMTP server, because it is vulnerable to <a
+href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
+</dd>
 
 </dl>
 
@@ -16018,7 +16018,7 @@ SMTP smuggling</a>.  </dd>
 # that do not send &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Such clients need to be
 # excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
 #
-<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = require_std_end_of_data
+<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = normalize
 <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
 </pre>
 </blockquote>
@@ -16031,7 +16031,7 @@ SMTP smuggling</a>.  </dd>
 #
 # Exclude local SMTP clients from enforcement.
 #
-# This will very likely cause problems for SMTP clients that send
+# This will fail to receive email from SMTP clients that send any
 # non-standard line endings such as web applications, netcat, or
 # load balancer health checks. Such clients need to be excluded with
 # <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
@@ -16043,9 +16043,8 @@ SMTP smuggling</a>.  </dd>
 
 <p> This feature with settings <b>yes</b> and <b>no</b> is available
 in Postfix 3.8.4, 3.7.9, 3.6.13, and 3.5.23. Additionally, the
-settings <b>reject</b>, and <b>require_std_end_of_data</b> are
-available with Postfix &ge; 3.9, 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
-</p>
+settings <b>reject</b>, and <b>normalize</b> are available with
+Postfix &ge; 3.9, 3.8.5, 3.7.10, 3.6.14, and 3.5.24. </p>
 
 
 </DD>
@@ -16054,8 +16053,8 @@ available with Postfix &ge; 3.9, 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
 (default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
 
 <p> Exclude the specified clients from <a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a>
-enforcement. It uses the same syntax and parent-domain matching
-behavior as <a href="postconf.5.html#mynetworks">mynetworks</a>. </p>
+enforcement. This setting uses the same syntax and parent-domain
+matching behavior as <a href="postconf.5.html#mynetworks">mynetworks</a>. </p>
 
 <p> This feature is available in Postfix &ge; 3.9, 3.8.4, 3.7.9,
 3.6.13, and 3.5.23. </p>
@@ -16067,8 +16066,8 @@ behavior as <a href="postconf.5.html#mynetworks">mynetworks</a>. </p>
 (default: 550)</b></DT><DD>
 
 <p>
-The numerical Postfix SMTP server response code when a request
-is rejected by the <b><a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a></b> feature.
+The numerical Postfix SMTP server response code when rejecting a
+request with "<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = reject".
 Specify a 5XX status code (521 to disconnect).
 </p>
 

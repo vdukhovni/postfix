@@ -27716,9 +27716,7 @@ Apologies for any names omitted.
 	newline handling has evolved. Files: global/smtp_stream.[hc],
 	Files: global/smtp_stream.[hc], smtpd/smtpd.c.
 
-20240113
+20240116
 
-	Cleanup: updated the user interface. The smtpd_forbid_bare_newline
-	settings are now "require_std_end_of_data", "reject", and
-	"no", with "yes" as an alias for "require_std_end_of_data".
-	Files: smtpd/smtpd.c proto/postconf.proto.
+	Reverted some changes after postfix-3.9-20240112, and updated
+	documentation.

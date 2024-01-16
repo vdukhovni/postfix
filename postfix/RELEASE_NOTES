@@ -45,18 +45,18 @@ stray <CR> or <LF> characters.
 This feature applies to all email that Postfix locally or remotely
 sends out. It is not allowlisted based on client identity.
 
-Major changes with snapshot 20240113
+Major changes with snapshot 20240116
 ====================================
 
-This updates Postfix fixes for SMTP smuggling attacks, For background,
-see https://www.postfix.org/smtp-smuggling.html
+This updates Postfix fixes for inbound SMTP smuggling attacks. For
+background, see https://www.postfix.org/smtp-smuggling.html
 
 This will be back ported to Postfix 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
 
 - Improved logging for rejected input (it now includes queue ID,
   helo, mail, and rcpt, if available).
 
-- The new default "smtpd_forbid_bare_newline = require_std_end_of_data"
+- The new default "smtpd_forbid_bare_newline = normalize"
   requires the standard End-of-DATA sequence <CR><LF>.<CR><LF>, and
   allows bare newlines from SMTP clients, maintaining more compatibility
   with infrastructure tools such as probers and surveys.
@@ -67,7 +67,7 @@ This will be back ported to Postfix 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
   message that contains a bare newline. To disconnect the client,
   specify "smtpd_forbid_bare_newline_reject_code = 521".
 
-- The old setting "yes" has become an alias for "require_std_end_of_data".
+- The old setting "yes" has become an alias for "normalize".
 
 - The old setting "no" has not changed, and allows SMTP smuggling.
 
@@ -82,10 +82,10 @@ The recommended Postfix 3.9 settings (i.e. the defaults) are now:
     # This maintains compatibility with many legitimate SMTP client
     # applications that send a mix of standard and non-standard line
     # endings, but will fail to receive email from client implementations
-    # that do not send <CR><LF>.<CR><LF> Such clients need to be
+    # that do not send <CR><LF>.<CR><LF>. Such clients need to be
     # excluded with smtpd_forbid_bare_newline_exclusions.
     #
-    smtpd_forbid_bare_newline = require_std_end_of_data
+    smtpd_forbid_bare_newline = normalize
     smtpd_forbid_bare_newline_exclusions = $mynetworks
 
 Alternative settings:
@@ -96,7 +96,7 @@ Alternative settings:
     #
     # Exclude local SMTP clients from enforcement.
     #
-    # This will very likely cause problems for SMTP clients that send
+    # This will fail to receive email from SMTP clients that send any
     # non-standard line endings such as web applications, netcat, or
     # load balancer health checks. Such clients need to be excluded with
     # smtpd_forbid_bare_newline_exclusions.
