@@ -346,4 +346,7 @@ query_filter mailacceptinggeneralid s maildrop maildrop maildrop owner cn root d
  dt b a name check_address_map check_address_map a i a href DATABASE_README html type table a i b dt 
  PARAM postscreen_dnsbl_max_ttl postscreen_dnsbl_ttl postscreen_dnsbl_ttl 1 h
 standard lt CR gt lt LF gt br br This maintains compatibility
- smtpd_forbid_bare_newline_reject_code br br This will fail
+ lt CR gt lt LF gt lt CR gt lt LF gt br br Such clients
+ smtpd_forbid_bare_newline_reject_code br br This will reject
+ br br This will also reject some email from Microsoft services
+2045 Sections 2 7 and 2 8 br br Such clients can be excluded

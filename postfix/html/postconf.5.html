@@ -15976,21 +15976,28 @@ non-standard &lt;LF&gt;, and process them as if the client sent the
 standard &lt;CR&gt;&lt;LF&gt;. <br> <br> This maintains compatibility
 with many legitimate SMTP client applications that send a mix of
 standard and non-standard line endings, but will fail to receive
-email from client implementations that do not send
-&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Such clients need to be
-excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
+email from client implementations that do not terminate DATA content
+with the standard End-of-DATA sequence
+&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. <br> <br> Such clients
+can be excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
 
 <dt> <b>yes</b> </dt> <dd> Compatibility alias for <b>normalize</b>. </dd>
 
 <dt> <b>reject</b> </dt> <dd> Require the standard End-of-DATA
 sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Reject a command
-or message content when a line ends in &lt;LF&gt;, log a "bare
+or message content when a line contains bare &lt;LF&gt;, log a "bare
 &lt;LF&gt; received" error, and reply with the SMTP status code in
-$<a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a>. <br> <br> This will fail
-to receive email from SMTP clients that may send any non-standard
-line endings such as web applications, netcat, or load balancer
-health checks. Such clients need to be excluded with
-<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
+$<a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a>. <br> <br> This will reject
+email from SMTP clients that send any non-standard line endings
+such as web applications, netcat, or load balancer health checks.
+<br> <br> This will also reject some email from Microsoft services
+whose BDAT implementations violate the canonical MIME format for
+text messages required in <a href="https://tools.ietf.org/html/rfc3030">RFC 3030</a> Section 3, and defined in <a href="https://tools.ietf.org/html/rfc2045">RFC</a>
+<a href="https://tools.ietf.org/html/rfc2045">2045</a> Sections 2.7 and 2.8. <br> <br> Such clients can be excluded
+with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> (or, in the case of BDAT
+violations, BDAT can be selectively disabled with
+<a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a>, or globally disabled with
+<a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a>). </dd>
 
 <dt> <b>no</b> </dt> <dd> Do not require the standard End-of-DATA
 sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Always process
@@ -16002,7 +16009,7 @@ href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
 
 </dl>
 
-<p> Examples: </p>
+<p> Example 1: </p>
 
 <blockquote>
 <pre>
@@ -16010,34 +16017,50 @@ href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
 # Otherwise, allow bare &lt;LF&gt; and process it as if the client sent
 # &lt;CR&gt;&lt;LF&gt;.
 #
-# Exclude local SMTP clients from enforcement.
-#
 # This maintains compatibility with many legitimate SMTP client
 # applications that send a mix of standard and non-standard line
 # endings, but will fail to receive email from client implementations
-# that do not send &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Such clients need to be
-# excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+# that do not terminate DATA content with the standard End-of-DATA
+# sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
+#
+# Such clients can be allowlisted with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+# The example below allowlists SMTP clients in trusted networks.
 #
 <a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = normalize
 <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
 </pre>
 </blockquote>
 
+<p> Example 2: </p>
+
 <blockquote>
 <pre>
-# Reject input lines that end in &lt;LF&gt;, require that input lines
-# end in &lt;CR&gt;&lt;LF&gt;, and require the standard End-of-DATA sequence
-# &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
+# Reject input lines that contain &lt;LF&gt; and log a "bare &lt;LF&gt; received"
+# error. Require that input lines end in &lt;CR&gt;&lt;LF&gt;, and require the
+# standard End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
 #
-# Exclude local SMTP clients from enforcement.
+# This will reject email from SMTP clients that send any non-standard
+# line endings such as web applications, netcat, or load balancer
+# health checks.
 #
-# This will fail to receive email from SMTP clients that send any
-# non-standard line endings such as web applications, netcat, or
-# load balancer health checks. Such clients need to be excluded with
-# <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+# This will also reject some email from Microsoft services whose
+# BDAT implementations violate the canonical MIME format for text
+# messages required in <a href="https://tools.ietf.org/html/rfc3030">RFC 3030</a> Section 3, and defined in <a href="https://tools.ietf.org/html/rfc2045">RFC 2045</a>
+# Sections 2.7 and 2.8.
+#
+# Such clients can be allowlisted with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+# The example below allowlists SMTP clients in trusted networks.
 #
 <a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = reject
 <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
+#
+# Alternatively, in the case of BDAT violations, BDAT can be selectively
+# disabled with <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a>, or globally
+# disabled with <a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a>.
+#
+# <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a> =
+#     <a href="cidr_table.5.html">cidr</a>:{{10.0.0.1/24 chunking, silent-discard}}
+# <a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a> = chunking, silent-discard
 </pre>
 </blockquote>
 

@@ -45,7 +45,7 @@ stray <CR> or <LF> characters.
 This feature applies to all email that Postfix locally or remotely
 sends out. It is not allowlisted based on client identity.
 
-Major changes with snapshot 20240116
+Major changes with snapshot 20240118
 ====================================
 
 This updates Postfix fixes for inbound SMTP smuggling attacks. For
@@ -77,38 +77,52 @@ The recommended Postfix 3.9 settings (i.e. the defaults) are now:
     # Otherwise, allow bare <LF> and process it as if the client sent
     # <CR><LF>.
     #
-    # Exclude local SMTP clients from enforcement.
-    #
     # This maintains compatibility with many legitimate SMTP client
     # applications that send a mix of standard and non-standard line
     # endings, but will fail to receive email from client implementations
-    # that do not send <CR><LF>.<CR><LF>. Such clients need to be
-    # excluded with smtpd_forbid_bare_newline_exclusions.
+    # that do not terminate DATA content with the standard End-of-DATA
+    # sequence <CR><LF>.<CR><LF>.
+    #
+    # Such clients can be allowlisted with smtpd_forbid_bare_newline_exclusions.
+    # The example below allowlists SMTP clients in trusted networks.
     #
     smtpd_forbid_bare_newline = normalize
     smtpd_forbid_bare_newline_exclusions = $mynetworks
 
 Alternative settings:
 
-    # Reject input lines that end in <LF>, require that input lines
-    # end in <CR><LF>, and require the standard End-of-DATA sequence
-    # <CR><LF>.<CR><LF>.
+    # Reject input lines that contain <LF> and log a "bare <LF> received"
+    # error. Require that input lines end in <CR><LF>, and require the
+    # standard End-of-DATA sequence <CR><LF>.<CR><LF>.
     #
-    # Exclude local SMTP clients from enforcement.
+    # This will reject email from SMTP clients that send any non-standard
+    # line endings such as web applications, netcat, or load balancer
+    # health checks.
     #
-    # This will fail to receive email from SMTP clients that send any
-    # non-standard line endings such as web applications, netcat, or
-    # load balancer health checks. Such clients need to be excluded with
-    # smtpd_forbid_bare_newline_exclusions.
+    # This will also reject some email from Microsoft services whose
+    # BDAT implementations violate the canonical MIME format for text
+    # messages required in RFC 3030 Section 3, and defined in RFC 2045
+    # Sections 2.7 and 2.8.
+    #
+    # Such clients can be allowlisted with smtpd_forbid_bare_newline_exclusions.
+    # The example below allowlists SMTP clients in trusted networks.
     #
     smtpd_forbid_bare_newline = reject
     smtpd_forbid_bare_newline_exclusions = $mynetworks
+    #
+    # Alternatively, in the case of BDAT violations, BDAT can be selectively
+    # disabled with smtpd_discard_ehlo_keyword_address_maps, or globally
+    # disabled with smtpd_discard_ehlo_keywords.
+    #
+    # smtpd_discard_ehlo_keyword_address_maps =
+    #     cidr:{{10.0.0.1/24 chunking, silent-discard}}
+    # smtpd_discard_ehlo_keywords = chunking, silent-discard
 
 Major changes with snapshot 20240106
 ====================================
 
-Inbound SMTP smuggling: strip extra <CR> in <CR><LF>.<CR><CR><LF>,
-to silence some tools that send attack sequences that are not viable.
+Inbound SMTP smuggling: don't strip extra <CR> in <CR><LF>.<CR><CR><LF>,
+to silence test tools that send attack sequences that are not viable.
 Details at https://www.postfix.org/false-smuggling-claims.html
 
 Incompatible changes with snapshot 20231221

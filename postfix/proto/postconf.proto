@@ -19075,21 +19075,28 @@ non-standard &lt;LF&gt;, and process them as if the client sent the
 standard &lt;CR&gt;&lt;LF&gt;. <br> <br> This maintains compatibility
 with many legitimate SMTP client applications that send a mix of
 standard and non-standard line endings, but will fail to receive
-email from client implementations that do not send
-&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Such clients need to be
-excluded with smtpd_forbid_bare_newline_exclusions. </dd>
+email from client implementations that do not terminate DATA content
+with the standard End-of-DATA sequence
+&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. <br> <br> Such clients
+can be excluded with smtpd_forbid_bare_newline_exclusions. </dd>
 
 <dt> <b>yes</b> </dt> <dd> Compatibility alias for <b>normalize</b>. </dd>
 
 <dt> <b>reject</b> </dt> <dd> Require the standard End-of-DATA
 sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Reject a command
-or message content when a line ends in &lt;LF&gt;, log a "bare
+or message content when a line contains bare &lt;LF&gt;, log a "bare
 &lt;LF&gt; received" error, and reply with the SMTP status code in
-$smtpd_forbid_bare_newline_reject_code. <br> <br> This will fail
-to receive email from SMTP clients that may send any non-standard
-line endings such as web applications, netcat, or load balancer
-health checks. Such clients need to be excluded with
-smtpd_forbid_bare_newline_exclusions. </dd>
+$smtpd_forbid_bare_newline_reject_code. <br> <br> This will reject
+email from SMTP clients that send any non-standard line endings
+such as web applications, netcat, or load balancer health checks.
+<br> <br> This will also reject some email from Microsoft services
+whose BDAT implementations violate the canonical MIME format for
+text messages required in RFC 3030 Section 3, and defined in RFC
+2045 Sections 2.7 and 2.8. <br> <br> Such clients can be excluded
+with smtpd_forbid_bare_newline_exclusions (or, in the case of BDAT
+violations, BDAT can be selectively disabled with
+smtpd_discard_ehlo_keyword_address_maps, or globally disabled with
+smtpd_discard_ehlo_keywords). </dd>
 
 <dt> <b>no</b> </dt> <dd> Do not require the standard End-of-DATA
 sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Always process
@@ -19101,7 +19108,7 @@ href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
 
 </dl>
 
-<p> Examples: </p>
+<p> Example 1: </p>
 
 <blockquote>
 <pre>
@@ -19109,34 +19116,50 @@ href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
 # Otherwise, allow bare &lt;LF&gt; and process it as if the client sent
 # &lt;CR&gt;&lt;LF&gt;.
 #
-# Exclude local SMTP clients from enforcement.
-#
 # This maintains compatibility with many legitimate SMTP client
 # applications that send a mix of standard and non-standard line
 # endings, but will fail to receive email from client implementations
-# that do not send &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Such clients need to be
-# excluded with smtpd_forbid_bare_newline_exclusions.
+# that do not terminate DATA content with the standard End-of-DATA
+# sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
+#
+# Such clients can be allowlisted with smtpd_forbid_bare_newline_exclusions.
+# The example below allowlists SMTP clients in trusted networks.
 #
 smtpd_forbid_bare_newline = normalize
 smtpd_forbid_bare_newline_exclusions = $mynetworks
 </pre>
 </blockquote>
 
+<p> Example 2: </p>
+
 <blockquote>
 <pre>
-# Reject input lines that end in &lt;LF&gt;, require that input lines
-# end in &lt;CR&gt;&lt;LF&gt;, and require the standard End-of-DATA sequence
-# &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
+# Reject input lines that contain &lt;LF&gt; and log a "bare &lt;LF&gt; received"
+# error. Require that input lines end in &lt;CR&gt;&lt;LF&gt;, and require the
+# standard End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
 #
-# Exclude local SMTP clients from enforcement.
+# This will reject email from SMTP clients that send any non-standard
+# line endings such as web applications, netcat, or load balancer
+# health checks.
 #
-# This will fail to receive email from SMTP clients that send any
-# non-standard line endings such as web applications, netcat, or
-# load balancer health checks. Such clients need to be excluded with
-# smtpd_forbid_bare_newline_exclusions.
+# This will also reject some email from Microsoft services whose
+# BDAT implementations violate the canonical MIME format for text
+# messages required in RFC 3030 Section 3, and defined in RFC 2045
+# Sections 2.7 and 2.8.
+#
+# Such clients can be allowlisted with smtpd_forbid_bare_newline_exclusions.
+# The example below allowlists SMTP clients in trusted networks.
 #
 smtpd_forbid_bare_newline = reject
 smtpd_forbid_bare_newline_exclusions = $mynetworks
+#
+# Alternatively, in the case of BDAT violations, BDAT can be selectively
+# disabled with smtpd_discard_ehlo_keyword_address_maps, or globally
+# disabled with smtpd_discard_ehlo_keywords.
+#
+# smtpd_discard_ehlo_keyword_address_maps =
+#     cidr:{{10.0.0.1/24 chunking, silent-discard}}
+# smtpd_discard_ehlo_keywords = chunking, silent-discard
 </pre>
 </blockquote>
 
