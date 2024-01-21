@@ -1444,6 +1444,40 @@ Examples:
 
 </DD>
 
+<DT><b><a name="cleanup_replace_stray_cr_lf">cleanup_replace_stray_cr_lf</a>
+(default: yes)</b></DT><DD>
+
+<p> Replace each stray &lt;CR&gt; or &lt;LF&gt; character in message
+content with a space character, to prevent outbound SMTP smuggling,
+and to make the evaluation of Postfix-added DKIM or other signatures
+independent from how a remote mail server handles such characters.
+</p>
+
+<p> SMTP does not allow such characters unless they are part of a
+&lt;CR&gt;&lt;LF&gt; sequence, and different mail systems handle
+such stray characters in an implementation-dependent manner. Stray
+&lt;CR&gt; or &lt;LF&gt; characters could be used for outbound
+SMTP smuggling, where an attacker uses a Postfix server to send
+message content with a non-standard End-of-DATA sequence that
+triggers inbound SMTP smuggling at a remote SMTP server.</p>
+
+<p> The replacement happens before all other content management,
+and before Postfix may add a DKIM etc. signature; if the signature
+were created first, the replacement could invalidate the signature.
+</p>
+
+<p> In addition to preventing SMTP smuggling, replacing stray
+&lt;CR&gt; or &lt;LF&gt; characters ensures that the result of
+signature validation by later mail system will not depend on how
+that mail system handles those stray characters in an
+implementation-dependent manner. </p>
+
+<p> This feature is available in Postfix &ge; 3.9, 3.8.5, 3.7.10,
+3.6.14, and 3.5.24. </p>
+
+
+</DD>
+
 <DT><b><a name="cleanup_service_name">cleanup_service_name</a>
 (default: cleanup)</b></DT><DD>
 
@@ -15304,32 +15338,118 @@ This feature is available in Postfix 2.0 and later.
 <DT><b><a name="smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a>
 (default: Postfix &lt; 3.9: no)</b></DT><DD>
 
-<p> Reply with "Error: bare &lt;LF&gt; received" and disconnect
-when a remote SMTP client sends a line ending in &lt;LF&gt;, violating
-the <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a> requirement that lines must end in &lt;CR&gt;&lt;LF&gt;.
-This feature is disbled by default with Postfix &lt; 3.9. Use
-<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> to exclude non-standard clients
-such as netcat. Specify "<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = no" to disable
-(not recommended for an Internet-connected MTA). </p>
+<p> Reject or restrict input lines from an SMTP client that end in
+&lt;LF&gt; instead of the standard &lt;CR&gt;&lt;LF&gt;. Such line
+endings are commonly allowed with UNIX-based SMTP servers, but they
+violate <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>, and allowing such line endings can make a server
+vulnerable to <a href="https://www.postfix.org/smtp-smuggling.html">
+SMTP smuggling</a>.  </p>
 
-<p> See <a href="https://www.postfix.org/smtp-smuggling.html">
-https://www.postfix.org/smtp-smuggling.html</a> for details.
+<p> Specify one of the following values (case does not matter): </p>
 
-<p> Example: </p>
+<dl compact>
+
+<dt> <b>normalize</b></dt> <dd> Require the standard
+End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
+Otherwise, allow command or message content lines ending in the
+non-standard &lt;LF&gt;, and process them as if the client sent the
+standard &lt;CR&gt;&lt;LF&gt;. <br> <br> This maintains compatibility
+with many legitimate SMTP client applications that send a mix of
+standard and non-standard line endings, but will fail to receive
+email from client implementations that do not terminate DATA content
+with the standard End-of-DATA sequence
+&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. <br> <br> Such clients
+can be excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
+
+<dt> <b>yes</b> </dt> <dd> Compatibility alias for <b>normalize</b>. </dd>
+
+<dt> <b>reject</b> </dt> <dd> Require the standard End-of-DATA
+sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Reject a command
+or message content when a line contains bare &lt;LF&gt;, log a "bare
+&lt;LF&gt; received" error, and reply with the SMTP status code in
+$<a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a>. <br> <br> This will reject
+email from SMTP clients that send any non-standard line endings
+such as web applications, netcat, or load balancer health checks.
+<br> <br> This will also reject email from services that use BDAT
+to send MIME text containing a bare newline (<a href="http://tools.ietf.org/html/rfc3030">RFC 3030</a> Section 3
+requires canonical MIME format for text message types, defined in
+<a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a> Sections 2.7 and 2.8). <br> <br> Such clients can be
+excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> (or, in the case
+of BDAT violations, BDAT can be selectively disabled with
+<a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a>, or globally disabled with
+<a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a>). </dd>
+
+<dt> <b>no</b> (default)</dt> <dd> Do not require the standard
+End-of-DATA
+sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Always process
+a bare &lt;LF&gt; as if the client sent &lt;CR&gt;&lt;LF&gt;. This
+option is fully backwards compatible, but is not recommended for
+an Internet-facing SMTP server, because it is vulnerable to <a
+href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
+</dd>
+
+</dl>
+
+<p> Recommended settings: </p>
 
 <blockquote>
 <pre>
-# Disconnect remote SMTP clients that send bare newlines, but allow
-# local clients with non-standard SMTP implementations such as netcat,
-# fax machines, or load balancer health checks.
+# Require the standard End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
+# Otherwise, allow bare &lt;LF&gt; and process it as if the client sent
+# &lt;CR&gt;&lt;LF&gt;.
 #
-<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = yes
+# This maintains compatibility with many legitimate SMTP client
+# applications that send a mix of standard and non-standard line
+# endings, but will fail to receive email from client implementations
+# that do not terminate DATA content with the standard End-of-DATA
+# sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
+#
+# Such clients can be allowlisted with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+# The example below allowlists SMTP clients in trusted networks.
+#
+<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = normalize
 <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
 </pre>
 </blockquote>
 
-<p> This feature is available in Postfix &ge; 3.9, 3.8.4, 3.7.9,
-3.6.13, and 3.5.23. </p>
+<p> Alternative: </p>
+
+<blockquote>
+<pre>
+# Reject input lines that contain &lt;LF&gt; and log a "bare &lt;LF&gt; received"
+# error. Require that input lines end in &lt;CR&gt;&lt;LF&gt;, and require the
+# standard End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
+#
+# This will reject email from SMTP clients that send any non-standard
+# line endings such as web applications, netcat, or load balancer
+# health checks.
+#
+# This will also reject email from services that use BDAT to send
+# MIME text containing a bare newline (<a href="http://tools.ietf.org/html/rfc3030">RFC 3030</a> Section 3 requires
+# canonical MIME format for text message types, defined in <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
+# Sections 2.7 and 2.8).
+#
+# Such clients can be allowlisted with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
+# The example below allowlists SMTP clients in trusted networks.
+#
+<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = reject
+<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
+#
+# Alternatively, in the case of BDAT violations, BDAT can be selectively
+# disabled with <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a>, or globally
+# disabled with <a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a>.
+#
+# <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a> = <a href="cidr_table.5.html">cidr</a>:/path/to/file
+# /path/to/file:
+#     10.0.0.0/24 chunking, silent-discard
+# <a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a> = chunking, silent-discard
+</pre>
+</blockquote>
+
+<p> This feature with settings <b>yes</b> and <b>no</b> is available
+in Postfix 3.8.4, 3.7.9, 3.6.13, and 3.5.23. Additionally, the
+settings <b>reject</b>, and <b>normalize</b> are available with
+Postfix &ge; 3.9, 3.8.5, 3.7.10, 3.6.14, and 3.5.24. </p>
 
 
 </DD>
@@ -15338,24 +15458,26 @@ https://www.postfix.org/smtp-smuggling.html</a> for details.
 (default: $<a href="postconf.5.html#mynetworks">mynetworks</a>)</b></DT><DD>
 
 <p> Exclude the specified clients from <a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a>
-enforcement. It uses the same syntax and parent-domain matching
-behavior as <a href="postconf.5.html#mynetworks">mynetworks</a>. </p>
-
-<p> Example: </p>
-
-<blockquote>
-<pre>
-# Disconnect remote SMTP clients that send bare newlines, but allow
-# local clients with non-standard SMTP implementations such as netcat,
-# fax machines, or load balancer health checks.
-#
-<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = yes
-<a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> = $<a href="postconf.5.html#mynetworks">mynetworks</a>
-</pre>
-</blockquote>
+enforcement. This setting uses the same syntax and parent-domain
+matching behavior as <a href="postconf.5.html#mynetworks">mynetworks</a>. </p>
 
 <p> This feature is available in Postfix &ge; 3.9, 3.8.4, 3.7.9,
 3.6.13, and 3.5.23. </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a>
+(default: 550)</b></DT><DD>
+
+<p>
+The numerical Postfix SMTP server response code when rejecting a
+request with "<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = reject".
+Specify a 5XX status code (521 to disconnect).
+</p>
+
+<p> This feature is available in Postfix &ge; 3.9, 3.8.5, 3.7.10,
+3.6.14, and 3.5.24. </p>
 
 
 </DD>
