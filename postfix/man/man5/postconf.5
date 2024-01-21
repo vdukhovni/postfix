@@ -11038,7 +11038,7 @@ vulnerable to
 SMTP smuggling.
 .PP
 Specify one of the following values (case does not matter):
-.IP "\fBnormalize\fR (default)"
+.IP "\fBnormalize\fR (default for Postfix >= 3.9)"
 Require the standard
 End\-of\-DATA sequence <CR><LF>.<CR><LF>.
 Otherwise, allow command or message content lines ending in the
@@ -11073,19 +11073,19 @@ email from SMTP clients that send any non\-standard line endings
 such as web applications, netcat, or load balancer health checks.
 .br
 .br
-This will also reject some email from Microsoft services
-whose BDAT implementations violate the canonical MIME format for
-text messages required in RFC 3030 Section 3, and defined in RFC
-2045 Sections 2.7 and 2.8.
+This will also reject email from services that use BDAT
+to send MIME text containing a bare newline (RFC 3030 Section 3
+requires canonical MIME format for text message types, defined in
+RFC 2045 Sections 2.7 and 2.8).
 .br
 .br
-Such clients can be excluded
-with smtpd_forbid_bare_newline_exclusions (or, in the case of BDAT
-violations, BDAT can be selectively disabled with
+Such clients can be
+excluded with smtpd_forbid_bare_newline_exclusions (or, in the case
+of BDAT violations, BDAT can be selectively disabled with
 smtpd_discard_ehlo_keyword_address_maps, or globally disabled with
 smtpd_discard_ehlo_keywords).
 .br
-.IP "\fBno\fR"
+.IP "\fBno\fR (default for Postfix < 3.9)"
 Do not require the standard End\-of\-DATA
 sequence <CR><LF>.<CR><LF>. Always process
 a bare <LF> as if the client sent <CR><LF>. This
@@ -11094,7 +11094,7 @@ an Internet\-facing SMTP server, because it is vulnerable to  SMTP smuggling.
 .br
 .br
 .PP
-Example 1:
+Recommended settings:
 .sp
 .in +4
 .nf
@@ -11120,7 +11120,7 @@ smtpd_forbid_bare_newline_exclusions = $mynetworks
 .ft R
 .in -4
 .PP
-Example 2:
+Alternative:
 .sp
 .in +4
 .nf
@@ -11134,10 +11134,10 @@ Example 2:
 # line endings such as web applications, netcat, or load balancer
 # health checks.
 #
-# This will also reject some email from Microsoft services whose
-# BDAT implementations violate the canonical MIME format for text
-# messages required in RFC 3030 Section 3, and defined in RFC 2045
-# Sections 2.7 and 2.8.
+# This will also reject email from services that use BDAT to send
+# MIME text containing a bare newline (RFC 3030 Section 3 requires
+# canonical MIME format for text message types, defined in RFC 2045
+# Sections 2.7 and 2.8).
 #
 # Such clients can be allowlisted with smtpd_forbid_bare_newline_exclusions.
 # The example below allowlists SMTP clients in trusted networks.
@@ -11149,8 +11149,9 @@ smtpd_forbid_bare_newline_exclusions = $mynetworks
 # disabled with smtpd_discard_ehlo_keyword_address_maps, or globally
 # disabled with smtpd_discard_ehlo_keywords.
 #
-# smtpd_discard_ehlo_keyword_address_maps =
-#     cidr:{{10.0.0.1/24 chunking, silent\-discard}}
+# smtpd_discard_ehlo_keyword_address_maps = cidr:/path/to/file
+# /path/to/file:
+#     10.0.0.0/24 chunking, silent\-discard
 # smtpd_discard_ehlo_keywords = chunking, silent\-discard
 .fi
 .ad

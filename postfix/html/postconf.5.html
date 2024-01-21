@@ -15969,7 +15969,8 @@ SMTP smuggling</a>.  </p>
 
 <dl compact>
 
-<dt> <b>normalize</b> (default)</dt> <dd> Require the standard
+<dt> <b>normalize</b> (default for Postfix &ge; 3.9) </dt>
+<dd> Require the standard
 End-of-DATA sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;.
 Otherwise, allow command or message content lines ending in the
 non-standard &lt;LF&gt;, and process them as if the client sent the
@@ -15990,16 +15991,17 @@ or message content when a line contains bare &lt;LF&gt;, log a "bare
 $<a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a>. <br> <br> This will reject
 email from SMTP clients that send any non-standard line endings
 such as web applications, netcat, or load balancer health checks.
-<br> <br> This will also reject some email from Microsoft services
-whose BDAT implementations violate the canonical MIME format for
-text messages required in <a href="https://tools.ietf.org/html/rfc3030">RFC 3030</a> Section 3, and defined in <a href="https://tools.ietf.org/html/rfc2045">RFC</a>
-<a href="https://tools.ietf.org/html/rfc2045">2045</a> Sections 2.7 and 2.8. <br> <br> Such clients can be excluded
-with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> (or, in the case of BDAT
-violations, BDAT can be selectively disabled with
+<br> <br> This will also reject email from services that use BDAT
+to send MIME text containing a bare newline (<a href="https://tools.ietf.org/html/rfc3030">RFC 3030</a> Section 3
+requires canonical MIME format for text message types, defined in
+<a href="https://tools.ietf.org/html/rfc2045">RFC 2045</a> Sections 2.7 and 2.8). <br> <br> Such clients can be
+excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> (or, in the case
+of BDAT violations, BDAT can be selectively disabled with
 <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a>, or globally disabled with
 <a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a>). </dd>
 
-<dt> <b>no</b> </dt> <dd> Do not require the standard End-of-DATA
+<dt> <b>no</b> (default for Postfix &lt; 3.9) </dt>
+<dd> Do not require the standard End-of-DATA
 sequence &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. Always process
 a bare &lt;LF&gt; as if the client sent &lt;CR&gt;&lt;LF&gt;. This
 option is fully backwards compatible, but is not recommended for
@@ -16009,7 +16011,7 @@ href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
 
 </dl>
 
-<p> Example 1: </p>
+<p> Recommended settings: </p>
 
 <blockquote>
 <pre>
@@ -16031,7 +16033,7 @@ href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
 </pre>
 </blockquote>
 
-<p> Example 2: </p>
+<p> Alternative: </p>
 
 <blockquote>
 <pre>
@@ -16043,10 +16045,10 @@ href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
 # line endings such as web applications, netcat, or load balancer
 # health checks.
 #
-# This will also reject some email from Microsoft services whose
-# BDAT implementations violate the canonical MIME format for text
-# messages required in <a href="https://tools.ietf.org/html/rfc3030">RFC 3030</a> Section 3, and defined in <a href="https://tools.ietf.org/html/rfc2045">RFC 2045</a>
-# Sections 2.7 and 2.8.
+# This will also reject email from services that use BDAT to send
+# MIME text containing a bare newline (<a href="https://tools.ietf.org/html/rfc3030">RFC 3030</a> Section 3 requires
+# canonical MIME format for text message types, defined in <a href="https://tools.ietf.org/html/rfc2045">RFC 2045</a>
+# Sections 2.7 and 2.8).
 #
 # Such clients can be allowlisted with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>.
 # The example below allowlists SMTP clients in trusted networks.
@@ -16058,8 +16060,9 @@ href="https://www.postfix.org/smtp-smuggling.html"> SMTP smuggling</a>.
 # disabled with <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a>, or globally
 # disabled with <a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a>.
 #
-# <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a> =
-#     <a href="cidr_table.5.html">cidr</a>:{{10.0.0.1/24 chunking, silent-discard}}
+# <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a> = <a href="cidr_table.5.html">cidr</a>:/path/to/file
+# /path/to/file:
+#     10.0.0.0/24 chunking, silent-discard
 # <a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a> = chunking, silent-discard
 </pre>
 </blockquote>

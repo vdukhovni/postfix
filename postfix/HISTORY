@@ -27721,12 +27721,13 @@ Apologies for any names omitted.
 	Reverted some changes after postfix-3.9-20240112, and updated
 	documentation.
 
-20240118
+20240121
 
-	Documentation: Microsoft uses BDAT to send content with
-	bare LF. This violates the canonical MIME format for text
-	messages as required in RFC 3030 section 3, and as defined
-	in RFC 2045 sections 2.7 and 2.8. Files: proto/postconf.proto,
+	Documentation: "smtpd_forbid_bare_newline = reject"  will
+	reject email from services that use BDAT to send MIME text
+	containing a bare newline (RFC 3030 Section 3 requires
+	canonical MIME format for text message types, defined in
+	RFC 2045 Sections 2.7 and 2.8) Files: proto/postconf.proto,
 	RELEASE_NOTES.
 
 	Baseline for back porting the SMTP smuggling fixes to Postfix

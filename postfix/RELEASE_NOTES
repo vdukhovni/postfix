@@ -29,18 +29,19 @@ IPL can continue with that license.
 Incompatibility with snapshot 20240110
 =======================================
 
-Outbound SMTP smuggling: with "cleanup_replace_stray_cr_lf = yes", the
-cleanup daemon replaces each stray <CR> or <LF> character in message
-content with a space character. The replacement happens before any other
-content management.
+- With "cleanup_replace_stray_cr_lf = yes" (the default), the cleanup
+  daemon replaces each stray <CR> or <LF> character in message
+  content with a space character. The replacement happens before
+  any other content management (header/body_checks, Milters, etc).
 
-This prevents outbound SMTP smuggling, where an attacker uses Postfix
-to send email with a non-standard End-of-DATA sequence that exploits
-inbound SMTP smuggling at a vulnerable SMTP server.
+  This prevents outbound SMTP smuggling, where an attacker uses
+  Postfix to send email containing a non-standard End-of-DATA
+  sequence, to exploit inbound SMTP smuggling at a vulnerable remote
+  SMTP server.
 
-This also ensures that the evaluation of Postfix-added DKIM and
-other signatures will not depend on how a remote mail server handles
-stray <CR> or <LF> characters.
+  This also improves the remote evaluation of Postfix-added DKIM
+  and other signatures, as the evaluation result will not depend
+  on how a remote email server handles stray <CR> or <LF> characters.
 
 This feature applies to all email that Postfix locally or remotely
 sends out. It is not allowlisted based on client identity.
@@ -53,25 +54,30 @@ background, see https://www.postfix.org/smtp-smuggling.html
 
 This will be back ported to Postfix 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
 
+- Better compatibility: the recommended setting "smtpd_forbid_bare_newline
+  = normalize" requires the standard End-of-DATA sequence
+  <CR><LF>.<CR><LF>, but allows bare newlines from SMTP clients,
+  maintaining more compatibility with existing infrastructure.
+
 - Improved logging for rejected input (it now includes queue ID,
   helo, mail, and rcpt, if available).
 
-- The new default "smtpd_forbid_bare_newline = normalize"
-  requires the standard End-of-DATA sequence <CR><LF>.<CR><LF>, and
-  allows bare newlines from SMTP clients, maintaining more compatibility
-  with infrastructure tools such as probers and surveys.
+- The setting "smtpd_forbid_bare_newline = reject" requires
+  that input lines end in <CR><LF>, requires the standard End-of-DATA
+  sequence <CR><LF>.<CR><LF>, and rejects a command or message that
+  contains a bare newline. To disconnect the client, specify
+  "smtpd_forbid_bare_newline_reject_code = 521".
 
-- The new setting "smtpd_forbid_bare_newline = reject" requires
-  that input lines end in <CR><LF>, requires the standard
-  End-of-DATA sequence <CR><LF>.<CR><LF>, and rejects a command or
-  message that contains a bare newline. To disconnect the client,
-  specify "smtpd_forbid_bare_newline_reject_code = 521".
+- The Postfix SMTP server no longer strips extra <CR> as in
+  <CR><LF>.<CR><CR><LF>, to silence false alarms from test tools
+  that send attack sequences that real mail servers cannot send.
+  Details at https://www.postfix.org/false-smuggling-claims.html
 
 - The old setting "yes" has become an alias for "normalize".
 
 - The old setting "no" has not changed, and allows SMTP smuggling.
 
-The recommended Postfix 3.9 settings (i.e. the defaults) are now:
+The recommended settings are now:
 
     # Require the standard End-of-DATA sequence <CR><LF>.<CR><LF>.
     # Otherwise, allow bare <LF> and process it as if the client sent
@@ -99,10 +105,10 @@ Alternative settings:
     # line endings such as web applications, netcat, or load balancer
     # health checks.
     #
-    # This will also reject some email from Microsoft services whose
-    # BDAT implementations violate the canonical MIME format for text
-    # messages required in RFC 3030 Section 3, and defined in RFC 2045
-    # Sections 2.7 and 2.8.
+    # This will also reject email from services that use BDAT to send
+    # MIME text containing a bare newline (RFC 3030 Section 3 requires
+    # canonical MIME format for text message types, defined in RFC 2045
+    # Sections 2.7 and 2.8).
     #
     # Such clients can be allowlisted with smtpd_forbid_bare_newline_exclusions.
     # The example below allowlists SMTP clients in trusted networks.
@@ -114,39 +120,10 @@ Alternative settings:
     # disabled with smtpd_discard_ehlo_keyword_address_maps, or globally
     # disabled with smtpd_discard_ehlo_keywords.
     #
-    # smtpd_discard_ehlo_keyword_address_maps =
-    #     cidr:{{10.0.0.1/24 chunking, silent-discard}}
+    # smtpd_discard_ehlo_keyword_address_maps = cidr:/path/to/file
+    # /path/to/file:
+    #     10.0.0.0/24 chunking, silent-discard
     # smtpd_discard_ehlo_keywords = chunking, silent-discard
-
-Major changes with snapshot 20240106
-====================================
-
-Inbound SMTP smuggling: don't strip extra <CR> in <CR><LF>.<CR><CR><LF>,
-to silence test tools that send attack sequences that are not viable.
-Details at https://www.postfix.org/false-smuggling-claims.html
-
-Incompatible changes with snapshot 20231221
-===========================================
-
-Postfix 3.9 by default disconnects a client that sends a 'bare
-newline' ending in SMTP. This prevents an SMTP smuggling attack
-that targets recipients at a Postfix server. For background,
-see https://www.postfix.org/smtp-smuggling.html
-
-For compatibility with non-standard clients, Postfix 3.9 by default
-excludes clients in mynetworks from this countermeasure.
-
-The Postfix 3.9 default settings are:
-
-    # Disconnect remote SMTP clients that send bare newlines, but
-    # allow local clients with non-standard SMTP implementations
-    # such as netcat, fax machines, or load balancer health checks.
-    #
-    smtpd_forbid_bare_newline = yes
-    smtpd_forbid_bare_newline_exclusions = $mynetworks
-
-This feature is back-ported to all supported stable releases, with
-the difference that "smtpd_forbid_bare_newline = no" by default.
 
 Incompatible changes with snapshot 20230903
 ===========================================
