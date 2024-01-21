@@ -32,7 +32,6 @@
 #define SMTP_ERR_QUIET	3		/* silent cleanup (application) */
 #define SMTP_ERR_NONE	4		/* non-error case */
 #define SMTP_ERR_DATA	5		/* application data error */
-#define SMTP_ERR_LF	6		/* bare <LF> protocol error */
 
 extern void smtp_stream_setup(VSTREAM *, int, int, int);
 extern void PRINTFLIKE(2, 3) smtp_printf(VSTREAM *, const char *,...);
@@ -44,7 +43,8 @@ extern void smtp_fputs(const char *, ssize_t len, VSTREAM *);
 extern void smtp_fwrite(const char *, ssize_t len, VSTREAM *);
 extern void smtp_fread_buf(VSTRING *, ssize_t len, VSTREAM *);
 extern void smtp_fputc(int, VSTREAM *);
-extern int smtp_forbid_bare_lf;
+extern int smtp_detect_bare_lf;
+extern int smtp_got_bare_lf;
 
 extern void smtp_vprintf(VSTREAM *, const char *, va_list);
 
