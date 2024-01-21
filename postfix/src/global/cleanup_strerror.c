@@ -73,6 +73,7 @@ static const CLEANUP_STAT_DETAIL cleanup_stat_map[] = {
     CLEANUP_STAT_CONT, 550, "5.7.1", "message content rejected",
     CLEANUP_STAT_WRITE, 451, "4.3.0", "queue file write error",
     CLEANUP_STAT_NOPERM, 550, "5.7.1", "service denied",
+    CLEANUP_STAT_BARE_LF, 521, "5.5.2", "bare <LF> received",
 };
 
 static CLEANUP_STAT_DETAIL cleanup_stat_success = {

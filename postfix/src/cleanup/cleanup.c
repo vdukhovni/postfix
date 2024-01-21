@@ -147,6 +147,14 @@
 /* .IP "\fBmessage_strip_characters (empty)\fR"
 /*	The set of characters that Postfix will remove from message
 /*	content.
+/* .PP
+/*	Available in Postfix version 3.9, 3.8.5, 3.7.10, 3.6.14,
+/*	3.5.24, and later:
+/* .IP "\fBcleanup_replace_stray_cr_lf (yes)\fR"
+/*	Replace each stray <CR> or <LF> character in message
+/*	content with a space character, to prevent outbound SMTP smuggling,
+/*	and to make the evaluation of Postfix-added DKIM or other signatures
+/*	independent from how a remote mail server handles such characters.
 /* BEFORE QUEUE MILTER CONTROLS
 /* .ad
 /* .fi

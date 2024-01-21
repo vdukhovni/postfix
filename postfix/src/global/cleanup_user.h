@@ -65,6 +65,12 @@
 #define CLEANUP_STAT_NOPERM	(1<<9)	/* Denied by non-content policy */
 
  /*
+  * Non-cleanup errors that live in the same bitmask space, to centralize
+  * error handling.
+  */
+#define CLEANUP_STAT_BARE_LF   (1<<16)	/* Bare <LF> received */
+
+ /*
   * These are set when we can't bounce even if we were asked to.
   */
 #define CLEANUP_STAT_MASK_CANT_BOUNCE \
