@@ -41,6 +41,8 @@ extern int smtp_get(VSTRING *, VSTREAM *, ssize_t, int);
 extern void smtp_fputs(const char *, ssize_t len, VSTREAM *);
 extern void smtp_fwrite(const char *, ssize_t len, VSTREAM *);
 extern void smtp_fputc(int, VSTREAM *);
+extern int smtp_detect_bare_lf;
+extern int smtp_got_bare_lf;
 
 extern void smtp_vprintf(VSTREAM *, const char *, va_list);
 
