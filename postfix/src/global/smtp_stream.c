@@ -50,6 +50,9 @@
 /*	VSTREAM *stream;
 /*	char	*format;
 /*	va_list	ap;
+/*
+/*	int	smtp_detect_bare_lf;
+/*	int	smtp_got_bare_lf;
 /* AUXILIARY API
 /*	int	smtp_get_noexcept(vp, stream, maxlen, flags)
 /*	VSTRING	*vp;
@@ -127,6 +130,11 @@
 /*	without timeouts and without making long jumps. Instead,
 /*	query the stream status with vstream_feof() etc.
 /*
+/*	This function assigns smtp_got_bare_lf = smtp_detect_bare_lf,
+/*	if smtp_detect_bare_lf is non-zero and the last read line
+/*	was terminated with a bare newline. Otherwise, this function
+/*	sets smtp_got_bare_lf to zero.
+/*
 /*	smtp_timeout_setup() is a backwards-compatibility interface
 /*	for programs that don't require per-record deadline support.
 /* DIAGNOSTICS
@@ -200,6 +208,9 @@
 /* Application-specific. */
 
 #include "smtp_stream.h"
+
+int     smtp_detect_bare_lf;
+int     smtp_got_bare_lf;
 
 /* smtp_timeout_reset - reset per-stream error flags, restart deadline timer */
 
@@ -362,6 +373,8 @@ int     smtp_get_noexcept(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags
     int     last_char;
     int     next_char;
 
+    smtp_got_bare_lf = 0;
+
     /*
      * It's painful to do I/O with records that may span multiple buffers.
      * Allow for partial long lines (we will read the remainder later) and
@@ -404,8 +417,15 @@ int     smtp_get_noexcept(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags
 	 */
     case '\n':
 	vstring_truncate(vp, VSTRING_LEN(vp) - 1);
-	while (VSTRING_LEN(vp) > 0 && vstring_end(vp)[-1] == '\r')
-	    vstring_truncate(vp, VSTRING_LEN(vp) - 1);
+	if (smtp_detect_bare_lf) {
+	    if (VSTRING_LEN(vp) == 0 || vstring_end(vp)[-1] != '\r')
+		smtp_got_bare_lf = smtp_detect_bare_lf;
+	    else
+		vstring_truncate(vp, VSTRING_LEN(vp) - 1);
+	} else {
+	    while (VSTRING_LEN(vp) > 0 && vstring_end(vp)[-1] == '\r')
+		vstring_truncate(vp, VSTRING_LEN(vp) - 1);
+	}
 	VSTRING_TERMINATE(vp);
 	/* FALLTRHOUGH */
 

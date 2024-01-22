@@ -25,6 +25,7 @@ extern char *smtpd_check_etrn(SMTPD_STATE *, char *);
 extern char *smtpd_check_data(SMTPD_STATE *);
 extern char *smtpd_check_eod(SMTPD_STATE *);
 extern char *smtpd_check_policy(SMTPD_STATE *, char *);
+extern void log_whatsup(SMTPD_STATE *, const char *, const char *);
 
 /* LICENSE
 /* .ad
