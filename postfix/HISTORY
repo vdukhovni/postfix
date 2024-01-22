@@ -23884,3 +23884,37 @@ Apologies for any names omitted.
 
 	Bitrot: Berkeley DB 18 is like Berkeley DB 6. Yasuhiro
 	Kimura. File: util/dict_db.c.
+
+20240109
+
+	Security (outbound SMTP smuggling): with the default setting
+	"cleanup_replace_stray_cr_lf = yes" Postfix will replace
+	stray <CR> or <LF> characters in message content with a
+	space character. This prevents Postfix from enabling
+	outbound (remote) SMTP smuggling, and it also makes evaluation
+	of Postfix-added DKIM etc. signatures independent from how
+	a remote mail server handles stray <CR> or <LF> characters.
+	Files: global/mail_params.h, cleanup/cleanup.c,
+	cleanup/cleanup_message.c, mantools/postlink, proto/postconf.proto.
+
+20240112
+
+	Security (inbound SMTP smuggling): with "smtpd_forbid_bare_newline
+	= normalize" (default "no" for Postfix < 3.9), the Postfix
+	SMTP server requires the standard End-of-DATA sequence
+	<CR><LF>.<CR><LF>, and otherwise allows command or message
+	content lines ending in the non-standard <LF>, processing
+	them as if the client sent the standard <CR><LF>.
+
+	The alternative setting, "smtpd_forbid_bare_newline = reject"
+	will reject any command or message that contains a bare
+	<LF>, and is more likely to cause problems with legitimate
+	clients.
+
+	For backwards compatibility, local clients are excluded by
+	default with "smtpd_forbid_bare_newline_exclusions =
+	$mynetworks".
+
+	Files: mantools/postlink, proto/postconf.proto,
+	global/mail_params.h, global/smtp_stream.c, global/smtp_stream.h,
+	smtpd/smtpd.c, smtpd/smtpd_check.[hc].
