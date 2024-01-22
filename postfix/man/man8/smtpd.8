@@ -739,6 +739,20 @@ time limits, from a
 time limit per read or write system call, to a time limit to send
 or receive a complete record (an SMTP command line, SMTP response
 line, SMTP message content line, or TLS protocol message).
+.PP
+Available in Postfix 3.9, 3.8.4, 3.7.9, 3.6.13, 3.5.23 and later:
+.IP "\fBsmtpd_forbid_bare_newline (Postfix < 3.9: no)\fR"
+Reject or restrict input lines from an SMTP client that end in
+<LF> instead of the standard <CR><LF>.
+.IP "\fBsmtpd_forbid_bare_newline_exclusions ($mynetworks)\fR"
+Exclude the specified clients from smtpd_forbid_bare_newline
+enforcement.
+.PP
+Available in Postfix 3.9, 3.8.5, 3.7.10, 3.6.14, 3.5.24 and
+later:
+.IP "\fBsmtpd_forbid_bare_newline_reject_code (550)\fR"
+The numerical Postfix SMTP server response code when rejecting a
+request with "smtpd_forbid_bare_newline = reject".
 .SH "TARPIT CONTROLS"
 .na
 .nf

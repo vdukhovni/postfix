@@ -48,6 +48,11 @@
 /*
 /*	char	*smtpd_check_queue(state)
 /*	SMTPD_STATE *state;
+/* AUXILIARY FUNCTIONS
+/*	void	log_whatsup(state, action, text)
+/*	SMTPD_STATE *state;
+/*	const char *action;
+/*	const char *text;
 /* DESCRIPTION
 /*	This module implements additional checks on SMTP client requests.
 /*	A client request is validated in the context of the session state.
@@ -146,6 +151,11 @@
 /*	The recipient address given with the RCPT TO or VRFY command.
 /* .IP size
 /*	The message size given with the MAIL FROM command (zero if unknown).
+/* .PP
+/*	log_whatsup() logs "<queueid>: <action>: <protocol state>
+/*	from: <client-name[client-addr]>: <text>" plus the protocol
+/*	(SMTP or ESMTP), and if available, EHLO, MAIL FROM, or RCPT
+/*	TO.
 /* BUGS
 /*	Policies like these should not be hard-coded in C, but should
 /*	be user-programmable instead.
@@ -907,8 +917,8 @@ void    smtpd_check_init(void)
 
 /* log_whatsup - log as much context as we have */
 
-static void log_whatsup(SMTPD_STATE *state, const char *whatsup,
-			        const char *text)
+void    log_whatsup(SMTPD_STATE *state, const char *whatsup,
+		            const char *text)
 {
     VSTRING *buf = vstring_alloc(100);
 
