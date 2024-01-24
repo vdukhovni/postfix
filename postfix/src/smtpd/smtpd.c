@@ -1672,13 +1672,16 @@ int     smtpd_hfrom_format;
   */
 #define BARE_LF_FLAG_WANT_STD_EOD	(1<<0)	/* Require CRLF.CRLF */
 #define BARE_LF_FLAG_REPLY_REJECT	(1<<1)	/* Reject bare newline */
+#define BARE_LF_FLAG_NOTE_LOG		(1<<2)	/* Note bare newline */
 
 #define IS_BARE_LF_WANT_STD_EOD(m)	((m) & BARE_LF_FLAG_WANT_STD_EOD)
 #define IS_BARE_LF_REPLY_REJECT(m)	((m) & BARE_LF_FLAG_REPLY_REJECT)
+#define IS_BARE_LF_NOTE_LOG(m)		((m) & BARE_LF_FLAG_NOTE_LOG)
 
 static const NAME_CODE bare_lf_mask_table[] = {
     "normalize", BARE_LF_FLAG_WANT_STD_EOD,	/* Default */
     "yes", BARE_LF_FLAG_WANT_STD_EOD,	/* Migration aid */
+    "note", BARE_LF_FLAG_WANT_STD_EOD | BARE_LF_FLAG_NOTE_LOG,
     "reject", BARE_LF_FLAG_WANT_STD_EOD | BARE_LF_FLAG_REPLY_REJECT,
     "no", 0,
     0, -1,				/* error */
@@ -3669,6 +3672,8 @@ static void receive_data_message(SMTPD_STATE *state,
 	    curr_rec_type = REC_TYPE_CONT;
 	if (IS_BARE_LF_REPLY_REJECT(smtp_got_bare_lf))
 	    state->err |= CLEANUP_STAT_BARE_LF;
+	else if (IS_BARE_LF_NOTE_LOG(smtp_got_bare_lf))
+	    state->notes |= SMTPD_NOTE_BARE_LF;
 	start = vstring_str(state->buffer);
 	len = VSTRING_LEN(state->buffer);
 	if (first) {
@@ -4150,14 +4155,31 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	/*
 	 * Read lines from the fragment. The last line may continue in the
 	 * next fragment, or in the next chunk.
+	 * 
+	 * If smtp_get_noexcept() stopped after var_line_limit bytes and did not
+	 * emit a queue file record, then that means smtp_get_noexcept()
+	 * stopped after CR and hit EOF as it tried to find out if the next
+	 * byte is LF. In that case, read the first byte from the next
+	 * fragment or chunk, and if that first byte is LF, then
+	 * smtp_get_noexcept() strips off the trailing CRLF and returns '\n'
+	 * as it always does after reading a complete line.
 	 */
 	do {
+	    int     can_read = var_line_limit - LEN(state->bdat_get_buffer);
+
 	    if (smtp_get_noexcept(state->bdat_get_buffer,
 				  state->bdat_get_stream,
-				  var_line_limit,
+				  can_read > 0 ? can_read : 1,	/* Peek one */
 				  SMTP_GET_FLAG_APPEND) == '\n') {
 		/* Stopped at end-of-line. */
 		curr_rec_type = REC_TYPE_NORM;
+	    } else if (LEN(state->bdat_get_buffer) > var_line_limit) {
+		/* Undo peeking, and output the buffer as REC_TYPE_CONT. */
+		vstream_ungetc(state->bdat_get_stream,
+			       vstring_end(state->bdat_get_buffer)[-1]);
+		vstring_truncate(state->bdat_get_buffer,
+				 LEN(state->bdat_get_buffer) - 1);
+		curr_rec_type = REC_TYPE_CONT;
 	    } else if (!vstream_feof(state->bdat_get_stream)) {
 		/* Stopped at var_line_limit. */
 		curr_rec_type = REC_TYPE_CONT;
@@ -4172,6 +4194,8 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    }
 	    if (IS_BARE_LF_REPLY_REJECT(smtp_got_bare_lf))
 		state->err |= CLEANUP_STAT_BARE_LF;
+	    else if (IS_BARE_LF_NOTE_LOG(smtp_got_bare_lf))
+		state->notes |= SMTPD_NOTE_BARE_LF;
 	    start = vstring_str(state->bdat_get_buffer);
 	    len = VSTRING_LEN(state->bdat_get_buffer);
 	    if (state->err == CLEANUP_STAT_OK) {
@@ -5474,8 +5498,6 @@ static void tls_reset(SMTPD_STATE *state)
 
 #endif
 
-#if !defined(USE_TLS) || !defined(USE_SASL_AUTH)
-
 /* unimpl_cmd - dummy for functionality that is not compiled in */
 
 static int unimpl_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
@@ -5491,8 +5513,6 @@ static int unimpl_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     smtpd_chat_reply(state, "502 5.5.1 Error: command not implemented");
     return (-1);
 }
-
-#endif
 
  /*
   * The table of all SMTP commands that we know. Set the junk limit flag on
@@ -5518,6 +5538,8 @@ typedef struct SMTPD_CMD {
 #define SMTPD_CMD_FLAG_PRE_TLS	(1<<1)	/* allow before STARTTLS */
 #define SMTPD_CMD_FLAG_LAST	(1<<2)	/* last in PIPELINING command group */
 
+static int  help_cmd(SMTPD_STATE *, int, SMTPD_TOKEN *);
+
 static SMTPD_CMD smtpd_cmd_table[] = {
     {SMTPD_CMD_HELO, helo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,},
     {SMTPD_CMD_EHLO, ehlo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,},
@@ -5542,11 +5564,43 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     {SMTPD_CMD_VRFY, vrfy_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_LAST,},
     {SMTPD_CMD_ETRN, etrn_cmd, SMTPD_CMD_FLAG_LIMIT,},
     {SMTPD_CMD_QUIT, quit_cmd, SMTPD_CMD_FLAG_PRE_TLS,},
+    {SMTPD_CMD_HELP, help_cmd, SMTPD_CMD_FLAG_PRE_TLS,},
     {0,},
 };
 
 static STRING_LIST *smtpd_noop_cmds;
 static STRING_LIST *smtpd_forbid_cmds;
+
+/* help_cmd - process HELP command */
+
+static int help_cmd(SMTPD_STATE *state, int unused_argc, SMTPD_TOKEN *unused_argv)
+{
+    ARGV   *argv = argv_alloc(sizeof(smtpd_cmd_table)
+			      / sizeof(*smtpd_cmd_table));
+    VSTRING *buf = vstring_alloc(100);
+    SMTPD_CMD *cmdp;
+
+    /*
+     * Return a list of implemented commands.
+     * 
+     * The HELP command does not suppress commands that can be dynamically
+     * disabled in the EHLO response or through access control. That would
+     * require refactoring the EHLO feature-suppression and per-feature
+     * access control, so that they can be reused (not duplicated) here.
+     * 
+     * The HELP command does not provide information that makes Postfix easier
+     * to fingerprint, such as software name, version, or build information.
+     */
+    for (cmdp = smtpd_cmd_table; cmdp->name != 0; cmdp++)
+	if (cmdp->action != unimpl_cmd)
+	    argv_add(argv, cmdp->name, ARGV_END);
+    argv_sort(argv);
+    smtpd_chat_reply(state, "214 2.0.0 Commands: %s",
+		     argv_join(buf, argv, ' '));
+    vstring_free(buf);
+    argv_free(argv);
+    return (0);
+}
 
 /* smtpd_flag_ill_pipelining - flag pipelining protocol violation */
 
@@ -5874,6 +5928,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 			     var_smtpd_forbid_bare_lf_code, var_myhostname);
 		break;
 	    }
+	    if (IS_BARE_LF_NOTE_LOG(smtp_got_bare_lf))
+		state->notes |= SMTPD_NOTE_BARE_LF;
 	    /* Safety: protect internal interfaces against malformed UTF-8. */
 	    if (var_smtputf8_enable
 		&& valid_utf8_stringz(STR(state->buffer)) == 0) {
@@ -6060,11 +6116,12 @@ static void smtpd_proto(SMTPD_STATE *state)
 
 /* smtpd_format_cmd_stats - format per-command statistics */
 
-static char *smtpd_format_cmd_stats(VSTRING *buf)
+static char *smtpd_format_cmd_stats(SMTPD_STATE *state)
 {
     SMTPD_CMD *cmdp;
     int     all_success = 0;
     int     all_total = 0;
+    VSTRING *buf = state->buffer;
 
     /*
      * Log the statistics. Note that this loop produces no output when no
@@ -6108,6 +6165,13 @@ static char *smtpd_format_cmd_stats(VSTRING *buf)
     vstring_sprintf_append(buf, " commands=%d", all_success);
     if (all_success != all_total || all_total == 0)
 	vstring_sprintf_append(buf, "/%d", all_total);
+
+    /*
+     * Log aggregated warnings.
+     */
+    if (state->notes & SMTPD_NOTE_BARE_LF)
+	vstring_sprintf_append(buf, " notes=bare_lf");
+
     return (lowercase(STR(buf)));
 }
 
@@ -6249,7 +6313,7 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
      * connection time.
      */
     msg_info("disconnect from %s%s", state.namaddr,
-	     smtpd_format_cmd_stats(state.buffer));
+	     smtpd_format_cmd_stats(&state));
     teardown_milters(&state);			/* duplicates xclient_cmd */
     smtpd_state_reset(&state);
     debug_peer_restore();

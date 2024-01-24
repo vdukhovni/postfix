@@ -27732,3 +27732,31 @@ Apologies for any names omitted.
 
 	Baseline for back porting the SMTP smuggling fixes to Postfix
 	3.8.5, 3.7.10, 3.6.14, and 3.5.24.
+
+20240124
+
+	Feature: with "smtpd_forbid_bare_newline = note", the Postfix
+	SMTP server notes in the log if it received any lines with
+	bare LF.  Otherwise, "note" is like "normalize". The
+	information is formatted as "disconnect from name[address]
+	...  notes=bare_lf".  The new value is expected to become
+	a list of comma-separated names. Files: smtpd/smtpd.[hc].
+
+	Cleanup: require that a stable release disables SNAPSHOT
+	and NONPROD features. File: mantools/check-snapshot-nonprod.
+
+	Bugfix (defect introduced: Postfix 3.4): the SMTP server's
+	BDAT command handler could be tricked to read $message_size_limit
+	bytes into memory. Found during code maintenance. File:
+	smtpd/smtpd.c.
+
+	Feature: never too late, an SMTP server HELP command that
+	lists the implemented commands. Some commands may be
+	implemented but not available due to smtpd_discard_ehlo_keywords
+	or access control limitations. Files: smtpd/smtpd.[hc],
+	util/argv.[hc].
+
+	Workaround: some OS lies under load: it says that a socket
+	is readable, then it says that the socket has unread data,
+	and then it says that read returns EOF, causing Postfix to
+	spam the log with a warning message. File: tlsmgr/tlsmgr.c.

@@ -827,6 +827,21 @@ static void tlsmgr_service(VSTREAM *client_stream, char *unused_service,
 		   ATTR_TYPE_END);
     }
     vstream_fflush(client_stream);
+
+    /*
+     * Reportedly, some OS lies under load; it tells the Postfix event
+     * handler that a server socket is readable, then it tells peekfd() that
+     * the socket has pending data, and then it tells vstring_get_null() that
+     * there is none, causing Postfix to spam the log with warning messages.
+     * Close the stream to stop such nonsense; the client can reconnect if it
+     * still wants to talk to us.
+     * 
+     * XXX Why is this problem not reported for the other five
+     * multi_server-based Postfix services?
+     */
+    if (vstream_ferror(client_stream) || vstream_feof(client_stream))
+	multi_server_disconnect(client_stream);
+    /* Note: client_stream is now a dangling pointer. */
 }
 
 /* tlsmgr_pre_init - pre-jail initialization */

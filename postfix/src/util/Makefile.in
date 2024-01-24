@@ -1139,9 +1139,12 @@ allspace.o: vbuf.h
 allspace.o: vstring.h
 argv.o: argv.c
 argv.o: argv.h
+argv.o: check_arg.h
 argv.o: msg.h
 argv.o: mymalloc.h
 argv.o: sys_defs.h
+argv.o: vbuf.h
+argv.o: vstring.h
 argv_attr_print.o: argv.h
 argv_attr_print.o: argv_attr.h
 argv_attr_print.o: argv_attr_print.c

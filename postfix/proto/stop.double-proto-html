@@ -352,3 +352,4 @@ standard lt CR gt lt LF gt br br This maintains compatibility
 2045 Sections 2 7 and 2 8 br br Such clients can be excluded
  br br This will also reject email from services that use BDAT
 RFC 2045 Sections 2 7 and 2 8 br br Such clients can be
+to become a list of comma separated names br br This feature

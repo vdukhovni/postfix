@@ -97,3 +97,6 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  stable releases Files global smtp_stream hc smtpd smtpd c
  Files global smtp_stream hc smtpd smtpd c 
  Files smtpd smtpd c proto postconf proto 
+ names Files smtpd smtpd hc 
+ or access control limitations Files smtpd smtpd hc 
+ spam the log with a warning message File tlsmgr tlsmgr c 

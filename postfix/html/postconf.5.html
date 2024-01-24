@@ -15982,6 +15982,13 @@ with the standard End-of-DATA sequence
 &lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;. <br> <br> Such clients
 can be excluded with <a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a>. </dd>
 
+<dt> <b>note</b> </dt> <dd> Same as "normalize", but also notes in
+the log whether the Postfix SMTP server received any lines with
+"bare &lt;LF&gt;". The information is formatted as "<tt>disconnect
+from name[address] ...  notes=bare_lf</tt>". The new value is
+expected to become a list of comma-separated names. <br> <br> This
+feature is available in Postfix 3.9 and later. </dd>
+
 <dt> <b>yes</b> </dt> <dd> Compatibility alias for <b>normalize</b>. </dd>
 
 <dt> <b>reject</b> </dt> <dd> Require the standard End-of-DATA

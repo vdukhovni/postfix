@@ -53,6 +53,11 @@
 /*	ssize_t	pos;
 /*	ssize_t	how_many;
 /*
+/*	char	*argv_join(buf, argvp, delim)
+/*	VSTRING	*buf;
+/*	ARGV	*argvp;
+/*	int	delim;
+/*
 /*	void	ARGV_FAKE_BEGIN(argv, arg)
 /*	const char *arg;
 /*
@@ -109,6 +114,10 @@
 /*	starting at the specified array position. The result is
 /*	null-terminated.
 /*
+/*	argv_join() joins all elements in an array using the
+/*	specified delimiter value, and appends the result to the
+/*	specified buffer.
+/*
 /*	ARGV_FAKE_BEGIN/END are an optimization for the case where
 /*	a single string needs to be passed into an ARGV-based
 /*	interface.  ARGV_FAKE_BEGIN() opens a statement block and
@@ -148,6 +157,7 @@
 
 #include "mymalloc.h"
 #include "msg.h"
+#include "vstring.h"
 #include "argv.h"
 
 #ifdef TEST
@@ -379,6 +389,20 @@ void    argv_delete(ARGV *argvp, ssize_t first, ssize_t how_many)
     argvp->argc -= how_many;
 }
 
+/* argv_join - concatenate array elements with delimiter */
+
+char   *argv_join(VSTRING *buf, ARGV *argv, int delim)
+{
+    char  **cpp;
+
+    for (cpp = argv->argv; *cpp; cpp++) {
+	vstring_strcat(buf, *cpp);
+	if (cpp[1])
+	    VSTRING_ADDCH(buf, delim);
+    }
+    return (vstring_str(buf));
+}
+
 #ifdef TEST
 
  /*
@@ -402,6 +426,7 @@ typedef struct TEST_CASE {
     const char *exp_panic_msg;		/* expected panic */
     int     exp_argc;			/* expected array length */
     const char *exp_argv[ARRAY_LEN];	/* expected array content */
+    int     join_delim;			/* argv_join() delimiter */
 } TEST_CASE;
 
 #define TERMINATE_ARRAY	(1)
@@ -559,6 +584,24 @@ static ARGV *test_argv_bad_delete3(const TEST_CASE *tp, ARGV *argvp)
     return (argvp);
 }
 
+/* test_argv_join - populate, join, and overwrite */
+
+static ARGV *test_argv_join(const TEST_CASE *tp, ARGV *argvp)
+{
+    VSTRING *buf = vstring_alloc(100);
+
+    /*
+     * Impedance mismatch: argv_join() produces output to VSTRING, but the
+     * test fixture wants output to ARGV.
+     */
+    test_argv_populate(tp, argvp);
+    argv_join(buf, argvp, tp->join_delim);
+    argv_delete(argvp, 0, argvp->argc);
+    argv_add(argvp, vstring_str(buf), ARGV_END);
+    vstring_free(buf);
+    return (argvp);
+}
+
 /* test_argv_verify - verify result */
 
 static int test_argv_verify(const TEST_CASE *tp, ARGV *argvp)
@@ -573,7 +616,7 @@ static int test_argv_verify(const TEST_CASE *tp, ARGV *argvp)
 	}
 	if (strcmp(vstring_str(test_panic_str), tp->exp_panic_msg) != 0) {
 	    msg_warn("test case '%s': got '%s', want: '%s'",
-		     tp->label, vstring_str(test_panic_str), tp->exp_panic_msg);
+		 tp->label, vstring_str(test_panic_str), tp->exp_panic_msg);
 	    return (FAIL);
 	}
 	return (PASS);
@@ -681,6 +724,18 @@ static const TEST_CASE test_cases[] = {
     {"multiple strings, delete at too large position",
 	{"foo", "baz", "bar", 0}, 0, test_argv_bad_delete3,
 	"argv_delete bad range: (start=100 count=1)"
+    },
+    {"argv_join, multiple strings",
+	{"foo", "baz", "bar", 0}, 0, test_argv_join,
+	0, 1, {"foo:baz:bar", 0}, ':'
+    },
+    {"argv_join, one string",
+	{"foo", 0}, 0, test_argv_join,
+	0, 1, {"foo", 0}, ':'
+    },
+    {"argv_join, empty",
+	{0}, 0, test_argv_join,
+	0, 1, {"", 0}, ':'
     },
     0,
 };

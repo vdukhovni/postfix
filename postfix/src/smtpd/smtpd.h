@@ -114,6 +114,7 @@ typedef struct {
     int     junk_cmds;			/* counter */
     int     rcpt_overshoot;		/* counter */
     char   *rewrite_context;		/* address rewriting context */
+    int     notes;			/* notes aggregator */
 
     /*
      * SASL specific.
@@ -209,6 +210,8 @@ typedef struct {
 #define SMTPD_FLAG_SMTPUTF8	   (1<<3)	/* RFC 6531/2 transaction */
 #define SMTPD_FLAG_NEED_MILTER_ABORT (1<<4)	/* undo milter_mail_event() */
 
+#define SMTPD_NOTE_BARE_LF	   (1<<0)	/* saw at least one bare LF */
+
  /* Security: don't reset SMTPD_FLAG_AUTH_USED. */
 #define SMTPD_MASK_MAIL_KEEP \
 	    ~(SMTPD_FLAG_SMTPUTF8)	/* Fix 20140706 */
@@ -260,6 +263,7 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define SMTPD_CMD_XCLIENT	"XCLIENT"
 #define SMTPD_CMD_XFORWARD	"XFORWARD"
 #define SMTPD_CMD_UNKNOWN	"UNKNOWN"
+#define SMTPD_CMD_HELP		"HELP"
 
  /*
   * Representation of unknown and non-existent client information. Throughout

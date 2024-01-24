@@ -135,6 +135,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->instance = vstring_alloc(10);
     state->seqno = 0;
     state->rewrite_context = 0;
+    state->notes = 0;
 #if 0
     state->ehlo_discard_mask = ~0;
 #else
