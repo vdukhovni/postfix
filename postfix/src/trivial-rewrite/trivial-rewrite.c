@@ -122,9 +122,10 @@
 /* .PP
 /*	Available in Postfix 2.2 and later:
 /* .IP "\fBremote_header_rewrite_domain (empty)\fR"
-/*	Don't rewrite message headers from remote clients at all when
-/*	this parameter is empty; otherwise, rewrite message headers and
-/*	append the specified domain name to incomplete addresses.
+/*	Rewrite or add message headers in mail from remote clients if
+/*	the remote_header_rewrite_domain parameter value is non-empty,
+/*	updating incomplete addresses with the domain specified in the
+/*	remote_header_rewrite_domain parameter, and adding missing headers.
 /* ROUTING CONTROLS
 /* .ad
 /* .fi
@@ -141,10 +142,12 @@
 /*	final delivery to domains listed with $virtual_mailbox_domains.
 /* .IP "\fBrelay_transport (relay)\fR"
 /*	The default mail delivery transport and next-hop destination for
-/*	remote delivery to domains listed with $relay_domains.
+/*	the relay domain address class: recipient domains that match
+/*	$relay_domains.
 /* .IP "\fBdefault_transport (smtp)\fR"
 /*	The default mail delivery transport and next-hop destination for
-/*	destinations that do not match $mydestination, $inet_interfaces,
+/*	the default domain class: recipient domains that do not match
+/*	$mydestination, $inet_interfaces,
 /*	$proxy_interfaces, $virtual_alias_domains, $virtual_mailbox_domains,
 /*	or $relay_domains.
 /* .IP "\fBparent_domain_matches_subdomains (see 'postconf -d' output)\fR"
@@ -152,8 +155,8 @@
 /*	matches subdomains of example.com,
 /*	instead of requiring an explicit ".example.com" pattern.
 /* .IP "\fBrelayhost (empty)\fR"
-/*	The next-hop destination(s) for non-local mail; overrides non-local
-/*	domains in recipient addresses.
+/*	The next-hop destination(s) for non-local mail; takes precedence
+/*	over non-local domains in recipient addresses.
 /* .IP "\fBtransport_maps (empty)\fR"
 /*	Optional lookup tables with mappings from recipient address to
 /*	(message delivery transport, next-hop destination).

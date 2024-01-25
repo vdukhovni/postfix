@@ -27760,3 +27760,15 @@ Apologies for any names omitted.
 	is readable, then it says that the socket has unread data,
 	and then it says that read returns EOF, causing Postfix to
 	spam the log with a warning message. File: tlsmgr/tlsmgr.c.
+
+20240125
+
+	Cleanup: tlsmgr.c fix 20240124. File: tlsmgr/tlsmgr.c.
+
+	Documentation: updated obsolete "CONFIGURATION PARAMETERS"
+	summaries in Postfix manpages, with current text from the
+	postconf(5) manpage. Files: proto/generic, proto/header_checks,
+	proto/aliases, proto/canonical, proto/relocated,
+	postdrop/postdrop.c, postsuper/postsuper.c, sendmail/sendmail.c,
+	dnsblog/dnsblog.c, postkick/postkick.c, postlock/postlock.c,
+	qmgr/qmgr.c, qmqpd/qmqpd.c, trivial-rewrite/trivial-rewrite.c.

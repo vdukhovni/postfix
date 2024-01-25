@@ -54,7 +54,7 @@
 /*	How long the \fBpostkick\fR(1) command waits for a request to enter the
 /*	Postfix daemon process input buffer before giving up.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a privileged Postfix
+/*	The list of environment variables that a privileged Postfix
 /*	process will import from a non-Postfix parent process, or name=value
 /*	environment overrides.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"

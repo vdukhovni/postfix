@@ -211,20 +211,18 @@ CANONICAL(5)                                                      CANONICAL(5)
        Other parameters of interest:
 
        <b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a> (all)</b>
-              The  network  interface addresses that this mail system receives
-              mail on.
+              The  local  network  interface  addresses  that this mail system
+              receives mail on.
 
        <b><a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> (<a href="postconf.5.html#permit_inet_interfaces">permit_inet_interfaces</a>)</b>
-              Rewrite message header addresses in mail from these clients  and
-              update incomplete addresses with the domain name in $<a href="postconf.5.html#myorigin">myorigin</a> or
-              $<a href="postconf.5.html#mydomain">mydomain</a>; either  don't  rewrite  message  headers  from  other
-              clients at all, or rewrite message headers and update incomplete
-              addresses with the domain  specified  in  the  <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_re</a>-
-              <a href="postconf.5.html#remote_header_rewrite_domain">write_domain</a> parameter.
+              Rewrite or add message  headers  in  mail  from  these  clients,
+              updating  incomplete addresses with the domain name in $<a href="postconf.5.html#myorigin">myorigin</a>
+              or $<a href="postconf.5.html#mydomain">mydomain</a>, and adding missing headers.
 
        <b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> (empty)</b>
-              The  network  interface addresses that this mail system receives
-              mail on by way of a proxy or network address translation unit.
+              The remote network interface addresses  that  this  mail  system
+              receives  mail  on by way of a proxy or network address transla-
+              tion unit.
 
        <b><a href="postconf.5.html#masquerade_classes">masquerade_classes</a> (envelope_sender, header_sender, header_recipient)</b>
               What addresses are subject to address masquerading.
@@ -253,9 +251,11 @@ CANONICAL(5)                                                      CANONICAL(5)
               set to "-".
 
        <b><a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> (empty)</b>
-              Don't rewrite message headers from remote clients  at  all  when
-              this  parameter is empty; otherwise, rewrite message headers and
-              append the specified domain name to incomplete addresses.
+              Rewrite or add message headers in mail from  remote  clients  if
+              the  <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a>  parameter value is non-empty,
+              updating incomplete addresses with the domain specified  in  the
+              <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter, and adding missing head-
+              ers.
 
 <b>SEE ALSO</b>
        <a href="cleanup.8.html">cleanup(8)</a>, canonicalize and enqueue mail

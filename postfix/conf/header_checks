@@ -440,46 +440,32 @@
 #        tent-Length:, Return-Path:.
 # 
 # CONFIGURATION PARAMETERS
-#        body_checks
-#               Lookup tables with content filter rules for message
-#               body lines.  These filters see one physical line at
-#               a  time,  in  chunks  of at most $line_length_limit
-#               bytes.
+#        body_checks (empty)
+#               Optional  lookup  tables  for content inspection as
+#               specified in the body_checks(5) manual page.
 # 
-#        body_checks_size_limit
-#               The amount of  content  per  message  body  segment
-#               (attachment) that is subjected to $body_checks fil-
-#               tering.
+#        body_checks_size_limit (51200)
+#               How much text in a message body segment (or attach-
+#               ment,  if you prefer to use that term) is subjected
+#               to body_checks inspection.
 # 
-#        header_checks
+#        header_checks (empty)
+#               Optional lookup tables for  content  inspection  of
+#               primary  non-MIME  message headers, as specified in
+#               the header_checks(5) manual page.
 # 
-#        mime_header_checks (default: $header_checks)
+#        mime_header_checks ($header_checks)
+#               Optional lookup tables for  content  inspection  of
+#               MIME  related  message headers, as described in the
+#               header_checks(5) manual page.
 # 
-#        nested_header_checks (default: $header_checks)
-#               Lookup tables with content filter rules for message
-#               header  lines:  respectively,  these are applied to
-#               the initial message  headers  (not  including  MIME
-#               headers),  to the MIME headers anywhere in the mes-
-#               sage, and to the initial headers of  attached  mes-
-#               sages.
+#        nested_header_checks ($header_checks)
+#               Optional lookup tables for  content  inspection  of
+#               non-MIME  message  headers in attached messages, as
+#               described in the header_checks(5) manual page.
 # 
-#               Note:  these filters see one logical message header
-#               at a time, even when a message header spans  multi-
-#               ple  lines.  Message  headers  that are longer than
-#               $header_size_limit characters are truncated.
-# 
-#        disable_mime_input_processing
-#               While receiving mail, give no special treatment  to
-#               MIME  related  message  headers; all text after the
-#               initial message headers is considered to be part of
-#               the  message body. This means that header_checks is
-#               applied to all the  initial  message  headers,  and
-#               that body_checks is applied to the remainder of the
-#               message.
-# 
-#               Note: when used in this  manner,  body_checks  will
-#               process  a  multi-line message header one line at a
-#               time.
+#        disable_mime_input_processing (no)
+#               Turn off MIME processing while receiving mail.
 # 
 # EXAMPLES
 #        Header pattern to block attachments  with  bad  file  name

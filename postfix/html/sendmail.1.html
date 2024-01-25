@@ -455,9 +455,11 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               The location of the Postfix top-level queue directory.
 
        <b><a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> (empty)</b>
-              Don't rewrite message headers from remote clients  at  all  when
-              this  parameter is empty; otherwise, rewrite message headers and
-              append the specified domain name to incomplete addresses.
+              Rewrite or add message headers in mail from  remote  clients  if
+              the  <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a>  parameter value is non-empty,
+              updating incomplete addresses with the domain specified  in  the
+              <a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> parameter, and adding missing head-
+              ers.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
