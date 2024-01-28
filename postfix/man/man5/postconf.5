@@ -795,6 +795,32 @@ canonical_maps = hash:/etc/postfix/canonical
 .fi
 .ad
 .ft R
+.SH cleanup_replace_stray_cr_lf (default: yes)
+Replace each stray <CR> or <LF> character in message
+content with a space character, to prevent outbound SMTP smuggling,
+and to make the evaluation of Postfix-added DKIM or other signatures
+independent from how a remote mail server handles such characters.
+.PP
+SMTP does not allow such characters unless they are part of a
+<CR><LF> sequence, and different mail systems handle
+such stray characters in an implementation-dependent manner. Stray
+<CR> or <LF> characters could be used for outbound
+SMTP smuggling, where an attacker uses a Postfix server to send
+message content with a non-standard End-of-DATA sequence that
+triggers inbound SMTP smuggling at a remote SMTP server.
+.PP
+The replacement happens before all other content management,
+and before Postfix may add a DKIM etc. signature; if the signature
+were created first, the replacement could invalidate the signature.
+.PP
+In addition to preventing SMTP smuggling, replacing stray
+<CR> or <LF> characters ensures that the result of
+signature validation by later mail system will not depend on how
+that mail system handles those stray characters in an
+implementation-dependent manner.
+.PP
+This feature is available in Postfix >= 3.9, 3.8.5, 3.7.10,
+3.6.14, and 3.5.24.
 .SH cleanup_service_name (default: cleanup)
 The name of the \fBcleanup\fR(8) service. This service rewrites addresses
 into the standard form, and performs \fBcanonical\fR(5) address mapping
@@ -8839,6 +8865,131 @@ Use C like escapes to specify special characters such as whitespace.
 This parameter is not subjected to $parameter expansion.
 .PP
 This feature is available in Postfix 2.0 and later.
+.SH smtpd_forbid_bare_newline (default: Postfix < 3.9: no)
+Reject or restrict input lines from an SMTP client that end in
+<LF> instead of the standard <CR><LF>. Such line
+endings are commonly allowed with UNIX-based SMTP servers, but they
+violate RFC 5321, and allowing such line endings can make a server
+vulnerable to
+SMTP smuggling.
+.PP
+Specify one of the following values (case does not matter):
+.IP "\fBnormalize\fR"
+Require the standard
+End-of-DATA sequence <CR><LF>.<CR><LF>.
+Otherwise, allow command or message content lines ending in the
+non-standard <LF>, and process them as if the client sent the
+standard <CR><LF>.
+.br
+.br
+This maintains compatibility
+with many legitimate SMTP client applications that send a mix of
+standard and non-standard line endings, but will fail to receive
+email from client implementations that do not terminate DATA content
+with the standard End-of-DATA sequence
+<CR><LF>.<CR><LF>.
+.br
+.br
+Such clients
+can be excluded with smtpd_forbid_bare_newline_exclusions.
+.br
+.IP "\fByes\fR"
+Compatibility alias for \fBnormalize\fR.
+.br
+.IP "\fBreject\fR"
+Require the standard End-of-DATA
+sequence <CR><LF>.<CR><LF>. Reject a command
+or message content when a line contains bare <LF>, log a "bare
+<LF> received" error, and reply with the SMTP status code in
+$smtpd_forbid_bare_newline_reject_code.
+.br
+.br
+This will reject
+email from SMTP clients that send any non-standard line endings
+such as web applications, netcat, or load balancer health checks.
+.br
+.br
+Such clients can be
+excluded with smtpd_forbid_bare_newline_exclusions.
+.br
+.IP "\fBno\fR (default)"
+Do not require the standard
+End-of-DATA
+sequence <CR><LF>.<CR><LF>. Always process
+a bare <LF> as if the client sent <CR><LF>. This
+option is fully backwards compatible, but is not recommended for
+an Internet-facing SMTP server, because it is vulnerable to  SMTP smuggling.
+.br
+.br
+.PP
+Recommended settings:
+.sp
+.in +4
+.nf
+.na
+.ft C
+# Require the standard End-of-DATA sequence <CR><LF>.<CR><LF>.
+# Otherwise, allow bare <LF> and process it as if the client sent
+# <CR><LF>.
+#
+# This maintains compatibility with many legitimate SMTP client
+# applications that send a mix of standard and non-standard line
+# endings, but will fail to receive email from client implementations
+# that do not terminate DATA content with the standard End-of-DATA
+# sequence <CR><LF>.<CR><LF>.
+#
+# Such clients can be allowlisted with smtpd_forbid_bare_newline_exclusions.
+# The example below allowlists SMTP clients in trusted networks.
+#
+smtpd_forbid_bare_newline = normalize
+smtpd_forbid_bare_newline_exclusions = $mynetworks
+.fi
+.ad
+.ft R
+.in -4
+.PP
+Alternative:
+.sp
+.in +4
+.nf
+.na
+.ft C
+# Reject input lines that contain <LF> and log a "bare <LF> received"
+# error. Require that input lines end in <CR><LF>, and require the
+# standard End-of-DATA sequence <CR><LF>.<CR><LF>.
+#
+# This will reject email from SMTP clients that send any non-standard
+# line endings such as web applications, netcat, or load balancer
+# health checks.
+#
+# Such clients can be allowlisted with smtpd_forbid_bare_newline_exclusions.
+# The example below allowlists SMTP clients in trusted networks.
+#
+smtpd_forbid_bare_newline = reject
+smtpd_forbid_bare_newline_exclusions = $mynetworks
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This feature with settings \fByes\fR and \fBno\fR is available
+in Postfix 3.8.4, 3.7.9, 3.6.13, and 3.5.23. Additionally, the
+settings \fBreject\fR, and \fBnormalize\fR are available with
+Postfix >= 3.9, 3.8.5, 3.7.10, 3.6.14, and 3.5.24.
+.SH smtpd_forbid_bare_newline_exclusions (default: $mynetworks)
+Exclude the specified clients from smtpd_forbid_bare_newline
+enforcement. This setting uses the same syntax and parent-domain
+matching behavior as mynetworks.
+.PP
+This feature is available in Postfix >= 3.9, 3.8.4, 3.7.9,
+3.6.13, and 3.5.23.
+.SH smtpd_forbid_bare_newline_reject_code (default: 550)
+The numerical Postfix SMTP server response code when rejecting a
+request with "smtpd_forbid_bare_newline = reject".
+Specify a 5XX status code (521 to disconnect).
+.PP
+This feature is available in Postfix >= 3.9, 3.8.5, 3.7.10,
+3.6.14, and 3.5.24.
 .SH smtpd_forbidden_commands (default: CONNECT, GET, POST)
 List of commands that cause the Postfix SMTP server to immediately
 terminate the session with a 221 code. This can be used to disconnect

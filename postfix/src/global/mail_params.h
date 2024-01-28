@@ -3744,6 +3744,22 @@ extern char *var_sm_fix_eol;
 #define DEF_DAEMON_OPEN_FATAL	0
 extern bool var_daemon_open_fatal;
 
+ /*
+  * Backwards compatibility.
+  */
+#define VAR_SMTPD_FORBID_BARE_LF	"smtpd_forbid_bare_newline"
+#define DEF_SMTPD_FORBID_BARE_LF	"no"
+
+#define VAR_SMTPD_FORBID_BARE_LF_EXCL	"smtpd_forbid_bare_newline_exclusions"
+#define DEF_SMTPD_FORBID_BARE_LF_EXCL	"$" VAR_MYNETWORKS
+
+#define VAR_SMTPD_FORBID_BARE_LF_CODE	"smtpd_forbid_bare_newline_reject_code"
+#define DEF_SMTPD_FORBID_BARE_LF_CODE	550
+
+#define VAR_CLEANUP_MASK_STRAY_CR_LF	"cleanup_replace_stray_cr_lf"
+#define DEF_CLEANUP_MASK_STRAY_CR_LF	1
+extern int var_cleanup_mask_stray_cr_lf;
+
 /* LICENSE
 /* .ad
 /* .fi

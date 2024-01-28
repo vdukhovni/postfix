@@ -805,6 +805,22 @@ SMTPD(8)                                                              SMTPD(8)
               record  (an  SMTP command line, SMTP response line, SMTP message
               content line, or TLS protocol message).
 
+       Available in Postfix 3.9, 3.8.4, 3.7.9, 3.6.13, 3.5.23 and later:
+
+       <b><a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> (Postfix</b> &lt; <b>3.9: no)</b>
+              Reject or restrict input lines from an SMTP client that  end  in
+              &lt;LF&gt; instead of the standard &lt;CR&gt;&lt;LF&gt;.
+
+       <b><a href="postconf.5.html#smtpd_forbid_bare_newline_exclusions">smtpd_forbid_bare_newline_exclusions</a> ($<a href="postconf.5.html#mynetworks">mynetworks</a>)</b>
+              Exclude  the  specified  clients  from <a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a>
+              enforcement.
+
+       Available in Postfix 3.9, 3.8.5, 3.7.10, 3.6.14, 3.5.24 and later:
+
+       <b><a href="postconf.5.html#smtpd_forbid_bare_newline_reject_code">smtpd_forbid_bare_newline_reject_code</a> (550)</b>
+              The numerical Postfix SMTP server response code when rejecting a
+              request with "<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = reject".
+
 <b>TARPIT CONTROLS</b>
        When a remote SMTP client makes errors, the  Postfix  SMTP  server  can
        insert  delays  before  responding. This can help to slow down run-away

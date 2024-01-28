@@ -164,6 +164,7 @@ char   *var_cleanup_milters;		/* non-SMTP mail */
 char   *var_milt_head_checks;		/* post-Milter header checks */
 int     var_auto_8bit_enc_hdr;		/* auto-detect 8bit encoding header */
 int     var_always_add_hdrs;		/* always add missing headers */
+int     var_cleanup_mask_stray_cr_lf;	/* replace stray CR or LF with space */
 
 CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -180,6 +181,7 @@ CONFIG_BOOL_TABLE cleanup_bool_table[] = {
     VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
     VAR_AUTO_8BIT_ENC_HDR, DEF_AUTO_8BIT_ENC_HDR, &var_auto_8bit_enc_hdr,
     VAR_ALWAYS_ADD_HDRS, DEF_ALWAYS_ADD_HDRS, &var_always_add_hdrs,
+    VAR_CLEANUP_MASK_STRAY_CR_LF, DEF_CLEANUP_MASK_STRAY_CR_LF, &var_cleanup_mask_stray_cr_lf,
     0,
 };
 

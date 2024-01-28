@@ -136,6 +136,16 @@ CLEANUP(8)                                                          CLEANUP(8)
               The set of characters that Postfix will remove from message con-
               tent.
 
+       Available in Postfix version 3.9, 3.8.5, 3.7.10,  3.6.14,  3.5.24,  and
+       later:
+
+       <b><a href="postconf.5.html#cleanup_replace_stray_cr_lf">cleanup_replace_stray_cr_lf</a> (yes)</b>
+              Replace  each  stray  &lt;CR&gt;  or &lt;LF&gt; character in message content
+              with a space character, to prevent outbound SMTP smuggling,  and
+              to make the evaluation of Postfix-added DKIM or other signatures
+              independent from how a remote mail server handles  such  charac-
+              ters.
+
 <b>BEFORE QUEUE MILTER CONTROLS</b>
        As of version 2.3, Postfix supports the Sendmail version 8 Milter (mail
        filter)  protocol.  When  mail is not received via the <a href="smtpd.8.html">smtpd(8)</a> server,

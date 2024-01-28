@@ -14,6 +14,90 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.9 or earlier, read RELEASE_NOTES-2.10
 before proceeding.
 
+Incompatibility with Postfix 3.8.5, 3.7.10, 3.6.14, and 3.5.24
+==============================================================
+
+Improvements for outbound SMTP smuggling defense:
+
+- With "cleanup_replace_stray_cr_lf = yes" (the default), the cleanup
+  daemon replaces each stray <CR> or <LF> character in message
+  content with a space character. The replacement happens before
+  any other content management (header/body_checks, Milters, etc).
+
+  This prevents outbound SMTP smuggling, where an attacker uses
+  Postfix to send email containing a non-standard End-of-DATA
+  sequence, to exploit inbound SMTP smuggling at a vulnerable remote
+  SMTP server.
+
+  This also improves the remote evaluation of Postfix-added DKIM
+  and other signatures, as the evaluation result will not depend
+  on how a remote email server handles stray <CR> or <LF> characters.
+
+This feature applies to all email that Postfix locally or remotely
+sends out. It is not allowlisted based on client identity.
+
+Major changes with Postfix 3.8.5, 3.7.10, 3.6.14, and 3.5.24
+============================================================
+
+Improvements for inbound SMTP smuggling defense:
+
+- Better compatibility: the recommended setting "smtpd_forbid_bare_newline
+  = normalize" requires the standard End-of-DATA sequence
+  <CR><LF>.<CR><LF>, but allows bare newlines from SMTP clients,
+  maintaining more compatibility with existing infrastructure.
+
+- Improved logging for rejected input (it now includes queue ID,
+  helo, mail, and rcpt, if available).
+
+- The setting "smtpd_forbid_bare_newline = reject" requires
+  that input lines end in <CR><LF>, requires the standard End-of-DATA
+  sequence <CR><LF>.<CR><LF>, and rejects a command or message that
+  contains a bare newline. To disconnect the client, specify
+  "smtpd_forbid_bare_newline_reject_code = 521".
+
+- The Postfix SMTP server no longer strips extra <CR> as in
+  <CR><LF>.<CR><CR><LF>, to silence false alarms from test tools
+  that send attack sequences that real mail servers cannot send.
+  Details at https://www.postfix.org/false-smuggling-claims.html
+
+- The old setting "yes" has become an alias for "normalize".
+
+- The old setting "no" has not changed, and allows SMTP smuggling.
+
+The recommended settings are now:
+
+    # Require the standard End-of-DATA sequence <CR><LF>.<CR><LF>.
+    # Otherwise, allow bare <LF> and process it as if the client sent
+    # <CR><LF>.
+    #
+    # This maintains compatibility with many legitimate SMTP client
+    # applications that send a mix of standard and non-standard line
+    # endings, but will fail to receive email from client implementations
+    # that do not terminate DATA content with the standard End-of-DATA
+    # sequence <CR><LF>.<CR><LF>.
+    #
+    # Such clients can be allowlisted with smtpd_forbid_bare_newline_exclusions.
+    # The example below allowlists SMTP clients in trusted networks.
+    #
+    smtpd_forbid_bare_newline = normalize
+    smtpd_forbid_bare_newline_exclusions = $mynetworks
+
+Alternative settings:
+
+    # Reject input lines that contain <LF> and log a "bare <LF> received"
+    # error. Require that input lines end in <CR><LF>, and require the
+    # standard End-of-DATA sequence <CR><LF>.<CR><LF>.
+    #
+    # This will reject email from SMTP clients that send any non-standard
+    # line endings such as web applications, netcat, or load balancer
+    # health checks.
+    #
+    # Such clients can be allowlisted with smtpd_forbid_bare_newline_exclusions.
+    # The example below allowlists SMTP clients in trusted networks.
+    #
+    smtpd_forbid_bare_newline = reject
+    smtpd_forbid_bare_newline_exclusions = $mynetworks
+
 Incompatible change with Postfix 2.11.6
 ---------------------------------------
 
