@@ -27772,3 +27772,18 @@ Apologies for any names omitted.
 	postdrop/postdrop.c, postsuper/postsuper.c, sendmail/sendmail.c,
 	dnsblog/dnsblog.c, postkick/postkick.c, postlock/postlock.c,
 	qmgr/qmgr.c, qmqpd/qmqpd.c, trivial-rewrite/trivial-rewrite.c.
+
+20240129
+
+	Documentation: be more precise about server lookups with
+	MX or SRV records. File: smtp/smtp.c.
+
+	Documentation: postlogd is not a short-running process. It
+	wil keep running until it reaches the max_idle limit. File:
+	postlogd/postlogd.c.
+
+ 	Cleanup (no semantic change): in the mysql: and pgsql:
+ 	clients, made the hard-coded idle and retry timer settings
+ 	configurable, and updated the mysql_table(5) and pgsql_table(5)
+ 	manpages. Files: global/dict_mysql.c, global/dict_pgsql.c,
+	proto/mysql_table, proto/pgsql_table.

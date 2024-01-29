@@ -100,3 +100,10 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  names Files smtpd smtpd hc 
  or access control limitations Files smtpd smtpd hc 
  spam the log with a warning message File tlsmgr tlsmgr c 
+ Cleanup tlsmgr c fix 20240124 File tlsmgr tlsmgr c 
+ MX or SRV records File smtp smtp c 
+ a list of comma separated names Files smtpd smtpd hc 
+ dnsblog dnsblog c postkick postkick c postlock postlock c 
+ postdrop postdrop c postsuper postsuper c sendmail sendmail c 
+ postlogd postlogd c 
+ qmgr qmgr c qmqpd qmqpd c trivial rewrite trivial rewrite c 

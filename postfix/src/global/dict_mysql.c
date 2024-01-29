@@ -152,6 +152,8 @@ typedef struct {
     char   *password;
     char   *dbname;
     char   *charset;
+    int     retry_interval;
+    int     idle_interval;
     ARGV   *hosts;
     PLMYSQL *pldb;
     HOST   *active_host;
@@ -174,15 +176,15 @@ typedef struct {
 #define TYPEINET			(1<<1)
 
 #define RETRY_CONN_MAX			100
-#define RETRY_CONN_INTV			60	/* 1 minute */
-#define IDLE_CONN_INTV			60	/* 1 minute */
+#define DEF_RETRY_INTV			60	/* 1 minute */
+#define DEF_IDLE_INTV			60	/* 1 minute */
 
 /* internal function declarations */
 static PLMYSQL *plmysql_init(ARGV *);
 static int plmysql_query(DICT_MYSQL *, const char *, VSTRING *, MYSQL_RES **);
 static void plmysql_dealloc(PLMYSQL *);
 static void plmysql_close_host(HOST *);
-static void plmysql_down_host(HOST *);
+static void plmysql_down_host(HOST *, int);
 static void plmysql_connect_single(DICT_MYSQL *, HOST *);
 static const char *dict_mysql_lookup(DICT *, const char *);
 DICT   *dict_mysql_open(const char *, int, int);
@@ -476,7 +478,7 @@ static int plmysql_query(DICT_MYSQL *dict_mysql,
 			 name, 0, query, dict_mysql_quote);
 	/* Check for potential dict_mysql_quote() failure. */
 	if (host->stat == STATFAIL) {
-	    plmysql_down_host(host);
+	    plmysql_down_host(host, dict_mysql->retry_interval);
 	    continue;
 	}
 	if (msg_verbose)
@@ -561,7 +563,7 @@ static int plmysql_query(DICT_MYSQL *dict_mysql,
 	 * See what we got.
 	 */
 	if (query_error) {
-	    plmysql_down_host(host);
+	    plmysql_down_host(host, dict_mysql->retry_interval);
 	    if (errno == 0)
 		errno = ENOTSUP;
 	    if (first_result) {
@@ -574,7 +576,7 @@ static int plmysql_query(DICT_MYSQL *dict_mysql,
 			 dict_mysql->dict.type, dict_mysql->dict.name,
 			 host->hostname);
 	    event_request_timer(dict_mysql_event, (void *) host,
-				IDLE_CONN_INTV);
+				dict_mysql->idle_interval);
 	    break;
 	}
     }
@@ -618,7 +620,7 @@ static void plmysql_connect_single(DICT_MYSQL *dict_mysql, HOST *host)
 	if (mysql_set_character_set(host->db, dict_mysql->charset) != 0) {
 	    msg_warn("dict_mysql: mysql_set_character_set '%s' failed: %s",
 		     dict_mysql->charset, mysql_error(host->db));
-	    plmysql_down_host(host);
+	    plmysql_down_host(host, dict_mysql->retry_interval);
 	    return;
 	}
 	if (msg_verbose)
@@ -628,7 +630,7 @@ static void plmysql_connect_single(DICT_MYSQL *dict_mysql, HOST *host)
     } else {
 	msg_warn("connect to mysql server %s: %s",
 		 host->hostname, mysql_error(host->db));
-	plmysql_down_host(host);
+	plmysql_down_host(host, dict_mysql->retry_interval);
     }
 }
 
@@ -644,11 +646,11 @@ static void plmysql_close_host(HOST *host)
  * plmysql_down_host - close a failed connection AND set a "stay away from
  * this host" timer
  */
-static void plmysql_down_host(HOST *host)
+static void plmysql_down_host(HOST *host, int retry_interval)
 {
     mysql_close(host->db);
     host->db = 0;
-    host->ts = time((time_t *) 0) + RETRY_CONN_INTV;
+    host->ts = time((time_t *) 0) + retry_interval;
     host->stat = STATFAIL;
     event_cancel_timer(dict_mysql_event, (void *) host);
 }
@@ -666,6 +668,10 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     dict_mysql->password = cfg_get_str(p, "password", "", 0, 0);
     dict_mysql->dbname = cfg_get_str(p, "dbname", "", 1, 0);
     dict_mysql->charset = cfg_get_str(p, "charset", "utf8mb4", 1, 0);
+    dict_mysql->retry_interval = cfg_get_int(p, "retry_interval",
+					     DEF_RETRY_INTV, 1, 0);
+    dict_mysql->idle_interval = cfg_get_int(p, "idle_interval",
+					    DEF_IDLE_INTV, 1, 0);
     dict_mysql->result_format = cfg_get_str(p, "result_format", "%s", 1, 0);
     dict_mysql->option_file = cfg_get_str(p, "option_file", NULL, 0, 0);
     dict_mysql->option_group = cfg_get_str(p, "option_group", "client", 0, 0);

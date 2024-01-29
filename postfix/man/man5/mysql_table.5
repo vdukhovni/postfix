@@ -97,6 +97,16 @@ This parameter is available with Postfix 3.9 and later.
 With earlier Postfix versions, the default was chosen by
 the MySQL implementation (\fButf8mb4\fR as of MySQL 8.0,
 \fBlatin1\fR historically).
+.IP "\fBidle_interval (default: 60)\fR"
+The number of seconds after which an idle database connection
+will be closed.
+
+This feature is available in Postfix 3.9 and later.
+.IP "\fBretry_interval (default: 60)\fR"
+The number of seconds that a database connection will be
+skipped after an error.
+
+This feature is available in Postfix 3.9 and later.
 .IP "\fBquery\fR"
 The SQL query template used to search the database, where \fB%s\fR
 is a substitute for the address Postfix is trying to resolve,

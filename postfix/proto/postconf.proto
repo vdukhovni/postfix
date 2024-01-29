@@ -3930,11 +3930,12 @@ gateway host instead.
 </p>
 
 <p>
-In the case of SMTP or LMTP delivery, specify one or more destinations
-in the form of a domain name, hostname, hostname:port, [hostname]:port,
-[hostaddress] or [hostaddress]:port, separated by comma or whitespace.
-The form [hostname] turns off MX lookups. Multiple destinations are
-supported in Postfix 3.5 and later.
+In the case of SMTP delivery, specify one or more destinations in
+the form of a domain name, hostname, hostname:service, [hostname]:service,
+[hostaddress] or [hostaddress]:service, separated by comma or whitespace.
+The form [hostname] turns off MX or SRV lookups. Multiple destinations
+are supported in Postfix 3.5 and later. Each destination is tried
+in the specified order.
 </p>
 
 <p>

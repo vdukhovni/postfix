@@ -36,9 +36,9 @@ POSTLOGD(8)                                                        POSTLOGD(8)
        <a href="postqueue.1.html"><b>postqueue</b>(1)</a> and (Postfix &gt;= 3.7) <a href="postlog.1.html"><b>postlog</b>(1)</a>.
 
 <b>CONFIGURATION PARAMETERS</b>
-       Changes  to  <a href="postconf.5.html"><b>main.cf</b></a>  are  picked up automatically, as <a href="postlogd.8.html"><b>postlogd</b>(8)</a> pro-
-       cesses run for only a limited amount of time. Use the command  "<b>postfix</b>
-       <b>reload</b>" to speed up a change.
+       Changes to <a href="postconf.5.html"><b>main.cf</b></a> are not picked up automatically, because <a href="postlogd.8.html"><b>postlogd</b>(8)</a>
+       terminates only after reaching the <b><a href="postconf.5.html#max_idle">max_idle</a></b> time limit.  Use  the  com-
+       mand "<b>postfix reload</b>" to speed up a change.
 
        The  text  below provides only a parameter summary. See <a href="postconf.5.html"><b>postconf</b>(5)</a> for
        more details including examples.

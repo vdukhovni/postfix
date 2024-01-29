@@ -72,10 +72,23 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
               The encoding used by the database client.  The  default  setting
               is:
                   encoding = UTF8
+
               Historically,  the  database client was hard coded to use LATIN1
               in an attempt to disable multibyte character support.
 
               This feature is available in Postfix 3.8 and later.
+
+       <b>idle_interval (default: 60)</b>
+              The number of seconds after which an  idle  database  connection
+              will be closed.
+
+              This feature is available in Postfix 3.9 and later.
+
+       <b>retry_interval (default: 60)</b>
+              The number of seconds that a database connection will be skipped
+              after an error.
+
+              This feature is available in Postfix 3.9 and later.
 
        <b>query</b>  The SQL query template used to search the database, where <b>%s</b>  is
               a  substitute for the address Postfix is trying to resolve, e.g.

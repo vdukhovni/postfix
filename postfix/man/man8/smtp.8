@@ -29,13 +29,9 @@ be tried again at a later time. Delivery status reports are sent
 to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
 appropriate.
 
-The SMTP+LMTP client looks up a list of mail exchanger addresses for
-the destination host, sorts the list by preference, and connects
-to each listed address until it finds a server that responds.
-
-When a server is not reachable, or when mail delivery fails due
-to a recoverable error condition, the SMTP+LMTP client will try to
-deliver the mail to an alternate host.
+The server lookup strategy is different for SMTP and LMTP.
+The details are given below under in the sections "SMTP
+DESTINATION SYNTAX" and "LMTP DESTINATION SYNTAX".
 
 After a successful mail transaction, a connection may be saved
 to the \fBscache\fR(8) connection cache server, so that it
@@ -50,43 +46,57 @@ specific destinations.
 .nf
 .ad
 .fi
-The Postfix SMTP+LMTP client supports multiple destinations
+The Postfix SMTP client supports multiple destinations
 separated by comma or whitespace (Postfix 3.5 and later).
+Each destination is tried in the specified order.
+
 SMTP destinations have the following form:
 .IP \fIdomainname\fR
-.IP \fIdomainname\fR:\fIport\fR
+.IP \fIdomainname\fR:\fIservice\fR
 Look up the mail exchangers for the specified domain, and
-connect to the specified port (default: \fBsmtp\fR).
+connect to the specified service (default: \fBsmtp\fR).
+Optionally, mail exchangers may be looked up with SRV queries
+instead of MX; this requires that \fIservice\fR is given
+in symbolic form.
 .IP [\fIhostname\fR]
-.IP [\fIhostname\fR]:\fIport\fR
-Look up the address(es) of the specified host, and connect to
-the specified port (default: \fBsmtp\fR).
+.IP [\fIhostname\fR]:\fIservice\fR
+Look up the address(es) for the specified host, and connect to
+the specified service (default: \fBsmtp\fR).
 .IP [\fIaddress\fR]
-.IP [\fIaddress\fR]:\fIport\fR
+.IP [\fIaddress\fR]:\fIservice\fR
 Connect to the host at the specified address, and connect
-to the specified port (default: \fBsmtp\fR). An IPv6 address
+to the specified service (default: \fBsmtp\fR). An IPv6 address
 must be formatted as [\fBipv6\fR:\fIaddress\fR].
 .SH "LMTP DESTINATION SYNTAX"
 .na
 .nf
 .ad
 .fi
-The Postfix SMTP+LMTP client supports multiple destinations
+The Postfix LMTP client supports multiple destinations
 separated by comma or whitespace (Postfix 3.5 and later).
+Each destination is tried in the specified order.
+
 LMTP destinations have the following form:
 .IP \fBunix\fR:\fIpathname\fR
 Connect to the local UNIX\-domain server that is bound to the specified
 \fIpathname\fR. If the process runs chrooted, an absolute pathname
 is interpreted relative to the Postfix queue directory.
+.IP \fBinet\fR:\fIdomainname\fR
+.IP \fBinet\fR:\fIdomainname\fR:\fIservice\fR
+Look up the LMTP servers for the specified domain and service
+(default: \fBlmtp\fR).
+This form is supported when SRV lookups are enabled, and
+requires that \fIservice\fR is in symbolic form.
 .IP \fBinet\fR:\fIhostname\fR
-.IP \fBinet\fR:\fIhostname\fR:\fIport\fR
+.IP \fBinet\fR:\fIhostname\fR:\fIservice\fR
+Look up the address(es) for the specified host, and connect to
+the specified service (default: \fBlmtp\fR). When SRV lookups
+are enabled, use the form \fB[\fIhostname\fB]\fR to force
+address lookups.
 .IP \fBinet\fR:[\fIaddress\fR]
-.IP \fBinet\fR:[\fIaddress\fR]:\fIport\fR
-Connect to the specified TCP port on the specified local or
-remote host. If no port is specified, connect to the port defined as
-\fBlmtp\fR in \fBservices\fR(4).
-If no such service is found, the \fBlmtp_tcp_port\fR configuration
-parameter (default value of 24) will be used.
+.IP \fBinet\fR:[\fIaddress\fR]:\fIservice\fR
+Connect to the specified local or remote host and service
+(default: \fBlmtp\fR).
 An IPv6 address must be formatted as [\fBipv6\fR:\fIaddress\fR].
 .SH "SINGLE-RECIPIENT DELIVERY"
 .na
@@ -150,6 +160,8 @@ This feature is available as of Postfix 3.5.
 .SH "SECURITY"
 .na
 .nf
+.ad
+.fi
 The SMTP+LMTP client is moderately security\-sensitive. It
 talks to SMTP or LMTP servers and to DNS servers on the
 network. The SMTP+LMTP client can be run chrooted at fixed

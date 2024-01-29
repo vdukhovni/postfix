@@ -31,10 +31,10 @@
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
-/*	Changes to \fBmain.cf\fR are picked up automatically, as
-/*	\fBpostlogd\fR(8) processes run for only a limited amount
-/*	of time. Use the command "\fBpostfix reload\fR" to speed
-/*	up a change.
+/*	Changes to \fBmain.cf\fR are not picked up automatically,
+/*	because \fBpostlogd\fR(8) terminates only after reaching
+/*	the \fBmax_idle\fR time limit.
+/*	Use the command "\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
 /*	\fBpostconf\fR(5) for more details including examples.

@@ -80,6 +80,18 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
               earlier Postfix versions, the default was chosen  by  the  MySQL
               implementation (<b>utf8mb4</b> as of MySQL 8.0, <b>latin1</b> historically).
 
+       <b>idle_interval (default: 60)</b>
+              The  number  of  seconds after which an idle database connection
+              will be closed.
+
+              This feature is available in Postfix 3.9 and later.
+
+       <b>retry_interval (default: 60)</b>
+              The number of seconds that a database connection will be skipped
+              after an error.
+
+              This feature is available in Postfix 3.9 and later.
+
        <b>query</b>  The  SQL query template used to search the database, where <b>%s</b> is
               a substitute for the address Postfix is trying to resolve,  e.g.
                   query = SELECT replacement FROM aliases WHERE mailbox = '%s'
