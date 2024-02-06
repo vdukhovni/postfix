@@ -176,6 +176,7 @@
 #	post-install(1) post-installation procedure
 # FILES
 #	$config_directory/main.cf, Postfix installation configuration.
+#	$config_directory/makedefs.out, Postfix 'make makefiles' options.
 #	$meta_directory/postfix-files, installation control file.
 #	$config_directory/install.cf, obsolete configuration file.
 # LICENSE

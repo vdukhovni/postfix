@@ -27787,3 +27787,26 @@ Apologies for any names omitted.
  	configurable, and updated the mysql_table(5) and pgsql_table(5)
  	manpages. Files: global/dict_mysql.c, global/dict_pgsql.c,
 	proto/mysql_table, proto/pgsql_table.
+
+20230130
+
+	Reproducible build: added LC_ALL=C to the top of the makedefs
+	script.
+
+20240206
+
+	Documentation: in COMPATIBILITY_README, the descriptions
+	of smtpd_relay_restrictions and smtputf8_enable were grouped
+	under the wrong compatibility level value. Reported by Rune
+	Philosof. File: proto/COMPATIBILITY_README.html.
+
+	Compatibility: the RFC 5322 date and time specification
+	recommends (i.e. should) that a single space be used in
+	each place that FWS appears. To avoid a breaking change,
+	Postfix now formats numerical days as two-digit days, i.e.
+	days 1-9 have a leading zero instead of a leading space.
+	Files: util/sys_defs.h global/mail_date.c.
+
+	Documentation: the post-install(1) manpage now lists
+	$config_directory/makedefs.out as one of the installed
+	files. File: postfix-install.

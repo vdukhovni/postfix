@@ -98,8 +98,13 @@ const char *mail_date(time_t when)
      * First, format the date and wall-clock time. XXX The %e format (day of
      * month, leading zero replaced by blank) isn't in my POSIX book, but
      * many vendors seem to support it.
+     * 
+     * The RFC 5322 Date and Time Specification recommends (i.e., should) "that
+     * a single space be used in each place that FWS appears". To avoid a
+     * potentially breaking change, we prefer the %d (two-digit day) format,
+     * i.e. days 1-9 now have a leading zero instead of a leading space.
      */
-#ifdef MISSING_STRFTIME_E
+#if defined(MISSING_STRFTIME_E) || defined (TWO_DIGIT_DAY_IN_DATE_TIME)
 #define STRFTIME_FMT "%a, %d %b %Y %H:%M:%S "
 #else
 #define STRFTIME_FMT "%a, %e %b %Y %H:%M:%S "

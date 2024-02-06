@@ -184,6 +184,9 @@
 #	New York, NY 10011, USA
 #--
 
+# Override all LC_* settings and LANG for reproducibility.
+LC_ALL=C; export LC_ALL
+
 # By now all shells must have functions.
 
 error() {

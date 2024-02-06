@@ -6,8 +6,6 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
-	postfix-install should mention makedefs.out.
-
 	Remove .printfck directories, and remove printfck targets
 	from Makefiles.
 
@@ -36,16 +34,12 @@ Wish list:
 
 	Check out https://github.com/milter-manager/milter-manager/
 
-	Check out https://cutter.osdn.jp/ (C/C++ unit tests).
+	Check out https://github.com/clear-code/cutter
+	(https://cutter.osdn.jp/) for C/C++ unit tests.
 
-	Follow https://github.com/vdukhovni/postfix/commits/rpk
-
-	Figure out which mysql_*escape_string*() variant to use and
-	handle error results accordingly.
-
-	postscreen hints to smtpd to suppress the server greeating
+	postscreen hints to smtpd to suppress the server greeting
 	after a remote SMTP client has pregreeted. This makes the
-	PIPELINING detection more meaingful.
+	PIPELINING detection more meaningful.
 
 	Multi-recipient support in sender/recipient_bcc_maps and
 	always_bcc.
