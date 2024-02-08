@@ -45,7 +45,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	byte_mask.c known_tcp_ports.c argv_split_at.c dict_stream.c \
 	sane_strtol.c hash_fnv.c ldseed.c mkmap_cdb.c mkmap_db.c mkmap_dbm.c \
 	mkmap_fail.c mkmap_lmdb.c mkmap_open.c mkmap_sdbm.c inet_prefix_top.c \
-	inet_addr_sizes.c
+	inet_addr_sizes.c quote_for_json.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -91,7 +91,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	msg_logger.o logwriter.o unix_dgram_connect.o unix_dgram_listen.o \
 	byte_mask.o known_tcp_ports.o argv_split_at.o dict_stream.o \
 	sane_strtol.o hash_fnv.o ldseed.o mkmap_db.o mkmap_dbm.o \
-	mkmap_fail.o mkmap_open.o inet_prefix_top.o inet_addr_sizes.o
+	mkmap_fail.o mkmap_open.o inet_prefix_top.o inet_addr_sizes.o \
+	quote_for_json.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -145,7 +146,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
 	known_tcp_ports dict_stream find_inet binhash hash_fnv argv \
-	clean_env inet_prefix_top printable readlline
+	clean_env inet_prefix_top printable readlline quote_for_json
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
@@ -619,6 +620,11 @@ inet_prefix_top: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+quote_for_json: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test host_port_test dict_tests \
@@ -629,7 +635,7 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	miss_endif_regexp_test split_qnameval_test vstring_test \
 	vstream_test byte_mask_tests mystrtok_test known_tcp_ports_test \
 	binhash_test argv_test inet_prefix_top_test printable_test \
-	valid_utf8_string_test readlline_test
+	valid_utf8_string_test readlline_test quote_for_json_test
  
 dict_tests: all dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
@@ -1102,6 +1108,9 @@ argv_test: argv
 
 inet_prefix_top_test: inet_prefix_top
 	$(SHLIB_ENV) ${VALGRIND} ./inet_prefix_top
+
+quote_for_json_test: quote_for_json
+	$(SHLIB_ENV) ${VALGRIND} ./quote_for_json
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -2555,6 +2564,10 @@ printable.o: stringops.h
 printable.o: sys_defs.h
 printable.o: vbuf.h
 printable.o: vstring.h
+quote_for_json.o: quote_for_json.c
+quote_for_json.o: stringops.h
+quote_for_json.o: sys_defs.h
+quote_for_json.o: vstring.h
 rand_sleep.o: iostuff.h
 rand_sleep.o: msg.h
 rand_sleep.o: myrand.h

@@ -27810,3 +27810,19 @@ Apologies for any names omitted.
 	Documentation: the post-install(1) manpage now lists
 	$config_directory/makedefs.out as one of the installed
 	files. File: postfix-install.
+
+20240208
+
+	Refactored the JSON string quoting function, so that it can
+	be shared between the postqueue command and the MongoDB
+	client implementation. Files: util.quote_for_json.c,
+	util/stringops.h, postqueue/showq_json.c.
+
+	MongoDB client support, contributed by Hamid Maadani, based
+	on earlier code by Stephan Ferraro. Files: conf/dynamicmaps.cf,
+	conf/postfix-files, makedefs, mantools/postlink,
+	proto/DATABASE_README.html, proto/Makefile.in,
+	proto/MONGODB_README.html, proto/mongodb_table,
+	global/dict_mongodb.c, global/dict_mongodb.h, global/mail_dict.c,
+	global/Makefile.in, postconf/Makefile.in, proto/INSTALL.html,
+	postfix/postfix.c.

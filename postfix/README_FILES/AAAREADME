@@ -52,6 +52,7 @@ LLooookkuupp ttaabblleess ((ddaattaabbaasseess))
   * LDAP_README: LDAP Howto
   * LMDB_README: LMDB Howto
   * MEMCACHE_README: Memcache Howto
+  * MONGODB_README: MongoDB Howto
   * MYSQL_README: MySQL Howto
   * PCRE_README: PCRE Howto
   * PGSQL_README: PostgreSQL Howto

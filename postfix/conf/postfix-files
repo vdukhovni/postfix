@@ -75,6 +75,7 @@ $shlib_directory/lib${LIB_PREFIX}master${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}cdb${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}ldap${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}lmdb${LIB_SUFFIX}:f:root:-:755
+$shlib_directory/${LIB_PREFIX}mongodb${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}mysql${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}pcre${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}pgsql${LIB_SUFFIX}:f:root:-:755
@@ -194,6 +195,7 @@ $manpage_directory/man5/ldap_table.5:f:root:-:644
 $manpage_directory/man5/lmdb_table.5:f:root:-:644
 $manpage_directory/man5/master.5:f:root:-:644
 $manpage_directory/man5/memcache_table.5:f:root:-:644
+$manpage_directory/man5/mongodb_table.5:f:root:-:644
 $manpage_directory/man5/mysql_table.5:f:root:-:644
 $manpage_directory/man5/socketmap_table.5:f:root:-:644
 $manpage_directory/man5/sqlite_table.5:f:root:-:644
@@ -301,6 +303,7 @@ $readme_directory/MAILDROP_README:f:root:-:644
 $readme_directory/MAILLOG_README:f:root:-:644
 $readme_directory/MEMCACHE_README:f:root:-:644
 $readme_directory/MILTER_README:f:root:-:644
+$readme_directory/MONGODB_README:f:root:-:644
 $readme_directory/MULTI_INSTANCE_README:f:root:-:644
 $readme_directory/MYSQL_README:f:root:-:644
 $readme_directory/SMTPUTF8_README:f:root:-:644
@@ -362,6 +365,7 @@ $html_directory/MAILDROP_README.html:f:root:-:644
 $html_directory/MAILLOG_README.html:f:root:-:644
 $html_directory/MEMCACHE_README.html:f:root:-:644
 $html_directory/MILTER_README.html:f:root:-:644
+$html_directory/MONGODB_README.html:f:root:-:644
 $html_directory/MULTI_INSTANCE_README.html:f:root:-:644
 $html_directory/MYSQL_README.html:f:root:-:644
 $html_directory/SMTPUTF8_README.html:f:root:-:644
@@ -418,6 +422,7 @@ $html_directory/mailq.1.html:f:root:-:644
 $html_directory/master.5.html:f:root:-:644
 $html_directory/master.8.html:f:root:-:644
 $html_directory/memcache_table.5.html:f:root:-:644
+$html_directory/mongodb_table.5.html:f:root:-:644
 $html_directory/mysql_table.5.html:f:root:-:644
 $html_directory/sqlite_table.5.html:f:root:-:644
 $html_directory/nisplus_table.5.html:f:root:-:644

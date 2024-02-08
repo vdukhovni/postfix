@@ -17,7 +17,7 @@ MAKES	= bool_table.h bool_vars.h int_table.h int_vars.h str_table.h \
 	nint_table.h nint_vars.h nbool_table.h nbool_vars.h long_table.h \
 	long_vars.h str_fn_table.h str_fn_vars.h 
 DB_MAKES= pcf_ldap_suffixes.h pcf_memcache_suffixes.h pcf_mysql_suffixes.h \
-	pcf_pgsql_suffixes.h pcf_sqlite_suffixes.h
+	pcf_pgsql_suffixes.h pcf_sqlite_suffixes.h pcf_mongodb_suffixes.h
 TEST_TMP= main.cf master.cf test*.tmp
 DUMMIES	= makes_dummy # for "make -j"
 PROG	= postconf
@@ -78,6 +78,9 @@ pcf_ldap_suffixes.h: ../global/dict_ldap.c
 
 pcf_memcache_suffixes.h: ../global/dict_memcache.c 
 	sh extract_cfg.sh -d ../global/dict_memcache.c > $@
+
+pcf_mongodb_suffixes.h: ../global/dict_mongodb.c 
+	sh extract_cfg.sh -d ../global/dict_mongodb.c > $@
 
 pcf_mysql_suffixes.h: ../global/dict_mysql.c 
 	sh extract_cfg.sh -d -s ../global/dict_mysql.c > $@
@@ -1149,6 +1152,7 @@ postconf_dbms.o: ../../include/dict_pgsql.h
 postconf_dbms.o: ../../include/dict_proxy.h
 postconf_dbms.o: ../../include/dict_regexp.h
 postconf_dbms.o: ../../include/dict_sqlite.h
+postconf_dbms.o: ../../include/dict_mongodb.h
 postconf_dbms.o: ../../include/htable.h
 postconf_dbms.o: ../../include/mac_expand.h
 postconf_dbms.o: ../../include/mac_parse.h
@@ -1170,6 +1174,7 @@ postconf_dbms.o: pcf_memcache_suffixes.h
 postconf_dbms.o: pcf_mysql_suffixes.h
 postconf_dbms.o: pcf_pgsql_suffixes.h
 postconf_dbms.o: pcf_sqlite_suffixes.h
+postconf_dbms.o: pcf_mongodb_suffixes.h
 postconf_dbms.o: postconf.h
 postconf_dbms.o: postconf_dbms.c
 postconf_edit.o: ../../include/argv.h

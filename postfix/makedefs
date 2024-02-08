@@ -35,6 +35,7 @@
 #	Specifies one or more non-default object libraries. Postfix
 #	3.0 and later specify some of their database library
 #	dependencies with AUXLIBS_CDB, AUXLIBS_LDAP, AUXLIBS_LMDB,
+#	AUXLIBS_MONGODB,
 #	AUXLIBS_MYSQL, AUXLIBS_PCRE, AUXLIBS_PGSQL, AUXLIBS_SDBM,
 #	and AUXLIBS_SQLITE, respectively.
 # .IP \fBCC=\fIcompiler_command\fR
@@ -1245,7 +1246,7 @@ DEFINED_MAP_TYPES=`
 
 # Propagate AUXLIBS_FOO or merge them into global AUXLIBS (i.e. SYSLIBS).
 
-PLUGGABLE_MAPS="CDB LDAP LMDB MYSQL PCRE PGSQL SDBM SQLITE"
+PLUGGABLE_MAPS="CDB LDAP LMDB MONGODB MYSQL PCRE PGSQL SDBM SQLITE"
 
 case "$dynamicmaps" in
 yes) for name in $PLUGGABLE_MAPS
