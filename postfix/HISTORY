@@ -27826,3 +27826,23 @@ Apologies for any names omitted.
 	global/dict_mongodb.c, global/dict_mongodb.h, global/mail_dict.c,
 	global/Makefile.in, postconf/Makefile.in, proto/INSTALL.html,
 	postfix/postfix.c.
+
+20240209
+
+	Safety: enforce a sane but generous upper bound (100) for
+	the number of DNS resource records that the Postfix DNS
+	client library will admit into a list. This is 20x the
+	default smtp_mx_address_limit value for the number of DNS
+	records that the Postfix SMTP client is willing to consider.
+	Log a warning "dropping records after qname=X qtype=Y" when
+	a list cannot accept more elements. This prevents a tail
+	recursion crash that degrades mail delivery performance.
+	Problem report by Toshifumi Sakaguchi. Files: dns/dns_rr.[hc],
+	global/mail_params.h.
+
+	Performance: eliminate worst-case behavior where the queue
+	manager defers delivery to all destinations over a specific
+	delivery transport, after only a single delivery agent
+	failure. The scheduler now throttles one destination, and
+	allows deliveries to other destinations to keep making
+	progress. Files: *qmgr/qmgr_deliver.c.

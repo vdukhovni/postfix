@@ -80,13 +80,16 @@ int     main(int argc, char **argv)
     var_dnssec_probe = "";
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
-    while ((ch = GETOPT(argc, argv, "f:npvs")) > 0) {
+    while ((ch = GETOPT(argc, argv, "f:l:npvs")) > 0) {
 	switch (ch) {
 	case 'v':
 	    msg_verbose++;
 	    break;
 	case 'f':
 	    dns_rr_filter_compile("DNS reply filter", optarg);
+	    break;
+	case 'l':
+	    var_dns_rr_list_limit = atoi(optarg);
 	    break;
 	case 'n':
 	    lflags |= DNS_REQ_FLAG_NCACHE_TTL;

@@ -54,6 +54,8 @@
 /*
 /*	DNS_RR	*dns_srv_rr_sort(list)
 /*	DNS_RR	*list;
+/*
+/*	int	var_dns_rr_list_limit;
 /* AUXILIARY FUNCTIONS
 /*	DNS_RR	*dns_rr_create_nopref(qname, rname, type, class, ttl,
 /*					data, data_len)
@@ -98,6 +100,9 @@
 /*	dns_rr_append() appends a resource record to a (list of) resource
 /*	record(s).
 /*	A null input list is explicitly allowed.
+/*	This function will log a warning and will discard the
+/*	resource record, when a list already contains var_dns_rr_list_limit
+/*	elements (default: 100).
 /*
 /*	dns_rr_sort() sorts a list of resource records into ascending
 /*	order according to a user-specified criterion. The result is the
@@ -146,9 +151,18 @@
 #include <mymalloc.h>
 #include <myrand.h>
 
+/* Global library. */
+
+#include <mail_params.h>
+
 /* DNS library. */
 
 #include "dns.h"
+
+ /*
+  * Global, to make code testable.
+  */
+int     var_dns_rr_list_limit = DEF_DNS_RR_LIST_LIMIT;
 
 /* dns_rr_create - fill in resource record structure */
 
@@ -218,16 +232,38 @@ DNS_RR *dns_rr_copy(DNS_RR *src)
     return (dst);
 }
 
+/* dns_rr_append_with_limit - append resource record to limited list */
+
+static DNS_RR *dns_rr_append_with_limit(DNS_RR *list, DNS_RR *rr, int limit)
+{
+
+    /*
+     * To avoid log spam, remember a limited amount of information about a
+     * past warning. When anomalies happen frequently, then it is OK that
+     * some anomaly will not be logged, as long as the limit is enforced.
+     */
+    if (list == 0) {
+	list = rr;
+    } else if (limit > 1) {
+	list->next = dns_rr_append_with_limit(list->next, rr, limit - 1);
+    } else {
+	static DNS_RR *logged_node;
+
+	if (logged_node != list) {
+	    logged_node = list;
+	    msg_warn("dns_rr_append: dropping records after qname=%s qtype=%s",
+		     list->qname, dns_strtype(list->type));
+	}
+	dns_rr_free(rr);
+    }
+    return (list);
+}
+
 /* dns_rr_append - append resource record to list */
 
 DNS_RR *dns_rr_append(DNS_RR *list, DNS_RR *rr)
 {
-    if (list == 0) {
-	list = rr;
-    } else {
-	list->next = dns_rr_append(list->next, rr);
-    }
-    return (list);
+    return (dns_rr_append_with_limit(list, rr, var_dns_rr_list_limit));
 }
 
 /* dns_rr_compare_pref_ipv6 - compare records by preference, ipv6 preferred */
