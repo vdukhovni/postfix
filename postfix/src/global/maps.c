@@ -195,8 +195,12 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
     for (map_name = maps->argv->argv; *map_name; map_name++) {
 	if ((dict = dict_handle(*map_name)) == 0)
 	    msg_panic("%s: dictionary not found: %s", myname, *map_name);
-	if (flags != 0 && (dict->flags & flags) == 0)
+	if (flags != 0 && (dict->flags & flags) == 0) {
+	    if (msg_verbose)
+		msg_info("%s: %s: skipping %s lookup for %s",
+			 myname, maps->title, *map_name, name);
 	    continue;
+	}
 	if ((expansion = dict_get(dict, name)) != 0) {
 	    if (*expansion == 0) {
 		msg_warn("%s lookup of %s returns an empty string result",
@@ -252,8 +256,12 @@ const char *maps_file_find(MAPS *maps, const char *name, int flags)
 	if ((dict->flags & DICT_FLAG_SRC_RHS_IS_FILE) == 0)
 	    msg_panic("%s: %s: opened without DICT_FLAG_SRC_RHS_IS_FILE",
 		      myname, maps->title);
-	if (flags != 0 && (dict->flags & flags) == 0)
+	if (flags != 0 && (dict->flags & flags) == 0) {
+	    if (msg_verbose)
+		msg_info("%s: %s: skipping %s lookup for %s",
+			 myname, maps->title, *map_name, name);
 	    continue;
+	}
 	if ((expansion = dict_get(dict, name)) != 0) {
 	    if (*expansion == 0) {
 		msg_warn("%s lookup of %s returns an empty string result",

@@ -60,7 +60,7 @@ ACCESS(5)                                                            ACCESS(5)
               A  logical  line  starts  with  non-whitespace text. A line that
               starts with whitespace continues a logical line.
 
-<b>EMAIL ADDRESS PATTERNS</b>
+<b>EMAIL ADDRESS PATTERNS IN INDEXED TABLES</b>
        With lookups from indexed files such as DB or DBM,  or  from  networked
        tables  such  as  NIS,  LDAP or SQL, patterns are tried in the order as
        listed below:
@@ -92,7 +92,7 @@ ACCESS(5)                                                            ACCESS(5)
        (e.g., <i>user+foo</i>@<i>domain</i>), the  lookup  order  becomes:  <i>user+foo</i>@<i>domain</i>,
        <i>user</i>@<i>domain</i>, <i>domain</i>, <i>user+foo</i>@, and <i>user</i>@.
 
-<b>HOST NAME/ADDRESS PATTERNS</b>
+<b>HOST NAME/ADDRESS PATTERNS IN INDEXED TABLES</b>
        With  lookups  from  indexed files such as DB or DBM, or from networked
        tables such as NIS, LDAP or SQL,  the  following  lookup  patterns  are
        examined in the order as listed:

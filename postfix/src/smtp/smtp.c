@@ -23,9 +23,9 @@
 /*	to the \fBbounce\fR(8), \fBdefer\fR(8) or \fBtrace\fR(8) daemon as
 /*	appropriate.
 /*
-/*	The server lookup strategy is different for SMTP and LMTP.
-/*	The details are given below under in the sections "SMTP
-/*	DESTINATION SYNTAX" and "LMTP DESTINATION SYNTAX".
+/*	The server lookup strategy is different for SMTP and LMTP,
+/*	as described in the sections "SMTP SERVER LOOKUP" and "LMTP
+/*	SERVER LOOKUP".
 /*
 /*	After a successful mail transaction, a connection may be saved
 /*	to the \fBscache\fR(8) connection cache server, so that it
@@ -35,7 +35,7 @@
 /*	destinations that have a high volume of mail in the active
 /*	queue. Connection caching can be enabled permanently for
 /*	specific destinations.
-/* SMTP DESTINATION SYNTAX
+/* SMTP SERVER LOOKUP
 /* .ad
 /* .fi
 /*	The Postfix SMTP client supports multiple destinations
@@ -59,7 +59,7 @@
 /*	Connect to the host at the specified address, and connect
 /*	to the specified service (default: \fBsmtp\fR). An IPv6 address
 /*	must be formatted as [\fBipv6\fR:\fIaddress\fR].
-/* LMTP DESTINATION SYNTAX
+/* LMTP SERVER LOOKUP
 /* .ad
 /* .fi
 /*	The Postfix LMTP client supports multiple destinations

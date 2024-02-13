@@ -52,7 +52,7 @@
 # .IP "multi-line text"
 #	A logical line starts with non-whitespace text. A line that
 #	starts with whitespace continues a logical line.
-# EMAIL ADDRESS PATTERNS
+# EMAIL ADDRESS PATTERNS IN INDEXED TABLES
 # .ad
 # .fi
 #	With lookups from indexed files such as DB or DBM, or from networked
@@ -85,7 +85,7 @@
 #	(e.g., \fIuser+foo\fR@\fIdomain\fR), the lookup order becomes:
 #	\fIuser+foo\fR@\fIdomain\fR, \fIuser\fR@\fIdomain\fR, \fIdomain\fR,
 #	\fIuser+foo\fR@, and \fIuser\fR@.
-# HOST NAME/ADDRESS PATTERNS
+# HOST NAME/ADDRESS PATTERNS IN INDEXED TABLES
 # .ad
 # .fi
 #	With lookups from indexed files such as DB or DBM, or from networked

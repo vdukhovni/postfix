@@ -19085,7 +19085,7 @@ can be excluded with smtpd_forbid_bare_newline_exclusions. </dd>
 <dt> <b>note</b> </dt> <dd> Same as "normalize", but also notes in
 the log whether the Postfix SMTP server received any lines with
 "bare &lt;LF&gt;". The information is formatted as "<tt>disconnect
-from name[address] ...  notes=bare_lf</tt>". The new value is
+from name[address] ...  notes=bare_lf</tt>". The notes value is
 expected to become a list of comma-separated names. <br> <br> This
 feature is available in Postfix 3.9 and later. </dd>
 

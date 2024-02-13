@@ -27841,8 +27841,36 @@ Apologies for any names omitted.
 	global/mail_params.h.
 
 	Performance: eliminate worst-case behavior where the queue
-	manager defers delivery to all destinations over a specific
+	manager deferred delivery to all destinations over a specific
 	delivery transport, after only a single delivery agent
 	failure. The scheduler now throttles one destination, and
 	allows deliveries to other destinations to keep making
 	progress. Files: *qmgr/qmgr_deliver.c.
+
+20240210
+
+	Documentation: introductory text for SMTP and LMTP lookup
+	strategies. File: smtp/smtp.c.
+
+20240211
+
+	Documentation: updated the text for the new "notes=" attribute
+	in SMTP server "disconnect" logging. File: proto/postconf.proto.
+
+20240212
+
+	Documentation: emphasize that email address patterns and
+	host name/address patterns for indexed etc. files are really
+	for indexed etc. files. File: proto/access.
+
+	Documentation: mail_date(3) manpage. File: global/mail_date.c.
+
+20240213
+
+	Tests: updated tests that had suffered from bit rot. Files:
+	bounce/with-msgid-with-filter-no-thread.ref,
+	bounce/with-msgid-with-filter-with-thread.ref,
+	src/dns/mxonly_test.ref, dns/no-mx.ref.
+
+	Logging: indicate which (usually, substring) lookups are
+	skipped. File: global/maps.c.

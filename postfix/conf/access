@@ -59,7 +59,7 @@
 #               line that starts with whitespace continues a  logi-
 #               cal line.
 # 
-# EMAIL ADDRESS PATTERNS
+# EMAIL ADDRESS PATTERNS IN INDEXED TABLES
 #        With lookups from indexed files such as DB or DBM, or from
 #        networked tables such as NIS, LDAP or  SQL,  patterns  are
 #        tried in the order as listed below:
@@ -97,7 +97,7 @@
 #        becomes:  user+foo@domain, user@domain, domain, user+foo@,
 #        and user@.
 # 
-# HOST NAME/ADDRESS PATTERNS
+# HOST NAME/ADDRESS PATTERNS IN INDEXED TABLES
 #        With lookups from indexed files such as DB or DBM, or from
 #        networked  tables  such as NIS, LDAP or SQL, the following
 #        lookup patterns are examined in the order as listed:

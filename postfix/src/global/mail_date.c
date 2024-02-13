@@ -10,7 +10,7 @@
 /*	time_t	when;
 /* DESCRIPTION
 /*	mail_date() converts the time specified in \fIwhen\fR to the
-/*	form: "Mon, 9 Dec 1996 05:38:26 -0500 (EST)" and returns
+/*	form: "Mon, 09 Dec 1996 05:38:26 -0500 (EST)" and returns
 /*	a pointer to the result. The result is overwritten upon
 /*	each call.
 /* DIAGNOSTICS
@@ -104,7 +104,7 @@ const char *mail_date(time_t when)
      * potentially breaking change, we prefer the %d (two-digit day) format,
      * i.e. days 1-9 now have a leading zero instead of a leading space.
      */
-#if defined(MISSING_STRFTIME_E) || defined (TWO_DIGIT_DAY_IN_DATE_TIME)
+#if defined(MISSING_STRFTIME_E) || defined(TWO_DIGIT_DAY_IN_DATE_TIME)
 #define STRFTIME_FMT "%a, %d %b %Y %H:%M:%S "
 #else
 #define STRFTIME_FMT "%a, %e %b %Y %H:%M:%S "

@@ -164,6 +164,7 @@ int     main(int argc, char **argv)
 	    msg_info("PASS %s/%d", str_name_code(af_map, tp->in_af),
 		     tp->in_prefix_len);
 	}
+	myfree(act_prefix);
     }
     msg_info("PASS=%d FAIL=%d", pass, fail);
     return (fail > 0);

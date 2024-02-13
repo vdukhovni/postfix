@@ -24,7 +24,7 @@ Reporting-MTA: dns; mail.example
 Original-Envelope-Id: TEST-ENVID
 X-Postfix-Queue-ID: msgid
 X-Postfix-Sender: rfc822; sender@sender.example
-Arrival-Date: Sat,  5 Dec 2020 13:31:48 -0500 (EST)
+Arrival-Date: Sat, 05 Dec 2020 13:31:48 -0500 (EST)
 
 Final-Recipient: rfc822; rcpt-address
 Original-Recipient: rfc822; rcpt-orig_addr
