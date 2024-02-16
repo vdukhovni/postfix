@@ -27874,3 +27874,24 @@ Apologies for any names omitted.
 
 	Logging: indicate which (usually, substring) lookups are
 	skipped. File: global/maps.c.
+
+20240215
+
+	Portability: Clang versions that predate support for the
+	C23 standard do not allow a declaration immediately after
+	a (switch) label. The workaround is to add a null statement
+	between label and declaration. File: global/dict_mongodb.c.
+
+	Documentation: minor edits. Files: proto/mongodb_README.html,
+	proto/mongodb_table.html.
+
+20240216
+
+	Documentation: dropped text about partial matches from the
+	check_{client,helo,sender,recipient,etrn}_access summaries,
+	deferring to the access(5) manpage for details, for consistency
+	with the check_xx_yy_access features. File: proto/postconf.proto.
+
+	Cleanup: missing mongodb checks in the postconf command,
+	missing mongodb under "postconf -m" manpage entry. Files:
+	postconf/postconf.c, postconf/postconf_dbms.c.

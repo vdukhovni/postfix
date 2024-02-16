@@ -108,3 +108,4 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  postlogd postlogd c 
  qmgr qmgr c qmqpd qmqpd c trivial rewrite trivial rewrite c 
  strategies File smtp smtp c 
+ postconf postconf c postconf postconf_dbms c 

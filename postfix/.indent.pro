@@ -88,6 +88,7 @@
 -TDICT_LDAP
 -TDICT_LMDB
 -TDICT_MC
+-TDICT_MONGODB
 -TDICT_MYSQL
 -TDICT_NI
 -TDICT_NIS
@@ -411,6 +412,7 @@
 -TXSASL_SERVER_IMPL
 -TXSASL_SERVER_IMPL_INFO
 -Tbind_props
+-Tbson_iter_t
 -Tcipher_probe_t
 -Td2i_X509_t
 -Tdane_digest

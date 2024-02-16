@@ -10405,9 +10405,8 @@ pubkey_fingerprint } }
 The commas are optional.
 .br
 .IP "\fBcheck_client_access \fItype:table\fR\fR"
-Search the specified access database for the client hostname,
-parent domains, client IP address, or networks obtained by stripping
-least significant octets. See the \fBaccess\fR(5) manual page for details.
+Search the specified access database for the client hostname
+or IP address. See the \fBaccess\fR(5) manual page for details.
 .br
 .IP "\fBcheck_client_a_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the IP addresses for the
@@ -10434,8 +10433,7 @@ available in Postfix 2.7 and later.
 .br
 .IP "\fBcheck_reverse_client_hostname_access \fItype:table\fR\fR"
 Search the specified access database for the unverified reverse
-client hostname, parent domains, client IP address, or networks
-obtained by stripping least significant octets. See the \fBaccess\fR(5)
+client hostname or IP address. See the \fBaccess\fR(5)
 manual page for details.  Note: a result of "OK" is not allowed for
 safety reasons.  Instead, use DUNNO in order to exclude specific
 hosts from denylists.  This feature is available in Postfix 2.6
@@ -10998,8 +10996,8 @@ restriction that matches wins.
 The following restrictions are specific to the domain name information
 received with the ETRN command.
 .IP "\fBcheck_etrn_access \fItype:table\fR\fR"
-Search the specified access database for the ETRN domain name
-or its parent domains. See the \fBaccess\fR(5) manual page for details.
+Search the specified access database for the ETRN domain name.
+See the \fBaccess\fR(5) manual page for details.
 .br
 .br
 .PP
@@ -11251,7 +11249,7 @@ The following restrictions are specific to the hostname information
 received with the HELO or EHLO command.
 .IP "\fBcheck_helo_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the HELO or EHLO
-hostname or parent domains, and execute the corresponding action.
+hostname, and execute the corresponding action.
 Note: specify "smtpd_helo_required = yes" to fully enforce this
 restriction (without "smtpd_helo_required = yes", a client can
 simply skip check_helo_access by not sending HELO or EHLO).
@@ -11717,8 +11715,7 @@ The following restrictions are specific to the recipient address
 that is received with the RCPT TO command.
 .IP "\fBcheck_recipient_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the resolved RCPT
-TO address, domain, parent domains, or localpart@, and execute the
-corresponding action.
+TO address, and execute the corresponding action.
 .br
 .IP "\fBcheck_recipient_a_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the IP addresses for
@@ -12376,8 +12373,7 @@ The following restrictions are specific to the sender address
 received with the MAIL FROM command.
 .IP "\fBcheck_sender_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MAIL FROM
-address, domain, parent domains, or localpart@, and execute the
-corresponding action.
+address, and execute the corresponding action.
 .br
 .IP "\fBcheck_sender_a_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the IP addresses for

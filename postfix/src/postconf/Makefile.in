@@ -469,6 +469,9 @@ test29:	$(PROG) test29.ref
 	echo 'memcachexx = proxy:memcache:memcachefoo' >> main.cf
 	echo 'memcachefoo_domain = bar' >> main.cf
 	echo 'memcachefoo_domainx = bar' >> main.cf
+	echo 'mongodbxx = proxy:mongodb:mongodbfoo' >> main.cf
+	echo 'mongodbfoo_domain = bar' >> main.cf
+	echo 'mongodbfoo_domainx = bar' >> main.cf
 	touch -t 197101010000 main.cf
 	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc . >test29.tmp 2>&1
 	diff test29.ref test29.tmp
@@ -1146,13 +1149,13 @@ postconf_dbms.o: ../../include/dict.h
 postconf_dbms.o: ../../include/dict_ht.h
 postconf_dbms.o: ../../include/dict_ldap.h
 postconf_dbms.o: ../../include/dict_memcache.h
+postconf_dbms.o: ../../include/dict_mongodb.h
 postconf_dbms.o: ../../include/dict_mysql.h
 postconf_dbms.o: ../../include/dict_pcre.h
 postconf_dbms.o: ../../include/dict_pgsql.h
 postconf_dbms.o: ../../include/dict_proxy.h
 postconf_dbms.o: ../../include/dict_regexp.h
 postconf_dbms.o: ../../include/dict_sqlite.h
-postconf_dbms.o: ../../include/dict_mongodb.h
 postconf_dbms.o: ../../include/htable.h
 postconf_dbms.o: ../../include/mac_expand.h
 postconf_dbms.o: ../../include/mac_parse.h
@@ -1171,10 +1174,10 @@ postconf_dbms.o: ../../include/vstream.h
 postconf_dbms.o: ../../include/vstring.h
 postconf_dbms.o: pcf_ldap_suffixes.h
 postconf_dbms.o: pcf_memcache_suffixes.h
+postconf_dbms.o: pcf_mongodb_suffixes.h
 postconf_dbms.o: pcf_mysql_suffixes.h
 postconf_dbms.o: pcf_pgsql_suffixes.h
 postconf_dbms.o: pcf_sqlite_suffixes.h
-postconf_dbms.o: pcf_mongodb_suffixes.h
 postconf_dbms.o: postconf.h
 postconf_dbms.o: postconf_dbms.c
 postconf_edit.o: ../../include/argv.h

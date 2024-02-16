@@ -20,6 +20,7 @@ Topics covered in this document:
   * Example: Mailing lists
   * Example: MongoDB projections
   * Feedback
+  * Credits
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh MMoonnggooDDBB ssuuppppoorrtt
 
@@ -27,10 +28,11 @@ These instructions assume that you build Postfix from source code as described
 in the INSTALL document. Some modification may be required if you build Postfix
 from a vendor-specific source package.
 
-The Postfix MongoDB client requires the mongo-c-driver library. This can be
-built from source code from the mongod-c project, or as a binary package from
-your OS distribution, typically named mmoonnggoo--cc--ddrriivveerr--ddeevveell or lliibbmmoonnggoocc--ddeevv.
-Installing the mongo-c-driver library may also install lliibbbbssoonn as a dependency.
+The Postfix MongoDB client requires the mmoonnggoo--cc--ddrriivveerr library. This can be
+built from source code from the mongod-c project, or this can be installed as a
+binary package from your OS distribution, typically named mmoonnggoo--cc--ddrriivveerr,
+mmoonnggoo--cc--ddrriivveerr--ddeevveell or lliibbmmoonnggoocc--ddeevv. Installing the mongo-c-driver library
+may also install lliibbbbssoonn as a dependency.
 
 To build Postfix with mongodb map support, add to the CCARGS environment
 variable the options -DHAS_MONGODB and -I for the directory containing the
@@ -95,6 +97,15 @@ provided credentials, and search for any entries whose username is, or alias
 field has "admin@example.com". It will return the username attribute of those
 found, and build a list of their email addresses.
 
+Notes:
+
+  * As with pprroojjeeccttiioonn (see below), the Postfix mongodb client automatically
+    removes the top-level '_id' field from a result_attribute result.
+
+  * The Postfix mongodb client will only parse result fields with data types
+    UTF8, INT32, INT64 and ARRAY. Other fields will be ignored, with a warning
+    in the logs.
+
 EExxaammppllee:: MMaaiilliinngg lliissttss
 
 When it comes to mailing lists, one way of implementing one would be as below:
@@ -110,8 +121,8 @@ addresses in this list.
 
 Notes:
 
-  * As with pprroojjeeccttiioonn, the Postfix mongodb client automatically removes the
-    top-level '_id' field from a result.
+  * As with pprroojjeeccttiioonn (see below), the Postfix mongodb client automatically
+    removes the top-level '_id' field from a result_attribute result.
 
   * The Postfix mongodb client will only parse result fields with data types
     UTF8, INT32, INT64 and ARRAY. Other fields will be ignored, with a warning
@@ -166,4 +177,12 @@ relevant information about your Postfix setup: MongoDB-related output from
 postconf, which libraries you built with, and such. If your question involves
 your database contents, please include the applicable bits of some database
 entries.
+
+CCrreeddiittss
+
+  * Stephan Ferraro (Aionda GmbH) implemented an early version of the Postfix
+    MongoDB client.
+  * Hamid Maadani (Dextrous Technologies, LLC) added support for projections
+    and %letter interpolation, and added documentation.
+  * Wietse Venema adopted and restructured the code and documentation.
 

@@ -77,6 +77,7 @@
 #include <dict_pgsql.h>
 #include <dict_sqlite.h>
 #include <dict_memcache.h>
+#include <dict_mongodb.h>
 #include <dict_regexp.h>
 #include <dict_pcre.h>
 
@@ -131,6 +132,13 @@ static const char *pcf_memcache_suffixes[] = {
     0,
 };
 
+/* See mongodb_table(5). */
+
+static const char *pcf_mongodb_suffixes[] = {
+#include "pcf_mongodb_suffixes.h"
+    0,
+};
+
  /*
   * Bundle up the database types and their suffix lists.
   */
@@ -149,6 +157,7 @@ static const PCF_DBMS_INFO pcf_dbms_info[] = {
     {DICT_TYPE_PGSQL, PCF_DBMS_CLASS_CLIENT, pcf_pgsql_suffixes},
     {DICT_TYPE_SQLITE, PCF_DBMS_CLASS_CLIENT, pcf_sqlite_suffixes},
     {DICT_TYPE_MEMCACHE, PCF_DBMS_CLASS_CLIENT, pcf_memcache_suffixes},
+    {DICT_TYPE_MONGODB, PCF_DBMS_CLASS_CLIENT, pcf_mongodb_suffixes},
     {DICT_TYPE_REGEXP, PCF_DBMS_CLASS_REGEX},
     {DICT_TYPE_PCRE, PCF_DBMS_CLASS_REGEX},
     {0},

@@ -1,5 +1,7 @@
 Wish list:
 
+	The postconf command needs more mongodb tests.
+
 	Things to do before the stable release:
 
 	make pre-release-check, HTML validator check.

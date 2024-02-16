@@ -293,6 +293,11 @@
 /*	\fBmemcache_table\fR(5).
 /*
 /*	This feature is available with Postfix 2.9 and later.
+/* .IP "\fBmongodb\fR"
+/*	MongoDB database client. This is described in
+/*	\fBmongodb_table\fR(5).
+/*
+/*	This feature is available with Postfix 3.9 and later.
 /* .IP "\fBmysql\fR (read-only)"
 /*	MySQL database client.  Available on systems with support
 /*	for MySQL databases.  This is described in \fBmysql_table\fR(5).

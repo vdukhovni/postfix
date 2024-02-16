@@ -255,6 +255,7 @@ static char *get_result_string(DICT_MONGODB *dict_mongodb,
 					   resultString, expansion, key);
 	    break;
 	case BSON_TYPE_ARRAY:
+	    ;					/* For pre-C23 Clang. */
 	    const uint8_t *dataBuffer = NULL;
 	    unsigned int len = 0;
 	    bson_iter_t dataIter;

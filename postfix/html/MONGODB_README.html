@@ -28,6 +28,7 @@ without the hassle and delay of having to copy it to each. </p>
 <li><a href="#example_mailing_list">Example: Mailing lists</a>
 <li><a href="#example_projections">Example: MongoDB projections</a>
 <li><a href="#feedback">Feedback</a>
+<li><a href="#credits">Credits</a>
 </ul>
 
 <h2><a name="build">Building Postfix with MongoDB support</a></h2>
@@ -37,11 +38,12 @@ code as described in the <a href="INSTALL.html">INSTALL</a> document. Some modif
 be required if you build Postfix from a vendor-specific source
 package. </p>
 
-<p>The Postfix MongoDB client requires the mongo-c-driver library.
-This can be built from source code from <a
+<p>The Postfix MongoDB client requires the <b>mongo-c-driver</b>
+library. This can be built from source code from <a
 href="https://github.com/mongodb/mongo-c-driver/releases">the
-mongod-c project</a>, or as a binary package from your OS distribution,
-typically named <b>mongo-c-driver-devel</b> or <b>libmongoc-dev</b>.
+mongod-c project</a>, or this can be installed as a binary package
+from your OS distribution, typically named <b>mongo-c-driver</b>,
+<b>mongo-c-driver-devel</b> or <b>libmongoc-dev</b>.
 Installing the mongo-c-driver library may also install <b>libbson</b>
 as a dependency. </p>
 
@@ -129,6 +131,20 @@ entries whose username is, or alias field has "admin@example.com".
 It will return the username attribute of those found, and build a
 list of their email addresses. </p>
 
+<p> Notes: </p>
+
+<ul>
+
+<li><p> As with <b>projection</b> (see below), the Postfix mongodb
+client automatically removes the top-level '_id' field from a
+result_attribute result. </p> </li>
+
+<li><p> The Postfix mongodb client will only parse result fields
+with data types UTF8, INT32, INT64 and ARRAY. Other fields will be
+ignored, with a warning in the logs. </p> </li>
+
+</ul>
+
 <h2><a name="example_mailing_list">Example: Mailing lists</a></h2>
 
 <p>When it comes to mailing lists, one way of implementing one would
@@ -155,9 +171,9 @@ result_attribute = address
 
 <ul>
 
-<li><p> As with <b>projection</b>, the Postfix mongodb client
-automatically removes the top-level '_id' field from a result. </p>
-</li>
+<li><p> As with <b>projection</b> (see below), the Postfix mongodb
+client automatically removes the top-level '_id' field from a
+result_attribute result. </p> </li>
 
 <li><p> The Postfix mongodb client will only parse result fields
 with data types UTF8, INT32, INT64 and ARRAY. Other fields will be
@@ -219,6 +235,7 @@ with a warning in the logs. It is suggested to exclude any unnecessary
 fields when using a projection. </p></li>
 
 </ul>
+
 <h2><a name="feedback">Feedback</a></h2>
 
 <p> If you have questions, send them to postfix-users@postfix.org.
@@ -226,6 +243,20 @@ Please include relevant information about your Postfix setup:
 MongoDB-related output from postconf, which libraries you built
 with, and such. If your question involves your database contents,
 please include the applicable bits of some database entries. </p>
+
+<h2><a name="credits">Credits</a></h2>
+
+<ul>
+
+<li> Stephan Ferraro (Aionda GmbH) implemented an early version of the
+Postfix MongoDB client.
+
+<li> Hamid Maadani (Dextrous Technologies, LLC) added support for
+projections and %<i>letter</i> interpolation, and added documentation.
+
+<li> Wietse Venema adopted and restructured the code and documentation.
+
+</ul>
 
 </body>
 

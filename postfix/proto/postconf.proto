@@ -5303,9 +5303,8 @@ pubkey_fingerprint } } </dd>
 
 <dt><b><a name="check_client_access">check_client_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
-<dd>Search the specified access database for the client hostname,
-parent domains, client IP address, or networks obtained by stripping
-least significant octets. See the access(5) manual page for details. </dd>
+<dd>Search the specified access database for the client hostname
+or IP address. See the access(5) manual page for details. </dd>
 
 <dt><b><a name="check_client_a_access">check_client_a_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -5336,8 +5335,7 @@ available in Postfix 2.7 and later.  </dd>
 <dt><b><a name="check_reverse_client_hostname_access">check_reverse_client_hostname_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access database for the unverified reverse
-client hostname, parent domains, client IP address, or networks
-obtained by stripping least significant octets. See the access(5)
+client hostname or IP address. See the access(5)
 manual page for details.  Note: a result of "OK" is not allowed for
 safety reasons.  Instead, use DUNNO in order to exclude specific
 hosts from denylists.  This feature is available in Postfix 2.6
@@ -5810,8 +5808,8 @@ received with the ETRN command.
 
 <dt><b><a name="check_etrn_access">check_etrn_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
-<dd>Search the specified access database for the ETRN domain name
-or its parent domains. See the access(5) manual page for details.
+<dd>Search the specified access database for the ETRN domain name.
+See the access(5) manual page for details.
 </dd>
 
 </dl>
@@ -5926,7 +5924,7 @@ received with the HELO or EHLO command.
 <dt><b><a name="check_helo_access">check_helo_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the HELO or EHLO
-hostname or parent domains, and execute the corresponding action.
+hostname, and execute the corresponding action.
 Note: specify "smtpd_helo_required = yes" to fully enforce this
 restriction (without "smtpd_helo_required = yes", a client can
 simply skip check_helo_access by not sending HELO or EHLO).  </dd>
@@ -6221,8 +6219,7 @@ that is received with the RCPT TO command.
 <dt><b><a name="check_recipient_access">check_recipient_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the resolved RCPT
-TO address, domain, parent domains, or localpart@, and execute the
-corresponding action.  </dd>
+TO address, and execute the corresponding action.  </dd>
 
 <dt><b><a name="check_recipient_a_access">check_recipient_a_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -6736,8 +6733,7 @@ received with the MAIL FROM command.
 <dt><b><a name="check_sender_access">check_sender_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the MAIL FROM
-address, domain, parent domains, or localpart@, and execute the
-corresponding action. </dd>
+address, and execute the corresponding action. </dd>
 
 <dt><b><a name="check_sender_a_access">check_sender_a_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
