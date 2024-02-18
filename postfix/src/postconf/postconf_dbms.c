@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include <postconf.h>
 /*
-/*	void	pcf_register_dbms_parameters(param_value, flag_parameter,
+/*	void	pcf_register_dbms_parameters(mode, param_value, flag_parameter,
 /*					local_scope)
+/*	int	mode;
 /*	const char *param_value;
 /*	const char *(flag_parameter) (const char *, int, PCF_MASTER_ENT *);
 /*	PCF_MASTER_ENT *local_scope;
@@ -17,6 +18,9 @@
 /*	the database name to a database-defined suffix.
 /*
 /*	Arguments:
+/* .IP mode
+/*	If PCF_WARN_UNUSED_DEPRECATED is set, warn about unused
+/*	database settings.
 /* .IP param_value
 /*	A parameter value to be searched for "type:table" strings.
 /*	When a database type is found that supports legacy-style
@@ -172,7 +176,8 @@ static const PCF_DBMS_INFO pcf_dbms_info[] = {
 
 /* pcf_check_dbms_client - look for unused names in client configuration */
 
-static void pcf_check_dbms_client(const PCF_DBMS_INFO *dp, const char *cf_file)
+static void pcf_check_dbms_client(int mode, const PCF_DBMS_INFO *dp,
+				          const char *cf_file)
 {
     DICT   *dict;
     VSTREAM *fp;
@@ -226,19 +231,21 @@ static void pcf_check_dbms_client(const PCF_DBMS_INFO *dp, const char *cf_file)
 	 * code, because a database client parameter namespace is unlike the
 	 * parameter namespaces in main.cf or master.cf.
 	 */
-	for (cpp = dp->db_suffixes; *cpp; cpp++)
-	    (void) dict_del(dict, *cpp);
-	for (dir = DICT_SEQ_FUN_FIRST;
-	     dict->sequence(dict, dir, &name, &value) == DICT_STAT_SUCCESS;
-	     dir = DICT_SEQ_FUN_NEXT)
-	    msg_warn("%s: unused parameter: %s=%s", dict_spec, name, value);
+	if (mode & PCF_WARN_UNUSED_DEPRECATED) {
+	    for (cpp = dp->db_suffixes; *cpp; cpp++)
+		(void) dict_del(dict, *cpp);
+	    for (dir = DICT_SEQ_FUN_FIRST;
+	      dict->sequence(dict, dir, &name, &value) == DICT_STAT_SUCCESS;
+		 dir = DICT_SEQ_FUN_NEXT)
+		msg_warn("%s: unused parameter: %s=%s", dict_spec, name, value);
+	}
     }
     myfree(dict_spec);
 }
 
 /* pcf_register_dbms_helper - parse one possible database type:name */
 
-static void pcf_register_dbms_helper(char *str_value,
+static void pcf_register_dbms_helper(int mode, char *str_value,
          const char *(flag_parameter) (const char *, int, PCF_MASTER_ENT *),
 				             PCF_MASTER_ENT *local_scope,
 				             int recurse)
@@ -267,8 +274,8 @@ static void pcf_register_dbms_helper(char *str_value,
 		myfree(err);
 	    }
 	    if (recurse)
-		pcf_register_dbms_helper(db_type, flag_parameter, local_scope,
-					 recurse);
+		pcf_register_dbms_helper(mode, db_type, flag_parameter,
+					 local_scope, recurse);
 	    continue;
 	}
 
@@ -296,7 +303,7 @@ static void pcf_register_dbms_helper(char *str_value,
 	    for (dp = pcf_dbms_info; dp->db_type != 0; dp++) {
 		if (strcmp(db_type, dp->db_type) == 0) {
 		    if (dp->db_class == PCF_DBMS_CLASS_CLIENT)
-			pcf_check_dbms_client(dp, prefix);
+			pcf_check_dbms_client(mode, dp, prefix);
 		    break;
 		}
 	    }
@@ -330,8 +337,8 @@ static void pcf_register_dbms_helper(char *str_value,
 			break;
 		    }
 		}
-		pcf_register_dbms_helper(prefix, flag_parameter, local_scope,
-					 next_recurse);
+		pcf_register_dbms_helper(mode, prefix, flag_parameter,
+					 local_scope, next_recurse);
 		continue;
 	    } else {
 		for (dp = pcf_dbms_info; dp->db_type != 0; dp++) {
@@ -356,7 +363,7 @@ static void pcf_register_dbms_helper(char *str_value,
 
 /* pcf_register_dbms_parameters - look for database_type:prefix_name */
 
-void    pcf_register_dbms_parameters(const char *param_value,
+void    pcf_register_dbms_parameters(int mode, const char *param_value,
          const char *(flag_parameter) (const char *, int, PCF_MASTER_ENT *),
 				             PCF_MASTER_ENT *local_scope)
 {
@@ -372,7 +379,8 @@ void    pcf_register_dbms_parameters(const char *param_value,
 	buffer = vstring_alloc(100);
     bufp = pcf_expand_parameter_value(buffer, PCF_SHOW_EVAL, param_value,
 				      local_scope);
-    pcf_register_dbms_helper(bufp, flag_parameter, local_scope, PCF_DBMS_RECURSE);
+    pcf_register_dbms_helper(mode, bufp, flag_parameter, local_scope,
+			     PCF_DBMS_RECURSE);
 }
 
 #endif

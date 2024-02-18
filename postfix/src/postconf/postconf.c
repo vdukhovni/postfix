@@ -8,7 +8,7 @@
 /* .ti -4
 /*	\fBManaging main.cf:\fR
 /*
-/*	\fBpostconf\fR [\fB-dfhHnopvx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-dfhHnopqvx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fB-C \fIclass,...\fR] [\fIparameter ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-epv\fR] [\fB-c \fIconfig_dir\fR]
@@ -23,7 +23,7 @@
 /* .ti -4
 /*	\fBManaging master.cf service entries:\fR
 /*
-/*	\fBpostconf\fR \fB-M\fR [\fB-fovx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-M\fR [\fB-foqvx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIservice\fR[\fB/\fItype\fR]\fI ...\fR]
 /*
 /*	\fBpostconf\fR \fB-M\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -38,7 +38,7 @@
 /* .ti -4
 /*	\fBManaging master.cf service fields:\fR
 /*
-/*	\fBpostconf\fR \fB-F\fR [\fB-fhHovx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-F\fR [\fB-fhHoqvx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIservice\fR[\fB/\fItype\fR[\fB/\fIfield\fR]]\fI ...\fR]
 /*
 /*	\fBpostconf\fR \fB-F\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -47,7 +47,7 @@
 /* .ti -4
 /*	\fBManaging master.cf service parameters:\fR
 /*
-/*	\fBpostconf\fR \fB-P\fR [\fB-fhHovx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-P\fR [\fB-fhHoqvx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIservice\fR[\fB/\fItype\fR[\fB/\fIparameter\fR]]\fI ...\fR]
 /*
 /*	\fBpostconf\fR \fB-P\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -457,6 +457,10 @@
 /*	wildcard fields.
 /*
 /*	This feature is available with Postfix 2.11 and later.
+/* .IP \fB-q\fR
+/*	Do not log warnings for deprecated or unused parameters.
+/*
+/*	This feature is available with Postfix 3.9 and later.
 /* .IP "\fB-t\fR [\fItemplate_file\fR]"
 /*	Display the templates for text that appears at the beginning
 /*	of delivery status notification (DSN) messages, without
@@ -784,6 +788,8 @@ static void pcf_check_compat_options(int optval)
     const int (*op)[2];
     int     excess;
 
+    optval &= ~PCF_DEF_MODE;
+
     for (op = pcf_compat_options; op[0][0] != 0; op++) {
 	if ((optval & *op[0]) != 0
 	    && (excess = (optval & ~((*op)[0] | (*op)[1]))) != 0)
@@ -849,7 +855,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "aAbc:C:deEfFhHlmMno:pPtT:vxX#")) > 0) {
+    while ((ch = GETOPT(argc, argv, "aAbc:C:deEfFhHlmMno:pPqtT:vxX#")) > 0) {
 	switch (ch) {
 	case 'a':
 	    pcf_cmd_mode |= PCF_SHOW_SASL_SERV;
@@ -916,6 +922,9 @@ int     main(int argc, char **argv)
 	    break;
 	case 'P':
 	    pcf_cmd_mode |= PCF_MASTER_PARAM;
+	    break;
+	case 'q':
+	    pcf_cmd_mode &= ~(PCF_WARN_UNUSED_DEPRECATED);
 	    break;
 	case 't':
 	    pcf_cmd_mode |= PCF_DUMP_DSN_TEMPL;
@@ -1033,7 +1042,7 @@ int     main(int argc, char **argv)
 	    pcf_set_parameters(override_params->argv);
 	pcf_register_builtin_parameters(basename(argv[0]), getpid());
 	pcf_register_service_parameters();
-	pcf_register_user_parameters();
+	pcf_register_user_parameters(pcf_cmd_mode);
 	if (pcf_cmd_mode & PCF_MASTER_FLD)
 	    pcf_show_master_fields(VSTREAM_OUT, pcf_cmd_mode, argc - optind,
 				   argv + optind);
@@ -1043,7 +1052,8 @@ int     main(int argc, char **argv)
 	else
 	    pcf_show_master_entries(VSTREAM_OUT, pcf_cmd_mode, argc - optind,
 				    argv + optind);
-	pcf_flag_unused_master_parameters();
+	if (pcf_cmd_mode & PCF_WARN_UNUSED_DEPRECATED)
+	    pcf_flag_unused_master_parameters();
     }
 
     /*
@@ -1095,7 +1105,7 @@ int     main(int argc, char **argv)
 	pcf_read_master(PCF_WARN_ON_OPEN_ERROR);
 	pcf_register_service_parameters();
 	if ((pcf_cmd_mode & PCF_SHOW_DEFS) == 0)
-	    pcf_register_user_parameters();
+	    pcf_register_user_parameters(pcf_cmd_mode);
 
 	/*
 	 * Show the requested values.
@@ -1104,11 +1114,12 @@ int     main(int argc, char **argv)
 			    argv + optind);
 
 	/*
-	 * Flag unused parameters. This makes no sense with "postconf -d",
-	 * because that ignores all the user-specified parameters and
-	 * user-specified macro expansions in main.cf.
+	 * Flag unused or deprecated parameters. This makes no sense with
+	 * "postconf -d", because that ignores all the user-specified
+	 * parameters and user-specified macro expansions in main.cf.
 	 */
-	if ((pcf_cmd_mode & PCF_SHOW_DEFS) == 0) {
+	if ((pcf_cmd_mode & PCF_SHOW_DEFS) == 0
+	    && (pcf_cmd_mode & PCF_WARN_UNUSED_DEPRECATED) != 0) {
 	    pcf_flag_unused_main_parameters();
 	    pcf_flag_unused_master_parameters();
 	}

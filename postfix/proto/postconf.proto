@@ -9833,6 +9833,9 @@ but do not require that clients use TLS encryption. </p>
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+smtpd_tls_security_level instead. </p>
+
 <p> This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use smtpd_tls_security_level instead. </p>
 
@@ -9848,6 +9851,9 @@ server.  This option is therefore off by default. </p>
 <p> Note 2: when invoked via "<b>sendmail -bs</b>", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private  
 key. This is intended behavior. </p>
+
+<p> This feature is deprecated as of Postfix 3.9. Specify
+smtpd_tls_security_level instead. </p>
 
 <p> This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use smtpd_tls_security_level instead. </p>
@@ -10989,6 +10995,9 @@ configuration parameter.  See there for details. </p>
 <p> The LMTP-specific version of the smtp_tls_per_site configuration
 parameter.  See there for details. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+lmtp_tls_policy_maps instead. </p>
+
 <p> This feature is available in Postfix 2.3 and later. </p>
 
 %PARAM lmtp_generic_maps
@@ -11094,12 +11103,18 @@ configuration parameter.  See there for details. </p>
 <p> The LMTP-specific version of the smtp_use_tls configuration
 parameter.  See there for details. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+lmtp_tls_security_level instead. </p>
+
 <p> This feature is available in Postfix 2.3 and later. </p>
 
 %PARAM lmtp_enforce_tls no
 
 <p> The LMTP-specific version of the smtp_enforce_tls configuration
 parameter.  See there for details. </p>
+
+<p> This feature is deprecated as of Postfix 3.9. Specify
+lmtp_tls_security_level instead. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -15731,6 +15746,9 @@ for details. </p>
 require that clients use TLS encryption. See smtpd_enforce_tls for
 further details. Use tlsproxy_tls_security_level instead. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+tlsproxy_tls_security_level instead. </p>
+
 <p> This feature is available in Postfix 2.8 and later. </p>
 
 %PARAM tlsproxy_tls_CAfile $smtpd_tls_CAfile
@@ -15805,6 +15823,8 @@ smtpd_tls_dcert_file for further details.  </p>
 should use with non-export EDH ciphers. See smtpd_tls_dh1024_param_file
 for further details. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Do not specify. </p>
+
 <p> This feature is available in Postfix 2.8 and later. </p>
 
 %PARAM tlsproxy_tls_dh512_param_file $smtpd_tls_dh512_param_file
@@ -15856,6 +15876,8 @@ the "tlsproxy_tls_chain_files" parameter. </p>
 <p> The Postfix tlsproxy(8) server security grade for ephemeral
 elliptic-curve Diffie-Hellman (EECDH) key exchange. See
 smtpd_tls_eecdh_grade for further details. </p>
+
+<p> This feature is deprecated as of Postfix 3.9. Do not specify. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
@@ -15960,6 +15982,9 @@ shared by all three services, namely smtpd_tls_session_cache_timeout. </p>
 <p> Opportunistic TLS: announce STARTTLS support to remote SMTP clients,
 but do not require that clients use TLS encryption. See smtpd_use_tls
 for further details. Use tlsproxy_tls_security_level instead. </p>
+
+<p> This feature is deprecated as of Postfix 3.9. Specify
+tlsproxy_tls_security_level instead. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
@@ -17764,6 +17789,9 @@ was previously called tlsproxy_client_level. </p>
 usage policy by next-hop destination and by remote TLS server
 hostname.  See smtp_tls_per_site for further details. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+tlsproxy_client_policy_maps instead. </p>
+
 <p> This feature is available in Postfix 3.4 and later. </p>
 
 %PARAM tlsproxy_client_policy $smtp_tls_policy_maps
@@ -17790,12 +17818,18 @@ was previously called tlsproxy_client_policy. </p>
 support. See smtp_use_tls for further details. Use
 tlsproxy_client_security_level instead. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+tlsproxy_client_security_level instead. </p>
+
 <p> This feature is available in Postfix 3.4 and later. </p>
 
 %PARAM tlsproxy_client_enforce_tls $smtp_enforce_tls
 
 <p> Enforcement mode: require that SMTP servers use TLS encryption.
 See smtp_enforce_tls for further details. Use
+tlsproxy_client_security_level instead. </p>
+
+<p> This feature is deprecated as of Postfix 3.9. Specify
 tlsproxy_client_security_level instead. </p>
 
 <p> This feature is available in Postfix 3.4 and later. </p>

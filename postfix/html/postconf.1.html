@@ -13,7 +13,7 @@ POSTCONF(1)                                                        POSTCONF(1)
 <b>SYNOPSIS</b>
    <b>Managing <a href="postconf.5.html">main.cf</a>:</b>
 
-       <b>postconf</b> [<b>-dfhHnopvx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-C</b> <i>class,...</i>] [<i>parameter ...</i>]
+       <b>postconf</b> [<b>-dfhHnopqvx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-C</b> <i>class,...</i>] [<i>parameter ...</i>]
 
        <b>postconf</b> [<b>-epv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>parameter</i><b>=</b><i>value ...</i>
 
@@ -23,7 +23,7 @@ POSTCONF(1)                                                        POSTCONF(1)
 
    <b>Managing <a href="master.5.html">master.cf</a> service entries:</b>
 
-       <b>postconf -M</b> [<b>-fovx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>] <i>...</i>]
+       <b>postconf -M</b> [<b>-foqvx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>] <i>...</i>]
 
        <b>postconf -M</b> [<b>-ev</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type</i><b>=</b><i>value ...</i>
 
@@ -33,13 +33,13 @@ POSTCONF(1)                                                        POSTCONF(1)
 
    <b>Managing <a href="master.5.html">master.cf</a> service fields:</b>
 
-       <b>postconf -F</b> [<b>-fhHovx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>[<b>/</b><i>field</i>]] <i>...</i>]
+       <b>postconf -F</b> [<b>-fhHoqvx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>[<b>/</b><i>field</i>]] <i>...</i>]
 
        <b>postconf -F</b> [<b>-ev</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type</i><b>/</b><i>field</i><b>=</b><i>value ...</i>
 
    <b>Managing <a href="master.5.html">master.cf</a> service parameters:</b>
 
-       <b>postconf -P</b> [<b>-fhHovx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>[<b>/</b><i>parameter</i>]] <i>...</i>]
+       <b>postconf -P</b> [<b>-fhHoqvx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>[<b>/</b><i>parameter</i>]] <i>...</i>]
 
        <b>postconf -P</b> [<b>-ev</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type</i><b>/</b><i>parameter</i><b>=</b><i>value ...</i>
 
@@ -438,6 +438,10 @@ POSTCONF(1)                                                        POSTCONF(1)
               are omitted will be handled as "*" wildcard fields.
 
               This feature is available with Postfix 2.11 and later.
+
+       <b>-q</b>     Do not log warnings for deprecated or unused parameters.
+
+              This feature is available with Postfix 3.9 and later.
 
        <b>-t</b> [<i>template</i><b>_</b><i>file</i>]
               Display  the templates for text that appears at the beginning of

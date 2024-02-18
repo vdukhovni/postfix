@@ -12,7 +12,7 @@ Postfix configuration utility
 .ti -4
 \fBManaging main.cf:\fR
 
-\fBpostconf\fR [\fB\-dfhHnopvx\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostconf\fR [\fB\-dfhHnopqvx\fR] [\fB\-c \fIconfig_dir\fR]
 [\fB\-C \fIclass,...\fR] [\fIparameter ...\fR]
 
 \fBpostconf\fR [\fB\-epv\fR] [\fB\-c \fIconfig_dir\fR]
@@ -27,7 +27,7 @@ Postfix configuration utility
 .ti -4
 \fBManaging master.cf service entries:\fR
 
-\fBpostconf\fR \fB\-M\fR [\fB\-fovx\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB\-M\fR [\fB\-foqvx\fR] [\fB\-c \fIconfig_dir\fR]
 [\fIservice\fR[\fB/\fItype\fR]\fI ...\fR]
 
 \fBpostconf\fR \fB\-M\fR [\fB\-ev\fR] [\fB\-c \fIconfig_dir\fR]
@@ -42,7 +42,7 @@ Postfix configuration utility
 .ti -4
 \fBManaging master.cf service fields:\fR
 
-\fBpostconf\fR \fB\-F\fR [\fB\-fhHovx\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB\-F\fR [\fB\-fhHoqvx\fR] [\fB\-c \fIconfig_dir\fR]
 [\fIservice\fR[\fB/\fItype\fR[\fB/\fIfield\fR]]\fI ...\fR]
 
 \fBpostconf\fR \fB\-F\fR [\fB\-ev\fR] [\fB\-c \fIconfig_dir\fR]
@@ -51,7 +51,7 @@ Postfix configuration utility
 .ti -4
 \fBManaging master.cf service parameters:\fR
 
-\fBpostconf\fR \fB\-P\fR [\fB\-fhHovx\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB\-P\fR [\fB\-fhHoqvx\fR] [\fB\-c \fIconfig_dir\fR]
 [\fIservice\fR[\fB/\fItype\fR[\fB/\fIparameter\fR]]\fI ...\fR]
 
 \fBpostconf\fR \fB\-P\fR [\fB\-ev\fR] [\fB\-c \fIconfig_dir\fR]
@@ -463,6 +463,10 @@ service type fields that are omitted will be handled as "*"
 wildcard fields.
 
 This feature is available with Postfix 2.11 and later.
+.IP \fB\-q\fR
+Do not log warnings for deprecated or unused parameters.
+
+This feature is available with Postfix 3.9 and later.
 .IP "\fB\-t\fR [\fItemplate_file\fR]"
 Display the templates for text that appears at the beginning
 of delivery status notification (DSN) messages, without

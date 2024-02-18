@@ -56,7 +56,7 @@ tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test42 test43 test44 test45 test46 test47 test48 test49 test50 test51 \
 	test52 test53 test54 test55 test56 test57 test58 test59 test60 test61 \
 	test62 test63 test64 test65 test66 test67 test68 test69 test70 test71 \
-	test72 test73 test74 test75
+	test72 test73 test74 test75 test76
 
 root_tests:
 
@@ -1043,6 +1043,27 @@ test75:	$(PROG) test75.ref
 	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc. >>test75.tmp 2>&1
 	diff test75.ref test75.tmp
 	rm -f main.cf master.cf test75.tmp
+
+# Warn about unused, deprecated, or deleted parameters.
+test76:	$(PROG) test76.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -c. \
+	    config_directory=. \
+	    deleted-test-only=whatever \
+	    disable_dns_lookups=no \
+	    lmtp_use_tls=no \
+	    smtpd_tls_dh1024_param_file=auto >test76.tmp 2>&1
+	touch -t 197601010000 main.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o alias_maps=foo' >> master.cf
+	echo ' -o smtp_enforce_tls=yes' >> master.cf
+	touch -t 197601010000 master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc. >>test76.tmp 2>&1
+	diff test76.ref test76.tmp
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -qnc. >/dev/null 2>test76.tmp
+	diff /dev/null test76.tmp
+	rm -f main.cf master.cf test76.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

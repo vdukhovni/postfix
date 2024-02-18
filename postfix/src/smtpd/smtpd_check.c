@@ -1672,6 +1672,9 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
 {
     const char *myname = "check_relay_domains";
 
+    /*
+     * Restriction check_relay_domains is deprecated as of Postfix 2.2.
+     */
 #if 1
     static int once;
 
@@ -2015,9 +2018,20 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     DNS_RR *middle;
     DNS_RR *rest;
     int     dns_status;
+    static int once;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, recipient);
+
+    /*
+     * Restriction permit_mx_backup is deprecated as of Postfix 3.9.
+     */
+    if (once == 0) {
+	once = 1;
+	msg_warn("support for restriction \"%s\" will be removed from %s; "
+		 "instead, use \"%s\"",
+		 PERMIT_MX_BACKUP, var_mail_name, VAR_RELAY_DOMAINS);
+    }
 
     /*
      * Resolve the address.
@@ -3913,6 +3927,9 @@ static int reject_maps_rbl(SMTPD_STATE *state)
     if (msg_verbose)
 	msg_info("%s: %s", myname, state->addr);
 
+    /*
+     * Restriction reject_maps_rbl is deprecated as of Postfix 2.1.
+     */
     if (warned == 0) {
 	warned++;
 	msg_warn("support for restriction \"%s\" will be removed from %s; "
@@ -4509,6 +4526,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					 state->helo_name, SMTPD_NAME_HELO);
 	    }
 	} else if (strcasecmp(name, PERMIT_NAKED_IP_ADDR) == 0) {
+	    /* permit_naked_ip_addr is deprecated as of Postfix 2.0. */
 	    msg_warn("restriction %s is deprecated. Use %s or %s instead",
 		 PERMIT_NAKED_IP_ADDR, PERMIT_MYNETWORKS, PERMIT_SASL_AUTH);
 	    if (state->helo_name) {

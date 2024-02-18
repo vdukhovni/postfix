@@ -3144,6 +3144,9 @@ This feature is available in Postfix 2.11 and later.
 The LMTP\-specific version of the smtp_enforce_tls configuration
 parameter.  See there for details.
 .PP
+This feature is deprecated as of Postfix 3.9. Specify
+lmtp_tls_security_level instead.
+.PP
 This feature is available in Postfix 2.3 and later.
 .SH lmtp_fallback_relay (default: empty)
 Optional list of relay hosts for LMTP destinations that can't be
@@ -3555,6 +3558,9 @@ This feature is available in Postfix 2.3 and later.
 The LMTP\-specific version of the smtp_tls_per_site configuration
 parameter.  See there for details.
 .PP
+This feature is deprecated as of Postfix 3.9. Specify
+lmtp_tls_policy_maps instead.
+.PP
 This feature is available in Postfix 2.3 and later.
 .SH lmtp_tls_policy_maps (default: empty)
 The LMTP\-specific version of the smtp_tls_policy_maps
@@ -3614,6 +3620,9 @@ This feature is available in Postfix 3.0 and later.
 .SH lmtp_use_tls (default: no)
 The LMTP\-specific version of the smtp_use_tls configuration
 parameter.  See there for details.
+.PP
+This feature is deprecated as of Postfix 3.9. Specify
+lmtp_tls_security_level instead.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH lmtp_xforward_timeout (default: 300s)
@@ -10960,6 +10969,9 @@ Note 2: when invoked via "\fBsendmail \-bs\fR", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior.
 .PP
+This feature is deprecated as of Postfix 3.9. Specify
+smtpd_tls_security_level instead.
+.PP
 This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use smtpd_tls_security_level instead.
 .SH smtpd_error_sleep_time (default: 1s)
@@ -13802,6 +13814,9 @@ Note: when invoked via "\fBsendmail \-bs\fR", Postfix will never offer
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior.
 .PP
+This feature is deprecated as of Postfix 3.9. Specify
+smtpd_tls_security_level instead.
+.PP
 This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use smtpd_tls_security_level instead.
 .SH smtputf8_autodetect_classes (default: sendmail, verify)
@@ -14875,6 +14890,9 @@ Enforcement mode: require that SMTP servers use TLS encryption.
 See smtp_enforce_tls for further details. Use
 tlsproxy_client_security_level instead.
 .PP
+This feature is deprecated as of Postfix 3.9. Specify
+tlsproxy_client_security_level instead.
+.PP
 This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_client_fingerprint_digest (default: $smtp_tls_fingerprint_digest)
 The message digest algorithm used to construct remote TLS server
@@ -14910,6 +14928,9 @@ Optional lookup tables with the Postfix \fBtlsproxy\fR(8) client TLS
 usage policy by next\-hop destination and by remote TLS server
 hostname.  See smtp_tls_per_site for further details.
 .PP
+This feature is deprecated as of Postfix 3.9. Specify
+tlsproxy_client_policy_maps instead.
+.PP
 This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_client_policy (default: $smtp_tls_policy_maps)
 Optional lookup tables with the Postfix \fBtlsproxy\fR(8) client TLS
@@ -14941,11 +14962,17 @@ Opportunistic mode: use TLS when a remote server announces TLS
 support. See smtp_use_tls for further details. Use
 tlsproxy_client_security_level instead.
 .PP
+This feature is deprecated as of Postfix 3.9. Specify
+tlsproxy_client_security_level instead.
+.PP
 This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_enforce_tls (default: $smtpd_enforce_tls)
 Mandatory TLS: announce STARTTLS support to remote SMTP clients, and
 require that clients use TLS encryption. See smtpd_enforce_tls for
 further details. Use tlsproxy_tls_security_level instead.
+.PP
+This feature is deprecated as of Postfix 3.9. Specify
+tlsproxy_tls_security_level instead.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_service_name (default: tlsproxy)
@@ -15013,6 +15040,8 @@ File with DH parameters that the Postfix \fBtlsproxy\fR(8) server
 should use with non\-export EDH ciphers. See smtpd_tls_dh1024_param_file
 for further details.
 .PP
+This feature is deprecated as of Postfix 3.9. Do not specify.
+.PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_dh512_param_file (default: $smtpd_tls_dh512_param_file)
 File with DH parameters that the Postfix \fBtlsproxy\fR(8) server
@@ -15054,6 +15083,8 @@ This feature is available in Postfix 2.8 and later.
 The Postfix \fBtlsproxy\fR(8) server security grade for ephemeral
 elliptic\-curve Diffie\-Hellman (EECDH) key exchange. See
 smtpd_tls_eecdh_grade for further details.
+.PP
+This feature is deprecated as of Postfix 3.9. Do not specify.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_enable_rpk (default: $smtpd_tls_enable_rpk)
@@ -15139,6 +15170,9 @@ This feature is available in Postfix 2.8 and later.
 Opportunistic TLS: announce STARTTLS support to remote SMTP clients,
 but do not require that clients use TLS encryption. See smtpd_use_tls
 for further details. Use tlsproxy_tls_security_level instead.
+.PP
+This feature is deprecated as of Postfix 3.9. Specify
+tlsproxy_tls_security_level instead.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_watchdog_timeout (default: 10s)

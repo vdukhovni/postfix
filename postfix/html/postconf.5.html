@@ -4956,6 +4956,9 @@ configuration parameter.  See there for details.  </p>
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> configuration
 parameter.  See there for details. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+<a href="postconf.5.html#lmtp_tls_security_level">lmtp_tls_security_level</a> instead. </p>
+
 <p> This feature is available in Postfix 2.3 and later. </p>
 
 
@@ -5804,6 +5807,9 @@ configuration parameter.  See there for details. </p>
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> configuration
 parameter.  See there for details. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+<a href="postconf.5.html#lmtp_tls_policy_maps">lmtp_tls_policy_maps</a> instead. </p>
+
 <p> This feature is available in Postfix 2.3 and later. </p>
 
 
@@ -5935,6 +5941,9 @@ parameter. See there for details. </p>
 
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> configuration
 parameter.  See there for details. </p>
+
+<p> This feature is deprecated as of Postfix 3.9. Specify
+<a href="postconf.5.html#lmtp_tls_security_level">lmtp_tls_security_level</a> instead. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -15841,6 +15850,9 @@ server.  This option is therefore off by default. </p>
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> instead. </p>
+
 <p> This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> instead. </p>
 
@@ -19298,6 +19310,9 @@ but do not require that clients use TLS encryption. </p>
 STARTTLS due to insufficient privileges to access the server private
 key. This is intended behavior. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> instead. </p>
+
 <p> This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> instead. </p>
 
@@ -20722,6 +20737,9 @@ to configure tlsproxy client keys and certificates is via the
 See <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> for further details. Use
 <a href="postconf.5.html#tlsproxy_client_security_level">tlsproxy_client_security_level</a> instead. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+<a href="postconf.5.html#tlsproxy_client_security_level">tlsproxy_client_security_level</a> instead. </p>
+
 <p> This feature is available in Postfix 3.4 and later. </p>
 
 
@@ -20793,6 +20811,9 @@ value. </p>
 usage policy by next-hop destination and by remote TLS server
 hostname.  See <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> for further details. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+<a href="postconf.5.html#tlsproxy_client_policy_maps">tlsproxy_client_policy_maps</a> instead. </p>
+
 <p> This feature is available in Postfix 3.4 and later. </p>
 
 
@@ -20854,6 +20875,9 @@ was previously called <a href="postconf.5.html#tlsproxy_client_level">tlsproxy_c
 support. See <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> for further details. Use
 <a href="postconf.5.html#tlsproxy_client_security_level">tlsproxy_client_security_level</a> instead. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Specify
+<a href="postconf.5.html#tlsproxy_client_security_level">tlsproxy_client_security_level</a> instead. </p>
+
 <p> This feature is available in Postfix 3.4 and later. </p>
 
 
@@ -20865,6 +20889,9 @@ support. See <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> for further
 <p> Mandatory TLS: announce STARTTLS support to remote SMTP clients, and
 require that clients use TLS encryption. See <a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a> for
 further details. Use <a href="postconf.5.html#tlsproxy_tls_security_level">tlsproxy_tls_security_level</a> instead. </p>
+
+<p> This feature is deprecated as of Postfix 3.9. Specify
+<a href="postconf.5.html#tlsproxy_tls_security_level">tlsproxy_tls_security_level</a> instead. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
@@ -20998,6 +21025,8 @@ private DSA key.  DSA is obsolete and should not be used.  See
 should use with non-export EDH ciphers. See <a href="postconf.5.html#smtpd_tls_dh1024_param_file">smtpd_tls_dh1024_param_file</a>
 for further details. </p>
 
+<p> This feature is deprecated as of Postfix 3.9. Do not specify. </p>
+
 <p> This feature is available in Postfix 2.8 and later. </p>
 
 
@@ -21069,6 +21098,8 @@ the "<a href="postconf.5.html#tlsproxy_tls_chain_files">tlsproxy_tls_chain_files
 <p> The Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> server security grade for ephemeral
 elliptic-curve Diffie-Hellman (EECDH) key exchange. See
 <a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> for further details. </p>
+
+<p> This feature is deprecated as of Postfix 3.9. Do not specify. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
@@ -21233,6 +21264,9 @@ shared by all three services, namely <a href="postconf.5.html#smtpd_tls_session_
 <p> Opportunistic TLS: announce STARTTLS support to remote SMTP clients,
 but do not require that clients use TLS encryption. See <a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a>
 for further details. Use <a href="postconf.5.html#tlsproxy_tls_security_level">tlsproxy_tls_security_level</a> instead. </p>
+
+<p> This feature is deprecated as of Postfix 3.9. Specify
+<a href="postconf.5.html#tlsproxy_tls_security_level">tlsproxy_tls_security_level</a> instead. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 

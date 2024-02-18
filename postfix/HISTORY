@@ -27895,3 +27895,28 @@ Apologies for any names omitted.
 	Cleanup: missing mongodb checks in the postconf command,
 	missing mongodb under "postconf -m" manpage entry. Files:
 	postconf/postconf.c, postconf/postconf_dbms.c.
+
+20240218
+
+	Deprecation: the Postfix SMTP server logs a warning when
+	"permit_mx_backup" is used (support for restriction
+	"permit_mx_backup" will be removed from Postfix; instead,
+	use "relay_domains"). File: smtpd/smtpd_check.c.
+
+	Deprecation: the postconf command logs a warning when the
+	following parameters are specified in main.cf or master.cf:
+	xxx_use_tls, xxx_enforce_tls (use the corresponding
+	xxx_security_level setting instead); xxx_per_site (use the
+	corresponding xxx_policy_maps setting instead); disable_dns_lookups
+	(use smtp_dns_support_level instead); smtpd_tls_dh1024_param_file,
+	smtpd_tls_eecdh_grade (do not specify, leave at default).
+	Files: postconf/postconf.c, postconf/postconf_unused.c.
+	proto/postconf.proto.
+
+	Cleanup: add "postconf -q" option to avoid redundant warnings
+	about unused or deprecated parameter settings when upgrading
+	or installing Postfix. Such warnings are still logged with
+	the commands postfix start, start-fg, check, reload, or
+	status. Files: postconf/postconf.c, postconf/postconf_dbms.c,
+	postconf/postconf.h, conf/postfix-script, conf/post-install,
+	postfix-install.
