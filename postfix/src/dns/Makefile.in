@@ -286,7 +286,6 @@ dns_lookup.o: ../../include/vstring.h
 dns_lookup.o: dns.h
 dns_lookup.o: dns_lookup.c
 dns_rr.o: ../../include/check_arg.h
-dns_rr.o: ../../include/mail_params.h
 dns_rr.o: ../../include/msg.h
 dns_rr.o: ../../include/myaddrinfo.h
 dns_rr.o: ../../include/mymalloc.h

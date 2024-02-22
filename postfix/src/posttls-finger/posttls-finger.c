@@ -1207,7 +1207,7 @@ static DNS_RR *addr_one(STATE *state, DNS_RR *addr_list, const char *host,
 		    host, ((struct sockaddr *) (res0->ai_addr))->sa_family);
 	addr->pref = pref;
 	addr->port = port;
-	addr_list = dns_rr_append(addr_list, addr);
+	addr_list = dns_rr_append_discard(addr_list, addr);
 	freeaddrinfo(res0);
 	return (addr_list);
     }
@@ -1227,7 +1227,7 @@ static DNS_RR *addr_one(STATE *state, DNS_RR *addr_list, const char *host,
 		rr->pref = pref;
 		rr->port = port;
 	    }
-	    addr_list = dns_rr_append(addr_list, addr);
+	    addr_list = dns_rr_append_discard(addr_list, addr);
 	    return (addr_list);
 	default:
 	    dsb_status(why, "4.4.3");
@@ -1279,7 +1279,9 @@ static DNS_RR *addr_one(STATE *state, DNS_RR *addr_list, const char *host,
 		if ((addr = dns_sa_to_rr(host, pref, res->ai_addr)) == 0)
 		    msg_fatal("host %s: conversion error for address family %d: %m",
 		    host, ((struct sockaddr *) (res0->ai_addr))->sa_family);
-		addr_list = dns_rr_append(addr_list, addr);
+		addr_list = dns_rr_append_discard(addr_list, addr);
+		if (addr_list->len == DNS_RR_DISCARDED)
+		    break;
 	    }
 	    freeaddrinfo(res0);
 	    if (found == 0) {
@@ -1317,6 +1319,8 @@ static DNS_RR *mx_addr_list(STATE *state, DNS_RR *mx_names)
 	    msg_panic("%s: bad resource type: %d", myname, rr->type);
 	addr_list = addr_one(state, addr_list, (char *) rr->data, res_opt,
 			     rr->pref, rr->port);
+	if (addr_list && addr_list->len == DNS_RR_DISCARDED)
+	    break;
     }
     return (addr_list);
 }
@@ -1361,6 +1365,10 @@ static DNS_RR *domain_addr(STATE *state, char *domain)
 	dsb_status(state->why, "5.4.3");
 	break;
     case DNS_OK:
+	if (mx_names && mx_names->len == DNS_RR_DISCARDED)
+	    msg_warn("DNS resource record limit (%d) exceeded"
+		     "while looking up MX records for domain %s",
+		     var_dns_rr_list_limit, aname);
 	mx_names = dns_rr_sort(mx_names, dns_rr_compare_pref_any);
 	addr_list = mx_addr_list(state, mx_names);
 	state->mx = dns_rr_copy(mx_names);
@@ -1369,6 +1377,10 @@ static DNS_RR *domain_addr(STATE *state, char *domain)
 	    msg_warn("no MX host for %s has a valid address record", domain);
 	    break;
 	}
+	if (addr_list->len == DNS_RR_DISCARDED)
+	    msg_warn("DNS resource record limit (%d) exceeded"
+		     "while looking up MX host addresses for domain %s",
+		     var_dns_rr_list_limit, aname);
 #define COMPARE_ADDR(flags) \
 	((flags & MISC_FLAG_PREF_IPV6) ? dns_rr_compare_pref_ipv6 : \
 	 (flags & MISC_FLAG_PREF_IPV4) ? dns_rr_compare_pref_ipv4 : \
@@ -1433,6 +1445,10 @@ static DNS_RR *service_addr(STATE *state, const char *domain,
 	dsb_status(state->why, "5.4.3");
 	break;
     case DNS_OK:
+	if (srv_names && srv_names->len == DNS_RR_DISCARDED)
+	    msg_warn("DNS resource record limit (%d) exceeded"
+		     "while looking up SRV records for domain %s",
+		     var_dns_rr_list_limit, aname);
 	/* Shuffle then sort the SRV rr records by priority and weight. */
 	srv_names = dns_srv_rr_sort(srv_names);
 	addr_list = mx_addr_list(state, srv_names);
@@ -1443,6 +1459,10 @@ static DNS_RR *service_addr(STATE *state, const char *domain,
 		     str_srv_qname);
 	    break;
 	}
+	if (addr_list->len == DNS_RR_DISCARDED)
+	    msg_warn("DNS resource record limit (%d) exceeded"
+		     "while looking up SRV host addresses for domain %s",
+		     var_dns_rr_list_limit, aname);
 	/* TODO: sort by priority, weight, and address family preference. */
 	break;
     case DNS_NOTFOUND:
@@ -1482,6 +1502,11 @@ static DNS_RR *host_addr(STATE *state, const char *host)
 #define PREF0	0
 #define NOPORT	0
     addr_list = addr_one(state, (DNS_RR *) 0, ahost, res_opt, PREF0, NOPORT);
+    if (addr_list && addr_list->len == DNS_RR_DISCARDED) {
+	msg_warn("DNS resource record limit (%d) exceeded"
+		 "while looking up addresses for host %s",
+		 var_dns_rr_list_limit, ahost);
+    }
     if (addr_list && addr_list->next) {
 	addr_list = dns_rr_shuffle(addr_list);
 	if (inet_proto_info()->ai_family_list[1] != 0)

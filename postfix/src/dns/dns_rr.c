@@ -29,6 +29,10 @@
 /*	DNS_RR	*list;
 /*	DNS_RR	*record;
 /*
+/*	DNS_RR	*dns_rr_append_discard(list, record)
+/*	DNS_RR	*list;
+/*	DNS_RR	*record;
+/*
 /*	DNS_RR	*dns_rr_sort(list, compar)
 /*	DNS_RR	*list
 /*	int	(*compar)(DNS_RR *, DNS_RR *);
@@ -100,9 +104,16 @@
 /*	dns_rr_append() appends a resource record to a (list of) resource
 /*	record(s).
 /*	A null input list is explicitly allowed.
-/*	This function will log a warning and will discard the
-/*	resource record, when a list already contains var_dns_rr_list_limit
-/*	elements (default: 100).
+/*
+/*	dns_rr_append_discard() appends of discards a resource
+/*	record list. When the existing list already contains
+/*	var_dns_rr_list_limit elements (default: 100),
+/*	dns_rr_append_discard() logs a warning, sets the existing
+/*	list length to the sentinel value DNS_RR_DISCARDED and
+/*	discards the new resource record(s) instead of appending
+/*	them. Once a list length is set to DNS_RR_DISCARDED, the
+/*	caller is expected to stop trying to append records to that
+/*	list.
 /*
 /*	dns_rr_sort() sorts a list of resource records into ascending
 /*	order according to a user-specified criterion. The result is the
@@ -151,18 +162,19 @@
 #include <mymalloc.h>
 #include <myrand.h>
 
-/* Global library. */
-
-#include <mail_params.h>
-
 /* DNS library. */
 
 #include "dns.h"
 
  /*
-  * Global, to make code testable.
+  * A generous safety limit for the number of DNS resource records that the
+  * Postfix DNS client library will admit into a list. The default value 100
+  * is 20x the default limit on the number address records that the Postfix
+  * SMTP client is willing to consider.
+  * 
+  * Mutable, to make code testable.
   */
-int     var_dns_rr_list_limit = DEF_DNS_RR_LIST_LIMIT;
+int     var_dns_rr_list_limit = 100;
 
 /* dns_rr_create - fill in resource record structure */
 
@@ -195,6 +207,7 @@ DNS_RR *dns_rr_create(const char *qname, const char *rname,
     }
     rr->data_len = data_len;
     rr->next = 0;
+    rr->len = 1;
     return (rr);
 }
 
@@ -232,38 +245,49 @@ DNS_RR *dns_rr_copy(DNS_RR *src)
     return (dst);
 }
 
-/* dns_rr_append_with_limit - append resource record to limited list */
-
-static DNS_RR *dns_rr_append_with_limit(DNS_RR *list, DNS_RR *rr, int limit)
-{
-
-    /*
-     * To avoid log spam, remember a limited amount of information about a
-     * past warning. When anomalies happen frequently, then it is OK that
-     * some anomaly will not be logged, as long as the limit is enforced.
-     */
-    if (list == 0) {
-	list = rr;
-    } else if (limit > 1) {
-	list->next = dns_rr_append_with_limit(list->next, rr, limit - 1);
-    } else {
-	static DNS_RR *logged_node;
-
-	if (logged_node != list) {
-	    logged_node = list;
-	    msg_warn("dns_rr_append: dropping records after qname=%s qtype=%s",
-		     list->qname, dns_strtype(list->type));
-	}
-	dns_rr_free(rr);
-    }
-    return (list);
-}
-
 /* dns_rr_append - append resource record to list */
 
 DNS_RR *dns_rr_append(DNS_RR *list, DNS_RR *rr)
 {
-    return (dns_rr_append_with_limit(list, rr, var_dns_rr_list_limit));
+    if (rr == 0)
+	return (list);
+    if (list == 0) {
+	list = rr;
+    } else {
+	list->next = dns_rr_append(list->next, rr);
+	/* Non-sentinel lengths are o(100) an are always safe to add. */
+	if (list->len == DNS_RR_DISCARDED || rr->len == DNS_RR_DISCARDED)
+	    list->len = DNS_RR_DISCARDED;
+	else
+	    list->len += rr->len;
+    }
+    return (list);
+}
+
+/* dns_rr_append_discard - append resource record to list, or discard */
+
+DNS_RR *dns_rr_append_discard(DNS_RR *list, DNS_RR *rr)
+{
+    if (rr == 0)
+	return (list);
+    if (list == 0) {
+	list = rr;
+    } else if (list->len < var_dns_rr_list_limit) {
+	list->next = dns_rr_append(list->next, rr);
+	/* Non-sentinel lengths are o(100) an are always safe to add. */
+	if (rr->len == DNS_RR_DISCARDED)
+	    list->len = DNS_RR_DISCARDED;
+	else
+	    list->len += rr->len;
+    } else {
+	if (list->len != DNS_RR_DISCARDED) {
+	    msg_warn("dropping excess records for qname=%s qtype=%s",
+		     rr->qname, dns_strtype(rr->type));
+	    list->len = DNS_RR_DISCARDED;
+	}
+	dns_rr_free(rr);
+    }
+    return (list);
 }
 
 /* dns_rr_compare_pref_ipv6 - compare records by preference, ipv6 preferred */

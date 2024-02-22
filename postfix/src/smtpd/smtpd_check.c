@@ -3021,6 +3021,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     struct addrinfo *res;
     int     status;
     const INET_PROTO_INFO *proto_info;
+    int     server_addr_count = 0;
 
     /*
      * Sanity check.
@@ -3133,6 +3134,11 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	    return (SMTPD_CHECK_DUNNO);
 	}
     }
+    if (server_list && server_list->len == DNS_RR_DISCARDED)
+	msg_warn("DNS resource record limit (%d) exceeded"
+		 "while looking up %s records for %s",
+		 var_dns_rr_list_limit, dns_strtype(type),
+		 domain && domain[1] ? domain : name);
 
     /*
      * No bare returns after this point or we have a memory leak.
@@ -3172,6 +3178,14 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	    msg_info("%s: %s host address check: %s",
 		     myname, dns_strtype(type), (char *) server->data);
 	for (res = res0; res != 0; res = res->ai_next) {
+	    server_addr_count += 1;
+	    if (server_addr_count > var_dns_rr_list_limit) {
+		msg_warn("Host address count limit (%d) exceeded"
+			 "while looking up host addresses for %s",
+			 var_dns_rr_list_limit, (char *) server->data);
+		freeaddrinfo(res0);
+		CHECK_SERVER_RETURN(SMTPD_CHECK_DUNNO);
+	    }
 	    if (strchr((char *) proto_info->sa_family_list, res->ai_family) == 0) {
 		if (msg_verbose)
 		    msg_info("skipping address family %d for host %s",
