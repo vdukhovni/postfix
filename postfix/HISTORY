@@ -27921,13 +27921,12 @@ Apologies for any names omitted.
 	postconf/postconf.h, conf/postfix-script, conf/post-install,
 	postfix-install.
 
-20240222
+20240223
 
 	Safety: drop and log over-size DNS responses resulting in
 	more than 100 records. This prevents a tail recursion error
 	in dns_rr_append(), reported by Toshifumi Sakaguchi, and
-	prevents DNS request multiplication in check_xx_yy_access.
+	limits DNS request multiplication in check_xx_yy_access.
 	Files: dns/dns.h, dns/dns_lookup.c, dns/dns_rr.c,
 	dns/test_dns_lookup.c, posttls-finger/posttls-finger.c,
 	smtp/smtp_addr.c, smtpd/smtpd_check.c.
-

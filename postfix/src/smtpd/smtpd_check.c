@@ -3134,11 +3134,6 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	    return (SMTPD_CHECK_DUNNO);
 	}
     }
-    if (server_list && server_list->len == DNS_RR_DISCARDED)
-	msg_warn("DNS resource record limit (%d) exceeded"
-		 "while looking up %s records for %s",
-		 var_dns_rr_list_limit, dns_strtype(type),
-		 domain && domain[1] ? domain : name);
 
     /*
      * No bare returns after this point or we have a memory leak.
@@ -3180,9 +3175,10 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	for (res = res0; res != 0; res = res->ai_next) {
 	    server_addr_count += 1;
 	    if (server_addr_count > var_dns_rr_list_limit) {
-		msg_warn("Host address count limit (%d) exceeded"
-			 "while looking up host addresses for %s",
-			 var_dns_rr_list_limit, (char *) server->data);
+		msg_warn("%s: %s server address count limit (%d) exceeded"
+			 " for %s %s -- ignoring the remainder", myname,
+			 dns_strtype(type), var_dns_rr_list_limit,
+			 reply_class, reply_name);
 		freeaddrinfo(res0);
 		CHECK_SERVER_RETURN(SMTPD_CHECK_DUNNO);
 	    }

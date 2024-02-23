@@ -123,9 +123,10 @@ int     main(int argc, char **argv)
 	if (rr) {
 	    vstream_printf("%s: fqdn: %s\n", name, vstring_str(fqdn));
 	    buf = vstring_alloc(100);
+	    vstream_printf("%s: %d records\n", name, rr->len);
 	    print_rr(buf, rr);
 	    vstream_fflush(VSTREAM_OUT);
-	    if (rr && rr->len == DNS_RR_DISCARDED)
+	    if (DNS_RR_IS_TRUNCATED(rr))
 		msg_warn("one or more excess DNS_RR records were dropped");
 	    dns_rr_free(rr);
 	    vstring_free(buf);

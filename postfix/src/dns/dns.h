@@ -26,7 +26,6 @@
 #include <arpa/nameser_compat.h>
 #endif
 #include <resolv.h>
-#include <limits.h>			/* INT_MAX */
 
  /*
   * Name server compatibility. These undocumented macros appear in the file
@@ -165,11 +164,14 @@ typedef struct DNS_RR {
     struct DNS_RR *next;		/* linkage */
     size_t  data_len;			/* actual data size */
     char    *data;			/* a bunch of data */
-    int     len;			/* list length or DNS_RR_DISCARDED */
+    int     len;			/* list length */
+    int     flags;			/* DNS_RR_FLAG_XX, see below */
      /* Add new fields at the end, for ABI forward compatibility. */
 } DNS_RR;
 
-#define DNS_RR_DISCARDED	INT_MAX	/* sentinel */
+#define DNS_RR_FLAG_TRUNCATED	(1<<0)
+
+#define DNS_RR_IS_TRUNCATED(rr)	((rr)->flags & DNS_RR_FLAG_TRUNCATED)
 
  /*
   * dns_strerror.c
@@ -211,7 +213,6 @@ extern DNS_RR *dns_rr_create(const char *, const char *,
 extern void dns_rr_free(DNS_RR *);
 extern DNS_RR *dns_rr_copy(DNS_RR *);
 extern DNS_RR *dns_rr_append(DNS_RR *, DNS_RR *);
-extern DNS_RR *dns_rr_append_discard(DNS_RR *, DNS_RR *);
 extern DNS_RR *dns_rr_sort(DNS_RR *, int (*) (DNS_RR *, DNS_RR *));
 extern DNS_RR *dns_srv_rr_sort(DNS_RR *);
 extern int dns_rr_compare_pref_ipv6(DNS_RR *, DNS_RR *);

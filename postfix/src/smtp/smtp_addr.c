@@ -181,8 +181,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
 			  "%d: %m", host, res0->ai_addr->sa_family);
 	    addr->pref = pref;
 	    addr->port = port;
-	    addr_list = dns_rr_append_discard(addr_list, addr);
-	    if (msg_verbose && addr_list->len != DNS_RR_DISCARDED)
+	    addr_list = dns_rr_append(addr_list, addr);
+	    if (msg_verbose && !DNS_RR_IS_TRUNCATED(addr_list))
 		msg_info("%s: using numerical host %s", myname, host);
 	    freeaddrinfo(res0);
 	    return (addr_list);
@@ -206,7 +206,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
 		rr->pref = pref;
 		rr->port = port;
 	    }
-	    addr_list = dns_rr_append_discard(addr_list, addr);
+	    addr_list = dns_rr_append(addr_list, addr);
 	    return (addr_list);
 	default:
 	    dsb_status(why, "4.4.3");
@@ -261,8 +261,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
 		if ((addr = dns_sa_to_rr(host, pref, res->ai_addr)) == 0)
 		    msg_fatal("host %s: conversion error for address family "
 			      "%d: %m", host, res0->ai_addr->sa_family);
-		addr_list = dns_rr_append_discard(addr_list, addr);
-		if (addr_list->len == DNS_RR_DISCARDED) 
+		addr_list = dns_rr_append(addr_list, addr);
+		if (DNS_RR_IS_TRUNCATED(addr_list)) 
 		    break;
 		if (msg_verbose) {
 		    MAI_HOSTADDR_STR hostaddr_str;
@@ -329,7 +329,7 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, DSN_BUF *why)
 	    msg_panic("smtp_addr_list: bad resource type: %d", rr->type);
 	addr_list = smtp_addr_one(addr_list, (char *) rr->data, res_opt,
 				  rr->pref, rr->port, why);
-	if (addr_list && addr_list->len == DNS_RR_DISCARDED)
+	if (addr_list && DNS_RR_IS_TRUNCATED(addr_list))
 	    break;
     }
     return (addr_list);
@@ -425,6 +425,13 @@ static DNS_RR *smtp_balance_inet_proto(DNS_RR *addr_list, int misc_flags,
      */
 
     /*
+     * Ensure that dns_rr_append() won't interfere with the protocol
+     * balancing goals.
+     */
+    if (addr_limit > var_dns_rr_list_limit)
+	addr_limit = var_dns_rr_list_limit;
+
+    /*
      * Count the number of IPv6 and IPv4 addresses.
      */
     for (v4_count = v6_count = 0, rr = addr_list; rr != 0; rr = rr->next) {
@@ -500,14 +507,6 @@ static DNS_RR *smtp_balance_inet_proto(DNS_RR *addr_list, int misc_flags,
 		msg_panic("%s: unexpected record type: %s",
 			  myname, dns_strtype(rr->type));
 	    }
-
-	    /*
-	     * addr_list is the concatenation of multi-element lists, and may
-	     * be longer than var_dns_rr_limit. When both the addr_list
-	     * length and addr_limit are > var_dns_rr_limit, calling
-	     * dns_rr_append_discard() below could discard inputs and violate
-	     * an invariant of the balancing algorithm. Let's keep it simple.
-	     */
 	    if (*p > 0) {
 		stripped_list = dns_rr_append(stripped_list, rr);
 		*p -= 1;
@@ -630,10 +629,6 @@ DNS_RR *smtp_domain_addr(const char *name, DNS_RR **mxrr, int misc_flags,
 	    addr_list = smtp_host_addr(aname, misc_flags, why);
 	break;
     case DNS_OK:
-	if (mx_names && mx_names->len == DNS_RR_DISCARDED)
-	    msg_warn("DNS resource record limit (%d) exceeded"
-		     "while looking up MX records for domain %s",
-		     var_dns_rr_list_limit, aname);
 	mx_names = dns_rr_sort(mx_names, dns_rr_compare_pref_any);
 	best_pref = (mx_names ? mx_names->pref : IMPOSSIBLE_PREFERENCE);
 	addr_list = smtp_addr_list(mx_names, why);
@@ -653,10 +648,6 @@ DNS_RR *smtp_domain_addr(const char *name, DNS_RR **mxrr, int misc_flags,
 	    msg_warn("no MX host for %s has a valid address record", name);
 	    break;
 	}
-	if (addr_list->len == DNS_RR_DISCARDED)
-	    msg_warn("DNS resource record limit (%d) exceeded"
-		 "while looking up MX host addresses for domain %s",
-		 var_dns_rr_list_limit, aname);
 	best_found = (addr_list ? addr_list->pref : IMPOSSIBLE_PREFERENCE);
 	if (msg_verbose)
 	    smtp_print_addr(name, addr_list);
@@ -729,10 +720,6 @@ DNS_RR *smtp_host_addr(const char *host, int misc_flags, DSN_BUF *why)
      */
 #define PREF0	0
     addr_list = smtp_addr_one((DNS_RR *) 0, ahost, res_opt, PREF0, 0, why);
-    if (addr_list && addr_list->len == DNS_RR_DISCARDED)
-	msg_warn("DNS resource record limit (%d) exceeded"
-		 "while looking up host addresses for %s",
-		 var_dns_rr_list_limit, ahost);
     if (addr_list
 	&& (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
 	&& smtp_find_self(addr_list) != 0) {
@@ -821,10 +808,6 @@ DNS_RR *smtp_service_addr(const char *name, const char *service, DNS_RR **mxrr,
 	dsb_status(why, "5.1.0");
 	break;
     case DNS_OK:
-	if (srv_names && srv_names->len == DNS_RR_DISCARDED)
-	    msg_warn("DNS resource record limit (%d) exceeded"
-		     "while looking up SRV records for domain %s",
-		     var_dns_rr_list_limit, aname);
 	/* Shuffle then sort the SRV rr records by priority and weight. */
 	srv_names = dns_srv_rr_sort(srv_names);
 	best_pref = (srv_names ? srv_names->pref : IMPOSSIBLE_PREFERENCE);
@@ -837,10 +820,6 @@ DNS_RR *smtp_service_addr(const char *name, const char *service, DNS_RR **mxrr,
 		     str_srv_qname);
 	    break;
 	}
-	if (addr_list->len == DNS_RR_DISCARDED)
-	    msg_warn("DNS resource record limit (%d) exceeded"
-		 "while looking up SRV host addresses for domain %s",
-		 var_dns_rr_list_limit, aname);
 	/* Optional loop prevention, similar to smtp_domain_addr(). */
 	best_found = (addr_list ? addr_list->pref : IMPOSSIBLE_PREFERENCE);
 	if (msg_verbose)
