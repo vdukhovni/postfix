@@ -164,7 +164,6 @@ typedef struct DNS_RR {
     struct DNS_RR *next;		/* linkage */
     size_t  data_len;			/* actual data size */
     char    *data;			/* a bunch of data */
-    int     len;			/* list length */
     int     flags;			/* DNS_RR_FLAG_XX, see below */
      /* Add new fields at the end, for ABI forward compatibility. */
 } DNS_RR;

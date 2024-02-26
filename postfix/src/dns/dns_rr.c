@@ -97,21 +97,16 @@
 /*
 /*	dns_rr_copy() makes a copy of a resource record.
 /*
-/*	dns_rr_append() appends an entire input resource record
-/*	list to an output list, or discards the entire input list.
-/*	Null arguments are explicitly allowed. When the output list
-/*	already contains var_dns_rr_list_limit or more elements
+/*	dns_rr_append() appends an input resource record list to
+/*	an output list. Null arguments are explicitly allowed.
+/*	When the result would be longer than var_dns_rr_list_limit
 /*	(default: 100), dns_rr_append() logs a warning, flags the
-/*	output list as truncated, and discards the entire input
-/*	list. Otherwise, dns_rr_append() appends the entire input
-/*	list to the output list. Once an output list is flagged
-/*	as truncated (test with DNS_RR_IS_TRUNCATED()), the caller
-/*	is expected to stop trying to append records to that list.
-/*	Note 1: the input list is either entirely discarded or
-/*	entirely appended; the output list may therefore be longer
-/*	than var_dns_rr_list_limit. Note 2: the 'truncated' flag
-/*	is transitive, i.e. when appending a input list that was
-/*	flagged as truncated to an output list, the output list
+/*	output list as truncated, and discards the excess elements.
+/*	Once an output list is flagged as truncated (test with
+/*	DNS_RR_IS_TRUNCATED()), the caller is expected to stop
+/*	trying to append records to that list. Note: the 'truncated'
+/*	flag is transitive, i.e. when appending a input list that
+/*	was flagged as truncated to an output list, the output list
 /*	will also be flagged as truncated.
 /*
 /*	dns_rr_sort() sorts a list of resource records into ascending
@@ -206,7 +201,6 @@ DNS_RR *dns_rr_create(const char *qname, const char *rname,
     }
     rr->data_len = data_len;
     rr->next = 0;
-    rr->len = 1;
     rr->flags = 0;
     return (rr);
 }
@@ -245,6 +239,41 @@ DNS_RR *dns_rr_copy(DNS_RR *src)
     return (dst);
 }
 
+/* dns_rr_append_with_limit - append resource record to limited list */
+
+static void dns_rr_append_with_limit(DNS_RR *list, DNS_RR *rr, int limit)
+{
+
+    /*
+     * Pre: list != 0, all lists are concatenated with dns_rr_append().
+     * 
+     * Post: all elements have the DNS_RR_FLAG_TRUNCATED flag value set, or all
+     * elements have it cleared, so that there is no need to update code in
+     * legacy stable releases that deletes or reorders elements.
+     */
+    if (limit <= 1) {
+	if (list->next || rr) {
+	    msg_warn("DNS record count limit (%d) exceeded -- dropping"
+		     " excess record(s) after qname=%s qtype=%s",
+		     var_dns_rr_list_limit, list->qname,
+		     dns_strtype(list->type));
+	    list->flags |= DNS_RR_FLAG_TRUNCATED;
+	    dns_rr_free(list->next);
+	    dns_rr_free(rr);
+	    list->next = 0;
+	}
+    } else {
+	if (list->next == 0 && rr) {
+	    list->next = rr;
+	    rr = 0;
+	}
+	if (list->next) {
+	    dns_rr_append_with_limit(list->next, rr, limit - 1);
+	    list->flags |= list->next->flags;
+	}
+    }
+}
+
 /* dns_rr_append - append resource record(s) to list, or discard */
 
 DNS_RR *dns_rr_append(DNS_RR *list, DNS_RR *rr)
@@ -258,17 +287,9 @@ DNS_RR *dns_rr_append(DNS_RR *list, DNS_RR *rr)
 	return (list);
     if (list == 0)
 	return (rr);
-    if (list->len < var_dns_rr_list_limit) {
-	list->next = dns_rr_append(list->next, rr);
-	/* Lengths are o(100) an are always safe to add. */
-	list->len += rr->len;
-	list->flags |= rr->flags;
+    if (!DNS_RR_IS_TRUNCATED(list)) {
+	dns_rr_append_with_limit(list, rr, var_dns_rr_list_limit);
     } else {
-	if ((list->flags & DNS_RR_FLAG_TRUNCATED) == 0) {
-	    msg_warn("dropping excess records for qname=%s qtype=%s",
-		     rr->qname, dns_strtype(rr->type));
-	    list->flags |= DNS_RR_FLAG_TRUNCATED;
-	}
 	dns_rr_free(rr);
     }
     return (list);
