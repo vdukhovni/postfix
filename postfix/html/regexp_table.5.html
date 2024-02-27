@@ -148,8 +148,12 @@ REGEXP_TABLE(5)                                                REGEXP_TABLE(5)
 
        Postfix parses the result as if it is a file in /etc/postfix.
 
-       Note: if a rule contains <b>$</b>, specify <b>$$</b> to keep Postfix from  trying  to
-       do <i>$name</i> expansion as it evaluates a parameter value.
+       Note: if an inlined rule contains <b>$</b>, specify <b>$$</b> to  keep  Postfix  from
+       trying to do <i>$name</i> expansion as it evaluates a parameter value.
+
+       Note: when using <i>$name</i> inside an inlined pattern, this will not disable
+       metacharacters such as '.' in the <i>$name</i>  expansion.  To  prevent  unex-
+       pected matches, use a <a href="pcre_table.5.html">pcre</a>: table, and specify \Q<i>$name</i>\E.
 
 <b>EXAMPLE SMTPD ACCESS MAP</b>
        # Disallow sender-specified routing. This is a must if you relay mail

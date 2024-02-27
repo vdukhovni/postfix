@@ -97,12 +97,17 @@
 /*
 /*	dns_rr_copy() makes a copy of a resource record.
 /*
-/*	dns_rr_append() appends a resource record to a (list of) resource
-/*	record(s).
-/*	A null input list is explicitly allowed.
-/*	This function will log a warning and will discard the
-/*	resource record, when a list already contains var_dns_rr_list_limit
-/*	elements (default: 100).
+/*	dns_rr_append() appends an input resource record list to
+/*	an output list. Null arguments are explicitly allowed.
+/*	When the result would be longer than var_dns_rr_list_limit
+/*	(default: 100), dns_rr_append() logs a warning, flags the
+/*	output list as truncated, and discards the excess elements.
+/*	Once an output list is flagged as truncated (test with
+/*	DNS_RR_IS_TRUNCATED()), the caller is expected to stop
+/*	trying to append records to that list. Note: the 'truncated'
+/*	flag is transitive, i.e. when appending a input list that
+/*	was flagged as truncated to an output list, the output list
+/*	will also be flagged as truncated.
 /*
 /*	dns_rr_sort() sorts a list of resource records into ascending
 /*	order according to a user-specified criterion. The result is the
@@ -151,18 +156,19 @@
 #include <mymalloc.h>
 #include <myrand.h>
 
-/* Global library. */
-
-#include <mail_params.h>
-
 /* DNS library. */
 
 #include "dns.h"
 
  /*
-  * Global, to make code testable.
+  * A generous safety limit for the number of DNS resource records that the
+  * Postfix DNS client library will admit into a list. The default value 100
+  * is 20x the default limit on the number address records that the Postfix
+  * SMTP client is willing to consider.
+  * 
+  * Mutable, to make code testable.
   */
-int     var_dns_rr_list_limit = DEF_DNS_RR_LIST_LIMIT;
+int     var_dns_rr_list_limit = 100;
 
 /* dns_rr_create - fill in resource record structure */
 
@@ -195,6 +201,7 @@ DNS_RR *dns_rr_create(const char *qname, const char *rname,
     }
     rr->data_len = data_len;
     rr->next = 0;
+    rr->flags = 0;
     return (rr);
 }
 
@@ -234,36 +241,58 @@ DNS_RR *dns_rr_copy(DNS_RR *src)
 
 /* dns_rr_append_with_limit - append resource record to limited list */
 
-static DNS_RR *dns_rr_append_with_limit(DNS_RR *list, DNS_RR *rr, int limit)
+static void dns_rr_append_with_limit(DNS_RR *list, DNS_RR *rr, int limit)
 {
 
     /*
-     * To avoid log spam, remember a limited amount of information about a
-     * past warning. When anomalies happen frequently, then it is OK that
-     * some anomaly will not be logged, as long as the limit is enforced.
+     * Pre: list != 0, all lists are concatenated with dns_rr_append().
+     * 
+     * Post: all elements have the DNS_RR_FLAG_TRUNCATED flag value set, or all
+     * elements have it cleared, so that there is no need to update code in
+     * legacy stable releases that deletes or reorders elements.
      */
-    if (list == 0) {
-	list = rr;
-    } else if (limit > 1) {
-	list->next = dns_rr_append_with_limit(list->next, rr, limit - 1);
-    } else {
-	static DNS_RR *logged_node;
-
-	if (logged_node != list) {
-	    logged_node = list;
-	    msg_warn("dns_rr_append: dropping records after qname=%s qtype=%s",
-		     list->qname, dns_strtype(list->type));
+    if (limit <= 1) {
+	if (list->next || rr) {
+	    msg_warn("DNS record count limit (%d) exceeded -- dropping"
+		     " excess record(s) after qname=%s qtype=%s",
+		     var_dns_rr_list_limit, list->qname,
+		     dns_strtype(list->type));
+	    list->flags |= DNS_RR_FLAG_TRUNCATED;
+	    dns_rr_free(list->next);
+	    dns_rr_free(rr);
+	    list->next = 0;
 	}
-	dns_rr_free(rr);
+    } else {
+	if (list->next == 0 && rr) {
+	    list->next = rr;
+	    rr = 0;
+	}
+	if (list->next) {
+	    dns_rr_append_with_limit(list->next, rr, limit - 1);
+	    list->flags |= list->next->flags;
+	}
     }
-    return (list);
 }
 
-/* dns_rr_append - append resource record to list */
+/* dns_rr_append - append resource record(s) to list, or discard */
 
 DNS_RR *dns_rr_append(DNS_RR *list, DNS_RR *rr)
 {
-    return (dns_rr_append_with_limit(list, rr, var_dns_rr_list_limit));
+
+    /*
+     * Note: rr is not length checked; when multiple lists are concatenated,
+     * the output length may be a small multiple of var_dns_rr_list_limit.
+     */
+    if (rr == 0)
+	return (list);
+    if (list == 0)
+	return (rr);
+    if (!DNS_RR_IS_TRUNCATED(list)) {
+	dns_rr_append_with_limit(list, rr, var_dns_rr_list_limit);
+    } else {
+	dns_rr_free(rr);
+    }
+    return (list);
 }
 
 /* dns_rr_compare_pref_ipv6 - compare records by preference, ipv6 preferred */

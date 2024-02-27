@@ -191,8 +191,12 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
 
        Postfix parses the result as if it is a file in /etc/postfix.
 
-       Note: if a rule contains <b>$</b>, specify <b>$$</b> to keep Postfix from  trying  to
-       do <i>$name</i> expansion as it evaluates a parameter value.
+       Note: if an inlined rule contains <b>$</b>, specify <b>$$</b> to  keep  Postfix  from
+       trying to do <i>$name</i> expansion as it evaluates a parameter value.
+
+       Note: when using <i>$name</i> inside an inlined pattern, use \Q<i>$name</i>\E to dis-
+       able metacharacters such as '.' in the <i>$name</i> expansion. Otherwise,  the
+       pattern may have unexpected matches.
 
 <b>EXAMPLE SMTPD ACCESS MAP</b>
        # Protect your outgoing majordomo exploders

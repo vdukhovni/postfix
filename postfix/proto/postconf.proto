@@ -9798,7 +9798,9 @@ if client certificate verification is not required.  With Postfix 2.8 and
 earlier, log the summary message, peer certificate summary information
 and unconditionally log trust-chain verification errors.  </dd>
 
-<dt> </dt> <dd> 2 Also log levels during TLS negotiation. </dd>
+<dt> </dt> <dd> 2 Also enable verbose logging in the Postfix TLS
+library, log session cache operations, and enable OpenSSL logging
+of the progress of the SSL handshake. </dd>
 
 <dt> </dt> <dd> 3 Also log hexadecimal and ASCII dump of TLS negotiation
 process. </dd>
@@ -10285,7 +10287,9 @@ verification errors if server certificate verification is not required.
 With Postfix 2.8 and earlier, log the summary message and unconditionally
 log trust-chain verification errors.  </dd>
 
-<dt> </dt> <dd> 2 Also log levels during TLS negotiation.  </dd>
+<dt> </dt> <dd> 2 Also enable verbose logging in the Postfix TLS
+library, log session cache operations, and enable OpenSSL logging
+of the progress of the SSL handshake. </dd>
 
 <dt> </dt> <dd> 3 Also log the hexadecimal and ASCII dump of the
 TLS negotiation process.  </dd>

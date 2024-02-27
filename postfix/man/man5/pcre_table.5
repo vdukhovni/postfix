@@ -206,9 +206,14 @@ in\-memory file:
 
 Postfix parses the result as if it is a file in /etc/postfix.
 
-Note: if a rule contains \fB$\fR, specify \fB$$\fR to keep
-Postfix from trying to do \fI$name\fR expansion as it
-evaluates a parameter value.
+Note: if an inlined rule contains \fB$\fR, specify \fB$$\fR
+to keep Postfix from trying to do \fI$name\fR expansion as
+it evaluates a parameter value.
+
+Note: when using \fI$name\fR inside an inlined pattern, use
+\eQ\fI$name\fR\eE to disable metacharacters such as '.' in
+the \fI$name\fR expansion. Otherwise, the pattern may have
+unexpected matches.
 .SH "EXAMPLE SMTPD ACCESS MAP"
 .na
 .nf

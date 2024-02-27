@@ -984,6 +984,8 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 		    resource_found++;
 		    rr->dnssec_valid = *maybe_secure ? reply->dnssec_ad : 0;
 		    *rrlist = dns_rr_append(*rrlist, rr);
+		    if (DNS_RR_IS_TRUNCATED(*rrlist))
+			break;
 		} else if (status == DNS_NULLMX || status == DNS_NULLSRV) {
 		    CORRUPT(status);		/* TODO: use better name */
 		} else if (not_found_status != DNS_RETRY)
@@ -1214,8 +1216,11 @@ int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
 		     name, dns_strtype(type), dns_str_resflags(flags));
 	status = dns_lookup_x(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
 			      fqdn, why, rcode, lflags);
-	if (rrlist && rr)
+	if (rrlist && rr) {
 	    *rrlist = dns_rr_append(*rrlist, rr);
+	    if (DNS_RR_IS_TRUNCATED(*rrlist))
+		break;
+	}
 	if (status == DNS_OK) {
 	    if (lflags & DNS_REQ_FLAG_STOP_OK)
 		break;
@@ -1266,8 +1271,11 @@ int     dns_lookup_rv(const char *name, unsigned flags, DNS_RR **rrlist,
 		     name, dns_strtype(type), dns_str_resflags(flags));
 	status = dns_lookup_x(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
 			      fqdn, why, rcode, lflags);
-	if (rrlist && rr)
+	if (rrlist && rr) {
 	    *rrlist = dns_rr_append(*rrlist, rr);
+	    if (DNS_RR_IS_TRUNCATED(*rrlist))
+		break;
+	}
 	if (status == DNS_OK) {
 	    if (lflags & DNS_REQ_FLAG_STOP_OK)
 		break;

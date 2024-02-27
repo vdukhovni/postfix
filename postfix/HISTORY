@@ -27756,10 +27756,11 @@ Apologies for any names omitted.
 	or access control limitations. Files: smtpd/smtpd.[hc],
 	util/argv.[hc].
 
-	Workaround: some OS lies under load: it says that a socket
-	is readable, then it says that the socket has unread data,
-	and then it says that read returns EOF, causing Postfix to
-	spam the log with a warning message. File: tlsmgr/tlsmgr.c.
+	Workaround: tlsmgr logfile spam. Some OS lies under load:
+	it says that a socket is readable, then it says that the
+	socket has unread data, and then it says that read returns
+	EOF, causing Postfix to spam the log with a warning message.
+	File: tlsmgr/tlsmgr.c.
 
 20240125
 
@@ -27828,17 +27829,6 @@ Apologies for any names omitted.
 	postfix/postfix.c.
 
 20240209
-
-	Safety: enforce a sane but generous upper bound (100) for
-	the number of DNS resource records that the Postfix DNS
-	client library will admit into a list. This is 20x the
-	default smtp_mx_address_limit value for the number of DNS
-	records that the Postfix SMTP client is willing to consider.
-	Log a warning "dropping records after qname=X qtype=Y" when
-	a list cannot accept more elements. This prevents a tail
-	recursion crash that degrades mail delivery performance.
-	Problem report by Toshifumi Sakaguchi. Files: dns/dns_rr.[hc],
-	global/mail_params.h.
 
 	Performance: eliminate worst-case behavior where the queue
 	manager deferred delivery to all destinations over a specific
@@ -27920,3 +27910,27 @@ Apologies for any names omitted.
 	status. Files: postconf/postconf.c, postconf/postconf_dbms.c,
 	postconf/postconf.h, conf/postfix-script, conf/post-install,
 	postfix-install.
+
+20240221
+
+	Documentation: the text for TLS loglevel 2 was incomplete.
+	File: proto/postconf.proto.
+
+20240226
+
+	Safety: drop and log over-size DNS responses resulting in
+	more than 100 records. This 20x larger than the number of
+	server addresses that the Postfix SMTP client is willing
+	to consider when delivering mail, and is well below the
+	number of records that could cause a tail recursion crash
+	in dns_rr_append() as reported by Toshifumi Sakaguchi. This
+	also limits the number of DNS requests from check_*_*_access
+	restrictions. Files: dns/dns.h, dns/dns_lookup.c, dns/dns_rr.c,
+	dns/test_dns_lookup.c, posttls-finger/posttls-finger.c,
+	smtp/smtp_addr.c, smtpd/smtpd_check.c.
+
+20240227
+
+	Documentation: document the need to disable regular expression
+	special characters when using $name inside an inlined
+	pattern. Files: proto/pcre_table, proto/regexp_table.

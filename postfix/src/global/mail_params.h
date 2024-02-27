@@ -4385,16 +4385,6 @@ extern int var_idna2003_compat;
 extern bool var_dns_ncache_ttl_fix;
 
  /*
-  * A generous safety limit for the number of DNS resource records that the
-  * Postfix DNS client library will admit into a list. The default is 20x the
-  * default limit on the number address records that the Postfix SMTP client
-  * is willing to consider.
-  */
-#define VAR_DNS_RR_LIST_LIMIT		"dns_resource_list_limit"
-#define DEF_DNS_RR_LIST_LIMIT		100
-extern int var_dns_rr_list_limit;
-
- /*
   * Logging. As systems evolve over time, logging becomes more challenging.
   */
 #define VAR_MAILLOG_FILE	"maillog_file"
