@@ -1,12 +1,14 @@
 Wish list:
 
-	The postconf command needs more mongodb tests.
-
 	Things to do before the stable release:
 
 	make pre-release-check, HTML validator check.
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
+
+	The postconf command needs more mongodb tests.
+
+	The mongodb client needs tests.
 
 	Remove .printfck directories, and remove printfck targets
 	from Makefiles.
@@ -22,11 +24,6 @@ Wish list:
 
 	Update DKIM examples for signing with the benefits of forced
 	MIME converison with "force_mime_input_conversion = yes"
- 
-	Deprecate permit_mx_backup. It is fundamentally incompatible
-	with recipient address validation. There is no way to fix that:
-	reject_unverified_recipient requires that the domain is reachable,
-	and in that case, permit_mx_backup is not needed.
 
 	Scan Postfix code with github.com/googleprojectzero/weggli
 	(depends on "rust").
@@ -45,9 +42,6 @@ Wish list:
 
 	Multi-recipient support in sender/recipient_bcc_maps and
 	always_bcc.
-
-	Test for dns_rr_copy() + dns_rr_free().
-
 
 	mail_conf_xxx supprt for non-negative numbers (i.e. 
 	numbers with a lower bound of zero).

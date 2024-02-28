@@ -442,8 +442,8 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
     /*
      * Try localpart@ even if the domain is not local.
      */
-    if ((strategy & MA_FIND_LOCALPART_AT) != 0 \
-	&&result == 0 && path->error == 0)
+    if ((strategy & MA_FIND_LOCALPART_AT) != 0
+	&& result == 0 && path->error == 0)
 	result = find_local(path, ratsign, 1, int_full_key,
 			    int_bare_key, query_form, extp, &saved_ext,
 			    ext_addr_buf);

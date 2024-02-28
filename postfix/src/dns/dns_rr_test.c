@@ -101,7 +101,7 @@ typedef struct TEST_CASE {
 
 static int eq_dns_rr_qname_differ(void)
 {
-    DNS_RR *got = dns_rr_create("qa", "ra", T_SRV, C_IN, 3600, 1, 25, 1, "mxa", 3);
+    DNS_RR *got = dns_rr_create("qa", "ra", T_SRV, C_IN, 3600, 1, 25, 1, "mxa", 4);
     DNS_RR *want = dns_rr_copy(got);
 
     myfree(want->qname);
@@ -111,7 +111,7 @@ static int eq_dns_rr_qname_differ(void)
 
 static int eq_dns_rr_reply_differ(void)
 {
-    DNS_RR *got = dns_rr_create("qa", "ra", T_SRV, C_IN, 3600, 1, 25, 1, "mxa", 3);
+    DNS_RR *got = dns_rr_create("qa", "ra", T_SRV, C_IN, 3600, 1, 25, 1, "mxa", 4);
     DNS_RR *want = dns_rr_copy(got);
 
     want->port += 1;
@@ -128,7 +128,7 @@ static int eq_dns_rr_reply_differ(void)
 
 static int eq_dns_rr_flags_differ(void)
 {
-    DNS_RR *got = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
+    DNS_RR *got = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
     DNS_RR *want = dns_rr_copy(got);
 
     want->flags |= DNS_RR_FLAG_TRUNCATED;
@@ -145,7 +145,7 @@ static int append_to_null_from_null(void)
 
 static int append_to_elem_from_null(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
     DNS_RR *got, *want;
 
     got = dns_rr_append(dns_rr_copy(a), (DNS_RR *) 0);
@@ -157,7 +157,7 @@ static int append_to_elem_from_null(void)
 
 static int appent_to_null_from_elem(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
     DNS_RR *got, *want;
 
     got = dns_rr_append((DNS_RR *) 0, dns_rr_copy(a));
@@ -169,8 +169,8 @@ static int appent_to_null_from_elem(void)
 
 static int append_to_elem_from_elem(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
-    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
     DNS_RR *got, *want;
 
     got = dns_rr_append(dns_rr_copy(a), dns_rr_copy(b));
@@ -182,9 +182,9 @@ static int append_to_elem_from_elem(void)
 
 static int append_to_elem_from_list(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
-    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 3);
-    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
     DNS_RR *got, *want;
 
     got = dns_rr_append(dns_rr_copy(a),
@@ -198,9 +198,9 @@ static int append_to_elem_from_list(void)
 
 static int append_to_list_from_elem(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
-    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 3);
-    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
     DNS_RR *got, *want;
 
     got = dns_rr_append(dns_rr_append(dns_rr_copy(a),
@@ -214,10 +214,10 @@ static int append_to_list_from_elem(void)
 
 static int append_to_list_from_list(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
-    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 3);
-    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 3);
-    DNS_RR *d = dns_rr_create_noport("qd", "rd", T_MX, C_IN, 3600, 1, "mxd", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
+    DNS_RR *d = dns_rr_create_noport("qd", "rd", T_MX, C_IN, 3600, 1, "mxd", 4);
     DNS_RR *got, *want;
 
     got = dns_rr_append(dns_rr_append(dns_rr_copy(a),
@@ -232,10 +232,10 @@ static int append_to_list_from_list(void)
 
 static int append_propagates_flags(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
-    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 3);
-    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 3);
-    DNS_RR *d = dns_rr_create_noport("qd", "rd", T_MX, C_IN, 3600, 1, "mxd", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
+    DNS_RR *d = dns_rr_create_noport("qd", "rd", T_MX, C_IN, 3600, 1, "mxd", 4);
     DNS_RR *left = dns_rr_append(dns_rr_copy(a), dns_rr_copy(b));
     DNS_RR *rite = dns_rr_append(dns_rr_copy(c), dns_rr_copy(d));
     DNS_RR *got, *want, *rr;
@@ -254,10 +254,10 @@ static int append_propagates_flags(void)
 
 static int append_to_list_from_list_truncate(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
-    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 3);
-    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 3);
-    DNS_RR *d = dns_rr_create_noport("qd", "rd", T_MX, C_IN, 3600, 1, "mxd", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
+    DNS_RR *d = dns_rr_create_noport("qd", "rd", T_MX, C_IN, 3600, 1, "mxd", 4);
     DNS_RR *got, *want, *rr;
 
     var_dns_rr_list_limit = 3;
@@ -274,10 +274,10 @@ static int append_to_list_from_list_truncate(void)
 
 static int append_to_list_from_elem_elem_truncate(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
-    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 3);
-    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 3);
-    DNS_RR *d = dns_rr_create_noport("qd", "rd", T_MX, C_IN, 3600, 1, "mxd", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
+    DNS_RR *d = dns_rr_create_noport("qd", "rd", T_MX, C_IN, 3600, 1, "mxd", 4);
     DNS_RR *got, *want, *rr;
 
     var_dns_rr_list_limit = 2;
@@ -295,9 +295,9 @@ static int append_to_list_from_elem_elem_truncate(void)
 
 static int append_to_list_from_elem_truncate(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
-    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 3);
-    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
     DNS_RR *got, *want, *rr;
 
     var_dns_rr_list_limit = 2;
@@ -313,9 +313,9 @@ static int append_to_list_from_elem_truncate(void)
 
 static int append_to_elem_from_list_truncate(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
-    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 3);
-    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
     DNS_RR *got, *want, *rr;
 
     var_dns_rr_list_limit = 2;
@@ -331,9 +331,9 @@ static int append_to_elem_from_list_truncate(void)
 
 static int append_to_list_from_elem_exact_fit(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
-    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 3);
-    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
     DNS_RR *got, *want;
 
     var_dns_rr_list_limit = 3;
@@ -347,9 +347,9 @@ static int append_to_list_from_elem_exact_fit(void)
 
 static int append_to_elem_from_list_exact_fit(void)
 {
-    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 3);
-    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 3);
-    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 3);
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
     DNS_RR *got, *want;
 
     var_dns_rr_list_limit = 3;

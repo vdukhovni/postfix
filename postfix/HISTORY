@@ -27934,3 +27934,11 @@ Apologies for any names omitted.
 	Documentation: document the need to disable regular expression
 	special characters when using $name inside an inlined
 	pattern. Files: proto/pcre_table, proto/regexp_table.
+
+20240228
+
+	Cleanups. Fixed some dns_rr_create() calls in test code,
+	and reverted a workaround in the DNS record formatter;
+	files: dns/dns_rr_test.c, dns/dns_strrecord.c. Code formatting;
+	file: global/nail_addr_find.c. Added missing test reference;
+	file: postconf/test76.ref.
