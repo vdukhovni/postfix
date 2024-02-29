@@ -75,7 +75,8 @@ broken-tests: smtpd_check_test smtpd_check_test2
 tests:	smtpd_acl_test smtpd_addr_valid_test smtpd_exp_test \
 	smtpd_token_test smtpd_check_test4 smtpd_check_dsn_test \
 	smtpd_check_backup_test smtpd_dnswl_test smtpd_error_test \
-	smtpd_server_test smtpd_nullmx_test smtpd_dns_filter_test
+	smtpd_server_test smtpd_nullmx_test smtpd_dns_filter_test \
+	smtpd_deprecated_test
 
 root_tests:
 
@@ -169,6 +170,11 @@ smtpd_dnswl_test: smtpd_check smtpd_dnswl.in smtpd_dnswl.ref
 smtpd_error_test: smtpd_check smtpd_error.in smtpd_error.ref
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_error.in >smtpd_check.tmp 2>&1
 	diff smtpd_error.ref smtpd_check.tmp
+	rm -f smtpd_check.tmp
+
+smtpd_deprecated_test: smtpd_check smtpd_deprecated.in smtpd_deprecated.ref
+	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_deprecated.in >smtpd_check.tmp 2>&1
+	diff smtpd_deprecated.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp
 
 depend: $(MAKES)

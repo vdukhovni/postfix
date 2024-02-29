@@ -1675,44 +1675,13 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
     /*
      * Restriction check_relay_domains is deprecated as of Postfix 2.2.
      */
-#if 1
-    static int once;
-
-    if (once == 0) {
-	once = 1;
-	msg_warn("support for restriction \"%s\" will be removed from %s; "
-		 "use \"%s\" instead",
-		 CHECK_RELAY_DOMAINS, var_mail_name, REJECT_UNAUTH_DEST);
-    }
-#endif
-
     if (msg_verbose)
 	msg_info("%s: %s", myname, recipient);
 
-    /*
-     * Permit if the client matches the relay_domains list.
-     */
-    if (domain_list_match(relay_domains, state->name)) {
-	if (warn_compat_break_relay_domains)
-	    msg_info("using backwards-compatible default setting "
-		     VAR_RELAY_DOMAINS "=$mydestination to permit "
-		     "request from client \"%s\"", state->name);
-	return (SMTPD_CHECK_OK);
-    }
-
-    /*
-     * Permit authorized destinations.
-     */
-    if (permit_auth_destination(state, recipient) == SMTPD_CHECK_OK)
-	return (SMTPD_CHECK_OK);
-
-    /*
-     * Deny relaying between sites that both are not in relay_domains.
-     */
-    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-			       var_relay_code, "5.7.1",
-			       "<%s>: %s rejected: Relay access denied",
-			       reply_name, reply_class));
+    msg_warn("support for restriction \"%s\" has been removed in %s 3.9; "
+	     "use \"%s\" instead",
+	     CHECK_RELAY_DOMAINS, var_mail_name, REJECT_UNAUTH_DEST);
+    reject_server_error(state);
 }
 
 /* permit_auth_destination - OK for message relaying */
@@ -3928,11 +3897,6 @@ static int permit_dnswl_domain(SMTPD_STATE *state, const char *dnswl_domain,
 static int reject_maps_rbl(SMTPD_STATE *state)
 {
     const char *myname = "reject_maps_rbl";
-    char   *saved_domains = mystrdup(var_maps_rbl_domains);
-    char   *bp = saved_domains;
-    char   *rbl_domain;
-    int     result = SMTPD_CHECK_DUNNO;
-    static int warned;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, state->addr);
@@ -3940,25 +3904,11 @@ static int reject_maps_rbl(SMTPD_STATE *state)
     /*
      * Restriction reject_maps_rbl is deprecated as of Postfix 2.1.
      */
-    if (warned == 0) {
-	warned++;
-	msg_warn("support for restriction \"%s\" will be removed from %s; "
-		 "use \"%s domain-name\" instead",
-		 REJECT_MAPS_RBL, var_mail_name, REJECT_RBL_CLIENT);
-    }
-    while ((rbl_domain = mystrtok(&bp, CHARS_COMMA_SP)) != 0) {
-	result = reject_rbl_addr(state, rbl_domain, state->addr,
-				 SMTPD_NAME_CLIENT);
-	if (result != SMTPD_CHECK_DUNNO)
-	    break;
-    }
+    msg_warn("support for restriction \"%s\" has been removed in %s 3.9; "
+	     "use \"%s domain-name\" instead",
+	     REJECT_MAPS_RBL, var_mail_name, REJECT_RBL_CLIENT);
 
-    /*
-     * Clean up.
-     */
-    myfree(saved_domains);
-
-    return (result);
+    reject_server_error(state);
 }
 
 #ifdef USE_SASL_AUTH
@@ -4537,15 +4487,11 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    }
 	} else if (strcasecmp(name, PERMIT_NAKED_IP_ADDR) == 0) {
 	    /* permit_naked_ip_addr is deprecated as of Postfix 2.0. */
-	    msg_warn("restriction %s is deprecated. Use %s or %s instead",
-		 PERMIT_NAKED_IP_ADDR, PERMIT_MYNETWORKS, PERMIT_SASL_AUTH);
-	    if (state->helo_name) {
-		if (state->helo_name[strspn(state->helo_name, "0123456789.:")] == 0
-		&& (status = reject_invalid_hostaddr(state, state->helo_name,
-				   state->helo_name, SMTPD_NAME_HELO)) == 0)
-		    status = smtpd_acl_permit(state, name, SMTPD_NAME_HELO,
-					   state->helo_name, NO_PRINT_ARGS);
-	    }
+	    msg_warn("restriction %s has been removed in %s 3.9;"
+		     " use %s or %s instead",
+		     PERMIT_NAKED_IP_ADDR, var_mail_name,
+		     PERMIT_MYNETWORKS, PERMIT_SASL_AUTH);
+	    reject_server_error(state);
 	} else if (is_map_command(state, name, CHECK_HELO_NS_ACL, &cpp)) {
 	    if (state->helo_name) {
 		status = check_server_access(state, *cpp, state->helo_name,

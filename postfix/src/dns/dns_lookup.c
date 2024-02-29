@@ -306,7 +306,7 @@ typedef struct DNS_REPLY {
 
  /*
   * Use the threadsafe resolver API if available, not because it is
-  * theadsafe, but because it has more functionality.
+  * threadsafe, but because it has more functionality.
   */
 #ifdef USE_RES_NCALLS
 static struct __res_state dns_res_state;

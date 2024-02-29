@@ -27940,5 +27940,19 @@ Apologies for any names omitted.
 	Cleanups. Fixed some dns_rr_create() calls in test code,
 	and reverted a workaround in the DNS record formatter;
 	files: dns/dns_rr_test.c, dns/dns_strrecord.c. Code formatting;
-	file: global/nail_addr_find.c. Added missing test reference;
+	file: global/mail_addr_find.c. Added missing test reference;
 	file: postconf/test76.ref.
+
+20240229
+
+	Clenup: moved the new DNS_RR.flags structure member to the
+	location of a "padding" hole (two bytes for ILP32 systems,
+	6 bytes for LP64). File: dns/dns.h.
+
+	Deprecation: removed permit_naked_ip_address, reject_maps_rbl,
+	and check_relay_domains. These have been logging deprecation
+	warnings since 2005 or earlier, and were removed from Postfix
+	documentation in 2004 (but who reads logs and documentation?).
+	Files: smtpd/smtpd_check.c, smtpd/smtpd_check_backup.ref,
+	smtpd/smtpd_exp.ref, smtpd/smtpd_deprecated.in,
+	smtpd/smtpd_deprecated.ref.

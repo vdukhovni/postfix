@@ -161,10 +161,11 @@ typedef struct DNS_RR {
     unsigned short pref;		/* T_MX and T_SRV record related */
     unsigned short weight;		/* T_SRV related, defined in rfc2782 */
     unsigned short port;		/* T_SRV related, defined in rfc2782 */
+    /* Assume that flags lives in what was previously padding */
+    unsigned short flags;		/* DNS_RR_FLAG_XX, see below */
     struct DNS_RR *next;		/* linkage */
     size_t  data_len;			/* actual data size */
     char    *data;			/* a bunch of data */
-    int     flags;			/* DNS_RR_FLAG_XX, see below */
      /* Add new fields at the end, for ABI forward compatibility. */
 } DNS_RR;
 
