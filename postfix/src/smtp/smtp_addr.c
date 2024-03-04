@@ -230,6 +230,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
 		    msg_fatal("host %s: conversion error for address family "
 			      "%d: %m", host, res0->ai_addr->sa_family);
 		addr_list = dns_rr_append(addr_list, addr);
+		if (DNS_RR_IS_TRUNCATED(addr_list))
+		    break;
 	    }
 	    freeaddrinfo(res0);
 	    if (found == 0) {
@@ -287,6 +289,8 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, DSN_BUF *why)
 	    msg_panic("smtp_addr_list: bad resource type: %d", rr->type);
 	addr_list = smtp_addr_one(addr_list, (char *) rr->data, res_opt,
 				  rr->pref, why);
+	if (addr_list && DNS_RR_IS_TRUNCATED(addr_list))
+	    break;
     }
     return (addr_list);
 }
@@ -380,6 +384,13 @@ static DNS_RR *smtp_balance_inet_proto(DNS_RR *addr_list, int misc_flags,
      * preference than 'myself' have been eliminated. Postcondition: the
      * relative list order is unchanged, but some elements are removed.
      */
+
+    /*
+     * Ensure that dns_rr_append() won't interfere with the protocol
+     * balancing goals.
+     */
+    if (addr_limit > var_dns_rr_list_limit)
+	addr_limit = var_dns_rr_list_limit;
 
     /*
      * Count the number of IPv6 and IPv4 addresses.

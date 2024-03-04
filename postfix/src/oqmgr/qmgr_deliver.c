@@ -285,6 +285,7 @@ static void qmgr_deliver_update(int unused_event, void *context)
      * The queue itself won't go away before we dispose of the current queue
      * entry.
      */
+#if 0
     if (status == DELIVER_STAT_CRASH) {
 	message->flags |= DELIVER_STAT_DEFER;
 #if 0
@@ -319,6 +320,7 @@ static void qmgr_deliver_update(int unused_event, void *context)
 	qmgr_defer_transport(transport, &dsb->dsn);
 	return;
     }
+#endif
 
     /*
      * This message must be tried again.
@@ -333,7 +335,9 @@ static void qmgr_deliver_update(int unused_event, void *context)
      */
 #define SUSPENDED	"delivery temporarily suspended: "
 
-    if (status == DELIVER_STAT_DEFER) {
+    if (status == DELIVER_STAT_CRASH)
+	DSN_SIMPLE(&dsb->dsn, "4.3.0", "unknown mail transport error");
+    if (status == DELIVER_STAT_CRASH || status == DELIVER_STAT_DEFER) {
 	message->flags |= DELIVER_STAT_DEFER;
 	if (VSTRING_LEN(dsb->status)) {
 	    /* Sanitize the DSN status/reason from the delivery agent. */

@@ -119,9 +119,11 @@ int     main(int argc, char **argv)
 	    vstream_printf("%s: fqdn: %s\n", name, vstring_str(fqdn));
 	    buf = vstring_alloc(100);
 	    print_rr(buf, rr);
+	    vstream_fflush(VSTREAM_OUT);
+	    if (DNS_RR_IS_TRUNCATED(rr))
+		msg_warn("one or more excess DNS_RR records were dropped");
 	    dns_rr_free(rr);
 	    vstring_free(buf);
-	    vstream_fflush(VSTREAM_OUT);
 	}
     }
     myfree((void *) types);

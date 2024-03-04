@@ -4053,14 +4053,31 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	/*
 	 * Read lines from the fragment. The last line may continue in the
 	 * next fragment, or in the next chunk.
+	 * 
+	 * If smtp_get_noexcept() stopped after var_line_limit bytes and did not
+	 * emit a queue file record, then that means smtp_get_noexcept()
+	 * stopped after CR and hit EOF as it tried to find out if the next
+	 * byte is LF. In that case, read the first byte from the next
+	 * fragment or chunk, and if that first byte is LF, then
+	 * smtp_get_noexcept() strips off the trailing CRLF and returns '\n'
+	 * as it always does after reading a complete line.
 	 */
 	do {
+	    int     can_read = var_line_limit - LEN(state->bdat_get_buffer);
+
 	    if (smtp_get_noexcept(state->bdat_get_buffer,
 				  state->bdat_get_stream,
-				  var_line_limit,
+				  can_read > 0 ? can_read : 1,	/* Peek one */
 				  SMTP_GET_FLAG_APPEND) == '\n') {
 		/* Stopped at end-of-line. */
 		curr_rec_type = REC_TYPE_NORM;
+	    } else if (LEN(state->bdat_get_buffer) > var_line_limit) {
+		/* Undo peeking, and output the buffer as REC_TYPE_CONT. */
+		vstream_ungetc(state->bdat_get_stream,
+			       vstring_end(state->bdat_get_buffer)[-1]);
+		vstring_truncate(state->bdat_get_buffer,
+				 LEN(state->bdat_get_buffer) - 1);
+		curr_rec_type = REC_TYPE_CONT;
 	    } else if (!vstream_feof(state->bdat_get_stream)) {
 		/* Stopped at var_line_limit. */
 		curr_rec_type = REC_TYPE_CONT;

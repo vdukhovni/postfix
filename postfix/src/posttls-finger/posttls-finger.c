@@ -1244,6 +1244,8 @@ static DNS_RR *addr_one(STATE *state, DNS_RR *addr_list, const char *host,
 		    msg_fatal("host %s: conversion error for address family %d: %m",
 		    host, ((struct sockaddr *) (res0->ai_addr))->sa_family);
 		addr_list = dns_rr_append(addr_list, addr);
+		if (DNS_RR_IS_TRUNCATED(addr_list))
+		    break;
 	    }
 	    freeaddrinfo(res0);
 	    if (found == 0) {
@@ -1281,6 +1283,8 @@ static DNS_RR *mx_addr_list(STATE *state, DNS_RR *mx_names)
 	    msg_panic("%s: bad resource type: %d", myname, rr->type);
 	addr_list = addr_one(state, addr_list, (char *) rr->data, res_opt,
 			     rr->pref);
+	if (addr_list && DNS_RR_IS_TRUNCATED(addr_list))
+	    break;
     }
     return (addr_list);
 }
@@ -2048,8 +2052,20 @@ static void parse_match(STATE *state, int argc, char *argv[])
 {
 #ifdef USE_TLS
 
+    /*
+     * DANE match names are configured late, once the TLSA records are in
+     * hand. For now, prepare to fall back to "secure".
+     */
     switch (state->level) {
-	case TLS_LEV_SECURE:
+    default:
+	state->match = 0;
+	if (*argv)
+	    msg_warn("TLS level '%s' does not implement certificate matching",
+		     str_tls_level(state->level));
+	break;
+    case TLS_LEV_DANE:
+    case TLS_LEV_DANE_ONLY:
+    case TLS_LEV_SECURE:
 	state->match = argv_alloc(2);
 	while (*argv)
 	    argv_split_append(state->match, *argv++, "");
@@ -2068,11 +2084,6 @@ static void parse_match(STATE *state, int argc, char *argv[])
 	while (*argv)
 	    tls_dane_add_ee_digests((TLS_DANE *) state->dane,
 				    state->mdalg, *argv++, "");
-	break;
-    case TLS_LEV_DANE:
-    case TLS_LEV_DANE_ONLY:
-	state->match = argv_alloc(2);
-	argv_add(state->match, "nexthop", "hostname", ARGV_END);
 	break;
     }
 #endif
