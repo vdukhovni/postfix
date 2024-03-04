@@ -96,7 +96,7 @@ static char *json_quote(VSTRING *result, const char *text)
 		VSTRING_ADDCH(result, 't');
 		break;
 	    default:
-		vstring_sprintf(result, "\\u%04X", ch);
+		vstring_sprintf_append(result, "\\u%04X", ch);
 		break;
 	    }
 	} else {

@@ -819,6 +819,23 @@ static void tlsmgr_service(VSTREAM *client_stream, char *unused_service,
     }
 
     /*
+     * Workaround: some OS lies under load. It tells the Postfix event
+     * handler that a server socket is readable, then it tells peekfd() that
+     * the socket has unread data, and then it tells vstring_get_null() that
+     * there is none, causing Postfix to spam the log with warning messages.
+     * Close the stream to stop such nonsense; the client can reconnect if it
+     * still wants to talk to us.
+     * 
+     * XXX Why is this problem not reported for the other five
+     * multi_server-based Postfix services?
+     */
+    else if (vstream_ferror(client_stream) || vstream_feof(client_stream)) {
+	multi_server_disconnect(client_stream);
+	return;
+	/* Note: client_stream is now a dangling pointer. */
+    }
+
+    /*
      * Protocol error.
      */
     else {
