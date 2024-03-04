@@ -161,11 +161,17 @@ typedef struct DNS_RR {
     unsigned short pref;		/* T_MX and T_SRV record related */
     unsigned short weight;		/* T_SRV related, defined in rfc2782 */
     unsigned short port;		/* T_SRV related, defined in rfc2782 */
+    /* Assume that flags lives in what was previously padding */
+    unsigned short flags;		/* DNS_RR_FLAG_XX, see below */
     struct DNS_RR *next;		/* linkage */
     size_t  data_len;			/* actual data size */
     char    *data;			/* a bunch of data */
      /* Add new fields at the end, for ABI forward compatibility. */
 } DNS_RR;
+
+#define DNS_RR_FLAG_TRUNCATED	(1<<0)
+
+#define DNS_RR_IS_TRUNCATED(rr)	((rr)->flags & DNS_RR_FLAG_TRUNCATED)
 
  /*
   * dns_strerror.c
@@ -215,6 +221,7 @@ extern int dns_rr_compare_pref_any(DNS_RR *, DNS_RR *);
 extern int dns_rr_compare_pref(DNS_RR *, DNS_RR *);
 extern DNS_RR *dns_rr_shuffle(DNS_RR *);
 extern DNS_RR *dns_rr_remove(DNS_RR *, DNS_RR *);
+extern int var_dns_rr_list_limit;
 
  /*
   * dns_rr_to_pa.c

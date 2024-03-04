@@ -119,6 +119,7 @@
 #include <dsn_util.h>
 #include <xtext.h>
 #include <info_log_addr_form.h>
+#include <header_opts.h>
 
 /* Application-specific. */
 
@@ -754,14 +755,26 @@ static const char *cleanup_add_header(void *context, const char *name,
      */
 }
 
+/* hidden_header - respect milter header hiding protocol */
+
+static int hidden_header(VSTRING *buf, ARGV *auto_hdrs, int *hide_done)
+{
+    char  **cpp;
+    int     mask;
+
+    for (cpp = auto_hdrs->argv, mask = 1; *cpp; cpp++, mask <<= 1)
+	if ((*hide_done & mask) == 0 && strncmp(*cpp, STR(buf), LEN(buf)) == 0)
+	    return (*hide_done |= mask);
+    return (0);
+}
+
 /* cleanup_find_header_start - find specific header instance */
 
 static off_t cleanup_find_header_start(CLEANUP_STATE *state, ssize_t index,
 				               const char *header_label,
 				               VSTRING *buf,
 				               int *prec_type,
-				               int allow_ptr_backup,
-				               int skip_headers)
+				               int allow_ptr_backup)
 {
     const char *myname = "cleanup_find_header_start";
     off_t   curr_offset;		/* offset after found record */
@@ -770,7 +783,7 @@ static off_t cleanup_find_header_start(CLEANUP_STATE *state, ssize_t index,
     int     rec_type = REC_TYPE_ERROR;
     int     last_type;
     ssize_t len;
-    int     hdr_count = 0;
+    int     hide_done = 0;
 
     if (msg_verbose)
 	msg_info("%s: index %ld name \"%s\"",
@@ -912,11 +925,10 @@ static off_t cleanup_find_header_start(CLEANUP_STATE *state, ssize_t index,
 	    break;
 	}
 	/* This the start of a message header. */
-	else if (hdr_count++ < skip_headers)
-	     /* Reset the saved PTR record and update last_type. */ ;
 	else if ((header_label == 0
 		  || (strncasecmp(header_label, STR(buf), len) == 0
-		      && (strlen(header_label) == len)))
+		      && strlen(header_label) == len
+		      && !hidden_header(buf, state->auto_hdrs, &hide_done)))
 		 && --index == 0) {
 	    /* If we have a saved PTR record, it points to start of header. */
 	    break;
@@ -1182,15 +1194,12 @@ static const char *cleanup_ins_header(void *context, ssize_t index,
      */
 #define NO_HEADER_NAME	((char *) 0)
 #define ALLOW_PTR_BACKUP	1
-#define SKIP_ONE_HEADER		1
-#define DONT_SKIP_HEADERS	0
 
     if (index < 1)
 	index = 1;
     old_rec_offset = cleanup_find_header_start(state, index, NO_HEADER_NAME,
 					       old_rec_buf, &old_rec_type,
-					       ALLOW_PTR_BACKUP,
-					       DONT_SKIP_HEADERS);
+					       ALLOW_PTR_BACKUP);
     if (old_rec_offset == CLEANUP_FIND_HEADER_IOERROR)
 	/* Warning and errno->error mapping are done elsewhere. */
 	CLEANUP_INS_HEADER_RETURN(cleanup_milter_error(state, 0));
@@ -1270,8 +1279,7 @@ static const char *cleanup_upd_header(void *context, ssize_t index,
     rec_buf = vstring_alloc(100);
     old_rec_offset = cleanup_find_header_start(state, index, new_hdr_name,
 					       rec_buf, &last_type,
-					       NO_PTR_BACKUP,
-					       SKIP_ONE_HEADER);
+					       NO_PTR_BACKUP);
     if (old_rec_offset == CLEANUP_FIND_HEADER_IOERROR)
 	/* Warning and errno->error mapping are done elsewhere. */
 	CLEANUP_UPD_HEADER_RETURN(cleanup_milter_error(state, 0));
@@ -1333,8 +1341,7 @@ static const char *cleanup_del_header(void *context, ssize_t index,
 
     rec_buf = vstring_alloc(100);
     header_offset = cleanup_find_header_start(state, index, hdr_name, rec_buf,
-					      &last_type, NO_PTR_BACKUP,
-					      SKIP_ONE_HEADER);
+					      &last_type, NO_PTR_BACKUP);
     if (header_offset == CLEANUP_FIND_HEADER_IOERROR)
 	/* Warning and errno->error mapping are done elsewhere. */
 	CLEANUP_DEL_HEADER_RETURN(cleanup_milter_error(state, 0));

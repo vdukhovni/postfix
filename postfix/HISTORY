@@ -27246,3 +27246,83 @@ Apologies for any names omitted.
 	Files: mantools/postlink, proto/postconf.proto,
 	global/mail_params.h, global/smtp_stream.c, global/smtp_stream.h,
 	smtpd/smtpd.c, smtpd/smtpd_check.[hc].
+
+20231102
+
+	Bugfix (defect introduced: Postfix 2.3, date 20051222): the
+	Dovecot auth client did not reset the 'reason' from  a
+	previous Dovecot auth service response, before parsing the
+	next Dovecot auth server response in the same SMTP session.
+	Reported by Stephan Bosch, File: xsasl/xsasl_dovecot_server.c.
+
+20231105
+
+	Cleanup: Postfix SMTP server response with an empty
+	authentication failure reason. File: smtpd/smtpd_sasl_glue.c.
+
+20231208
+
+	Bugfix (defect introduced: Postfix 3.1, date: 20151128):
+	"postqueue -j" produced broken JSON when escaping a control
+	character as \uXXXX. Found during code maintenance. File:
+	postqueue/showq_json.c.
+
+20231211
+
+	Cleanup: posttls-finger certificate match expectations for
+	all TLS security levels, including warnings for levels that
+	don't implement certificate matching. Viktor Dukhovni.
+	File: posttls-finger.c.
+
+20231213
+
+	Bugfix (defect introduced: Postfix 2.3): after prepending
+	a message header with a Postfix access table PREPEND action,
+	a Milter request to delete or update an existing header
+	could have no effect, or it could target the wrong instance
+	of an existing header. Root cause: the fix dated 20141018
+	for the Postfix Milter client was incomplete. The client
+	did correctly hide the first, Postfix-generated, Received:
+	header when sending message header information to a Milter
+	with the smfi_header() application callback function, but
+	it was still hiding the first header (instead of the first
+	Received: header) when handling requests from a Milter to
+	delete or update an existing header. Problem report by
+	Carlos Velasco. This change was verified to have no effect
+	on requests from a Milter to add or insert a header. File:
+	cleanup/cleanup_milter.c.
+
+20240124
+
+	Workaround: tlsmgr logfile spam. Some OS lies under load:
+	it says that a socket is readable, then it says that the
+	socket has unread data, and then it says that read returns
+	EOF, causing Postfix to spam the log with a warning message.
+	File: tlsmgr/tlsmgr.c.
+
+	Bugfix (defect introduced: Postfix 3.4): the SMTP server's
+	BDAT command handler could be tricked to read $message_size_limit
+	bytes into memory. Found during code maintenance. File:
+	smtpd/smtpd.c.
+
+20240209
+
+	Performance: eliminate worst-case behavior where the queue
+	manager defers delivery to all destinations over a specific
+	delivery transport, after only a single delivery agent
+	failure. The scheduler now throttles one destination, and
+	allows deliveries to other destinations to keep making
+	progress. Files: *qmgr/qmgr_deliver.c.
+
+20240226
+
+	Safety: drop and log over-size DNS responses resulting in
+	more than 100 records. This 20x larger than the number of
+	server addresses that the Postfix SMTP client is willing
+	to consider when delivering mail, and is well below the
+	number of records that could cause a tail recursion crash
+	in dns_rr_append() as reported by Toshifumi Sakaguchi. This
+	also limits the number of DNS requests from check_*_*_access
+	restrictions. Files: dns/dns.h, dns/dns_lookup.c, dns/dns_rr.c,
+	dns/test_dns_lookup.c, posttls-finger/posttls-finger.c,
+	smtp/smtp_addr.c, smtpd/smtpd_check.c.
