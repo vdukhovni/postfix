@@ -1679,7 +1679,7 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
 	msg_info("%s: %s", myname, recipient);
 
     msg_warn("support for restriction \"%s\" has been removed in %s 3.9; "
-	     "use \"%s\" instead",
+	     "instead, specify \"%s\"",
 	     CHECK_RELAY_DOMAINS, var_mail_name, REJECT_UNAUTH_DEST);
     reject_server_error(state);
 }
@@ -1998,7 +1998,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     if (once == 0) {
 	once = 1;
 	msg_warn("support for restriction \"%s\" will be removed from %s; "
-		 "instead, use \"%s\"",
+		 "instead, specify \"%s\"",
 		 PERMIT_MX_BACKUP, var_mail_name, VAR_RELAY_DOMAINS);
     }
 
@@ -3905,7 +3905,7 @@ static int reject_maps_rbl(SMTPD_STATE *state)
      * Restriction reject_maps_rbl is deprecated as of Postfix 2.1.
      */
     msg_warn("support for restriction \"%s\" has been removed in %s 3.9; "
-	     "use \"%s domain-name\" instead",
+	     "instead, specify \"%s domain-name\"",
 	     REJECT_MAPS_RBL, var_mail_name, REJECT_RBL_CLIENT);
 
     reject_server_error(state);
@@ -4487,8 +4487,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    }
 	} else if (strcasecmp(name, PERMIT_NAKED_IP_ADDR) == 0) {
 	    /* permit_naked_ip_addr is deprecated as of Postfix 2.0. */
-	    msg_warn("restriction %s has been removed in %s 3.9;"
-		     " use %s or %s instead",
+	    msg_warn("support for restriction \"%s\" has been removed in %s"
+		     " 3.9; instead, specify \"%s\" or \"%s\"",
 		     PERMIT_NAKED_IP_ADDR, var_mail_name,
 		     PERMIT_MYNETWORKS, PERMIT_SASL_AUTH);
 	    reject_server_error(state);

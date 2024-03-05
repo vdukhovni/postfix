@@ -75,22 +75,22 @@ static const PCF_DEPR_PARAM_INFO pcf_depr_param_info[] = {
      * disable_dns_lookups parameter was documented as deprecated since
      * Postfix 2.11 but nothing was logged.
      */
-    "disable_dns_lookups", "specify smtp_dns_support_level",
-    "lmtp_use_tls", "specify lmtp_tls_security_level",
-    "postscreen_use_tls", "specify postscreen_tls_security_level",
-    "smtp_use_tls", "specify smtp_tls_security_level",
-    "smtpd_use_tls", "specify smtpd_tls_security_level",
-    "tlsproxy_client_use_tls", "specify tlsproxy_client_security_level",
-    "tlsproxy_use_tls", "specify tlsproxy_tls_security_level",
+    "disable_dns_lookups", "specify \"smtp_dns_support_level\"",
+    "lmtp_use_tls", "specify \"lmtp_tls_security_level\"",
+    "postscreen_use_tls", "specify \"postscreen_tls_security_level\"",
+    "smtp_use_tls", "specify \"smtp_tls_security_level\"",
+    "smtpd_use_tls", "specify \"smtpd_tls_security_level\"",
+    "tlsproxy_client_use_tls", "specify \"tlsproxy_client_security_level\"",
+    "tlsproxy_use_tls", "specify \"tlsproxy_tls_security_level\"",
     "lmtp_enforce_tls", "lmtp_tls_security_level",
-    "postscreen_enforce_tls", "specify postscreen_tls_security_level",
-    "smtp_enforce_tls", "specify smtp_tls_security_level",
-    "smtpd_enforce_tls", "specify smtpd_tls_security_level",
-    "tlsproxy_client_enforce_tls", "specify tlsproxy_client_security_level",
-    "tlsproxy_enforce_tls", "specify tlsproxy_tls_security_level",
-    "lmtp_tls_per_site", "specify lmtp_tls_policy_maps",
-    "smtp_tls_per_site", "specify smtp_tls_policy_maps",
-    "tlsproxy_client_per_site", "specify tlsproxy_client_policy_maps",
+    "postscreen_enforce_tls", "specify \"postscreen_tls_security_level\"",
+    "smtp_enforce_tls", "specify \"smtp_tls_security_level\"",
+    "smtpd_enforce_tls", "specify \"smtpd_tls_security_level\"",
+    "tlsproxy_client_enforce_tls", "specify \"tlsproxy_client_security_level\"",
+    "tlsproxy_enforce_tls", "specify \"tlsproxy_tls_security_level\"",
+    "lmtp_tls_per_site", "specify \"lmtp_tls_policy_maps\"",
+    "smtp_tls_per_site", "specify \"smtp_tls_policy_maps\"",
+    "tlsproxy_client_per_site", "specify \"tlsproxy_client_policy_maps\"",
     "smtpd_tls_dh1024_param_file", "do not specify (leave at default)",
     "smtpd_tls_eecdh_grade", "do not specify (leave at default)",
     "deleted-test-only", "do not specify",	/* For testing */
@@ -171,7 +171,7 @@ static void pcf_flag_unused_parameters(DICT *dict, const char *conf_name,
 	else if ((dp = (const PCF_DEPR_PARAM_INFO *)
 		  htable_find(pcf_depr_param_table, param_name)) != 0) {
 	    vstream_fflush(VSTREAM_OUT);
-	    msg_warn("%s/%s: support for parameter %s will be removed;"
+	    msg_warn("%s/%s: support for parameter \"%s\" will be removed;"
 		     " instead, %s", var_config_dir, conf_name,
 		     param_name, dp->alternative);
 	}

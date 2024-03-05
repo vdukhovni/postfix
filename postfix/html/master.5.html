@@ -227,9 +227,11 @@ MASTER(5)                                                            MASTER(5)
                      verbose.
 
               Other command-line arguments
-                     Specify "{" and "}" around command arguments that contain
-                     whitespace (Postfix 3.0 and later). Whitespace after  "{"
-                     and before "}" is ignored.
+                     Specify  "{"  and  "}" around command arguments that must
+                     start with "{" or that must contain  whitespace  (Postfix
+                     3.0  and  later).  The outer "{" and "}" are removed from
+                     the input, together with any leading or  trailing  white-
+                     space.
 
 <b>SEE ALSO</b>
        <a href="master.8.html">master(8)</a>, process manager

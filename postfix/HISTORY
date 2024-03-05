@@ -27945,9 +27945,9 @@ Apologies for any names omitted.
 
 20240229
 
-	Clenup: moved the new DNS_RR.flags structure member to the
-	location of a "padding" hole (two bytes for ILP32 systems,
-	6 bytes for LP64). File: dns/dns.h.
+	Compatibility: moved the new DNS_RR.flags structure member
+	to the location of a "padding" hole (two bytes for ILP32
+	systems, 6 bytes for LP64). File: dns/dns.h.
 
 	Deprecation: removed permit_naked_ip_address, reject_maps_rbl,
 	and check_relay_domains. These have been logging deprecation
@@ -27956,3 +27956,20 @@ Apologies for any names omitted.
 	Files: smtpd/smtpd_check.c, smtpd/smtpd_check_backup.ref,
 	smtpd/smtpd_exp.ref, smtpd/smtpd_deprecated.in,
 	smtpd/smtpd_deprecated.ref.
+
+20240302
+
+	Cleanup: fixed inconsistent formatting of deprecation warning
+	messages. Files: postconf/postconf_unused.c, postconf/test76.ref,
+	smtpd/smtpd_check.
+
+	Documentation: DEPRECATION_README suggests replacements for
+	features that will be removed or than have been removed.
+	Files: proto/DEPRECATION_README.html, conf/postfix-files,
+	html/index.html, proto/Makefile.in.
+
+20240305
+
+	Documentation: in the master.cf documentation, added text
+	for "quoting" a command-line argument that starts with "{".
+	File: proto/master.

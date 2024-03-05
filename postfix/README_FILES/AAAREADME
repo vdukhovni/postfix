@@ -15,6 +15,7 @@ GGeenneerraall ccoonnffiigguurraattiioonn
   * SMTPUTF8_README: SMTPUTF8 Support
   * MAILLOG_README: Postfix logging to file or stdout
   * COMPATIBILITY_README: Backwards-Compatibility Safety Net
+  * DEPRECATION_README: Deprecated features and alternatives
   * INSTALL: Installation from source code
 
 PPrroobblleemm ssoollvviinngg
