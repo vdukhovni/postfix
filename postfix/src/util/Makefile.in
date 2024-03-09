@@ -216,23 +216,8 @@ plugin_map_obj_update: $(LIB_MAP_OBJ)
 	  cmp -s $$i $(LIB_DIR)/$$i 2>/dev/null || cp $$i $(LIB_DIR); \
 	done
 
-printfck: $(OBJS) $(PROG)
-	rm -rf printfck
-	mkdir printfck
-	cp *.h printfck
-	sed '1,/^# do not edit/!d' Makefile >printfck/Makefile
-	set -e; for i in *.c; do printfck -f .printfck $$i >printfck/$$i; done
-	cd printfck; make "INC_DIR=../../../include" `cd ..; ls *.o`
-
-shar:
-	@shar $(FILES)
-
-lint:
-	lint $(DEFS) $(SRCS) $(LINTFIX)
-
 clean:
 	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAKES) *.tmp
-	rm -rf printfck
 
 tidy:	clean
 

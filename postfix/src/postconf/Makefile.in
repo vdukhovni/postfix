@@ -1065,21 +1065,9 @@ test76:	$(PROG) test76.ref
 	diff /dev/null test76.tmp
 	rm -f main.cf master.cf test76.tmp
 
-printfck: $(OBJS) $(PROG)
-	rm -rf printfck
-	mkdir printfck
-	cp *.h printfck
-	sed '1,/^# do not edit/!d' Makefile >printfck/Makefile
-	set -e; for i in *.c; do printfck -f .printfck $$i >printfck/$$i; done
-	cd printfck; make "INC_DIR=../../../include" `cd ..; ls *.o`
-
-lint:
-	lint $(DEFS) $(SRCS) $(LINTFIX)
-
 clean:
 	rm -f *.o *core $(PROG) $(TESTPROG) junk $(MAKES) $(AUTOS) $(DUMMIES) \
 	$(TEST_TMP) $(DB_MAKES)
-	rm -rf printfck
 
 tidy:	clean
 

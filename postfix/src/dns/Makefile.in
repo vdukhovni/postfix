@@ -247,20 +247,8 @@ dns_rr_tests: dns_rr_test
 dns_rr_test: dns_rr_test.o $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
-printfck: $(OBJS) $(PROG)
-	rm -rf printfck
-	mkdir printfck
-	cp *.h printfck
-	sed '1,/^# do not edit/!d' Makefile >printfck/Makefile
-	set -e; for i in *.c; do printfck -f .printfck $$i >printfck/$$i; done
-	cd printfck; make "INC_DIR=../../../include" `cd ..; ls *.o`
-
-lint:
-	lint $(DEFS) $(SRCS) $(LINTFIX)
-
 clean:
 	rm -f *.o $(LIB) *core $(TESTPROG) junk
-	rm -rf printfck
 
 tidy:	clean
 

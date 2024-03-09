@@ -44,7 +44,7 @@ makefiles Makefiles conf/makedefs.out:
 	     *) cat Makefile.in;; \
 	esac) >Makefile
 
-update printfck tests root_tests:
+update tests root_tests:
 	set -e; for i in $(DIRS); do \
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $(OPTS) $@ MAKELEVEL=) || exit 1; \
 	done

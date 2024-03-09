@@ -27973,3 +27973,8 @@ Apologies for any names omitted.
 	Documentation: in the master.cf documentation, added text
 	for "quoting" a command-line argument that starts with "{".
 	File: proto/master.
+
+20240309
+
+	Cleanup: removed unused Makefile targets (lint, shar,
+	printfck). Files Makefile.* src/*/Makefile.in.
