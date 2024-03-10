@@ -27978,3 +27978,29 @@ Apologies for any names omitted.
 
 	Cleanup: removed unused Makefile targets (lint, shar,
 	printfck). Files Makefile.* src/*/Makefile.in.
+
+20230310
+
+	Bugfix (introduced: 2.3): the Milter client function to
+	report an "unknown" command sent only the command name but
+	not the command arguments. Found during code maintenance.
+	File: smtpd/smtpd.c.
+
+	Bugfix (introduced: 2.3): after receiving an unknown command,
+	and after a Milter application callback function xxfi_unknown()
+	returned SMFIR_REJECT, the Postfix SMTP server replied with
+	a generic "Command rejected" instead of the more specific
+	"Error: command not recognized". The Postfix SMTP server
+	continues to return a generic "service unavailable" response
+	after xxfi_unknown() returns SMFIR_TEMPFAIL. The Milter API
+	does not allow other xxfi_unknown() return values. File:
+	smtpd/smtpd.c.
+
+	Bugfix (introduced: Postfix 3.0): the Postfix SMTP server
+	command handler for unimplemented commands did not report
+	the command (and arguments) to the Milter API for unknown
+	*or unimplemented* commands. File: smtpd/smtpd.c.
+
+	Documentation: added text that the read-only "service_name"
+	configuration parameter was introduced in Postfix 3.3. File:
+	proto/postconf.proto.

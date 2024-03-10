@@ -5502,15 +5502,27 @@ static void tls_reset(SMTPD_STATE *state)
 
 static int unimpl_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 {
+    const char *err;
 
     /*
      * When a connection is closed we want to log the request counts for
      * unimplemented STARTTLS or AUTH commands separately, instead of logging
      * those commands as "unknown". By handling unimplemented commands with
      * this dummy function, we avoid messing up the command processing loop.
+     * Note: the xxfi_unknown() Milter callback has only two valid returns:
+     * it must either tempfail or reject.
      */
     state->error_mask |= MAIL_ERROR_PROTOCOL;
-    smtpd_chat_reply(state, "502 5.5.1 Error: command not implemented");
+    if (state->milters != 0
+	&& (err = milter_unknown_event(state->milters,
+				       STR(state->buffer))) != 0
+	&& err[0] == '4') {
+	smtpd_chat_reply(state, "%s", err);
+    } else {
+	if (err[0] != '5')
+	    msg_warn("unexpected SMFIC_UNKNOWN response: %s", err);
+	smtpd_chat_reply(state, "502 5.5.1 Error: command not implemented");
+    }
     return (-1);
 }
 
@@ -5565,6 +5577,9 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     {SMTPD_CMD_ETRN, etrn_cmd, SMTPD_CMD_FLAG_LIMIT,},
     {SMTPD_CMD_QUIT, quit_cmd, SMTPD_CMD_FLAG_PRE_TLS,},
     {SMTPD_CMD_HELP, help_cmd, SMTPD_CMD_FLAG_PRE_TLS,},
+#ifdef TEST_SMTPD_UNIMPL
+    {"unimpl", unimpl_cmd,},
+#endif
     {0,},
 };
 
@@ -6003,13 +6018,18 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    }
 	    /* state->access_denied == 0 || cmdp->action == quit_cmd */
 	    if (cmdp->name == 0) {
+		/* See unimpl_cmd() for valid xxfi_unknown() return values. */
 		if (state->milters != 0
 		    && (err = milter_unknown_event(state->milters,
-						   argv[0].strval)) != 0
-		    && (err = check_milter_reply(state, err)) != 0) {
+						   STR(state->buffer))) != 0
+		    && err[0] == '4') {
 		    smtpd_chat_reply(state, "%s", err);
-		} else
-		    smtpd_chat_reply(state, "500 5.5.2 Error: command not recognized");
+		} else {
+		    if (err[0] != '5')
+			msg_warn("unexpected SMFIC_UNKNOWN response: %s", err);
+		    smtpd_chat_reply(state,
+				 "500 5.5.2 Error: command not recognized");
+		}
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		state->error_count++;
 		continue;

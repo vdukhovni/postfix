@@ -108,7 +108,7 @@ static int test_body_reply = SMFIS_CONTINUE;
 static int test_eom_reply = SMFIS_CONTINUE;
 
 #if SMFI_VERSION > 2
-static int test_unknown_reply = SMFIS_CONTINUE;
+static int test_unknown_reply = SMFIS_REJECT;
 
 #endif
 static int test_close_reply = SMFIS_CONTINUE;
@@ -502,7 +502,7 @@ static const struct noproto_map noproto_map[] = {
     "header", SMFIP_NOHDRS, SMFIP_NR_HDR, &test_header_reply, &smfilter.xxfi_header,
     "eoh", SMFIP_NOEOH, SMFIP_NR_EOH, &test_eoh_reply, &smfilter.xxfi_eoh,
     "body", SMFIP_NOBODY, SMFIP_NR_BODY, &test_body_reply, &smfilter.xxfi_body,
-    "unknown", SMFIP_NOUNKNOWN, SMFIP_NR_UNKN, &test_connect_reply, &smfilter.xxfi_unknown,
+    "unknown", SMFIP_NOUNKNOWN, SMFIP_NR_UNKN, &test_unknown_reply, &smfilter.xxfi_unknown,
     0,
 };
 

@@ -10,9 +10,6 @@ Wish list:
 
 	The mongodb client needs tests.
 
-	Remove .printfck directories, and remove printfck targets
-	from Makefiles.
-
 	In documentation and configuration file examples, replace
 	IPv4 address prefixes from Cloud9 with 192.168.* from RFC
 	1918, and replace IPv6 address prefixes with unique local

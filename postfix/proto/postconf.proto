@@ -8424,6 +8424,8 @@ relay     unix  -       -       n       -       -       smtp
     -o syslog_name=postfix/$service_name
 </pre>
 
+<p> This feature is available in Postfix 3.3 and later. </p>
+
 %PARAM process_id read-only
 
 <p>
