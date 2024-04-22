@@ -18,6 +18,7 @@ smtp      inet  n       -       n       -       -       smtpd
 #127.0.0.1:submission inet n -   n       -       -       smtpd
 #submission inet n       -       n       -       -       smtpd
 #  -o syslog_name=postfix/submission
+#  -o smtpd_forbid_unauth_pipelining=no
 #  -o smtpd_tls_security_level=encrypt
 #  -o smtpd_sasl_auth_enable=yes
 #  -o smtpd_tls_auth_only=yes
@@ -37,6 +38,7 @@ smtp      inet  n       -       n       -       -       smtpd
 #127.0.0.1:submissions inet n  -       n       -       -       smtpd
 #submissions     inet  n       -       n       -       -       smtpd
 #  -o syslog_name=postfix/submissions
+#  -o smtpd_forbid_unauth_pipelining=no
 #  -o smtpd_tls_wrappermode=yes
 #  -o smtpd_sasl_auth_enable=yes
 #  -o local_header_rewrite_clients=static:all

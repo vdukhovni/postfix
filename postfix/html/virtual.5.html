@@ -20,10 +20,12 @@ VIRTUAL(5)                                                          VIRTUAL(5)
 <b>DESCRIPTION</b>
        The optional <a href="virtual.5.html"><b>virtual</b>(5)</a> alias table (<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>) applies to all
        recipients: <a href="local.8.html">local(8)</a>, virtual, and remote.  This feature is implemented
-       in the Postfix <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon before mail is queued.
+       in  the  Postfix <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon before mail is queued.  These tables
+       are often queried with a full email address (including domain).
 
-       This  is unlike the <a href="aliases.5.html"><b>aliases</b>(5)</a> table (<a href="postconf.5.html#alias_maps">alias_maps</a>) which applies only to
-       <a href="local.8.html"><b>local</b>(8)</a> recipients.
+       This is unlike the <a href="aliases.5.html"><b>aliases</b>(5)</a> table (<a href="postconf.5.html#alias_maps">alias_maps</a>) which applies only  to
+       <a href="local.8.html"><b>local</b>(8)</a>  recipients. That table is only queried with the email address
+       localpart (no domain).
 
        Virtual aliasing is recursive; to terminate recursion  for  a  specific
        address, alias that address to itself.
@@ -231,9 +233,11 @@ VIRTUAL(5)                                                          VIRTUAL(5)
        Use the "<b>postfix reload</b>" command after a configuration change.
 
        <b><a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> ($<a href="postconf.5.html#virtual_maps">virtual_maps</a>)</b>
-              Optional  lookup  tables  with aliases that apply to all recipi-
-              ents: <a href="local.8.html"><b>local</b>(8)</a>, virtual, and remote; this is  unlike  <a href="postconf.5.html#alias_maps">alias_maps</a>
-              that apply only to <a href="local.8.html"><b>local</b>(8)</a> recipients.
+              Optional lookup tables that are often searched with a full email
+              address (including domain) and that  apply  to  all  recipients:
+              <a href="local.8.html"><b>local</b>(8)</a>,  virtual,  and  remote; this is unlike <a href="postconf.5.html#alias_maps">alias_maps</a> that
+              are only searched with an email address  localpart  (no  domain)
+              and that apply only to <a href="local.8.html"><b>local</b>(8)</a> recipients.
 
        <b><a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a> ($<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>)</b>
               Postfix  is the final destination for the specified list of vir-

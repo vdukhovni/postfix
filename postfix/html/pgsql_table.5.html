@@ -57,6 +57,12 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
               matically closed after being idle for about 1  minute,  and  are
               re-opened as necessary.
 
+              NOTE:  if "hosts" specifies one load balancer and no alternative
+              servers, specify the load balancer multiple times in the "hosts"
+              line.  Without the duplicate info, the Postfix PostgreSQL client
+              would not reconnect immediately to the same load balancer  after
+              a PostgreSQL server failure.
+
        <b>user</b>
 
        <b>password</b>

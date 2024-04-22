@@ -26245,7 +26245,7 @@ Apologies for any names omitted.
 
 	Documentation: added LINUX_README sections for logging in
 	a container, and for systemd logging workarounds. File:
-	proto/LINUX_README.hmtl.
+	proto/LINUX_README.html.
 
 20220126
 
@@ -28004,3 +28004,46 @@ Apologies for any names omitted.
 	Documentation: added text that the read-only "service_name"
 	configuration parameter was introduced in Postfix 3.3. File:
 	proto/postconf.proto.
+
+20240402
+
+	Workaround: in the stock master.cf file, disable the feature
+	smtpd_forbid_unauth_pipelining in the submission and
+	submissions services, to work around a 15-year old open
+	Mozilla bug for sending a non-compliant SMTP command:"EHLO
+	we-guess.mozilla.org<CR><LF>QUIT<CR><LF>" (see
+	https://bugzilla.mozilla.org/show_bug.cgi?id=538809). File:
+	conf/master.cf.
+
+20240413
+
+	Documentation: mention in the first aliases(5) and virtual(5)
+	manpage paragraphs that alias_maps is searched only with
+	the email address localpart (no domain) and that
+	virtual_alias_maps is often queried with a full email address
+	(including domain). Add similar text to the parameter
+	descriptions for alias_maps and virtual_alias_maps. Files:
+	proto/aliases, proto/virtual.
+
+	Documentation: workaround for a load balancer paradox. When
+	a destination (relayhost, MySQL server, PostgreSQL server,
+	LDAP server) is a load balancer, and there are no alternative
+	servers, specify the load balancer multiple times. Without
+	this duplication, the Postfix client would not reconnect
+	immediately to the same load balancer after a server failure,
+	and it would defer mail. Files: proto/postconf.proto,
+	proto/mysql_table, proto/pgsql_table, proto/ldap_table.
+
+20240421
+
+	Documentation: replace the obsolete pickup service type
+	fifo with unix, and fix typos. Dilyan Palauzov. Files:
+	HISTORY< proto/BUILTIN_FILTER_README.html,
+	proto/STANDARD_CONFIGURATION_README.html
+
+20240418
+
+	Logging: when the pickup daemon logs a warning for a maildrop
+	queue file, log not only the 'new' name in the incoming
+	queue, but also log the 'old' name in the maildrop queue.
+	File: pickup/pickup.c.

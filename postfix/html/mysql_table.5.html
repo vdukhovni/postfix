@@ -61,6 +61,12 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
               TCP you have to specify
                   hosts = 127.0.0.1
 
+              NOTE:  if "hosts" specifies one load balancer and no alternative
+              servers, specify the load balancer multiple times in the "hosts"
+              line. Without the duplicate info, the Postfix MySQL client would
+              not reconnect immediately to the  same  load  balancer  after  a
+              MySQL server failure.
+
        <b>user</b>
 
        <b>password</b>

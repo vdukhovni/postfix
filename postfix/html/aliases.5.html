@@ -13,14 +13,18 @@ ALIASES(5)                                                          ALIASES(5)
 <b>SYNOPSIS</b>
        <b>newaliases</b>
 
+       <b>postalias -q</b> <i>name</i> <b>[</b><i>file-type</i><b>]:[</b><i>file-name</i><b>]</b>
+
 <b>DESCRIPTION</b>
        The  optional  <a href="aliases.5.html"><b>aliases</b>(5)</a>  table  (<a href="postconf.5.html#alias_maps">alias_maps</a>) redirects mail for local
        recipients. The redirections are  processed  by  the  Postfix  <a href="local.8.html"><b>local</b>(8)</a>
-       delivery agent.
+       delivery  agent.  This  table  is always searched with an email address
+       localpart (no domain portion).
 
-       This  is  unlike <a href="virtual.5.html"><b>virtual</b>(5)</a> aliasing (<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>) which applies
-       to all recipients: <a href="local.8.html">local(8)</a>, virtual, and remote, and which  is  imple-
-       mented by the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon.
+       This is unlike <a href="virtual.5.html"><b>virtual</b>(5)</a> aliasing (<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>)  which  applies
+       to  all  recipients: <a href="local.8.html">local(8)</a>, virtual, and remote, and which is imple-
+       mented by the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon. That table is often  searched  with  a
+       full email address (including domain).
 
        Normally,  the <a href="aliases.5.html"><b>aliases</b>(5)</a> table is specified as a text file that serves
        as input to the <a href="postalias.1.html"><b>postalias</b>(1)</a> command. The result, an  indexed  file  in
@@ -94,7 +98,7 @@ ALIASES(5)                                                          ALIASES(5)
        <b>:include:</b><i>/file/name</i>
               Mail  is  sent  to  the  destinations  listed in the named file.
               Lines in <b>:include:</b> files have the same syntax as the  right-hand
-              side of alias entries.
+              side of <a href="aliases.5.html"><b>aliases</b>(5)</a> entries.
 
               A  destination  can be any destination that is described in this
               manual page. However, delivery to "|<i>command</i>" and  <i>/file/name</i>  is

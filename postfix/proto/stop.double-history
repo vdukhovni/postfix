@@ -121,3 +121,5 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  systems 6 bytes for LP64 File dns dns h 
  xxfi_unknown return values File smtpd smtpd c 
  or unimplemented commands File smtpd smtpd c 
+proto  proto mysql_table proto pgsql_table proto ldap_table 
+ File pickup pickup c 

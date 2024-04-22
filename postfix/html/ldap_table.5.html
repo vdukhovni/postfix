@@ -78,6 +78,12 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
 
                   server_host = ldap.example.com:1444
 
+              NOTE: if "server_host" specifies one load balancer and no alter-
+              native servers, specify the load balancer multiple times in  the
+              "server_host" line. Without the duplicate info, the Postfix LDAP
+              client would not reconnect immediately to the same load balancer
+              after an LDAP server failure.
+
               With OpenLDAP, a (list of) LDAP URLs can be used to specify both
               the hostname(s) and the port(s):
 

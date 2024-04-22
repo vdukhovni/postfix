@@ -76,6 +76,12 @@ localhost over TCP you have to specify
 .nf
     hosts = 127.0.0.1
 .fi
+
+NOTE: if "hosts" specifies one load balancer and no alternative
+servers, specify the load balancer multiple times in the
+"hosts" line. Without the duplicate info, the Postfix MySQL
+client would not reconnect immediately to the same load
+balancer after a MySQL server failure.
 .IP "\fBuser\fR"
 .IP "\fBpassword\fR"
 The user name and password to log into the mysql server.

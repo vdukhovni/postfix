@@ -612,12 +612,14 @@ Examples:
 (default: see "postconf -d" output)</b></DT><DD>
 
 <p>
-Optional lookup tables with aliases that apply only to <a href="local.8.html">local(8)</a>
-recipients; this is unlike <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> that apply to all
-recipients: <a href="local.8.html">local(8)</a>, virtual, and remote.
-The table format and lookups are documented in <a href="aliases.5.html">aliases(5)</a>. For an
-overview of Postfix address manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a>
-document. </p>
+Optional lookup tables that are searched only with an email address
+localpart (no domain) and that apply only to <a href="local.8.html">local(8)</a> recipients;
+this is unlike <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> that are often searched with a
+full email address (including domain) and that apply to all recipients:
+<a href="local.8.html">local(8)</a>, virtual, and remote.
+The <a href="postconf.5.html#alias_maps">alias_maps</a> table format and lookups are documented in <a href="aliases.5.html">aliases(5)</a>.
+For an overview of Postfix address manipulations see the
+<a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> document. </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
@@ -10329,6 +10331,12 @@ The form [hostname] turns off MX or SRV lookups. Multiple destinations
 are supported in Postfix 3.5 and later. Each destination is tried
 in the specified order.
 </p>
+
+<p> If an SMTP destination is a load balancer, and there are no
+alternative destinations, specify the load balancer multiple times.
+Without the duplicate info, the Postfix SMTP client would not
+reconnect immediately to the same load balancer after a remote SMTP
+server failure. </p>
 
 <p>
 If you're connected via UUCP, see the <a href="UUCP_README.html">UUCP_README</a> file for useful
@@ -22239,10 +22247,12 @@ This feature is available in Postfix 2.1 and later.
 (default: $<a href="postconf.5.html#virtual_maps">virtual_maps</a>)</b></DT><DD>
 
 <p>
-Optional lookup tables with aliases that apply to all recipients:
-<a href="local.8.html">local(8)</a>, virtual, and remote; this is unlike <a href="postconf.5.html#alias_maps">alias_maps</a> that apply
+Optional lookup tables that are often searched with a full email
+address (including domain) and that apply to all recipients: <a href="local.8.html">local(8)</a>,
+virtual, and remote; this is unlike <a href="postconf.5.html#alias_maps">alias_maps</a> that are only searched
+with an email address localpart (no domain) and that apply
 only to <a href="local.8.html">local(8)</a> recipients.
-The table format and lookups
+The <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> table format and lookups
 are documented in <a href="virtual.5.html">virtual(5)</a>. For an overview of Postfix address
 manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> document.
 </p>

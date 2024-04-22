@@ -377,7 +377,7 @@ service with header/body filtering turned off.  </p>
         -o <a href="postconf.5.html#receive_override_options">receive_override_options</a>=<a href="postconf.5.html#no_header_body_checks">no_header_body_checks</a>
     127.0.0.1:smtp inet  n       -       n       -       -       smtpd
         -o <a href="postconf.5.html#receive_override_options">receive_override_options</a>=<a href="postconf.5.html#no_header_body_checks">no_header_body_checks</a>
-    pickup         fifo  n       -       n       60      1       pickup
+    pickup         unix  n       -       n       60      1       pickup
         -o <a href="postconf.5.html#receive_override_options">receive_override_options</a>=<a href="postconf.5.html#no_header_body_checks">no_header_body_checks</a>
 </pre>
 

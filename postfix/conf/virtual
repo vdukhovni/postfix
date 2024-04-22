@@ -14,10 +14,12 @@
 #        The  optional  virtual(5) alias table (virtual_alias_maps)
 #        applies to all recipients: local(8), virtual, and  remote.
 #        This feature is implemented in the Postfix cleanup(8) dae-
-#        mon before mail is queued.
+#        mon before mail is queued.  These tables are often queried
+#        with a full email address (including domain).
 # 
-#        This is unlike the  aliases(5)  table  (alias_maps)  which
-#        applies only to local(8) recipients.
+#        This  is  unlike  the  aliases(5) table (alias_maps) which
+#        applies only to local(8) recipients. That  table  is  only
+#        queried with the email address localpart (no domain).
 # 
 #        Virtual  aliasing is recursive; to terminate recursion for
 #        a specific address, alias that address to itself.
@@ -256,46 +258,48 @@
 #        command after a configuration change.
 # 
 #        virtual_alias_maps ($virtual_maps)
-#               Optional lookup tables with aliases that  apply  to
-#               all recipients: local(8), virtual, and remote; this
-#               is unlike alias_maps that apply  only  to  local(8)
-#               recipients.
+#               Optional lookup tables that are often searched with
+#               a  full  email  address (including domain) and that
+#               apply to all  recipients:  local(8),  virtual,  and
+#               remote;  this  is  unlike  alias_maps that are only
+#               searched  with  an  email  address  localpart   (no
+#               domain) and that apply only to local(8) recipients.
 # 
 #        virtual_alias_domains ($virtual_alias_maps)
-#               Postfix  is the final destination for the specified
+#               Postfix is the final destination for the  specified
 #               list of virtual alias domains, that is, domains for
-#               which  all  addresses  are  aliased to addresses in
+#               which all addresses are  aliased  to  addresses  in
 #               other local or remote domains.
 # 
 #        propagate_unmatched_extensions (canonical, virtual)
-#               What address lookup tables copy an  address  exten-
+#               What  address  lookup tables copy an address exten-
 #               sion from the lookup key to the lookup result.
 # 
 #        Other parameters of interest:
 # 
 #        inet_interfaces (all)
-#               The  local  network  interface  addresses that this
+#               The local network  interface  addresses  that  this
 #               mail system receives mail on.
 # 
 #        mydestination  ($myhostname,  localhost.$mydomain,  local-
 #        host)
-#               The list of domains  that  are  delivered  via  the
+#               The  list  of  domains  that  are delivered via the
 #               $local_transport mail delivery transport.
 # 
 #        myorigin ($myhostname)
 #               The domain name that locally-posted mail appears to
-#               come from, and that locally posted mail  is  deliv-
+#               come  from,  and that locally posted mail is deliv-
 #               ered to.
 # 
 #        owner_request_special (yes)
 #               Enable special treatment for owner-listname entries
 #               in the aliases(5) file, and don't split owner-list-
-#               name  and  listname-request address localparts when
+#               name and listname-request address  localparts  when
 #               the recipient_delimiter is set to "-".
 # 
 #        proxy_interfaces (empty)
-#               The remote network interface  addresses  that  this
-#               mail  system  receives mail on by way of a proxy or
+#               The  remote  network  interface addresses that this
+#               mail system receives mail on by way of a  proxy  or
 #               network address translation unit.
 # 
 # SEE ALSO
@@ -305,14 +309,14 @@
 #        canonical(5), canonical address mapping
 # 
 # README FILES
-#        Use "postconf readme_directory" or  "postconf  html_direc-
+#        Use  "postconf  readme_directory" or "postconf html_direc-
 #        tory" to locate this information.
 #        ADDRESS_REWRITING_README, address rewriting guide
 #        DATABASE_README, Postfix lookup table overview
 #        VIRTUAL_README, domain hosting guide
 # 
 # LICENSE
-#        The  Secure  Mailer  license must be distributed with this
+#        The Secure Mailer license must be  distributed  with  this
 #        software.
 # 
 # AUTHOR(S)

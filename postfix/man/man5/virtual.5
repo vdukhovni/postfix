@@ -20,9 +20,12 @@ The optional \fBvirtual\fR(5) alias table (virtual_alias_maps)
 applies to all recipients: local(8), virtual, and remote.
 This feature is implemented
 in the Postfix \fBcleanup\fR(8) daemon before mail is queued.
+These tables are often queried with a full email address
+(including domain).
 
 This is unlike the \fBaliases\fR(5) table (alias_maps) which
-applies only to \fBlocal\fR(8) recipients.
+applies only to \fBlocal\fR(8) recipients. That table is
+only queried with the email address localpart (no domain).
 
 Virtual aliasing is recursive; to terminate recursion for
 a specific address, alias that address to itself.
@@ -271,8 +274,10 @@ this topic. See the Postfix \fBmain.cf\fR file for syntax details
 and for default values. Use the "\fBpostfix reload\fR" command after
 a configuration change.
 .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
-Optional lookup tables with aliases that apply to all recipients:
-\fBlocal\fR(8), virtual, and remote; this is unlike alias_maps that apply
+Optional lookup tables that are often searched with a full email
+address (including domain) and that apply to all recipients: \fBlocal\fR(8),
+virtual, and remote; this is unlike alias_maps that are only searched
+with an email address localpart (no domain) and that apply
 only to \fBlocal\fR(8) recipients.
 .IP "\fBvirtual_alias_domains ($virtual_alias_maps)\fR"
 Postfix is the final destination for the specified list of virtual

@@ -358,12 +358,14 @@ alias_database = hash:/etc/mail/aliases
 .ad
 .ft R
 .SH alias_maps (default: see "postconf \-d" output)
-Optional lookup tables with aliases that apply only to \fBlocal\fR(8)
-recipients; this is unlike virtual_alias_maps that apply to all
-recipients: \fBlocal\fR(8), virtual, and remote.
-The table format and lookups are documented in \fBaliases\fR(5). For an
-overview of Postfix address manipulations see the ADDRESS_REWRITING_README
-document.
+Optional lookup tables that are searched only with an email address
+localpart (no domain) and that apply only to \fBlocal\fR(8) recipients;
+this is unlike virtual_alias_maps that are often searched with a
+full email address (including domain) and that apply to all recipients:
+\fBlocal\fR(8), virtual, and remote.
+The alias_maps table format and lookups are documented in \fBaliases\fR(5).
+For an overview of Postfix address manipulations see the
+ADDRESS_REWRITING_README document.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
 whitespace or comma. Tables will be searched in the specified order
@@ -6546,6 +6548,12 @@ the form of a domain name, hostname, hostname:service, [hostname]:service,
 The form [hostname] turns off MX or SRV lookups. Multiple destinations
 are supported in Postfix 3.5 and later. Each destination is tried
 in the specified order.
+.PP
+If an SMTP destination is a load balancer, and there are no
+alternative destinations, specify the load balancer multiple times.
+Without the duplicate info, the Postfix SMTP client would not
+reconnect immediately to the same load balancer after a remote SMTP
+server failure.
 .PP
 If you're connected via UUCP, see the UUCP_README file for useful
 information.
@@ -15808,10 +15816,12 @@ from each original recipient.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH virtual_alias_maps (default: $virtual_maps)
-Optional lookup tables with aliases that apply to all recipients:
-\fBlocal\fR(8), virtual, and remote; this is unlike alias_maps that apply
+Optional lookup tables that are often searched with a full email
+address (including domain) and that apply to all recipients: \fBlocal\fR(8),
+virtual, and remote; this is unlike alias_maps that are only searched
+with an email address localpart (no domain) and that apply
 only to \fBlocal\fR(8) recipients.
-The table format and lookups
+The virtual_alias_maps table format and lookups
 are documented in \fBvirtual\fR(5). For an overview of Postfix address
 manipulations see the ADDRESS_REWRITING_README document.
 .PP

@@ -6,9 +6,36 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	migrate rbl -> dnsbl
+
+	migrate smtpd_sasl_tls_security_options to "noanonymous"
+	(drop the "noplaintext" part).
+
+	Safety: restrict sender-dependent features to, for example,
+	mail from an authorized client (SASL, TLS, or IP address).
+	If this becomes the default then it needs to be subject to
+	comptibility_level.
+
+	Make some of the message editing features available for
+	non-Milter configurations (for example, set envelope.from
+	from primary header.from). 
+
 	The postconf command needs more mongodb tests.
 
 	The mongodb client needs tests.
+
+	Change Postfix SMTP debug logging to display the entire
+	input, instead of stopping at the first null byte.
+
+	SRS-friendly envelope.from output rewrite in the SMTP client.
+	TBD: before or after smtp_generic_maps. The two mechanisms
+	are unlikely to be useful in combination.
+
+	Cleanup: In documentation, replace DBM with LMDB (*.lmdb).
+
+	Cleanup: Is it time to remove SDBM support? Its iterator
+	was unusable, when the SDBM client was adopted in Postfix
+	2.2.
 
 	In documentation and configuration file examples, replace
 	IPv4 address prefixes from Cloud9 with 192.168.* from RFC
