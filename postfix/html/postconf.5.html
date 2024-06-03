@@ -10,6 +10,21 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link rel='stylesheet' type='text/css' href='postfix-doc.css'>
 
+<script type="text/javascript">
+
+// Kludge for https://support.google.com/chrome/thread/11993079
+const isChrome = /Chrome/.test(navigator.userAgent)
+    && /Google Inc/.test(navigator.vendor);
+const hash = window.location.hash;
+if (hash && isChrome) {
+    setTimeout(function() {
+        window.location.hash = "";
+        window.location.hash = hash;
+    }, 1000);
+}
+
+</script>
+
 </head>
 
 <body>
@@ -2903,13 +2918,20 @@ precision.  </p>
 
 <ul>
 
-<li> a = time from message arrival to last <a href="QSHAPE_README.html#active_queue">active queue</a> entry
+<li> a = Time from message arrival to last <a href="QSHAPE_README.html#active_queue">active queue</a> entry.
 
-<li> b = time from last <a href="QSHAPE_README.html#active_queue">active queue</a> entry to connection setup
+<li> b = Time from last <a href="QSHAPE_README.html#active_queue">active queue</a> entry to the beginning of
+connection setup.
 
-<li> c = time in connection setup, including DNS, EHLO and STARTTLS
+<li> c = Time in connection setup. With SMTP, that is the time
+before sending the MAIL FROM command: with a new connection, that
+includes DNS lookups, and protocol handshakes with TCP, EHLO, and
+STARTTLS; with a reused connection, that includes DNS lookups,
+connection cache lookup by domain or IP address, and a liveness
+probe with RSET.
 
-<li> d = time in message transmission
+<li> d = Time in message transmission. With SMTP, that starts with
+sending MAIL FROM.
 
 </ul>
 
@@ -15852,9 +15874,13 @@ restriction lists" for a discussion of evaluation context and time.
 (default: no)</b></DT><DD>
 
 <p> Mandatory TLS: announce STARTTLS support to remote SMTP clients,
-and require that clients use TLS encryption.  According to <a href="https://tools.ietf.org/html/rfc2487">RFC 2487</a>
+and reject all plaintext commands except HELO, EHLO, XCLIENT,
+STARTTLS, NOOP, QUIT, and (Postfix &ge; 3.9) HELP.
+According to <a href="https://tools.ietf.org/html/rfc2487">RFC 2487</a>
 this MUST NOT be applied in case of a publicly-referenced SMTP
-server.  This option is therefore off by default. </p>
+server. Instead, this should be used on dedicated servers, for
+example submission (port 587). This option is therefore off by
+default. </p>
 
 <p> Note 1: "<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a> = yes" implies "<a href="postconf.5.html#smtpd_tls_auth_only">smtpd_tls_auth_only</a> = yes". </p>
 
@@ -19166,10 +19192,11 @@ to remote SMTP clients, but do not require that clients use TLS encryption.
 </dd>
 
 <dt><b>encrypt</b></dt> <dd>Mandatory TLS encryption: announce
-STARTTLS support to remote SMTP clients, and require that clients use TLS
-encryption. According to <a href="https://tools.ietf.org/html/rfc2487">RFC 2487</a> this MUST NOT be applied in case
-of a publicly-referenced SMTP server. Instead, this option should
-be used only on dedicated servers. </dd>
+STARTTLS support to remote SMTP clients, and reject all plaintext
+commands except HELO, EHLO, XCLIENT, STARTTLS, NOOP, QUIT, and (Postfix
+&ge; 3.9) HELP. According to <a href="https://tools.ietf.org/html/rfc2487">RFC 2487</a> this MUST NOT be applied in case
+of a publicly-referenced SMTP server. Instead, this should be used
+on dedicated servers, for example submission (port 587). </dd>
 
 </dl>
 

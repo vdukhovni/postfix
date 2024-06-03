@@ -429,7 +429,7 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
 	     * alias database is being built, so we're guessing a bit.
 	     */
 	    if (tok822_rfind_type(colon, '@') || tok822_rfind_type(colon, '%')) {
-		msg_warn("%s, line %d: name must be local",
+		msg_warn("%s, line %d: name must be local and have no domain",
 			 VSTREAM_PATH(source_fp), lineno);
 		tok822_free_tree(tok_list);
 		continue;

@@ -47,7 +47,9 @@ shell meta characters by a shell command interpreter.
 .ad
 .fi
 In order to enforce standard Postfix process resource controls,
-the \fBspawn\fR(8) daemon runs only one external command at a time.
+each \fBspawn\fR(8) daemon process runs only one external
+command, and blocks until the command terminates or a time
+limit is reached.
 As such, it presents a noticeable overhead by wasting precious
 process resources. The \fBspawn\fR(8) daemon is expected to be
 replaced by a more structural solution.

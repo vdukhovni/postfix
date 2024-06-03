@@ -123,3 +123,5 @@ proto  proto aliases proto virtual proto ADDRESS_REWRITING_README html
  or unimplemented commands File smtpd smtpd c 
 proto  proto mysql_table proto pgsql_table proto ldap_table 
  File pickup pickup c 
+ a domain File postalias postalias c 
+ File spawn spawn c 

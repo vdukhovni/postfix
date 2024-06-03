@@ -1893,13 +1893,20 @@ precision.
 .PP
 The format of the "delays=a/b/c/d" logging is as follows:
 .IP \(bu
-a = time from message arrival to last active queue entry
+a = Time from message arrival to last active queue entry.
 .IP \(bu
-b = time from last active queue entry to connection setup
+b = Time from last active queue entry to the beginning of
+connection setup.
 .IP \(bu
-c = time in connection setup, including DNS, EHLO and STARTTLS
+c = Time in connection setup. With SMTP, that is the time
+before sending the MAIL FROM command: with a new connection, that
+includes DNS lookups, and protocol handshakes with TCP, EHLO, and
+STARTTLS; with a reused connection, that includes DNS lookups,
+connection cache lookup by domain or IP address, and a liveness
+probe with RSET.
 .IP \(bu
-d = time in message transmission
+d = Time in message transmission. With SMTP, that starts with
+sending MAIL FROM.
 .br
 .PP
 This feature is available in Postfix 2.3 and later.
@@ -10971,9 +10978,13 @@ This feature is available in Postfix 2.2 and later.
 See smtpd_data_restrictions for details and limitations.
 .SH smtpd_enforce_tls (default: no)
 Mandatory TLS: announce STARTTLS support to remote SMTP clients,
-and require that clients use TLS encryption.  According to RFC 2487
+and reject all plaintext commands except HELO, EHLO, XCLIENT,
+STARTTLS, NOOP, QUIT, and (Postfix >= 3.9) HELP.
+According to RFC 2487
 this MUST NOT be applied in case of a publicly\-referenced SMTP
-server.  This option is therefore off by default.
+server. Instead, this should be used on dedicated servers, for
+example submission (port 587). This option is therefore off by
+default.
 .PP
 Note 1: "smtpd_enforce_tls = yes" implies "smtpd_tls_auth_only = yes".
 .PP
@@ -13702,10 +13713,11 @@ to remote SMTP clients, but do not require that clients use TLS encryption.
 .br
 .IP "\fBencrypt\fR"
 Mandatory TLS encryption: announce
-STARTTLS support to remote SMTP clients, and require that clients use TLS
-encryption. According to RFC 2487 this MUST NOT be applied in case
-of a publicly\-referenced SMTP server. Instead, this option should
-be used only on dedicated servers.
+STARTTLS support to remote SMTP clients, and reject all plaintext
+commands except HELO, EHLO, XCLIENT, STARTTLS, NOOP, QUIT, and (Postfix
+>= 3.9) HELP. According to RFC 2487 this MUST NOT be applied in case
+of a publicly\-referenced SMTP server. Instead, this should be used
+on dedicated servers, for example submission (port 587).
 .br
 .br
 .PP

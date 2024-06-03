@@ -6,6 +6,22 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Many master.cf services don't expect wakeup calls, resulting
+	in weird warnings. Maybe the master daemon could signal the
+	wakeup intent through a child process command-line option,
+	so that the child can log "do not enable wakeups". Or the
+	client could announce to the xxx_server-main() skeleton
+	whether it wants wakeups. Or the child process could
+	special-case messages that consist only of a "W". We're not
+	using FIFOs anymore, and trigger servers could use a proper
+	(attribute, value) protocol.
+
+	"postconf -d" should not complain about a missing master.cf
+	file.
+
+	qmgr_message.c should do the right thing when the
+	double_bounce_sender value contains @.
+
 	migrate rbl -> dnsbl
 
 	migrate smtpd_sasl_tls_security_options to "noanonymous"

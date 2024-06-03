@@ -28047,3 +28047,30 @@ Apologies for any names omitted.
 	queue file, log not only the 'new' name in the incoming
 	queue, but also log the 'old' name in the maildrop queue.
 	File: pickup/pickup.c.
+
+20240422
+
+	Cleanup: improved warning text when a local alias contains
+	a domain. File: postalias/postalias.c.
+
+20240502
+
+	Documentation: clarified the spawn(8) manpage BUGS section.
+	File: spawn/spawn.c.
+
+20240504
+
+	Documentation: clarified some text in the Postfix overview.
+	File: proto/OVERVIEW.html.
+
+20240603
+
+	Documentation: with "smtpd_tls_security_level = encrypt",
+	clarified what commands the Postfix will accept during the
+	plaintext phase. File: proto/postconf.proto.
+
+	Documentation: ugly javascript workaround for
+	Google Chrome scrolling to the wrong location with
+	'<a name=' and '<a id=' tags in postconf.5.html. See
+	https://support.google.com/chrome/thread/11993079. File:
+	proto/postconf.html.prolog.
