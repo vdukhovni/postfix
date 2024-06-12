@@ -554,7 +554,8 @@
 /*	but do not require that clients use TLS encryption.
 /* .IP "\fBsmtpd_enforce_tls (no)\fR"
 /*	Mandatory TLS: announce STARTTLS support to remote SMTP clients,
-/*	and require that clients use TLS encryption.
+/*	and reject all plaintext commands except HELO, EHLO, XCLIENT,
+/*	STARTTLS, NOOP, QUIT, and (Postfix >= 3.9) HELP.
 /* .IP "\fBsmtpd_tls_cipherlist (empty)\fR"
 /*	Obsolete Postfix < 2.3 control for the Postfix SMTP server TLS
 /*	cipher list.
@@ -704,8 +705,10 @@
 /*	alias domains, that is, domains for which all addresses are aliased
 /*	to addresses in other local or remote domains.
 /* .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
-/*	Optional lookup tables with aliases that apply to all recipients:
-/*	\fBlocal\fR(8), virtual, and remote; this is unlike alias_maps that apply
+/*	Optional lookup tables that are often searched with a full email
+/*	address (including domain) and that apply to all recipients: \fBlocal\fR(8),
+/*	virtual, and remote; this is unlike alias_maps that are only searched
+/*	with an email address localpart (no domain) and that apply
 /*	only to \fBlocal\fR(8) recipients.
 /* .IP "\fBunknown_virtual_alias_reject_code (550)\fR"
 /*	The Postfix SMTP server reply code when a recipient address matches
@@ -5502,7 +5505,7 @@ static void tls_reset(SMTPD_STATE *state)
 
 static int unimpl_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 {
-    const char *err;
+    const char *err = 0;
 
     /*
      * When a connection is closed we want to log the request counts for
@@ -5519,7 +5522,7 @@ static int unimpl_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	&& err[0] == '4') {
 	smtpd_chat_reply(state, "%s", err);
     } else {
-	if (err[0] != '5')
+	if (err && err[0] != '5')
 	    msg_warn("unexpected SMFIC_UNKNOWN response: %s", err);
 	smtpd_chat_reply(state, "502 5.5.1 Error: command not implemented");
     }
@@ -6019,13 +6022,14 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    /* state->access_denied == 0 || cmdp->action == quit_cmd */
 	    if (cmdp->name == 0) {
 		/* See unimpl_cmd() for valid xxfi_unknown() return values. */
+		err = 0;
 		if (state->milters != 0
 		    && (err = milter_unknown_event(state->milters,
 						   STR(state->buffer))) != 0
 		    && err[0] == '4') {
 		    smtpd_chat_reply(state, "%s", err);
 		} else {
-		    if (err[0] != '5')
+		    if (err && err[0] != '5')
 			msg_warn("unexpected SMFIC_UNKNOWN response: %s", err);
 		    smtpd_chat_reply(state,
 				 "500 5.5.2 Error: command not recognized");

@@ -590,7 +590,8 @@ Opportunistic TLS: announce STARTTLS support to remote SMTP clients,
 but do not require that clients use TLS encryption.
 .IP "\fBsmtpd_enforce_tls (no)\fR"
 Mandatory TLS: announce STARTTLS support to remote SMTP clients,
-and require that clients use TLS encryption.
+and reject all plaintext commands except HELO, EHLO, XCLIENT,
+STARTTLS, NOOP, QUIT, and (Postfix >= 3.9) HELP.
 .IP "\fBsmtpd_tls_cipherlist (empty)\fR"
 Obsolete Postfix < 2.3 control for the Postfix SMTP server TLS
 cipher list.
@@ -748,8 +749,10 @@ Postfix is the final destination for the specified list of virtual
 alias domains, that is, domains for which all addresses are aliased
 to addresses in other local or remote domains.
 .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
-Optional lookup tables with aliases that apply to all recipients:
-\fBlocal\fR(8), virtual, and remote; this is unlike alias_maps that apply
+Optional lookup tables that are often searched with a full email
+address (including domain) and that apply to all recipients: \fBlocal\fR(8),
+virtual, and remote; this is unlike alias_maps that are only searched
+with an email address localpart (no domain) and that apply
 only to \fBlocal\fR(8) recipients.
 .IP "\fBunknown_virtual_alias_reject_code (550)\fR"
 The Postfix SMTP server reply code when a recipient address matches

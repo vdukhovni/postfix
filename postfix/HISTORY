@@ -28074,3 +28074,24 @@ Apologies for any names omitted.
 	'<a name=' and '<a id=' tags in postconf.5.html. See
 	https://support.google.com/chrome/thread/11993079. File:
 	proto/postconf.html.prolog.
+
+20240607
+
+	Documentation: tighten up the presentation of long-form and
+	short-form command arguments. File: proto/master.
+
+20240610
+
+	Compatibility: when the OpenSSL library compile-time version
+	differs from the run-time version, allow forward-compatible
+	minor version differences with OpenSSL >= 3.x.x, allow
+	forward-compatible micro version differences with OpenSSL
+	1.1.x, and allow no version difference with OpenSSL <=
+	1.0.x. Otherwise, log a potential version mismatch warning.
+	Viktor and Wietse. File: tls/tls_misc.c.
+
+20240612
+
+	Bugfix (defect introduced: Postfix 3.10, date 20230310):
+	segfault after reading a null pointer, while responding to
+	an unknown or unimplemented command. File: smtpd/smtpd.c.
