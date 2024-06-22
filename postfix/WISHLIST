@@ -16,6 +16,10 @@ Wish list:
 	using FIFOs anymore, and trigger servers could use a proper
 	(attribute, value) protocol.
 
+	The postsceen NON-SMTP test should log the command in
+	the same format as the BARE NEWLINE and PREGREET tests.
+	Consider logging the entire unadulterated command line.
+
 	"postconf -d" should not complain about a missing master.cf
 	file.
 

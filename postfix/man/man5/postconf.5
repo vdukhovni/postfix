@@ -1732,7 +1732,7 @@ Instead of $name you can also specify ${name} or $(name).
 .PP
 Note: when an enhanced status code is specified in an RBL reply
 template, it is subject to modification.  The following transformations
-are needed when the same RBL reply template is used for client,
+are needed when the same RBL response template is used for client,
 helo, sender, or recipient access restrictions.
 .IP \(bu
 When rejecting a sender address, the Postfix SMTP server
@@ -5570,6 +5570,11 @@ Example:
 .ad
 .ft R
 .PP
+NOTE: This feature differs from the Postfix SMTP server's
+rbl_reply_maps feature, where 1) the table search key includes the
+optional "\fI=address\fR" filter, and where 2) the lookup result
+contains free text with \fI$name\fR variables.
+.PP
 This feature is available in Postfix 2.8.
 .SH postscreen_dnsbl_sites (default: empty)
 Optional list of patterns with DNS allow/denylist domains, filters
@@ -6160,13 +6165,46 @@ queue and schedules delivery requests.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH rbl_reply_maps (default: empty)
-Optional lookup tables with RBL response templates. The tables are
-indexed by the RBL domain name. By default, Postfix uses the default
+Optional lookup tables with RBL or RHSBL response templates. The
+table search key is the reject_rbl_* or reject_rhsbl_* argument,
+including any optional "\fI=address\-pattern\fR" filter.
+.PP
+By default, Postfix uses the
 template as specified with the default_rbl_reply configuration
-parameter. See there for a discussion of the syntax of RBL reply
-templates.
+parameter. See there for a discussion of the response template
+syntax.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    rbl_reply_maps = hash:/etc/postfix/rbl_reply
+    smtpd_recipient_restrictions =
+        permit_mynetworks,
+        reject_rbl_client \fIsecret\fR.zen.dq.spamhaus.net=127.0.0.[2..11],
+        ...
+.br
+/etc/postfix/rbl_reply:
+    # See https://www.postfix.org/postconf.5.html#default_rbl_reply
+    # for the definition of the $client_address and $rbl_class etc.
+    # variables.
+    \fIsecret\fR.zen.dq.spamhaus.net=127.0.0.[2..11]
+        554 $rbl_class $rbl_what blocked using ZEN \- see https://www.spamhaus.org/query/ip/$client_address for details
+    \fIsecret\fR.zen.dq.spamhaus.net
+        554 $rbl_class $rbl_what blocked using ZEN \- see https://www.spamhaus.org/query/ip/$client_address for details
+.fi
+.ad
+.ft R
+.PP
+NOTE: This feature differs from postscreen_dnsbl_reply_map where
+the table search key is a domain name (no "\fI=address\fR" filter,
+no "\fI*weight\fR" factor) and where the lookup result should be
+a domain name (no free text, no \fI$name\fR variables).
 .PP
 This feature is available in Postfix 2.0 and later.
+The "=address\-pattern" filter is available in Postfix 2.8 and later.
 .SH readme_directory (default: see "postconf \-d" output)
 The location of Postfix README files that describe how to build,
 configure or operate a specific Postfix subsystem or feature.

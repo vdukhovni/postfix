@@ -237,15 +237,12 @@
 #	Increase the verbose logging level. Specify multiple \fB-v\fR
 #	options to make a Postfix daemon process increasingly verbose.
 # .IP "\fBCommand-line arguments that start with {\fR"
-#	Specify "{" and "}" around command arguments that start
-#	with "{" (Postfix 3.0 and later). The outer "{" and "}" are
-#	removed from the input, together with any leading or trailing
-#	whitespace.
-# .IP "\fBOther command-line arguments\fR"
-	Specify "{" and "}" around command arguments that contain
-#	whitespace (Postfix 3.0 and later). The outer "{" and "}"
-#	are removed from the input, together with any leading or
-#	trailing whitespace.
+# .IP "\fBCommand-line arguments that contain whitespace\fR"
+# .IP "\fBCommand-line arguments that must be empty\fR"
+#	Specify "{" and "}" around such arguments (Postfix 3.0 and
+#	later). The outer "{" and "}" will be removed, together
+#	with any leading or trailing whitespace in the remaining
+#	text.
 # SEE ALSO
 #	master(8), process manager
 #	postconf(5), configuration parameters

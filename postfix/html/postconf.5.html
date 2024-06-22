@@ -2670,7 +2670,7 @@ Instead of $name you can also specify ${name} or $(name).
 
 <p> Note: when an enhanced status code is specified in an RBL reply
 template, it is subject to modification.  The following transformations
-are needed when the same RBL reply template is used for client,
+are needed when the same RBL response template is used for client,
 helo, sender, or recipient access restrictions.  </p>
 
 <ul>
@@ -8798,6 +8798,11 @@ the file is read). </p>
    secret.zen.spamhaus.org      zen.spamhaus.org
 </pre>
 
+<p> NOTE: This feature differs from the Postfix SMTP server's
+<a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> feature, where 1) the table search key includes the
+optional "<i>=address</i>" filter, and where 2) the lookup result
+contains free text with <i>$name</i> variables. </p>
+
 <p> This feature is available in Postfix 2.8.  </p>
 
 
@@ -9807,15 +9812,46 @@ This feature is available in Postfix 2.0 and later.
 (default: empty)</b></DT><DD>
 
 <p>
-Optional lookup tables with RBL response templates. The tables are
-indexed by the RBL domain name. By default, Postfix uses the default
+Optional lookup tables with RBL or RHSBL response templates. The
+table search key is the reject_rbl_* or reject_rhsbl_* argument,
+including any optional "<i>=address-pattern</i>" filter. </p>
+
+<p> By default, Postfix uses the
 template as specified with the <a href="postconf.5.html#default_rbl_reply">default_rbl_reply</a> configuration
-parameter. See there for a discussion of the syntax of RBL reply
-templates.
+parameter. See there for a discussion of the response template
+syntax.
+</p>
+
+<p> Example: </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/rbl_reply
+    <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
+        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
+        <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a> <i>secret</i>.zen.dq.spamhaus.net=127.0.0.[2..11],
+        ...
+<br>
+/etc/postfix/rbl_reply:
+    # See https://www.postfix.org/postconf.5.html#<a href="postconf.5.html#default_rbl_reply">default_rbl_reply</a>
+    # for the definition of the $client_address and $rbl_class etc.
+    # variables.
+    <i>secret</i>.zen.dq.spamhaus.net=127.0.0.[2..11]
+        554 $rbl_class $rbl_what blocked using ZEN - see <a href="https://www.spamhaus.org/query/ip/$client_address">https://www.spamhaus.org/query/ip/$client_address</a> for details
+    <i>secret</i>.zen.dq.spamhaus.net
+        554 $rbl_class $rbl_what blocked using ZEN - see <a href="https://www.spamhaus.org/query/ip/$client_address">https://www.spamhaus.org/query/ip/$client_address</a> for details
+</pre>
+
+<p>
+NOTE: This feature differs from <a href="postconf.5.html#postscreen_dnsbl_reply_map">postscreen_dnsbl_reply_map</a> where
+the table search key is a domain name (no "<i>=address</i>" filter,
+no "<i>*weight</i>" factor) and where the lookup result should be
+a domain name (no free text, no <i>$name</i> variables).
 </p>
 
 <p>
 This feature is available in Postfix 2.0 and later.
+The "=address-pattern" filter is available in Postfix 2.8 and later.
 </p>
 
 

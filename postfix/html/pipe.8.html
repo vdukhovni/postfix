@@ -195,8 +195,10 @@ PIPE(8)                                                                PIPE(8)
               interpreter.
 
               Specify "{" and "}" around command arguments that contain white-
-              space  (Postfix 3.0 and later). Whitespace after the opening "{"
-              and before the closing "}" is ignored.
+              space,  arguments that begin with "{", or arguments that must be
+              an empty string (Postfix 3.0 and later). The outer "{"  and  "}"
+              will  be  removed,  together with any leading or trailing white-
+              space in the remaining text.
 
               In the command argument vector, the following macros are  recog-
               nized and replaced with corresponding information from the Post-

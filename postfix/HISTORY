@@ -28095,3 +28095,21 @@ Apologies for any names omitted.
 	Bugfix (defect introduced: Postfix 3.10, date 20230310):
 	segfault after reading a null pointer, while responding to
 	an unknown or unimplemented command. File: smtpd/smtpd.c.
+
+20240614
+
+	Documentation: made the descriptions of command-line arguments
+	inside {} more consistent. Files: proto/master, pipe/pipe.c.
+
+20240618
+
+	Code health: factored out duplicate code for unknown and
+	unimplemented commands in the SMTP server. File: smtpd/smtpd.c.
+
+20240622
+
+	Documentation: in the rbl_reply_maps description,added text
+	how it handles reject_rbl_* or reject_rhsbl_* queries with
+	an address filter. Also added text to clarify te differences
+	between rbl_reply_maps and postscreen_dnsbl_reply_map.
+	File: proto/postconf.proto.

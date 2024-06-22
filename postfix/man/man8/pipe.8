@@ -201,8 +201,10 @@ The command is executed directly, i.e. without interpretation of
 shell meta characters by a shell command interpreter.
 .sp
 Specify "{" and "}" around command arguments that contain
-whitespace (Postfix 3.0 and later). Whitespace
-after the opening "{" and before the closing "}" is ignored.
+whitespace, arguments that begin with "{", or arguments
+that must be an empty string (Postfix 3.0 and later). The
+outer "{" and "}" will be removed, together with any leading
+or trailing whitespace in the remaining text.
 .sp
 In the command argument vector, the following macros are recognized
 and replaced with corresponding information from the Postfix queue
