@@ -3570,15 +3570,21 @@ static int rbl_reject_reply(SMTPD_STATE *state, const SMTPD_RBL_STATE *rbl,
     /*
      * Use the server-specific reply template or use the default one.
      */
+    rbl_exp.domain = mystrdup(rbl_domain);
+    (void) split_at(rbl_exp.domain, '=');
     if (*var_rbl_reply_maps) {
 	template = maps_find(rbl_reply_maps, rbl_domain, DICT_FLAG_NONE);
-	if (rbl_reply_maps->error)
+	if (template == 0 && rbl_reply_maps->error == 0
+	    && strcmp(rbl_domain, rbl_exp.domain) != 0)
+	    template = maps_find(rbl_reply_maps, rbl_exp.domain,
+				 DICT_FLAG_NONE);
+	if (template == 0 && rbl_reply_maps->error != 0) {
+	    myfree(rbl_exp.domain);
 	    reject_server_error(state);
+	}
     }
     why = vstring_alloc(100);
     rbl_exp.state = state;
-    rbl_exp.domain = mystrdup(rbl_domain);
-    (void) split_at(rbl_exp.domain, '=');
     rbl_exp.what = what;
     rbl_exp.class = reply_class;
     rbl_exp.txt = (rbl->txt == 0 ? "" : rbl->txt);

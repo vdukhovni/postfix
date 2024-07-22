@@ -258,6 +258,11 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
 
               This parameter is available with Postfix 3.2 and later.
 
+<b>TLS-RELATED SETTINGS</b>
+       See      <a href="https://dev.mysql.com/doc/c-api/en/mysql-options.html">https://dev.mysql.com/doc/c-api/en/mysql-options.html</a>       or
+       <a href="https://mariadb.com/kb/en/mysql_optionsv/">https://mariadb.com/kb/en/mysql_optionsv/</a> for details of the underlying
+       MYSQL_OPT_SSL_* features.
+
        <b>tls_cert_file</b>
               File containing client's X509 certificate.
 
@@ -269,7 +274,7 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
               This parameter is available with Postfix 2.11 and later.
 
        <b>tls_CAfile</b>
-              File  containing  certificates for all of the X509 Certification
+              File  containing  X509 certificates for all of the Certification
               Authorities the client will recognize.   Takes  precedence  over
               <b>tls_CApath</b>.
 

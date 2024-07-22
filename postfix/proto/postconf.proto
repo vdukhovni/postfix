@@ -1194,7 +1194,8 @@ by an RFC 3463 enhanced status code. </dd>
 
 <dt><b>$rbl_domain</b></dt>
 
-<dd>The RBL domain where $rbl_what is denylisted. </dd>
+<dd>The RBL domain (without any <i>=address-filter</i>) where
+$rbl_what is denylisted. </dd>
 
 <dt><b>$rbl_reason</b></dt>
 
@@ -3588,7 +3589,10 @@ The default time unit is s (seconds).  </p>
 <p>
 Optional lookup tables with RBL or RHSBL response templates. The
 table search key is the reject_rbl_* or reject_rhsbl_* argument,
-including any optional "<i>=address-pattern</i>" filter. </p>
+including any optional "<i>=address-filter</i>".  With Postfix 3.10
+and later, if the result is "not found" and the search key has the
+form <i>domain=address-filter</i>, then rbl_reply_maps will also
+search with the <i>domain</i>. </p>
 
 <p> By default, Postfix uses the
 template as specified with the default_rbl_reply configuration
@@ -3612,20 +3616,26 @@ syntax.
     # variables.
     <i>secret</i>.zen.dq.spamhaus.net=127.0.0.[2..11]
         554 $rbl_class $rbl_what blocked using ZEN - see https://www.spamhaus.org/query/ip/$client_address for details
+</pre>
+
+<pre>
+    # Postfix &ge; 3.10: if a search key <i>domain=address-filter</i>
+    # is not found, then rbl_reply_maps will also search with the
+    # <i>domain</i>.
     <i>secret</i>.zen.dq.spamhaus.net
         554 $rbl_class $rbl_what blocked using ZEN - see https://www.spamhaus.org/query/ip/$client_address for details 
 </pre>
 
 <p>
 NOTE: This feature differs from postscreen_dnsbl_reply_map where
-the table search key is a domain name (no "<i>=address</i>" filter,
-no "<i>*weight</i>" factor) and where the lookup result should be
-a domain name (no free text, no <i>$name</i> variables).
+the table search key is only a domain name (no "<i>=address-filter</i>",
+no "<i>*weight</i>" factor) and where the lookup result
+should be only a domain name (no free text, no <i>$name</i> variables).
 </p>
 
 <p>
 This feature is available in Postfix 2.0 and later.
-The "=address-pattern" filter is available in Postfix 2.8 and later.
+The "=address-filter" feature is available in Postfix 2.8 and later.
 </p>
 
 %PARAM receive_override_options 
@@ -15451,7 +15461,7 @@ the file is read). </p>
 
 <p> NOTE: This feature differs from the Postfix SMTP server's
 rbl_reply_maps feature, where 1) the table search key includes the
-optional "<i>=address</i>" filter, and where 2) the lookup result
+optional "<i>=address-filter</i>", and where 2) the lookup result
 contains free text with <i>$name</i> variables. </p>
 
 <p> This feature is available in Postfix 2.8.  </p>

@@ -277,6 +277,14 @@ set.  If "\fBno\fR", treat the absence of a result set as
 "not found".
 .sp
 This parameter is available with Postfix 3.2 and later.
+.SH "TLS-RELATED SETTINGS"
+.na
+.nf
+.ad
+.fi
+See https://dev.mysql.com/doc/c\-api/en/mysql\-options.html
+or https://mariadb.com/kb/en/mysql_optionsv/ for details of
+the underlying MYSQL_OPT_SSL_* features.
 .IP "\fBtls_cert_file\fR"
 File containing client's X509 certificate.
 .sp
@@ -286,7 +294,7 @@ File containing the private key corresponding to \fBtls_cert_file\fR.
 .sp
 This parameter is available with Postfix 2.11 and later.
 .IP "\fBtls_CAfile\fR"
-File containing certificates for all of the X509 Certification
+File containing X509 certificates for all of the Certification
 Authorities the client will recognize.  Takes precedence over
 \fBtls_CApath\fR.
 .sp

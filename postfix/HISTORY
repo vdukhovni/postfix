@@ -22345,7 +22345,7 @@ Apologies for any names omitted.
 	Cleanup: integer wrap-around detection in the MySQL and
 	PostgreSQL clients. This is totally non-critical because
 	Postfix strings are size-limited by design. Files:
-	global/dict_mysqql.c, global/dict_pgsql.c.
+	global/dict_mysql.c, global/dict_pgsql.c.
 
 20160607
 
@@ -28110,6 +28110,45 @@ Apologies for any names omitted.
 
 	Documentation: in the rbl_reply_maps description,added text
 	how it handles reject_rbl_* or reject_rhsbl_* queries with
-	an address filter. Also added text to clarify te differences
+	an address filter. Also added text to clarify the differences
 	between rbl_reply_maps and postscreen_dnsbl_reply_map.
 	File: proto/postconf.proto.
+
+20240623
+
+	Feature: improved rbl_reply_maps usability. After a query
+	with the form domain=address-filter returns no result,
+	rbl_reply_maps will query the tables with the domain (i.e.
+	without the =address-filter). Files: smtpd/smtpd_check.c,
+	proto/postconf.proto, smtpd/smtpd_check_access, smtpd/smtpd_exp.in,
+	smtpd/smtpd_exp.ref.
+
+20240626
+
+	Cleanup: updated SMTP server regression tests for last-minute
+	changes to the wording of deprecation messages. Files:
+	smtpd/smtpd_check_backup.ref, smtpd/smtpd_deprecated.ref,
+	smtpd/smtpd_exp.ref.
+
+20240719
+
+	Bitrot: with MySQL 8.0.35 and later set TLS options with
+	mysql_options() instead of mysql_ssl_set(). Researched by
+	Robert Fuhrer. Files: global/dict_mysql.c, proto/mysql_table.
+
+20240720
+
+	Bitrot: MariaDB Connector/C 3.0.0 lists mysql_options() as
+	deprecated, and recommends using mysql_optionsv() instead.
+	Option names and semantics have not changed. Peter Ajamian.
+	Files: global/dict_mysql.c, proto/mysql_table.
+
+20240721
+
+	Reproducible build: sort the output from 'env'. Scott
+	Kitterman. File: makedefs.
+
+20240722
+
+	Bitrot: some groff version complains about ".ft C" directives
+	in postconf(5) manpages. File: mantools/postconf2man.

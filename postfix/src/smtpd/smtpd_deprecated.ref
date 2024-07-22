@@ -10,7 +10,7 @@ OK
 >>> mail sname@sdomain.example
 OK
 >>> rcpt rname@rdomain.example
-./smtpd_check: warning: restriction permit_naked_ip_address has been removed in Postfix 3.9; use permit_mynetworks or permit_sasl_authenticated instead
+./smtpd_check: warning: support for restriction "permit_naked_ip_address" has been removed in Postfix 3.9; instead, specify "permit_mynetworks" or "permit_sasl_authenticated"
 ./smtpd_check: <queue id>: reject: RCPT from foo[127.0.0.2]: 451 4.3.5 Server configuration error; from=<sname@sdomain.example> to=<rname@rdomain.example> proto=SMTP helo=<127.0.0.2>
 451 4.3.5 Server configuration error
 >>> #
@@ -27,7 +27,7 @@ OK
 >>> mail sname@sdomain.example
 OK
 >>> rcpt rname@rdomain.example
-./smtpd_check: warning: support for restriction "check_relay_domains" has been removed in Postfix 3.9; use "reject_unauth_destination" instead
+./smtpd_check: warning: support for restriction "check_relay_domains" has been removed in Postfix 3.9; instead, specify "reject_unauth_destination"
 ./smtpd_check: <queue id>: reject: RCPT from foo[127.0.0.2]: 451 4.3.5 Server configuration error; from=<sname@sdomain.example> to=<rname@rdomain.example> proto=SMTP helo=<127.0.0.2>
 451 4.3.5 Server configuration error
 >>> #

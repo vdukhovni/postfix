@@ -16,6 +16,16 @@ Wish list:
 	using FIFOs anymore, and trigger servers could use a proper
 	(attribute, value) protocol.
 
+	Send XFORWARD attributes in the SMTPD policy delegation
+	protocol.
+
+	With "smtpd_reject_unlisted_mumble = no" the Postfix SMTP
+	server should still reject recipients that resolve to the
+	error or retry transport.
+
+	bounce/annotate.sh should include the 'QUICK INSTRUCTIONS'
+	into the bounce.cf.default file.
+
 	The postsceen NON-SMTP test should log the command in
 	the same format as the BARE NEWLINE and PREGREET tests.
 	Consider logging the entire unadulterated command line.

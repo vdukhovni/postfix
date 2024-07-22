@@ -220,7 +220,7 @@ echo "#----------------------------------------------------------------"
 echo "# Start of summary of user-configurable 'make makefiles' options."
 echo "# CCARGS=$CCARGS"
 echo "# AUXLIBS=$AUXLIBS"
-env | grep '^AUXLIBS_' | sed 's/^/# /'
+env | grep '^AUXLIBS_' | sed 's/^/# /' | sort
 echo "# shared=$shared"
 echo "# dynamicmaps=$dynamicmaps"
 echo "# pie=$pie"
