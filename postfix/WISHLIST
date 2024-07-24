@@ -26,6 +26,8 @@ Wish list:
 	bounce/annotate.sh should include the 'QUICK INSTRUCTIONS'
 	into the bounce.cf.default file.
 
+	Should smtp_tls_wrappermode have an SMTP_TLS_POLICY override?
+
 	The postsceen NON-SMTP test should log the command in
 	the same format as the BARE NEWLINE and PREGREET tests.
 	Consider logging the entire unadulterated command line.

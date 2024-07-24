@@ -28152,3 +28152,14 @@ Apologies for any names omitted.
 
 	Bitrot: some groff version complains about ".ft C" directives
 	in postconf(5) manpages. File: mantools/postconf2man.
+
+20240724
+
+	Documentation: re-worded some text about Debian hard-coding
+	the Cyrus SASL smtpd.conf search path. Files:
+	proto/SASL_README.html, proto/postconf.proto.
+
+	Cleanup: the Postfix DNS client returned only the first
+	fragment of a multi-fragment TXT record. This would become
+	an issue when looking up policy records with strings longer
+	than 255 bytes. File: dns/dns_lookup.c.

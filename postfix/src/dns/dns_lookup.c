@@ -745,6 +745,7 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 		              DNS_FIXED *fixed)
 {
     char    temp[DNS_NAME_LEN];
+    char    ltemp[USHRT_MAX];
     char   *tempbuf = temp;
     UINT32_TYPE soa_buf[5];
     int     comp_len;
@@ -754,6 +755,7 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
     unsigned port = 0;
     unsigned char *src;
     unsigned char *dst;
+    int     frag_len;
     int     ch;
 
 #define MIN2(a, b)	((unsigned)(a) < (unsigned)(b) ? (a) : (b))
@@ -826,17 +828,28 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 #endif
 
 	/*
-	 * We impose the same length limit here as for DNS names. However,
-	 * see T_TLSA discussion below.
+	 * Impose the maximum length (65536) limit for TXT records.
 	 */
     case T_TXT:
-	data_len = MIN2(pos[0] + 1, MIN2(fixed->length + 1, sizeof(temp)));
-	for (src = pos + 1, dst = (unsigned char *) (temp);
-	     dst < (unsigned char *) (temp) + data_len - 1; /* */ ) {
-	    ch = *src++;
-	    *dst++ = (ISPRINT(ch) ? ch : ' ');
+	for (src = pos, dst = (unsigned char *) ltemp;
+	     src < pos + fixed->length; /* */ ) {
+	    frag_len = *src++;
+	    if (msg_verbose)
+		msg_info("frag_len=%d text=\"%.*s\"",
+			 (int) frag_len, (int) frag_len, (char *) src);
+	    if (frag_len > reply->end - src
+	     || frag_len >= ((unsigned char *) ltemp + sizeof(ltemp)) - dst) {
+		msg_warn("extract_answer: bad TXT string length: %d", frag_len);
+		return (DNS_RETRY);
+	    }
+	    while (frag_len-- > 0) {
+		ch = *src++;
+		*dst++ = (ISPRINT(ch) ? ch : ' ');
+	    }
 	}
-	*dst = 0;
+	*dst++ = 0;
+	tempbuf = ltemp;
+	data_len = dst - (unsigned char *) tempbuf;
 	break;
 
 	/*

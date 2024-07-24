@@ -11289,6 +11289,10 @@ currently used only to locate the $smtpd_sasl_path.conf file.
 Specify zero or more directories separated by a colon character,
 or an empty value to use Cyrus SASL's built-in search path.  </p>
 
+<p> Note: some Debian-based Postfix distributions ignore the
+"cyrus_sasl_config_path" parameter setting, and force Postfix to
+open the file <code>/etc/postfix/sasl/smtpd.conf</code>. </p>
+
 <p> This feature is available in Postfix 2.5 and later when compiled
 with Cyrus SASL 2.1.22 or later. </p>
 
