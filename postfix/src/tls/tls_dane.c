@@ -593,6 +593,7 @@ static void *dane_lookup(const char *tlsa_fqdn, void *unused_ctx)
 	    if (n == 0)
 		dane->flags |= TLS_DANE_FLAG_EMPTY;
 	} else
+	    /* TODO(wietse) report non-parsable TLSA records in TLSRPT. */
 	    dane->flags |= TLS_DANE_FLAG_NORRS;
 
 	if (rrs)

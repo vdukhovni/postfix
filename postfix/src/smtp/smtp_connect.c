@@ -104,6 +104,7 @@
 #include <mail_error.h>
 #include <dsn_buf.h>
 #include <mail_addr.h>
+#include <valid_hostname.h>
 
 /* DNS library. */
 
@@ -912,6 +913,21 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	SMTP_ITER_INIT(iter, dest, NO_HOST, NO_ADDR, port, state);
 
 	/*
+	 * TODO(wietse) If the domain publishes a TLSRPT policy, they expect
+	 * that clients use SMTP over TLS. Should we upgrade a TLS security
+	 * level of "may" to "encrypt"? This would disable falling back to
+	 * plaintext, and could break interoperability with receivers that
+	 * crank up security up to 11.
+	 */
+#ifdef USE_TLSRPT
+	if (smtp_mode && var_smtp_tlsrpt_enable
+	    && !valid_hostaddr(domain, DONT_GRIPE))
+	    smtp_tlsrpt_create_wrapper(state, domain);
+	else
+	    state->tlsrpt = 0;
+#endif						/* USE_TLSRPT */
+
+	/*
 	 * Resolve an SMTP or LMTP server. Skip MX or SRV lookups when a
 	 * quoted domain is specified or when DNS lookups are disabled.
 	 */
@@ -1076,6 +1092,12 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		session->state = state;
 #ifdef USE_TLS
 		session->tls_nexthop = domain;
+#ifdef USE_TLSRPT
+		if (state->tlsrpt && state->tls->level > TLS_LEV_NONE) {
+		    smtp_tlsrpt_set_tls_policy(state);
+		    smtp_tlsrpt_set_tcp_connection(state);
+		}
+#endif						/* USE_TLSRPT */
 #endif
 		if (addr->pref == domain_best_pref)
 		    session->features |= SMTP_FEATURE_BEST_MX;

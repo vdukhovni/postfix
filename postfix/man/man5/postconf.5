@@ -511,10 +511,6 @@ Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
 after Postfix forwards mail internally, or after Postfix generates
 mail itself.
-.PP
-Note: automatic BCC recipients are subject to address
-canonicalization (add missing domain), canonical_maps, masquerade_domains,
-and virtual_alias_maps.
 .SH anvil_rate_time_unit (default: 60s)
 The time unit over which client connection rates and other rates
 are calculated.
@@ -1114,10 +1110,6 @@ Search path for Cyrus SASL application configuration files,
 currently used only to locate the $smtpd_sasl_path.conf file.
 Specify zero or more directories separated by a colon character,
 or an empty value to use Cyrus SASL's built\-in search path.
-.PP
-Note: some Debian\-based Postfix distributions ignore the
-"cyrus_sasl_config_path" parameter setting, and force Postfix to
-open the file <code>/etc/postfix/sasl/smtpd.conf</code>.
 .PP
 This feature is available in Postfix 2.5 and later when compiled
 with Cyrus SASL 2.1.22 or later.
@@ -3746,11 +3738,6 @@ prepend "\fBuid:\fR" to the numerical UID and use that instead.
 This feature ignores address extensions in the user\-specified
 envelope sender address.
 .PP
-Note: to enforce that the From: header address matches the envelope
-sender (MAIL FROM) address, specify an external filter such as a Milter,
-with the non_smtpd_milters parameter. For example:
-https://github.com/magcks/milterfrom.
-.PP
 The following sender patterns are special; these cannot be used
 as part of a longer pattern.
 .IP "\fB * \fR
@@ -6167,10 +6154,6 @@ To avoid mailer loops, automatic BCC recipients are not generated
 after Postfix forwards mail internally, or after Postfix generates
 mail itself.
 .PP
-Note: automatic BCC recipients are subject to address
-canonicalization (add missing domain), canonical_maps, masquerade_domains,
-and virtual_alias_maps.
-.PP
 Example:
 .PP
 .nf
@@ -6683,10 +6666,6 @@ Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
 after Postfix forwards mail internally, or after Postfix generates
 mail itself.
-.PP
-Note: automatic BCC recipients are subject to address
-canonicalization (add missing domain), canonical_maps, masquerade_domains,
-and virtual_alias_maps.
 .PP
 Example:
 .PP
@@ -9860,6 +9839,21 @@ More examples are in TLS_README, including examples for older
 Postfix versions.
 .PP
 This feature is available in Postfix 3.0 and later.
+.SH smtp_tlsrpt_enable (default: no)
+Enable support for RFC 8460 TLSRPT notifications. A mail receiving
+domain can publish a TLSRPT policy in DNS, to request periodic
+summaries of successful and failed SMTP over TLS connections to
+their mail servers. This feature requires that Postfix is built
+with a TLSRPT supporting library.
+.PP
+This feature is available in Postfix >= 3.10.
+.SH smtp_tlsrpt_socket_name (default: empty)
+The pathname of a UNIX\-domain datagram socket that is managed
+by a local TLSRPT reporting service. This parameter must specify a
+pathname (absolute, or relative to $queue_directory) when
+"smtp_tlsrpt_enable = yes".
+.PP
+This feature is available in Postfix >= 3.10.
 .SH smtp_use_tls (default: no)
 Opportunistic mode: use TLS when a remote SMTP server announces
 STARTTLS support, otherwise send the mail in the clear. Beware:
@@ -12052,16 +12046,8 @@ for authentication. The available types are listed with the
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtpd_sender_login_maps (default: empty)
-Optional lookup table with the SASL login names that own the
-envelope sender
+Optional lookup table with the SASL login names that own the sender
 (MAIL FROM) addresses.
-.sp
-.in +4
-Note: to enforce that the From: header address
-matches the envelope sender (MAIL FROM) address, use an external
-filter such as a Milter, for the submission, submissions, or smtps
-services. For example: https://github.com/magcks/milterfrom.
-.in -4
 .PP
 Specify zero or more "type:name" lookup tables, separated by
 whitespace or comma. Tables will be searched in the specified order
@@ -12134,11 +12120,6 @@ or the SASL login name is not an owner for that address.
 This prevents an authenticated client from using a MAIL FROM address
 that they do not explicitly own.
 .br
-Note: to enforce that the From: header address matches the envelope
-sender (MAIL FROM) address, use an external filter such as a Milter,
-for the submission, submissions, or smtps services. For example:
-https://github.com/magcks/milterfrom.
-.br
 This feature is available in Postfix version 2.1 and later.
 .br
 .IP "\fBreject_known_sender_login_mismatch\fR"
@@ -12153,11 +12134,6 @@ $smtpd_sender_login_maps.
 This protects any MAIL FROM address that is listed in
 $smtpd_sender_login_maps, while still allowing a client to use any
 unlisted MAIL FROM address.
-.br
-Note: to enforce that the From: header address matches the envelope
-sender (MAIL FROM) address, use an external filter such as a Milter,
-for the submission, submissions, or smtps services. For example:
-https://github.com/magcks/milterfrom.
 .br
 This feature is available in Postfix version 2.11 and later.
 .br
@@ -12199,11 +12175,6 @@ authenticated with SASL.
 .br
 With SASL enabled, this prevents an unauthenticated client from
 using any MAIL FROM address that is listed in $smtpd_sender_login_maps.
-.br
-Note: to enforce that the From: header address matches the envelope
-sender (MAIL FROM) address, use an external filter such as a Milter,
-for the submission, submissions, or smtps services. For example:
-https://github.com/magcks/milterfrom.
 .br
 This feature is available in Postfix version 2.1 and later.
 .br

@@ -20,7 +20,7 @@ typedef struct ARGV {
     char  **argv;			/* string array */
 } ARGV;
 
-typedef int (*ARGV_COMPAR_FN)(const void *, const void *);
+typedef int (*ARGV_COMPAR_FN) (const void *, const void *);
 
 extern ARGV *argv_alloc(ssize_t);
 extern ARGV *argv_sort(ARGV *);		/* backwards compatibility */
@@ -28,6 +28,7 @@ extern ARGV *argv_qsort(ARGV *, ARGV_COMPAR_FN);
 extern ARGV *argv_uniq(ARGV *, ARGV_COMPAR_FN);
 extern void argv_add(ARGV *,...);
 extern void argv_addn(ARGV *,...);
+extern ARGV *argv_addv(ARGV *, const char *const *);
 extern void argv_terminate(ARGV *);
 extern void argv_truncate(ARGV *, ssize_t);
 extern void argv_insert_one(ARGV *, ssize_t, const char *);

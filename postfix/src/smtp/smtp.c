@@ -638,6 +638,12 @@
 /* .IP "\fBsmtp_tls_enable_rpk (no)\fR"
 /*	Request that remote SMTP servers send an RFC7250 raw public key
 /*	instead of an X.509 certificate.
+/* .PP Available in Postfix version 3.10 and later:
+/* .IP "\fBsmtp_tlsrpt_enable (no)\fR"
+/*	Enable support for RFC 8460 TLSRPT notifications.
+/* .IP "\fBsmtp_tlsrpt_socket_name (empty)\fR"
+/*	The pathname of a UNIX-domain datagram socket that is managed
+/*	by a local TLSRPT reporting service.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -1146,6 +1152,8 @@ int     var_smtp_min_data_rate;
 char   *var_use_srv_lookup;
 bool    var_ign_srv_lookup_err;
 bool    var_allow_srv_fallback;
+bool    var_smtp_tlsrpt_enable;
+char   *var_smtp_tlsrpt_sockname;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -1575,6 +1583,21 @@ static void pre_init(char *unused_name, char **unused_argv)
 			    mdalg = var_smtp_tls_fpt_dgst);
 	smtp_tls_list_init();
 	tls_dane_loglevel(VAR_LMTP_SMTP(TLS_LOGLEVEL), var_smtp_tls_loglevel);
+#ifdef USE_TLSRPT
+	if (var_smtp_tlsrpt_enable) {
+	    if (smtp_mode) {
+		if (smtp_tlsrpt_pre_jail(VAR_SMTP_TLSRPT_SOCKNAME,
+					 var_smtp_tlsrpt_sockname) < 0)
+		    var_smtp_tlsrpt_enable = 0;
+	    } else {
+		msg_warn("TLSRPT support is not implemented for LMTP");
+		var_smtp_tlsrpt_enable = 0;
+	    }
+	}
+#else						/* no USE_TLSRPT */
+	if (var_smtp_tlsrpt_enable)
+	    msg_warn("TLSRPT is selected, but TLSRPT is not compiled in");
+#endif						/* USE_TLSRPT */
 #else
 	msg_warn("TLS has been selected, but TLS support is not compiled in");
 #endif

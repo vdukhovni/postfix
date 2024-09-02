@@ -160,6 +160,7 @@
 
 #ifdef USE_TLS
 #include <string.h>
+#include <tlsrpt_wrapper.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -363,11 +364,12 @@ static void verify_x509(TLS_SESS_STATE *TLScontext, X509 *peercert,
     if (!TLS_CERT_IS_MATCHED(TLScontext)
 	&& (TLScontext->log_mask & TLS_LOG_UNTRUSTED)) {
 	if (TLScontext->session_reused == 0)
-	    tls_log_verify_error(TLScontext);
+	    tls_log_verify_error(TLScontext, props->tlsrpt);
 	else
 	    msg_info("%s: re-using session with untrusted peer credential, "
 		     "look for details earlier in the log", props->namaddr);
     }
+    /* TODO(wietse) In the non-reuse case, tlsrprt the root cause? */
 }
 
 /* verify_rpk - process RFC7250 raw public key verification status */
@@ -407,11 +409,12 @@ static void verify_rpk(TLS_SESS_STATE *TLScontext, EVP_PKEY *peerpkey,
     if (!TLS_CERT_IS_MATCHED(TLScontext)
 	&& (TLScontext->log_mask & TLS_LOG_UNTRUSTED)) {
 	if (TLScontext->session_reused == 0)
-	    tls_log_verify_error(TLScontext);
+	    tls_log_verify_error(TLScontext, props->tlsrpt);
 	else
 	    msg_info("%s: re-using session with untrusted certificate, "
 		     "look for details earlier in the log", props->namaddr);
     }
+    /* TODO(wietse) In the non-reuse case, tlsrprt the root cause? */
 }
 
 /* add_namechecks - tell OpenSSL what names to check */
@@ -579,6 +582,7 @@ static int tls_auth_enable(TLS_SESS_STATE *TLScontext,
 	 * therefore valid for use with SNI.
 	 */
 	if (SSL_dane_enable(TLScontext->con, 0) <= 0) {
+	    /* TLSRPT: Local resource error, don't report. */
 	    msg_warn("%s: error enabling DANE-based certificate validation",
 		     TLScontext->namaddr);
 	    tls_print_errors();
@@ -595,6 +599,7 @@ static int tls_auth_enable(TLS_SESS_STATE *TLScontext,
     case TLS_LEV_FPRINT:
 	/* Synthetic DANE for fingerprint security */
 	if (SSL_dane_enable(TLScontext->con, 0) <= 0) {
+	    /* TLSRPT: Local resource error, don't report. */
 	    msg_warn("%s: error enabling fingerprint certificate validation",
 		     props->namaddr);
 	    tls_print_errors();
@@ -608,6 +613,7 @@ static int tls_auth_enable(TLS_SESS_STATE *TLScontext,
 	if (TLScontext->dane != 0 && TLScontext->dane->tlsa != 0) {
 	    /* Synthetic DANE for per-destination trust-anchors */
 	    if (SSL_dane_enable(TLScontext->con, NULL) <= 0) {
+		/* TLSRPT: Local resource error, don't report. */
 		msg_warn("%s: error configuring local trust anchors",
 			 props->namaddr);
 		tls_print_errors();
@@ -622,6 +628,7 @@ static int tls_auth_enable(TLS_SESS_STATE *TLScontext,
 
     if (sni) {
 	if (strlen(sni) > TLSEXT_MAXLEN_host_name) {
+	    /* TLSRPT: Local configuration error, don't report. */
 	    msg_warn("%s: ignoring too long SNI hostname: %.100s",
 		     props->namaddr, sni);
 	    return (0);
@@ -633,6 +640,7 @@ static int tls_auth_enable(TLS_SESS_STATE *TLScontext,
 	 * failed to send the SNI name, we have little choice but to abort.
 	 */
 	if (!SSL_set_tlsext_host_name(TLScontext->con, sni)) {
+	    /* TLSRPT: Local resource or configuration error, don't report. */
 	    msg_warn("%s: error setting SNI hostname to: %s", props->namaddr,
 		     sni);
 	    return (0);
@@ -975,6 +983,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      */
     protomask = tls_proto_mask_lims(props->protocols, &min_proto, &max_proto);
     if (protomask == TLS_PROTOCOL_INVALID) {
+	/* TLSRPT: Local configuration error, don't report. */
 	/* tls_protocol_mask() logs no warning. */
 	msg_warn("%s: Invalid TLS protocol list \"%s\": aborting TLS session",
 		 props->namaddr, props->protocols);
@@ -1006,6 +1015,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     TLScontext->level = props->tls_level;
 
     if ((TLScontext->con = SSL_new(app_ctx->ssl_ctx)) == NULL) {
+	/* TLSRPT: Local resource error, don't report. */
 	msg_warn("Could not allocate 'TLScontext->con' with SSL_new()");
 	tls_print_errors();
 	tls_free_context(TLScontext);
@@ -1022,6 +1032,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     cipher_list = tls_set_ciphers(TLScontext, props->cipher_grade,
 				  props->cipher_exclusions);
     if (cipher_list == 0) {
+	/* TLSRPT: Local configuration error, don't report. */
 	/* already warned */
 	tls_free_context(TLScontext);
 	return (0);
@@ -1036,6 +1047,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     TLScontext->dane = props->dane;
 
     if (!SSL_set_ex_data(TLScontext->con, TLScontext_index, TLScontext)) {
+	/* TLSRPT: Local resource error, don't report. */
 	msg_warn("Could not set application data for 'TLScontext->con'");
 	tls_print_errors();
 	tls_free_context(TLScontext);
@@ -1069,6 +1081,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * early.
      */
     if (!tls_auth_enable(TLScontext, props)) {
+	/* Already warned and reported TLSRPT result. */
 	tls_free_context(TLScontext);
 	return (0);
     }
@@ -1105,6 +1118,13 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	    switch (TLScontext->level) {
 	    case TLS_LEV_HALF_DANE:
 	    case TLS_LEV_DANE:
+#ifdef USE_TLSRPT
+		if (props->tlsrpt) {
+		    trw_report_failure(props->tlsrpt, TLSRPT_TLSA_INVALID,
+				        /* additional_detail= */ (char *) 0,
+				       "all-TLSA-records-unusable");
+		}
+#endif
 		msg_warn("%s: all TLSA records unusable, fallback to "
 			 "unauthenticated TLS", TLScontext->namaddr);
 		must_fail = 0;
@@ -1112,13 +1132,34 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 		break;
 
 	    case TLS_LEV_FPRINT:
+#ifdef USE_TLSRPT
+		if (props->tlsrpt) {
+		    trw_report_failure(props->tlsrpt, TLSRPT_VALIDATION_FAILURE,
+				        /* additional_detail= */ (char *) 0,
+				       "all-fingerprints-unusable");
+		}
+#endif
 		msg_warn("%s: all fingerprints unusable", TLScontext->namaddr);
 		break;
 	    case TLS_LEV_DANE_ONLY:
+#ifdef USE_TLSRPT
+		if (props->tlsrpt) {
+		    trw_report_failure(props->tlsrpt, TLSRPT_TLSA_INVALID,
+				        /* additional_detail= */ (char *) 0,
+				       "all-TLSA-records-unusable");
+		}
+#endif
 		msg_warn("%s: all TLSA records unusable", TLScontext->namaddr);
 		break;
 	    case TLS_LEV_SECURE:
 	    case TLS_LEV_VERIFY:
+#ifdef USE_TLSRPT
+		if (props->tlsrpt) {
+		    trw_report_failure(props->tlsrpt, TLSRPT_VALIDATION_FAILURE,
+				        /* additional_detail= */ (char *) 0,
+				       "all-trust-anchors-unusable");
+		}
+#endif
 		msg_warn("%s: all trust anchors unusable", TLScontext->namaddr);
 		break;
 	    }
@@ -1194,6 +1235,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      */
     if (SSL_set_fd(TLScontext->con, props->stream == 0 ? props->fd :
 		   vstream_fileno(props->stream)) != 1) {
+	/* TLSRPT: Local resource error, don't report. */
 	msg_info("SSL_set_fd error to %s", props->namaddr);
 	tls_print_errors();
 	uncache_session(app_ctx->ssl_ctx, TLScontext);
@@ -1212,6 +1254,16 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      */
     if (log_mask & TLS_LOG_TLSPKTS)
 	tls_set_bio_callback(SSL_get_rbio(TLScontext->con), tls_bio_dump_cb);
+
+    /*
+     * An external (STS) policy signaled a failure. Prevent false (PKI)
+     * certificate matches in tls_verify.c. TODO(wietse) how was this handled
+     * historically?
+     */
+    if (props->fail_type) {
+	TLScontext->fail_type = mystrdup(props->fail_type);
+	TLScontext->must_fail = 1;
+    }
 
     /*
      * If we don't trigger the handshake in the library, leave control over
@@ -1245,6 +1297,12 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	    msg_info("SSL_connect error to %s: lost connection",
 		     props->namaddr);
 	}
+#ifdef USE_TLSRPT
+	if (props->tlsrpt)
+	    trw_report_failure(props->tlsrpt, TLSRPT_VALIDATION_FAILURE,
+			        /* additional_detail= */ (char *) 0,
+			       "tls-handshake-failure");
+#endif
 	uncache_session(app_ctx->ssl_ctx, TLScontext);
 	tls_free_context(TLScontext);
 	return (0);
@@ -1359,6 +1417,16 @@ TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
 	tls_log_summary(TLS_ROLE_CLIENT, TLS_USAGE_NEW, TLScontext);
 
     tls_int_seed();
+
+    /*
+     * Inform the caller that we already reported a TLSRPT failure, so that
+     * the caller won't report success after a TLS level was degraded, or
+     * report some less informative failure reason after a more specific
+     * reason was already reported.
+     */
+#ifdef USE_TLSRPT
+    TLScontext->rpt_reported = trw_is_reported(props->tlsrpt);
+#endif
 
     return (TLScontext);
 }

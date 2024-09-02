@@ -28200,3 +28200,24 @@ Apologies for any names omitted.
 	matches the envelope sender (MAIL FROM) address. File:
 	proto/postconf.proto.
 
+
+20240730 
+
+	Infrastructure: added argv_addv() function to append an
+	array of strings. File: util/argv.c.
+
+20240809
+
+	Infrastructure: added a dns_rr_detach() function to extract
+	one DNS record from a list. Files: dns/dns_rr.c, dns_rr_test.c.
+
+20240816
+
+	Infrastructure: factored out strerror() wrapper that reports
+	"Application error" instead of "Success" when errno == 0.
+	Files: util/mystrerror.c, util/vbuf_print.c.
+
+20240822
+
+	Infrastructure: added "append to buffer" option to the
+	hex_encode_opt() function. Files: util/hex_encode.[hc];

@@ -221,6 +221,7 @@ extern int dns_rr_compare_pref_any(DNS_RR *, DNS_RR *);
 extern int dns_rr_compare_pref(DNS_RR *, DNS_RR *);
 extern DNS_RR *dns_rr_shuffle(DNS_RR *);
 extern DNS_RR *dns_rr_remove(DNS_RR *, DNS_RR *);
+extern DNS_RR *dns_rr_detach(DNS_RR *, DNS_RR *);
 extern int var_dns_rr_list_limit;
 
  /*

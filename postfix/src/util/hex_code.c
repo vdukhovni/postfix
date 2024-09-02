@@ -44,6 +44,8 @@
 /*	functionality.
 /* .IP HEX_ENCODE_FLAG_USE_COLON
 /*	Inserts one ":" between bytes.
+/* .IP HEX_ENCODE_FLAG_APPEND
+/*	Append output to the buffer.
 /* .PP
 /*	hex_decode_opt() enables extended functionality as controlled
 /*	with \fIflags\fR.
@@ -69,6 +71,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -107,7 +112,8 @@ VSTRING *hex_encode_opt(VSTRING *result, const char *in, ssize_t len, int flags)
     int     ch;
     ssize_t count;
 
-    VSTRING_RESET(result);
+    if ((flags & HEX_ENCODE_FLAG_APPEND) == 0)
+	VSTRING_RESET(result);
     for (cp = UCHAR_PTR(in), count = len; count > 0; count--, cp++) {
 	ch = *cp;
 	VSTRING_ADDCH(result, hex_chars[(ch >> 4) & 0xf]);

@@ -330,6 +330,7 @@ $readme_directory/STANDARD_CONFIGURATION_README:f:root:-:644
 $readme_directory/STRESS_README:f:root:-:644
 $readme_directory/TLS_LEGACY_README:f:root:-:644
 $readme_directory/TLS_README:f:root:-:644
+$readme_directory/TLSRPT_README:f:root:-:644
 $readme_directory/TUNING_README:f:root:-:644
 $readme_directory/ULTRIX_README:f:root:-:644
 $readme_directory/UUCP_README:f:root:-:644
@@ -392,6 +393,7 @@ $html_directory/STANDARD_CONFIGURATION_README.html:f:root:-:644
 $html_directory/STRESS_README.html:f:root:-:644
 $html_directory/TLS_LEGACY_README.html:f:root:-:644
 $html_directory/TLS_README.html:f:root:-:644
+$html_directory/TLSRPT_README.html:f:root:-:644
 $html_directory/TUNING_README.html:f:root:-:644
 $html_directory/ULTRIX_README.html:f:root:-:644:o
 $html_directory/UUCP_README.html:f:root:-:644

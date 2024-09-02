@@ -52,6 +52,10 @@
 /*	DNS_RR	*list;
 /*	DNS_RR	*record;
 /*
+/*	DNS_RR	*dns_rr_detach(list, record)
+/*	DNS_RR	*list;
+/*	DNS_RR	*record;
+/*
 /*	DNS_RR	*dns_srv_rr_sort(list)
 /*	DNS_RR	*list;
 /*
@@ -118,8 +122,13 @@
 /*
 /*	dns_rr_shuffle() randomly permutes a list of resource records.
 /*
-/*	dns_rr_remove() removes the specified record from the specified list.
+/*	dns_rr_remove() disconnects the specified record from the
+/*	specified list and destroys it.
 /*	The updated list is the result value.
+/*	The record MUST be a list member.
+/*
+/*	dns_rr_detach() disconnects the specified record from the
+/*	specified list. The updated list is the result value.
 /*	The record MUST be a list member.
 /*
 /*	dns_srv_rr_sort() sorts a list of SRV records according to
@@ -465,15 +474,23 @@ DNS_RR *dns_rr_shuffle(DNS_RR *list)
 
 DNS_RR *dns_rr_remove(DNS_RR *list, DNS_RR *record)
 {
+    list = dns_rr_detach(list, record);
+    dns_rr_free(record);
+    return (list);
+}
+
+/* dns_rr_detach - detach record from list, return new list */
+
+DNS_RR *dns_rr_detach(DNS_RR *list, DNS_RR *record)
+{
     if (list == 0)
-	msg_panic("dns_rr_remove: record not found");
+	msg_panic("dns_rr_detach: record not found");
 
     if (list == record) {
 	list = record->next;
 	record->next = 0;
-	dns_rr_free(record);
     } else {
-	list->next = dns_rr_remove(list->next, record);
+	list->next = dns_rr_detach(list->next, record);
     }
     return (list);
 }

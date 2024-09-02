@@ -1035,7 +1035,7 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 	if (!TLS_CERT_IS_TRUSTED(TLScontext)
 	    && (TLScontext->log_mask & TLS_LOG_UNTRUSTED)) {
 	    if (TLScontext->session_reused == 0)
-		tls_log_verify_error(TLScontext);
+		tls_log_verify_error(TLScontext, (struct TLSRPT_WRAPPER *) 0);
 	    else
 		msg_info("%s: re-using session with untrusted certificate, "
 			 "look for details earlier in the log",

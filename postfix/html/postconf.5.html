@@ -885,10 +885,6 @@ To avoid mailer loops, automatic BCC recipients are not generated
 after Postfix forwards mail internally, or after Postfix generates
 mail itself. </p>
 
-<p> Note: automatic BCC recipients are subject to address
-canonicalization (add missing domain), <a href="postconf.5.html#canonical_maps">canonical_maps</a>, <a href="postconf.5.html#masquerade_domains">masquerade_domains</a>,
-and <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>. </p>
-
 
 </DD>
 
@@ -1854,10 +1850,6 @@ next-hop <i>destination</i>.  </p>
 currently used only to locate the $<a href="postconf.5.html#smtpd_sasl_path">smtpd_sasl_path</a>.conf file.
 Specify zero or more directories separated by a colon character,
 or an empty value to use Cyrus SASL's built-in search path.  </p>
-
-<p> Note: some Debian-based Postfix distributions ignore the
-"<a href="postconf.5.html#cyrus_sasl_config_path">cyrus_sasl_config_path</a>" parameter setting, and force Postfix to
-open the file <code>/etc/postfix/sasl/smtpd.conf</code>. </p>
 
 <p> This feature is available in Postfix 2.5 and later when compiled
 with Cyrus SASL 2.1.22 or later. </p>
@@ -6213,11 +6205,6 @@ prepend "<b>uid:</b>" to the numerical UID and use that instead. </p>
 <p> This feature ignores address extensions in the user-specified
 envelope sender address. </p>
 
-<p> Note: to enforce that the From: header address matches the envelope
-sender (MAIL FROM) address, specify an external filter such as a Milter,
-with the <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a> parameter. For example:
-<a href="https://github.com/magcks/milterfrom">https://github.com/magcks/milterfrom</a>. </p>
-
 <p> The following sender patterns are special; these cannot be used
 as part of a longer pattern. </p>
 
@@ -10010,10 +9997,6 @@ To avoid mailer loops, automatic BCC recipients are not generated
 after Postfix forwards mail internally, or after Postfix generates
 mail itself. </p>
 
-<p> Note: automatic BCC recipients are subject to address
-canonicalization (add missing domain), <a href="postconf.5.html#canonical_maps">canonical_maps</a>, <a href="postconf.5.html#masquerade_domains">masquerade_domains</a>,
-and <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>. </p>
-
 <p>
 Example:
 </p>
@@ -10751,10 +10734,6 @@ when the BCC address is undeliverable.
 To avoid mailer loops, automatic BCC recipients are not generated
 after Postfix forwards mail internally, or after Postfix generates
 mail itself. </p>
-
-<p> Note: automatic BCC recipients are subject to address
-canonicalization (add missing domain), <a href="postconf.5.html#canonical_maps">canonical_maps</a>, <a href="postconf.5.html#masquerade_domains">masquerade_domains</a>,
-and <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>. </p>
 
 <p>
 Example:
@@ -14802,6 +14781,33 @@ Postfix versions. </p>
 
 </DD>
 
+<DT><b><a name="smtp_tlsrpt_enable">smtp_tlsrpt_enable</a>
+(default: no)</b></DT><DD>
+
+<p> Enable support for <a href="https://tools.ietf.org/html/rfc8460">RFC 8460</a> TLSRPT notifications. A mail receiving
+domain can publish a TLSRPT policy in DNS, to request periodic
+summaries of successful and failed SMTP over TLS connections to
+their mail servers. This feature requires that Postfix is built
+with a TLSRPT supporting library. </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tlsrpt_socket_name">smtp_tlsrpt_socket_name</a>
+(default: empty)</b></DT><DD>
+
+<p> The pathname of a UNIX-domain datagram socket that is managed
+by a local TLSRPT reporting service. This parameter must specify a
+pathname (absolute, or relative to $<a href="postconf.5.html#queue_directory">queue_directory</a>) when
+"<a href="postconf.5.html#smtp_tlsrpt_enable">smtp_tlsrpt_enable</a> = yes". </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_use_tls">smtp_use_tls</a>
 (default: no)</b></DT><DD>
 
@@ -17780,16 +17786,9 @@ for authentication. The available types are listed with the
 (default: empty)</b></DT><DD>
 
 <p>
-Optional lookup table with the SASL login names that own the
-envelope sender
+Optional lookup table with the SASL login names that own the sender
 (MAIL FROM) addresses.
 </p>
-
-<blockquote> <p> Note: to enforce that the From: header address
-matches the envelope sender (MAIL FROM) address, use an external
-filter such as a Milter, for the submission, submissions, or smtps
-services. For example: <a href="https://github.com/magcks/milterfrom">https://github.com/magcks/milterfrom</a>. </p>
-</blockquote>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
@@ -17893,11 +17892,6 @@ or the SASL login name is not an owner for that address.
 This prevents an authenticated client from using a MAIL FROM address
 that they do not explicitly own.
 <br>
-Note: to enforce that the From: header address matches the envelope
-sender (MAIL FROM) address, use an external filter such as a Milter,
-for the submission, submissions, or smtps services. For example:
-<a href="https://github.com/magcks/milterfrom">https://github.com/magcks/milterfrom</a>.
-<br>
 This feature is available in Postfix version 2.1 and later. </dd>
 
 <dt><b><a name="reject_known_sender_login_mismatch">reject_known_sender_login_mismatch</a></b></dt>
@@ -17913,11 +17907,6 @@ $<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>.
 This protects any MAIL FROM address that is listed in
 $<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>, while still allowing a client to use any
 unlisted MAIL FROM address.
-<br>
-Note: to enforce that the From: header address matches the envelope
-sender (MAIL FROM) address, use an external filter such as a Milter,
-for the submission, submissions, or smtps services. For example:
-<a href="https://github.com/magcks/milterfrom">https://github.com/magcks/milterfrom</a>.
 <br>
 This feature is available in Postfix version 2.11 and later.</dd>
 
@@ -17959,11 +17948,6 @@ authenticated with SASL.
 <br>
 With SASL enabled, this prevents an unauthenticated client from
 using any MAIL FROM address that is listed in $<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>.
-<br>
-Note: to enforce that the From: header address matches the envelope
-sender (MAIL FROM) address, use an external filter such as a Milter,
-for the submission, submissions, or smtps services. For example:
-<a href="https://github.com/magcks/milterfrom">https://github.com/magcks/milterfrom</a>.
 <br>
 This feature is available in Postfix version 2.1 and later.</dd>
 
