@@ -320,8 +320,12 @@ ACCESS(5)                                                            ACCESS(5)
               address instead of the intended recipient(s).  When multiple <b>RE-</b>
               <b>DIRECT</b> actions fire, only the last one takes effect.
 
-              Note:  this  action  overrides  the FILTER action, and currently
+              Note  1:  this action overrides the FILTER action, and currently
               overrides all recipients of the message.
+
+              Note 2: a REDIRECT address is subject to  canonicalization  (add
+              missing  domain)  but NOT subject to canonical, masquerade, bcc,
+              or virtual alias mapping.
 
               This feature is available in Postfix 2.1 and later.
 

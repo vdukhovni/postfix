@@ -16,6 +16,9 @@ Wish list:
 	using FIFOs anymore, and trigger servers could use a proper
 	(attribute, value) protocol.
 
+	SEND_ATTR_FUNC should send the name of the object being sent,
+	so that SCAN_ATTR_FUNC can check it.
+
 	Send XFORWARD attributes in the SMTPD policy delegation
 	protocol.
 

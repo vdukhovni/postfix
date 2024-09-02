@@ -9,5 +9,8 @@ postfix-[0-9]*.[0-9]*.[0-9]*)
 	echo "Error: stable release builds with -DSNAPSHOT" 1>&2, exit 1; }
     grep 'CCARGS.*-DNONPROD' conf/makedefs.out && {
 	echo "Error: stable release builds with -DNONPROD" 1>&2, exit 1; }
+    mail_version=$(sh postfix-env.sh bin/postconf -h mail_version) || exit 1
+    test "postfix-$mail_version" = "$version" || {
+	echo "Error: version '$mail_version' in src/global/mail_version.h does not match version in pathname '$(env - pwd)'" 1>&2; exit 1; }
     ;;
 esac

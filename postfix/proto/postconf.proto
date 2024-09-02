@@ -674,6 +674,10 @@ To avoid mailer loops, automatic BCC recipients are not generated
 after Postfix forwards mail internally, or after Postfix generates
 mail itself. </p>
 
+<p> Note: automatic BCC recipients are subject to address
+canonicalization (add missing domain), canonical_maps, masquerade_domains,
+and virtual_alias_maps. </p>
+
 %PARAM berkeley_db_create_buffer_size 16777216
 
 <p>
@@ -3752,6 +3756,10 @@ To avoid mailer loops, automatic BCC recipients are not generated
 after Postfix forwards mail internally, or after Postfix generates
 mail itself. </p>
 
+<p> Note: automatic BCC recipients are subject to address
+canonicalization (add missing domain), canonical_maps, masquerade_domains,
+and virtual_alias_maps. </p>
+
 <p>
 Example:
 </p>
@@ -4123,6 +4131,10 @@ when the BCC address is undeliverable.
 To avoid mailer loops, automatic BCC recipients are not generated
 after Postfix forwards mail internally, or after Postfix generates
 mail itself. </p>
+
+<p> Note: automatic BCC recipients are subject to address
+canonicalization (add missing domain), canonical_maps, masquerade_domains,
+and virtual_alias_maps. </p>
 
 <p>
 Example:
@@ -6717,9 +6729,16 @@ smtpd_sasl_security_options = noanonymous, noplaintext
 %PARAM smtpd_sender_login_maps 
 
 <p>
-Optional lookup table with the SASL login names that own the sender
+Optional lookup table with the SASL login names that own the 
+envelope sender
 (MAIL FROM) addresses.
 </p>
+
+<blockquote> <p> Note: to enforce that the From: header address
+matches the envelope sender (MAIL FROM) address, use an external
+filter such as a Milter, for the submission, submissions, or smtps 
+services. For example: https://github.com/magcks/milterfrom. </p>
+</blockquote>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
@@ -6818,6 +6837,11 @@ or the SASL login name is not an owner for that address.
 <br>
 This prevents an authenticated client from using a MAIL FROM address
 that they do not explicitly own.
+<br> 
+Note: to enforce that the From: header address matches the envelope
+sender (MAIL FROM) address, use an external filter such as a Milter,
+for the submission, submissions, or smtps services. For example:
+https://github.com/magcks/milterfrom.
 <br>
 This feature is available in Postfix version 2.1 and later. </dd>
 
@@ -6834,6 +6858,11 @@ $smtpd_sender_login_maps.
 This protects any MAIL FROM address that is listed in
 $smtpd_sender_login_maps, while still allowing a client to use any
 unlisted MAIL FROM address.
+<br> 
+Note: to enforce that the From: header address matches the envelope
+sender (MAIL FROM) address, use an external filter such as a Milter,
+for the submission, submissions, or smtps services. For example:
+https://github.com/magcks/milterfrom.
 <br>
 This feature is available in Postfix version 2.11 and later.</dd>
 
@@ -6875,6 +6904,11 @@ authenticated with SASL.
 <br>
 With SASL enabled, this prevents an unauthenticated client from
 using any MAIL FROM address that is listed in $smtpd_sender_login_maps.
+<br> 
+Note: to enforce that the From: header address matches the envelope
+sender (MAIL FROM) address, use an external filter such as a Milter,
+for the submission, submissions, or smtps services. For example:
+https://github.com/magcks/milterfrom.
 <br>
 This feature is available in Postfix version 2.1 and later.</dd>
 
@@ -18589,6 +18623,11 @@ prepend "<b>uid:</b>" to the numerical UID and use that instead. </p>
 
 <p> This feature ignores address extensions in the user-specified
 envelope sender address. </p>
+
+<p> Note: to enforce that the From: header address matches the envelope
+sender (MAIL FROM) address, specify an external filter such as a Milter,
+with the non_smtpd_milters parameter. For example:
+https://github.com/magcks/milterfrom. </p>
 
 <p> The following sender patterns are special; these cannot be used
 as part of a longer pattern. </p>

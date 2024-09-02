@@ -28163,3 +28163,40 @@ Apologies for any names omitted.
 	fragment of a multi-fragment TXT record. This would become
 	an issue when looking up policy records with strings longer
 	than 255 bytes. File: dns/dns_lookup.c.
+
+20240731
+
+	Documentation: automatic BCC recipients are subject to
+	address canonicalization (missing domain), canonical_maps,
+	masquerade_domains, and virtual_alias_maps. Files: 
+	proto/postconf.proto.
+
+	Documentation: 'redirect' recipients are subject to address
+	canonicalization (add missing domain), but not subject to
+	canonical_maps, masquerade_domains, and virtual_alias_maps.
+	Files: proto/access, proto/header_checks.
+
+20240807
+
+	Documentation: update the *sender_login_* descriptions
+	with guidance to enforce that the From: header address
+	matches the envelope sender (MAIL FROM) address. File:
+	proto/postconf.proto.
+
+20240808
+
+	Typofix in comment. File: global/normalize_mailhost_addr.c.
+
+20240831
+
+	Bugfix: require that stable releases have a three-number
+	mail_version value. Found by Michael Orlitzky. File:
+	mantools/check-snapshot-nonprod.
+
+20240902
+
+	Documentation: update the local_login_sender_maps description
+	with guidance to enforce that the From: header address
+	matches the envelope sender (MAIL FROM) address. File:
+	proto/postconf.proto.
+

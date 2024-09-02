@@ -331,9 +331,13 @@ inspect the next input line. After the message is queued,
 it will be sent to the specified address instead of the
 intended recipient(s).
 .sp
-Note: this action overrides the \fBFILTER\fR action, and affects
+Note 1: this action overrides the \fBFILTER\fR action, and affects
 all recipients of the message. If multiple \fBREDIRECT\fR actions
 fire, only the last one is executed.
+.sp
+Note 2: a REDIRECT address is subject to canonicalization
+(add missing domain) but NOT subject to canonical, masquerade,
+bcc, or virtual alias mapping.
 .sp
 This feature is available in Postfix 2.1 and later.
 .sp
