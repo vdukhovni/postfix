@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <smtp_tlsrpt.h>
 /*
-/*	int	smtp_tlsrpt_pre_jail(
+/*	int	smtp_tlsrpt_post_jail(
 /*	const char *sockname_pname,
 /*	const char *sockname_pval)
 /*
@@ -30,7 +30,7 @@
 /*	can report a TLS error to a TLSRPT library. The SMTP protocol
 /*	engine uses the information to report a TLS error or success.
 /*
-/*	smtp_tls_pre_jail() does configuration sanity checks and
+/*	smtp_tls_post_jail() does configuration sanity checks and
 /*	returns 0 if successful, i.e. TLSRPT support is properly
 /*	configured. Otherwise it returns -1 and logs a warning. Arguments:
 /* .IP sockname_pname
@@ -112,10 +112,10 @@
 
 static const char smtp_tlsrpt_support[] = "TLSRPT support";
 
-/* smtp_tlsrpt_pre_jail - pre-jail configuration sanity check */
+/* smtp_tlsrpt_post_jail - post-jail configuration sanity check */
 
-int     smtp_tlsrpt_pre_jail(const char *sockname_pname,
-			             const char *sockname_pval)
+int     smtp_tlsrpt_post_jail(const char *sockname_pname,
+			              const char *sockname_pval)
 {
     if (smtp_dns_support == SMTP_DNS_DISABLED) {
 	msg_warn("Cannot enable TLRPT support: DNS is disabled");
@@ -163,7 +163,7 @@ static DNS_RR *smtp_tlsrpt_find_policy(const char *adomain)
      * Look up TXT records. Ignore records that don't start with the expected
      * version ID, and require that there is exactly one such DNS record.
      */
-    vstring_sprintf(qname, "_smtp._tls_.%s", adomain);
+    vstring_sprintf(qname, "_smtp._tls.%s", adomain);
     dns_status = dns_lookup(STR(qname), T_TXT, res_opt, &rr_list,
 			    (VSTRING *) 0, why);
     vstring_free(qname);
@@ -259,6 +259,16 @@ void    smtp_tlsrpt_create_wrapper(SMTP_STATE *state, const char *domain)
     }
 }
 
+/* smtp_tlsrpt_set_no_policy - no policy found */
+
+static void smtp_tlsrpt_set_no_policy(SMTP_STATE *state)
+{
+    trw_set_tls_policy(state->tlsrpt, TLSRPT_NO_POLICY_FOUND,
+		        /* tls_policy_strings= */ (const char *const *) 0,
+		        /* tls_policy_domain= */ (char *) 0,
+		        /* mx_host_patterns= */ (const char *const *) 0);
+}
+
 /* smtp_tlsrpt_set_dane_policy - add DANE policy properties */
 
 static void smtp_tlsrpt_set_dane_policy(SMTP_STATE *state)
@@ -289,7 +299,11 @@ static void smtp_tlsrpt_set_ext_policy(SMTP_STATE *state)
     SMTP_TLS_POLICY *tls = state->tls;
     tlsrpt_policy_type_t policy_type_val;
 
-    switch (policy_type_val = convert_tlsrpt_policy_type(tls->ext_policy_type)) {
+    if (tls->ext_policy_type == 0)
+	msg_panic("smtp_tlsrpt_set_ext_policy: no policy type");
+
+    switch (policy_type_val =
+	    convert_tlsrpt_policy_type(tls->ext_policy_type)) {
     case TLSRPT_POLICY_STS:
 	trw_set_tls_policy(state->tlsrpt, policy_type_val,
 			(const char *const *) tls->ext_policy_strings->argv,
@@ -297,12 +311,10 @@ static void smtp_tlsrpt_set_ext_policy(SMTP_STATE *state)
 		     (const char *const *) tls->ext_mx_host_patterns->argv);
 	break;
     case TLSRPT_NO_POLICY_FOUND:
-	trw_set_tls_policy(state->tlsrpt, policy_type_val,
-			  /* tls_policy_strings= */ (const char *const *) 0,
-			    /* tls_policy_domain= */ (const char *) 0,
-			    /* mx_host_patterns= */ (const char *const *) 0);
+	smtp_tlsrpt_set_no_policy(state);
 	break;
     default:
+	/* Policy type must be validated in smtp_tls_policy_maps parser. */
 	msg_panic("unexpected policy type: \"%s\"",
 		  tls->ext_policy_type);
     }
@@ -323,8 +335,12 @@ void    smtp_tlsrpt_set_tls_policy(SMTP_STATE *state)
     if (TLS_DANE_BASED(tls->level)) {		/* Desired by local policy */
 	if (tls->dane != 0)			/* Actual policy */
 	    smtp_tlsrpt_set_dane_policy(state);
+	else					/* No policy */
+	    smtp_tlsrpt_set_no_policy(state);
     } else if (tls->ext_policy_type) {
-	    smtp_tlsrpt_set_ext_policy(state);
+	smtp_tlsrpt_set_ext_policy(state);
+    } else {
+	smtp_tlsrpt_set_no_policy(state);
     }
 }
 

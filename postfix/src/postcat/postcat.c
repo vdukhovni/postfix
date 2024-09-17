@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	show Postfix queue file contents
 /* SYNOPSIS
-/*	\fBpostcat\fR [\fB-bdehnoqv\fR] [\fB-c \fIconfig_dir\fR] [\fIfiles\fR...]
+/*	\fBpostcat\fR [\fB-bdefhnoqv\fR] [\fB-c \fIconfig_dir\fR] [\fIfiles\fR...]
 /* DESCRIPTION
 /*	The \fBpostcat\fR(1) command prints the contents of the
 /*	named \fIfiles\fR in human-readable form. The files are
@@ -33,6 +33,8 @@
 /*	Show message envelope content.
 /* .sp
 /*	This feature is available in Postfix 2.7 and later.
+/* .IP \fB-f\fR
+/*	Prepend the file name to each output line.
 /* .IP \fB-h\fR
 /*	Show message header content.  The \fB-h\fR option produces
 /*	output from the beginning of the message up to, but not
@@ -147,6 +149,7 @@
 #define PC_FLAG_PRINT_RTYPE_DEC	(1<<5)	/* print decimal record type */
 #define PC_FLAG_PRINT_RTYPE_SYM	(1<<6)	/* print symbolic record type */
 #define PC_FLAG_RAW		(1<<7)	/* don't follow pointers */
+#define PC_FLAG_PRINT_PATHNAME	(1<<8)	/* print pathname */
 
 #define PC_MASK_PRINT_TEXT	(PC_FLAG_PRINT_HEADER | PC_FLAG_PRINT_BODY)
 #define PC_MASK_PRINT_ALL	(PC_FLAG_PRINT_ENV | PC_MASK_PRINT_TEXT)
@@ -244,6 +247,8 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	 * changed.
 	 */
 #define PRINT_MARKER(flags, fp, offset, type, text) do { \
+    if ((flags) & PC_FLAG_PRINT_PATHNAME) \
+	vstream_printf("%s: ", VSTREAM_PATH(fp)); \
     if ((flags) & PC_FLAG_PRINT_OFFSET) \
 	vstream_printf("%9lu ", (unsigned long) (offset)); \
     if (flags & PC_FLAG_PRINT_RTYPE_DEC) \
@@ -253,6 +258,8 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 } while (0)
 
 #define PRINT_RECORD(flags, offset, type, value) do { \
+    if ((flags) & PC_FLAG_PRINT_PATHNAME) \
+	vstream_printf("%s: ", VSTREAM_PATH(fp)); \
     if ((flags) & PC_FLAG_PRINT_OFFSET) \
 	vstream_printf("%9lu ", (unsigned long) (offset)); \
     if (flags & PC_FLAG_PRINT_RTYPE_DEC) \
@@ -363,6 +370,8 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	 */
 	if (do_print == 0)
 	    continue;
+	if (flags & PC_FLAG_PRINT_PATHNAME)
+	    vstream_printf("%s: ", VSTREAM_PATH(fp));
 	if (flags & PC_FLAG_PRINT_OFFSET)
 	    vstream_printf("%9lu ", (unsigned long) offset);
 	if (flags & PC_FLAG_PRINT_RTYPE_DEC)
@@ -491,7 +500,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "bc:dehoqrs:v")) > 0) {
+    while ((ch = GETOPT(argc, argv, "bc:defhoqrs:v")) > 0) {
 	switch (ch) {
 	case 'b':
 	    flags |= PC_FLAG_PRINT_BODY;
@@ -502,6 +511,9 @@ int     main(int argc, char **argv)
 	    break;
 	case 'd':
 	    flags |= PC_FLAG_PRINT_RTYPE_DEC;
+	    break;
+	case 'f':
+	    flags |= PC_FLAG_PRINT_PATHNAME;
 	    break;
 	case 'e':
 	    flags |= PC_FLAG_PRINT_ENV;

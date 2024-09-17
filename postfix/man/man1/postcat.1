@@ -8,7 +8,7 @@ show Postfix queue file contents
 .SH "SYNOPSIS"
 .na
 .nf
-\fBpostcat\fR [\fB\-bdehnoqv\fR] [\fB\-c \fIconfig_dir\fR] [\fIfiles\fR...]
+\fBpostcat\fR [\fB\-bdefhnoqv\fR] [\fB\-c \fIconfig_dir\fR] [\fIfiles\fR...]
 .SH DESCRIPTION
 .ad
 .fi
@@ -39,6 +39,8 @@ Print the decimal type of each record.
 Show message envelope content.
 .sp
 This feature is available in Postfix 2.7 and later.
+.IP \fB\-f\fR
+Prepend the file name to each output line.
 .IP \fB\-h\fR
 Show message header content.  The \fB\-h\fR option produces
 output from the beginning of the message up to, but not

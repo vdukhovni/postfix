@@ -334,7 +334,7 @@ void    trw_set_tls_policy(TLSRPT_WRAPPER *trw,
 	ARGV_FREE_IF_SET_AND_CLEAR(trw->tls_policy_strings);
     } else {
 	ARGV_FREE_IF_SET_AND_COPY(trw->tls_policy_strings, tls_policy_strings);
-	ARGV_FREE_IF_SET_AND_COPY(trw->tls_policy_strings, mx_host_patterns);
+	ARGV_FREE_IF_SET_AND_COPY(trw->mx_host_patterns, mx_host_patterns);
     }
     trw->flags = TRW_FLAG_HAVE_TLS_POLICY;
     trw_set_tcp_connection(trw, (char *) 0, (char *) 0, (char *) 0);
@@ -353,8 +353,9 @@ void    trw_set_tcp_connection(TLSRPT_WRAPPER *trw,
     /*
      * Sanity check: usage errors are not a show stopper.
      */
-    if ((trw->flags & TRW_FLAG_HAVE_TLS_POLICY) == 0
-	|| (trw->flags & TRW_FLAG_REPORTED)) {
+    if ((snd_mta_addr || rcv_mta_name || rcv_mta_addr)
+	&& ((trw->flags & TRW_FLAG_HAVE_TLS_POLICY) == 0
+	    || (trw->flags & TRW_FLAG_REPORTED))) {
 	msg_warn("%s: missing trw_set_tls_policy call", myname);
 	return;
     }
@@ -372,8 +373,8 @@ void    trw_set_ehlo_resp(TLSRPT_WRAPPER *trw, const char *rcv_mta_ehlo)
     /*
      * Sanity check: usage errors are not a show stopper.
      */
-    if ((trw->flags & TRW_FLAG_HAVE_TLS_POLICY) == 0
-	|| (trw->flags & TRW_FLAG_REPORTED)) {
+    if (rcv_mta_ehlo && ((trw->flags & TRW_FLAG_HAVE_TLS_POLICY) == 0
+			 || (trw->flags & TRW_FLAG_REPORTED))) {
 	msg_warn("%s: missing trw_set_tls_policy call", myname);
 	return;
     }
@@ -394,7 +395,17 @@ static int trw_munge_report_result(int libtlsrpt_errorcode)
     }
 
     /*
-     * Do not report success if errno was zero.
+     * Report a tlsrpt library internal error.
+     */
+    else if (tlsrpt_error_code_is_internal(libtlsrpt_errorcode)) {
+	msg_warn("Could not report TLS handshake result to tlsrpt library:"
+		 " %s (error %d)", tlsrpt_strerror(libtlsrpt_errorcode),
+		 libtlsrpt_errorcode);
+	return (-1);
+    }
+
+    /*
+     * Report a libc error. Do not report success if errno was zero.
      */
     else {
 	err = tlsrpt_errno_from_error_code(libtlsrpt_errorcode);
@@ -552,8 +563,20 @@ int     trw_report_success(TLSRPT_WRAPPER *trw)
 						trw->rpt_policy_domain,
 					    trw->rpt_policy_string)) == 0) {
 	    if ((res = tlsrpt_init_policy(dr, trw->tls_policy_type,
-					  trw->tls_policy_domain)) == 0)
-		res = tlsrpt_finish_policy(dr, TLSRPT_FINAL_SUCCESS);
+					  trw->tls_policy_domain)) == 0) {
+		char  **cpp;
+
+		if (trw->tls_policy_strings)
+		    for (cpp = trw->tls_policy_strings->argv;
+			 res == 0 && *cpp; cpp++)
+			res = tlsrpt_add_policy_string(dr, *cpp);
+		if (trw->mx_host_patterns)
+		    for (cpp = trw->mx_host_patterns->argv;
+			 res == 0 && *cpp; cpp++)
+			res = tlsrpt_add_mx_host_pattern(dr, *cpp);
+		if (res == 0)
+		    res = tlsrpt_finish_policy(dr, TLSRPT_FINAL_SUCCESS);
+	    }
 	    if (res == 0) {
 		res = tlsrpt_finish_delivery_request(&dr);
 	    } else {

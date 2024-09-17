@@ -450,7 +450,7 @@ static int tls_proxy_client_tlsrpt_scan(ATTR_SCAN_COMMON_FN scan_fn,
     int     have_tlsrpt = 0;
 
     ret = scan_fn(fp, flags | ATTR_FLAG_MORE,
-		  RECV_ATTR_INT(TLS_ATTR_DANE, &have_tlsrpt),
+		  RECV_ATTR_INT(TLS_ATTR_TLSRPT, &have_tlsrpt),
 		  ATTR_TYPE_END);
     if (msg_verbose)
 	msg_info("tls_proxy_client_tlsrpt_scan have_tlsrpt=%d", have_tlsrpt);
@@ -460,27 +460,28 @@ static int tls_proxy_client_tlsrpt_scan(ATTR_SCAN_COMMON_FN scan_fn,
 	VSTRING *rpt_policy_domain = vstring_alloc(100);
 	VSTRING *rpt_policy_string = vstring_alloc(100);
 	int     tls_policy_type;
-	ARGV   *tls_policy_strings = argv_alloc(100);
+	ARGV   *tls_policy_strings = 0;
 	VSTRING *tls_policy_domain = vstring_alloc(100);
-	ARGV   *mx_host_patterns = argv_alloc(100);
+	ARGV   *mx_host_patterns = 0;
 	VSTRING *snd_mta_addr = vstring_alloc(100);
 	VSTRING *rcv_mta_name = vstring_alloc(100);
 	VSTRING *rcv_mta_addr = vstring_alloc(100);
 	VSTRING *rcv_mta_ehlo = vstring_alloc(100);
+	int     trw_flags;
 
 	ret = scan_fn(fp, flags | ATTR_FLAG_MORE,
 		      RECV_ATTR_STR(TRW_RPT_SOCKET_NAME, rpt_socket_name),
 		    RECV_ATTR_STR(TRW_RPT_POLICY_DOMAIN, rpt_policy_domain),
 		    RECV_ATTR_STR(TRW_RPT_POLICY_STRING, rpt_policy_string),
 		      RECV_ATTR_INT(TRW_TLS_POLICY_TYPE, &tls_policy_type),
-		      RECV_ATTR_FUNC(argv_attr_scan, tls_policy_strings),
+		      RECV_ATTR_FUNC(argv_attr_scan, &tls_policy_strings),
 		    RECV_ATTR_STR(TRW_TLS_POLICY_DOMAIN, tls_policy_domain),
-		      RECV_ATTR_FUNC(argv_attr_scan, mx_host_patterns),
+		      RECV_ATTR_FUNC(argv_attr_scan, &mx_host_patterns),
 		      RECV_ATTR_STR(TRW_SRC_MTA_ADDR, snd_mta_addr),
 		      RECV_ATTR_STR(TRW_DST_MTA_NAME, rcv_mta_name),
 		      RECV_ATTR_STR(TRW_DST_MTA_ADDR, rcv_mta_addr),
 		      RECV_ATTR_STR(TRW_DST_MTA_EHLO, rcv_mta_ehlo),
-		      RECV_ATTR_INT(TRW_FLAGS, &trw->flags),
+		      RECV_ATTR_INT(TRW_FLAGS, &trw_flags),
 		      ATTR_TYPE_END);
 
 	/* Always construct a well-formed structure. */
@@ -496,6 +497,7 @@ static int tls_proxy_client_tlsrpt_scan(ATTR_SCAN_COMMON_FN scan_fn,
 	EXPORT_OR_NULL(trw->rcv_mta_name, rcv_mta_name);
 	EXPORT_OR_NULL(trw->rcv_mta_addr, rcv_mta_addr);
 	EXPORT_OR_NULL(trw->rcv_mta_ehlo, rcv_mta_ehlo);
+	trw->flags = trw_flags;
 	ret = (ret == 12 ? 1 : -1);
 	if (ret != 1) {
 	    trw_free(trw);

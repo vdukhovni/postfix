@@ -184,6 +184,10 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	    cleanup_out_string(state, REC_TYPE_FILT, state->filter);
 	if (state->redirect != 0)
 	    cleanup_out_string(state, REC_TYPE_RDR, state->redirect);
+	if (state->message_id != 0) {
+	    cleanup_out_format(state, REC_TYPE_ATTR, "%s=%s",
+			       MAIL_ATTR_MESSAGE_ID, state->message_id);
+	}
 	if ((encoding = nvtable_find(state->attr, MAIL_ATTR_ENCODING)) != 0)
 	    cleanup_out_format(state, REC_TYPE_ATTR, "%s=%s",
 			       MAIL_ATTR_ENCODING, encoding);
@@ -307,8 +311,8 @@ void    cleanup_extracted_finish(CLEANUP_STATE *state)
 	cleanup_addr_bcc(state, var_always_bcc);
 
     /*
-     * Flush non-Milter header/body_checks BCC recipients. Clear hbc_rcpt
-     * so that it can be used for other purposes.
+     * Flush non-Milter header/body_checks BCC recipients. Clear hbc_rcpt so
+     * that it can be used for other purposes.
      */
     if (state->hbc_rcpt) {
 	if (CLEANUP_OUT_OK(state) && state->recip != 0) {

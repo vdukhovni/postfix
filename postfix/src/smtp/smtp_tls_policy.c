@@ -501,7 +501,8 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 	INVALID_RETURN(tls->why, site_level);
     }
     if (tls->ext_policy_type == 0) {
-	if (tls->ext_policy_ttl || tls->ext_policy_strings
+	if (tls->ext_policy_ttl != EXT_POLICY_TTL_UNSET
+	    || tls->ext_policy_strings
 	    || tls->ext_policy_domain || tls->ext_mx_host_patterns
 	    || tls->ext_policy_failure) {
 	    msg_warn("%s: built-in policy has unexpected attribute "

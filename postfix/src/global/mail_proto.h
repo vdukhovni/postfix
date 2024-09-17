@@ -260,6 +260,8 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ORG_NONE	"unknown"	/* origin unknown */
 #define MAIL_ATTR_ORG_LOCAL	"local"	/* local submission */
 
+#define MAIL_ATTR_MESSAGE_ID	"message_id"	/* Used for threaded bounce */
+
  /*
   * XCLIENT/XFORWARD in SMTP.
   */

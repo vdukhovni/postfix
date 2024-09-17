@@ -117,6 +117,7 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->hdr_rewrite_context = MAIL_ATTR_RWR_LOCAL;
     state->filter = 0;
     state->redirect = 0;
+    state->message_id = 0;
     state->dsn_envid = 0;
     state->dsn_ret = 0;
     state->dsn_notify = 0;
@@ -179,6 +180,8 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->filter);
     if (state->redirect)
 	myfree(state->redirect);
+    if (state->message_id)
+	myfree(state->message_id);
     if (state->dsn_envid)
 	myfree(state->dsn_envid);
     if (state->dsn_orcpt)

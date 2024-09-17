@@ -1425,7 +1425,8 @@ TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
      * reason was already reported.
      */
 #ifdef USE_TLSRPT
-    TLScontext->rpt_reported = trw_is_reported(props->tlsrpt);
+    TLScontext->rpt_reported = props->tlsrpt != 0 
+	&& trw_is_reported(props->tlsrpt);
 #endif
 
     return (TLScontext);

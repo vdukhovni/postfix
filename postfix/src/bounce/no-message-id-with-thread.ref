@@ -1,8 +1,6 @@
 From: Mail Delivery System <MAILER-DAEMON>
 Subject: Undelivered Mail Returned to Sender
 To: test-recipient
-References: <12345@mta-name.example>
-In-Reply-To: <12345@mta-name.example>
 Auto-Submitted: auto-replied
 MIME-Version: 1.0
 Content-Type: multipart/report; report-type=delivery-status;
@@ -26,7 +24,7 @@ Reporting-MTA: dns; mail.example
 Original-Envelope-Id: TEST-ENVID
 X-Postfix-Queue-ID: msgid
 X-Postfix-Sender: rfc822; sender@sender.example
-Arrival-Date: Sun, 29 Nov 2020 10:30:41 -0500 (EST)
+Arrival-Date: Wed, 11 Sep 2024 18:05:54 -0400 (EDT)
 
 Final-Recipient: rfc822; rcpt-address
 Original-Recipient: rfc822; rcpt-orig_addr
@@ -40,12 +38,12 @@ Content-Description: Undelivered Message
 Content-Type: message/rfc822
 
 Return-Path: <sender@sender.example>
-Received: by wzv.porcupine.org (Postfix, from userid 0)
-	id 4CkXPY0myNz4w4g; Sun, 29 Nov 2020 15:30:41 +0000 (UTC)
-From: <sender@sender.example>
-To: <recipient@recipient.example>
-Message-Id: <12345@mta-name.example>
-Subject: with-msgid-no-eoh-event
-Date: Sun, 29 Nov 2020 15:30:41 +0000 (UTC)
+Received: by wzv.porcupine.org (Postfix, from userid 1000)
+	id 4X3vqF3bwhz5Yqq; Wed, 11 Sep 2024 18:05:54 -0400 (EDT)
+From: sender@sender.example
+To: recipient@recipient.example
+Subject: no-message-id
+
+asdasdd
 
 --msgid.unix-time/mail.example--

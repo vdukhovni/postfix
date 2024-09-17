@@ -185,12 +185,9 @@ You can read more about the following topics:
     cyrus_sasl_config_path and/or the distribution-specific documentation to
     determine the expected location.
 
-  * Some Debian-based Postfix distributions patch Postfix to hardcode a non-
-    default search path, making it impossible to set an alternate search path
-    via the "cyrus_sasl_config_path" parameter. This is likely to be the case
-    when the distribution documents a Postfix-specific path (e.g. /etc/postfix/
-    sasl/) that is different from the default value of "cyrus_sasl_config_path"
-    (which then is likely to be empty).
+  * Some Debian-based Postfix distributions ignore the "cyrus_sasl_config_path"
+    parameter setting, and force Postfix to open the file /etc/postfix/sasl/
+    smtpd.conf.
 
     NNoottee
 

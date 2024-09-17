@@ -2,7 +2,7 @@ PPoossttffiixx TTLLSSRRPPTT HHoowwttoo
 
 -------------------------------------------------------------------------------
 
-TTOOCC
+TTaabbllee ooff CCoonntteennttss
 
   * Introduction
   * Building Postfix with TLSRPT support
@@ -120,7 +120,7 @@ datatracker.ietf.org/doc/html/rfc8460#section-4.5.
 
     Example:
 
-        { policy_string = version: STSv1 }, { policy_string = mode: testing },
+        { policy_string = version: STSv1 } { policy_string = mode: testing }
         ...
 
     This form ignores whitespace after the opening "{", around the "=", and
@@ -133,7 +133,7 @@ datatracker.ietf.org/doc/html/rfc8460#section-4.5.
 
     Example:
 
-        mx_host_pattern=mx1.example.com, mx_host_pattern=mx2.example.com, ...
+        mx_host_pattern=mx1.example.com mx_host_pattern=mx2.example.com ...
 
   * policy_failure=type
 
@@ -172,6 +172,6 @@ status 'success' with some recoverable 'failure'. Specifically:
 CCrreeddiittss
 
   * The TLSRPT client library and report generator are implemented and
-    maintained by sys4 (sys4.de).
+    maintained by sys4.
   * Wietse Venema implemented the integration with Postfix.
 

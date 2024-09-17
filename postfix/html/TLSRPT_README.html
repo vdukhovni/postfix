@@ -18,7 +18,7 @@
 
 <hr>
 
-<h2> TOC </h2>
+<h2> Table of Contents </h2>
 
 <ul>
 
@@ -191,7 +191,7 @@ in attribute values. </p>
 
 <blockquote>
 <pre>
-{ policy_string = version: STSv1 }, { policy_string = mode: testing }, ...
+{ policy_string = version: STSv1 } { policy_string = mode: testing } ...
 </pre> 
 </blockquote> 
 
@@ -207,7 +207,7 @@ in the MTA-STS policy. </p>
 
 <blockquote>
 <pre>
-mx_host_pattern=mx1.example.com, mx_host_pattern=mx2.example.com, ...
+mx_host_pattern=mx1.example.com mx_host_pattern=mx2.example.com ...
 </pre>
 </blockquote>
 </li>
@@ -264,7 +264,7 @@ successful TLS policy compliance. </p> </li>
 <ul>
 
 <li> The TLSRPT client library and report generator are implemented
-and maintained by sys4 (sys4.de). </li>
+and maintained by sys4. </li>
 
 <li> Wietse Venema implemented the integration with Postfix.
 </li>

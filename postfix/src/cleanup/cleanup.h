@@ -94,6 +94,7 @@ typedef struct CLEANUP_STATE {
     char   *hdr_rewrite_context;	/* header rewrite context */
     char   *filter;			/* from header/body patterns */
     char   *redirect;			/* from header/body patterns */
+    char   *message_id;			/* from Message-ID header */
     char   *dsn_envid;			/* DSN envelope ID */
     int     dsn_ret;			/* DSN full/hdrs */
     int     dsn_notify;			/* DSN never/delay/fail/success */

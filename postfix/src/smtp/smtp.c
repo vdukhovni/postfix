@@ -1407,7 +1407,23 @@ static void post_init(char *unused_name, char **argv)
 	var_disable_dns = (smtp_dns_support == SMTP_DNS_DISABLED);
     }
 
+#if !defined(USE_TLS) || !defined(USE_TLSRPT)
+    if (var_smtp_tlsrpt_enable)
+	msg_warn("TLSRPT is selected, but TLSRPT is not compiled in");
+#endif
 #ifdef USE_TLS
+#ifdef USE_TLSRPT
+    if (var_smtp_tlsrpt_enable) {
+	if (smtp_mode) {
+	    if (smtp_tlsrpt_post_jail(VAR_SMTP_TLSRPT_SOCKNAME,
+				      var_smtp_tlsrpt_sockname) < 0)
+		var_smtp_tlsrpt_enable = 0;
+	} else {
+	    msg_warn("TLSRPT support is not implemented for LMTP");
+	    var_smtp_tlsrpt_enable = 0;
+	}
+    }
+#endif						/* USE_TLSRPT */
     if (smtp_mode) {
 	smtp_tls_insecure_mx_policy =
 	    tls_level_lookup(var_smtp_tls_insecure_mx_policy);
@@ -1583,21 +1599,6 @@ static void pre_init(char *unused_name, char **unused_argv)
 			    mdalg = var_smtp_tls_fpt_dgst);
 	smtp_tls_list_init();
 	tls_dane_loglevel(VAR_LMTP_SMTP(TLS_LOGLEVEL), var_smtp_tls_loglevel);
-#ifdef USE_TLSRPT
-	if (var_smtp_tlsrpt_enable) {
-	    if (smtp_mode) {
-		if (smtp_tlsrpt_pre_jail(VAR_SMTP_TLSRPT_SOCKNAME,
-					 var_smtp_tlsrpt_sockname) < 0)
-		    var_smtp_tlsrpt_enable = 0;
-	    } else {
-		msg_warn("TLSRPT support is not implemented for LMTP");
-		var_smtp_tlsrpt_enable = 0;
-	    }
-	}
-#else						/* no USE_TLSRPT */
-	if (var_smtp_tlsrpt_enable)
-	    msg_warn("TLSRPT is selected, but TLSRPT is not compiled in");
-#endif						/* USE_TLSRPT */
 #else
 	msg_warn("TLS has been selected, but TLS support is not compiled in");
 #endif

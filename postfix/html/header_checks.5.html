@@ -312,9 +312,13 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
               will  be  sent  to the specified address instead of the intended
               recipient(s).
 
-              Note: this action overrides the <b>FILTER</b> action, and  affects  all
+              Note 1: this action overrides the <b>FILTER</b> action, and affects all
               recipients  of  the  message. If multiple <b>REDIRECT</b> actions fire,
               only the last one is executed.
+
+              Note 2: a REDIRECT address is subject to  canonicalization  (add
+              missing  domain)  but NOT subject to canonical, masquerade, bcc,
+              or virtual alias mapping.
 
               This feature is available in Postfix 2.1 and later.
 

@@ -738,7 +738,8 @@ static int tlsp_eval_tls_error(TLSP_STATE *state, int err)
 	 * already reported.
 	 */
 #ifdef USE_TLSRPT
-	if ((state->flags & TLSP_FLAG_DO_HANDSHAKE)
+	if (state->client_start_props->tlsrpt
+	    && (state->flags & TLSP_FLAG_DO_HANDSHAKE)
 	    && state->is_server_role == 0)
 	    trw_report_failure(state->client_start_props->tlsrpt,
 			       TLSRPT_VALIDATION_FAILURE,

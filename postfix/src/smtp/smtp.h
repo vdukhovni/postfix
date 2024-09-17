@@ -790,7 +790,7 @@ extern int smtp_hfrom_format;
   * smtp_tlsrpt.c.
   */
 #if defined(USE_TLS) && defined(USE_TLSRPT)
-extern int smtp_tlsrpt_pre_jail(const char *sockname_pname, const char *sockname_pval);
+extern int smtp_tlsrpt_post_jail(const char *sockname_pname, const char *sockname_pval);
 extern void smtp_tlsrpt_create_wrapper(SMTP_STATE *state, const char *domain);
 extern void smtp_tlsrpt_set_tls_policy(SMTP_STATE *state);
 extern void smtp_tlsrpt_set_tcp_connection(SMTP_STATE *state);

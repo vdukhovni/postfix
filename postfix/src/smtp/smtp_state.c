@@ -80,7 +80,7 @@ SMTP_STATE *smtp_state_alloc(void)
     state->iterator->host = vstring_alloc(100);
     state->iterator->addr = vstring_alloc(100);
     state->iterator->saved_dest = vstring_alloc(100);
-#ifdef TLSRPT
+#ifdef USE_TLSRPT
     state->tlsrpt = 0;
 #endif
     if (var_smtp_cache_conn) {

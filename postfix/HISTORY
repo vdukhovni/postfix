@@ -28186,21 +28186,7 @@ Apologies for any names omitted.
 20240808
 
 	Typofix in comment. File: global/normalize_mailhost_addr.c.
-
-20240831
-
-	Bugfix: require that stable releases have a three-number
-	mail_version value. Found by Michael Orlitzky. File:
-	mantools/check-snapshot-nonprod.
-
-20240902
-
-	Documentation: update the local_login_sender_maps description
-	with guidance to enforce that the From: header address
-	matches the envelope sender (MAIL FROM) address. File:
-	proto/postconf.proto.
-
-
+ 
 20240730 
 
 	Infrastructure: added argv_addv() function to append an
@@ -28221,3 +28207,37 @@ Apologies for any names omitted.
 
 	Infrastructure: added "append to buffer" option to the
 	hex_encode_opt() function. Files: util/hex_encode.[hc];
+
+20240831
+
+	Bugfix: require that stable releases have a three-number
+	mail_version value. Found by Michael Orlitzky. File:
+	mantools/check-snapshot-nonprod.
+
+20240902
+
+	Documentation: update the local_login_sender_maps description
+	with guidance to enforce that the From: header address
+	matches the envelope sender (MAIL FROM) address. File:
+	proto/postconf.proto.
+ 
+20240909
+
+	Bitrot: some platforms prefer the pkgconf command over pkg-config,
+	which in turn has superseded icu-config. File: makedefs.
+
+20230910
+
+	Cleanup: the enable_threaded_bounces feature was re-implemented.
+	This simplifies the code and improves the handling of
+	multiline Message-Id: headers (no software should generate
+	those, but...). Files: bounce/bounce_notify_util.c,
+	cleanup/cleanup.h, cleanup/cleanup_extracted.c,
+	cleanup/cleanup_message.c, cleanup/cleanup_state.c,
+	global/mail_proto.h, multiple bounce testfiles.
+
+20240917
+
+	Minor feature: "postcat -f" option to prepend the filename
+	to each output line. This simplifies test data development.
+	File: postcat/postcat.c.

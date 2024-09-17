@@ -626,8 +626,14 @@ static void cleanup_header_callback(void *context, int header_class,
      */
     else {
 	state->headers_seen |= (1 << hdr_opts->type);
-	if (hdr_opts->type == HDR_MESSAGE_ID)
+	if (hdr_opts->type == HDR_MESSAGE_ID) {
+	    ssize_t len;
+
 	    msg_info("%s: message-id=%s", state->queue_id, hdrval);
+	    if (state->message_id == 0 && (len = balpar(hdrval, "<>")) > 0)
+		/* This Message ID may end up in threaded bounces. */
+		state->message_id = printable(mystrndup(hdrval, len), ' ');
+	}
 	if (hdr_opts->type == HDR_RESENT_MESSAGE_ID)
 	    msg_info("%s: resent-message-id=%s", state->queue_id, hdrval);
 	if (hdr_opts->type == HDR_RECEIVED) {
@@ -730,6 +736,10 @@ static void cleanup_header_done_callback(void *context)
 		 vstring_str(state->temp1));
 	state->headers_seen |= (1 << (state->resent[0] ?
 				   HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID));
+	if (state->resent[0] == 0 && state->message_id == 0)
+	    state->message_id = concatenate("<", vstring_str(state->temp1),
+					    ">", (char *) 0);
+
     }
     if ((state->headers_seen & (1 << HDR_MESSAGE_ID)) == 0)
 	msg_info("%s: message-id=<>", state->queue_id);
