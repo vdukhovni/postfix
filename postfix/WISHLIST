@@ -6,6 +6,12 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Add tests for Message-ID extraction in the cleanup daemon.
+
+	The postdrop code should be more explicit about what
+	attrributes it will pass through. rec_attr_map() is not
+	supposed to be an approver.
+
 	Many master.cf services don't expect wakeup calls, resulting
 	in weird warnings. Maybe the master daemon could signal the
 	wakeup intent through a child process command-line option,
@@ -15,6 +21,13 @@ Wish list:
 	special-case messages that consist only of a "W". We're not
 	using FIFOs anymore, and trigger servers could use a proper
 	(attribute, value) protocol.
+
+	The Sendmail feature _FFR_MDS_NEGOTIATE allows negotiating
+	a larger milter command data size limit. To be investigated:
+	what parts of the protocol are included in this limit when
+	sending a message header (header name, protocol formatting,
+	etc.) and how this will interact with the Postfix built-in
+	header_size_limit (default: 102400).
 
 	SEND_ATTR_FUNC should send the name of the object being sent,
 	so that SCAN_ATTR_FUNC can check it.

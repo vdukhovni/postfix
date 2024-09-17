@@ -11,7 +11,7 @@ POSTCAT(1)                                                          POSTCAT(1)
        postcat - show Postfix queue file contents
 
 <b>SYNOPSIS</b>
-       <b>postcat</b> [<b>-bdehnoqv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>files</i>...]
+       <b>postcat</b> [<b>-bdefhnoqv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>files</i>...]
 
 <b>DESCRIPTION</b>
        The  <a href="postcat.1.html"><b>postcat</b>(1)</a>  command  prints  the  contents  of  the named <i>files</i> in
@@ -40,6 +40,8 @@ POSTCAT(1)                                                          POSTCAT(1)
        <b>-e</b>     Show message envelope content.
 
               This feature is available in Postfix 2.7 and later.
+
+       <b>-f</b>     Prepend the file name to each output line.
 
        <b>-h</b>     Show message header content.  The <b>-h</b> option produces output from
               the beginning of the message up to, but not including, the first

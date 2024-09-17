@@ -230,10 +230,7 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 {
     BOUNCE_INFO *bounce_info;
     int     rec_type;
-    int     prev_type;
-    int     all_headers_seen = 0;
     int     skip_message_segment = 0;
-    int     in_envelope = 1;
 
     /*
      * Bundle up a bunch of parameters and initialize information that will
@@ -322,9 +319,8 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 		    DELIVER_LOCK_MODE) < 0)
 	    msg_fatal("cannot get shared lock on %s: %m",
 		      VSTREAM_PATH(bounce_info->orig_fp));
-	for (prev_type = 0;
-	(rec_type = rec_get(bounce_info->orig_fp, bounce_info->buf, 0)) > 0;
-	     prev_type = rec_type) {
+	while ((rec_type =
+		rec_get(bounce_info->orig_fp, bounce_info->buf, 0)) > 0) {
 
 	    /*
 	     * Postfix version dependent: data offset in SIZE record.
@@ -368,76 +364,28 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 		    msg_warn("%s: no sender before message content record",
 			     bounce_info->queue_id);
 		bounce_info->orig_offs = vstream_ftell(bounce_info->orig_fp);
-		if (var_threaded_bounce == 0)
-		    skip_message_segment = 1;
-		else
-		    in_envelope = 0;
+		skip_message_segment = 1;
 	    }
 
 	    /*
-	     * Extract Message-ID for threaded bounces.
+	     * Extract Message-ID from extracted segment, for use in threaded
+	     * bounces.
 	     */
-	    else if (in_envelope == 0
-	      && (rec_type == REC_TYPE_NORM || rec_type == REC_TYPE_CONT)) {
-		const HEADER_OPTS *hdr;
-		char   *cp;
+	    else if (rec_type == REC_TYPE_ATTR && var_threaded_bounce) {
+		char   *cp = STR(bounce_info->buf);
+		ssize_t len = sizeof(MAIL_ATTR_MESSAGE_ID);
+		char   *err;
 
-		/*
-		 * Skip records that we cannot use. Degrade if we could not
-		 * skip over the message content.
-		 */
-		if (var_threaded_bounce == 0 || all_headers_seen
-		    || prev_type == REC_TYPE_CONT) {
-		     /* void */ ;
-		}
-
-		/*
-		 * Extract message-id header value.
-		 */
-		else if (is_header(STR(bounce_info->buf))) {
-		    if ((hdr = header_opts_find(
-					vstring_str(bounce_info->buf))) != 0
-			&& hdr->type == HDR_MESSAGE_ID) {
-			vstring_truncate(bounce_info->buf,
-					 trimblanks(STR(bounce_info->buf),
-						    LEN(bounce_info->buf))
-					 - STR(bounce_info->buf));
-			cp = STR(bounce_info->buf) + strlen(hdr->name) + 1;
-			while (ISSPACE(*cp))
-			    cp++;
-			if (*cp == '<' && vstring_end(bounce_info->buf)[-1] == '>')
-			    vstring_strcpy(bounce_info->orig_msgid, cp);
-			else
-			    msg_warn("%s: ignoring malformed Message-ID",
-				     bounce_info->queue_id);
+		if (strncmp(cp, MAIL_ATTR_MESSAGE_ID "=", len) == 0) {
+		    cp += len;
+		    if ((err = extpar(&cp, "<>", EXTPAR_FLAG_NONE)) != 0) {
+			msg_warn("%s: malformed Message-ID attribute: %s",
+				 bounce_info->queue_id, err);
+			myfree(err);
+		    } else {
+			vstring_sprintf(bounce_info->orig_msgid, "<%s>", cp);
 		    }
 		}
-
-		/*
-		 * Skip remainder of multiline header.
-		 */
-		else if (ISSPACE(*STR(bounce_info->buf))) {
-		     /* void */ ;
-		}
-
-		/*
-		 * Start of body.
-		 */
-		else {
-		    all_headers_seen = 1;
-		    skip_message_segment = 1;
-		}
-	    }
-
-	    /*
-	     * In case we ever want to process records from the extracted
-	     * segment, and in case there was no "start of body" event.
-	     */
-	    else if (rec_type == REC_TYPE_XTRA) {
-		if (VSTRING_LEN(bounce_info->orig_msgid) == 0)
-		    if (var_threaded_bounce)
-			all_headers_seen = 1;
-		in_envelope = 1;
 	    }
 
 	    /*
@@ -446,7 +394,7 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 	    if (bounce_info->orig_offs > 0
 		&& bounce_info->arrival_time > 0
 		&& VSTRING_LEN(bounce_info->sender) > 0
-		&& (var_threaded_bounce == 0 || all_headers_seen
+		&& (var_threaded_bounce == 0
 		    || VSTRING_LEN(bounce_info->orig_msgid) > 0)) {
 		break;
 	    }

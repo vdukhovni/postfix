@@ -28199,4 +28199,24 @@ Apologies for any names omitted.
 	with guidance to enforce that the From: header address
 	matches the envelope sender (MAIL FROM) address. File:
 	proto/postconf.proto.
+ 
+20240909
 
+	Bitrot: some platforms prefer the pkgconf command over pkg-config,
+	which in turn has superseded icu-config. File: makedefs.
+
+20230910
+
+	Cleanup: the enable_threaded_bounces feature was re-implemented.
+	This simplifies the code and improves the handling of
+	multiline Message-Id: headers (no software should generate
+	those, but...). Files: bounce/bounce_notify_util.c,
+	cleanup/cleanup.h, cleanup/cleanup_extracted.c,
+	cleanup/cleanup_message.c, cleanup/cleanup_state.c,
+	global/mail_proto.h, multiple bounce testfiles.
+
+20240917
+
+	Minor feature: "postcat -f" option to prepend the filename
+	to each output line. This simplifies test data development.
+	File: postcat/postcat.c.
