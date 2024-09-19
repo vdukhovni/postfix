@@ -125,6 +125,15 @@ extern const char *str_tls_level(int);
 #define tls_set_bio_callback    BIO_set_callback
 #endif
 
+#if OPENSSL_VERSION_PREREQ(3,2)
+#define TLS_GROUP_NAME(ssl) SSL_get0_group_name(ssl)
+#elif OPENSSL_VERSION_PREREQ(3,0)
+#define TLS_GROUP_NAME(ssl) \
+    SSL_group_to_name((ssl), SSL_get_negotiated_group(ssl))
+#else
+#define TLS_GROUP_NAME(ssl) ((const char *)0)
+#endif
+
  /*
   * Utility library.
   */

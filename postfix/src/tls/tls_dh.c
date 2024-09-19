@@ -75,6 +75,7 @@
  /*
   * Global library
   */
+#include <been_here.h>
 #include <mail_params.h>
 
 /* TLS library. */
@@ -313,68 +314,75 @@ static int setup_auto_groups(SSL_CTX *ctx, const char *origin,
 {
 #ifndef OPENSSL_NO_ECDH
     SSL_CTX *tmpctx;
-    int    *nids;
-    int     space = 10;
-    int     n = 0;
+    BH_TABLE *seen;
     char   *save;
     char   *groups;
     char   *group;
+    static VSTRING *names;
 
     if ((tmpctx = SSL_CTX_new(TLS_method())) == 0) {
 	msg_warn("cannot allocate temp SSL_CTX");
 	tls_print_errors();
 	return (AG_STAT_NO_RETRY);
     }
-    nids = mymalloc(space * sizeof(int));
 
+    if (!names)
+	names = vstring_alloc(sizeof DEF_TLS_EECDH_AUTO +
+			      sizeof DEF_TLS_FFDHE_AUTO);
+    VSTRING_RESET(names);
+    /*
+     * OpenSSL does not tolerate duplicate groups in the requested list.
+     * Dedup case-insensitively, just in case OpenSSL some day supports
+     * case-insensitve group lookup.  Users who specify the group name twice
+     * and get the case wrong the first time deserve to be unhappy. :-)
+     *
+     * OpenSSL 3.3 supports "?<name>" as a syntax for optionally ignoring
+     * unsupported groups, so we could skip checking against the throw-away
+     * CTX when linked against 3.3 or higher, but the cost savings don't
+     * justify the #ifdef overhead for now.
+     */
+    seen = been_here_init(0, BH_FLAG_FOLD);
+
+#define GROUPS_SEP CHARS_COMMA_SP ":"
 #define SETUP_AG_RETURN(val) do { \
+	been_here_free(seen); \
 	myfree(save); \
-	myfree(nids); \
 	SSL_CTX_free(tmpctx); \
 	return (val); \
     } while (0)
 
     groups = save = concatenate(eecdh, " ", ffdhe, NULL);
-    if ((group = mystrtok(&groups, CHARS_COMMA_SP)) == 0) {
+    if ((group = mystrtok(&groups, GROUPS_SEP)) == 0) {
 	msg_warn("no %s key exchange group - OpenSSL requires at least one",
 		 origin);
 	SETUP_AG_RETURN(AG_STAT_NO_GROUP);
     }
-    for (; group != 0; group = mystrtok(&groups, CHARS_COMMA_SP)) {
-	int     nid = EC_curve_nist2nid(group);
-
-	if (nid == NID_undef)
-	    nid = OBJ_sn2nid(group);
-	if (nid == NID_undef)
-	    nid = OBJ_ln2nid(group);
-	if (nid == NID_undef) {
-	    msg_warn("ignoring unknown key exchange group \"%s\"", group);
+    for (; group != 0; group = mystrtok(&groups, GROUPS_SEP)) {
+	if (been_here_fixed(seen, group))
 	    continue;
-	}
-
 	/*
-	 * Validate the NID by trying it as the group for a throw-away SSL
-	 * context. Silently skip unsupported code points. This way, we can
-	 * list X25519 and X448 as soon as the nids are assigned, and before
-	 * the supporting code is implemented. They'll be silently skipped
-	 * when not yet supported.
+	 * Validate the group name by trying it as the group for a throw-away
+	 * SSL context. This way, we can ask for new groups that may not yet be
+	 * supported by the underlying OpenSSL runtime.  Unsupported groups are
+	 * silently ignored.
 	 */
-	if (SSL_CTX_set1_curves(tmpctx, &nid, 1) <= 0) {
-	    continue;
+	ERR_set_mark();
+	if (SSL_CTX_set1_curves_list(tmpctx, group) > 0) {
+	    if (VSTRING_LEN(names) > 0)
+		VSTRING_ADDCH(names, ':');
+	    vstring_strcat(names, group);
 	}
-	if (++n > space) {
-	    space *= 2;
-	    nids = myrealloc(nids, space * sizeof(int));
-	}
-	nids[n - 1] = nid;
+	ERR_pop_to_mark();
     }
 
-    if (n == 0) {
+    if (VSTRING_LEN(names) == 0) {
 	/* The names may be case-sensitive */
 	msg_warn("none of the %s key exchange groups are supported", origin);
 	SETUP_AG_RETURN(AG_STAT_NO_GROUP);
     }
-    if (SSL_CTX_set1_curves(ctx, nids, n) <= 0) {
+    VSTRING_TERMINATE(names);
+
+    if (SSL_CTX_set1_curves_list(ctx, vstring_str(names)) <= 0) {
 	msg_warn("failed to set up the %s key exchange groups", origin);
 	tls_print_errors();
 	SETUP_AG_RETURN(AG_STAT_NO_RETRY);
