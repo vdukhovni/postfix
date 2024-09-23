@@ -339,6 +339,6 @@ address  address string length
  policies policy policy type 
  policies policy policy string Ignored if the tls_policy_type
  policies policy policy domain 
-additional_detail  additional_detail 
+additional_info  additional_info 
 ignored  ignored 
 USE_TLSRPT  USE_TLSRPT 

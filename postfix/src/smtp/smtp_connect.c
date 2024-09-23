@@ -1092,6 +1092,12 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		session->state = state;
 #ifdef USE_TLS
 		session->tls_nexthop = domain;
+
+		/*
+		 * Update TLSRPT state even if this is a reused SMTP
+		 * connection. If for some unlikely reason we must report a
+		 * problem, then we must report correct information.
+		 */
 #ifdef USE_TLSRPT
 		if (state->tlsrpt && state->tls->level > TLS_LEV_NONE) {
 		    smtp_tlsrpt_set_tls_policy(state);

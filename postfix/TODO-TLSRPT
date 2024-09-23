@@ -1,0 +1,29 @@
+Functionality
+=============
+
+There needs to be a way to force "smtp_tls_security_level=may"
+for rmail deliveries of daily TLSRPT summaries.
+
+Paranoia
+=========
+
+Should there be a check that the TLSRPT policy for domain FOO 
+has an 'rua' field that contains FOO?
+
+Paranoia: in IPC protocols base64 encode data that is not fully vetted.
+TLSRPT_WRAPPER.rpt_policy
+TLSRPT_WRAPPER.policy strings
+TLSRPT_WRAPPER.ehlo_cmd string.
+
+Code health
+===========
+Remove the trw_report_failure() additional_info argument. This is
+always null.
+
+Need to add a hex_code test for HEX_ENCODE_FLAG_APPEND.
+
+Deduplicate the code in sane_sockaddr_to_hostaddr(). It also appears in
+haproxy_srvr.c, normalize_mailhost_addr.c, and in postscreen_endpt.c.
+
+Need unit tests for smtp_tlsrpt.c and tlstrpd_wrapper.c. This
+requires infrastructure.

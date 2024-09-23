@@ -18,17 +18,27 @@ domain can publish a policy in DNS to request daily summary reports for
 successful and failed TLS connections to that domain. Support for TLSRPT was
 added in Postfix 3.10.
 
+A policy example looks like this:
+
+    _smtp._tls.example.com. IN TXT "v=TLSRPTv1; rua=mailto:smtp-tls-
+    report@example.com"
+
+Translation: email sending systems are requested to generate daily summaries of
+successful and failed SMTP over TLS connections to domain example.com, and to
+report those summaries via email to the specified address. Instead of mailto:,
+a policy may specify an https: destination.
+
+The high-level diagram shows how Postfix reports summaries to domains that
+publish a TLSRPT policy.
+
+    Postfix SMTP and   --> TLSRPT client --> TLSRPT report --> Email or HTTP
+    TLS client engines     library           generator         summary
+
 When Postfix TLSRPT support is enabled (with "smtp_tlsrpt_enable = yes"), the
 Postfix SMTP and TLS clients engines will generate "success" and "failure"
 events, and will pass those events to a TLSRPT client library and report
 generator that are maintained by sys4. The Postfix implementation supports both
 DANE (Postfix built-in) and MTA-STS (through an smtp_tls_policy_maps plug-in).
-
-The high-level diagram shows how Postfix events are reported to domains that
-publish a TLSRPT policy.
-
-    Postfix SMTP and   --> TLSRPT client --> TLSRPT report --> Email or HTTP
-    TLS client engines     library           generator         summary
 
 The Postfix smtp(8) client process implements the SMTP client engine. With
 "smtp_tls_connection_reuse = no", the smtp(8) client process also implements
@@ -77,23 +87,46 @@ main.cf like this:
 The smtp_tlsrpt_socket_name parameter specifies an absolute pathname, or a
 pathname that is relative to $queue_directory.
 
-A good socket location would be under $queue_directory/run/tlsrpt or
-$queue_directory/var/run/tlsrpt. These can then be configured in Postfix as a
-relative pathname (run/tlsrpt/tlsrpt.sock or var/run/tlsrpt/tlsrpt.sock) so
-that the same name will work with and without Postfix chroot support. Do not
-specify a location under directory that is already used by Postfix programs.
-Only Postfix programs should create sockets there.
+    Note: the socket location is still to be determined. A good socket location
+    would be under $queue_directory, for example: (smtp_tlsrpt_socket_name =
+    run/tlsrpt/tlsrpt.sock or smtp_tlsrpt_socket_name = var/run/tlsrpt/
+    tlsrpt.sock). Such names will work with and without Postfix chroot support.
+    Do not specify a location under a directory (private, public, ...) that is
+    already used by Postfix programs. Only Postfix programs should create
+    sockets there.
+
+For obvious reasons, RFC 8460 suggests not to enforce strict TLS security when
+sending daily success/failure summaries via email. Postfix currently does not
+have a mechanism to request this when submitting an email message. For initial
+tests a transport map may take care of this.
+
+    /etc/postfix/main.cf:
+        transport_maps = hash:/etc/postfix/transport
+
+    /etc/postfix/transport:
+        /^\Qsts-reports@gmail.com\E$/       allow-plaintext
+        /^\Qsmtp-tls-report@sys4.de\E$/     allow-plaintext
+        ...
+
+    /etc/postfix/master.cf:
+        allow-plaintext .. .. .. .. .. .. .. smtp
+            -o smtp_tls_security_level=may
+            -o smtp_tls_policy_maps=
+
+The ^ and $ prevent false matches, and the \Q and \E disable special
+characters.
 
 MMTTAA--SSTTSS SSuuppppoorrtt vviiaa ssmmttpp__ttllss__ppoolliiccyy__mmaappss
 
 Postfix supports MTA-STS though an smtp_tls_policy_maps policy plugin. Postfix
-TLSRPT support expects a response with the usual security level and matching
-requirements, plus any applicable name=value attributes described below.
-Specify { name = value } when a value may contain whitespace.
+expects a response with the usual security level and matching requirements,
+plus any applicable name=value attributes described below. Specify { name =
+value } when a value may contain whitespace.
 
     Note 1: Postfix 3.10 and later will accept these attributes in an MTA-STS
-    response even if TLSRPT support is disabled (at build time or run time),
-    but it will not use most attributes except ttl and policy_failure.
+    response even if TLSRPT support is disabled (at build time or run time).
+    With TLSRPT support turned off, Postfix will use the ttl and policy_failure
+    attributes, and will ignore the attributes that are used only for TLSRPT.
 
     Note 2: It is an error to specify these attributes for a non-STS policy.
 
@@ -150,24 +183,16 @@ datatracker.ietf.org/doc/html/rfc8460#section-4.5.
 
 LLiimmiittaattiioonnss
 
-The following limitations exist primarily because some errors may be reported
-by a Postfix smtp(8) client process, and some errors by a Postfix tlsproxy(8)
-process. It is too difficult to propagate TLSRPT client library state between
-processes.
+The Postfix TLSRPT implementation reports at most one final TLS handshake
+status (either 'success' or 'failure') per connection. Postfix TLSRPT cannot
+report a failure and then later report a final status of 'success' for that
+same connection. The reason is that it's too complicated to filter TLS errors
+and to report error details from the TLS engine back to the SMTP protocol
+engine. It just is not how Postfix works internally.
 
-The Postfix TLSRPT client reports one final status (either 'success' or
-'failure') for each MTA that it is able to connect to. It cannot report a final
-status 'success' with some recoverable 'failure'. Specifically:
-
-  * The Postfix TLSRPT client can report either successful TLS policy
-    compliance, or an unrecoverable failure that prevents TLS policy compliance
-    (examples: all TLSA records are unusable, or some PKI error during
-    certificate verification).
-
-  * The Postfix TLSRPT client must not be used to report a potentially
-    recoverable failure such as a non-parsable TLSA record, because some other
-    TLSA record for the same host may still allow successful TLS policy
-    compliance.
+The Postfix TLSRPT implementation reports only TLS handshake success or
+failure. It does not report failure to connect, or connections that break after
+a successful TLS handshake.
 
 CCrreeddiittss
 

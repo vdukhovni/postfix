@@ -90,6 +90,9 @@
 /*
 /*	Victor Duchovni
 /*	Morgan Stanley
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -224,19 +227,19 @@ void    tls_log_verify_error(TLS_SESS_STATE *TLScontext,
     /*
      * If an external policy flagged an error, report that instead.
      */
-    if (TLScontext->fail_type) {
+    if (TLScontext->ffail_type) {
 	msg_info("certificate verification failed for %s: "
-		"external policy failure (%s)",
-		 TLScontext->namaddr, TLScontext->fail_type);
+		 "external policy failure (%s)",
+		 TLScontext->namaddr, TLScontext->ffail_type);
 #ifdef USE_TLSRPT
 	if (tlsrpt) {
 	    tlsrpt_failure_t failure_type;
 
-	    if ((failure_type = convert_tlsrpt_policy_failure(TLScontext->fail_type)) < 0)
+	    if ((failure_type = convert_tlsrpt_policy_failure(TLScontext->ffail_type)) < 0)
 		msg_panic("tls_log_verify_error: unexpected failure_reason: %s",
-			  TLScontext->fail_type);
+			  TLScontext->ffail_type);
 	    trw_report_failure(tlsrpt, failure_type,
-			        /* additional_detail= */ (char *) 0,
+			        /* additional_info= */ (char *) 0,
 			        /* failure_reason= */ (char *) 0);
 	}
 #endif
@@ -258,7 +261,7 @@ void    tls_log_verify_error(TLS_SESS_STATE *TLScontext,
 #ifdef USE_TLSRPT
 	if (tlsrpt)
 	    trw_report_failure(tlsrpt, TLSRPT_CERTIFICATE_NOT_TRUSTED,
-			        /* additional_detail= */ (char *) 0,
+			        /* additional_info= */ (char *) 0,
 			        /* failure_code= */ (char *) 0);
 #endif
 	break;
@@ -268,7 +271,7 @@ void    tls_log_verify_error(TLS_SESS_STATE *TLScontext,
 #ifdef USE_TLSRPT
 	if (tlsrpt)
 	    trw_report_failure(tlsrpt, TLSRPT_VALIDATION_FAILURE,
-			        /* additional_detail= */ (char *) 0,
+			        /* additional_info= */ (char *) 0,
 			       CERT_ERROR_TO_STRING(err));
 #endif
 	break;
@@ -289,7 +292,7 @@ void    tls_log_verify_error(TLS_SESS_STATE *TLScontext,
 #ifdef USE_TLSRPT
 	if (tlsrpt)
 	    trw_report_failure(tlsrpt, TLSRPT_VALIDATION_FAILURE,
-			        /* additional_detail= */ (char *) 0,
+			        /* additional_info= */ (char *) 0,
 			       CERT_ERROR_TO_STRING(err));
 #endif
 	break;
@@ -300,7 +303,7 @@ void    tls_log_verify_error(TLS_SESS_STATE *TLScontext,
 #ifdef USE_TLSRPT
 	if (tlsrpt)
 	    trw_report_failure(tlsrpt, TLSRPT_VALIDATION_FAILURE,
-			        /* additional_detail= */ (char *) 0,
+			        /* additional_info= */ (char *) 0,
 			       CERT_ERROR_TO_STRING(err));
 #endif
 	break;
@@ -311,7 +314,7 @@ void    tls_log_verify_error(TLS_SESS_STATE *TLScontext,
 #ifdef USE_TLSRPT
 	if (tlsrpt)
 	    trw_report_failure(tlsrpt, TLSRPT_CERTIFICATE_EXPIRED,
-			        /* additional_detail= */ (char *) 0,
+			        /* additional_info= */ (char *) 0,
 			        /* failure_code= */ (char *) 8);
 #endif
 	break;
@@ -321,7 +324,7 @@ void    tls_log_verify_error(TLS_SESS_STATE *TLScontext,
 #ifdef USE_TLSRPT
 	if (tlsrpt)
 	    trw_report_failure(tlsrpt, TLSRPT_VALIDATION_FAILURE,
-			        /* additional_detail= */ (char *) 0,
+			        /* additional_info= */ (char *) 0,
 			       CERT_ERROR_TO_STRING(err));
 #endif
 	break;
@@ -332,7 +335,7 @@ void    tls_log_verify_error(TLS_SESS_STATE *TLScontext,
 #ifdef USE_TLSRPT
 	if (tlsrpt)
 	    trw_report_failure(tlsrpt, TLSRPT_VALIDATION_FAILURE,
-			        /* additional_detail= */ (char *) 0,
+			        /* additional_info= */ (char *) 0,
 			       CERT_ERROR_TO_STRING(err));
 #endif
 	break;

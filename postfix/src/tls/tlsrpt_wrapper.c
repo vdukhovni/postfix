@@ -2,7 +2,7 @@
 /* NAME
 /*	tlsrpt_wrapper 3
 /* SUMMARY
-/*	TLSRPT support for the TLS protocol engine
+/*	TLSRPT support for the SMTP and TLS protocol engines
 /* SYNOPSIS
 /*	#include <tlsrpt_wrapper.h>
 /*
@@ -36,7 +36,7 @@
 /*	void	trw_report_failure(
 /*	TLSRPT_WRAPPER *trw,
 /*	tlsrpt_failure_t failure_type,
-/*	const char *additional_detail,
+/*	const char *additional_info,
 /*	const char *failure_reason)
 /*
 /*	void	trw_report_success(
@@ -58,50 +58,71 @@
 /*	int	valid_tlsrpt_policy_failure(
 /*	const char *failure_name)
 /*	#endif /* USE_TLS */
-/* ARCHITECTURE, BOTTOM-UP VIEW
-/*	Postfix TLSRPT support uses the TLSRPT client library from
-/*	sys4.de. That library makes the reasonable assumption that
+/* POSTFIX ARCHITECTURE, BOTTOM-UP VIEW
+/* .ad
+/* .fi
+/*	This module encapsulates TLSRPT support for Postfix's
+/*	multi-process and multi-layer architecture. The text that follows
+/*	explains the purpose of this software layer.
+/*
+/*	First, Postfix TLSRPT support uses the TLSRPT client library
+/*	from sys4.de. That library makes the reasonable assumption that
 /*	all calls concerning one SMTP session will be made from within
 /*	one process.
 /*
-/*	With Postfix, the TLS protocol engine may be located in a
-/*	different process than the SMTP protocol engine, and both
-/*	processes need the ability to report a TLS error.
+/*	Second, some TLS errors are detected in the SMTP protocol
+/*	engine (example: a remote SMTP server does not announce STARTTLS
+/*	support), while other TLS errors are detected in the TLS protocol
+/*	engine (example: certificate verification error).
 /*
-/*	To bridge this gap, the SMTP protocol engine forwards SMTP
-/*	session and TLS policy information to the TLS protocol engine in
-/*	the form of a TLSRPT_WRAPPER object that contains SMTP and other
-/*	information that the TLSRPT client library needs.  The TLS engine
-/*	can pass that information to the TLSRPT client library to report
-/*	a TLS error. The SMTP protocol engine can use that same
-/*	information to report a TLS error or success.
-/* IMPLEMENTATION
+/*	Third, the Postfix TLS protocol engine may be located in a
+/*	different process than the SMTP protocol engine. And even if the
+/*	two are located in the same process, the TLS protocol engine knows
+/*	nothing about SMTP. Hence, there needs to be an abstraction that
+/*	isolates the TLS protocol engine from the SMTP-specific details
+/*	of TLSRPT.
+/*
+/*	Fourth, Postfix has a pipelined and layered architecture where
+/*	each process (or architectural layer) handles a problem as it
+/*	runs into it, instead of reporting problem details back to its
+/*	pipeline predecessor (or back to a higher architectural layer).
+/* TLSRPT_WRAPPER IMPLEMENTATION
 /* .ad
 /* .fi
-/*	The Postfix SMTP protocol engine (smtp_proto.c) reports TLS
-/*	errors when TLS support is required but unavailable, or requests
-/*	the Postfix TLS protocol engine to perform a TLS protocol
-/*	handshake over an open SMTP connection. The SMTP protocol engine
-/*	either calls the TLS protocol engine directly, or calls it over
-/*	RPC in a tlsproxy(8) process.
+/*	At a high level, the SMTP protocol engine encapsulates SMTP
+/*	session and TLS policy information in an opaque TLSRPT_WRAPPER
+/*	object, and passes that object to the TLS protocol engine. The
+/*	TLS protocol engine can invoke TLSRPT_WRAPPER methods to report a
+/*	TLS error through the sys4.de TLSRPT client library. In a similar
+/*	manner, the SMTP protocol engine can invoke TLSRPT_WRAPPER object
+/*	methods to report a TLS error or success.
 /*
-/*	The TLS protocol engine may report a TLS error through the
-/*	tlsrpt_wrapper library, and either returns no TLS session object,
-/*	or a TLS session object for a completed handshake. The TLS
-/*	session object will indicate if the TLS protocol engine reported
-/*	any TLS error through TLSRPT.
+/*	At a low level, The Postfix SMTP protocol engine (smtp_proto.c)
+/*	reports TLS errors when TLS support is required but unavailable,
+/*	or requests the Postfix TLS protocol engine to perform a TLS
+/*	protocol handshake over an open SMTP connection. The SMTP
+/*	protocol engine either calls the TLS protocol engine directly,
+/*	or calls it over local IPC in a tlsproxy(8) process.
+/*
+/*	The TLS protocol engine may report a TLS error by invoking
+/*	TLSRPT_WRAPPER methods, and either returns no TLS session object,
+/*	or a TLS session object for a completed handshake. The TLS session
+/*	object will indicate if the TLS protocol engine reported any
+/*	TLS error through TLSRPT (for example an error that resulted in
+/*	a successful TLS handshake with a downgraded TLS security level).
 /*
 /*	The Postfix SMTP protocol engine reports success or failure
-/*	through the tlsrpt_wrapper library, depending on whether all
-/*	matching requirements were satisfied. SMTP protocol engine
-/*	does not report success or failure through the tlsrpt_wrapper
-/*	library if the TLS protocol engine already reported a failure.
-/* WRAPPER API
+/*	by invoking TLSRPT_WRAPPER methods, depending on whether all
+/*	matching requirements were satisfied. The SMTP protocol engine
+/*	does not report success or failure by invoking TLSRPT_WRAPPER
+/*	methods if the TLS protocol engine already reported a failure.
+/* TLSRPT_WRAPPER API
 /* .ad
 /* .fi
 /*	The functions below must be called in a specific order. All
 /*	string inputs are copied. If a required call is missing then
-/*	the request will be ignored, and a warning will be logged.
+/*	the request will be ignored, and a warning will be logged,
+/*	but this not affect email deliveries.
 /* .PP
 /*	trw_create() must be called before other trw_xxx() requests can
 /*	be made. Arguments:
@@ -119,19 +140,19 @@
 /*	trw_free() destroys storage allocated with other trw_xxx()
 /*	requests.
 /* .PP
-/*	trw_set_tls_policy() must be called by the SMTP protocol
-/*	engine after it found a DANE, STS, or no policy, and before it
-/*	tries to establish a new SMTP connection. This function clears
-/*	information that was specified earlier with trw_set_tls_policy()
-/*	or trw_set_tcp_connection(), and whether trw_report_failure()
+/*	trw_set_tls_policy() must be called by the SMTP protocol engine
+/*	after it found a DANE, STS, or no policy, and before it tries to
+/*	establish a new SMTP connection. This function clears information
+/*	that was specified earlier with trw_set_tls_policy() or
+/*	trw_set_tcp_connection(), and resets whether trw_report_failure()
 /*	or trw_report_success() were called. Mapping from arguments to
 /*	TLSRPT report fields:
 /* .IP tls_policy_type
 /*	policies[].policy.policy-type.
-/* .IP tls_policy_strings
+/* .IP tls_policy_strings (may be null)
 /*	policies[].policy.policy-string[]. Ignored if the tls_policy_type
 /*	value is TLSRPT_NO_POLICY_FOUND.
-/* .IP tls_policy_domain
+/* .IP tls_policy_domain (may be null)
 /*	policies[].policy.policy-domain.
 /* .IP mx_host_patterns (may be null)
 /*	policies[].policy.mx-host[]. Ignored if the tls_policy_type
@@ -163,7 +184,7 @@
 /*	connection. Mapping from arguments to TLSRPT report fields:
 /* .IP failure_type
 /*	policies[].failure-details[].result-type.
-/* .IP additional_detail (may be null)
+/* .IP additional_info (may be null)
 /*	policies[].failure-details[].additional-information.
 /* .IP failure_reason (may be null)
 /*	policies[].failure-details[].failure-reason-code
@@ -188,8 +209,9 @@
 /*	module is built with TLSRPT support. This allows the names to
 /*	be used even if TLSRPT is disabled.
 /* DIAGNOSTICS
-/*	Some functions will log a a warning when information is missing,
-/*	but such warnings will not affect the SMTP or TLS protocol engine.
+/*	Some functions will log a warning when information is missing.
+/*	Such warnings will not affect the operation of the SMTP or TLS
+/*	protocol engine.
 /* BUGS
 /*	This implementation is suitable to report successful TLS policy
 /*	compliance, and to report a failure that prevents TLS policy
@@ -405,12 +427,17 @@ static int trw_munge_report_result(int libtlsrpt_errorcode)
     }
 
     /*
-     * Report a libc error. Do not report success if errno was zero.
+     * Report a libc error. Do not report success if errno was zero. When
+     * debug logging is enabled, also log some library-internal info.
      */
     else {
 	err = tlsrpt_errno_from_error_code(libtlsrpt_errorcode);
 	msg_warn("Could not report TLS handshake result to tlsrpt library:"
 		 " %s (errno %d)", mystrerror(err), err);
+	if (msg_verbose)
+	    msg_warn("Error location in tlsrpt library: %s (error %d)",
+		     tlsrpt_strerror(libtlsrpt_errorcode),
+		     libtlsrpt_errorcode);
 	errno = err;
 	return (-1);
     }
@@ -452,7 +479,7 @@ static const char *trw_failure_type_to_string(tlsrpt_failure_t failure_type)
 
 int     trw_report_failure(TLSRPT_WRAPPER *trw,
 			           tlsrpt_failure_t failure_type,
-			           const char *additional_detail,
+			           const char *additional_info,
 			           const char *failure_reason)
 {
     const char myname[] = "trw_report_failure";
@@ -514,7 +541,7 @@ int     trw_report_failure(TLSRPT_WRAPPER *trw,
 			     /* receiving_mx_hostname= */ trw->rcv_mta_name,
 				 /* receiving_mx_helo= */ trw->rcv_mta_ehlo,
 				      /* receiving_ip= */ trw->rcv_mta_addr,
-			    /* additional_information= */ additional_detail,
+			      /* additional_information= */ additional_info,
 				 /* failure_reason_code= */ failure_reason);
 		if (res == 0)
 		    res = tlsrpt_finish_policy(dr, TLSRPT_FINAL_FAILURE);

@@ -743,7 +743,7 @@ static int tlsp_eval_tls_error(TLSP_STATE *state, int err)
 	    && state->is_server_role == 0)
 	    trw_report_failure(state->client_start_props->tlsrpt,
 			       TLSRPT_VALIDATION_FAILURE,
-			        /* additional_detail= */ (char *) 0,
+			        /* additional_info= */ (char *) 0,
 			       "tls-handshake-failure");
 #endif
 	tlsp_state_free(state);

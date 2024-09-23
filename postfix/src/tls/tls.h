@@ -125,6 +125,15 @@ extern const char *str_tls_level(int);
 #define tls_set_bio_callback    BIO_set_callback
 #endif
 
+#if OPENSSL_VERSION_PREREQ(3,2)
+#define TLS_GROUP_NAME(ssl) SSL_get0_group_name(ssl)
+#elif OPENSSL_VERSION_PREREQ(3,0)
+#define TLS_GROUP_NAME(ssl) \
+    SSL_group_to_name((ssl), SSL_get_negotiated_group(ssl))
+#else
+#define TLS_GROUP_NAME(ssl) ((const char *)0)
+#endif
+
  /*
   * Utility library.
   */
@@ -262,7 +271,7 @@ typedef struct {
     int     errorcode;			/* First error at error depth */
     int     must_fail;			/* Failed to load trust settings */
     int     rpt_reported;		/* Failure was reported with TLSRPT */
-    char   *fail_type;		/* Doomed by policy */
+    char   *ffail_type;			/* Forced verification failure */
 } TLS_SESS_STATE;
 
  /*
@@ -496,7 +505,7 @@ typedef struct {
     const char *mdalg;			/* default message digest algorithm */
     const TLS_DANE *dane;		/* DANE TLSA verification */
     struct TLSRPT_WRAPPER *tlsrpt;	/* RFC 8460 reporting */
-    char   *fail_type;		/* verification must fail by policy */
+    char   *ffail_type;			/* Forced verification failure */
 } TLS_CLIENT_START_PROPS;
 
 extern TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *);

@@ -836,7 +836,7 @@ static int starttls(STATE *state)
 				     matchargv = state->match,
 				     mdalg = state->mdalg,
 				     tlsrpt = 0,
-				     fail_type = 0,
+				     ffail_type = 0,
 				     dane = state->ddane ?
 				     state->ddane : state->dane);
 
@@ -942,7 +942,7 @@ static int starttls(STATE *state)
 			     matchargv = state->match,
 			     mdalg = state->mdalg,
 			     tlsrpt = 0,
-			     fail_type = 0,
+			     ffail_type = 0,
 			  dane = state->ddane ? state->ddane : state->dane);
     }						/* tlsproxy_mode */
     vstring_free(cipher_exclusions);

@@ -5,7 +5,7 @@
 /* NAME
 /*	tlsrpt_wrapper 3h
 /* SUMMARY
-/*	TLSRPT support for the TLS protocol engine
+/*	TLSRPT support for the SMTP and TLS protocol engines
 /* SYNOPSIS
 /*	#include <tlsrpt_wrapper.h>
 /* DESCRIPTION
@@ -46,7 +46,7 @@ extern void trw_set_ehlo_resp(TLSRPT_WRAPPER *trw,
 			              const char *rcv_mta_ehlo);
 extern int trw_report_failure(TLSRPT_WRAPPER *trw,
 			              tlsrpt_failure_t policy_failure,
-			              const char *additional_detail,
+			              const char *additional_info,
 			              const char *failure_reason);
 extern int trw_report_success(TLSRPT_WRAPPER *trw);
 extern int trw_is_reported(const TLSRPT_WRAPPER *trw);

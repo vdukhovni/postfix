@@ -24,45 +24,47 @@
 /*	SMTP_STATE *state,
 /*	const char *ehlo_resp)
 /* DESCRIPTION
-/*	This module collects TLSRPT policy information and selected SMTP
-/*	protocol engine state in a TLSRPT_WRAPPER object. This will be
-/*	passed to (possibly remote) TLS protocol engine, so that it
-/*	can report a TLS error to a TLSRPT library. The SMTP protocol
-/*	engine uses the information to report a TLS error or success.
+/*	This module populates a TLSRPT_WRAPPER object with  a)
+/*	remote TLSRPT policy information, b) remote TLSA or STS policy
+/*	information, and c) selected SMTP connection information. This
+/*	object is passed to a TLS protocol engine, which may run in a
+/*	different process than the SMTP protocol engine. The TLS protocol
+/*	engine uses the TLSRPT_WRAPPER object to report a TLS handshake
+/*	error to a TLSRPT library. The SMTP protocol engine uses the
+/*	object to report a TLS handshake error or success.
 /*
-/*	smtp_tls_post_jail() does configuration sanity checks and
-/*	returns 0 if successful, i.e. TLSRPT support is properly
+/*	smtp_tls_post_jail() does configuration sanity checks and returns
+/*	0 if successful, i.e. TLSRPT support is properly
 /*	configured. Otherwise it returns -1 and logs a warning. Arguments:
 /* .IP sockname_pname
-/*	The name of a configuration parameter for the endpoint that is
-/*	managed by TLSRPT infrastructure. This is used in a diagnostic
-/*	message.
+/*	The name of a configuration parameter for the endpoint that
+/*	is managed by TLSRPT infrastructure. This name is used in a
+/*	diagnostic message.
 /* .IP sockname_pval
 /*	The value of said parameter.
 /* .PP
-/*	smtp_tlsrpt_create_wrapper() destroys any TLSRPT_WRAPPER
-/*	referenced by state->tlsrpt, and looks for a TLSRPT
-/*	policy for the specified domain. If one policy exists,
-/*	smtp_tlsrpt_create_wrapper() attaches a TLSRPT_WRAPPER instance
-/*	to state->tlsrpt. Otherwise, state->tlsrpt will be null, and
-/*	other smtp_tlsrpt_* calls must not be made. The TLSRPT_WRAPPER
-/*	instance may be reused for different SMTP connections with the
-/*	same TLSRPT policy domain. Arguments:
+/*	smtp_tlsrpt_create_wrapper() destroys a TLSRPT_WRAPPER referenced
+/*	by state->tlsrpt, and looks for a TLSRPT policy for the specified
+/*	domain. If one policy exists, smtp_tlsrpt_create_wrapper()
+/*	attaches a TLSRPT_WRAPPER instance to state->tlsrpt. Otherwise,
+/*	state->tlsrpt will be null, and other smtp_tlsrpt_* calls must not
+/*	be made. The TLSRPT_WRAPPER instance may be reused for different
+/*	SMTP connections for the same TLSRPT policy domain. Arguments:
 /* .IP domain
 /*	The name of a domain that may publish a TLSRPT policy. An
 /*	internationalized domain name may be in U-label or A-label form
-/*	(it will be converted to A-label internally).
+/*	(the U-label form will be converted to A-label internally).
 /* .PP
-/*	smtp_tlsrpt_set_tls_policy() updates the TLSRPT_WRAPPER with
-/*	DANE or STS TLS policy information, and clears information
-/*	that was added with smtp_tlsrpt_set_tcp_connection() or
-/*	smtp_tlsrpt_set_ehlo_resp().
+/*	smtp_tlsrpt_set_tls_policy() updates the TLSRPT_WRAPPER
+/*	object with DANE or STS TLS policy information, and clears
+/*	information that was added with smtp_tlsrpt_set_tcp_connection()
+/*	or smtp_tlsrpt_set_ehlo_resp().
 /* .PP
-/*	smtp_tlsrpt_set_tcp_connection() updates the TLSRPT_WRAPPER with
-/*	TCP connection properties.
+/*	smtp_tlsrpt_set_tcp_connection() updates the TLSRPT_WRAPPER
+/*	object with TCP connection properties.
 /* .PP
-/*	smtp_tlsrpt_set_ehlo_resp() updates the TLSRPT_WRAPPER with the
-/*	SMTP server's EHLO response.
+/*	smtp_tlsrpt_set_ehlo_resp() updates the TLSRPT_WRAPPER object
+/*	with the SMTP server's EHLO response.
 /* BUGS
 /*	This module inherits all limitations from tlsrpt_wrapper(3).
 /* SEE ALSO
@@ -118,7 +120,7 @@ int     smtp_tlsrpt_post_jail(const char *sockname_pname,
 			              const char *sockname_pval)
 {
     if (smtp_dns_support == SMTP_DNS_DISABLED) {
-	msg_warn("Cannot enable TLRPT support: DNS is disabled");
+	msg_warn("Cannot enable %s: DNS is disabled", smtp_tlsrpt_support);
 	return (-1);
     }
     if (*sockname_pval == 0) {
@@ -152,8 +154,8 @@ static DNS_RR *smtp_tlsrpt_find_policy(const char *adomain)
      * Lexical features: As specified in RFC 8460, a TLSRPT policy record
      * must start with a version field ("v=TLSRPTv1") followed by *WSP;*WSP
      * and at least one other field (we must not assume that the second field
-     * will be "rua"). We leave further validation to the TLSRPT library,
-     * where it belongs.
+     * will be "rua"). We leave further validation to the code that actually
+     * needs it.
      */
 #define TLSRPTv1_MAGIC		"v=TLSRPTv1"
 #define TLSRPTv1_MAGIC_LEN	(sizeof(TLSRPTv1_MAGIC) - 1)
@@ -184,7 +186,7 @@ static DNS_RR *smtp_tlsrpt_find_policy(const char *adomain)
 
 	    next = rr->next;
 	    if (strncmp(rr->data, TLSRPTv1_MAGIC, TLSRPTv1_MAGIC_LEN) != 0)
-		/* Ignore non-TLSRPT info. */
+		/* Ignore non-TLSRPTv1 info. */
 		continue;
 	    cp = rr->data + TLSRPTv1_MAGIC_LEN;
 
@@ -197,9 +199,10 @@ static DNS_RR *smtp_tlsrpt_find_policy(const char *adomain)
 		continue;
 	    }
 	    if (rr_result) {
-		msg_warn("%s: Too many policies for %s",
+		msg_warn("%s: Too many TLSRPT policies for %s",
 			 smtp_tlsrpt_support, adomain);
 		dns_rr_free(rr_result);
+		rr_result = 0;
 		break;
 	    }
 	    rr_result = rr;
@@ -383,7 +386,7 @@ void    smtp_tlsrpt_set_tcp_connection(SMTP_STATE *state)
 
     /*
      * Get the IP client address string. The Postfix SMTP_ITERATOR already
-     * contains strings with other connection information.
+     * contains strings with server-side connection information.
      */
     if (getsockname(vstream_fileno(session->stream),
 		    (struct sockaddr *) &addr_storage,

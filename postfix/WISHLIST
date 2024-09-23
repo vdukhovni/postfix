@@ -8,6 +8,13 @@ Wish list:
 
 	Add tests for Message-ID extraction in the cleanup daemon.
 
+	When debug logging is enabled, dict_db_open() logs a newline
+	character after the version info.
+
+	postsuper fails to write the maillog file while Postfix is down
+	(the fallback to 'direct write' happens after an irreversible
+	set_ugid() call).
+
 	The postdrop code should be more explicit about what
 	attrributes it will pass through. rec_attr_map() is not
 	supposed to be an approver.

@@ -258,7 +258,7 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
 #define TLS_ATTR_MDALG		"mdalg"
 #define TLS_ATTR_DANE		"dane"
 #define TLS_ATTR_TLSRPT		"tlsrpt"
-#define FAIL_TYPE	"fail_type"
+#define TLS_ATTR_FFAIL_TYPE	"forced_failure_type"
 
  /*
   * TLS_TLSA attributes.

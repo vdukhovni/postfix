@@ -337,8 +337,8 @@ void    tls_proxy_client_start_free(TLS_CLIENT_START_PROPS *props)
     if (props->tlsrpt)
 	trw_free(props->tlsrpt);
 #endif
-    if (props->fail_type)
-	myfree(props->fail_type);
+    if (props->ffail_type)
+	myfree(props->ffail_type);
     myfree((void *) props);
 }
 
@@ -530,7 +530,7 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     VSTRING *cipher_grade = vstring_alloc(25);
     VSTRING *cipher_exclusions = vstring_alloc(25);
     VSTRING *mdalg = vstring_alloc(25);
-    VSTRING *fail_type = vstring_alloc(25);
+    VSTRING *ffail_type = vstring_alloc(25);
 
 #ifdef USE_TLSRPT
 #define EXPECT_START_SCAN_RETURN	17
@@ -571,7 +571,7 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 		  RECV_ATTR_FUNC(tls_proxy_client_tlsrpt_scan,
 				 &props->tlsrpt),
 #endif
-		  RECV_ATTR_STR(FAIL_TYPE, fail_type),
+		  RECV_ATTR_STR(TLS_ATTR_FFAIL_TYPE, ffail_type),
 		  ATTR_TYPE_END);
     /* Always construct a well-formed structure. */
     props->nexthop = vstring_export(nexthop);
@@ -584,7 +584,7 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     props->cipher_grade = vstring_export(cipher_grade);
     props->cipher_exclusions = vstring_export(cipher_exclusions);
     props->mdalg = vstring_export(mdalg);
-    EXPORT_OR_NULL(props->fail_type, fail_type);
+    EXPORT_OR_NULL(props->ffail_type, ffail_type);
     ret = (ret == EXPECT_START_SCAN_RETURN ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_client_start_free(props);

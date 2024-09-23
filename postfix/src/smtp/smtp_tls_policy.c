@@ -454,6 +454,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 	    tls->ext_policy_type = mystrdup(val);
 	    continue;
 	}
+	/* Only one instance per policy. */
 	if (!strcasecmp(name, EXT_POLICY_DOMAIN)) {
 	    if (tls->ext_policy_domain) {
 		msg_warn("%s: attribute \"%s\" is specified multiple times",

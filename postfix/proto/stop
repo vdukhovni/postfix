@@ -1615,6 +1615,14 @@ milterfrom
 canonicalization
 Orlitzky
 Typofix
+Deduplicate
+KEM
+HelloRetryRequest
+HRR
+KEMs
+kex
+keyshare
+pkg
 RPT
 TLSRPT
 TLSRPTv
@@ -1640,3 +1648,4 @@ RPC
 datatracker
 webpki
 parsable
+mailto

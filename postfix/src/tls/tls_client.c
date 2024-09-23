@@ -152,6 +152,9 @@
 /*
 /*	Victor Duchovni
 /*	Morgan Stanley
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -369,7 +372,7 @@ static void verify_x509(TLS_SESS_STATE *TLScontext, X509 *peercert,
 	    msg_info("%s: re-using session with untrusted peer credential, "
 		     "look for details earlier in the log", props->namaddr);
     }
-    /* TODO(wietse) In the non-reuse case, tlsrprt the root cause? */
+    /* TODO(wietse) Don't log TLSRPT success/failure for reused session. */
 }
 
 /* verify_rpk - process RFC7250 raw public key verification status */
@@ -414,7 +417,7 @@ static void verify_rpk(TLS_SESS_STATE *TLScontext, EVP_PKEY *peerpkey,
 	    msg_info("%s: re-using session with untrusted certificate, "
 		     "look for details earlier in the log", props->namaddr);
     }
-    /* TODO(wietse) In the non-reuse case, tlsrprt the root cause? */
+    /* TODO(wietse) Don't log TLSRPT success/failure for reused session. */
 }
 
 /* add_namechecks - tell OpenSSL what names to check */
@@ -1121,7 +1124,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 #ifdef USE_TLSRPT
 		if (props->tlsrpt) {
 		    trw_report_failure(props->tlsrpt, TLSRPT_TLSA_INVALID,
-				        /* additional_detail= */ (char *) 0,
+				        /* additional_info= */ (char *) 0,
 				       "all-TLSA-records-unusable");
 		}
 #endif
@@ -1135,7 +1138,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 #ifdef USE_TLSRPT
 		if (props->tlsrpt) {
 		    trw_report_failure(props->tlsrpt, TLSRPT_VALIDATION_FAILURE,
-				        /* additional_detail= */ (char *) 0,
+				        /* additional_info= */ (char *) 0,
 				       "all-fingerprints-unusable");
 		}
 #endif
@@ -1145,7 +1148,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 #ifdef USE_TLSRPT
 		if (props->tlsrpt) {
 		    trw_report_failure(props->tlsrpt, TLSRPT_TLSA_INVALID,
-				        /* additional_detail= */ (char *) 0,
+				        /* additional_info= */ (char *) 0,
 				       "all-TLSA-records-unusable");
 		}
 #endif
@@ -1156,7 +1159,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 #ifdef USE_TLSRPT
 		if (props->tlsrpt) {
 		    trw_report_failure(props->tlsrpt, TLSRPT_VALIDATION_FAILURE,
-				        /* additional_detail= */ (char *) 0,
+				        /* additional_info= */ (char *) 0,
 				       "all-trust-anchors-unusable");
 		}
 #endif
@@ -1260,8 +1263,8 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * certificate matches in tls_verify.c. TODO(wietse) how was this handled
      * historically?
      */
-    if (props->fail_type) {
-	TLScontext->fail_type = mystrdup(props->fail_type);
+    if (props->ffail_type) {
+	TLScontext->ffail_type = mystrdup(props->ffail_type);
 	TLScontext->must_fail = 1;
     }
 
@@ -1300,7 +1303,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 #ifdef USE_TLSRPT
 	if (props->tlsrpt)
 	    trw_report_failure(props->tlsrpt, TLSRPT_VALIDATION_FAILURE,
-			        /* additional_detail= */ (char *) 0,
+			        /* additional_info= */ (char *) 0,
 			       "tls-handshake-failure");
 #endif
 	uncache_session(app_ctx->ssl_ctx, TLScontext);

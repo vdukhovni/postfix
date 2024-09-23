@@ -78,6 +78,9 @@
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
 /*
+/*	Wietse Venema
+/*	porcupine.org
+/*
 /*	Pipelining code in cooperation with:
 /*	Jon Ribbens
 /*	Oaktree Internet Solutions Ltd.,
@@ -481,7 +484,7 @@ int     smtp_helo(SMTP_STATE *state)
 #ifdef USE_TLSRPT
 	    if (state->tlsrpt
 		&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0)
-		trw_set_ehlo_resp(state->tlsrpt, resp->str);
+		smtp_tlsrpt_set_ehlo_resp(state, resp->str);
 #endif
 	}
 	if ((session->features & SMTP_FEATURE_ESMTP) == 0) {
@@ -815,7 +818,7 @@ int     smtp_helo(SMTP_STATE *state)
 		if (state->tlsrpt)
 		    trw_report_failure(state->tlsrpt,
 				       TLSRPT_STARTTLS_NOT_SUPPORTED,
-				        /* additional_detail= */ (char *) 0,
+				        /* additional_info= */ (char *) 0,
 				        /* failure_reason= */ (char *) 0);
 #endif
 		return (smtp_site_fail(state, STR(iter->host), resp,
@@ -839,7 +842,7 @@ int     smtp_helo(SMTP_STATE *state)
 		if (state->tlsrpt)
 		    trw_report_failure(state->tlsrpt,
 				       TLSRPT_STARTTLS_NOT_SUPPORTED,
-				        /* additional_detail= */ (char *) 0,
+				        /* additional_info= */ (char *) 0,
 				        /* failure_reason= */ (char *) 0);
 #endif
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
@@ -974,7 +977,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 #else
 				     tlsrpt = 0,
 #endif
-				     fail_type = 0,
+				     ffail_type = 0,
 				     dane = state->tls->dane);
 
 	/*
@@ -1103,7 +1106,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 #else
 			     tlsrpt = 0,
 #endif
-			     fail_type = state->tls->ext_policy_failure,
+			     ffail_type = state->tls->ext_policy_failure,
 			     dane = state->tls->dane);
 
 	/*
@@ -1175,12 +1178,12 @@ static int smtp_start_tls(SMTP_STATE *state)
 		if (!TLS_CERT_IS_TRUSTED(session->tls_context)) {
 		    (void) trw_report_failure(state->tlsrpt,
 					      TLSRPT_CERTIFICATE_NOT_TRUSTED,
-				        /* additional_detail= */ (char *) 0,
+					  /* additional_info= */ (char *) 0,
 					  /* failure_reason= */ (char *) 0);
 		} else {
 		    (void) trw_report_failure(state->tlsrpt,
 					   TLSRPT_CERTIFICATE_HOST_MISMATCH,
-				        /* additional_detail= */ (char *) 0,
+					  /* additional_info= */ (char *) 0,
 					  /* failure_reason= */ (char *) 0);
 		}
 	    }
@@ -1194,10 +1197,12 @@ static int smtp_start_tls(SMTP_STATE *state)
      * Create a TLSRPT success report only if the TLS engine has not reported
      * a failure (For example, the TLS handshake may be successful, but the
      * security level was downgraded from opportunistic or half "dane" to
-     * "encrypt").
+     * "encrypt"), and only if the TLS session and SMTP connection are new.
      */
 #ifdef USE_TLSRPT
-    if (state->tlsrpt && session->tls_context->rpt_reported == 0)
+    if (state->tlsrpt && session->tls_context->rpt_reported == 0
+	&& session->tls_context->session_reused == 0	/* New TLS */
+	&& session->reuse_count == 0)		/* New SMTP */
 	(void) trw_report_success(state->tlsrpt);
 #endif
 
