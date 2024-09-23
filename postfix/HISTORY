@@ -28220,3 +28220,19 @@ Apologies for any names omitted.
 	Minor feature: "postcat -f" option to prepend the filename
 	to each output line. This simplifies test data development.
 	File: postcat/postcat.c.
+
+20240919
+
+	Bitrot: With OpenSSL 3.0 additional key exchange algorithms
+	can be runtime loaded via "providers", and these don't have
+	short internal numeric ids (nids). We've been using numeric
+	ids to configure key exchange groups, and for logging the
+	negotiated group. We now need to switch to APIs that work
+	directly with string names. OpenSSL 3.0 supports not only
+	(EC)DH key exchange groups but also more general KEMs (Key
+	Encapsulation Mechanisms), in which the response from the
+	server to the client contains no server public key. So we
+	can no longer reliably deduce the negotiated group from a
+	"peer" key, and may need to fall back on the (new with
+	OpenSSL 3.2) SSL_get0_group_name() function. Viktor Dukhovni.
+	Files: src/tls/tls.h, src/tls/tls_dh.c, src/tls/tls_misc.c.

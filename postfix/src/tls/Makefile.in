@@ -207,6 +207,7 @@ tls_dane.o: ../../include/vstring.h
 tls_dane.o: tls.h
 tls_dane.o: tls_dane.c
 tls_dh.o: ../../include/argv.h
+tls_dh.o: ../../include/been_here.h
 tls_dh.o: ../../include/check_arg.h
 tls_dh.o: ../../include/dns.h
 tls_dh.o: ../../include/mail_params.h
