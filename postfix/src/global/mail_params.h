@@ -3399,21 +3399,25 @@ extern char *var_tls_null_clist;
 #else
 #define DEF_TLS_EECDH_AUTO_1 ""
 #endif
+
 #if defined(SN_X448) && defined(NID_X448)
 #define DEF_TLS_EECDH_AUTO_2 SN_X448 " "
 #else
 #define DEF_TLS_EECDH_AUTO_2 ""
 #endif
+
 #if defined(SN_X9_62_prime256v1) && defined(NID_X9_62_prime256v1)
 #define DEF_TLS_EECDH_AUTO_3 SN_X9_62_prime256v1 " "
 #else
 #define DEF_TLS_EECDH_AUTO_3 ""
 #endif
+
 #if defined(SN_secp384r1) && defined(NID_secp384r1)
-#define DEF_TLS_EECDH_AUTO_4 SN_secp384r1
+#define DEF_TLS_EECDH_AUTO_4 SN_secp384r1 " "
 #else
 #define DEF_TLS_EECDH_AUTO_4 ""
 #endif
+
 #if defined(SN_secp521r1) && defined(NID_secp521r1)
 #define DEF_TLS_EECDH_AUTO_5 SN_secp521r1 " "
 #else

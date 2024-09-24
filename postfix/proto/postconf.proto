@@ -13426,7 +13426,7 @@ EC key agreement in OpenSSL 3.0 and later.  Note that at least one of
 this is required by OpenSSL 3.0.  If both are inadvertently set empty,
 Postfix will fall back to the compiled-in defaults. </p>
 
-<p> All the default groups and EC curves should sufficiently strong to make
+<p> All the default groups and EC curves should be sufficiently strong to make
 "pruning" the defaults unwise.  At a minimum, "x25519" and "prime256v1" (the
 OpenSSL name for "secp256r1", a.k.a. "P-256") should be among the enabled EC
 curves, while "dhe2048" and "dhe3072" should be among the FFDHE groups. </p>

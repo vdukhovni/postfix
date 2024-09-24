@@ -333,8 +333,8 @@ static int setup_auto_groups(SSL_CTX *ctx, const char *origin,
     /*
      * OpenSSL does not tolerate duplicate groups in the requested list.
      * Deduplicate case-insensitively, just in case OpenSSL some day supports
-     * case-insensitive group lookup.  Users who specify the group name twice
-     * and get the case wrong the first time deserve to be unhappy. :-)
+     * case-insensitive group lookup.  Deduplicate only verified extant groups
+     * we're going to ask OpenSSL to use.
      *
      * OpenSSL 3.3 supports "?<name>" as a syntax for optionally ignoring
      * unsupported groups, so we could skip checking against the throw-away
@@ -358,8 +358,6 @@ static int setup_auto_groups(SSL_CTX *ctx, const char *origin,
 	SETUP_AG_RETURN(AG_STAT_NO_GROUP);
     }
     for (; group != 0; group = mystrtok(&groups, GROUPS_SEP)) {
-	if (been_here_fixed(seen, group))
-	    continue;
 	/*
 	 * Validate the group name by trying it as the group for a throw-away
 	 * SSL context. This way, we can ask for new groups that may not yet be
@@ -367,7 +365,8 @@ static int setup_auto_groups(SSL_CTX *ctx, const char *origin,
 	 * silently ignored.
 	 */
 	ERR_set_mark();
-	if (SSL_CTX_set1_curves_list(tmpctx, group) > 0) {
+	if (SSL_CTX_set1_curves_list(tmpctx, group) > 0 &&
+	    !been_here_fixed(seen, group)) {
 	    if (VSTRING_LEN(names) > 0)
 		VSTRING_ADDCH(names, ':');
 	    vstring_strcat(names, group);

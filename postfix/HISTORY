@@ -28236,3 +28236,8 @@ Apologies for any names omitted.
 	"peer" key, and may need to fall back on the (new with
 	OpenSSL 3.2) SSL_get0_group_name() function. Viktor Dukhovni.
 	Files: src/tls/tls.h, src/tls/tls_dh.c, src/tls/tls_misc.c.
+
+20240924
+
+	Misc. cleanups. Viktor Dukhovni. Files: src/tls/tls_dh.c,
+	proto/postconf.proto, src/global/mail_params.h.
