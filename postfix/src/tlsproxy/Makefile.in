@@ -75,6 +75,7 @@ tlsproxy.o: ../../include/split_at.h
 tlsproxy.o: ../../include/sys_defs.h
 tlsproxy.o: ../../include/tls.h
 tlsproxy.o: ../../include/tls_proxy.h
+tlsproxy.o: ../../include/tlsrpt_wrapper.h
 tlsproxy.o: ../../include/vbuf.h
 tlsproxy.o: ../../include/vstream.h
 tlsproxy.o: ../../include/vstring.h

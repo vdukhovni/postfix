@@ -35,6 +35,8 @@
 /*	This feature is available in Postfix 2.7 and later.
 /* .IP \fB-f\fR
 /*	Prepend the file name to each output line.
+/* .sp
+/*	This feature is available in Postfix 3.10 and later.
 /* .IP \fB-h\fR
 /*	Show message header content.  The \fB-h\fR option produces
 /*	output from the beginning of the message up to, but not

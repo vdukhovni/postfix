@@ -124,6 +124,8 @@ int     tls_proxy_context_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 	 RECV_ATTR_INT(TLS_ATTR_SRVR_SIG_BITS, &tls_context->srvr_sig_bits),
 		  RECV_ATTR_STR(TLS_ATTR_SRVR_SIG_DGST, srvr_sig_dgst),
 		  RECV_ATTR_STR(TLS_ATTR_NAMADDR, namaddr),
+		  RECV_ATTR_INT(TLS_ATTR_RPT_REPORTED,
+				&tls_context->rpt_reported),
 		  ATTR_TYPE_END);
     /* Always construct a well-formed structure. */
     tls_context->peer_CN = vstring_export(peer_CN);
@@ -141,7 +143,7 @@ int     tls_proxy_context_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     tls_context->srvr_sig_curve = vstring_export(srvr_sig_curve);
     tls_context->srvr_sig_dgst = vstring_export(srvr_sig_dgst);
     tls_context->namaddr = vstring_export(namaddr);
-    ret = (ret == 24 ? 1 : -1);
+    ret = (ret == 25 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_context_free(tls_context);
 	tls_context = 0;

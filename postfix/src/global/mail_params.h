@@ -4459,6 +4459,22 @@ extern bool var_ign_srv_lookup_err;
 #define DEF_ALLOW_SRV_FALLBACK	0
 extern bool var_allow_srv_fallback;
 
+ /*
+  * TLSRPT notification support. The lmtp_ names must be defined because the
+  * build system enforces that every smtp_ parameter has an lmtp_ variant.
+  */
+#define VAR_SMTP_TLSRPT_ENABLE	"smtp_tlsrpt_enable"
+#define DEF_SMTP_TLSRPT_ENABLE	"no"
+#define VAR_LMTP_TLSRPT_ENABLE	"lmtp_tlsrpt_enable"
+#define DEF_LMTP_TLSRPT_ENABLE	DEF_SMTP_TLSRPT_ENABLE
+extern bool var_smtp_tlsrpt_enable;
+
+#define VAR_SMTP_TLSRPT_SOCKNAME "smtp_tlsrpt_socket_name"
+#define DEF_SMTP_TLSRPT_SOCKNAME ""
+#define VAR_LMTP_TLSRPT_SOCKNAME "lmtp_tlsrpt_socket_name"
+#define DEF_LMTP_TLSRPT_SOCKNAME DEF_SMTP_TLSRPT_SOCKNAME
+extern char *var_smtp_tlsrpt_sockname;
+
 /* LICENSE
 /* .ad
 /* .fi
@@ -4473,6 +4489,9 @@ extern bool var_allow_srv_fallback;
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 #endif

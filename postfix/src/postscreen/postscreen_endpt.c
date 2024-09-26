@@ -110,25 +110,6 @@
 
 static const INET_PROTO_INFO *proto_info;
 
-/* psc_sockaddr_to_hostaddr - transform endpoint address and port to string */
-
-static int psc_sockaddr_to_hostaddr(struct sockaddr *addr_storage,
-				            SOCKADDR_SIZE addr_storage_len,
-				            MAI_HOSTADDR_STR *addr_buf,
-				            MAI_SERVPORT_STR *port_buf,
-				            int socktype)
-{
-    int     aierr;
-
-    if ((aierr = sockaddr_to_hostaddr(addr_storage, addr_storage_len,
-				      addr_buf, port_buf, socktype)) == 0
-	&& strncasecmp("::ffff:", addr_buf->buf, 7) == 0
-	&& strchr((char *) proto_info->sa_family_list, AF_INET) != 0)
-	memmove(addr_buf->buf, addr_buf->buf + 7,
-		sizeof(addr_buf->buf) - 7);
-    return (aierr);
-}
-
 /* psc_endpt_local_lookup - look up local system connection information */
 
 void    psc_endpt_local_lookup(VSTREAM *smtp_client_stream,
@@ -156,7 +137,7 @@ void    psc_endpt_local_lookup(VSTREAM *smtp_client_stream,
      * Convert the remote SMTP client address and port to printable form for
      * logging and access control.
      */
-    else if ((aierr = psc_sockaddr_to_hostaddr(
+    else if ((aierr = sane_sockaddr_to_hostaddr(
 					  (struct sockaddr *) &addr_storage,
 					addr_storage_len, &smtp_client_addr,
 				    &smtp_client_port, SOCK_STREAM)) != 0) {
@@ -180,7 +161,7 @@ void    psc_endpt_local_lookup(VSTREAM *smtp_client_stream,
      * Convert the local SMTP server address and port to printable form for
      * logging.
      */
-    else if ((aierr = psc_sockaddr_to_hostaddr(
+    else if ((aierr = sane_sockaddr_to_hostaddr(
 					  (struct sockaddr *) &addr_storage,
 					addr_storage_len, &smtp_server_addr,
 				    &smtp_server_port, SOCK_STREAM)) != 0) {

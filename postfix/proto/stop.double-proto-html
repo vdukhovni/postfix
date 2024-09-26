@@ -358,3 +358,8 @@ expected to become a list of comma separated names br br This
 Postfix  Postfix can use MongoDB as a source for any of its lookups aliases 5 virtual 5 canonical 5 etc This allows you to keep information for your mail service in a replicated noSQL database with fine grained access controls By not storing it
  CCARGS CCARGS DHAS_MONGODB I usr include libmongoc 1 0 
  dt dt dd 2 Also enable verbose logging in the Postfix TLS
+Postfix  Postfix legacy TLS Support
+ var run tlsrpt tlsrpt sock Relative names will work with and without Postfix chroot support Do not specify a location under a directory such as private or public that is already used by Postfix programs Only Postfix programs should create
+ Note the recommended socket location is still to be determined A good socket location would be under the Postfix queue directory for example smtp_tlsrpt_socket_name run tlsrpt tlsrpt sock The advantage of using a relative name is that
+ with cipher ECDHE RSA AES256 GCM SHA384 256 256 bits 
+ TLSv1 2 with cipher ECDHE RSA AES256 GCM SHA384 256 256 bits 

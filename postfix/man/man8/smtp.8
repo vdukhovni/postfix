@@ -672,6 +672,12 @@ Available in Postfix version 3.9 and later:
 .IP "\fBsmtp_tls_enable_rpk (no)\fR"
 Request that remote SMTP servers send an RFC7250 raw public key
 instead of an X.509 certificate.
+.PP Available in Postfix version 3.10 and later:
+.IP "\fBsmtp_tlsrpt_enable (no)\fR"
+Enable support for RFC 8460 TLSRPT notifications.
+.IP "\fBsmtp_tlsrpt_socket_name (empty)\fR"
+The pathname of a UNIX\-domain datagram socket that is managed
+by a local TLSRPT reporting service.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

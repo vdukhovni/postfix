@@ -835,6 +835,8 @@ static int starttls(STATE *state)
 				     = vstring_str(cipher_exclusions),
 				     matchargv = state->match,
 				     mdalg = state->mdalg,
+				     tlsrpt = 0,
+				     ffail_type = 0,
 				     dane = state->ddane ?
 				     state->ddane : state->dane);
 
@@ -939,6 +941,8 @@ static int starttls(STATE *state)
 			     = vstring_str(cipher_exclusions),
 			     matchargv = state->match,
 			     mdalg = state->mdalg,
+			     tlsrpt = 0,
+			     ffail_type = 0,
 			  dane = state->ddane ? state->ddane : state->dane);
     }						/* tlsproxy_mode */
     vstring_free(cipher_exclusions);

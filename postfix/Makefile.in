@@ -115,9 +115,9 @@ manpages:
 	done </dev/null
 
 # Some checks require a bin/postconf executable.
-pre-release-checks: typo-check missing-proxy-read-maps-check \
-	postlink-check postfix-files-check check-spell-history \
-	check-double-history check-table-proto check-see-postconf-d-output \
+pre-release-checks: typo-check double-check missing-proxy-read-maps-check \
+	postlink-check postfix-files-check \
+	check-table-proto check-see-postconf-d-output \
 	check-snapshot-nonprod
 
 postfix-files-check:
@@ -130,7 +130,10 @@ missing-proxy-read-maps-check:
 	$(SHLIB_ENV) mantools/missing-proxy-read-maps | diff /dev/null -
 
 typo-check: spell-cc spell-install-proto-text spell-proto-html \
-	double-cc double-install-proto-text double-proto-html
+	check-spell-history
+
+double-check: double-cc double-install-proto-text double-proto-html \
+	check-double-history 
 
 spell-cc:
 	mantools/check-spell-cc | diff /dev/null -

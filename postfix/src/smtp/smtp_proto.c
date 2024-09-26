@@ -78,6 +78,9 @@
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
 /*
+/*	Wietse Venema
+/*	porcupine.org
+/*
 /*	Pipelining code in cooperation with:
 /*	Jon Ribbens
 /*	Oaktree Internet Solutions Ltd.,
@@ -155,6 +158,9 @@
 #include <xtext.h>
 #include <uxtext.h>
 #include <smtputf8.h>
+#if defined(USE_TLS) && defined(USE_TLSRPT)
+#include <tlsrpt_wrapper.h>
+#endif
 
 /* Application-specific. */
 
@@ -475,6 +481,11 @@ int     smtp_helo(SMTP_STATE *state)
 		else
 		    session->features &= ~SMTP_FEATURE_ESMTP;
 	    }
+#ifdef USE_TLSRPT
+	    if (state->tlsrpt
+		&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0)
+		smtp_tlsrpt_set_ehlo_resp(state, resp->str);
+#endif
 	}
 	if ((session->features & SMTP_FEATURE_ESMTP) == 0) {
 	    where = "performing the HELO handshake";
@@ -484,6 +495,10 @@ int     smtp_helo(SMTP_STATE *state)
 				       "host %s refused to talk to me: %s",
 				       session->namaddr,
 				       translit(resp->str, "\n", " ")));
+#ifdef USE_TLSRPT
+	    if (state->tlsrpt)
+		trw_set_ehlo_resp(state->tlsrpt, resp->str);
+#endif
 	}
     } else {
 	where = "performing the LHLO handshake";
@@ -798,11 +813,19 @@ int     smtp_helo(SMTP_STATE *state)
 	     * although support for it was announced in the EHLO response.
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
-	    if (TLS_REQUIRED(state->tls->level))
+	    if (TLS_REQUIRED(state->tls->level)) {
+#ifdef USE_TLSRPT
+		if (state->tlsrpt)
+		    trw_report_failure(state->tlsrpt,
+				       TLSRPT_STARTTLS_NOT_SUPPORTED,
+				        /* additional_info= */ (char *) 0,
+				        /* failure_reason= */ (char *) 0);
+#endif
 		return (smtp_site_fail(state, STR(iter->host), resp,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
 				       translit(resp->str, "\n", " ")));
+	    }
 	    /* Else try to continue in plain-text mode. */
 	}
 
@@ -815,6 +838,13 @@ int     smtp_helo(SMTP_STATE *state)
 	 */
 	if (TLS_REQUIRED(state->tls->level)) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
+#ifdef USE_TLSRPT
+		if (state->tlsrpt)
+		    trw_report_failure(state->tlsrpt,
+				       TLSRPT_STARTTLS_NOT_SUPPORTED,
+				        /* additional_info= */ (char *) 0,
+				        /* failure_reason= */ (char *) 0);
+#endif
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "4.7.4"),
 			  "TLS is required, but was not offered by host %s",
@@ -942,6 +972,12 @@ static int smtp_start_tls(SMTP_STATE *state)
 				     = vstring_str(state->tls->exclusions),
 				     matchargv = state->tls->matchargv,
 				     mdalg = var_smtp_tls_fpt_dgst,
+#ifdef USE_TLSRPT
+				     tlsrpt = state->tlsrpt,
+#else
+				     tlsrpt = 0,
+#endif
+				     ffail_type = 0,
 				     dane = state->tls->dane);
 
 	/*
@@ -1065,6 +1101,12 @@ static int smtp_start_tls(SMTP_STATE *state)
 			     = vstring_str(state->tls->exclusions),
 			     matchargv = state->tls->matchargv,
 			     mdalg = var_smtp_tls_fpt_dgst,
+#ifdef USE_TLSRPT
+			     tlsrpt = state->tlsrpt,
+#else
+			     tlsrpt = 0,
+#endif
+			     ffail_type = state->tls->ext_policy_failure,
 			     dane = state->tls->dane);
 
 	/*
@@ -1125,10 +1167,43 @@ static int smtp_start_tls(SMTP_STATE *state)
      * we must check that here, and not state->tls->level.
      */
     if (TLS_MUST_MATCH(session->tls_context->level))
-	if (!TLS_CERT_IS_MATCHED(session->tls_context))
+	if (!TLS_CERT_IS_MATCHED(session->tls_context)) {
+#ifdef USE_TLSRPT
+
+	    /*
+	     * Don't create a TLSRPT 'failure' event here, if the TLS engine
+	     * already reported a more specific reason.
+	     */
+	    if (state->tlsrpt && session->tls_context->rpt_reported == 0) {
+		if (!TLS_CERT_IS_TRUSTED(session->tls_context)) {
+		    (void) trw_report_failure(state->tlsrpt,
+					      TLSRPT_CERTIFICATE_NOT_TRUSTED,
+					  /* additional_info= */ (char *) 0,
+					  /* failure_reason= */ (char *) 0);
+		} else {
+		    (void) trw_report_failure(state->tlsrpt,
+					   TLSRPT_CERTIFICATE_HOST_MISMATCH,
+					  /* additional_info= */ (char *) 0,
+					  /* failure_reason= */ (char *) 0);
+		}
+	    }
+#endif
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not verified"));
+	}
+
+    /*
+     * Create a TLSRPT 'success' event only if the TLS engine has not created
+     * TLSRPT event. For example, The TLS engine will create a TLSRPT
+     * 'failure' event when the TLS handshake was be successful, but the
+     * security level was downgraded from opportunistic "dane" to
+     * unauthenticated "encrypt".
+     */
+#ifdef USE_TLSRPT
+    if (state->tlsrpt && session->tls_context->rpt_reported == 0)
+	(void) trw_report_success(state->tlsrpt);
+#endif
 
     /*
      * At this point we have to re-negotiate the "EHLO" to reget the

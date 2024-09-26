@@ -250,15 +250,12 @@ static int haproxy_srvr_parse_addr(const char *str, MAI_HOSTADDR_STR *addr,
     }
     if (err == 0)
 	err = (hostaddr_to_sockaddr(str, (char *) 0, 0, &res)
-	       || sockaddr_to_hostaddr(res->ai_addr, res->ai_addrlen,
-				       addr, (MAI_SERVPORT_STR *) 0, 0));
+	       || sane_sockaddr_to_hostaddr(res->ai_addr, res->ai_addrlen,
+					  addr, (MAI_SERVPORT_STR *) 0, 0));
     if (res)
 	freeaddrinfo(res);
     if (err)
 	return (-1);
-    if (addr->buf[0] == ':' && strncasecmp("::ffff:", addr->buf, 7) == 0
-	&& strchr((char *) proto_info->sa_family_list, AF_INET) != 0)
-	memmove(addr->buf, addr->buf + 7, strlen(addr->buf) + 1 - 7);
     return (0);
 }
 

@@ -361,6 +361,93 @@ static int append_to_elem_from_list_exact_fit(void)
     return (eq_dns_rr_free(got, want));
 }
 
+static int delete_middle_element(void)
+{
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
+    DNS_RR *got, *want, *list;
+
+    ((list = a)->next = b)->next = c;
+    (want = dns_rr_copy(a))->next = dns_rr_copy(c);
+    got = dns_rr_remove(list, b);
+
+    return (eq_dns_rr_free(got, want));
+}
+
+static int delete_first_element(void)
+{
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
+    DNS_RR *got, *want, *list;
+
+    ((list = a)->next = b)->next = c;
+    (want = dns_rr_copy(b))->next = dns_rr_copy(c);
+    got = dns_rr_remove(list, a);
+
+    return (eq_dns_rr_free(got, want));
+}
+
+static int delete_last_element(void)
+{
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
+    DNS_RR *got, *want, *list;
+
+    ((list = a)->next = b)->next = c;
+    (want = dns_rr_copy(a))->next = dns_rr_copy(b);
+    got = dns_rr_remove(list, c);
+
+    return (eq_dns_rr_free(got, want));
+}
+
+static int detach_middle_element(void)
+{
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
+    DNS_RR *got, *want, *list;
+
+    ((list = a)->next = b)->next = c;
+    (want = dns_rr_copy(a))->next = dns_rr_copy(c);
+    got = dns_rr_detach(list, b);
+    dns_rr_free(b);
+
+    return (eq_dns_rr_free(got, want));
+}
+
+static int detach_first_element(void)
+{
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
+    DNS_RR *got, *want, *list;
+
+    ((list = a)->next = b)->next = c;
+    (want = dns_rr_copy(b))->next = dns_rr_copy(c);
+    got = dns_rr_detach(list, a);
+    dns_rr_free(a);
+
+    return (eq_dns_rr_free(got, want));
+}
+
+static int detach_last_element(void)
+{
+    DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+    DNS_RR *b = dns_rr_create_noport("qb", "rb", T_MX, C_IN, 3600, 1, "mxb", 4);
+    DNS_RR *c = dns_rr_create_noport("qc", "rc", T_MX, C_IN, 3600, 1, "mxc", 4);
+    DNS_RR *got, *want, *list;
+
+    ((list = a)->next = b)->next = c;
+    (want = dns_rr_copy(a))->next = dns_rr_copy(b);
+    got = dns_rr_detach(list, c);
+    dns_rr_free(c);
+
+    return (eq_dns_rr_free(got, want));
+}
+
  /*
   * The test cases.
   */
@@ -400,9 +487,15 @@ static const TEST_CASE test_cases[] = {
     "append to element from list exact fit", append_to_elem_from_list_exact_fit,
 
     /*
-     * TODO: tests dns_rr_sort(), dns_rr_srv_sort(), dns_rr_remove(),
-     * dns_rr_shuffle(), etc.
+     * TODO: tests for dns_rr_sort(), dns_rr_srv_sort(), dns_rr_shuffle(),
+     * etc.
      */
+    "delete element from list (middle)", delete_middle_element,
+    "delete element from list (first)", delete_first_element,
+    "delete element from list (last)", delete_last_element,
+    "detach element from list (middle)", detach_middle_element,
+    "detach element from list (first)", detach_first_element,
+    "detach element from list (last)", detach_last_element,
     0,
 };
 

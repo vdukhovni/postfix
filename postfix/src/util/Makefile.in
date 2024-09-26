@@ -45,7 +45,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	byte_mask.c known_tcp_ports.c argv_split_at.c dict_stream.c \
 	sane_strtol.c hash_fnv.c ldseed.c mkmap_cdb.c mkmap_db.c mkmap_dbm.c \
 	mkmap_fail.c mkmap_lmdb.c mkmap_open.c mkmap_sdbm.c inet_prefix_top.c \
-	inet_addr_sizes.c quote_for_json.c
+	inet_addr_sizes.c quote_for_json.c mystrerror.c \
+	sane_sockaddr_to_hostaddr.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -92,7 +93,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	byte_mask.o known_tcp_ports.o argv_split_at.o dict_stream.o \
 	sane_strtol.o hash_fnv.o ldseed.o mkmap_db.o mkmap_dbm.o \
 	mkmap_fail.o mkmap_open.o inet_prefix_top.o inet_addr_sizes.o \
-	quote_for_json.o
+	quote_for_json.o mystrerror.o sane_sockaddr_to_hostaddr.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -2444,6 +2445,12 @@ mymalloc.o: sys_defs.h
 myrand.o: myrand.c
 myrand.o: myrand.h
 myrand.o: sys_defs.h
+mystrerror.o: check_arg.h
+mystrerror.o: mystrerror.c
+mystrerror.o: stringops.h
+mystrerror.o: sys_defs.h
+mystrerror.o: vbuf.h
+mystrerror.o: vstring.h
 mystrtok.o: check_arg.h
 mystrtok.o: msg.h
 mystrtok.o: mystrtok.c
@@ -2549,9 +2556,11 @@ printable.o: stringops.h
 printable.o: sys_defs.h
 printable.o: vbuf.h
 printable.o: vstring.h
+quote_for_json.o: check_arg.h
 quote_for_json.o: quote_for_json.c
 quote_for_json.o: stringops.h
 quote_for_json.o: sys_defs.h
+quote_for_json.o: vbuf.h
 quote_for_json.o: vstring.h
 rand_sleep.o: iostuff.h
 rand_sleep.o: msg.h
@@ -2617,6 +2626,10 @@ sane_rename.o: sane_fsops.h
 sane_rename.o: sane_rename.c
 sane_rename.o: sys_defs.h
 sane_rename.o: warn_stat.h
+sane_sockaddr_to_hostaddr.o: inet_proto.h
+sane_sockaddr_to_hostaddr.o: myaddrinfo.h
+sane_sockaddr_to_hostaddr.o: sane_sockaddr_to_hostaddr.c
+sane_sockaddr_to_hostaddr.o: sys_defs.h
 sane_socketpair.o: msg.h
 sane_socketpair.o: sane_socketpair.c
 sane_socketpair.o: sane_socketpair.h
@@ -2883,6 +2896,7 @@ vbuf.o: vbuf.h
 vbuf_print.o: check_arg.h
 vbuf_print.o: msg.h
 vbuf_print.o: mymalloc.h
+vbuf_print.o: stringops.h
 vbuf_print.o: sys_defs.h
 vbuf_print.o: vbuf.h
 vbuf_print.o: vbuf_print.c

@@ -14802,6 +14802,33 @@ Postfix versions. </p>
 
 </DD>
 
+<DT><b><a name="smtp_tlsrpt_enable">smtp_tlsrpt_enable</a>
+(default: no)</b></DT><DD>
+
+<p> Enable support for <a href="https://tools.ietf.org/html/rfc8460">RFC 8460</a> TLSRPT notifications. A mail receiving
+domain can publish a TLSRPT policy in DNS, to request periodic
+summaries of successful and failed SMTP over TLS connections to
+their mail servers. This feature requires that Postfix is built
+with a TLSRPT supporting library. </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tlsrpt_socket_name">smtp_tlsrpt_socket_name</a>
+(default: empty)</b></DT><DD>
+
+<p> The pathname of a UNIX-domain datagram socket that is managed
+by a local TLSRPT reporting service. This parameter must specify a
+pathname (absolute, or relative to $<a href="postconf.5.html#queue_directory">queue_directory</a>) when
+"<a href="postconf.5.html#smtp_tlsrpt_enable">smtp_tlsrpt_enable</a> = yes". </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_use_tls">smtp_use_tls</a>
 (default: no)</b></DT><DD>
 

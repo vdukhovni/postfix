@@ -6,6 +6,11 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Add smtp_tlsrpt_allow_list feature (default: static:all) to limit
+	the domains for which Postfix generates TLSRPT daily sumamries.
+
+	Add unit tests for smtp_tlsrpt.c, tlstrpd_wrapper.c, ...
+
 	Add tests for Message-ID extraction in the cleanup daemon.
 
 	When debug logging is enabled, dict_db_open() logs a newline

@@ -1,0 +1,277 @@
+PPoossttffiixx TTLLSSRRPPTT HHoowwttoo
+
+-------------------------------------------------------------------------------
+
+TTaabbllee ooff CCoonntteennttss
+
+  * Introduction
+  * Building Postfix with TLSRPT support
+  * Turning on TLSRPT
+  * TLSRPT Status logging
+  * Delivering TLSRPT summaries via email
+  * MTA-STS Support via smtp_tls_policy_maps
+  * Limitations
+  * Credits
+
+IInnttrroodduuccttiioonn
+
+The TLSRPT protocol is defined in RFC 8460. With this, an email receiving
+domain can publish a policy in DNS, and request daily summary reports for
+successful and failed SMTP over TLS connections to that domain's MX hosts.
+Support for TLSRPT was added in Postfix 3.10.
+
+A policy example looks like this:
+
+    _smtp._tls.example.com. IN TXT "v=TLSRPTv1; rua=mailto:smtp-tls-
+    report@example.com"
+
+Translation: email sending systems are requested to generate daily summaries of
+successful and failed SMTP over TLS connections to domain example.com, and to
+report those summaries via email to the specified address. Instead of mailto:,
+a policy may specify an https: destination.
+
+The high-level diagram shows how Postfix reports summaries to domains that
+publish a TLSRPT policy.
+
+    Postfix SMTP and     TLSRPT client      TLSRPT summary      Email or HTTP
+       TLS client    -->    library     -->    generator    -->    delivery
+        engines
+
+When Postfix TLSRPT support is enabled (with "smtp_tlsrpt_enable = yes"):
+
+  * The Postfix SMTP and TLS client engines will generate a "success" or
+    "failure" event for each TLS handshake,
+
+  * They will pass those events to an in-process TLSRPT client library that
+    sends data over a local socket to
+
+  * A TLSRPT report generator that produces daily summary reports.
+
+The TLSRPT client library and report generator are maintained by sys4.
+
+The Postfix implementation supports both DANE (Postfix built-in) and MTA-STS
+(through an smtp_tls_policy_maps plug-in).
+
+The Postfix smtp(8) client process implements the SMTP client engine. With
+"smtp_tls_connection_reuse = no", the smtp(8) client process also implements
+the TLS client engine. With "smtp_tls_connection_reuse = yes", the smtp(8)
+client process delegates TLS processing to a Postfix tlsproxy(8) process.
+Either way, Postfix will generate the exact same TLSRPT events.
+
+BBuuiillddiinngg PPoossttffiixx wwiitthh TTLLSSRRPPTT ssuuppppoorrtt
+
+These instructions assume that you build Postfix from source code as described
+in the INSTALL document. Some modification may be required if you build Postfix
+from a vendor-specific source package.
+
+The Postfix TLSRPT client builds on a TLSRPT client library whose source code
+can be obtained from:
+
+    https://github.com/sys4/tlsrpt
+
+The library is typically installed as a header file in /usr/local/include/
+tlsrpt.h and an object library in /usr/local/lib/libtlsrpt.a or /usr/local/lib/
+libtlsrpt.so. The actual pathnames will depend on OS platform conventions.
+
+In order to build Postfix with TLSRPT support, you will need to add compiler
+options -DUSE_TLSRPT (to build with TLSRPT support), and -I (with the directory
+containing the tlsrpt.h header file), and you will need to add linker options
+to link with the TLSRPT client library, for example:
+
+    make -f Makefile.init makefiles \
+      "CCARGS=-DUSE_TLSRPT -I/usr/local/include" \
+      "AUXLIBS=-L/usr/local/lib -ltlsrpt"
+
+Then, just run 'make'.
+
+    Note: if your build command line already has CCARGS or AUXLIBS settings,
+    then simply append the above settings to the existing CCARGS or AUXLIBS
+    values.
+
+        make -f Makefile.init makefiles \
+          "CCARGS=existing settings... -DUSE_TLSRPT -I/usr/local/include" \
+          "AUXLIBS=existing settings... -L/usr/local/lib -ltlsrpt"
+
+TTuurrnniinngg oonn TTLLSSRRPPTT
+
+After installing Postfix TLSRPT support, you can enable TLSRPT support in
+main.cf like this:
+
+    smtp_tlsrpt_enable = yes
+    smtp_tlsrpt_socket_name = /path/to/socket
+
+The smtp_tlsrpt_socket_name parameter specifies an absolute pathname, or a
+pathname that is relative to $queue_directory.
+
+    Note: the recommended socket location is still to be determined. A good
+    socket location would be under the Postfix queue directory, for example:
+    "smtp_tlsrpt_socket_name = run/tlsrpt/tlsrpt.sock". The advantage of using
+    a relative name is that it will work equally well whether or not Postfix
+    chroot is turned on.
+
+Do not specify a location under a directory such as private or public that is
+already used by Postfix programs. Only Postfix programs should create sockets
+there.
+
+TTLLSSRRPPTT SSttaattuuss llooggggiinngg
+
+With TLSRPT support turned on, the Postfix TLSRPT client will not only report
+an event to an invisible daily success/fail summary queue, but it will also log
+a visible record to the mail logfile.
+
+Below are a few examples of logging from a Postfix SMTP client or tlsproxy
+daemon:
+
+    TLSRPT: status=success, domain=example.com, receiving_mx=mail.example.com
+    [ipaddr]
+
+    TLSRPT: status=failure, domain=example.org, receiving_mx=mail.example.org
+    [ipaddr],
+        failure_type=starttls_not_supported
+
+    TLSRPT: status=failure, domain=example.net, receiving_mx=mail.example.net
+    [ipaddr],
+        failure_type=validation_failure, failure_reason=self-signed_certificate
+
+Note: Postfix logs and reports TLSRPT status only for TLS handshakes on a new
+SMTP connection. There is no TLSRPT status logging for a reused SMTP
+connection. Such connections have Postfix SMTP client logging like this:
+
+    Verified TTLLSS ccoonnnneeccttiioonn rreeuusseedd to mail.example.com[ipaddr]:25:
+        TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)
+
+    Untrusted TTLLSS ccoonnnneeccttiioonn rreeuusseedd to mail.example.com[ipaddr]:25:
+        TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)
+
+Postfix logs certificate verification failures with a level of detail that is
+different for a new or reused TLS session.
+
+  * A new TLS session is logged with certificate verification failure details:
+
+    TLSRPT: status=failure, domain=example.org, receiving_mx=mail.example.org
+    [ipaddr],
+        ffaaiilluurree__ttyyppee==vvaalliiddaattiioonn__ffaaiilluurree, ffaaiilluurree__rreeaassoonn==sseellff--ssiiggnneedd__cceerrttiiffiiccaattee
+
+  * A reused TLS session is indicated as shown below, and has no certificate
+    verification details:
+
+    mail.example.org[ipaddr]:25: rree--uussiinngg sseessssiioonn with untrusted peer
+        credential, look for details earlier in the log
+    TLSRPT: status=failure, domain=example.org, receiving_mx=mail.example.org
+    [ipaddr],
+        ffaaiilluurree__ttyyppee==cceerrttiiffiiccaattee__nnoott__ttrruusstteedd
+
+Some Postfix users may wonder where the difference comes from. So this is why.
+
+DDeelliivveerriinngg TTLLSSRRPPTT ssuummmmaarriieess vviiaa eemmaaiill
+
+RFC 8460 suggests not to enforce strict TLS security when sending daily
+success/failure summaries via email, to avoid delivery delays caused by a
+failure to enforce TLS security. Postfix currently does not have a mechanism to
+disable TLS security enforcement when submitting an email message; this section
+provides a workaround.
+
+By design, TLSRPT is not a real-time notification system; it takes on average
+12 hours before a failure is reported in a daily success/failure summary. If a
+TLS-related delay of a day or more is undesirable, one could set up a transport
+map to make TLS security optional for specific TLSRPT email notification email
+addresses.
+
+    /etc/postfix/main.cf:
+        transport_maps = hash:/etc/postfix/transport
+
+    /etc/postfix/transport:
+        smtp-tls-report@example.com     allow-plaintext:
+        ...
+
+    /etc/postfix/master.cf:
+        # service name    type    private unpriv  chroot  wakeup  maxproc
+    command
+        allow-plaintext   unix    -       -       n       -       -       smtp
+            -o smtp_tls_security_level=may
+            -o smtp_tls_policy_maps=static:may
+
+MMTTAA--SSTTSS SSuuppppoorrtt vviiaa ssmmttpp__ttllss__ppoolliiccyy__mmaappss
+
+Postfix supports MTA-STS though an smtp_tls_policy_maps policy plugin. Postfix
+3.10 and later expect a policy response with the usual security level and
+matching requirements, plus any applicable name=value attributes described
+below. Specify { name = value } when a value may contain whitespace.
+
+    Note 1: Postfix 3.10 and later will accept these attributes in an MTA-STS
+    response even if TLSRPT support is disabled (at build time or run time).
+    With TLSRPT support turned off, Postfix will use the ttl and policy_failure
+    attributes, and will ignore the attributes that are used only for TLSRPT.
+
+    Note 2: It is an error to specify these attributes for a non-STS policy.
+
+The examples in the table apply to the MTA-STS policy example given in https://
+datatracker.ietf.org/doc/html/rfc8460#section-4.5.
+
+  * policy_type=type
+
+    Specify sts or no-policy-found.
+
+  * policy_domain=name
+
+    The domain that the MTA-STS policy applies to.
+
+  * policy_ttl=time
+
+    How long (in seconds) a Postfix SMTP client process will cache the MTA-STS
+    plugin response.
+
+  * { policy_string = value }
+
+    Specify one policy_string instance for each MTA-STS policy feature,
+    enclosed inside "{" and "}" to protect whitespace in attribute values.
+
+    Example:
+
+        { policy_string = version: STSv1 } { policy_string = mode: testing }
+        ...
+
+    This form ignores whitespace after the opening "{", around the "=", and
+    before the closing "}".
+
+  * mx_host_pattern=pattern
+
+    Specify one mx_host_pattern instance for each "mx:" feature in the MTA-STS
+    policy.
+
+    Example:
+
+        mx_host_pattern=mx1.example.com mx_host_pattern=mx2.example.com ...
+
+  * policy_failure=type
+
+    If specified, forces MTA-STS policy enforcement to fail with the indicated
+    error, even if a server certificate would satisfy conventional PKI
+    constraints.
+
+    Valid errors are sts-policy-fetch-error, sts-policy-invalid, sts-webpki-
+    invalid, or the less informative validation-failure.
+
+    Example:
+
+        policy_failure=sts-webpki-invalid
+
+LLiimmiittaattiioonnss
+
+The Postfix TLSRPT implementation reports at most one final TLS handshake
+status (either 'success' or 'failure') per connection. Postfix TLSRPT cannot
+report a failure and then later report a final status of 'success' for that
+same connection. The reason is that it's too complicated to filter TLS errors
+and to report error details from the TLS engine back to the SMTP protocol
+engine. It just is not how Postfix works internally.
+
+The Postfix TLSRPT implementation reports only TLS handshake success or
+failure. It does not report failure to connect, or connections that break after
+a successful TLS handshake.
+
+CCrreeddiittss
+
+  * The TLSRPT client library and report generator are implemented and
+    maintained by sys4.
+  * Wietse Venema implemented the integration with Postfix.
+

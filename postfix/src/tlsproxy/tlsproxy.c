@@ -426,6 +426,7 @@
 #define TLS_INTERNAL			/* XXX */
 #include <tls.h>
 #include <tls_proxy.h>
+#include <tlsrpt_wrapper.h>
 
  /*
   * Application-specific.
@@ -731,6 +732,20 @@ static int tlsp_eval_tls_error(TLSP_STATE *state, int err)
 	    state->flags |= TLSP_FLAG_NO_MORE_CIPHERTEXT_IO;
 	    return (TLSP_STAT_OK);
 	}
+
+	/*
+	 * Report a generic failure only if a more specific failure wasn't
+	 * already reported.
+	 */
+#ifdef USE_TLSRPT
+	if (state->client_start_props->tlsrpt
+	    && (state->flags & TLSP_FLAG_DO_HANDSHAKE)
+	    && state->is_server_role == 0)
+	    trw_report_failure(state->client_start_props->tlsrpt,
+			       TLSRPT_VALIDATION_FAILURE,
+			        /* additional_info= */ (char *) 0,
+			       "tls-handshake-failure");
+#endif
 	tlsp_state_free(state);
 	return (TLSP_STAT_ERR);
     }

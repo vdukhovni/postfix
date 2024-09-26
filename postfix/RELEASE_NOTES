@@ -25,3 +25,13 @@ now also distributed with the more recent Eclipse Public License
 (EPL) 2.0. Recipients can choose to take the software under the
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
+
+[Feature 20240926]
+
+Support for the TLSRPT protocol (defined in RFC 8460). With this,
+an email receiving domain can publish a policy in DNS, and request
+daily summary reports for successful and failed SMTP-over-TLS
+connections to that domain's MX hosts.
+
+Postfix supports TLSRPT summaries for DANE (built-in) and MTA-STS
+(via an smtp_tls_policy_maps plugin). For details, see TLSRPT_README.

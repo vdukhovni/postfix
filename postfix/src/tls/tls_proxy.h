@@ -108,11 +108,12 @@ extern VSTREAM *tls_proxy_open(const char *, int, VSTREAM *, const char *,
     ((props)->a12), ((props)->a13), ((props)->a14))
 
 #define TLS_PROXY_CLIENT_START_PROPS(props, a1, a2, a3, a4, a5, a6, a7, a8, \
-    a9, a10, a11, a12, a13, a14, a15) \
+    a9, a10, a11, a12, a13, a14, a15, a16, a17) \
     (((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15))
+    ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
+    ((props)->a16), ((props)->a17))
 
 extern TLS_SESS_STATE *tls_proxy_context_receive(VSTREAM *);
 extern void tls_proxy_context_free(TLS_SESS_STATE *);
@@ -181,6 +182,7 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
 #define TLS_ATTR_SRVR_SIG_BITS	"srvr_signature_bits"
 #define TLS_ATTR_SRVR_SIG_DGST	"srvr_signature_digest"
 #define TLS_ATTR_NAMADDR	"namaddr"
+#define TLS_ATTR_RPT_REPORTED	"rpt_reported"
 
  /*
   * TLS_SERVER_INIT_PROPS attributes.
@@ -254,7 +256,9 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
 #define TLS_ATTR_CIPHER_EXCLUSIONS "cipher_exclusions"
 #define TLS_ATTR_MATCHARGV	"matchargv"
 #define TLS_ATTR_MDALG		"mdalg"
-#define	TLS_ATTR_DANE		"dane"
+#define TLS_ATTR_DANE		"dane"
+#define TLS_ATTR_TLSRPT		"tlsrpt"
+#define TLS_ATTR_FFAIL_TYPE	"forced_failure_type"
 
  /*
   * TLS_TLSA attributes.

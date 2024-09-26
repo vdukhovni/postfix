@@ -110,6 +110,8 @@ int     tls_proxy_context_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 				 STRING_OR_EMPTY(tp->srvr_sig_dgst)),
 		   SEND_ATTR_STR(TLS_ATTR_NAMADDR,
 				 STRING_OR_EMPTY(tp->namaddr)),
+		   SEND_ATTR_INT(TLS_ATTR_RPT_REPORTED,
+				 tp->rpt_reported),
 		   ATTR_TYPE_END);
     /* Do not flush the stream. */
     return (ret);

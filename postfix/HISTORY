@@ -28186,6 +28186,27 @@ Apologies for any names omitted.
 20240808
 
 	Typofix in comment. File: global/normalize_mailhost_addr.c.
+ 
+20240730 
+
+	Infrastructure: added argv_addv() function to append an
+	array of strings. File: util/argv.c.
+
+20240809
+
+	Infrastructure: added a dns_rr_detach() function to extract
+	one DNS record from a list. Files: dns/dns_rr.c, dns_rr_test.c.
+
+20240816
+
+	Infrastructure: factored out strerror() wrapper that reports
+	"Application error" instead of "Success" when errno == 0.
+	Files: util/mystrerror.c, util/vbuf_print.c.
+
+20240822
+
+	Infrastructure: added "append to buffer" option to the
+	hex_encode_opt() function. Files: util/hex_encode.[hc];
 
 20240831
 
@@ -28237,7 +28258,46 @@ Apologies for any names omitted.
 	OpenSSL 3.2) SSL_get0_group_name() function. Viktor Dukhovni.
 	Files: src/tls/tls.h, src/tls/tls_dh.c, src/tls/tls_misc.c.
 
+20240923
+
+	Cleanup: No user-visible change. Updated TLSRPT related
+	internal comments and internal identifiers; updated error
+	logging after changes in libtlsrpt error-to-string conversion
+	functions; minor changes to improve robustness.
+
 20240924
 
 	Misc. cleanups. Viktor Dukhovni. Files: src/tls/tls_dh.c,
 	proto/postconf.proto, src/global/mail_params.h.
+
+	TLSRPT documentation cleanups. File: proto/TLSRPT_README.html.
+
+20240924
+
+	Code health: added proper unit tests to hex_code.c.
+
+	Code health: deduplicated code instances that convert an
+	IPv4-in-IPv6 address (::ffff:a.b.c.d) to IPv4 form, but
+	only if IPv4 support is enabled. Files: myaddrinfo,h,
+	sane_sockaddr_to_hostaddr.c, global/haproxy_srvr.c,
+	postscreen/postscreen_endpt.c, smtp/smtp_tlsrpt.c.
+
+20240925
+
+	TLSRPT support: add routine logging of TLSRPT 'success' and
+	'failure' events, as there is no other easy way to find out
+	what the Postfix TLSRPT client is doing. Document what this
+	logging looks like, that it is not logged for reused TCP
+	connections, and how to recognize such connections. Files:
+	tls/tlsrpt_wrapper.c, proto/TLSRPT_README.html.
+
+	TLSRPT support: simplified the handling of reused TLS
+	sessions. Report all TLS handshakes regardless of whether
+	or not a session is reused. Note that there is only one TLS
+	handshake for a reused SMTP connection. Files: smtp/smtp_proto.c,
+	tls/tls_client.c, proto/TLSRPT_README.html.
+
+	Cleanup: pre-release checks for snapshot and nonprod releases.
+	File: mantools/check-snapshot-nonprod.
+
+	First general Postfix release with TLSRPT support.

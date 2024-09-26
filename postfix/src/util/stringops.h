@@ -67,6 +67,7 @@ extern int strcasecmp_utf8x(int, const char *, const char *);
 extern int strncasecmp_utf8x(int, const char *, const char *, ssize_t);
 extern char *quote_for_json(VSTRING *, const char *, ssize_t);
 extern char *quote_for_json_append(VSTRING *, const char *, ssize_t);
+extern const char *mystrerror(int);
 
 #define EXTPAR_FLAG_NONE	(0)
 #define EXTPAR_FLAG_STRIP	(1<<0)	/* "{ text }" -> "text" */

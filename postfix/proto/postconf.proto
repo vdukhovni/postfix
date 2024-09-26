@@ -19408,3 +19408,22 @@ announce 8BITMIME support, or when a message line exceeds the SMTP
 length limit. </p>
 
 <p> This feature is available in Postfix &ge; 3.9. </p>
+
+%PARAM smtp_tlsrpt_enable no
+
+<p> Enable support for RFC 8460 TLSRPT notifications. A mail receiving
+domain can publish a TLSRPT policy in DNS, to request periodic
+summaries of successful and failed SMTP over TLS connections to
+their mail servers. This feature requires that Postfix is built
+with a TLSRPT supporting library. </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>
+
+%PARAM smtp_tlsrpt_socket_name
+
+<p> The pathname of a UNIX-domain datagram socket that is managed
+by a local TLSRPT reporting service. This parameter must specify a
+pathname (absolute, or relative to $queue_directory) when
+"smtp_tlsrpt_enable = yes". </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>

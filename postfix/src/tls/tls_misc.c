@@ -1363,6 +1363,8 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->errordepth = -1;
     TLScontext->errorcode = X509_V_OK;
     TLScontext->errorcert = 0;
+    TLScontext->rpt_reported = 0;
+    TLScontext->ffail_type = 0;
 
     return (TLScontext);
 }
@@ -1413,6 +1415,8 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree((void *) TLScontext->srvr_sig_dgst);
     if (TLScontext->errorcert)
 	X509_free(TLScontext->errorcert);
+    if (TLScontext->ffail_type)
+	myfree(TLScontext->ffail_type);
 
     myfree((void *) TLScontext);
 }
