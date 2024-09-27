@@ -603,8 +603,8 @@
 /* .PP
 /*	Available in Postfix version 3.2 and later:
 /* .IP "\fBtls_eecdh_auto_curves (see 'postconf -d' output)\fR"
-/*	The prioritized list of elliptic curves supported by the Postfix
-/*	SMTP client and server.
+/*	The prioritized list of elliptic curves, that should be enabled in the
+/*	Postfix SMTP client and server.
 /* .PP
 /*	Available in Postfix version 3.4 and later:
 /* .IP "\fBsmtp_tls_connection_reuse (no)\fR"
@@ -644,6 +644,10 @@
 /* .IP "\fBsmtp_tlsrpt_socket_name (empty)\fR"
 /*	The pathname of a UNIX-domain datagram socket that is managed
 /*	by a local TLSRPT reporting service.
+/* .IP "\fBsmtp_tlsrpt_skip_reused_handshakes (yes)\fR"
+/*	Do not report the TLSRPT status for TLS protocol handshakes
+/*	that reuse a previously-negotiated TLS session (there is no new
+/*	information to report).
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -1154,6 +1158,7 @@ bool    var_ign_srv_lookup_err;
 bool    var_allow_srv_fallback;
 bool    var_smtp_tlsrpt_enable;
 char   *var_smtp_tlsrpt_sockname;
+bool    var_smtp_tlsrpt_skip_reused_hs;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;

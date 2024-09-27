@@ -11,7 +11,8 @@
 /*	TLS_RPT *trw_create(
 /*	const char *rpt_socket_name,
 /*	const char *rpt_policy_domain,
-/*	const char *rpt_policy_string)
+/*	const char *rpt_policy_string,
+/*	int	skip_reused_hs)
 /*
 /*	void	trw_free(
 /*	TLSRPT_WRAPPER *trw)
@@ -43,6 +44,9 @@
 /*	TLSRPT_WRAPPER *trw)
 /*
 /*	int	trw_is_reported(
+/*	TLSRPT_WRAPPER *trw)
+/*
+/*	int	trw_is_skip_reused_hs(
 /*	TLSRPT_WRAPPER *trw)
 /*
 /*	tlsrpt_policy_type_t convert_tlsrpt_policy_type(
@@ -136,6 +140,10 @@
 /* .IP rpt_policy_string
 /*	The TLSRPT policy record content, i.e. how to submit TLSRPT
 /*	summary reports.
+/* .IP skip_reused_hs
+/*	If non-zero, do not report the TLSRPT status for TLS handshakes
+/*	that reuse a previously-negotiated TLS session; such sessions
+/*	were already reported when they were used for the first time.
 /* .PP
 /*	trw_free() destroys storage allocated with other trw_xxx()
 /*	requests.
@@ -198,6 +206,9 @@
 /* .PP
 /*	trw_is_reported() returns non-zero when the contents of the
 /*	specified TLSRPT_WRAPPER have been reported.
+/* .PP
+/*	trw_is_skip_reused_hs() returns non-zero if the skip_reused_hs
+/*	argument of trw_create() was non-zero.
 /* .PP
 /*	convert_tlsrpt_policy_type() and convert_tlsrpt_policy_failure()
 /*	convert a valid policy type or failure name to the corresponding
@@ -298,7 +309,8 @@
 
 TLSRPT_WRAPPER *trw_create(const char *rpt_socket_name,
 			           const char *rpt_policy_domain,
-			           const char *rpt_policy_string)
+			           const char *rpt_policy_string,
+			           int skip_reused_hs)
 {
     TLSRPT_WRAPPER *trw;
 
@@ -317,6 +329,7 @@ TLSRPT_WRAPPER *trw_create(const char *rpt_socket_name,
     trw->rcv_mta_name = 0;
     trw->rcv_mta_addr = 0;
     trw->rcv_mta_ehlo = 0;
+    trw->skip_reused_hs = skip_reused_hs;
     trw->flags = 0;
     return (trw);
 }
@@ -621,6 +634,13 @@ int     trw_report_success(TLSRPT_WRAPPER *trw)
 int     trw_is_reported(const TLSRPT_WRAPPER *trw)
 {
     return (trw->flags & TRW_FLAG_REPORTED);
+}
+
+/* trw_is_skip_reused_hs - don't report TLS handshakes that reuse a session */
+
+int     trw_is_skip_reused_hs(const TLSRPT_WRAPPER *trw)
+{
+    return (trw->skip_reused_hs);
 }
 
 #endif					/* USE_TLS_RPT */

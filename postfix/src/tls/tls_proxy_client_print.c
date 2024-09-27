@@ -287,6 +287,8 @@ static int tls_proxy_client_tlsrpt_print(ATTR_PRINT_COMMON_FN print_fn,
 				     STRING_OR_EMPTY(trw->rcv_mta_addr)),
 		       SEND_ATTR_STR(TRW_DST_MTA_EHLO,
 				     STRING_OR_EMPTY(trw->rcv_mta_ehlo)),
+		       SEND_ATTR_INT(TRW_SKIP_REUSED_HS,
+				     trw->skip_reused_hs),
 		       SEND_ATTR_INT(TRW_FLAGS,
 				     trw->flags),
 		       ATTR_TYPE_END);

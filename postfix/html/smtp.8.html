@@ -702,8 +702,8 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
        Available in Postfix version 3.2 and later:
 
        <b><a href="postconf.5.html#tls_eecdh_auto_curves">tls_eecdh_auto_curves</a> (see 'postconf -d' output)</b>
-              The prioritized list of elliptic curves supported by the Postfix
-              SMTP client and server.
+              The prioritized list of elliptic curves, that should be  enabled
+              in the Postfix SMTP client and server.
 
        Available in Postfix version 3.4 and later:
 
@@ -752,6 +752,11 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
        <b><a href="postconf.5.html#smtp_tlsrpt_socket_name">smtp_tlsrpt_socket_name</a> (empty)</b>
               The pathname of a UNIX-domain datagram socket that is managed by
               a local TLSRPT reporting service.
+
+       <b><a href="postconf.5.html#smtp_tlsrpt_skip_reused_handshakes">smtp_tlsrpt_skip_reused_handshakes</a> (yes)</b>
+              Do not report the TLSRPT status for TLS protocol handshakes that
+              reuse a previously-negotiated  TLS  session  (there  is  no  new
+              information to report).
 
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The  following  configuration  parameters  exist for compatibility with

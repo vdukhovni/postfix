@@ -14808,8 +14808,23 @@ Postfix versions. </p>
 <p> Enable support for <a href="https://tools.ietf.org/html/rfc8460">RFC 8460</a> TLSRPT notifications. A mail receiving
 domain can publish a TLSRPT policy in DNS, to request periodic
 summaries of successful and failed SMTP over TLS connections to
-their mail servers. This feature requires that Postfix is built
+their MX servers. This feature requires that Postfix is built
 with a TLSRPT supporting library. </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tlsrpt_skip_reused_handshakes">smtp_tlsrpt_skip_reused_handshakes</a>
+(default: yes)</b></DT><DD>
+
+<p> Do not report the TLSRPT status for TLS protocol handshakes
+that reuse a previously-negotiated TLS session (there is no new
+information to report). Report the TLSRPT status only for "new" TLS
+sessions. Set this to "no" to log the TLSRPT status of all TLS
+handshakes, for example to troubleshoot Postfix TLSRPT support.
+</p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
 

@@ -723,8 +723,10 @@ while (<>) {
     s;\blmtp_tls_connection_reuse\b;<a href="postconf.5.html#lmtp_tls_connection_reuse">$&</a>;g;
     s;\bsmtp_tlsrpt_enable\b;<a href="postconf.5.html#smtp_tlsrpt_enable">$&</a>;g;
     s;\bsmtp_tlsrpt_socket_name\b;<a href="postconf.5.html#smtp_tlsrpt_socket_name">$&</a>;g;
+    s;\bsmtp_tlsrpt_skip_reused_handshakes\b;<a href="postconf.5.html#smtp_tlsrpt_skip_reused_handshakes">$&</a>;g;
     s;\blmtp_tlsrpt_enable\b;<a href="postconf.5.html#lmtp_tlsrpt_enable">$&</a>;g;
     s;\blmtp_tlsrpt_socket_name\b;<a href="postconf.5.html#lmtp_tlsrpt_socket_name">$&</a>;g;
+    s;\blmtp_tlsrpt_skip_reused_handshakes\b;<a href="postconf.5.html#lmtp_tlsrpt_skip_reused_handshakes">$&</a>;g;
     s;\bsmtpd_enforce_tls\b;<a href="postconf.5.html#smtpd_enforce_tls">$&</a>;g;
     s;\bsmtpd_sasl_tls_security_options\b;<a href="postconf.5.html#smtpd_sasl_tls_security_options">$&</a>;g;
     s;\bsmtpd_sasl_type\b;<a href="postconf.5.html#smtpd_sasl_type">$&</a>;g;

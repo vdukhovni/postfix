@@ -4475,6 +4475,12 @@ extern bool var_smtp_tlsrpt_enable;
 #define DEF_LMTP_TLSRPT_SOCKNAME DEF_SMTP_TLSRPT_SOCKNAME
 extern char *var_smtp_tlsrpt_sockname;
 
+#define VAR_SMTP_TLSRPT_SKIP_REUSED_HS	"smtp_tlsrpt_skip_reused_handshakes"
+#define DEF_SMTP_TLSRPT_SKIP_REUSED_HS	"yes"
+#define VAR_LMTP_TLSRPT_SKIP_REUSED_HS	"lmtp_tlsrpt_skip_reused_handshakes"
+#define DEF_LMTP_TLSRPT_SKIP_REUSED_HS	DEF_SMTP_TLSRPT_SKIP_REUSED_HS
+extern int var_smtp_tlsrpt_skip_reused_hs;
+
 /* LICENSE
 /* .ad
 /* .fi

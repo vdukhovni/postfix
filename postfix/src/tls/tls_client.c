@@ -1424,12 +1424,15 @@ TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
      * connection. It is never called for a reused TCP connection.
      * 
      * Inform the caller that they should not generate a TLSRPT 'success' or
-     * 'failure' event: this TLS protocol engine has already generated a
-     * TLSRPT 'failure' event for this session.
+     * 'failure' event: either this TLS protocol engine has already generated
+     * a TLSRPT 'failure' event for this session, or this is a reused TLS
+     * session.
      */
 #ifdef USE_TLSRPT
     TLScontext->rpt_reported = props->tlsrpt != 0
-	&& trw_is_reported(props->tlsrpt);
+	&& (trw_is_reported(props->tlsrpt)
+	    || (TLScontext->session_reused
+		&& trw_is_skip_reused_hs(props->tlsrpt)));
 #endif
 
     return (TLScontext);

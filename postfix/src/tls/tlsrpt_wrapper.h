@@ -31,7 +31,8 @@ typedef struct TLSRPT_WRAPPER TLSRPT_WRAPPER;
 
 extern TLSRPT_WRAPPER *trw_create(const char *rpt_socket_name,
 				          const char *rpt_policy_domain,
-				          const char *rpt_policy_string);
+				          const char *rpt_policy_string,
+				          int skip_reused_hs);
 extern void trw_free(TLSRPT_WRAPPER *trw);
 extern void trw_set_tls_policy(TLSRPT_WRAPPER *trw,
 			               tlsrpt_policy_type_t tls_policy_type,
@@ -50,6 +51,7 @@ extern int trw_report_failure(TLSRPT_WRAPPER *trw,
 			              const char *failure_reason);
 extern int trw_report_success(TLSRPT_WRAPPER *trw);
 extern int trw_is_reported(const TLSRPT_WRAPPER *trw);
+extern int trw_is_skip_reused_hs(const TLSRPT_WRAPPER *trw);
 
  /*
   * The internals declarations are also needed for functions that transmit
@@ -67,6 +69,7 @@ struct TLSRPT_WRAPPER {
     char   *rpt_socket_name;
     char   *rpt_policy_domain;
     char   *rpt_policy_string;
+    int     skip_reused_hs;
     /* Set with trw_set_policy(). */
     tlsrpt_policy_type_t tls_policy_type;
     ARGV   *tls_policy_strings;
@@ -89,6 +92,7 @@ struct TLSRPT_WRAPPER {
 #define TRW_RPT_SOCKET_NAME	"rpt_socket_name"
 #define TRW_RPT_POLICY_DOMAIN	"rpt_policy_domain"
 #define TRW_RPT_POLICY_STRING	"rpt_policy_string"
+#define TRW_SKIP_REUSED_HS	"skip_reused_hs"
 #define TRW_TLS_POLICY_TYPE	"tls_policy_type"
 #define TRW_TLS_POLICY_STRINGS	"tls_policy_strings"	/* XXX Not checked */
 #define TRW_TLS_POLICY_DOMAIN	"tls_policy_domain"

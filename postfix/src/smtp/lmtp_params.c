@@ -139,5 +139,6 @@
     static const CONFIG_NBOOL_TABLE lmtp_nbool_table[] = {
 	VAR_LMTP_REQ_DEADLINE, DEF_LMTP_REQ_DEADLINE, &var_smtp_req_deadline,
 	VAR_LMTP_TLSRPT_ENABLE, DEF_LMTP_TLSRPT_ENABLE, &var_smtp_tlsrpt_enable,
+	VAR_LMTP_TLSRPT_SKIP_REUSED_HS, DEF_LMTP_TLSRPT_SKIP_REUSED_HS, &var_smtp_tlsrpt_skip_reused_hs,
 	0,
     };

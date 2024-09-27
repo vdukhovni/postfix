@@ -467,6 +467,7 @@ static int tls_proxy_client_tlsrpt_scan(ATTR_SCAN_COMMON_FN scan_fn,
 	VSTRING *rcv_mta_name = vstring_alloc(100);
 	VSTRING *rcv_mta_addr = vstring_alloc(100);
 	VSTRING *rcv_mta_ehlo = vstring_alloc(100);
+	int     skip_reused_hs;
 	int     trw_flags;
 
 	ret = scan_fn(fp, flags | ATTR_FLAG_MORE,
@@ -481,6 +482,7 @@ static int tls_proxy_client_tlsrpt_scan(ATTR_SCAN_COMMON_FN scan_fn,
 		      RECV_ATTR_STR(TRW_DST_MTA_NAME, rcv_mta_name),
 		      RECV_ATTR_STR(TRW_DST_MTA_ADDR, rcv_mta_addr),
 		      RECV_ATTR_STR(TRW_DST_MTA_EHLO, rcv_mta_ehlo),
+		      RECV_ATTR_INT(TRW_SKIP_REUSED_HS, &skip_reused_hs),
 		      RECV_ATTR_INT(TRW_FLAGS, &trw_flags),
 		      ATTR_TYPE_END);
 
@@ -497,8 +499,9 @@ static int tls_proxy_client_tlsrpt_scan(ATTR_SCAN_COMMON_FN scan_fn,
 	EXPORT_OR_NULL(trw->rcv_mta_name, rcv_mta_name);
 	EXPORT_OR_NULL(trw->rcv_mta_addr, rcv_mta_addr);
 	EXPORT_OR_NULL(trw->rcv_mta_ehlo, rcv_mta_ehlo);
+	trw->skip_reused_hs = skip_reused_hs;
 	trw->flags = trw_flags;
-	ret = (ret == 12 ? 1 : -1);
+	ret = (ret == 13 ? 1 : -1);
 	if (ret != 1) {
 	    trw_free(trw);
 	    trw = 0;

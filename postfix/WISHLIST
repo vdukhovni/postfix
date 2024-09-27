@@ -7,7 +7,9 @@ Wish list:
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
 	Add smtp_tlsrpt_allow_list feature (default: static:all) to limit
-	the domains for which Postfix generates TLSRPT daily sumamries.
+	the domains for which Postfix generates TLSRPT daily summaries.
+
+	Rename TLS_SESS_STATE.rpt_reported to skip_tlsrpt_report.
 
 	Add unit tests for smtp_tlsrpt.c, tlstrpd_wrapper.c, ...
 

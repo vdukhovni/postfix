@@ -28301,3 +28301,15 @@ Apologies for any names omitted.
 	File: mantools/check-snapshot-nonprod.
 
 	First general Postfix release with TLSRPT support.
+
+20240927
+
+	Feature: new parameter smtp_tlsrpt_skip_reused_handshakes
+	(default: yes) to suppress TLSRPT status reports for TLS
+	handshakes that reuse a previously-negotiated TLS session
+	(there would be no new information to report). Specify "no"
+	for TLSRPT troubleshooting. Files: mantools/postlink,
+	proto/TLSRPT_README.html, proto/postconf.proto, smtp/smtp.c,
+	smtp/smtp_params.c, smtp/smtp_tlsrpt.c, tls/tls_client.c,
+	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
+	tls/tlsrpt_wrapper.c, tls/tlsrpt_wrapper.h.

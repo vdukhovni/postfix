@@ -133,9 +133,12 @@ daemon:
     [ipaddr],
         failure_type=validation_failure, failure_reason=self-signed_certificate
 
-Note: Postfix logs and reports TLSRPT status only for TLS handshakes on a new
-SMTP connection. There is no TLSRPT status logging for a reused SMTP
-connection. Such connections have Postfix SMTP client logging like this:
+Notes:
+
+  * Postfix logs and reports the TLSRPT status only for TLS handshakes on a new
+    SMTP connection. There is no TLS handshake, and thus no TLSRPT status
+    logging, when an SMTP connection is reused. Such connections have Postfix
+    SMTP client logging like this:
 
     Verified TTLLSS ccoonnnneeccttiioonn rreeuusseedd to mail.example.com[ipaddr]:25:
         TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)
@@ -143,25 +146,32 @@ connection. Such connections have Postfix SMTP client logging like this:
     Untrusted TTLLSS ccoonnnneeccttiioonn rreeuusseedd to mail.example.com[ipaddr]:25:
         TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)
 
-Postfix logs certificate verification failures with a level of detail that is
-different for a new or reused TLS session.
+  * By default, Postfix does not report the TLSRPT status for a TLS handshake
+    that reuses a previously-negotiated TLS session (there would be no new
+    information to report). Specify "smtp_tlsrpt_skip_reused_handshakes = no"
+    to report the TLSRPT status for all TLS handshakes. This may be useful for
+    troubleshooting.
 
-  * A new TLS session is logged with certificate verification failure details:
+  * Postfix logging for certificate verification failures may differ between
+    new or reused TLS sessions.
 
-    TLSRPT: status=failure, domain=example.org, receiving_mx=mail.example.org
-    [ipaddr],
-        ffaaiilluurree__ttyyppee==vvaalliiddaattiioonn__ffaaiilluurree, ffaaiilluurree__rreeaassoonn==sseellff--ssiiggnneedd__cceerrttiiffiiccaattee
+      o New TLS session:
 
-  * A reused TLS session is indicated as shown below, and has no certificate
-    verification details:
+        TLSRPT: status=failure, domain=example.org,
+        receiving_mx=mail.example.org[ipaddr],
+            ffaaiilluurree__ttyyppee==vvaalliiddaattiioonn__ffaaiilluurree, ffaaiilluurree__rreeaassoonn==sseellff--
+        ssiiggnneedd__cceerrttiiffiiccaattee
 
-    mail.example.org[ipaddr]:25: rree--uussiinngg sseessssiioonn with untrusted peer
-        credential, look for details earlier in the log
-    TLSRPT: status=failure, domain=example.org, receiving_mx=mail.example.org
-    [ipaddr],
-        ffaaiilluurree__ttyyppee==cceerrttiiffiiccaattee__nnoott__ttrruusstteedd
+      o Reused TLS session:
 
-Some Postfix users may wonder where the difference comes from. So this is why.
+        mail.example.org[ipaddr]:25: rree--uussiinngg sseessssiioonn with untrusted peer
+            credential, look for details earlier in the log
+        TLSRPT: status=failure, domain=example.org,
+        receiving_mx=mail.example.org[ipaddr],
+            ffaaiilluurree__ttyyppee==cceerrttiiffiiccaattee__nnoott__ttrruusstteedd
+
+    The logging may differ because a reused TLS session does not have the
+    details for why TLS authentication failed.
 
 DDeelliivveerriinngg TTLLSSRRPPTT ssuummmmaarriieess vviiaa eemmaaiill
 
@@ -258,16 +268,16 @@ datatracker.ietf.org/doc/html/rfc8460#section-4.5.
 
 LLiimmiittaattiioonnss
 
-The Postfix TLSRPT implementation reports at most one final TLS handshake
-status (either 'success' or 'failure') per connection. Postfix TLSRPT cannot
-report a failure and then later report a final status of 'success' for that
-same connection. The reason is that it's too complicated to filter TLS errors
-and to report error details from the TLS engine back to the SMTP protocol
-engine. It just is not how Postfix works internally.
-
 The Postfix TLSRPT implementation reports only TLS handshake success or
-failure. It does not report failure to connect, or connections that break after
-a successful TLS handshake.
+failure. It does not report failure to connect, or connections that break
+before or after a TLS handshake.
+
+The Postfix TLSRPT implementation reports at most one final TLS handshake
+status (either 'success' or 'failure') per SMTP connection. Postfix TLSRPT will
+not report a recoverable failure and then later report a final status of
+'success' for that same connection. The reason is that it's too complicated to
+filter TLS errors and to report error details from the TLS engine back to the
+SMTP protocol engine. It just is not how Postfix works internally.
 
 CCrreeddiittss
 
