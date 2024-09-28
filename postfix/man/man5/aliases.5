@@ -175,9 +175,11 @@ The text below provides only a parameter summary. See
 The alias databases for \fBlocal\fR(8) delivery that are updated with
 "\fBnewaliases\fR" or with "\fBsendmail \-bi\fR".
 .IP "\fBalias_maps (see 'postconf -d' output)\fR"
-Optional lookup tables with aliases that apply only to \fBlocal\fR(8)
-recipients; this is unlike virtual_alias_maps that apply to all
-recipients: \fBlocal\fR(8), virtual, and remote.
+Optional lookup tables that are searched only with an email address
+localpart (no domain) and that apply only to \fBlocal\fR(8) recipients;
+this is unlike virtual_alias_maps that are often searched with a
+full email address (including domain) and that apply to all recipients:
+\fBlocal\fR(8), virtual, and remote.
 .IP "\fBallow_mail_to_commands (alias, forward)\fR"
 Restrict \fBlocal\fR(8) mail delivery to external commands.
 .IP "\fBallow_mail_to_files (alias, forward)\fR"

@@ -28313,3 +28313,18 @@ Apologies for any names omitted.
 	smtp/smtp_params.c, smtp/smtp_tlsrpt.c, tls/tls_client.c,
 	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
 	tls/tlsrpt_wrapper.c, tls/tlsrpt_wrapper.h.
+
+20240928
+
+	Feature (no code change): generate HTML anchors for manpage
+	sections, for example: cidr_table.5.html#table_format. The
+	anchor contains the section name, after replacing upper
+	case with lower case, and after replacing spaces with
+	underscores. File: mantools/man2html.
+
+	Cleanaup (no code change): regenerate all man-style pages
+	so that the parameter summaries at the end match the text
+	in postconf(5). This also updates embedded man-style
+	comments in Postfix source code. Files: mantools/man2html,
+	proto/aliases, cleanup/cleanup.c, local/local.c, smtpd/smtpd.c,
+	tlsproxy/tlsproxy.c.

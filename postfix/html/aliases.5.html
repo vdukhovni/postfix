@@ -7,15 +7,15 @@
 </head> <body> <pre>
 ALIASES(5)                                                          ALIASES(5)
 
-<b>NAME</b>
+<b><a name="name">NAME</a></b>
        aliases - Postfix local alias database format
 
-<b>SYNOPSIS</b>
+<b><a name="synopsis">SYNOPSIS</a></b>
        <b>newaliases</b>
 
        <b>postalias -q</b> <i>name</i> <b>[</b><i>file-type</i><b>]:[</b><i>file-name</i><b>]</b>
 
-<b>DESCRIPTION</b>
+<b><a name="description">DESCRIPTION</a></b>
        The  optional  <a href="aliases.5.html"><b>aliases</b>(5)</a>  table  (<a href="postconf.5.html#alias_maps">alias_maps</a>) redirects mail for local
        recipients. The redirections are  processed  by  the  Postfix  <a href="local.8.html"><b>local</b>(8)</a>
        delivery  agent.  This  table  is always searched with an email address
@@ -105,7 +105,7 @@ ALIASES(5)                                                          ALIASES(5)
               disallowed  by  default.  To enable, edit the <b><a href="postconf.5.html#allow_mail_to_commands">allow_mail_to_com</a>-</b>
               <b><a href="postconf.5.html#allow_mail_to_commands">mands</a></b> and <b><a href="postconf.5.html#allow_mail_to_files">allow_mail_to_files</a></b> configuration parameters.
 
-<b>ADDRESS EXTENSION</b>
+<b><a name="address_extension">ADDRESS EXTENSION</a></b>
        When alias database search fails, and the recipient localpart  contains
        the  optional  recipient  delimiter  (e.g.,  <i>user+foo</i>),  the  search is
        repeated for the unextended address (e.g., <i>user</i>).
@@ -114,11 +114,11 @@ ALIASES(5)                                                          ALIASES(5)
        unmatched address extension (<i>+foo</i>) is propagated to the result of table
        lookup.
 
-<b>CASE FOLDING</b>
+<b><a name="case_folding">CASE FOLDING</a></b>
        The <a href="local.8.html">local(8)</a> delivery agent always folds the search string to lowercase
        before database lookup.
 
-<b>REGULAR EXPRESSION TABLES</b>
+<b><a name="regular_expression_tables">REGULAR EXPRESSION TABLES</a></b>
        This  section  describes how the table lookups change when the table is
        given in the form of regular expressions. For a description of  regular
        expression  lookup  table syntax, see <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>.
@@ -133,7 +133,7 @@ ALIASES(5)                                                          ALIASES(5)
        Lookup results are the same as with indexed file lookups.  For security
        reasons there is no support for <b>$1</b>, <b>$2</b> etc. substring interpolation.
 
-<b>SECURITY</b>
+<b><a name="security">SECURITY</a></b>
        The  <a href="local.8.html"><b>local</b>(8)</a>  delivery agent disallows regular expression substitution
        of $1 etc. in <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>, because that would open a security hole.
 
@@ -142,7 +142,7 @@ ALIASES(5)                                                          ALIASES(5)
        directly.  Before Postfix version 2.2, the <a href="local.8.html"><b>local</b>(8)</a> delivery agent will
        terminate with a fatal error.
 
-<b>CONFIGURATION PARAMETERS</b>
+<b><a name="configuration_parameters">CONFIGURATION PARAMETERS</a></b>
        The  following  <a href="postconf.5.html"><b>main.cf</b></a>  parameters  are especially relevant.  The text
        below provides only a  parameter  summary.  See  <a href="postconf.5.html"><b>postconf</b>(5)</a>  for  more
        details including examples.
@@ -152,9 +152,11 @@ ALIASES(5)                                                          ALIASES(5)
               "<b>newaliases</b>" or with "<b>sendmail -bi</b>".
 
        <b><a href="postconf.5.html#alias_maps">alias_maps</a> (see 'postconf -d' output)</b>
-              Optional lookup tables with aliases that apply only to  <a href="local.8.html"><b>local</b>(8)</a>
-              recipients;  this is unlike <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> that apply to all
-              recipients: <a href="local.8.html"><b>local</b>(8)</a>, virtual, and remote.
+              Optional lookup tables that are  searched  only  with  an  email
+              address  localpart  (no  domain) and that apply only to <a href="local.8.html"><b>local</b>(8)</a>
+              recipients; this is unlike  <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>  that  are  often
+              searched  with  a full email address (including domain) and that
+              apply to all recipients: <a href="local.8.html"><b>local</b>(8)</a>, virtual, and remote.
 
        <b><a href="postconf.5.html#allow_mail_to_commands">allow_mail_to_commands</a> (alias, forward)</b>
               Restrict <a href="local.8.html"><b>local</b>(8)</a> mail delivery to external commands.
@@ -189,19 +191,19 @@ ALIASES(5)                                                          ALIASES(5)
               of  a  delivery attempt; do not update the Delivered-To: address
               while expanding aliases or .forward files.
 
-<b>STANDARDS</b>
+<b><a name="standards">STANDARDS</a></b>
        <a href="https://tools.ietf.org/html/rfc822">RFC 822</a> (ARPA Internet Text Messages)
 
-<b>SEE ALSO</b>
+<b><a name="see_also">SEE ALSO</a></b>
        <a href="local.8.html">local(8)</a>, local delivery agent
        <a href="newaliases.1.html">newaliases(1)</a>, create/update alias database
        <a href="postalias.1.html">postalias(1)</a>, create/update alias database
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
 
-<b>README FILES</b>
+<b><a name="readme_files">README FILES</a></b>
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
-<b>LICENSE</b>
+<b><a name="license">LICENSE</a></b>
        The Secure Mailer license must be distributed with this software.
 
 <b>AUTHOR(S)</b>

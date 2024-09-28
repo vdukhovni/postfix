@@ -206,46 +206,49 @@ decode:		root
 #               updated with "newaliases" or with "sendmail -bi".
 # 
 #        alias_maps (see 'postconf -d' output)
-#               Optional lookup tables with aliases that apply only
-#               to   local(8)   recipients;  this  is  unlike  vir-
-#               tual_alias_maps  that  apply  to  all   recipients:
-#               local(8), virtual, and remote.
+#               Optional lookup tables that are searched only  with
+#               an  email  address  localpart  (no domain) and that
+#               apply only to local(8) recipients; this  is  unlike
+#               virtual_alias_maps  that  are often searched with a
+#               full email  address  (including  domain)  and  that
+#               apply  to  all  recipients:  local(8), virtual, and
+#               remote.
 # 
 #        allow_mail_to_commands (alias, forward)
-#               Restrict  local(8)  mail  delivery to external com-
+#               Restrict local(8) mail delivery  to  external  com-
 #               mands.
 # 
 #        allow_mail_to_files (alias, forward)
-#               Restrict local(8) mail delivery to external  files.
+#               Restrict  local(8) mail delivery to external files.
 # 
 #        expand_owner_alias (no)
 #               When delivering to an alias "aliasname" that has an
 #               "owner-aliasname" companion alias, set the envelope
-#               sender    address   to   the   expansion   of   the
+#               sender   address   to   the   expansion   of    the
 #               "owner-aliasname" alias.
 # 
 #        propagate_unmatched_extensions (canonical, virtual)
-#               What address lookup tables copy an  address  exten-
+#               What  address  lookup tables copy an address exten-
 #               sion from the lookup key to the lookup result.
 # 
 #        owner_request_special (yes)
 #               Enable special treatment for owner-listname entries
 #               in the aliases(5) file, and don't split owner-list-
-#               name  and  listname-request address localparts when
+#               name and listname-request address  localparts  when
 #               the recipient_delimiter is set to "-".
 # 
 #        recipient_delimiter (empty)
-#               The set of characters that can  separate  an  email
-#               address  localpart,  user  name, or a .forward file
+#               The  set  of  characters that can separate an email
+#               address localpart, user name, or  a  .forward  file
 #               name from its extension.
 # 
 #        Available in Postfix version 2.3 and later:
 # 
 #        frozen_delivered_to (yes)
-#               Update the local(8) delivery agent's  idea  of  the
-#               Delivered-To:     address    (see    prepend_deliv-
-#               ered_header) only once, at the start of a  delivery
-#               attempt;  do  not  update the Delivered-To: address
+#               Update  the  local(8)  delivery agent's idea of the
+#               Delivered-To:    address    (see     prepend_deliv-
+#               ered_header)  only once, at the start of a delivery
+#               attempt; do not update  the  Delivered-To:  address
 #               while expanding aliases or .forward files.
 # 
 # STANDARDS
@@ -258,12 +261,12 @@ decode:		root
 #        postconf(5), configuration parameters
 # 
 # README FILES
-#        Use "postconf readme_directory" or  "postconf  html_direc-
+#        Use  "postconf  readme_directory" or "postconf html_direc-
 #        tory" to locate this information.
 #        DATABASE_README, Postfix lookup table overview
 # 
 # LICENSE
-#        The  Secure  Mailer  license must be distributed with this
+#        The Secure Mailer license must be  distributed  with  this
 #        software.
 # 
 # AUTHOR(S)

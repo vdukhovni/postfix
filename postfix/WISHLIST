@@ -18,9 +18,10 @@ Wish list:
 	When debug logging is enabled, dict_db_open() logs a newline
 	character after the version info.
 
-	postsuper fails to write the maillog file while Postfix is down
-	(the fallback to 'direct write' happens after an irreversible
-	set_ugid() call).
+	postsuper fails to write the maillog file while Postfix is
+	down (the fallback to 'direct write' happens after an
+	irreversible set_ugid() call). Possible solution: figure
+	out if we can open the maillog file before dropping privileges.
 
 	The postdrop code should be more explicit about what
 	attrributes it will pass through. rec_attr_map() is not

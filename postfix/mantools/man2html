@@ -44,6 +44,19 @@ sed '
 		N
 		g
 	}
+
+	# Generate anchors for sections.
+	/^<b>\([A-Z][-_A-Z0-9 ]*\)<\/b>/{
+		s//\1/
+		s/[ 	]*$//
+		h
+		y/ABCDEFGHIJKLMNOPQRSTUVWXYZ /abcdefghijklmnopqrstuvwxyz_/
+		s/^/<b><a name="/
+		s/$/">/
+		G
+		s/\n//
+		s;$;</a></b>;
+	}
 ' "$@"
 
 echo '</pre> </body> </html>'

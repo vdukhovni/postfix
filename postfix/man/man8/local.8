@@ -452,9 +452,11 @@ mailbox_transport, mailbox_command_maps, mailbox_command,
 home_mailbox, mail_spool_directory, fallback_transport_maps,
 fallback_transport, and luser_relay.
 .IP "\fBalias_maps (see 'postconf -d' output)\fR"
-Optional lookup tables with aliases that apply only to \fBlocal\fR(8)
-recipients; this is unlike virtual_alias_maps that apply to all
-recipients: \fBlocal\fR(8), virtual, and remote.
+Optional lookup tables that are searched only with an email address
+localpart (no domain) and that apply only to \fBlocal\fR(8) recipients;
+this is unlike virtual_alias_maps that are often searched with a
+full email address (including domain) and that apply to all recipients:
+\fBlocal\fR(8), virtual, and remote.
 .IP "\fBforward_path (see 'postconf -d' output)\fR"
 The \fBlocal\fR(8) delivery agent search list for finding a .forward
 file with user\-specified delivery methods.

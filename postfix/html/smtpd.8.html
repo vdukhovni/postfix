@@ -7,15 +7,15 @@
 </head> <body> <pre>
 SMTPD(8)                                                              SMTPD(8)
 
-<b>NAME</b>
+<b><a name="name">NAME</a></b>
        smtpd - Postfix SMTP server
 
-<b>SYNOPSIS</b>
+<b><a name="synopsis">SYNOPSIS</a></b>
        <b>smtpd</b> [generic Postfix daemon options]
 
        <b>sendmail -bs</b>
 
-<b>DESCRIPTION</b>
+<b><a name="description">DESCRIPTION</a></b>
        The  SMTP  server accepts network connection requests and performs zero
        or more SMTP transactions per connection.   Each  received  message  is
        piped  through  the  <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon, and is placed into the <b>incoming</b>
@@ -35,12 +35,12 @@ SMTPD(8)                                                              SMTPD(8)
        <b>RCPT TO</b> commands. They are detailed below and in the <a href="postconf.5.html"><b>main.cf</b></a> configura-
        tion file.
 
-<b>SECURITY</b>
+<b><a name="security">SECURITY</a></b>
        The SMTP server is moderately  security-sensitive.  It  talks  to  SMTP
        clients  and  to DNS servers on the network. The SMTP server can be run
        chrooted at fixed low privilege.
 
-<b>STANDARDS</b>
+<b><a name="standards">STANDARDS</a></b>
        <a href="https://tools.ietf.org/html/rfc821">RFC 821</a> (SMTP protocol)
        <a href="https://tools.ietf.org/html/rfc1123">RFC 1123</a> (Host requirements)
        <a href="https://tools.ietf.org/html/rfc1652">RFC 1652</a> (8bit-MIME transport)
@@ -63,14 +63,14 @@ SMTPD(8)                                                              SMTPD(8)
        <a href="https://tools.ietf.org/html/rfc6533">RFC 6533</a> (Internationalized Delivery Status Notifications)
        <a href="https://tools.ietf.org/html/rfc7505">RFC 7505</a> ("Null MX" No Service Resource Record)
 
-<b>DIAGNOSTICS</b>
+<b><a name="diagnostics">DIAGNOSTICS</a></b>
        Problems and transactions are logged to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.
 
        Depending on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b> parameter, the  postmas-
        ter  is  notified of bounces, protocol problems, policy violations, and
        of other trouble.
 
-<b>CONFIGURATION PARAMETERS</b>
+<b><a name="configuration_parameters">CONFIGURATION PARAMETERS</a></b>
        Changes to <a href="postconf.5.html"><b>main.cf</b></a> are picked up automatically, as  <a href="smtpd.8.html"><b>smtpd</b>(8)</a>  processes
        run for only a limited amount of time. Use the command "<b>postfix reload</b>"
        to speed up a change.
@@ -78,7 +78,7 @@ SMTPD(8)                                                              SMTPD(8)
        The text below provides only a parameter summary. See  <a href="postconf.5.html"><b>postconf</b>(5)</a>  for
        more details including examples.
 
-<b>COMPATIBILITY CONTROLS</b>
+<b><a name="compatibility_controls">COMPATIBILITY CONTROLS</a></b>
        The  following  parameters  work  around implementation errors in other
        software, and/or allow you to override standards in  order  to  prevent
        undesirable use.
@@ -190,7 +190,7 @@ SMTPD(8)                                                              SMTPD(8)
               DATA  and  BDAT  requests,  when  deadlines  are  enabled   with
               <a href="postconf.5.html#smtpd_per_request_deadline">smtpd_per_request_deadline</a>.
 
-<b>ADDRESS REWRITING CONTROLS</b>
+<b><a name="address_rewriting_controls">ADDRESS REWRITING CONTROLS</a></b>
        See  the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> document for a detailed discussion of
        Postfix address rewriting.
 
@@ -205,7 +205,7 @@ SMTPD(8)                                                              SMTPD(8)
               updating incomplete addresses with the domain name in  $<a href="postconf.5.html#myorigin">myorigin</a>
               or $<a href="postconf.5.html#mydomain">mydomain</a>, and adding missing headers.
 
-<b>BEFORE-SMTPD PROXY AGENT</b>
+<b><a name="before-smtpd_proxy_agent">BEFORE-SMTPD PROXY AGENT</a></b>
        Available in Postfix version 2.10 and later:
 
        <b><a href="postconf.5.html#smtpd_upstream_proxy_protocol">smtpd_upstream_proxy_protocol</a> (empty)</b>
@@ -216,7 +216,7 @@ SMTPD(8)                                                              SMTPD(8)
               The time  limit  for  the  proxy  protocol  specified  with  the
               <a href="postconf.5.html#smtpd_upstream_proxy_protocol">smtpd_upstream_proxy_protocol</a> parameter.
 
-<b>AFTER QUEUE EXTERNAL CONTENT INSPECTION CONTROLS</b>
+<b><a name="after_queue_external_content_inspection_controls">AFTER QUEUE EXTERNAL CONTENT INSPECTION CONTROLS</a></b>
        As  of  version  1.0,  Postfix can be configured to send new mail to an
        external content filter AFTER the mail is queued. This  content  filter
        is  expected to inject mail back into a (Postfix or other) MTA for fur-
@@ -226,7 +226,7 @@ SMTPD(8)                                                              SMTPD(8)
               After the message is queued, send  the  entire  message  to  the
               specified <i>transport:destination</i>.
 
-<b>BEFORE QUEUE EXTERNAL CONTENT INSPECTION CONTROLS</b>
+<b><a name="before_queue_external_content_inspection_controls">BEFORE QUEUE EXTERNAL CONTENT INSPECTION CONTROLS</a></b>
        As  of  version  2.1, the Postfix SMTP server can be configured to send
        incoming mail to a real-time SMTP-based content filter BEFORE  mail  is
        queued.  This content filter is expected to inject mail back into Post-
@@ -248,7 +248,7 @@ SMTPD(8)                                                              SMTPD(8)
               The  time limit for connecting to a proxy filter and for sending
               or receiving information.
 
-<b>BEFORE QUEUE MILTER CONTROLS</b>
+<b><a name="before_queue_milter_controls">BEFORE QUEUE MILTER CONTROLS</a></b>
        As of version 2.3, Postfix supports the Sendmail version 8 Milter (mail
        filter)  protocol.  These content filters run outside Postfix. They can
        inspect the SMTP command  stream  and  the  message  content,  and  can
@@ -333,7 +333,7 @@ SMTPD(8)                                                              SMTPD(8)
               Lookup  tables  with  Milter  settings per remote SMTP client IP
               address.
 
-<b>GENERAL CONTENT INSPECTION CONTROLS</b>
+<b><a name="general_content_inspection_controls">GENERAL CONTENT INSPECTION CONTROLS</a></b>
        The following parameters are applicable for both built-in and  external
        content filters.
 
@@ -343,7 +343,7 @@ SMTPD(8)                                                              SMTPD(8)
               Enable or disable recipient validation, built-in content filter-
               ing, or address mapping.
 
-<b>EXTERNAL CONTENT INSPECTION CONTROLS</b>
+<b><a name="external_content_inspection_controls">EXTERNAL CONTENT INSPECTION CONTROLS</a></b>
        The following parameters  are  applicable  for  both  before-queue  and
        after-queue content filtering.
 
@@ -353,7 +353,7 @@ SMTPD(8)                                                              SMTPD(8)
               What  remote  SMTP  clients are allowed to use the XFORWARD fea-
               ture.
 
-<b>SASL AUTHENTICATION CONTROLS</b>
+<b><a name="sasl_authentication_controls">SASL AUTHENTICATION CONTROLS</a></b>
        Postfix SASL support (<a href="https://tools.ietf.org/html/rfc4954">RFC 4954</a>) can be used to authenticate remote SMTP
        clients  to  the  Postfix  SMTP server, and to authenticate the Postfix
        SMTP client to a remote SMTP server.  See the <a href="SASL_README.html">SASL_README</a> document  for
@@ -377,7 +377,7 @@ SMTPD(8)                                                              SMTPD(8)
 
        <b><a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a> (empty)</b>
               Optional  lookup  table  with  the SASL login names that own the
-              sender (MAIL FROM) addresses.
+              envelope sender (MAIL FROM) addresses.
 
        Available in Postfix version 2.1 and later:
 
@@ -430,7 +430,7 @@ SMTPD(8)                                                              SMTPD(8)
               If  non-empty,  a  filter  for the SASL mechanism names that the
               Postfix SMTP server will announce in the EHLO response.
 
-<b>STARTTLS SUPPORT CONTROLS</b>
+<b><a name="starttls_support_controls">STARTTLS SUPPORT CONTROLS</a></b>
        Detailed information about STARTTLS configuration may be found  in  the
        <a href="TLS_README.html">TLS_README</a> document.
 
@@ -612,8 +612,8 @@ SMTPD(8)                                                              SMTPD(8)
        Available in Postfix version 3.2 and later:
 
        <b><a href="postconf.5.html#tls_eecdh_auto_curves">tls_eecdh_auto_curves</a> (see 'postconf -d' output)</b>
-              The prioritized list of elliptic curves supported by the Postfix
-              SMTP client and server.
+              The  prioritized list of elliptic curves, that should be enabled
+              in the Postfix SMTP client and server.
 
        Available in Postfix version 3.4 and later:
 
@@ -655,7 +655,7 @@ SMTPD(8)                                                              SMTPD(8)
               instead of an X.509 certificate, when asking  for  or  requiring
               client authentication.
 
-<b>OBSOLETE STARTTLS CONTROLS</b>
+<b><a name="obsolete_starttls_controls">OBSOLETE STARTTLS CONTROLS</a></b>
        The  following  configuration  parameters  exist for compatibility with
        Postfix versions before 2.3. Support for these will  be  removed  in  a
        future release.
@@ -673,7 +673,7 @@ SMTPD(8)                                                              SMTPD(8)
               Obsolete Postfix &lt; 2.3 control for the Postfix SMTP  server  TLS
               cipher list.
 
-<b>SMTPUTF8 CONTROLS</b>
+<b><a name="smtputf8_controls">SMTPUTF8 CONTROLS</a></b>
        Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
 
        <b><a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> (yes)</b>
@@ -694,7 +694,7 @@ SMTPD(8)                                                              SMTPD(8)
               IDNA2008, when converting UTF-8 domain names to/from  the  ASCII
               form that is used for DNS lookups.
 
-<b>VERP SUPPORT CONTROLS</b>
+<b><a name="verp_support_controls">VERP SUPPORT CONTROLS</a></b>
        With  VERP  style delivery, each recipient of a message receives a cus-
        tomized copy of the message with his/her own recipient address  encoded
        in the envelope sender address.  The <a href="VERP_README.html">VERP_README</a> file describes config-
@@ -722,7 +722,7 @@ SMTPD(8)                                                              SMTPD(8)
               What  remote  SMTP clients are allowed to specify the XVERP com-
               mand.
 
-<b>TROUBLE SHOOTING CONTROLS</b>
+<b><a name="trouble_shooting_controls">TROUBLE SHOOTING CONTROLS</a></b>
        The <a href="DEBUG_README.html">DEBUG_README</a> document describes how to debug parts of  the  Postfix
        mail  system.  The  methods  vary from making the software log a lot of
        detail, to running some daemon processes under control of a call tracer
@@ -772,7 +772,7 @@ SMTPD(8)                                                              SMTPD(8)
               access lists (by default, the SMTP server logs "reject"  actions
               but not "permit" actions).
 
-<b>KNOWN VERSUS UNKNOWN RECIPIENT CONTROLS</b>
+<b><a name="known_versus_unknown_recipient_controls">KNOWN VERSUS UNKNOWN RECIPIENT CONTROLS</a></b>
        As  of  Postfix  version  2.0, the SMTP server rejects mail for unknown
        recipients. This prevents the mail queue from clogging up with undeliv-
        erable  MAILER-DAEMON messages. Additional information on this topic is
@@ -878,7 +878,7 @@ SMTPD(8)                                                              SMTPD(8)
               specifies a list of lookup tables that does not match the recip-
               ient address.
 
-<b>RESOURCE AND RATE CONTROLS</b>
+<b><a name="resource_and_rate_controls">RESOURCE AND RATE CONTROLS</a></b>
        The following parameters limit resource usage by the SMTP server and/or
        control client request rates.
 
@@ -1014,7 +1014,7 @@ SMTPD(8)                                                              SMTPD(8)
               The numerical Postfix SMTP server response code when rejecting a
               request with "<a href="postconf.5.html#smtpd_forbid_bare_newline">smtpd_forbid_bare_newline</a> = reject".
 
-<b>TARPIT CONTROLS</b>
+<b><a name="tarpit_controls">TARPIT CONTROLS</a></b>
        When  a  remote  SMTP  client makes errors, the Postfix SMTP server can
        insert delays before responding. This can help to  slow  down  run-away
        software.   The  behavior is controlled by an error counter that counts
@@ -1049,7 +1049,7 @@ SMTPD(8)                                                              SMTPD(8)
               before  the Postfix SMTP server increments the per-session error
               count for each excess recipient.
 
-<b>ACCESS POLICY DELEGATION CONTROLS</b>
+<b><a name="access_policy_delegation_controls">ACCESS POLICY DELEGATION CONTROLS</a></b>
        As of version 2.1, Postfix can be configured to delegate access  policy
        decisions  to  an  external  server that runs outside Postfix.  See the
        file <a href="SMTPD_POLICY_README.html">SMTPD_POLICY_README</a> for more information.
@@ -1092,7 +1092,7 @@ SMTPD(8)                                                              SMTPD(8)
               (originally, to share the same service endpoint  among  multiple
               <a href="postconf.5.html#check_policy_service">check_policy_service</a> clients).
 
-<b>ACCESS CONTROLS</b>
+<b><a name="access_controls">ACCESS CONTROLS</a></b>
        The  <a href="SMTPD_ACCESS_README.html">SMTPD_ACCESS_README</a> document gives an introduction to all the SMTP
        server access control features.
 
@@ -1186,7 +1186,7 @@ SMTPD(8)                                                              SMTPD(8)
               server applies in the context of the  RCPT  TO  command,  before
               <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>.
 
-<b>SENDER AND RECIPIENT ADDRESS VERIFICATION CONTROLS</b>
+<b><a name="sender_and_recipient_address_verification_controls">SENDER AND RECIPIENT ADDRESS VERIFICATION CONTROLS</a></b>
        Postfix  version  2.1 introduces sender and recipient address verifica-
        tion.  This feature is implemented by sending probe email messages that
        are  not  actually  delivered.   This  feature  is  requested  via  the
@@ -1249,7 +1249,7 @@ SMTPD(8)                                                              SMTPD(8)
               The  time  between  changes  in  the  time-dependent  portion of
               address verification probe sender addresses.
 
-<b>ACCESS CONTROL RESPONSES</b>
+<b><a name="access_control_responses">ACCESS CONTROL RESPONSES</a></b>
        The following parameters control numerical SMTP reply codes and/or text
        responses.
 
@@ -1338,7 +1338,7 @@ SMTPD(8)                                                              SMTPD(8)
               <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a> or  <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>
               fail due to a temporary error condition.
 
-<b>MISCELLANEOUS CONTROLS</b>
+<b><a name="miscellaneous_controls">MISCELLANEOUS CONTROLS</a></b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
               The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
               figuration files.
@@ -1432,7 +1432,7 @@ SMTPD(8)                                                              SMTPD(8)
               Lookup  tables,  indexed by the complete Postfix SMTP server 4xx
               or 5xx response, with reject footer templates.
 
-<b>SEE ALSO</b>
+<b><a name="see_also">SEE ALSO</a></b>
        <a href="anvil.8.html">anvil(8)</a>, connection/rate limiting
        <a href="cleanup.8.html">cleanup(8)</a>, message canonicalization
        <a href="tlsmgr.8.html">tlsmgr(8)</a>, TLS session and PRNG management
@@ -1444,7 +1444,7 @@ SMTPD(8)                                                              SMTPD(8)
        <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
-<b>README FILES</b>
+<b><a name="readme_files">README FILES</a></b>
        <a href="ADDRESS_CLASS_README.html">ADDRESS_CLASS_README</a>, blocking unknown hosted or relay recipients
        <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a>, Postfix address manipulation
        <a href="BDAT_README.html">BDAT_README</a>, Postfix CHUNKING support
@@ -1460,7 +1460,7 @@ SMTPD(8)                                                              SMTPD(8)
        <a href="XCLIENT_README.html">XCLIENT_README</a>, Postfix XCLIENT extension
        <a href="XFORWARD_README.html">XFORWARD_README</a>, Postfix XFORWARD extension
 
-<b>LICENSE</b>
+<b><a name="license">LICENSE</a></b>
        The Secure Mailer license must be distributed with this software.
 
 <b>AUTHOR(S)</b>

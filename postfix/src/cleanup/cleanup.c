@@ -303,8 +303,10 @@
 /* .PP
 /*	Available in Postfix version 2.0 and later:
 /* .IP "\fBvirtual_alias_maps ($virtual_maps)\fR"
-/*	Optional lookup tables with aliases that apply to all recipients:
-/*	\fBlocal\fR(8), virtual, and remote; this is unlike alias_maps that apply
+/*	Optional lookup tables that are often searched with a full email
+/*	address (including domain) and that apply to all recipients: \fBlocal\fR(8),
+/*	virtual, and remote; this is unlike alias_maps that are only searched
+/*	with an email address localpart (no domain) and that apply
 /*	only to \fBlocal\fR(8) recipients.
 /* .PP
 /*	Available in Postfix version 2.2 and later:
