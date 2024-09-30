@@ -7,15 +7,15 @@
 </head> <body> <pre>
 SMTP,(LMTP)                                                        SMTP,(LMTP)
 
-<b>NAME</b>
+<b><a name="name">NAME</a></b>
        smtp, lmtp - Postfix SMTP+LMTP client
 
-<b>SYNOPSIS</b>
+<b><a name="synopsis">SYNOPSIS</a></b>
        <b>smtp</b> [generic Postfix daemon options] [flags=DORX]
 
        <b>lmtp</b> [generic Postfix daemon options] [flags=DORX]
 
-<b>DESCRIPTION</b>
+<b><a name="description">DESCRIPTION</a></b>
        The Postfix SMTP+LMTP client implements the SMTP and LMTP mail delivery
        protocols. It processes message delivery requests from the  queue  man-
        ager.  Each  request specifies a queue file, a sender address, a domain
@@ -40,7 +40,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
        that have a high volume of mail in the <a href="QSHAPE_README.html#active_queue">active queue</a>. Connection caching
        can be enabled permanently for specific destinations.
 
-<b>SMTP SERVER LOOKUP</b>
+<b><a name="smtp_server_lookup">SMTP SERVER LOOKUP</a></b>
        The  Postfix  SMTP  client  supports multiple destinations separated by
        comma or whitespace (Postfix 3.5 and later).  Each destination is tried
        in the specified order.
@@ -68,7 +68,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
               specified service (default: <b>smtp</b>). An IPv6 address must be  for-
               matted as [<b>ipv6</b>:<i>address</i>].
 
-<b>LMTP SERVER LOOKUP</b>
+<b><a name="lmtp_server_lookup">LMTP SERVER LOOKUP</a></b>
        The  Postfix  LMTP  client  supports multiple destinations separated by
        comma or whitespace (Postfix 3.5 and later).  Each destination is tried
        in the specified order.
@@ -101,7 +101,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
               (default:   <b>lmtp</b>).    An  IPv6  address  must  be  formatted  as
               [<b>ipv6</b>:<i>address</i>].
 
-<b>SINGLE-RECIPIENT DELIVERY</b>
+<b><a name="single-recipient_delivery">SINGLE-RECIPIENT DELIVERY</a></b>
        By default, the Postfix SMTP+LMTP  client  delivers  mail  to  multiple
        recipients  per delivery request. This is undesirable when prepending a
        <b>Delivered-to:</b> or <b>X-Original-To:</b> message header. To prevent Postfix from
@@ -112,7 +112,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
        in  the  Postfix <a href="postconf.5.html"><b>main.cf</b></a> file, where <i>transport</i> is the name in the first
        column of the Postfix <a href="master.5.html"><b>master.cf</b></a> entry for this mail delivery service.
 
-<b>COMMAND ATTRIBUTE SYNTAX</b>
+<b><a name="command_attribute_syntax">COMMAND ATTRIBUTE SYNTAX</a></b>
        <b>flags=DORX</b> (optional)
               Optional message processing flags.
 
@@ -147,12 +147,12 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
 
                      This feature is available as of Postfix 3.5.
 
-<b>SECURITY</b>
+<b><a name="security">SECURITY</a></b>
        The SMTP+LMTP client is moderately security-sensitive. It talks to SMTP
        or LMTP servers and to DNS servers on the network. The SMTP+LMTP client
        can be run chrooted at fixed low privilege.
 
-<b>STANDARDS</b>
+<b><a name="standards">STANDARDS</a></b>
        <a href="https://tools.ietf.org/html/rfc821">RFC 821</a> (SMTP protocol)
        <a href="https://tools.ietf.org/html/rfc822">RFC 822</a> (ARPA Internet Text Messages)
        <a href="https://tools.ietf.org/html/rfc1651">RFC 1651</a> (SMTP service extensions)
@@ -175,7 +175,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
        <a href="https://tools.ietf.org/html/rfc6533">RFC 6533</a> (Internationalized Delivery Status Notifications)
        <a href="https://tools.ietf.org/html/rfc7672">RFC 7672</a> (SMTP security via opportunistic DANE TLS)
 
-<b>DIAGNOSTICS</b>
+<b><a name="diagnostics">DIAGNOSTICS</a></b>
        Problems  and  transactions  are  logged  to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.
        Corrupted message files are marked so that the queue manager  can  move
        them to the <b>corrupt</b> queue for further inspection.
@@ -183,14 +183,14 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
        Depending  on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b> parameter, the postmas-
        ter is notified of bounces, protocol problems, and of other trouble.
 
-<b>BUGS</b>
+<b><a name="bugs">BUGS</a></b>
        SMTP and LMTP connection reuse for TLS (without  closing  the  SMTP  or
        LMTP connection) is not supported before Postfix 3.4.
 
        SMTP  and LMTP connection reuse assumes that SASL credentials are valid
        for all destinations that map onto the same IP address and TCP port.
 
-<b>CONFIGURATION PARAMETERS</b>
+<b><a name="configuration_parameters">CONFIGURATION PARAMETERS</a></b>
        Postfix versions 2.3 and later implement the SMTP and LMTP client  with
        the  same program, and choose the protocol and configuration parameters
        based on the process name, <b>smtp</b> or <b>lmtp</b>.
@@ -206,7 +206,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
        The text below provides only a parameter summary. See  <a href="postconf.5.html"><b>postconf</b>(5)</a>  for
        more details including examples.
 
-<b>COMPATIBILITY CONTROLS</b>
+<b><a name="compatibility_controls">COMPATIBILITY CONTROLS</a></b>
        <b><a href="postconf.5.html#ignore_mx_lookup_error">ignore_mx_lookup_error</a> (no)</b>
               Ignore DNS MX lookups that produce no response.
 
@@ -422,7 +422,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
               to MX or IP address lookup as  if  SRV  record  lookup  was  not
               enabled.
 
-<b>MIME PROCESSING CONTROLS</b>
+<b><a name="mime_processing_controls">MIME PROCESSING CONTROLS</a></b>
        Available in Postfix version 2.0 and later:
 
        <b><a href="postconf.5.html#disable_mime_output_conversion">disable_mime_output_conversion</a> (no)</b>
@@ -434,14 +434,14 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
        <b><a href="postconf.5.html#mime_nesting_limit">mime_nesting_limit</a> (100)</b>
               The maximal recursion level that the MIME processor will handle.
 
-<b>EXTERNAL CONTENT INSPECTION CONTROLS</b>
+<b><a name="external_content_inspection_controls">EXTERNAL CONTENT INSPECTION CONTROLS</a></b>
        Available in Postfix version 2.1 and later:
 
        <b><a href="postconf.5.html#smtp_send_xforward_command">smtp_send_xforward_command</a> (no)</b>
               Send the non-standard XFORWARD command  when  the  Postfix  SMTP
               server EHLO response announces XFORWARD support.
 
-<b>SASL AUTHENTICATION CONTROLS</b>
+<b><a name="sasl_authentication_controls">SASL AUTHENTICATION CONTROLS</a></b>
        <b><a href="postconf.5.html#smtp_sasl_auth_enable">smtp_sasl_auth_enable</a> (no)</b>
               Enable SASL authentication in the Postfix SMTP client.
 
@@ -506,7 +506,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
               The delimiter between username and password in  sasl_passwd_maps
               lookup results.
 
-<b>STARTTLS SUPPORT CONTROLS</b>
+<b><a name="starttls_support_controls">STARTTLS SUPPORT CONTROLS</a></b>
        Detailed  information  about STARTTLS configuration may be found in the
        <a href="TLS_README.html">TLS_README</a> document.
 
@@ -758,7 +758,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
               reuse a previously-negotiated  TLS  session  (there  is  no  new
               information to report).
 
-<b>OBSOLETE STARTTLS CONTROLS</b>
+<b><a name="obsolete_starttls_controls">OBSOLETE STARTTLS CONTROLS</a></b>
        The  following  configuration  parameters  exist for compatibility with
        Postfix versions before 2.3. Support for these will  be  removed  in  a
        future release.
@@ -785,7 +785,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
               Obsolete  Postfix  &lt; 2.3 control for the Postfix SMTP client TLS
               cipher list.
 
-<b>RESOURCE AND RATE CONTROLS</b>
+<b><a name="resource_and_rate_controls">RESOURCE AND RATE CONTROLS</a></b>
        <b><a href="postconf.5.html#smtp_connect_timeout">smtp_connect_timeout</a> (30s)</b>
               The Postfix SMTP client time limit for completing a TCP  connec-
               tion, or zero (use the operating system built-in time limit).
@@ -921,7 +921,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
               <a href="postconf.5.html#default_destination_recipient_limit">ient_limit</a> parameter value, where  <i>transport</i>  is  the  <a href="master.5.html">master.cf</a>
               name of the message delivery transport.
 
-<b>SMTPUTF8 CONTROLS</b>
+<b><a name="smtputf8_controls">SMTPUTF8 CONTROLS</a></b>
        Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
 
        <b><a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> (yes)</b>
@@ -939,7 +939,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
               IDNA2008, when converting UTF-8 domain names to/from  the  ASCII
               form that is used for DNS lookups.
 
-<b>TROUBLE SHOOTING CONTROLS</b>
+<b><a name="trouble_shooting_controls">TROUBLE SHOOTING CONTROLS</a></b>
        <b><a href="postconf.5.html#debug_peer_level">debug_peer_level</a> (2)</b>
               The  increment  in verbose logging level when a nexthop destina-
               tion, remote client or server name or network address matches  a
@@ -964,7 +964,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
        <b><a href="postconf.5.html#notify_classes">notify_classes</a> (resource, software)</b>
               The list of error classes that are reported to the postmaster.
 
-<b>MISCELLANEOUS CONTROLS</b>
+<b><a name="miscellaneous_controls">MISCELLANEOUS CONTROLS</a></b>
        <b><a href="postconf.5.html#best_mx_transport">best_mx_transport</a> (empty)</b>
               Where the Postfix  SMTP  client  should  deliver  mail  when  it
               detects a "mail loops back to myself" error condition.
@@ -1097,7 +1097,7 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
               Defer  delivery  when  the  Postfix SMTP client cannot apply the
               <a href="postconf.5.html#smtp_bind_address">smtp_bind_address</a> or <a href="postconf.5.html#smtp_bind_address6">smtp_bind_address6</a> setting.
 
-<b>SEE ALSO</b>
+<b><a name="see_also">SEE ALSO</a></b>
        <a href="generic.5.html">generic(5)</a>, output address rewriting
        <a href="header_checks.5.html">header_checks(5)</a>, message header content inspection
        <a href="header_checks.5.html">body_checks(5)</a>, body parts content inspection
@@ -1111,11 +1111,11 @@ SMTP,(LMTP)                                                        SMTP,(LMTP)
        <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
-<b>README FILES</b>
+<b><a name="readme_files">README FILES</a></b>
        <a href="SASL_README.html">SASL_README</a>, Postfix SASL howto
        <a href="TLS_README.html">TLS_README</a>, Postfix STARTTLS howto
 
-<b>LICENSE</b>
+<b><a name="license">LICENSE</a></b>
        The Secure Mailer license must be distributed with this software.
 
 <b>AUTHOR(S)</b>

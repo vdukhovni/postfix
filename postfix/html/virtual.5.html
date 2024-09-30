@@ -7,17 +7,17 @@
 </head> <body> <pre>
 VIRTUAL(5)                                                          VIRTUAL(5)
 
-<b>NAME</b>
+<b><a name="name">NAME</a></b>
        virtual - Postfix virtual alias table format
 
-<b>SYNOPSIS</b>
+<b><a name="synopsis">SYNOPSIS</a></b>
        <b>postmap /etc/postfix/virtual</b>
 
        <b>postmap -q "</b><i>string</i><b>" /etc/postfix/virtual</b>
 
        <b>postmap -q - /etc/postfix/virtual</b> &lt;<i>inputfile</i>
 
-<b>DESCRIPTION</b>
+<b><a name="description">DESCRIPTION</a></b>
        The optional <a href="virtual.5.html"><b>virtual</b>(5)</a> alias table (<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>) applies to all
        recipients: <a href="local.8.html">local(8)</a>, virtual, and remote.  This feature is implemented
        in  the  Postfix <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon before mail is queued.  These tables
@@ -61,13 +61,13 @@ VIRTUAL(5)                                                          VIRTUAL(5)
        a  slightly  different way as described below under "REGULAR EXPRESSION
        TABLES" or "TCP-BASED TABLES".
 
-<b>CASE FOLDING</b>
+<b><a name="case_folding">CASE FOLDING</a></b>
        The search string is folded to lowercase before database lookup. As  of
        Postfix  2.3,  the search string is not case folded with database types
        such as <a href="regexp_table.5.html">regexp</a>: or <a href="pcre_table.5.html">pcre</a>: whose lookup fields can match both  upper  and
        lower case.
 
-<b>TABLE FORMAT</b>
+<b><a name="table_format">TABLE FORMAT</a></b>
        The input format for the <a href="postmap.1.html"><b>postmap</b>(1)</a> command is as follows:
 
        <i>pattern address, address, ...</i>
@@ -82,7 +82,7 @@ VIRTUAL(5)                                                          VIRTUAL(5)
               A  logical  line  starts  with  non-whitespace text. A line that
               starts with whitespace continues a logical line.
 
-<b>TABLE SEARCH ORDER</b>
+<b><a name="table_search_order">TABLE SEARCH ORDER</a></b>
        With lookups from indexed files such as DB or DBM,  or  from  networked
        tables  such  as  NIS,  LDAP  or SQL, each <i>user</i>@<i>domain</i> query produces a
        sequence of query patterns as described below.
@@ -128,7 +128,7 @@ VIRTUAL(5)                                                          VIRTUAL(5)
               In the above example, Postfix may contact a remote server if the
               recipient is aliased to a remote address.
 
-<b>RESULT ADDRESS REWRITING</b>
+<b><a name="result_address_rewriting">RESULT ADDRESS REWRITING</a></b>
        The lookup result is subject to address rewriting:
 
        <b>o</b>      When  the  result  has the form @<i>otherdomain</i>, the result becomes
@@ -141,7 +141,7 @@ VIRTUAL(5)                                                          VIRTUAL(5)
        <b>o</b>      When "<b><a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a>=yes</b>", append "<b>.$<a href="postconf.5.html#mydomain">mydomain</a></b>" to addresses
               without ".domain".
 
-<b>ADDRESS EXTENSION</b>
+<b><a name="address_extension">ADDRESS EXTENSION</a></b>
        When a mail address localpart contains the optional recipient delimiter
        (e.g., <i>user+foo</i>@<i>domain</i>), the  lookup  order  becomes:  <i>user+foo</i>@<i>domain</i>,
        <i>user</i>@<i>domain</i>, <i>user+foo</i>, <i>user</i>, and @<i>domain</i>.
@@ -150,7 +150,7 @@ VIRTUAL(5)                                                          VIRTUAL(5)
        unmatched address extension (<i>+foo</i>) is propagated to the result of a ta-
        ble lookup.
 
-<b>VIRTUAL ALIAS DOMAINS</b>
+<b><a name="virtual_alias_domains">VIRTUAL ALIAS DOMAINS</a></b>
        Besides  virtual  aliases,  the virtual alias table can also be used to
        implement <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domains</a>.  With  a  virtual  alias  domain,  all
        recipient addresses are aliased to addresses in other domains.
@@ -195,7 +195,7 @@ VIRTUAL(5)                                                          VIRTUAL(5)
        <b>tual_alias_domains</a></b> configuration parameter.  This latter parameter uses
        the same syntax as the <a href="postconf.5.html"><b>main.cf</a> <a href="postconf.5.html#mydestination">mydestination</a></b> configuration parameter.
 
-<b>REGULAR EXPRESSION TABLES</b>
+<b><a name="regular_expression_tables">REGULAR EXPRESSION TABLES</a></b>
        This section describes how the table lookups change when the  table  is
        given  in the form of regular expressions. For a description of regular
        expression lookup table syntax, see <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>.
@@ -212,7 +212,7 @@ VIRTUAL(5)                                                          VIRTUAL(5)
        feature  that parenthesized substrings from the pattern can be interpo-
        lated as <b>$1</b>, <b>$2</b> and so on.
 
-<b>TCP-BASED TABLES</b>
+<b><a name="tcp-based_tables">TCP-BASED TABLES</a></b>
        This section describes how the table lookups change  when  lookups  are
        directed   to  a  TCP-based  server.  For  a  description  of  the  TCP
        client/server lookup  protocol,  see  <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.   This  feature  is
@@ -224,10 +224,10 @@ VIRTUAL(5)                                                          VIRTUAL(5)
 
        Results are the same as with indexed file lookups.
 
-<b>BUGS</b>
+<b><a name="bugs">BUGS</a></b>
        The table format does not understand quoting conventions.
 
-<b>CONFIGURATION PARAMETERS</b>
+<b><a name="configuration_parameters">CONFIGURATION PARAMETERS</a></b>
        The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant to this topic.
        See the Postfix <a href="postconf.5.html"><b>main.cf</b></a> file for syntax details and for default values.
        Use the "<b>postfix reload</b>" command after a configuration change.
@@ -273,18 +273,18 @@ VIRTUAL(5)                                                          VIRTUAL(5)
               receives  mail  on by way of a proxy or network address transla-
               tion unit.
 
-<b>SEE ALSO</b>
+<b><a name="see_also">SEE ALSO</a></b>
        <a href="cleanup.8.html">cleanup(8)</a>, canonicalize and enqueue mail
        <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table manager
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
        <a href="canonical.5.html">canonical(5)</a>, canonical address mapping
 
-<b>README FILES</b>
+<b><a name="readme_files">README FILES</a></b>
        <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a>, address rewriting guide
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
        <a href="VIRTUAL_README.html">VIRTUAL_README</a>, domain hosting guide
 
-<b>LICENSE</b>
+<b><a name="license">LICENSE</a></b>
        The Secure Mailer license must be distributed with this software.
 
 <b>AUTHOR(S)</b>

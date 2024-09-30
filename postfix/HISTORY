@@ -28322,9 +28322,22 @@ Apologies for any names omitted.
 	case with lower case, and after replacing spaces with
 	underscores. File: mantools/man2html.
 
-	Cleanaup (no code change): regenerate all man-style pages
+	Cleanup (no code change): regenerate all man-style pages
 	so that the parameter summaries at the end match the text
 	in postconf(5). This also updates embedded man-style
 	comments in Postfix source code. Files: mantools/man2html,
 	proto/aliases, cleanup/cleanup.c, local/local.c, smtpd/smtpd.c,
 	tlsproxy/tlsproxy.c.
+
+20240930
+
+	Bugfix (defect introduced: Postfix 2.9, date 20111218):
+	with "smtpd_sasl_auth_enable = no", info received with
+	XCLIENT LOGIN was ignored by permit_sasl_authenticated.
+	Problem reported by Antonin Verrier. The fix was to REMOVE
+	a test and to rely solely on the sasl_mechanism property
+	which is always null when a remote SMTP client is not
+	authenticated. File: src/smtpd/smtpd_check.c.
+
+	Cleanup (no code change): regenerated HTML manpages that
+	weren't updated because of a simplistic make(1) dependency.

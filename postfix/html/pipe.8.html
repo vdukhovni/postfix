@@ -7,13 +7,13 @@
 </head> <body> <pre>
 PIPE(8)                                                                PIPE(8)
 
-<b>NAME</b>
+<b><a name="name">NAME</a></b>
        pipe - Postfix delivery to external command
 
-<b>SYNOPSIS</b>
+<b><a name="synopsis">SYNOPSIS</a></b>
        <b>pipe</b> [generic Postfix daemon options] command_attributes...
 
-<b>DESCRIPTION</b>
+<b><a name="description">DESCRIPTION</a></b>
        The <a href="pipe.8.html"><b>pipe</b>(8)</a> daemon processes requests from the Postfix queue manager to
        deliver messages to external commands.  This program expects to be  run
        from the <a href="master.8.html"><b>master</b>(8)</a> process manager.
@@ -27,7 +27,7 @@ PIPE(8)                                                                PIPE(8)
        again  at  a  later  time.  Delivery  status  reports  are  sent to the
        <a href="bounce.8.html"><b>bounce</b>(8)</a>, <a href="defer.8.html"><b>defer</b>(8)</a> or <a href="trace.8.html"><b>trace</b>(8)</a> daemon as appropriate.
 
-<b>SINGLE-RECIPIENT DELIVERY</b>
+<b><a name="single-recipient_delivery">SINGLE-RECIPIENT DELIVERY</a></b>
        Some destinations cannot handle more than one  recipient  per  delivery
        request.   Examples   are   pagers   or  fax  machines.   In  addition,
        multi-recipient delivery is undesirable when prepending a <b>Delivered-to:</b>
@@ -42,7 +42,7 @@ PIPE(8)                                                                PIPE(8)
        column  of  the  Postfix  <a href="master.5.html"><b>master.cf</b></a>  entry  for the pipe-based delivery
        transport.
 
-<b>COMMAND ATTRIBUTE SYNTAX</b>
+<b><a name="command_attribute_syntax">COMMAND ATTRIBUTE SYNTAX</a></b>
        The external command attributes are given in the <a href="master.5.html"><b>master.cf</b></a> file at  the
        end of a service definition.  The syntax is as follows:
 
@@ -353,10 +353,10 @@ PIPE(8)                                                                PIPE(8)
                      This information is modified by the <b>u</b> flag for case fold-
                      ing.
 
-<b>STANDARDS</b>
+<b><a name="standards">STANDARDS</a></b>
        <a href="https://tools.ietf.org/html/rfc3463">RFC 3463</a> (Enhanced status codes)
 
-<b>DIAGNOSTICS</b>
+<b><a name="diagnostics">DIAGNOSTICS</a></b>
        Command exit status  codes  are  expected  to  follow  the  conventions
        defined in &lt;<b>sysexits.h</b>&gt;.  Exit status 0 means normal successful comple-
        tion.
@@ -376,12 +376,12 @@ PIPE(8)                                                                PIPE(8)
        Corrupted message files are marked so that the queue manager  can  move
        them to the <b>corrupt</b> queue for further inspection.
 
-<b>SECURITY</b>
+<b><a name="security">SECURITY</a></b>
        This  program needs a dual personality 1) to access the private Postfix
        queue and IPC mechanisms, and 2) to execute external  commands  as  the
        specified user. It is therefore security sensitive.
 
-<b>CONFIGURATION PARAMETERS</b>
+<b><a name="configuration_parameters">CONFIGURATION PARAMETERS</a></b>
        Changes to <a href="postconf.5.html"><b>main.cf</b></a> are picked up automatically as <a href="pipe.8.html"><b>pipe</b>(8)</a> processes run
        for only a limited amount of time. Use the command "<b>postfix reload</b>"  to
        speed up a change.
@@ -389,7 +389,7 @@ PIPE(8)                                                                PIPE(8)
        The  text  below provides only a parameter summary. See <a href="postconf.5.html"><b>postconf</b>(5)</a> for
        more details including examples.
 
-<b>RESOURCE AND RATE CONTROLS</b>
+<b><a name="resource_and_rate_controls">RESOURCE AND RATE CONTROLS</a></b>
        In the text below, <i>transport</i> is the first field in a <a href="master.5.html"><b>master.cf</b></a> entry.
 
        <b><a href="postconf.5.html#transport_time_limit">transport_time_limit</a> ($<a href="postconf.5.html#command_time_limit">command_time_limit</a>)</b>
@@ -411,7 +411,7 @@ PIPE(8)                                                                PIPE(8)
               <a href="postconf.5.html#default_destination_recipient_limit">ient_limit</a>  parameter  value,  where  <i>transport</i> is the <a href="master.5.html">master.cf</a>
               name of the message delivery transport.
 
-<b>MISCELLANEOUS CONTROLS</b>
+<b><a name="miscellaneous_controls">MISCELLANEOUS CONTROLS</a></b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
               The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
               figuration files.
@@ -487,7 +487,7 @@ PIPE(8)                                                                PIPE(8)
               The  email  address  form that will be used in non-debug logging
               (info, warning, etc.).
 
-<b>SEE ALSO</b>
+<b><a name="see_also">SEE ALSO</a></b>
        <a href="qmgr.8.html">qmgr(8)</a>, queue manager
        <a href="bounce.8.html">bounce(8)</a>, delivery status reports
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
@@ -496,7 +496,7 @@ PIPE(8)                                                                PIPE(8)
        <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
-<b>LICENSE</b>
+<b><a name="license">LICENSE</a></b>
        The Secure Mailer license must be distributed with this software.
 
 <b>AUTHOR(S)</b>

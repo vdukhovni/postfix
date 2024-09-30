@@ -7,15 +7,15 @@
 </head> <body> <pre>
 PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
 
-<b>NAME</b>
+<b><a name="name">NAME</a></b>
        pgsql_table - Postfix PostgreSQL client configuration
 
-<b>SYNOPSIS</b>
+<b><a name="synopsis">SYNOPSIS</a></b>
        <b>postmap -q "</b><i>string</i><b>" <a href="pgsql_table.5.html">pgsql</a>:/etc/postfix/</b><i>filename</i>
 
        <b>postmap -q - <a href="pgsql_table.5.html">pgsql</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
-<b>DESCRIPTION</b>
+<b><a name="description">DESCRIPTION</a></b>
        The  Postfix  mail system uses optional tables for address rewriting or
        mail routing. These tables are usually in <b>dbm</b> or <b>db</b> format.
 
@@ -27,7 +27,7 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
        The file /etc/postfix/pgsql-aliases.cf has the same format as the Post-
        fix <a href="postconf.5.html">main.cf</a> file, and can specify the parameters described below.
 
-<b>LIST MEMBERSHIP</b>
+<b><a name="list_membership">LIST MEMBERSHIP</a></b>
        When  using  SQL  to  store  lists such as $<a href="postconf.5.html#mynetworks">mynetworks</a>, $<a href="postconf.5.html#mydestination">mydestination</a>,
        $<a href="postconf.5.html#relay_domains">relay_domains</a>, $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>, etc., it is important to  under-
        stand that the table must store each list member as a separate key. The
@@ -41,7 +41,7 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
        value.  With  SQL databases it is not uncommon to return the key itself
        or a constant value.
 
-<b>PGSQL PARAMETERS</b>
+<b><a name="pgsql_parameters">PGSQL PARAMETERS</a></b>
        <b>hosts</b>  The hosts that Postfix will try to connect to  and  query  from.
               Besides  a  <b>postgresql://</b>  connection URI, this setting supports
               the historical forms <b>unix:/</b><i>pathname</i> for UNIX-domain sockets  and
@@ -235,7 +235,7 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
        written in <a href="postconf.5.html">main.cf</a>, which is normally world-readable.  Support for this
        form will be removed in a future Postfix version.
 
-<b>OBSOLETE QUERY INTERFACES</b>
+<b><a name="obsolete_query_interfaces">OBSOLETE QUERY INTERFACES</a></b>
        This section describes query interfaces that are deprecated as of Post-
        fix 2.2.  Please migrate to the new <b>query</b> interface as the  old  inter-
        faces are slated to be phased out.
@@ -286,21 +286,21 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
               Additional conditions to the SQL query. Example:
                   <b>additional_conditions</b> = AND status = 'paid'
 
-<b>SEE ALSO</b>
+<b><a name="see_also">SEE ALSO</a></b>
        <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table manager
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
        <a href="ldap_table.5.html">ldap_table(5)</a>, LDAP lookup tables
        <a href="mysql_table.5.html">mysql_table(5)</a>, MySQL lookup tables
        <a href="sqlite_table.5.html">sqlite_table(5)</a>, SQLite lookup tables
 
-<b>README FILES</b>
+<b><a name="readme_files">README FILES</a></b>
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
        <a href="PGSQL_README.html">PGSQL_README</a>, Postfix PostgreSQL client guide
 
-<b>LICENSE</b>
+<b><a name="license">LICENSE</a></b>
        The Secure Mailer license must be distributed with this software.
 
-<b>HISTORY</b>
+<b><a name="history">HISTORY</a></b>
        PgSQL support was introduced with Postfix version 2.1.
 
 <b>AUTHOR(S)</b>

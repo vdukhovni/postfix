@@ -4680,13 +4680,11 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 cpp[1], CHECK_RELAY_DOMAINS);
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
-	    if (smtpd_sasl_is_active(state)) {
-		status = permit_sasl_auth(state,
-					  SMTPD_CHECK_OK, SMTPD_CHECK_DUNNO);
-		if (status == SMTPD_CHECK_OK)
-		    status = smtpd_acl_permit(state, name, SMTPD_NAME_CLIENT,
-					      state->namaddr, NO_PRINT_ARGS);
-	    }
+	    status = permit_sasl_auth(state,
+				      SMTPD_CHECK_OK, SMTPD_CHECK_DUNNO);
+	    if (status == SMTPD_CHECK_OK)
+		status = smtpd_acl_permit(state, name, SMTPD_NAME_CLIENT,
+					  state->namaddr, NO_PRINT_ARGS);
 #endif
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 1);

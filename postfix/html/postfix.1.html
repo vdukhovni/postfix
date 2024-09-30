@@ -7,13 +7,13 @@
 </head> <body> <pre>
 POSTFIX(1)                                                          POSTFIX(1)
 
-<b>NAME</b>
+<b><a name="name">NAME</a></b>
        postfix - Postfix control program
 
-<b>SYNOPSIS</b>
+<b><a name="synopsis">SYNOPSIS</a></b>
        <b>postfix</b> [<b>-Dv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>command</i>
 
-<b>DESCRIPTION</b>
+<b><a name="description">DESCRIPTION</a></b>
        This  command  is  reserved  for the superuser. To submit mail, use the
        Postfix <a href="sendmail.1.html"><b>sendmail</b>(1)</a> command.
 
@@ -138,7 +138,7 @@ POSTFIX(1)                                                          POSTFIX(1)
        <b>-v</b>     Enable  verbose  logging  for  debugging  purposes.  Multiple <b>-v</b>
               options make the software increasingly verbose.
 
-<b>ENVIRONMENT</b>
+<b><a name="environment">ENVIRONMENT</a></b>
        The <a href="postfix.1.html"><b>postfix</b>(1)</a> command  exports  the  following  environment  variables
        before executing the <b>postfix-script</b> file:
 
@@ -167,7 +167,7 @@ POSTFIX(1)                                                          POSTFIX(1)
        <b>POSTLOG_HOSTNAME</b>
               The hostname to prepend to internal logging.
 
-<b>CONFIGURATION PARAMETERS</b>
+<b><a name="configuration_parameters">CONFIGURATION PARAMETERS</a></b>
        The following <a href="postconf.5.html"><b>main.cf</b></a> configuration parameters are exported as environ-
        ment variables with the same names:
 
@@ -303,7 +303,7 @@ POSTFIX(1)                                                          POSTFIX(1)
        <b><a href="postconf.5.html#postlog_service_name">postlog_service_name</a> (postlog)</b>
               The name of the <a href="postlogd.8.html"><b>postlogd</b>(8)</a> service entry in <a href="master.5.html">master.cf</a>.
 
-<b>FILES</b>
+<b><a name="files">FILES</a></b>
        Prior  to Postfix version 2.6, all of the following files were in <b>$<a href="postconf.5.html#config_directory">con</a>-</b>
        <b><a href="postconf.5.html#config_directory">fig_directory</a></b>. Some files are now in <b>$<a href="postconf.5.html#daemon_directory">daemon_directory</a></b> or  <b>$meta_direc-</b>
        <b>tory</b>  so  that they can be shared among multiple instances that run the
@@ -319,7 +319,7 @@ POSTFIX(1)                                                          POSTFIX(1)
        $<a href="postconf.5.html#meta_directory">meta_directory</a>/dynamicmaps.cf, plug-in database clients
        $<a href="postconf.5.html#meta_directory">meta_directory</a>/postfix-files, file/directory permissions
 
-<b>SEE ALSO</b>
+<b><a name="see_also">SEE ALSO</a></b>
        Commands:
        <a href="postalias.1.html">postalias(1)</a>, create/update/query alias database
        <a href="postcat.1.html">postcat(1)</a>, examine Postfix queue file
@@ -401,7 +401,7 @@ POSTFIX(1)                                                          POSTFIX(1)
        Other:
        syslogd(8), system logging
 
-<b>README FILES</b>
+<b><a name="readme_files">README FILES</a></b>
        <a href="OVERVIEW.html">OVERVIEW</a>, overview of Postfix commands and processes
        <a href="BASIC_CONFIGURATION_README.html">BASIC_CONFIGURATION_README</a>, Postfix basic configuration
        <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a>, Postfix address rewriting
@@ -409,7 +409,7 @@ POSTFIX(1)                                                          POSTFIX(1)
        <a href="CONTENT_INSPECTION_README.html">CONTENT_INSPECTION_README</a>, Postfix content inspection
        <a href="QSHAPE_README.html">QSHAPE_README</a>, Postfix queue analysis
 
-<b>LICENSE</b>
+<b><a name="license">LICENSE</a></b>
        The Secure Mailer license must be distributed with this software.
 
 <b>AUTHOR(S)</b>

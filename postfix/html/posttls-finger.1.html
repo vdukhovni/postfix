@@ -7,14 +7,14 @@
 </head> <body> <pre>
 POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
 
-<b>NAME</b>
+<b><a name="name">NAME</a></b>
        posttls-finger - Probe the TLS properties of an ESMTP or LMTP server.
 
-<b>SYNOPSIS</b>
+<b><a name="synopsis">SYNOPSIS</a></b>
        <b>posttls-finger</b> [<i>options</i>] [<b>inet:</b>]<i>domain</i>[:<i>port</i>] [<i>match ...</i>]
        <b>posttls-finger</b> -S [<i>options</i>] <b>unix:</b><i>pathname</i> [<i>match ...</i>]
 
-<b>DESCRIPTION</b>
+<b><a name="description">DESCRIPTION</a></b>
        <a href="posttls-finger.1.html"><b>posttls-finger</b>(1)</a>  connects  to  the  specified destination and reports
        TLS-related information about the server. With SMTP, the destination is
        a  domainname;  with LMTP it is either a domainname prefixed with <b>inet:</b>
@@ -341,21 +341,21 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               is <b>dane</b>, or <b>dane-only</b> the match names are ignored, and <b>hostname,</b>
               <b>nexthop</b> strategies are used.
 
-<b>ENVIRONMENT</b>
+<b><a name="environment">ENVIRONMENT</a></b>
        <b>MAIL_CONFIG</b>
               Read configuration parameters from a non-default location.
 
        <b>MAIL_VERBOSE</b>
               Same as <b>-v</b> option.
 
-<b>SEE ALSO</b>
+<b><a name="see_also">SEE ALSO</a></b>
        <a href="smtp-source.1.html">smtp-source(1)</a>, SMTP/LMTP message source
        <a href="smtp-sink.1.html">smtp-sink(1)</a>, SMTP/LMTP message dump
 
-<b>README FILES</b>
+<b><a name="readme_files">README FILES</a></b>
        <a href="TLS_README.html">TLS_README</a>, Postfix STARTTLS howto
 
-<b>LICENSE</b>
+<b><a name="license">LICENSE</a></b>
        The Secure Mailer license must be distributed with this software.
 
 <b>AUTHOR(S)</b>

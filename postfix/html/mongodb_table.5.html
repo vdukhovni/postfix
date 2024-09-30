@@ -7,15 +7,15 @@
 </head> <body> <pre>
 MONGODB_TABLE(5)                                              MONGODB_TABLE(5)
 
-<b>NAME</b>
+<b><a name="name">NAME</a></b>
        mongodb_table - Postfix MongoDB client configuration
 
-<b>SYNOPSIS</b>
+<b><a name="synopsis">SYNOPSIS</a></b>
        <b>postmap -q "</b><i>string</i><b>" <a href="mongodb_table.5.html">mongodb</a>:/etc/postfix/</b><i>filename</i>
 
        <b>postmap -q - <a href="mongodb_table.5.html">mongodb</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
-<b>DESCRIPTION</b>
+<b><a name="description">DESCRIPTION</a></b>
        The  Postfix  mail system uses optional tables for address rewriting or
        mail routing. These tables are usually in <b>dbm</b> or <b>db</b> format.
 
@@ -37,7 +37,7 @@ MONGODB_TABLE(5)                                              MONGODB_TABLE(5)
        unprivileged  postfix  user (specified with the Postfix <a href="postconf.5.html#mail_owner">mail_owner</a> con-
        figuration parameter).
 
-<b>MONGODB PARAMETERS</b>
+<b><a name="mongodb_parameters">MONGODB PARAMETERS</a></b>
        <b>uri</b>    The URI of mongo server/cluster that Postfix will try to connect
               to and query from. Please see
               <a href="https://www.mongodb.com/docs/manual/reference/connection-string/">https://www.mongodb.com/docs/manual/reference/connection-string/</a>
@@ -185,18 +185,18 @@ MONGODB_TABLE(5)                                              MONGODB_TABLE(5)
        mally world-readable, and '$' in a mongodb parameter setting  needs  to
        be written as '$$'.
 
-<b>SEE ALSO</b>
+<b><a name="see_also">SEE ALSO</a></b>
        <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table maintenance
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
 
-<b>README FILES</b>
+<b><a name="readme_files">README FILES</a></b>
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
        <a href="MONGODB_README.html">MONGODB_README</a>, Postfix MONGODB client guide
 
-<b>LICENSE</b>
+<b><a name="license">LICENSE</a></b>
        The Secure Mailer license must be distributed with this software.
 
-<b>HISTORY</b>
+<b><a name="history">HISTORY</a></b>
        MongoDB support was introduced with Postfix version 3.9.
 
 <b>AUTHOR(S)</b>
