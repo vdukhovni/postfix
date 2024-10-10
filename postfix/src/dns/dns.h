@@ -165,8 +165,8 @@ typedef struct DNS_RR {
     unsigned short flags;		/* DNS_RR_FLAG_XX, see below */
     struct DNS_RR *next;		/* linkage */
     size_t  data_len;			/* actual data size */
-    char    *data;			/* a bunch of data */
-     /* Add new fields at the end, for ABI forward compatibility. */
+    char   *data;			/* a bunch of data */
+    /* Add new fields at the end, for ABI forward compatibility. */
 } DNS_RR;
 
 #define DNS_RR_FLAG_TRUNCATED	(1<<0)

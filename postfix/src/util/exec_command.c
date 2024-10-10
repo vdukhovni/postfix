@@ -67,9 +67,9 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ" SPACE_TAB;
 	&& command[strspn(command, SPACE_TAB)] != 0) {
 
 	/*
-	 * No shell meta characters found, so we can try to avoid the overhead
-	 * of running a shell. Just split the command on whitespace and exec
-	 * the result directly.
+	 * No shell meta characters found, so we can try to avoid the
+	 * overhead of running a shell. Just split the command on whitespace
+	 * and exec the result directly.
 	 */
 	argv = argv_split(command, SPACE_TAB);
 	(void) execvp(argv->argv[0], argv->argv);

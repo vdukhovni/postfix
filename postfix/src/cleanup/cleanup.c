@@ -28,7 +28,7 @@
 /* .IP \(bu
 /*	Eliminate duplicate envelope recipient addresses.
 /* .br
-/*	This is enabled with the \fBduplicate_filter_limit\fR 
+/*	This is enabled with the \fBduplicate_filter_limit\fR
 /*	parameter setting.
 /* .IP \(bu
 /*	Remove message headers: \fBBcc\fR, \fBContent-Length\fR,

@@ -30,8 +30,8 @@
 typedef struct {
     VSTREAM *fp;			/* open file */
     VSTRING *buf;			/* I/O buffer */
-    char    *compat_status;		/* old logfile compatibility */
-    char    *compat_action;		/* old logfile compatibility */
+    char   *compat_status;		/* old logfile compatibility */
+    char   *compat_action;		/* old logfile compatibility */
 } BOUNCE_LOG;
 
 extern BOUNCE_LOG *bounce_log_open(const char *, const char *, int, mode_t);

@@ -104,6 +104,6 @@ int     stream_connect(const char *path, int block_mode, int unused_timeout)
      */
     return (pair[0]);
 #else
-    msg_fatal("stream connections are not implemented");
+            msg_fatal("stream connections are not implemented");
 #endif
 }

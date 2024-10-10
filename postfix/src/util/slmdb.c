@@ -281,8 +281,8 @@
   * closest thing that C has to exception handling). The application is then
   * expected to repeat the bulk transaction from scratch.
   * 
-  * When any code aborts a bulk transaction, it must reset slmdb->txn to null
-  * to avoid a use-after-free problem in slmdb_close().
+  * When any code aborts a bulk transaction, it must reset slmdb->txn to null to
+  * avoid a use-after-free problem in slmdb_close().
   */
 
  /*

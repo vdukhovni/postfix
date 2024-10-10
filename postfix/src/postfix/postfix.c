@@ -37,7 +37,7 @@
 /*	when running as PID 1.
 /*	This command requires that multi-instance support is
 /*	disabled (i.e. the multi_instance_directories parameter
-/*	value must be empty). 
+/*	value must be empty).
 /*
 /*	When running Postfix inside a container, see MAILLOG_README
 /*	for logging to stdout. Postfix logs to syslog by default,

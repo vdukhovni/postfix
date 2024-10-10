@@ -49,7 +49,7 @@
 #include <sys_defs.h>
 
 #ifdef NO_INLINE
-#define inline /* */
+#define inline				/* */
 #endif
 
 /* parse_utf8_char - parse and validate one UTF8 multibyte sequence */
@@ -119,4 +119,4 @@ static inline char *parse_utf8_char(const char *str, const char *end)
     }
 }
 
-#undef inline 
+#undef inline

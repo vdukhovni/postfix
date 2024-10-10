@@ -106,7 +106,7 @@ static DNS_RR *dns_rr_action(const char *cmd, DNS_RR *rr, const char *rr_text)
 	msg_info("ignoring DNS RR: %s", rr_text);
 	return (0);
     } else {
-	msg_warn("%s: unknown DNS filter action: \"%s\"", 
+	msg_warn("%s: unknown DNS filter action: \"%s\"",
 		 dns_rr_filter_maps->title, cmd);
 	return (dns_rr_filter_error);
     }

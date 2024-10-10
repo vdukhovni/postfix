@@ -103,9 +103,11 @@ int     main(int argc, char **argv)
 	msg_fatal("close server fd");
     return (0);
 }
+
 #else
 int     main(int argc, char **argv)
 {
     return (0);
 }
+
 #endif

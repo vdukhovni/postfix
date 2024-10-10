@@ -109,12 +109,12 @@ extern char *gai_strerror(int);
   * they suggest that space for the null terminator is not included.
   */
 #ifdef HAS_IPV6
-# define MAI_HOSTADDR_STRSIZE	INET6_ADDRSTRLEN
+#define MAI_HOSTADDR_STRSIZE	INET6_ADDRSTRLEN
 #else
-# ifndef INET_ADDRSTRLEN
-#  define INET_ADDRSTRLEN	16
-# endif
-# define MAI_HOSTADDR_STRSIZE	INET_ADDRSTRLEN
+#ifndef INET_ADDRSTRLEN
+#define INET_ADDRSTRLEN	16
+#endif
+#define MAI_HOSTADDR_STRSIZE	INET_ADDRSTRLEN
 #endif
 
 #define MAI_HOSTNAME_STRSIZE	1025

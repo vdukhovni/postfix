@@ -192,7 +192,8 @@ struct test_case test_cases[] = {
     },
 };
 
-int main(int argc, char **argv) {
+int     main(int argc, char **argv)
+{
     struct test_case *tp;
     struct association *ap;
     int     pass = 0;

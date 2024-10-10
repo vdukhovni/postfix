@@ -838,7 +838,7 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 		msg_info("frag_len=%d text=\"%.*s\"",
 			 (int) frag_len, (int) frag_len, (char *) src);
 	    if (frag_len > reply->end - src
-	     || frag_len >= ((unsigned char *) ltemp + sizeof(ltemp)) - dst) {
+	    || frag_len >= ((unsigned char *) ltemp + sizeof(ltemp)) - dst) {
 		msg_warn("extract_answer: bad TXT string length: %d", frag_len);
 		return (DNS_RETRY);
 	    }

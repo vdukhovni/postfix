@@ -261,8 +261,8 @@ int     cleanup_flush(CLEANUP_STATE *state)
      * (mail submitted with the Postfix sendmail command, mail forwarded by
      * the local(8) delivery agent, or mail re-queued with "postsuper -r"),
      * send a bounce notification, reset the error flags in case of success,
-     * and request deletion of the incoming queue file and of the
-     * optional DSN SUCCESS records from virtual alias expansion.
+     * and request deletion of the incoming queue file and of the optional
+     * DSN SUCCESS records from virtual alias expansion.
      * 
      * XXX It would make no sense to knowingly report success after we already
      * have bounced all recipients, especially because the information in the

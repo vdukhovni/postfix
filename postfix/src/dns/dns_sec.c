@@ -128,7 +128,7 @@ void    dns_sec_probe(int rflags)
     default:
 	if (!DNS_SEC_STATS_TEST(DNS_SEC_FLAG_AVAILABLE))
 	    msg_warn("reason: " VAR_DNSSEC_PROBE
-		     " '%s' received a response that is not DNSSEC validated",
+		   " '%s' received a response that is not DNSSEC validated",
 		     var_dnssec_probe);
 	if (rrlist)
 	    dns_rr_free(rrlist);

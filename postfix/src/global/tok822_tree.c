@@ -263,7 +263,7 @@ TOK822 *tok822_free_tree(TOK822 *tp)
 {
     TOK822 *next;
 
-    for (/* void */; tp != 0; tp = next) {
+    for ( /* void */ ; tp != 0; tp = next) {
 	if (tp->head)
 	    tok822_free_tree(tp->head);
 	next = tp->next;

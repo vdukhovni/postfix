@@ -10,7 +10,7 @@
 /*	const char *string;
 /*	const char *parens;
 /* DESCRIPTION
-/*	balpar() determines the length of a string enclosed in 
+/*	balpar() determines the length of a string enclosed in
 /*	the specified parentheses, zero in case of error.
 /* SEE ALSO
 /*	A balpar() routine appears in Brian W. Kernighan, P.J. Plauger:

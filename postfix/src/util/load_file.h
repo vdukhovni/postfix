@@ -14,7 +14,7 @@
  /*
   * External interface.
   */
-typedef void (*LOAD_FILE_FN)(VSTREAM *, void *);
+typedef void (*LOAD_FILE_FN) (VSTREAM *, void *);
 
 extern void load_file(const char *, LOAD_FILE_FN, void *);
 

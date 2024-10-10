@@ -72,6 +72,7 @@ static void info_log_addr_form_init(void)
 	INFO_LOG_ADDR_FORM_NAME_INTERNAL, INFO_LOG_ADDR_FORM_VAL_INTERNAL,
 	0, INFO_LOG_ADDR_FORM_VAL_NOT_SET,
     };
+
     info_log_addr_form_form = name_code(info_log_addr_form_table,
 					NAME_CODE_FLAG_NONE,
 					var_info_log_addr_form);

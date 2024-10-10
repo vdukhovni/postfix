@@ -7,8 +7,8 @@
 /*	#include <sane_strtol.h>
 /*
 /*	long	sane_strtol(
-/*	const char *start, 
-/*	char **restrict end, 
+/*	const char *start,
+/*	char **restrict end,
 /*	int	base)
 /*
 /*	unsigned long sane_strtoul(

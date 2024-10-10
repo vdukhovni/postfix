@@ -191,7 +191,7 @@ static void own_inet_addr_init(INET_ADDR_LIST *addr_list,
 
 /* own_inet_addr - is this my own internet address */
 
-int     own_inet_addr(struct sockaddr * addr)
+int     own_inet_addr(struct sockaddr *addr)
 {
     int     i;
 
@@ -253,7 +253,7 @@ static void proxy_inet_addr_init(INET_ADDR_LIST *addr_list)
 
 /* proxy_inet_addr - is this my proxy internet address */
 
-int     proxy_inet_addr(struct sockaddr * addr)
+int     proxy_inet_addr(struct sockaddr *addr)
 {
     int     i;
 

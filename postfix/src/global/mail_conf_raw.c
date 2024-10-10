@@ -74,7 +74,7 @@
 /* check_mail_conf_raw - validate string length */
 
 static void check_mail_conf_raw(const char *name, const char *strval,
-			             int min, int max)
+				        int min, int max)
 {
     ssize_t len = strlen(strval);
 
@@ -89,7 +89,7 @@ static void check_mail_conf_raw(const char *name, const char *strval,
 /* get_mail_conf_raw - evaluate string-valued configuration variable */
 
 char   *get_mail_conf_raw(const char *name, const char *defval,
-		               int min, int max)
+			          int min, int max)
 {
     const char *strval;
 
@@ -106,7 +106,7 @@ char   *get_mail_conf_raw(const char *name, const char *defval,
 typedef const char *(*stupid_indent_str) (void);
 
 char   *get_mail_conf_raw_fn(const char *name, stupid_indent_str defval,
-			          int min, int max)
+			             int min, int max)
 {
     const char *strval;
 
@@ -126,7 +126,7 @@ void    get_mail_conf_raw_table(const CONFIG_RAW_TABLE *table)
 	if (table->target[0])
 	    myfree(table->target[0]);
 	table->target[0] = get_mail_conf_raw(table->name, table->defval,
-					  table->min, table->max);
+					     table->min, table->max);
 	table++;
     }
 }
@@ -139,7 +139,7 @@ void    get_mail_conf_raw_fn_table(const CONFIG_RAW_FN_TABLE *table)
 	if (table->target[0])
 	    myfree(table->target[0]);
 	table->target[0] = get_mail_conf_raw_fn(table->name, table->defval,
-					     table->min, table->max);
+						table->min, table->max);
 	table++;
     }
 }

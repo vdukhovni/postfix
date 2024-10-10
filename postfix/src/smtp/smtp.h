@@ -519,8 +519,8 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 	(session->expire_time = (when))
 
  /*
-  * Encapsulate the following so that we don't expose details of
-  * connection management and error handling to the SMTP protocol engine.
+  * Encapsulate the following so that we don't expose details of connection
+  * management and error handling to the SMTP protocol engine.
   */
 #ifdef USE_SASL_AUTH
 #define HAVE_SASL_CREDENTIALS \

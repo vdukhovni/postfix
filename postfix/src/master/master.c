@@ -420,8 +420,8 @@ int     main(int argc, char **argv)
 
     /*
      * If started from a terminal, get rid of any tty association. This also
-     * means that all errors and warnings must go to the syslog daemon.
-     * Some new world has no terminals and prefers logging to stdout.
+     * means that all errors and warnings must go to the syslog daemon. Some
+     * new world has no terminals and prefers logging to stdout.
      */
     if (master_detach)
 	for (fd = 0; fd < 3; fd++) {

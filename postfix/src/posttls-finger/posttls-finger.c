@@ -901,7 +901,7 @@ static int starttls(STATE *state)
 	    state->tls_context = tls_proxy_context_receive(state->stream);
 	    if (state->tls_context) {
 		if (state->log_mask &
-		    (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE | TLS_LOG_PEERCERT)) {
+		 (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE | TLS_LOG_PEERCERT)) {
 		    if (state->tls_context->stoc_rpk)
 			msg_info("%s: pkey_fingerprint=%s", state->namaddrport,
 				 state->tls_context->peer_pkey_fprint);
@@ -2147,8 +2147,8 @@ static void parse_match(STATE *state, int argc, char *argv[])
     int     smtp_mode = 1;
 
     /*
-     * DANE match names are configured late, once the TLSA records are in hand.
-     * For now, prepare to fall back to "secure".
+     * DANE match names are configured late, once the TLSA records are in
+     * hand. For now, prepare to fall back to "secure".
      */
     switch (state->level) {
     default:

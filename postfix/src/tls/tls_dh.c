@@ -305,11 +305,11 @@ void    tls_tmp_dh(SSL_CTX *ctx, int useauto)
 /* ------------------------------------- Common API */
 
 #define AG_STAT_OK	(0)
-#define AG_STAT_NO_GROUP (-1)	/* no usable group, may retry */
-#define AG_STAT_NO_RETRY (-2)	/* other error, don't retry */
+#define AG_STAT_NO_GROUP (-1)		/* no usable group, may retry */
+#define AG_STAT_NO_RETRY (-2)		/* other error, don't retry */
 
 static int setup_auto_groups(SSL_CTX *ctx, const char *origin,
-				const char *eecdh,
+			             const char *eecdh,
 			             const char *ffdhe)
 {
 #ifndef OPENSSL_NO_ECDH
@@ -325,17 +325,17 @@ static int setup_auto_groups(SSL_CTX *ctx, const char *origin,
 	tls_print_errors();
 	return (AG_STAT_NO_RETRY);
     }
-
     if (!names)
 	names = vstring_alloc(sizeof DEF_TLS_EECDH_AUTO +
 			      sizeof DEF_TLS_FFDHE_AUTO);
     VSTRING_RESET(names);
+
     /*
      * OpenSSL does not tolerate duplicate groups in the requested list.
      * Deduplicate case-insensitively, just in case OpenSSL some day supports
-     * case-insensitive group lookup.  Deduplicate only verified extant groups
-     * we're going to ask OpenSSL to use.
-     *
+     * case-insensitive group lookup.  Deduplicate only verified extant
+     * groups we're going to ask OpenSSL to use.
+     * 
      * OpenSSL 3.3 supports "?<name>" as a syntax for optionally ignoring
      * unsupported groups, so we could skip checking against the throw-away
      * CTX when linked against 3.3 or higher, but the cost savings don't
@@ -358,11 +358,12 @@ static int setup_auto_groups(SSL_CTX *ctx, const char *origin,
 	SETUP_AG_RETURN(AG_STAT_NO_GROUP);
     }
     for (; group != 0; group = mystrtok(&groups, GROUPS_SEP)) {
+
 	/*
 	 * Validate the group name by trying it as the group for a throw-away
-	 * SSL context. This way, we can ask for new groups that may not yet be
-	 * supported by the underlying OpenSSL runtime.  Unsupported groups are
-	 * silently ignored.
+	 * SSL context. This way, we can ask for new groups that may not yet
+	 * be supported by the underlying OpenSSL runtime.  Unsupported
+	 * groups are silently ignored.
 	 */
 	ERR_set_mark();
 	if (SSL_CTX_set1_curves_list(tmpctx, group) > 0 &&
@@ -412,7 +413,7 @@ void    tls_auto_groups(SSL_CTX *ctx, const char *eecdh, const char *ffdhe)
      * group selection is mere performance tuning and not security critical.
      * All the groups supported for negotiation should be strong enough.
      */
-    for (origin = "configured"; /* void */ ; /* void */) {
+    for (origin = "configured"; /* void */ ; /* void */ ) {
 	switch (setup_auto_groups(ctx, origin, eecdh, ffdhe)) {
 	case AG_STAT_OK:
 	    return;

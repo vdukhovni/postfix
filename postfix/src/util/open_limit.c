@@ -58,6 +58,7 @@ int     open_limit(int limit)
 {
 #ifdef RLIMIT_NOFILE
     struct rlimit rl;
+
 #endif
 
     if (limit < 0) {
@@ -97,4 +98,3 @@ int     open_limit(int limit)
     return (getdtablesize());
 #endif
 }
-

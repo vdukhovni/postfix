@@ -521,7 +521,7 @@ static void check_mail_owner(void)
 	msg_fatal("file %s/%s: parameter %s: user %s has the same"
 		  " user ID %ld as user %s",
 		  var_config_dir, MAIN_CONF_FILE,
-		  VAR_MAIL_OWNER, var_mail_owner, 
+		  VAR_MAIL_OWNER, var_mail_owner,
 		  (long) var_owner_uid, pwd->pw_name);
 }
 
@@ -550,7 +550,7 @@ static void check_sgid_group(void)
 	msg_fatal("file %s/%s: parameter %s: group %s has the same"
 		  " group ID %ld as group %s",
 		  var_config_dir, MAIN_CONF_FILE,
-		  VAR_SGID_GROUP, var_sgid_group, 
+		  VAR_SGID_GROUP, var_sgid_group,
 		  (long) var_sgid_gid, grp->gr_name);
 }
 

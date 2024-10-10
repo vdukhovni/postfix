@@ -14,8 +14,8 @@
  /*
   * System library
   */
-#include <unistd.h>		/* getuid()/geteuid() */
-#include <sys/types.h>		/* uid_t */
+#include <unistd.h>			/* getuid()/geteuid() */
+#include <sys/types.h>			/* uid_t */
 
  /*
   * Utility library.

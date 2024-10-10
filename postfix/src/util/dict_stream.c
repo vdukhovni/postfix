@@ -51,7 +51,7 @@
 /*	content as specified above.
 /* .IP st
 /*	File metadata with the file owner, or fake metadata with the
-/*	real UID and GID of the dict_stream_open() caller. This is 
+/*	real UID and GID of the dict_stream_open() caller. This is
 /*	used for "taint" tracking (zero=trusted, non-zero=untrusted).
 /* IP why
 /*	Pointer to pointer to error message storage. dict_stream_open()

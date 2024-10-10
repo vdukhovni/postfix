@@ -192,8 +192,8 @@ int     main(void)
 	    test_failed = 0;
 	    if ((hval = hash_fnvz(tp->str)) != tp->hval) {
 		msg_warn("hash_fnv(\"%s\") want %lu, got: %lu",
-			 tp->str, (unsigned long) tp->hval, 
-			(unsigned long) hval);
+			 tp->str, (unsigned long) tp->hval,
+			 (unsigned long) hval);
 		test_failed = 1;
 	    }
 	    if (test_failed) {

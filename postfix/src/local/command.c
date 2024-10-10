@@ -171,7 +171,7 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
 	argv_add(env, "ORIGINAL_RECIPIENT", state.msg_attr.rcpt.orig_addr,
 		 ARGV_END);
     if (state.request->dsn_envid[0])
-        argv_add(env, "ENVID", state.request->dsn_envid, ARGV_END);
+	argv_add(env, "ENVID", state.request->dsn_envid, ARGV_END);
 
 #define EXPORT_REQUEST(name, value) \
 	if ((value)[0]) argv_add(env, (name), (value), ARGV_END);

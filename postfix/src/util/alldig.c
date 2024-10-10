@@ -60,14 +60,14 @@ int     alldig(const char *string)
 
 /* allalnum - return true if string is all alphanum */
 
-int allalnum(const char *string)
+int     allalnum(const char *string)
 {
     const char *cp;
 
     if (*string == 0)
-        return (0);
+	return (0);
     for (cp = string; *cp != 0; cp++)
-        if (!ISALNUM(*cp))
-            return (0);
+	if (!ISALNUM(*cp))
+	    return (0);
     return (1);
 }

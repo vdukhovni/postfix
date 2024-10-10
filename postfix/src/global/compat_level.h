@@ -20,7 +20,7 @@ extern long compat_level_from_string(const char *,
 extern long compat_level_from_numbers(long, long, long,
 		              void PRINTFLIKE(1, 2) (*) (const char *,...));
 extern const char *compat_level_to_string(long,
-			      void PRINTFLIKE(1, 2) (*) (const char *,...));
+		              void PRINTFLIKE(1, 2) (*) (const char *,...));
 
 #define compat_level_from_major(major, msg_fn) \
 	compat_level_from_major_minor((major), 0, (msg_fn))

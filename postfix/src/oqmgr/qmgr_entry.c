@@ -331,8 +331,7 @@ QMGR_ENTRY *qmgr_entry_create(QMGR_QUEUE *queue, QMGR_MESSAGE *message)
      * 
      * XXX At this point in the code, the busy reference count is still less
      * than the concurrency limit (otherwise this code would not be invoked
-     * in the first place) so we have to make some awkward adjustments
-     * below.
+     * in the first place) so we have to make some awkward adjustments below.
      * 
      * XXX The queue length test below looks at the active queue share of an
      * individual destination. This catches the case where mail for one

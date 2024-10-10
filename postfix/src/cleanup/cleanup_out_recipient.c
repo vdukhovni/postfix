@@ -218,9 +218,9 @@ void    cleanup_out_recipient(CLEANUP_STATE *state,
      * in the expansion because that results in multiple verify(8) updates
      * for one verify(8) request.
      * 
-     * Multiple verify(8) updates for one verify(8) request would overwrite
-     * each other's status, and if the last status update is "undeliverable",
-     * then the whole alias is flagged as undeliverable.
+     * Multiple verify(8) updates for one verify(8) request would overwrite each
+     * other's status, and if the last status update is "undeliverable", then
+     * the whole alias is flagged as undeliverable.
      */
     else {
 	RECIPIENT rcpt;

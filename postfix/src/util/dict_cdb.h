@@ -41,4 +41,4 @@ extern MKMAP *mkmap_cdb_open(const char *);
 /*	New York, NY 10011, USA
 /*--*/
 
-#endif /* _DICT_CDB_H_INCLUDED_ */
+#endif					/* _DICT_CDB_H_INCLUDED_ */

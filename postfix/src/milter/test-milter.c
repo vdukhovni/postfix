@@ -227,7 +227,7 @@ static int test_reply(SMFICTX *ctx, int code)
     }
 }
 
-static sfsistat test_connect(SMFICTX *ctx, char *name, struct sockaddr * sa)
+static sfsistat test_connect(SMFICTX *ctx, char *name, struct sockaddr *sa)
 {
     const char *print_addr;
     char    buf[BUFSIZ];

@@ -385,7 +385,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	return;
     }
     if (type == REC_TYPE_FROM) {
-	off_t after_sender_offs;
+	off_t   after_sender_offs;
 
 	/* Allow only one instance. */
 	if (state->sender != 0) {

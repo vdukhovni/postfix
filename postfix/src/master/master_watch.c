@@ -100,8 +100,8 @@ void    master_str_watch(const MASTER_STR_WATCH *str_watch_table)
 
 	/*
 	 * Initialize the backed up parameter value, or update it if this
-	 * parameter supports updates after initialization. Optionally 
-	 * notify the application that this parameter has changed.
+	 * parameter supports updates after initialization. Optionally notify
+	 * the application that this parameter has changed.
 	 */
 	if (wp->backup[0] == 0) {
 	    if (wp->notify != 0)
@@ -138,8 +138,8 @@ void    master_int_watch(MASTER_INT_WATCH *int_watch_table)
 
 	/*
 	 * Initialize the backed up parameter value, or update if it this
-	 * parameter supports updates after initialization. Optionally 
-	 * notify the application that this parameter has changed.
+	 * parameter supports updates after initialization. Optionally notify
+	 * the application that this parameter has changed.
 	 */
 	if ((wp->flags & MASTER_WATCH_FLAG_ISSET) == 0) {
 	    if (wp->notify != 0)

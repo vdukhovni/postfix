@@ -20,7 +20,7 @@
   * External interface.
   */
 typedef struct CLNT_STREAM CLNT_STREAM;
-typedef int (*CLNT_STREAM_HANDSHAKE_FN)(VSTREAM *);
+typedef int (*CLNT_STREAM_HANDSHAKE_FN) (VSTREAM *);
 
 extern CLNT_STREAM *clnt_stream_create(const char *, const char *, int, int,
 				               CLNT_STREAM_HANDSHAKE_FN);

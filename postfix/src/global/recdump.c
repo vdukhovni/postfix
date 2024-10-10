@@ -46,7 +46,7 @@ int     main(int unused_argc, char **argv)
 
     while (offset = vstream_ftell(VSTREAM_IN),
 	   ((type = rec_get(VSTREAM_IN, buf, 0)) != REC_TYPE_EOF
-	   && type != REC_TYPE_ERROR)) {
+	    && type != REC_TYPE_ERROR)) {
 	vstream_fprintf(VSTREAM_OUT, "%15s|%4ld|%3ld|%s\n",
 			rec_type_name(type), offset,
 			(long) VSTRING_LEN(buf), vstring_str(buf));

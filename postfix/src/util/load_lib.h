@@ -17,12 +17,12 @@
 /* NULL name terminates list */
 typedef struct LIB_FN {
     const char *name;
-    void  (*fptr)(void);
+    void    (*fptr) (void);
 } LIB_FN;
 
 typedef struct LIB_DP {
     const char *name;
-    void  *dptr;
+    void   *dptr;
 } LIB_DP;
 
 extern void load_library_symbols(const char *, LIB_FN *, LIB_DP *);

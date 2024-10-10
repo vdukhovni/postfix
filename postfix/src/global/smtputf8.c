@@ -24,7 +24,7 @@
 /* .IP MAIL_SRC_MASK_FORWARD
 /*	Local forwarding or aliasing.
 /* .IP MAIL_SRC_MASK_BOUNCE
-/*	Submission by the bounce(8) daemon. 
+/*	Submission by the bounce(8) daemon.
 /* .IP MAIL_SRC_MASK_NOTIFY
 /*	Postmaster notification from the smtp(8) or smtpd(8) daemon.
 /* .IP MAIL_SRC_MASK_VERIFY

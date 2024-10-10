@@ -22,6 +22,7 @@ extern void midna_domain_pre_chroot(void);
 
 extern int midna_domain_cache_size;
 extern int midna_domain_transitional;
+
 /* LICENSE
 /* .ad
 /* .fi

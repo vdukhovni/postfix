@@ -1080,11 +1080,11 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
     }
 
     /*
-     * On the client side, a TLS 1.3 KEM has no server key, just ciphertext to
-     * decapsulate, but, as of OpenSSL 3.0, the client can still obtain the
-     * negotiated group name directly.  We nevertheless still try to get the
-     * group details from the peer key first, which works with OpenSSL 1.1.1
-     * and retains the original output format for the (EC)DH groups.
+     * On the client side, a TLS 1.3 KEM has no server key, just ciphertext
+     * to decapsulate, but, as of OpenSSL 3.0, the client can still obtain
+     * the negotiated group name directly.  We nevertheless still try to get
+     * the group details from the peer key first, which works with OpenSSL
+     * 1.1.1 and retains the original output format for the (EC)DH groups.
      */
     if (!kex_name)
 	kex_name = TLS_GROUP_NAME(ssl);
@@ -1252,10 +1252,10 @@ void    tls_log_summary(TLS_ROLE role, TLS_USAGE usage, TLS_SESS_STATE *ctx)
 			       ctx->srvr_sig_name);
 	if (ctx->srvr_sig_curve && *ctx->srvr_sig_curve)
 	    vstring_sprintf_append(msg, " (%s%s)", ctx->srvr_sig_curve,
-	                           ctx->stoc_rpk ? " raw public key" : "");
+				   ctx->stoc_rpk ? " raw public key" : "");
 	else if (ctx->srvr_sig_bits > 0)
 	    vstring_sprintf_append(msg, " (%d bit%s)", ctx->srvr_sig_bits,
-	                           ctx->stoc_rpk ? " raw public key" : "s");
+				   ctx->stoc_rpk ? " raw public key" : "s");
 	else if (ctx->stoc_rpk)
 	    vstring_sprintf_append(msg, " (raw public key)");
 	if (ctx->srvr_sig_dgst && *ctx->srvr_sig_dgst)
@@ -1267,10 +1267,10 @@ void    tls_log_summary(TLS_ROLE role, TLS_USAGE usage, TLS_SESS_STATE *ctx)
 			       ctx->clnt_sig_name);
 	if (ctx->clnt_sig_curve && *ctx->clnt_sig_curve)
 	    vstring_sprintf_append(msg, " (%s%s)", ctx->clnt_sig_curve,
-	                           ctx->ctos_rpk ? " raw public key" : "");
+				   ctx->ctos_rpk ? " raw public key" : "");
 	else if (ctx->clnt_sig_bits > 0)
 	    vstring_sprintf_append(msg, " (%d bit%s)", ctx->clnt_sig_bits,
-	                           ctx->ctos_rpk ? " raw public key" : "s");
+				   ctx->ctos_rpk ? " raw public key" : "s");
 	else if (ctx->ctos_rpk)
 	    vstring_sprintf_append(msg, " (raw public key)");
 	if (ctx->clnt_sig_dgst && *ctx->clnt_sig_dgst)
@@ -1465,16 +1465,16 @@ void    tls_check_version(void)
      * later minor numbers starting with 3.0.0.
      */
     if (hdr_info.major >= 3) {
-        warn_compat = lib_info.major != hdr_info.major 
-            || lib_info.minor < hdr_info.minor;
+	warn_compat = lib_info.major != hdr_info.major
+	    || lib_info.minor < hdr_info.minor;
     } else if (hdr_info.major == 1 && hdr_info.minor != 0) {
-        warn_compat = lib_info.major != hdr_info.major 
-            || lib_info.minor != hdr_info.minor
-            || lib_info.micro < hdr_info.micro;
+	warn_compat = lib_info.major != hdr_info.major
+	    || lib_info.minor != hdr_info.minor
+	    || lib_info.micro < hdr_info.micro;
     } else {
-        warn_compat = lib_info.major != hdr_info.major
-            || lib_info.minor != hdr_info.minor
-            || lib_info.micro != hdr_info.micro;
+	warn_compat = lib_info.major != hdr_info.major
+	    || lib_info.minor != hdr_info.minor
+	    || lib_info.micro != hdr_info.micro;
     }
     if (warn_compat)
 	msg_warn("run-time library vs. compile-time header version mismatch: "

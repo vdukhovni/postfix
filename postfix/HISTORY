@@ -28341,3 +28341,56 @@ Apologies for any names omitted.
 
 	Cleanup (no code change): regenerated HTML manpages that
 	weren't updated because of a simplistic make(1) dependency.
+
+20241010
+
+	Cleanup (no code change): reformatted source files that
+	diverged from Postfix style, complicating code maintenance.
+	The only object file change is in tls_dane.o, because
+	OPENSSL_free() has a line number argument. Other object
+	files are unchanged. Files: bounce/bounce_notify_util_tester.c,
+	bounce/bounce_one_service.c, cleanup/cleanup.c,
+	cleanup/cleanup_api.c, cleanup/cleanup_envelope.c,
+	cleanup/cleanup_out_recipient.c, cleanup/cleanup_rewrite.c,
+	dns/dns.h, dns/dns_lookup.c, dns/dns_rr_filter.c, dns/dns_sec.c,
+	global/bounce_log.h, global/cleanup_user.h, global/clnt_stream.h,
+	global/compat_level.c, global/compat_level.h, global/conv_time.c,
+	global/db_common.h, global/dot_lockfile_as.c,
+	global/header_body_checks.c, global/info_log_addr_form.c,
+	global/is_header.c, global/mail_addr_map.c,
+	global/mail_command_server.c, global/mail_conf.c,
+	global/mail_conf_raw.c, global/mail_conf_str.c, global/mail_copy.c,
+	global/mail_params.c, global/mail_proto.h, global/mail_queue.h,
+	global/mail_trigger.c, global/maillog_client.c,
+	global/mkmap_proxy.c, global/own_inet_addr.c,
+	global/quote_821_local.c, global/quote_821_local.h,
+	global/quote_822_local.c, global/quote_822_local.h,
+	global/rec_type.h, global/recdump.c, global/sent.h,
+	global/server_acl.c, global/smtputf8.c, global/smtputf8.h,
+	global/tok822_tree.c, global/user_acl.h,
+	global/valid_mailhost_addr.c, global/xtext.c, local/alias.c,
+	local/command.c, master/master.c, master/master.h,
+	master/master_listen.c, master/master_proto.h,
+	master/master_service.c, master/master_watch.c, milter/milter8.c,
+	milter/test-milter.c, oqmgr/qmgr_active.c, oqmgr/qmgr_entry.c,
+	pipe/pipe.c, postfix/postfix.c, postscreen/postscreen_dnsbl.c,
+	posttls-finger/posttls-finger.c, qmgr/qmgr_active.c,
+	qmgr/qmgr_entry.c, qmqpd/qmqpd_peer.c, smtp/smtp.h,
+	smtp/smtp_addr.c, smtp/smtp_tlsrpt.c, smtp/smtp_unalias.c,
+	smtpd/smtpd_milter.h, smtpd/smtpd_resolve.h, tls/tls_client.c,
+	tls/tls_dane.c, tls/tls_dh.c, tls/tls_misc.c,
+	tls/tls_proxy_client_print.c, tls/tls_server.c, util/alldig.c,
+	util/argv_split.c, util/balpar.c, util/byte_mask.c,
+	util/cidr_match.h, util/dict.h, util/dict_cdb.h,
+	util/dict_stream.c, util/dup2_pass_on_exec.c, util/duplex_pipe.c,
+	util/exec_command.c, util/find_inet.c, util/format_tv.c,
+	util/hash_fnv.c, util/host_port.c, util/inet_addr_sizes.c,
+	util/inet_connect.c, util/load_file.h, util/load_lib.h,
+	util/mac_expand.h, util/midna_domain.h, util/mkmap_cdb.c,
+	util/mvect.c, util/myaddrinfo.h, util/name_mask.c,
+	util/open_limit.c, util/parse_utf8_char.h, util/posix_signals.c,
+	util/sane_strtol.c, util/set_eugid.c, util/slmdb.c,
+	util/sock_addr.c, util/strcasecmp.c, util/stream_connect.c,
+	util/stream_recv_fd.c, util/stream_test.c,
+	util/unix_dgram_connect.c, util/unix_dgram_listen.c,
+	util/vbuf.c.

@@ -168,10 +168,12 @@
 static const char server_session_id_context[] = "Postfix/TLS";
 
 #ifndef OPENSSL_NO_TLSEXT
+
  /*
   * We retain the cipher handle for the lifetime of the process.
   */
 static const EVP_CIPHER *tkt_cipher;
+
 #endif
 
 #define GET_SID(s, v, lptr)	((v) = SSL_SESSION_get_id((s), (lptr)))
@@ -691,10 +693,10 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     tls_tmp_dh(sni_ctx, 1);
 
     /*
-     * Enable EECDH if available, errors are not fatal, we just keep going with
-     * any remaining key-exchange algorithms.  With OpenSSL 3.0 and TLS 1.3,
-     * the same applies to the FFDHE groups which become part of a unified
-     * "groups" list.
+     * Enable EECDH if available, errors are not fatal, we just keep going
+     * with any remaining key-exchange algorithms.  With OpenSSL 3.0 and TLS
+     * 1.3, the same applies to the FFDHE groups which become part of a
+     * unified "groups" list.
      */
     tls_auto_groups(server_ctx, var_tls_eecdh_auto, var_tls_ffdhe_auto);
     tls_auto_groups(sni_ctx, var_tls_eecdh_auto, var_tls_ffdhe_auto);
@@ -874,7 +876,8 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
     }
 
     /*
-     * When encryption is mandatory use the 80-bit plus OpenSSL security level.
+     * When encryption is mandatory use the 80-bit plus OpenSSL security
+     * level.
      */
     if (props->requirecert)
 	SSL_set_security_level(TLScontext->con, 1);
@@ -1054,7 +1057,7 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 	     * way to associate DANE TLSA RRs with clients just yet, we just
 	     * make the fingerprint available to the access(5) layer.
 	     */
-            TLScontext->peer_status |= TLS_CRED_FLAG_RPK;
+	    TLScontext->peer_status |= TLS_CRED_FLAG_RPK;
 	    TLScontext->peer_pkey_fprint =
 		tls_pkey_fprint(pkey, TLScontext->mdalg);
 	    if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_PEERCERT))

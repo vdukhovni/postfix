@@ -90,7 +90,7 @@ int     cleanup_rewrite_external(const char *context_name, VSTRING *result,
 
 /* cleanup_rewrite_tree - rewrite address node */
 
-int    cleanup_rewrite_tree(const char *context_name, TOK822 *tree)
+int     cleanup_rewrite_tree(const char *context_name, TOK822 *tree)
 {
     VSTRING *dst = vstring_alloc(100);
     VSTRING *src = vstring_alloc(100);

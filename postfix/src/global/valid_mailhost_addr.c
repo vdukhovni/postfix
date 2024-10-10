@@ -92,7 +92,7 @@ int     valid_mailhost_literal(const char *addr, int gripe)
     const char *myname = "valid_mailhost_literal";
     MAI_HOSTADDR_STR hostaddr;
     const char *last;
-    size_t address_bytes;
+    size_t  address_bytes;
 
     if (*addr != '[') {
 	if (gripe)

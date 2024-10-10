@@ -69,7 +69,7 @@
 /*	address family and length of the real structure that hides
 /*	inside a generic sockaddr structure. On systems where struct
 /*	sockaddr has no sa_len member, SOCK_ADDR_LEN() cannot be
-/*	used as lvalue. SOCKADDR_ADDRP() returns a pointer to the 
+/*	used as lvalue. SOCKADDR_ADDRP() returns a pointer to the
 /*	IPv4 or IPv6 address. SOCK_ADDR_PORT() returns the IPv4 or IPv6
 /*	port number, in network byte order; it must not be used as
 /*	lvalue. SOCK_ADDR_PORTP() returns a pointer to the same.

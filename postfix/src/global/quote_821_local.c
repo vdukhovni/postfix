@@ -134,7 +134,7 @@ static VSTRING *make_821_quoted_string(VSTRING *dst, const char *local_part,
 
 VSTRING *quote_821_local_flags(VSTRING *dst, const char *addr, int flags)
 {
-    const char   *at;
+    const char *at;
 
     /*
      * According to RFC 821, a local-part is a dot-string or a quoted-string.

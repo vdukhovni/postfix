@@ -29,9 +29,9 @@
   * strings should be.
   */
 #ifdef HAS_IPV6
-# define CIDR_MATCH_ABYTES	MAI_V6ADDR_BYTES
+#define CIDR_MATCH_ABYTES	MAI_V6ADDR_BYTES
 #else
-# define CIDR_MATCH_ABYTES	MAI_V4ADDR_BYTES
+#define CIDR_MATCH_ABYTES	MAI_V4ADDR_BYTES
 #endif
 
  /*

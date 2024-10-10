@@ -133,3 +133,8 @@ proto  proto mysql_table proto pgsql_table proto ldap_table
  Files src tls tls h src tls tls_dh c src tls tls_misc c 
  proto TLSRPT_README html proto postconf proto smtp smtp c 
  proto aliases cleanup cleanup c local local c smtpd smtpd c 
+ bounce bounce_one_service c cleanup cleanup c 
+ dns dns h dns dns_lookup c dns dns_rr_filter c dns dns_sec c 
+ local command c master master c master master h 
+ pipe pipe c postfix postfix c postscreen postscreen_dnsbl c 
+ qmgr qmgr_entry c qmqpd qmqpd_peer c smtp smtp h 

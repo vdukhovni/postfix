@@ -157,7 +157,7 @@ const char *host_port(char *buf, char **host, char *def_host,
      * Final sanity checks. We're still sloppy, allowing bare numerical
      * network addresses instead of requiring proper [ipaddress] forms.
      */
-    if (*host != def_host 
+    if (*host != def_host
 	&& !valid_utf8_hostname(util_utf8_enable, *host, DONT_GRIPE)
 	&& !valid_hostaddr(*host, DONT_GRIPE))
 	return ("valid hostname or network address required");

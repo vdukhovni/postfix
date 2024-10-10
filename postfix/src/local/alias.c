@@ -129,10 +129,11 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
      * 
      * We cannot do duplicate elimination here. Sendmail compatibility requires
      * that we allow multiple deliveries to the same alias, even recursively!
-     * For example, we must deliver to mailbox any messages that are addressed
-     * to the alias of a user that lists that same alias in her own .forward
-     * file. Yuck! This is just an example of some really perverse semantics
-     * that people will expect Postfix to implement just like sendmail.
+     * For example, we must deliver to mailbox any messages that are
+     * addressed to the alias of a user that lists that same alias in her own
+     * .forward file. Yuck! This is just an example of some really perverse
+     * semantics that people will expect Postfix to implement just like
+     * sendmail.
      * 
      * We can recognize one special case: when an alias includes its own name,
      * deliver to the user instead, just like sendmail. Otherwise, we just

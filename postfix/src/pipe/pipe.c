@@ -551,7 +551,7 @@
 #define PIPE_DICT_SASL_USERNAME	"sasl_username"	/* key */
 #define PIPE_DICT_SASL_SENDER	"sasl_sender"	/* key */
 #define PIPE_DICT_QUEUE_ID	"queue_id"	/* key */
-#define PIPE_DICT_ENVID		"envid"		/* key */
+#define PIPE_DICT_ENVID		"envid"	/* key */
 
  /*
   * Flags used to pass back the type of special parameter found by

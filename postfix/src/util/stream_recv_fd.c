@@ -62,7 +62,7 @@ int     stream_recv_fd(int fd)
 	return (-1);
     return (fdinfo.fd);
 #else
-    msg_fatal("stream connections are not implemented");
+            msg_fatal("stream connections are not implemented");
 #endif
 }
 

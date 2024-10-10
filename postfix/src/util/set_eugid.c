@@ -21,7 +21,7 @@
 /*	effective group id.
 /*
 /*	SAVE_AND_SET_EUGID() opens a block that executes with the
-/*	specified privilege. RESTORE_SAVED_EUGID() closes the block. 
+/*	specified privilege. RESTORE_SAVED_EUGID() closes the block.
 /* DIAGNOSTICS
 /*	All system call errors are fatal.
 /* SEE ALSO

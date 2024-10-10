@@ -77,7 +77,7 @@ int     dot_lockfile_as(const char *path, VSTRING *why, uid_t euid, gid_t egid)
 
 /* dot_unlockfile_as - dotlock file as user */
 
-void     dot_unlockfile_as(const char *path, uid_t euid, gid_t egid)
+void    dot_unlockfile_as(const char *path, uid_t euid, gid_t egid)
 {
     uid_t   saved_euid = geteuid();
     gid_t   saved_egid = getegid();

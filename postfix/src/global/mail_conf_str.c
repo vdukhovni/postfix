@@ -38,7 +38,7 @@
 /*	void	check_mail_conf_str(name, strval, min, max)
 /*	const char *name;
 /*	const char *strval;
-/*	int	min; 
+/*	int	min;
 /*	int	max;
 /* DESCRIPTION
 /*	This module implements support for string-valued global

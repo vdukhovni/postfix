@@ -46,7 +46,7 @@
 
 MKMAP  *mkmap_proxy_open(const char *unused_path)
 {
-    MKMAP *mkmap = (MKMAP *) mymalloc(sizeof(*mkmap));
+    MKMAP  *mkmap = (MKMAP *) mymalloc(sizeof(*mkmap));
 
     /*
      * Fill in the generic members.

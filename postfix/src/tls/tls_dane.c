@@ -459,7 +459,6 @@ void    tls_dane_add_fpt_digests(TLS_DANE *dane, int pkey_only,
 	    msg_warn("malformed fingerprint value: %.384s", values->argv[i]);
 	    continue;
 	}
-
 #define USTR_LEN(raw) (unsigned char *) STR(raw), VSTRING_LEN(raw)
 
 	/*
@@ -474,7 +473,7 @@ void    tls_dane_add_fpt_digests(TLS_DANE *dane, int pkey_only,
 	 * some other cert digest).  No such attacks are known at this time,
 	 * and it is expected that if any are found they would work within as
 	 * well as across the cert/pkey data types.
-	 *
+	 * 
 	 * That said, when `pkey_only` is true, we match only public keys.
 	 * 
 	 * The private-use matching type "255" is mapped to the configured
@@ -488,7 +487,6 @@ void    tls_dane_add_fpt_digests(TLS_DANE *dane, int pkey_only,
 		tlsa_info("fingerprint", "digest as private-use TLSA record",
 			  3, 0, 255, USTR_LEN(raw));
 	}
-
 	/* The public key match is unconditional */
 	dane->tlsa = tlsa_prepend(dane->tlsa, 3, 1, 255, USTR_LEN(raw));
 	if (log_mask & (TLS_LOG_VERBOSE | TLS_LOG_DANE))
@@ -820,10 +818,11 @@ int     tls_dane_enable(TLS_SESS_STATE *TLScontext)
 				tp->mtype, tp->data, tp->length);
 	if (ret > 0) {
 	    ++usable;
+
 	    /*
 	     * Disable use of RFC7250 raw public keys if any TLSA record
-	     * depends on X.509 certificates.  Only DANE-EE(3) SPKI(1) records
-	     * can get by with just a public key.
+	     * depends on X.509 certificates.  Only DANE-EE(3) SPKI(1)
+	     * records can get by with just a public key.
 	     */
 	    if (tp->usage != DNS_TLSA_USAGE_DOMAIN_ISSUED_CERTIFICATE
 		|| tp->selector != DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO)

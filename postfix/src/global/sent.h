@@ -28,8 +28,8 @@
   */
 #define SENT_FLAG_NONE	(0)
 
-extern int sent(int, const char *, MSG_STATS *, RECIPIENT *, const char *, 
-			DSN *);
+extern int sent(int, const char *, MSG_STATS *, RECIPIENT *, const char *,
+		        DSN *);
 
 /* LICENSE
 /* .ad

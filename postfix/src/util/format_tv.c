@@ -38,7 +38,7 @@
 /*	The maximal number of all digits after the decimal point.
 /*	Specify a number in the range 0..6.
 /* LICENSE
-/* .ad 
+/* .ad
 /* .fi
 /*	The Secure Mailer license must be distributed with this
 /*	software.

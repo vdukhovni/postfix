@@ -844,34 +844,34 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     }
 
     /*
-     * Enable support for client->server raw public keys, provided we actually
-     * have keys to send.  They'll only be used if the server also enables
-     * client RPKs.
-     *
+     * Enable support for client->server raw public keys, provided we
+     * actually have keys to send.  They'll only be used if the server also
+     * enables client RPKs.
+     * 
      * XXX: When the server requests client auth, the TLS 1.2 protocol does not
      * provide an unambiguous mechanism for the client to not send an RPK (as
      * it can with client X.509 certs or TLS 1.3).  This is why we don't just
      * enable client RPK also with no keys in hand.
-     *
+     * 
      * A very unlikely scenario is that the server allows clients to not send
-     * keys, but only accepts keys for a set of algorithms we don't have.  Then
-     * we still can't send a key, but have agreed to RPK.  OpenSSL will attempt
-     * to send an empty RPK even with TLS 1.2 (and will accept such a message),
-     * but other implementations may be more strict.
-     *
+     * keys, but only accepts keys for a set of algorithms we don't have.
+     * Then we still can't send a key, but have agreed to RPK.  OpenSSL will
+     * attempt to send an empty RPK even with TLS 1.2 (and will accept such a
+     * message), but other implementations may be more strict.
+     * 
      * We could limit client RPK support to connections that support only TLS
      * 1.3 and up, but that's practical only decades in the future, and the
      * risk scenario is contrived and very unlikely.
      */
     if (SSL_CTX_get0_certificate(client_ctx) != NULL &&
-        SSL_CTX_get0_privatekey(client_ctx) != NULL)
-        tls_enable_client_rpk(client_ctx, NULL);
+	SSL_CTX_get0_privatekey(client_ctx) != NULL)
+	tls_enable_client_rpk(client_ctx, NULL);
 
     /*
      * With OpenSSL 1.0.2 and later the client EECDH curve list becomes
      * configurable with the preferred curve negotiated via the supported
-     * curves extension.  With OpenSSL 3.0 and TLS 1.3, the same applies
-     * to the FFDHE groups which become part of a unified "groups" list.
+     * curves extension.  With OpenSSL 3.0 and TLS 1.3, the same applies to
+     * the FFDHE groups which become part of a unified "groups" list.
      */
     tls_auto_groups(client_ctx, var_tls_eecdh_auto, var_tls_ffdhe_auto);
 

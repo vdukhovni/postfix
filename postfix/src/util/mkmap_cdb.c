@@ -53,13 +53,14 @@
 /* This is a dummy module, since CDB has all the functionality
  * built-in, as cdb creation requires one global lock anyway. */
 
-MKMAP *mkmap_cdb_open(const char *unused_path)
+MKMAP  *mkmap_cdb_open(const char *unused_path)
 {
     MKMAP  *mkmap = (MKMAP *) mymalloc(sizeof(*mkmap));
+
     mkmap->open = dict_cdb_open;
     mkmap->after_open = 0;
     mkmap->after_close = 0;
     return (mkmap);
 }
 
-#endif /* HAS_CDB */
+#endif					/* HAS_CDB */

@@ -23,7 +23,7 @@
 /*	master_restart_service() requests all running child processes to
 /*	commit suicide.  The conf_reload argument is either DO_CONF_RELOAD
 /*	(configuration files were reloaded, re-evaluate the child process
-/*	creation policy) or NO_CONF_RELOAD. 
+/*	creation policy) or NO_CONF_RELOAD.
 /* DIAGNOSTICS
 /* BUGS
 /* SEE ALSO

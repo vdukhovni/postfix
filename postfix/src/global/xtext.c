@@ -134,6 +134,7 @@ VSTRING *xtext_unquote_append(VSTRING *unquoted, const char *quoted)
     VSTRING_TERMINATE(unquoted);
     return (unquoted);
 }
+
 /* xtext_unquote - quoted data to unquoted */
 
 VSTRING *xtext_unquote(VSTRING *unquoted, const char *quoted)

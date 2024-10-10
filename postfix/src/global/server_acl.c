@@ -112,7 +112,7 @@ void    server_acl_pre_jail_init(const char *mynetworks, const char *origin)
     if (warn_compat_break_mynetworks_style)
 	server_acl_mynetworks_host =
 	    addr_match_list_init(origin, MATCH_FLAG_RETURN
-				 | match_parent_style(origin), mynetworks_host());
+			   | match_parent_style(origin), mynetworks_host());
 }
 
 /* server_acl_parse - parse access list */
@@ -240,7 +240,7 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 #include <vstring_vstream.h>
 #include <name_code.h>
 #include <split_at.h>
-    
+
 char   *var_server_acl = "";
 
 #define UPDATE_VAR(s,v) do { if (*(s)) myfree(s); (s) = mystrdup(v); } while (0)

@@ -254,7 +254,7 @@ void    smtp_tlsrpt_create_wrapper(SMTP_STATE *state, const char *domain)
 			    /* rpt_socket_name= */ var_smtp_tlsrpt_sockname,
 				    /* rpt_policy_domain= */ adomain,
 				    /* rpt_policy_string= */ rr->data,
-		    /* skip_reused_hs = */ var_smtp_tlsrpt_skip_reused_hs);
+		     /* skip_reused_hs = */ var_smtp_tlsrpt_skip_reused_hs);
 	dns_rr_free(rr);
     } else {
 	if (msg_verbose)

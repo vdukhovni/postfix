@@ -60,7 +60,7 @@ static void test_driver(int argc, char **argv)
     if (chdir(var_queue_dir) < 0)
 	msg_fatal("chdir %s: %m", var_queue_dir);
 
-    bounce_hfrom_format = 
+    bounce_hfrom_format =
 	hfrom_format_parse(VAR_HFROM_FORMAT, var_hfrom_format);
 
     /*

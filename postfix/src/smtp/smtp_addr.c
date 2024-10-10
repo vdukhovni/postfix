@@ -262,7 +262,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
 		    msg_fatal("host %s: conversion error for address family "
 			      "%d: %m", host, res0->ai_addr->sa_family);
 		addr_list = dns_rr_append(addr_list, addr);
-		if (DNS_RR_IS_TRUNCATED(addr_list)) 
+		if (DNS_RR_IS_TRUNCATED(addr_list))
 		    break;
 		if (msg_verbose) {
 		    MAI_HOSTADDR_STR hostaddr_str;
@@ -867,7 +867,7 @@ DNS_RR *smtp_service_addr(const char *name, const char *service, DNS_RR **mxrr,
 
     /*
      * Only if we're not falling back.
-     */ 
+     */
     else {
 	*found_myself |= (self != 0);
     }

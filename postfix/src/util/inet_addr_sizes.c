@@ -64,9 +64,9 @@ static const INET_ADDR_SIZES table[] = {
 
 /* inet_addr_sizes - get address size metrics for address family */
 
-const   INET_ADDR_SIZES *inet_addr_sizes(int af)
+const INET_ADDR_SIZES *inet_addr_sizes(int af)
 {
-    const   INET_ADDR_SIZES *sp;
+    const INET_ADDR_SIZES *sp;
 
     for (sp = table; /* see below */ ; sp++) {
 	if (sp >= table + sizeof(table) / sizeof(*table))

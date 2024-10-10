@@ -218,7 +218,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 #define SEND_POSTMASTER_SINGLE_BOUNCE_NOTICE (notify_mask & MAIL_ERROR_BOUNCE)
 
 	if (bounce_status == 0 && SEND_POSTMASTER_SINGLE_BOUNCE_NOTICE
-	    && strcasecmp_utf8(orig_sender, mail_addr_double_bounce()) != 0) {
+	  && strcasecmp_utf8(orig_sender, mail_addr_double_bounce()) != 0) {
 
 	    /*
 	     * Send the text with reason for the bounce, and the headers of

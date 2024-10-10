@@ -73,7 +73,7 @@ int     conv_time(const char *strval, int *timval, int def_unit)
     errno = 0;
     intval = longval = strtol(strval, &end, 10);
     if (*strval == 0 || errno == ERANGE || longval != intval || intval < 0
-	/* || (*end != 0 && end[1] != 0) */)
+	 /* || (*end != 0 && end[1] != 0) */ )
 	return (0);
 
     switch (*end ? *end : def_unit) {

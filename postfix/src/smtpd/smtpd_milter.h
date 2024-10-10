@@ -24,4 +24,3 @@ extern const char *smtpd_milter_eval(const char *, void *);
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*--*/
-

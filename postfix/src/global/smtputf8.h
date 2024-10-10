@@ -14,21 +14,21 @@
  /*
   * Avoiding chicken-and-egg problems during the initial SMTPUTF8 roll-out in
   * environments with pre-existing mail flows that contain UTF8.
-  * 
+  *
   * Prior to SMTPUTF8, mail flows that contain UTF8 worked because the vast
   * majority of MTAs is perfectly capable of handling UTF8 in address
   * localparts (and in headers), even if pre-SMTPUTF8 standards do not
   * support this practice.
-  * 
+  *
   * When turning on Postfix SMTPUTF8 support for the first time, we don't want
   * to suddenly break pre-existing mail flows that contain UTF8 because 1) a
   * client does not request SMTPUTF8 support, and because 2) a down-stream
   * MTA does not announce SMTPUTF8 support.
-  * 
+  *
   * While 1) is easy enough to avoid (keep accepting UTF8 in address localparts
   * just like Postfix has always done), 2) presents a thornier problem. The
   * root cause of that problem is the need for SMTPUTF8 autodetection.
-  * 
+  *
   * What is SMTPUTF8 autodetection? Postfix cannot rely solely on the sender's
   * declaration that a message requires SMTPUTF8 support, because UTF8 may be
   * introduced during local processing (for example, the client hostname in
@@ -36,21 +36,21 @@
   * incomplete address, address rewriting, alias expansion, automatic BCC
   * recipients, local forwarding, and changes made by header checks or Milter
   * applications).
-  * 
+  *
   * In summary, after local processing has happened, Postfix may decide that a
   * message requires SMTPUTF8 support, even when that message initially did
   * not require SMTPUTF8 support. This could make the message undeliverable
   * to destinations that do not support SMTPUTF8. In an environment with
   * pre-existing mail flows that contain UTF8, we want to avoid disrupting
   * those mail flows when rolling out SMTPUTF8 support.
-  * 
+  *
   * For the vast majority of sites, the simplest solution is to autodetect
   * SMTPUTF8 support only for Postfix sendmail command-line submissions, at
   * least as long as SMTPUTF8 support has not yet achieved wold domination.
-  * 
+  *
   * However, sites that add UTF8 content via local processing (see above) should
   * autodetect SMTPUTF8 support for all email.
-  * 
+  *
   * smtputf8_autodetect() uses the setting of the smtputf8_autodetect_classes
   * parameter, and the mail source classes defined in mail_params.h.
   */

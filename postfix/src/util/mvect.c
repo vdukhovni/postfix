@@ -73,7 +73,7 @@
 /* mvect_alloc - allocate memory vector */
 
 char   *mvect_alloc(MVECT *vect, ssize_t elsize, ssize_t nelm,
-               void (*init_fn) (char *, ssize_t), void (*wipe_fn) (char *, ssize_t))
+        void (*init_fn) (char *, ssize_t), void (*wipe_fn) (char *, ssize_t))
 {
     vect->init_fn = init_fn;
     vect->wipe_fn = wipe_fn;

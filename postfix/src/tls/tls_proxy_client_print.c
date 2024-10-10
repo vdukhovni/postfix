@@ -347,7 +347,7 @@ int     tls_proxy_client_start_print(ATTR_PRINT_COMMON_FN print_fn,
 				  (const void *) props->tlsrpt),
 #endif
 		   SEND_ATTR_STR(TLS_ATTR_FFAIL_TYPE,
-				  STRING_OR_EMPTY(props->ffail_type)),
+				 STRING_OR_EMPTY(props->ffail_type)),
 		   ATTR_TYPE_END);
     /* Do not flush the stream. */
     if (msg_verbose)
