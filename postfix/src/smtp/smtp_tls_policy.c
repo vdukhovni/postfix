@@ -285,12 +285,17 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
     /*
      * Errors in attributes may have security consequences, don't ignore
      * errors that can degrade security.
+     * 
+     * Caution: normalize whitespace, to neutralize line break etc. characters
+     * inside the value portion of { name = value }.
      */
     while ((tok = mystrtokq(&policy, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
 	const char *err;
 
+#define EXTPAR_OPT	(EXTPAR_FLAG_STRIP | EXTPAR_FLAG_NORMAL_WS)
+
 	if ((tok[0] == CHARS_BRACE[0]
-	     && (err = free_me = extpar(&tok, CHARS_BRACE, EXTPAR_FLAG_STRIP)) != 0)
+	     && (err = free_me = extpar(&tok, CHARS_BRACE, EXTPAR_OPT)) != 0)
 	    || (err = split_nameval(tok, &name, &val)) != 0) {
 	    msg_warn("%s: malformed attribute/value pair \"%s\": %s",
 		     WHERE, tok, err);

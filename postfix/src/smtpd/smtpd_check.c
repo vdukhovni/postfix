@@ -1016,6 +1016,15 @@ void    log_whatsup(SMTPD_STATE *state, const char *whatsup,
 	vstring_sprintf_append(buf, " proto=%s", state->protocol);
     if (state->helo_name)
 	vstring_sprintf_append(buf, " helo=<%s>", state->helo_name);
+#ifdef USE_SASL_AUTH
+    if (state->sasl_method)
+	vstring_sprintf_append(buf, " sasl_method=%s", state->sasl_method);
+    if (state->sasl_username)
+	vstring_sprintf_append(buf, " sasl_username=%s", state->sasl_username);
+    /* This is safe because state->sasl_sender is xtext-encoded. */
+    if (state->sasl_sender)
+	vstring_sprintf_append(buf, " sasl_sender=%s", state->sasl_sender);
+#endif
     msg_info("%s", STR(buf));
     vstring_free(buf);
 }

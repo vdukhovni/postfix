@@ -181,8 +181,9 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
        <a href="master.5.html">master.cf</a>:
            <b>.. -o {</b> <i>parameter</i> <b>= .. <a href="pcre_table.5.html">pcre</a>:{ {</b> <i>rule-1</i> <b>}, {</b> <i>rule-2</i> <b>} .. } .. } ..</b>
 
-       Postfix  ignores  whitespace  after '{' and before '}', and writes each
-       <i>rule</i> as one text line to an in-memory file:
+       Postfix  recursively  expands any <i>$parametername</i> instances in the above
+       parameter value, ignores whitespace  after  '{'  and  before  '}',  and
+       writes each <i>rule</i> as one text line to an in-memory file:
 
        in-memory file:
            rule-1
@@ -191,12 +192,29 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
 
        Postfix parses the result as if it is a file in /etc/postfix.
 
-       Note: if an inlined rule contains <b>$</b>, specify <b>$$</b> to  keep  Postfix  from
-       trying to do <i>$name</i> expansion as it evaluates a parameter value.
+<b><a name="inline_specification_caveats">INLINE SPECIFICATION CAVEATS</a></b>
+       <b>o</b>      When   using  <i>$parametername</i>  inside  an  inlined  pattern,  use
+              \Q<i>$parametername</i>\E to disable metacharacters such as '.' in  the
+              <i>$parametername</i>  expansion. Otherwise, the pattern may have unex-
+              pected matches.
 
-       Note: when using <i>$name</i> inside an inlined pattern, use \Q<i>$name</i>\E to dis-
-       able metacharacters such as '.' in the <i>$name</i> expansion. Otherwise,  the
-       pattern may have unexpected matches.
+       <b>o</b>      When an inlined rule must contain <b>$</b>, specify <b>$$</b> to keep  Postfix
+              from  trying  to  do <i>$name</i> expansion as it evaluates a parameter
+              value. To check an inline configuration, use the  "<b>postconf  -x</b>"
+              option as shown below:
+
+              <b>o</b>      When  a <a href="postconf.5.html">main.cf</a> "<i>parametername =  value</i>" setting contains
+                     an inline <a href="pcre_table.5.html">pcre</a>:  table,  use  the  command  "<b>postconf  -x</b>
+                     <i>parametername</i>".  Verify  that  there  are  no  "undefined
+                     parameter" warnings, and that the output has  the  syntax
+                     that one would use in a non-inlined Postfix <a href="pcre_table.5.html">pcre</a>: file.
+
+              <b>o</b>      When  a <a href="master.5.html">master.cf</a> "<b>-o {</b> <i>parametername = value</i> <b>}</b>" override
+                     contains an inline <a href="pcre_table.5.html">pcre</a>: table, use the command "<b>postconf</b>
+                     <b>-Px  '*/*/</b><i>parametername</i><b>'</b>  ".  Verify  that  there  are no
+                     "undefined parameter" warnings, and that the  output  has
+                     the  syntax  that  one would use in a non-inlined Postfix
+                     <a href="pcre_table.5.html">pcre</a>: file.
 
 <b><a name="example_smtpd_access_map">EXAMPLE SMTPD ACCESS MAP</a></b>
        # Protect your outgoing majordomo exploders

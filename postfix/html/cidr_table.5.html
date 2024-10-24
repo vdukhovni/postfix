@@ -109,8 +109,9 @@ CIDR_TABLE(5)                                                    CIDR_TABLE(5)
        <a href="master.5.html">master.cf</a>:
            <b>.. -o {</b> <i>parameter</i> <b>= .. <a href="cidr_table.5.html">cidr</a>:{ {</b> <i>rule-1</i> <b>}, {</b> <i>rule-2</i> <b>} .. } .. } ..</b>
 
-       Postfix  ignores  whitespace  after '{' and before '}', and writes each
-       <i>rule</i> as one text line to an in-memory file:
+       Postfix  recursively  expands any <i>$parametername</i> instances in the above
+       parameter value, ignores whitespace  after  '{'  and  before  '}',  and
+       writes each <i>rule</i> as one text line to an in-memory file:
 
        in-memory file:
            rule-1
@@ -119,7 +120,7 @@ CIDR_TABLE(5)                                                    CIDR_TABLE(5)
 
        Postfix parses the result as if it is a file in /etc/postfix.
 
-       Note: if a rule contains <b>$</b>, specify <b>$$</b> to keep Postfix from  trying  to
+       Note:  if  a rule contains <b>$</b>, specify <b>$$</b> to keep Postfix from trying to
        do <i>$name</i> expansion as it evaluates a parameter value.
 
 <b><a name="example_smtpd_access_map">EXAMPLE SMTPD ACCESS MAP</a></b>

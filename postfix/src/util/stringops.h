@@ -68,10 +68,12 @@ extern int strncasecmp_utf8x(int, const char *, const char *, ssize_t);
 extern char *quote_for_json(VSTRING *, const char *, ssize_t);
 extern char *quote_for_json_append(VSTRING *, const char *, ssize_t);
 extern const char *mystrerror(int);
+extern char *normalize_ws(char *);
 
 #define EXTPAR_FLAG_NONE	(0)
 #define EXTPAR_FLAG_STRIP	(1<<0)	/* "{ text }" -> "text" */
 #define EXTPAR_FLAG_EXTRACT	(1<<1)	/* hint from caller's caller */
+#define EXTPAR_FLAG_NORMAL_WS	(1<<2)	/* normalize 'isspace' members */
 
 #define CASEF_FLAG_UTF8		(1<<0)
 #define CASEF_FLAG_APPEND	(1<<1)

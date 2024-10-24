@@ -266,44 +266,51 @@ have the details for why TLS authentication failed. </p>
 
 <h2> <a name="delivering"> Delivering TLSRPT summaries via email</a> </h2>
 
-<p> <a href="https://tools.ietf.org/html/rfc8460">RFC 8460</a> suggests not to enforce strict TLS security when sending
-daily success/failure summaries via email, to avoid delivery delays
-caused by a failure to enforce TLS security. Postfix currently does
-not have a mechanism to disable TLS security enforcement when
-submitting an email message; this section provides a workaround. </p>
+<p> <a href="https://datatracker.ietf.org/doc/html/rfc8460#section-3">RFC
+8460 Section 3</a> specifies that an MTA must not enforce TLS
+security when sending failure reports via email. However, Postfix
+currently has no way to request that TLS enforcement will be disabled
+when submitting an email message. </p>
 
-<p> By design, TLSRPT is not a real-time notification system; it
-takes on average 12 hours before a failure is reported in a daily
-success/failure summary. If a TLS-related delay of a day or more
-is undesirable, one could set up a transport map to make TLS security
-optional for specific TLSRPT email notification email addresses.
-</p>
+<p> Options:
 
-<blockquote>
+<ul>
+
+<li> <p> Do nothing. When TLS security enforcement is required, a
+persistent enforcement failure will delay the delivery of a TLSRPT
+summary until the problem is addressed, or until the message expires
+in the mail queue. Keep in mind that TLSRPT is not a real-time
+monitoring service; it takes on average 12 hours before a failure
+is reported through TLSRPT. </p>
+
+<li> <p> Exclude the sender of TLSRPT summaries from TLS enforcement.
+Implement the configuration below on outbound MTA instances (replace
+noreply-smtp-tls-reporting@example.com with your actual report
+generator's sender address): </p>
+
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#transport_maps">transport_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/transport
-&nbsp
-/etc/postfix/transport:
-    smtp-tls-report@example.com     allow-plaintext:
-    ...
+    # Limitation: this setting is overruled with <a href="postconf.5.html#transport_maps">transport_maps</a>.
+    <a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a> = <a href="DATABASE_README.html#types">inline</a>:{
+        { noreply-smtp-tls-reporting@example.com = allow-plaintext } }
 &nbsp
 /etc/postfix/<a href="master.5.html">master.cf</a>:
     # service name    type    private unpriv  chroot  wakeup  maxproc command
     allow-plaintext   unix    -       -       n       -       -       smtp
-        -o <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>=may
-        -o <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>=<a href="DATABASE_README.html#types">static</a>:may
+        -o { <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may }
+        -o { <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = <a href="DATABASE_README.html#types">static</a>:may }
 </pre>
-</blockquote>
+
+</ul>
 
 <h2> <a name="mta-sts"> MTA-STS Support via smtp_tls_policy_maps
 </a></h2>
 
-<p> Postfix supports MTA-STS though an <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>
-policy plugin. Postfix 3.10 and later expect a policy response with
-the usual security level and matching requirements, plus any
-applicable name=value attributes described below. Specify <tt>{
-name = value }</tt> when a value may contain whitespace. </p>
+<p> Postfix supports MTA-STS though an <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> policy
+plugin, which replies with a TLS security level and optional matching
+requirements. Postfix 3.10 and later optionally also accept the
+name=value attributes described below. Specify <tt>{ name = value
+}</tt> when a value may contain whitespace. </p>
 
 <blockquote>
 
@@ -319,8 +326,22 @@ policy. </p>
 </blockquote>
 
 <p> The examples in the table apply to the MTA-STS policy example
-given in <a href="https://datatracker.ietf.org/doc/html/rfc8460#section-4.5">https://datatracker.ietf.org/doc/html/rfc8460#section-4.5</a>.
-<p>
+given in <a
+href="https://datatracker.ietf.org/doc/html/rfc8461#section-3.2">
+RFC 8461 Section 3.2</a>: </p>
+
+<blockquote>
+<pre>
+version: STSv1
+mode: enforce
+mx: mail.example.com
+mx: *.example.net
+mx: backupmx.example.com
+max_age: 604800
+</pre>
+</blockquote>
+
+<p> A policy response may contain line breaks. </p>
 
 <ul>
 
@@ -347,7 +368,7 @@ in attribute values. </p>
 
 <blockquote>
 <pre>
-{ policy_string = version: STSv1 } { policy_string = mode: testing } ...
+{ policy_string = version: STSv1 } { policy_string = mode: enforce } ...
 </pre> 
 </blockquote> 
 
@@ -363,7 +384,7 @@ in the MTA-STS policy. </p>
 
 <blockquote>
 <pre>
-mx_host_pattern=mx1.example.com mx_host_pattern=mx2.example.com ...
+mx_host_pattern=mail.example.com mx_host_pattern=*.example.net ...
 </pre>
 </blockquote>
 </li>

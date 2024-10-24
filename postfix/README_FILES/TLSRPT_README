@@ -175,37 +175,39 @@ Notes:
 
 DDeelliivveerriinngg TTLLSSRRPPTT ssuummmmaarriieess vviiaa eemmaaiill
 
-RFC 8460 suggests not to enforce strict TLS security when sending daily
-success/failure summaries via email, to avoid delivery delays caused by a
-failure to enforce TLS security. Postfix currently does not have a mechanism to
-disable TLS security enforcement when submitting an email message; this section
-provides a workaround.
+RFC 8460 Section 3 specifies that an MTA must not enforce TLS security when
+sending failure reports via email. However, Postfix currently has no way to
+request that TLS enforcement will be disabled when submitting an email message.
 
-By design, TLSRPT is not a real-time notification system; it takes on average
-12 hours before a failure is reported in a daily success/failure summary. If a
-TLS-related delay of a day or more is undesirable, one could set up a transport
-map to make TLS security optional for specific TLSRPT email notification email
-addresses.
+Options:
+
+  * Do nothing. When TLS security enforcement is required, a persistent
+    enforcement failure will delay the delivery of a TLSRPT summary until the
+    problem is addressed, or until the message expires in the mail queue. Keep
+    in mind that TLSRPT is not a real-time monitoring service; it takes on
+    average 12 hours before a failure is reported through TLSRPT.
+
+  * Exclude the sender of TLSRPT summaries from TLS enforcement. Implement the
+    configuration below on outbound MTA instances (replace noreply-smtp-tls-
+    reporting@example.com with your actual report generator's sender address):
 
     /etc/postfix/main.cf:
-        transport_maps = hash:/etc/postfix/transport
-
-    /etc/postfix/transport:
-        smtp-tls-report@example.com     allow-plaintext:
-        ...
+        # Limitation: this setting is overruled with transport_maps.
+        sender_dependent_default_transport_maps = inline:{
+            { noreply-smtp-tls-reporting@example.com = allow-plaintext } }
 
     /etc/postfix/master.cf:
         # service name    type    private unpriv  chroot  wakeup  maxproc
     command
         allow-plaintext   unix    -       -       n       -       -       smtp
-            -o smtp_tls_security_level=may
-            -o smtp_tls_policy_maps=static:may
+            -o { smtp_tls_security_level = may }
+            -o { smtp_tls_policy_maps = static:may }
 
 MMTTAA--SSTTSS SSuuppppoorrtt vviiaa ssmmttpp__ttllss__ppoolliiccyy__mmaappss
 
-Postfix supports MTA-STS though an smtp_tls_policy_maps policy plugin. Postfix
-3.10 and later expect a policy response with the usual security level and
-matching requirements, plus any applicable name=value attributes described
+Postfix supports MTA-STS though an smtp_tls_policy_maps policy plugin, which
+replies with a TLS security level and optional matching requirements. Postfix
+3.10 and later optionally also accept the name=value attributes described
 below. Specify { name = value } when a value may contain whitespace.
 
     Note 1: Postfix 3.10 and later will accept these attributes in an MTA-STS
@@ -215,8 +217,17 @@ below. Specify { name = value } when a value may contain whitespace.
 
     Note 2: It is an error to specify these attributes for a non-STS policy.
 
-The examples in the table apply to the MTA-STS policy example given in https://
-datatracker.ietf.org/doc/html/rfc8460#section-4.5.
+The examples in the table apply to the MTA-STS policy example given in RFC 8461
+Section 3.2:
+
+    version: STSv1
+    mode: enforce
+    mx: mail.example.com
+    mx: *.example.net
+    mx: backupmx.example.com
+    max_age: 604800
+
+A policy response may contain line breaks.
 
   * policy_type=type
 
@@ -238,7 +249,7 @@ datatracker.ietf.org/doc/html/rfc8460#section-4.5.
 
     Example:
 
-        { policy_string = version: STSv1 } { policy_string = mode: testing }
+        { policy_string = version: STSv1 } { policy_string = mode: enforce }
         ...
 
     This form ignores whitespace after the opening "{", around the "=", and
@@ -251,7 +262,7 @@ datatracker.ietf.org/doc/html/rfc8460#section-4.5.
 
     Example:
 
-        mx_host_pattern=mx1.example.com mx_host_pattern=mx2.example.com ...
+        mx_host_pattern=mail.example.com mx_host_pattern=*.example.net ...
 
   * policy_failure=type
 

@@ -2389,6 +2389,7 @@ static int mail_open_stream(SMTPD_STATE *state)
 			    ", sasl_method=", state->sasl_method),
 	     PRINT2_OR_NULL(state->sasl_username,
 			    ", sasl_username=", state->sasl_username),
+    /* This is safe because state->sasl_sender is xtext-encoded. */
 	     PRINT2_OR_NULL(state->sasl_sender,
 			    ", sasl_sender=", state->sasl_sender),
 #else

@@ -46,7 +46,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	sane_strtol.c hash_fnv.c ldseed.c mkmap_cdb.c mkmap_db.c mkmap_dbm.c \
 	mkmap_fail.c mkmap_lmdb.c mkmap_open.c mkmap_sdbm.c inet_prefix_top.c \
 	inet_addr_sizes.c quote_for_json.c mystrerror.c \
-	sane_sockaddr_to_hostaddr.c
+	sane_sockaddr_to_hostaddr.c normalize_ws.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -93,7 +93,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	byte_mask.o known_tcp_ports.o argv_split_at.o dict_stream.o \
 	sane_strtol.o hash_fnv.o ldseed.o mkmap_db.o mkmap_dbm.o \
 	mkmap_fail.o mkmap_open.o inet_prefix_top.o inet_addr_sizes.o \
-	quote_for_json.o mystrerror.o sane_sockaddr_to_hostaddr.o
+	quote_for_json.o mystrerror.o sane_sockaddr_to_hostaddr.o \
+	normalize_ws.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -147,7 +148,8 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
 	known_tcp_ports dict_stream find_inet binhash hash_fnv argv \
-	clean_env inet_prefix_top printable readlline quote_for_json
+	clean_env inet_prefix_top printable readlline quote_for_json \
+	normalize_ws
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
@@ -611,6 +613,11 @@ quote_for_json: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+normalize_ws: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test host_port_test dict_tests \
@@ -621,7 +628,8 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	miss_endif_regexp_test split_qnameval_test vstring_test \
 	vstream_test byte_mask_tests mystrtok_test known_tcp_ports_test \
 	binhash_test argv_test inet_prefix_top_test printable_test \
-	valid_utf8_string_test readlline_test quote_for_json_test
+	valid_utf8_string_test readlline_test quote_for_json_test \
+	normalize_ws_test
  
 dict_tests: all dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
@@ -1097,6 +1105,9 @@ inet_prefix_top_test: inet_prefix_top
 
 quote_for_json_test: quote_for_json
 	$(SHLIB_ENV) ${VALGRIND} ./quote_for_json
+
+normalize_ws_test: normalize_ws
+	$(SHLIB_ENV) ${VALGRIND} ./normalize_ws
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -2495,6 +2506,16 @@ non_blocking.o: iostuff.h
 non_blocking.o: msg.h
 non_blocking.o: non_blocking.c
 non_blocking.o: sys_defs.h
+normalize_ws.o: check_arg.h
+normalize_ws.o: msg.h
+normalize_ws.o: msg_vstream.h
+normalize_ws.o: mymalloc.h
+normalize_ws.o: normalize_ws.c
+normalize_ws.o: stringops.h
+normalize_ws.o: sys_defs.h
+normalize_ws.o: vbuf.h
+normalize_ws.o: vstream.h
+normalize_ws.o: vstring.h
 nvtable.o: htable.h
 nvtable.o: mymalloc.h
 nvtable.o: nvtable.c

@@ -31,6 +31,10 @@
 /* .IP EXTPAR_FLAG_STRIP
 /*	Skip whitespace after the opening parenthesis, and trim
 /*	whitespace before the closing parenthesis.
+/* .IP EXTPAR_FLAG_NORMAL_WS
+/*	Substitute SPACE for control characters (newline etc.) that
+/*	match isspace(). This neutralizes line break etc. characters in
+/*	the value portion of { name = value }.
 /* .RE
 /* DIAGNOSTICS
 /*	In case of error the result value is a dynamically-allocated
@@ -104,6 +108,8 @@ char   *extpar(char **bp, const char *parens, int flags)
 	while (ISSPACE(*cp))
 	    cp++;
     }
+    if (flags & EXTPAR_FLAG_NORMAL_WS)
+	normalize_ws(cp);
     *bp = cp;
     return (err);
 }

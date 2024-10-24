@@ -28394,3 +28394,48 @@ Apologies for any names omitted.
 	util/stream_recv_fd.c, util/stream_test.c,
 	util/unix_dgram_connect.c, util/unix_dgram_listen.c,
 	util/vbuf.c.
+
+20241015
+
+	Documentation: updated the TLSRPT_README text and example
+	for section "Delivering TLSRPT summaries via email". File:
+	proto/TLSRPT_README.html.
+
+20241021
+
+	Bugfix (defect introduced: postfix 3.0): the default master.cf
+	syslog_name setting for the relay service did not preserve
+	multi-instance information. File: conf/master.cf.
+
+20241022
+
+	Documentation: updated the TLSRPT_README examples for
+	MTA-STS. File: proto/TLSRPT_README.html.
+
+	Documentation: add explicit guidance to use "postconf -x"
+	when checking an inline pcre or regexp table for unescaped
+	'$' characters. Files: mantools/postlink, proto/pcre_table,
+	proto/regexp_table.
+
+	Documentation: be explicit about when Postfix expands $name
+	in inline pcre, regexp, and cidr lookup tables. Files:
+	proto/cidr_table, proto/pcre_table, proto/regexp_table.
+
+	Safety: replace ASCII control characters that match isspace()
+	with space characters. This prevents line breaks etc. in
+	smtp_tls_policy attribute values that use the long form "{
+	name = value }". This form was introduced with Postfix 3.10
+	TLSRPT support. Files: smtp/smtp_tls_policy.c, util/extpar.c,
+	util/Makefile.in, util/normalize_ws.c, util/stringops.h.
+
+20241023
+
+	Logging: Postfix SMTP server 'reject' logging now shows the
+	sasl_method, sasl_username, and sasl_sender if available.
+	Viktor Dukhovni. Files: smtpd/smtpd_check.c.
+
+20241024
+
+	Documentation: in a pgsql: client configuration, the setting
+	"dbname" is required, but ignored when the setting "hosts"
+	contains an URI with a database name. File: proto/pgsql_table.

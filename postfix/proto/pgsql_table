@@ -52,7 +52,7 @@
 #	are accepted and ignored for backwards compatibility.
 #	Examples:
 # .nf
-#	    hosts = postgresql://username@example.com/tablename?sslmode=require
+#	    hosts = postgresql://username@example.com/\fIdatabasename\fR?sslmode=require
 #	    hosts = inet:host1.some.domain inet:host2.some.domain:port
 #	    hosts = host1.some.domain host2.some.domain:port
 #	    hosts = unix:/file/name
@@ -75,11 +75,14 @@
 #	    user = someone
 #	    password = some_password
 # .fi
-# .IP "\fBdbname\fR"
+# .IP "\fBdbname\fR (required)"
 #	The database name on the servers. Example:
 # .nf
 #	    dbname = customer_database
 # .fi
+# .sp
+#	This setting is required, but ignored when a postgresql://
+#	URI specifies a database name.
 # .IP "\fBencoding\fR"
 #	The encoding used by the database client. The default setting
 #	is:

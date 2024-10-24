@@ -6,12 +6,27 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Add a mail_version chek to each pluggable database client.
+
+	Add an option for a built-in JSON generator. This would
+	simplify TLSRPT adoption by eliminating a build-time and
+	run-time dependency on the libtlsrpt client library. Prior
+	art: this approach was previously used to implement Postfix
+	Milter support.
+
+	Make TLSRPT support pluggable (postfix-tlsrpt.so, like
+	postfix-ldap.so, postfix-mysql.so and so on). This avods a
+	hard install-time dependency on sys4 libtlsrpt. The sys4
+	code would still be a build-time dependency.
+
 	Add smtp_tlsrpt_allow_list feature (default: static:all) to limit
 	the domains for which Postfix generates TLSRPT daily summaries.
 
 	Rename TLS_SESS_STATE.rpt_reported to skip_tlsrpt_report.
 
 	Add unit tests for smtp_tlsrpt.c, tlstrpd_wrapper.c, ...
+
+	Add unit test for extpar.c
 
 	Add tests for Message-ID extraction in the cleanup daemon.
 

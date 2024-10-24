@@ -1847,3 +1847,6 @@ sts
 tlsrprt
 bdefhnoqv
 deduplicated
+WS
+isspace
+ws

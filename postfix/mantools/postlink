@@ -1267,7 +1267,7 @@ while (<>) {
     s;\b(pipe[-</bB>]*\n*[ <bB>]*map):;<a href="DATABASE_README.html#types">$1<\/a>:;g;
     s/\b(proxy):/<a href="proxymap.8.html">$1<\/a>:/g;
     s/\b(randmap):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
-    s/\b(regexp):/<a href="regexp_table.5.html">$1<\/a>:/g;
+    s;\b(reg[-</bB>]*\n*[ <bB>]*exp):;<a href="regexp_table.5.html">$1<\/a>:;g;
     s/\b(sdbm):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(socketmap):/<a href="socketmap_table.html">$1<\/a>:/g;
     s/\b(sqlite):/<a href="sqlite_table.5.html">$1<\/a>:/g;
