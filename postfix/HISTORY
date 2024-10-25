@@ -28439,3 +28439,11 @@ Apologies for any names omitted.
 	Documentation: in a pgsql: client configuration, the setting
 	"dbname" is required, but ignored when the setting "hosts"
 	contains an URI with a database name. File: proto/pgsql_table.
+
+20241025
+
+	Cleanup: accept any well-formed URI prefix as a pgsql: client
+	connection target (the PostgreSQL URI parser decides what
+	is allowed). The dbname setting is now optional if the hosts
+	setting specifies only URIs. Files: util/valid_uri_scheme.[hc],
+	proto/pgsql_table.

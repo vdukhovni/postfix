@@ -92,6 +92,7 @@
 #include "myrand.h"
 #include "events.h"
 #include "stringops.h"
+#include "valid_uri_scheme.h"
 
 /* Global library. */
 
@@ -127,6 +128,7 @@ typedef struct {
 typedef struct {
     int     len_hosts;			/* number of hosts */
     HOST  **db_hosts;			/* hosts on which databases reside */
+    char   *non_uri_target;		/* require dbname to be specified */
 } PLPGSQL;
 
 typedef struct {
@@ -626,7 +628,7 @@ static void pgsql_parse_config(DICT_PGSQL *dict_pgsql, const char *pgsqlcf)
 
     dict_pgsql->username = cfg_get_str(p, "user", "", 0, 0);
     dict_pgsql->password = cfg_get_str(p, "password", "", 0, 0);
-    dict_pgsql->dbname = cfg_get_str(p, "dbname", "", 1, 0);
+    dict_pgsql->dbname = cfg_get_str(p, "dbname", "", 0, 0);
     dict_pgsql->encoding = cfg_get_str(p, "encoding", "UTF8", 1, 0);
     dict_pgsql->retry_interval = cfg_get_int(p, "retry_interval",
 					     DEF_RETRY_INTV, 1, 0);
@@ -723,6 +725,21 @@ DICT   *dict_pgsql_open(const char *name, int open_flags, int dict_flags)
     dict_pgsql->pldb = plpgsql_init(dict_pgsql->hosts);
     if (dict_pgsql->pldb == NULL)
 	msg_fatal("couldn't initialize pldb!\n");
+    if (msg_verbose && dict_pgsql->pldb->non_uri_target == 0
+	&& dict_pgsql->dbname[0] != 0)
+	msg_info("%s:%s table ignores 'dbname' field -- "
+		 "all 'hosts' targets are URIs",
+		 DICT_TYPE_PGSQL, name);
+    if (dict_pgsql->pldb->non_uri_target && dict_pgsql->dbname[0] == 0) {
+	DICT   *ret;
+
+	ret == (dict_surrogate(DICT_TYPE_PGSQL, name, open_flags, dict_flags,
+			   "%s:%s host target '%s' requires dbname setting",
+			       DICT_TYPE_PGSQL, name,
+			       dict_pgsql->pldb->non_uri_target));
+	dict_pgsql_close(&dict_pgsql->dict);
+	return (ret);
+    }
     dict_pgsql->dict.owner = cfg_get_owner(dict_pgsql->parser);
     return (DICT_DEBUG (&dict_pgsql->dict));
 }
@@ -737,8 +754,12 @@ static PLPGSQL *plpgsql_init(ARGV *hosts)
     PLDB = (PLPGSQL *) mymalloc(sizeof(PLPGSQL));
     PLDB->len_hosts = hosts->argc;
     PLDB->db_hosts = (HOST **) mymalloc(sizeof(HOST *) * hosts->argc);
-    for (i = 0; i < hosts->argc; i++)
+    PLDB->non_uri_target = 0;
+    for (i = 0; i < hosts->argc; i++) {
 	PLDB->db_hosts[i] = host_init(hosts->argv[i]);
+	if (PLDB->db_hosts[i]->type != TYPECONNSTR)
+	    PLDB->non_uri_target = PLDB->db_hosts[i]->name;
+    }
 
     return PLDB;
 }
@@ -758,9 +779,9 @@ static HOST *host_init(const char *hostname)
     host->ts = 0;
 
     /*
-     * Modern syntax: "postgresql://connection-info".
+     * Modern syntax: connection URI.
      */
-    if (strncmp(d, "postgresql:", 11) == 0) {
+    if (valid_uri_scheme(d)) {
 	host->type = TYPECONNSTR;
 	host->name = mystrdup(d);
 	host->port = 0;

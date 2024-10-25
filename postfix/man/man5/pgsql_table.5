@@ -55,7 +55,7 @@ return the key itself or a constant value.
 .fi
 .IP "\fBhosts\fR"
 The hosts that Postfix will try to connect to and query
-from. Besides a \fBpostgresql://\fR connection URI, this
+from. Besides a PostgreSQL connection URI, this
 setting supports the historical forms \fBunix:/\fIpathname\fR
 for UNIX\-domain sockets and \fBinet:\fIhost:port\fR for TCP
 connections, where the \fBunix:\fR and \fBinet:\fR prefixes
@@ -63,18 +63,28 @@ are accepted and ignored for backwards compatibility.
 Examples:
 .nf
     hosts = postgresql://username@example.com/\fIdatabasename\fR?sslmode=require
+    hosts = postgres://user:secret@localhost
     hosts = inet:host1.some.domain inet:host2.some.domain:port
     hosts = host1.some.domain host2.some.domain:port
     hosts = unix:/file/name
 .fi
 
+See https://www.postgresql.org/docs/current/libpq\-connect.html
+for the supported connection URI syntax.
+
 The hosts are tried in random order. The connections are
 automatically closed after being idle for about 1 minute,
-and are re\-opened as necessary.
+and are re\-opened as necessary. See \fBidle_interval\fR
+for details.
 
-NOTE: if "hosts" specifies one load balancer and no alternative
+NOTE: if \fBhosts\fR specifies a PostgreSQL connection URI,
+the PostgreSQL client library will ignore the \fBdbname\fR
+setting for that connection.
+
+NOTE: if \fBhosts\fR specifies one load balancer and no
+alternative
 servers, specify the load balancer multiple times in the
-"hosts" line. Without the duplicate info, the Postfix
+\fBhosts\fR line. Without the duplicate info, the Postfix
 PostgreSQL client would not reconnect immediately to the
 same load balancer after a PostgreSQL server failure.
 .IP "\fBuser\fR"
@@ -85,14 +95,18 @@ Example:
     user = someone
     password = some_password
 .fi
-.IP "\fBdbname\fR (required)"
+.IP "\fBdbname\fR"
 The database name on the servers. Example:
 .nf
     dbname = customer_database
 .fi
 .sp
-This setting is required, but ignored when a postgresql://
-URI specifies a database name.
+The \fBdbname\fR setting is ignored for \fBhosts\fR connections
+that are specified as an URI.
+
+The \fBdbname\fR setting is required with Postfix 3.10 and later,
+when \fBhosts\fR specifies any non\-URI connection; it is always
+required with earlier Postfix versions.
 .IP "\fBencoding\fR"
 The encoding used by the database client. The default setting
 is:

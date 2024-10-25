@@ -1252,6 +1252,7 @@ dict_pgsql.o: ../../include/myrand.h
 dict_pgsql.o: ../../include/split_at.h
 dict_pgsql.o: ../../include/stringops.h
 dict_pgsql.o: ../../include/sys_defs.h
+dict_pgsql.o: ../../include/valid_uri_scheme.h
 dict_pgsql.o: ../../include/vbuf.h
 dict_pgsql.o: ../../include/vstream.h
 dict_pgsql.o: ../../include/vstring.h
