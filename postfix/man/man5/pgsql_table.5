@@ -77,16 +77,15 @@ automatically closed after being idle for about 1 minute,
 and are re\-opened as necessary. See \fBidle_interval\fR
 for details.
 
-NOTE: if \fBhosts\fR specifies a PostgreSQL connection URI,
-the PostgreSQL client library will ignore the \fBdbname\fR
-setting for that connection.
+NOTE: if the \fBhosts\fR setting specifies a PostgreSQL connection
+URI, the Postfix PostgreSQL client will ignore the \fBdbname\fR,
+\fBuser\fR, and \fBpassword\fR settings for that connection.
 
-NOTE: if \fBhosts\fR specifies one load balancer and no
-alternative
-servers, specify the load balancer multiple times in the
-\fBhosts\fR line. Without the duplicate info, the Postfix
-PostgreSQL client would not reconnect immediately to the
-same load balancer after a PostgreSQL server failure.
+NOTE: if the \fBhosts\fR setting specifies one load balancer
+and no alternative servers, specify the load balancer multiple
+times. Without the duplicate info, the Postfix PostgreSQL client
+would not reconnect immediately to the same load balancer after
+a request failure.
 .IP "\fBuser\fR"
 .IP "\fBpassword\fR"
 The user name and password to log into the pgsql server.
@@ -95,6 +94,9 @@ Example:
     user = someone
     password = some_password
 .fi
+.sp
+The \fBuser\fR and \fBpassword\fR settings are ignored for
+\fBhosts\fR connections that are specified as an URI.
 .IP "\fBdbname\fR"
 The database name on the servers. Example:
 .nf
@@ -126,6 +128,12 @@ This feature is available in Postfix 3.9 and later.
 .IP "\fBretry_interval (default: 60)\fR"
 The number of seconds that a database connection will be
 skipped after an error.
+
+NOTE: if the \fBhosts\fR setting specifies one load balancer
+and no alternative servers, specify the load balancer multiple
+times. Without the duplicate info, the Postfix PostgreSQL client
+would not reconnect immediately to the same load balancer after
+a request failure.
 
 This feature is available in Postfix 3.9 and later.
 .IP "\fBquery\fR"

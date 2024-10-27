@@ -28447,3 +28447,23 @@ Apologies for any names omitted.
 	is allowed). The dbname setting is now optional if the hosts
 	setting specifies only URIs. Files: util/valid_uri_scheme.[hc],
 	proto/pgsql_table.
+
+202141026
+
+	Documentation: updated the pgsql_table manpage that the
+	"user" and "password" settings  are also ignored when a
+	"hosts" setting specifies an URI.  File: proto/pgsql_table.
+
+	Documentation: updated text for how to handle retries with a
+	load balancer. Files: proto/pgsql_table, proto/mysql_table.
+
+20241027
+
+	Bugfix (defect introduced: Postfix 2.3, date 20051222):
+	file descriptor leak after failure to connect to a Dovecot
+	auth server. The impact is limited because there are limits
+	on the number of retries (one), on the number of errors per
+	SMTP session (smtpd_hard_error_limit), on the number
+	of sessions per SMTP server process (max_use), and on the
+	number file handles per process (managed with sysctl).
+	File: xsasl/xsasl_dovecot_server.c.
