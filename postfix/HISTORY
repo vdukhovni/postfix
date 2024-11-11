@@ -28446,7 +28446,7 @@ Apologies for any names omitted.
 	connection target (the PostgreSQL URI parser decides what
 	is allowed). The dbname setting is now optional if the hosts
 	setting specifies only URIs. Files: util/valid_uri_scheme.[hc],
-	proto/pgsql_table.
+	proto/pgsql_table, global/dict_pgsql.c.
 
 202141026
 
@@ -28467,3 +28467,33 @@ Apologies for any names omitted.
 	of sessions per SMTP server process (max_use), and on the
 	number file handles per process (managed with sysctl).
 	File: xsasl/xsasl_dovecot_server.c.
+
+20241031
+
+	Logging: the Dovecot SASL client logging for "Invalid
+	authentication mechanism" now includes the name of that
+	mechanism. File: xsasl/xsasl_dovecot_server.c
+
+20241104
+
+	Logging: when a message transaction is canceled (i.e.
+	started but not completed), the cleanup server now logs
+	"queueid: canceled". This provides a clear signal to logfile
+	collation tools. File: cleanup/cleanup_api.c.
+
+20241028
+
+	Documentation: TLSRPT_README, section "Delivering TLSRPT
+	summaries via email". File: proto/TLSRPT_README.html.
+
+20241107
+
+	Documentation: tweaked text for smtpd_delay_open_until_valid_rcpt.
+	File: proto/postconf.proto.
+
+20241111
+
+	Bugfix (defect introduced: Postfix 3.10, date 20241025):
+	dict_pgsql_open() returned NULL when "hosts" specified a
+	non-URI target and "dbname" was not set. Instead, it should
+	return a surrogate dictionary. File: global/dict_pgsql.c.

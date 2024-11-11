@@ -660,7 +660,9 @@ int     xsasl_dovecot_server_first(XSASL_SERVER *xp, const char *sasl_method,
 
     for (cpp = server->mechanism_argv->argv; /* see below */ ; cpp++) {
 	if (*cpp == 0) {
-	    vstring_strcpy(reply, "Invalid authentication mechanism");
+	    vstring_sprintf(reply, "Invalid authentication mechanism: '%s'",
+			    sasl_method);
+	    printable(vstring_str(reply), '?');
 	    return XSASL_AUTH_FAIL;
 	}
 	if (strcasecmp(sasl_method, *cpp) == 0)

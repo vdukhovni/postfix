@@ -26,6 +26,12 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+[Feature 20241104]
+
+The cleanup server now logs "queueid: canceled" when a message
+transaction is started but not completed. This provides a clear
+signal to logfile collation tools.
+
 [Feature 20240926]
 
 Support for the TLSRPT protocol (defined in RFC 8460). With this,

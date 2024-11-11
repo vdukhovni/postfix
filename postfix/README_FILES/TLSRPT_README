@@ -181,15 +181,16 @@ request that TLS enforcement will be disabled when submitting an email message.
 
 Options:
 
-  * Do nothing. When TLS security enforcement is required, a persistent
-    enforcement failure will delay the delivery of a TLSRPT summary until the
-    problem is addressed, or until the message expires in the mail queue. Keep
-    in mind that TLSRPT is not a real-time monitoring service; it takes on
-    average 12 hours before a failure is reported through TLSRPT.
+  * Do nothing. When TLS security enforcement is required but fails, a TLSRPT
+    summary message will be delayed until the problem is addressed, or until
+    the message expires in the mail queue. Keep in mind that TLSRPT is not a
+    real-time monitoring service; it takes on average 12 hours before a failure
+    is reported through TLSRPT.
 
-  * Exclude the sender of TLSRPT summaries from TLS enforcement. Implement the
-    configuration below on outbound MTA instances (replace noreply-smtp-tls-
-    reporting@example.com with your actual report generator's sender address):
+  * Exclude the sender of TLSRPT summaries from TLS security enforcement.
+    Implement the configuration below on outbound MTA instances (replace
+    noreply-smtp-tls-reporting@example.com with your actual report generator's
+    sender address):
 
     /etc/postfix/main.cf:
         # Limitation: this setting is overruled with transport_maps.
@@ -199,7 +200,7 @@ Options:
     /etc/postfix/master.cf:
         # service name    type    private unpriv  chroot  wakeup  maxproc
     command
-        allow-plaintext   unix    -       -       n       -       -       smtp
+        allow-plaintext   unix    -       -       -       -       -       smtp
             -o { smtp_tls_security_level = may }
             -o { smtp_tls_policy_maps = static:may }
 

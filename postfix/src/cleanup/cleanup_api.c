@@ -354,6 +354,7 @@ int     cleanup_flush(CLEANUP_STATE *state)
 	    (void) REMOVE(vstring_str(cleanup_trace_path));
 	if (REMOVE(cleanup_path))
 	    msg_warn("remove %s: %m", cleanup_path);
+	msg_info("%s: canceled", state->queue_id);
     }
 
     /*

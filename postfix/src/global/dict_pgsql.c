@@ -733,10 +733,10 @@ DICT   *dict_pgsql_open(const char *name, int open_flags, int dict_flags)
     if (dict_pgsql->pldb->non_uri_target && dict_pgsql->dbname[0] == 0) {
 	DICT   *ret;
 
-	ret == (dict_surrogate(DICT_TYPE_PGSQL, name, open_flags, dict_flags,
+	ret = dict_surrogate(DICT_TYPE_PGSQL, name, open_flags, dict_flags,
 			   "%s:%s host target '%s' requires dbname setting",
-			       DICT_TYPE_PGSQL, name,
-			       dict_pgsql->pldb->non_uri_target));
+			     DICT_TYPE_PGSQL, name,
+			     dict_pgsql->pldb->non_uri_target);
 	dict_pgsql_close(&dict_pgsql->dict);
 	return (ret);
     }

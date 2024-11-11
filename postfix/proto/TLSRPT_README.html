@@ -276,14 +276,15 @@ when submitting an email message. </p>
 
 <ul>
 
-<li> <p> Do nothing. When TLS security enforcement is required, a
-persistent enforcement failure will delay the delivery of a TLSRPT
-summary until the problem is addressed, or until the message expires
+<li> <p> Do nothing. When TLS security enforcement is required but
+fails, a TLSRPT summary message will be delayed
+until the problem is addressed, or until the message expires
 in the mail queue. Keep in mind that TLSRPT is not a real-time
 monitoring service; it takes on average 12 hours before a failure
 is reported through TLSRPT. </p>
 
-<li> <p> Exclude the sender of TLSRPT summaries from TLS enforcement.
+<li> <p> Exclude the sender of TLSRPT summaries from TLS security
+enforcement.
 Implement the configuration below on outbound MTA instances (replace
 noreply-smtp-tls-reporting@example.com with your actual report
 generator's sender address): </p>
@@ -296,7 +297,7 @@ generator's sender address): </p>
 &nbsp
 /etc/postfix/master.cf:
     # service name    type    private unpriv  chroot  wakeup  maxproc command
-    allow-plaintext   unix    -       -       n       -       -       smtp
+    allow-plaintext   unix    -       -       -       -       -       smtp
         -o { smtp_tls_security_level = may }
         -o { smtp_tls_policy_maps = static:may }
 </pre>
