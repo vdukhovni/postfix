@@ -28474,13 +28474,6 @@ Apologies for any names omitted.
 	authentication mechanism" now includes the name of that
 	mechanism. File: xsasl/xsasl_dovecot_server.c
 
-20241104
-
-	Logging: when a message transaction is canceled (i.e.
-	started but not completed), the cleanup server now logs
-	"queueid: canceled". This provides a clear signal to logfile
-	collation tools. File: cleanup/cleanup_api.c.
-
 20241028
 
 	Documentation: TLSRPT_README, section "Delivering TLSRPT
@@ -28497,3 +28490,20 @@ Apologies for any names omitted.
 	dict_pgsql_open() returned NULL when "hosts" specified a
 	non-URI target and "dbname" was not set. Instead, it should
 	return a surrogate dictionary. File: global/dict_pgsql.c.
+
+20241112
+
+	Logging: the cleanup server now logs "queueid: removed
+	(reason)" where "reason" is either "canceled" (message
+	transaction not completed) or "discarded" (DISCARD action
+	in access table, header/body_checks, or Milter response).
+
+20241113
+
+	Bugfix (defect introduced: Postfix 3.10, date 20240923):
+	TLSRPT support in tlsproxy dereferenced non-extent client
+	properties in the server role. Problem reported by Florian
+	Piekert. File: tlsproxy/tlsproxy.c
+
+	Cleanup: removed an unused string variable. File:
+	xsasl/xsasl_cyrus_server.c

@@ -138,3 +138,4 @@ proto  proto mysql_table proto pgsql_table proto ldap_table
  local command c master master c master master h 
  pipe pipe c postfix postfix c postscreen postscreen_dnsbl c 
  qmgr qmgr_entry c qmqpd qmqpd_peer c smtp smtp h 
+ Piekert File tlsproxy tlsproxy c

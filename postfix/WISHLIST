@@ -35,6 +35,9 @@ Wish list:
 
 	Add unit tests for smtp_tlsrpt.c, tlstrpd_wrapper.c, ...
 
+	Add sample master.cf entries for dovecot-lmtp and dovecot-pipe
+	with flags=DORX as appropriate, and single-recipient hints.
+
 	Add unit test for extpar.c
 
 	Add tests for Message-ID extraction in the cleanup daemon.

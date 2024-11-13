@@ -621,7 +621,6 @@ static int xsasl_cyrus_server_next(XSASL_SERVER *xp, const char *request,
 
 static const char *xsasl_cyrus_server_get_username(XSASL_SERVER *xp)
 {
-    const char *myname = "xsasl_cyrus_server_get_username";
     XSASL_CYRUS_SERVER *server = (XSASL_CYRUS_SERVER *) xp;
     VOID_SERVEROUT_TYPE serverout = 0;
     int     sasl_status;
