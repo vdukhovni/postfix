@@ -28,11 +28,11 @@ from a vendor-specific source package.
 
 Postfix is compatible with two CDB implementations:
 
-  * The original cdb library from Daniel Bernstein, available from http://
+  * The original cdb library from Daniel Bernstein, available from https://
     cr.yp.to/cdb.html, and
 
-  * tinycdb (version 0.5 and later) from Michael Tokarev, available from http:/
-    /www.corpit.ru/mjt/tinycdb.html.
+  * tinycdb (version 0.5 and later) from Michael Tokarev, available from https:
+    //www.corpit.ru/mjt/tinycdb.html.
 
 Tinycdb is preferred, since it is a bit faster, has additional useful
 functionality and is much simpler to use.

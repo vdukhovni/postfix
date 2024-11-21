@@ -28501,9 +28501,61 @@ Apologies for any names omitted.
 20241113
 
 	Bugfix (defect introduced: Postfix 3.10, date 20240923):
-	TLSRPT support in tlsproxy dereferenced non-extent client
+	TLSRPT support in tlsproxy dereferenced non-existent client
 	properties in the server role. Problem reported by Florian
 	Piekert. File: tlsproxy/tlsproxy.c
 
 	Cleanup: removed an unused string variable. File:
 	xsasl/xsasl_cyrus_server.c
+
+20241119
+
+	Documentation: converted hyperlinks to https:// and located
+	some early content on the Wayback Machine. Files: AAAREADME,
+	HISTORY, conf/main.cf, conf/master.cf, conf/post-install,
+	dns/dns.h, examples/smtpd-policy/README.SPF, html/index.html,
+	mantools/make_soho_readme, mantools/makemanidx, mantools/man2html,
+	mantools/postlink.sed, mantools/readme2html, master/master_avail.c,
+	postfix/postfix.c, proto/ADDRESS_CLASS_README.html,
+	proto/ADDRESS_REWRITING_README.html,
+	proto/ADDRESS_VERIFICATION_README.html,
+	proto/BACKSCATTER_README.html,
+	proto/BASIC_CONFIGURATION_README.html, proto/BDAT_README.html,
+	proto/BUILTIN_FILTER_README.html, proto/CDB_README.html,
+	proto/COMPATIBILITY_README.html,
+	proto/CONNECTION_CACHE_README.html,
+	proto/CONTENT_INSPECTION_README.html, proto/DATABASE_README.html,
+	proto/DB_README.html, proto/DEBUG_README.html,
+	proto/DEPRECATION_README.html, proto/DSN_README.html,
+	proto/ETRN_README.html, proto/FILTER_README.html,
+	proto/FORWARD_SECRECY_README.html, proto/INSTALL.html,
+	proto/IPV6_README.html, proto/LDAP_README.html,
+	proto/LINUX_README.html, proto/LMDB_README.html,
+	proto/LOCAL_RECIPIENT_README.html, proto/MAILDROP_README.html,
+	proto/MAILLOG_README.html, proto/MEMCACHE_README.html,
+	proto/MILTER_README.html, proto/MONGODB_README.html,
+	proto/MULTI_INSTANCE_README.html, proto/MYSQL_README.html,
+	proto/NFS_README.html, proto/OVERVIEW.html,
+	proto/PACKAGE_README.html, proto/PCRE_README.html,
+	proto/PGSQL_README.html, proto/POSTSCREEN_3_5_README.html,
+	proto/POSTSCREEN_README.html, proto/QSHAPE_README.html,
+	proto/README, proto/RESTRICTION_CLASS_README.html,
+	proto/SASL_README.html, proto/SCHEDULER_README.html,
+	proto/SMTPD_ACCESS_README.html, proto/SMTPD_POLICY_README.html,
+	proto/SMTPD_PROXY_README.html, proto/SMTPUTF8_README.html,
+	proto/SQLITE_README.html, proto/STANDARD_CONFIGURATION_README.html,
+	proto/STRESS_README.html, proto/TLSRPT_README.html,
+	proto/TLS_LEGACY_README.html, proto/TLS_README.html,
+	proto/TUNING_README.html, proto/UUCP_README.html,
+	proto/VERP_README.html, proto/VIRTUAL_README.html,
+	proto/XCLIENT_README.html, proto/XFORWARD_README.html,
+	proto/postconf.html.prolog, proto/postconf.proto,
+	proto/socketmap_table, qmqpd/qmqpd.c, tls/tls_misc.c,
+	util/midna_domain.c, util/netstring.c,
+	xsasl/xsasl_dovecot_server.c.
+
+20241121
+
+	Documentation: convert some narrative text for the
+	delay_logging_resolution_limit parameter into a bullet list.
+	File: proto/postconf.proto.

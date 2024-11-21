@@ -1330,7 +1330,7 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
      * explicit assignments to initialize pointers.
      * 
      * See the C language FAQ item 5.17, or if you have time to burn,
-     * http://www.google.com/search?q=zero+bit+null+pointer
+     * https://www.google.com/search?q=zero+bit+null+pointer
      * 
      * However, it's OK to use memset() to zero integer values.
      */

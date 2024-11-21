@@ -124,7 +124,7 @@ static const NAME_MASK xsasl_dovecot_conf_sec_props[] = {
 
  /*
   * Security properties as specified in the Dovecot protocol. See
-  * http://wiki.dovecot.org/Authentication_Protocol.
+  * https://doc.dovecot.org/2.3/developer_manual/design/auth_protocol/
   */
 static const NAME_MASK xsasl_dovecot_serv_sec_props[] = {
     "plaintext", SEC_PROPS_NOPLAINTEXT,

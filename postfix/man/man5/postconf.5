@@ -1844,11 +1844,16 @@ defer_transports = smtp
 .SH delay_logging_resolution_limit (default: 2)
 The maximal number of digits after the decimal point when logging
 sub\-second delay values.  Specify a number in the range 0..6.
-.PP
-Large delay values are rounded off to an integral number of seconds;
-delay values below the delay_logging_resolution_limit are logged
-as "0", and delay values under 100s are logged with at most two\-digit
-precision.
+.IP \(bu
+Delays >= 100s are rounded off to an integral number of
+seconds.
+.IP \(bu
+Delays < 10^\-$delay_logging_resolution_limit are
+rounded off to "0".
+.IP \(bu
+Other delays are rounded off to two significant digits,
+or fewer if the result would exceed the delay_resolution_limit.
+.br
 .PP
 The format of the "delays=a/b/c/d" logging is as follows:
 .IP \(bu
@@ -2066,7 +2071,7 @@ when converting UTF\-8 domain names to/from the ASCII form that is
 used for DNS lookups. Specify "yes" for compatibility with Postfix
 <= 3.1 (not recommended). This affects the conversion of domain
 names that contain for example the German sz and the Greek zeta.
-See http://unicode.org/cldr/utility/idna.jsp for more examples.
+See https://unicode.org/cldr/utility/idna.jsp for more examples.
 .PP
 This feature is available in Postfix 3.2 and later.
 .SH enable_long_queue_ids (default: no)

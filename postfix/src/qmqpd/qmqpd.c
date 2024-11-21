@@ -145,7 +145,7 @@
 /* .IP "\fBservice_name (read-only)\fR"
 /*	The master.cf service name of a Postfix daemon process.
 /* SEE ALSO
-/*	http://cr.yp.to/proto/qmqp.html, QMQP protocol
+/*	https://cr.yp.to/proto/qmqp.html, QMQP protocol
 /*	cleanup(8), message canonicalization
 /*	master(8), process manager
 /*	postlogd(8), Postfix logging

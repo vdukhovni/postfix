@@ -590,7 +590,7 @@ int     main(int argc, char **argv)
      */
     if (compat_level < compat_level_from_string(LAST_COMPAT_LEVEL, msg_panic)) {
 	msg_info("Postfix is using backwards-compatible default settings");
-	msg_info("See http://www.postfix.org/COMPATIBILITY_README.html "
+	msg_info("See https://www.postfix.org/COMPATIBILITY_README.html "
 		 "for details");
 	msg_info("To disable backwards compatibility use \"postconf "
 		 VAR_COMPAT_LEVEL "=%s\" and \"postfix reload\"",

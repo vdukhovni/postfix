@@ -681,7 +681,7 @@ is successful, then you can proceed to install Postfix (section 6).
 If the command produces compiler error messages, it may be time to search the
 web or to ask the postfix-users@postfix.org mailing list, but be sure to search
 the mailing list archives first. Some mailing list archives are linked from
-http://www.postfix.org/.
+https://www.postfix.org/.
 
 5 - Porting Postfix to an unsupported system
 

@@ -157,7 +157,7 @@ void    master_avail_listen(MASTER_SERV *serv)
 			 serv->ext_name, serv->name, serv->max_proc);
 		msg_warn("to avoid this condition, increase the process count "
 		      "in master.cf or reduce the service time per client");
-		msg_warn("see http://www.postfix.org/STRESS_README.html for "
+		msg_warn("see https://www.postfix.org/STRESS_README.html for "
 		      "examples of stress-adapting configuration settings");
 	    }
 	}

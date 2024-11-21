@@ -145,7 +145,7 @@
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
 /* SEE ALSO
-/*	http://cr.yp.to/proto/netstrings.txt, netstring definition
+/*	https://cr.yp.to/proto/netstrings.txt, netstring definition
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research

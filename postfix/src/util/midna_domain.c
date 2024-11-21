@@ -57,7 +57,7 @@
 /*
 /*	midna_domain_pre_chroot() does some pre-chroot initialization.
 /* SEE ALSO
-/*	http://unicode.org/reports/tr46/ Unicode IDNA Compatibility processing
+/*	https://unicode.org/reports/tr46/ Unicode IDNA Compatibility processing
 /*	msg(3) diagnostics interface
 /* DIAGNOSTICS
 /*	Fatal errors: memory allocation problem.

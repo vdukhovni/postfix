@@ -1683,11 +1683,13 @@ verified TLS on the public Internet.
 Historical note: while the documentation of these issues and many of the
 related features were new with Postfix 2.3, the issue was well understood
 before Postfix 1.0, when Lutz Ja"nicke was designing the first unofficial
-Postfix TLS patch. See his original post http://www.imc.org/ietf-apps-tls/mail-
-archive/msg00304.html and the first response http://www.imc.org/ietf-apps-tls/
-mail-archive/msg00305.html. The problem is not even unique to SMTP or even TLS,
-similar issues exist for secure connections via aliases for HTTPS and Kerberos.
-SMTP merely uses indirect naming (via MX records) more frequently.
+Postfix TLS patch. See his original post https://web.archive.org/web/
+20070816181658/http://www.imc.org/ietf-apps-tls/mail-archive/msg00304.html and
+the first response https://web.archive.org/web/20070807073846/http://
+www.imc.org/ietf-apps-tls/mail-archive/msg00305.html. The problem is not even
+unique to SMTP or even TLS, similar issues exist for secure connections via
+aliases for HTTPS and Kerberos. SMTP merely uses indirect naming (via MX
+records) more frequently.
 
 TTLLSS ppoolliiccyy ttaabbllee
 
@@ -2506,7 +2508,7 @@ as it is installed.
 
 RReeppoorrttiinngg pprroobblleemmss
 
-Problems are preferably reported via <postfix-users@postfix.org>. See http://
+Problems are preferably reported via <postfix-users@postfix.org>. See https://
 www.postfix.org/lists.html for subscription information. When reporting a
 problem, please be thorough in the report. Patches, when possible, are greatly
 appreciated too.
