@@ -1278,6 +1278,10 @@ while (<>) {
     s/\b(unionmap):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(inline):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
 
+    if ($ARGV == "postconf.proto") {
+	s/\b(overload):/<a href="STRESS_README.html">$1<\/a>:/g;
+    }
+
     # Do nice links for smtp:host:port etc.
 
     s/\b(error):/<a href="error.8.html">$1<\/a>:/g;

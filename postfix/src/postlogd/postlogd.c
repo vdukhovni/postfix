@@ -7,8 +7,8 @@
 /*	\fBpostlogd\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	This program logs events on behalf of Postfix programs
-/*	when the maillog configuration parameter specifies a non-empty
-/*	value.
+/*	when the maillog_file configuration parameter specifies a
+/*	non-empty value.
 /* BUGS
 /*	Non-daemon Postfix programs don't know that they should log
 /*	to the internal logging service before they have processed
@@ -86,12 +86,16 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
  /*
   * System library.
   */
 #include <sys_defs.h>
+#include <sys/socket.h>
 
  /*
   * Utility library.
@@ -131,6 +135,11 @@ int     var_postlogd_watchdog;
   */
 static VSTREAM *postlogd_stream = 0;
 
+ /*
+  * Receive buffer management.
+  */
+#define DGRAM_BUF_SIZE	4096
+
 /* postlogd_fallback - log messages from postlogd(8) itself */
 
 static void postlogd_fallback(const char *buf)
@@ -140,10 +149,16 @@ static void postlogd_fallback(const char *buf)
 
 /* postlogd_service - perform service for client */
 
-static void postlogd_service(char *buf, ssize_t len, char *unused_service,
+static void postlogd_service(int sock, char *unused_service,
 			             char **unused_argv)
 {
+    char    buf[DGRAM_BUF_SIZE];
+    ssize_t len;
 
+    if ((len = recv(sock, buf, sizeof(buf), 0)) < 0) {
+	msg_warn("failed to receive message with recv: %m");
+	return;
+    }
     if (postlogd_stream) {
 	(void) logwriter_write(postlogd_stream, buf, len);
     }

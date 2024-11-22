@@ -143,3 +143,5 @@ proto  proto mysql_table proto pgsql_table proto ldap_table
  postfix postfix c proto ADDRESS_CLASS_README html 
 proto  proto socketmap_table qmqpd qmqpd c tls tls_misc c 
  proto socketmap_table qmqpd qmqpd c tls tls_misc c 
+ a dependency for html html File html Makefile in 
+ master dgram_server c master mail_server h postlogd postlogd c 

@@ -28,7 +28,7 @@ AWK	= awk '{ print; if (NR == 2) print ".pl 99999\n.ll 78" }'
 MAN2HTML = man2html -t "Postfix manual - `IFS=.; set \`echo $@\`; echo \"$$1($$2)\"`"
 NROFF	= LANG=C GROFF_NO_SGR=1 nroff
 
-update:	$(DAEMONS) $(COMMANDS) $(CONFIG) $(OTHER)
+update:	$(DAEMONS) $(COMMANDS) $(CONFIG) $(OTHER) index.html
 
 clean:
 	echo clean
@@ -37,6 +37,11 @@ tidy:	clean
 
 clobber:
 	rm -f $(DAEMONS) $(COMMANDS) $(CONFIG)
+
+$(DAEMONS) $(COMMANDS) $(CONFIG): ../mantools/man2html
+
+index.html: ../proto/index.html
+	cp $? $@
 
 bounce.8.html: ../src/bounce/bounce.c
 	PATH=../mantools:$$PATH; \

@@ -28559,3 +28559,26 @@ Apologies for any names omitted.
 	Documentation: convert some narrative text for the
 	delay_logging_resolution_limit parameter into a bullet list.
 	File: proto/postconf.proto.
+
+20241122
+
+	Documentation: in the postconf(5) manpage, hyperlink the
+	"overload:" default parameter settings to the STRESS_README
+	documentation.  File: mantools/postlink.
+
+	Cleanup: generate html/index.html from proto/index.html to
+	make changes visible in source diffs. Also make mantools/man2html
+	a dependency for html/*.?.html. File: html/Makefile.in.
+
+	Bugfix (defect introduced: Postfix 3.4, date 20190121): the
+	postsuper command failed with "open logfile 'xxx': Permission
+	denied" when the maillog_file parameter specified a filename
+	and Postfix was not running. This was fixed by opening the
+	maillog_file before dropping root privileges. Files:
+	util/msg_logger.c, global/maillog_client.c.
+
+	Refactoring: the unix-dgram server skeleton now passes a
+	socket file descriptor to the application (e.g., postlogd)
+	instead of a message buffer and length. This is in preparation
+	for unix-dgram support in a spawn(8)-like service. Files:
+	master/dgram_server.c, master/mail_server.h, postlogd/postlogd.c.

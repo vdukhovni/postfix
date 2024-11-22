@@ -339,7 +339,7 @@ before it expires. </p>
 </DD>
 
 <DT><b><a name="address_verify_poll_count">address_verify_poll_count</a>
-(default: normal: 3, overload: 1)</b></DT><DD>
+(default: normal: 3, <a href="STRESS_README.html">overload</a>: 1)</b></DT><DD>
 
 <p>
 How many times to query the <a href="verify.8.html">verify(8)</a> service for the completion
@@ -8613,7 +8613,7 @@ See <a href="postconf.5.html#smtpd_command_filter">smtpd_command_filter</a> for 
 </DD>
 
 <DT><b><a name="postscreen_command_time_limit">postscreen_command_time_limit</a>
-(default: normal: 300s, overload: 10s)</b></DT><DD>
+(default: normal: 300s, <a href="STRESS_README.html">overload</a>: 10s)</b></DT><DD>
 
 <p> The time limit to read an entire command line with <a href="postscreen.8.html">postscreen(8)</a>'s
 built-in SMTP protocol engine. </p>
@@ -9060,7 +9060,7 @@ The default time unit is d (days).  </p>
 </DD>
 
 <DT><b><a name="postscreen_greet_wait">postscreen_greet_wait</a>
-(default: normal: 6s, overload: 2s)</b></DT><DD>
+(default: normal: 6s, <a href="STRESS_README.html">overload</a>: 2s)</b></DT><DD>
 
 <p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will wait for an SMTP
 client to send a command before its turn, and for DNS blocklist
@@ -16317,7 +16317,7 @@ Support for inline regular expressions was added in Postfix version
 </DD>
 
 <DT><b><a name="smtpd_hard_error_limit">smtpd_hard_error_limit</a>
-(default: normal: 20, overload: 1)</b></DT><DD>
+(default: normal: 20, <a href="STRESS_README.html">overload</a>: 1)</b></DT><DD>
 
 <p>
 The maximal number of errors a remote SMTP client is allowed to
@@ -16527,7 +16527,7 @@ before it is flushed upon receipt of EHLO, RSET, or end of DATA.
 </DD>
 
 <DT><b><a name="smtpd_junk_command_limit">smtpd_junk_command_limit</a>
-(default: normal: 100, overload: 1)</b></DT><DD>
+(default: normal: 100, <a href="STRESS_README.html">overload</a>: 1)</b></DT><DD>
 
 <p>
 The number of junk commands (NOOP, VRFY, ETRN or RSET) that a remote
@@ -16679,7 +16679,7 @@ DNS lookup and increases the maximal inbound delivery rate. </p>
 </DD>
 
 <DT><b><a name="smtpd_per_record_deadline">smtpd_per_record_deadline</a>
-(default: normal: no, overload: yes)</b></DT><DD>
+(default: normal: no, <a href="STRESS_README.html">overload</a>: yes)</b></DT><DD>
 
 <p> Change the behavior of the <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a> and <a href="postconf.5.html#smtpd_starttls_timeout">smtpd_starttls_timeout</a>
 time limits, from a
@@ -16703,7 +16703,7 @@ Postfix releases, the behavior is as if this parameter is set to
 </DD>
 
 <DT><b><a name="smtpd_per_request_deadline">smtpd_per_request_deadline</a>
-(default: normal: no, overload: yes)</b></DT><DD>
+(default: normal: no, <a href="STRESS_README.html">overload</a>: yes)</b></DT><DD>
 
 <p> Change the behavior of the <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a> and <a href="postconf.5.html#smtpd_starttls_timeout">smtpd_starttls_timeout</a>
 time limits, from a time limit per plaintext or TLS read or write
@@ -18150,7 +18150,7 @@ The default time unit is s (seconds).  </p>
 </DD>
 
 <DT><b><a name="smtpd_timeout">smtpd_timeout</a>
-(default: normal: 300s, overload: 10s)</b></DT><DD>
+(default: normal: 300s, <a href="STRESS_README.html">overload</a>: 10s)</b></DT><DD>
 
 <p> When the Postfix SMTP server wants to send an SMTP server
 response, how long the Postfix SMTP server will wait for an underlying
