@@ -2,6 +2,8 @@ Wish list:
 
 	Things to do before the stable release:
 
+	Make the spawn_command fix conditional on compatibility_level.
+
 	make pre-release-check, HTML validator check.
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
@@ -15,6 +17,8 @@ Wish list:
 
 	relay_recipient_maps empty should default to 'no valid
 	recipients'. Subject to compatibility level.
+
+	In mantools/postlink, allow newline etc. in "<a href".
 
 	Add an option for a TLSRPT built-in JSON generator. This
 	would simplify TLSRPT adoption by eliminating a build-time

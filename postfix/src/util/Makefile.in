@@ -2717,6 +2717,7 @@ spawn_command.o: check_arg.h
 spawn_command.o: clean_env.h
 spawn_command.o: exec_command.h
 spawn_command.o: msg.h
+spawn_command.o: set_eugid.h
 spawn_command.o: set_ugid.h
 spawn_command.o: spawn_command.c
 spawn_command.o: spawn_command.h

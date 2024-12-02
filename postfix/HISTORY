@@ -28582,3 +28582,58 @@ Apologies for any names omitted.
 	instead of a message buffer and length. This is in preparation
 	for unix-dgram support in a spawn(8)-like service. Files:
 	master/dgram_server.c, master/mail_server.h, postlogd/postlogd.c.
+
+20241122
+
+	Documentation: updated the LOCAL_RECIPIENT_README text, and
+	pointed there from the local_recipient_maps description in
+	postconf(5). Files: proto/LOCAL_RECIPIENT_README.html,
+	proto/postconf.proto.
+
+20241127
+
+	Documentation: default_delivery_status_filter text. File:
+	proto/postconf.proto.
+
+	Documentation: support to convert superscripts in postconf.proto
+	manpage text from HTML to *roff. The result is a compromise:
+	vertical motion (\v'expr') works with groff, but not with
+	the newer mandoc and with the older UNIX nroff. So we use
+	^ instead.  Files: mantools/fixman, mantools/postconf2man,
+	proto/postconf.proto.
+
+20241129
+
+	Bugfix (introduced: on or before 19891104): the manpage
+	extractor mis-formatted titles with multiple names. File:
+	mantools/srctoman.
+
+20241130
+
+	Bugfix (defect introduced: 19991230): the spawn daemon
+	failed to enforce the command time limit. It was sending
+	the SIGKILL signal using the wrong effective UID and GID.
+	The pipe daemon has always done this right. File:
+	util/spawn_command.c.
+
+20241201
+
+	Bugfix (defect introduced Postfix 3.0). Missing UTF8
+	autodetection for headers that are automatically generated
+	by Postfix (for example, a From: header with UTF8 full name
+	information from the password file). Reported by Michael
+	Tokarev. File: src/cleanup/cleanup_message.c.
+
+20241202
+
+	Cleanup: don't leak parent directory information into
+	documentation checks. File: mantools/dehtml.
+
+	Documentation: reverted a breaking change made 20241122.
+	File: html/Makefile.in.
+
+	Documentation: revised spawn(8) manpage text. This is all
+	that remains of a failed experiment to implement a
+	datagram-based spawn(8) service. It was too difficult to
+	enforce that processes terminate as expected after "postfix
+	reload" etc. File: spawn/spawn.c.

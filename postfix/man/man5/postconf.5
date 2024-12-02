@@ -1302,8 +1302,11 @@ Use \fItransport\fR_delivery_slot_loan to specify a
 transport\-specific override, where \fItransport\fR is the master.cf
 name of the message delivery transport.
 .SH default_delivery_status_filter (default: empty)
-Optional filter to replace the delivery status code or explanatory
-text of successful or unsuccessful deliveries.  This does not allow
+Optional filter in Postfix delivery agents, to replace the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries. This allows the replacement of a temporary error status
+code (4.X.X) with a permanent error status code (5.X.X) or vice
+versa, but does not allow
 the replacement of a successful status code (2.X.X) with an
 unsuccessful status code (4.X.X or 5.X.X) or vice versa.
 .PP
@@ -1843,7 +1846,10 @@ defer_transports = smtp
 .ad
 .SH delay_logging_resolution_limit (default: 2)
 The maximal number of digits after the decimal point when logging
-sub\-second delay values.  Specify a number in the range 0..6.
+delay values. Specify a number in the range 0..6.
+.PP
+To improve readability, delays are logged with only a limited
+number of significant digits:
 .IP \(bu
 Delays >= 100s are rounded off to an integral number of
 seconds.
@@ -1851,8 +1857,8 @@ seconds.
 Delays < 10^\-$delay_logging_resolution_limit are
 rounded off to "0".
 .IP \(bu
-Other delays are rounded off to two significant digits,
-or fewer if the result would exceed the delay_resolution_limit.
+Other delays are rounded off to two significant digits, or
+fewer if the result would exceed the delay_logging_resolution_limit.
 .br
 .PP
 The format of the "delays=a/b/c/d" logging is as follows:
@@ -3798,43 +3804,37 @@ Examples:
 .PP
 This feature is available in Postfix 3.6 and later.
 .SH local_recipient_maps (default: proxy:unix:passwd.byname $alias_maps)
-Lookup tables with all names or addresses of local recipients:
-a recipient address is local when its domain matches $mydestination,
-$inet_interfaces or $proxy_interfaces.  Specify @domain as a
-wild\-card for domains that do not have a valid recipient list.
+Lookup tables with all names or addresses of valid local
+recipients. A recipient address is local when its domain matches
+$mydestination, $inet_interfaces or $proxy_interfaces.
+.PP
+If the local_recipient_maps parameter value is non\-empty (the
+default), then the Postfix SMTP server queries local_recipient_maps
+as specified in "Local
+recipient table query format", and rejects mail for unknown
+local recipients. Other Postfix interfaces such as the Postfix
+\fBsendmail\fR(1) command may still accept an "unknown" recipient.
+.PP
+The default local_recipient_maps setting assumes that local_transport
+specifies the UNIX\-compatible \fBlocal\fR(8) delivery agent which queries
+the UNIX passwd database (typically, /etc.passwd) and the local
+aliases database (typically, /etc/aliases). The proxy: agent allows
+the Postfix SMTP server to access the UNIX passwd database from
+outside a chroot jail.
+.PP
+For other local mail delivery configurations, see  "When you need to
+change the local_recipient_maps setting in main.cf".
+.PP
 Technically, tables listed with $local_recipient_maps are used as
-lists: Postfix needs to know only if a lookup string is found or
-not, but it does not use the result from table lookup.
+lists: The Postfix SMTP server needs to know only if a lookup string
+is found or not, but it does not use the result from table lookup.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
 whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
-If this parameter is non\-empty (the default), then the Postfix SMTP
-server will reject mail for unknown local users. Other Postfix
-interfaces may still accept an "unknown" recipient.
-.PP
 To turn off local recipient checking in the Postfix SMTP server,
 specify "local_recipient_maps =" (i.e. empty).
-.PP
-The default setting assumes that you use the default Postfix local
-delivery agent for local delivery. You need to update the
-local_recipient_maps setting if:
-.IP \(bu
-You redefine the local delivery agent in master.cf.
-.IP \(bu
-You redefine the "local_transport" setting in main.cf.
-.IP \(bu
-You use the "luser_relay", "mailbox_transport", or "fallback_transport"
-feature of the Postfix \fBlocal\fR(8) delivery agent.
-.br
-.PP
-Details are described in the LOCAL_RECIPIENT_README file.
-.PP
-Beware: if the Postfix SMTP server runs chrooted, you need to access
-the passwd file via the \fBproxymap\fR(8) service, in order to overcome
-chroot access restrictions. The alternative, maintaining a copy of
-the system password file in the chroot jail is not practical.
 .PP
 Examples:
 .PP

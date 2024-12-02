@@ -86,6 +86,8 @@ while(<>) {
     $block =~ s/&amp;/\&/g;
     $block =~ s/&ndash;/-/g;
     $block =~ s/&mdash;/-/g;
+    $block =~ s/<sup>/^/g;
+    $block =~ s;</sup>;;g;
     $block =~ s/\s+\n/\n/g;
     $block =~ s/^\n//g;
     $block =~ s/\s*<\s*nroffescape\s+([^ >]+)\s*>\s*/\n\1\n/g;

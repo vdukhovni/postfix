@@ -94,6 +94,7 @@
 #include <msg.h>
 #include <timed_wait.h>
 #include <set_ugid.h>
+#include <set_eugid.h>
 #include <argv.h>
 #include <spawn_command.h>
 #include <exec_command.h>
@@ -245,7 +246,8 @@ WAIT_STATUS_T spawn_command(int key,...)
     case 0:
 	if (args.uid != (uid_t) - 1 || args.gid != (gid_t) - 1)
 	    set_ugid(args.uid, args.gid);
-	setsid();
+	if (setsid() < 0)
+	    msg_warn("child: setsid: %m");
 
 	/*
 	 * Pipe plumbing.
@@ -301,9 +303,15 @@ WAIT_STATUS_T spawn_command(int key,...)
 	 */
 	if ((err = timed_waitpid(pid, &wait_status, 0, args.time_limit)) < 0
 	    && errno == ETIMEDOUT) {
+	    uid_t   saved_euid = geteuid();
+	    gid_t   saved_egid = getegid();
+
 	    msg_warn("%s: process id %lu: command time limit exceeded",
 		     args.command, (unsigned long) pid);
-	    kill(-pid, SIGKILL);
+	    set_eugid(args.uid, args.gid);
+	    if (kill(-pid, SIGKILL) < 0)
+		msg_warn("parent: kill: %m");
+	    set_eugid(saved_euid, saved_egid);
 	    err = waitpid(pid, &wait_status, 0);
 	}
 	if (err < 0)

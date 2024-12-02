@@ -2143,10 +2143,13 @@ name of the message delivery transport.
 <DT><b><a name="default_delivery_status_filter">default_delivery_status_filter</a>
 (default: empty)</b></DT><DD>
 
-<p> Optional filter to replace the delivery status code or explanatory
-text of successful or unsuccessful deliveries.  This does not allow
+<p> Optional filter in Postfix delivery agents, to replace the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries. This allows the replacement of a temporary error status
+code (4.X.X) with a permanent error status code (5.X.X) or vice
+versa, but does not allow
 the replacement of a successful status code (2.X.X) with an
-unsuccessful status code (4.X.X or 5.X.X) or vice versa.  </p>
+unsuccessful status code (4.X.X or 5.X.X) or vice versa. </p>
 
 <p> Note: the (smtp|lmtp)_delivery_status_filter is applied only
 once per recipient: when delivery is successful, when delivery is
@@ -2916,18 +2919,21 @@ Example:
 (default: 2)</b></DT><DD>
 
 <p> The maximal number of digits after the decimal point when logging
-sub-second delay values.  Specify a number in the range 0..6.  </p>
+delay values. Specify a number in the range 0..6. </p>
+
+<p> To improve readability, delays are logged with only a limited
+number of significant digits: </p>
 
 <ul>
 
-<li> <p> Delays &ge; 100s are rounded off to an integral number of
-seconds. </p>
+<li> Delays &ge; 100s are rounded off to an integral number of
+seconds.
 
-<li> <p> Delays &lt; 10^-$<a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> are
-rounded off to "0".  </p>
+<li> Delays &lt; 10<sup>-$<a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a></sup> are
+rounded off to "0".
 
-<li> <p> Other delays are rounded off to two significant digits,
-or fewer if the result would exceed the delay_resolution_limit. </p>
+<li> Other delays are rounded off to two significant digits, or
+fewer if the result would exceed the <a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a>.
 
 </ul>
 
@@ -6271,13 +6277,31 @@ match. </dd>
 <DT><b><a name="local_recipient_maps">local_recipient_maps</a>
 (default: <a href="proxymap.8.html">proxy</a>:unix:passwd.byname $<a href="postconf.5.html#alias_maps">alias_maps</a>)</b></DT><DD>
 
-<p> Lookup tables with all names or addresses of local recipients:
-a recipient address is local when its domain matches $<a href="postconf.5.html#mydestination">mydestination</a>,
-$<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>.  Specify @domain as a
-wild-card for domains that do not have a valid recipient list.
+<p> Lookup tables with all names or addresses of valid local
+recipients. A recipient address is local when its domain matches
+$<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>. </p>
+
+<p> If the <a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> parameter value is non-empty (the
+default), then the Postfix SMTP server queries <a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a>
+as specified in "<a href="LOCAL_RECIPIENT_README.html#format">Local
+recipient table query format</a>", and rejects mail for unknown
+local recipients. Other Postfix interfaces such as the Postfix
+<a href="sendmail.1.html">sendmail(1)</a> command may still accept an "unknown" recipient.  </p>
+
+<p> The default <a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> setting assumes that <a href="postconf.5.html#local_transport">local_transport</a>
+specifies the UNIX-compatible <a href="local.8.html">local(8)</a> delivery agent which queries
+the UNIX passwd database (typically, /etc.passwd) and the local
+aliases database (typically, /etc/aliases). The <a href="proxymap.8.html">proxy</a>: agent allows
+the Postfix SMTP server to access the UNIX passwd database from
+outside a chroot jail. </p>
+
+<p> For other local mail delivery configurations, see  "<a href="LOCAL_RECIPIENT_README.html#change">When you need to
+change the local_recipient_maps setting in main.cf</a>". </p>
+
+<p>
 Technically, tables listed with $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> are used as
-lists: Postfix needs to know only if a lookup string is found or
-not, but it does not use the result from table lookup.  </p>
+lists: The Postfix SMTP server needs to know only if a lookup string
+is found or not, but it does not use the result from table lookup. </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
@@ -6286,41 +6310,8 @@ until a match is found.
 </p>
 
 <p>
-If this parameter is non-empty (the default), then the Postfix SMTP
-server will reject mail for unknown local users. Other Postfix
-interfaces may still accept an "unknown" recipient.  </p>
-
-<p>
 To turn off local recipient checking in the Postfix SMTP server,
 specify "<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> =" (i.e. empty).
-</p>
-
-<p>
-The default setting assumes that you use the default Postfix local
-delivery agent for local delivery. You need to update the
-<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> setting if:
-</p>
-
-<ul>
-
-<li>You redefine the local delivery agent in <a href="master.5.html">master.cf</a>.
-
-<li>You redefine the "<a href="postconf.5.html#local_transport">local_transport</a>" setting in <a href="postconf.5.html">main.cf</a>.
-
-<li>You use the "<a href="postconf.5.html#luser_relay">luser_relay</a>", "<a href="postconf.5.html#mailbox_transport">mailbox_transport</a>", or "<a href="postconf.5.html#fallback_transport">fallback_transport</a>"
-feature of the Postfix <a href="local.8.html">local(8)</a> delivery agent.
-
-</ul>
-
-<p>
-Details are described in the <a href="LOCAL_RECIPIENT_README.html">LOCAL_RECIPIENT_README</a> file.
-</p>
-
-<p>
-Beware: if the Postfix SMTP server runs chrooted, you need to access
-the passwd file via the <a href="proxymap.8.html">proxymap(8)</a> service, in order to overcome
-chroot access restrictions. The alternative, maintaining a copy of
-the system password file in the chroot jail is not practical.
 </p>
 
 <p>

@@ -38,7 +38,8 @@ tidy:	clean
 clobber:
 	rm -f $(DAEMONS) $(COMMANDS) $(CONFIG)
 
-$(DAEMONS) $(COMMANDS) $(CONFIG): ../mantools/man2html
+# The following would add man2html to $? in rules for individual files.
+#$(DAEMONS) $(COMMANDS) $(CONFIG): ../mantools/man2html
 
 index.html: ../proto/index.html
 	cp $? $@
