@@ -27326,3 +27326,46 @@ Apologies for any names omitted.
 	restrictions. Files: dns/dns.h, dns/dns_lookup.c, dns/dns_rr.c,
 	dns/test_dns_lookup.c, posttls-finger/posttls-finger.c,
 	smtp/smtp_addr.c, smtpd/smtpd_check.c.
+
+20240930
+
+	Bugfix (defect introduced: Postfix 2.9, date 20111218):
+	with "smtpd_sasl_auth_enable = no", info received with
+	XCLIENT LOGIN was ignored by permit_sasl_authenticated.
+	The fix was to remove a test and to rely solely on the
+	sasl_mechanism property which is null when a remote SMTP
+	client is not authenticated. File: src/smtpd/smtpd_check.c.
+
+20241021
+
+	Bugfix (defect introduced: postfix 3.0): the default master.cf
+	syslog_name setting for the relay service did not preserve
+	multi-instance information. File: conf/master.cf.
+
+20241027
+
+	Bugfix (defect introduced: Postfix 2.3, date 20051222):
+	file descriptor leak after failure to connect to a Dovecot
+	auth server. The impact is limited because there are limits
+	on the number of retries (one), on the number of errors per
+	SMTP session (smtpd_hard_error_limit), on the number of
+	sessions per SMTP server process (max_use), and on the
+	number file handles per process (managed with sysctl).
+	File: xsasl/xsasl_dovecot_server.c.
+
+20241122
+
+	Bugfix (defect introduced: Postfix 3.4, date 20190121): the
+	postsuper command failed with "open logfile 'xxx': Permission
+	denied" when the maillog_file parameter specified a filename
+	and Postfix was not running. This was fixed by opening the
+	maillog_file before dropping root privileges. Files:
+	util/msg_logger.c, global/maillog_client.c.
+
+20241201
+
+	Bugfix (defect introduced Postfix 3.0). Missing UTF8
+	autodetection for headers that are automatically generated
+	by Postfix (for example, a From: header with UTF8 full name
+	information from the password file). Reported by Michael
+	Tokarev. File: src/cleanup/cleanup_message.c.
