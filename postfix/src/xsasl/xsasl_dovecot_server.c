@@ -297,6 +297,7 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
 		    (unsigned int) getpid());
     if (vstream_fflush(sasl_stream) == VSTREAM_EOF) {
 	msg_warn("SASL: Couldn't send handshake: %m");
+	(void) vstream_fclose(sasl_stream);
 	return (-1);
     }
     success = 0;
