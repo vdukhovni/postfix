@@ -723,8 +723,9 @@ static void cleanup_header_done_callback(void *context)
 	    vstring_sprintf(state->temp1, "%s.%s@%s",
 			    time_stamp, state->queue_id, var_myhostname);
 	}
-	cleanup_out_format(state, REC_TYPE_NORM, "%sMessage-Id: <%s>",
-			   state->resent, vstring_str(state->temp1));
+	vstring_sprintf(state->temp2, "%sMessage-Id: <%s>",
+			state->resent, vstring_str(state->temp1));
+	cleanup_out_header(state, state->temp2);
 	msg_info("%s: %smessage-id=<%s>",
 		 state->queue_id, *state->resent ? "resent-" : "",
 		 vstring_str(state->temp1));
@@ -741,8 +742,9 @@ static void cleanup_header_done_callback(void *context)
     if ((state->hdr_rewrite_context || var_always_add_hdrs)
 	&& (state->headers_seen & (1 << (state->resent[0] ?
 				       HDR_RESENT_DATE : HDR_DATE))) == 0) {
-	cleanup_out_format(state, REC_TYPE_NORM, "%sDate: %s",
+	vstring_sprintf(state->temp2, "%sDate: %s",
 		      state->resent, mail_date(state->arrival_time.tv_sec));
+	cleanup_out_header(state, state->temp2);
     }
 
     /*
@@ -805,7 +807,7 @@ static void cleanup_header_done_callback(void *context)
 	    vstring_sprintf(state->temp2, "%sFrom: %s",
 			    state->resent, vstring_str(state->temp1));
 	}
-	CLEANUP_OUT_BUF(state, REC_TYPE_NORM, state->temp2);
+	cleanup_out_header(state, state->temp2);
     }
 
     /*
