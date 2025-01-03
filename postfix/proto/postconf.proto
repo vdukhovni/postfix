@@ -2302,20 +2302,6 @@ one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).  </p>
 
-%PARAM lmtp_lhlo_timeout 300s
-
-<p> The Postfix LMTP client time limit for receiving the LMTP
-greeting banner.  When the remote LMTP server drops the connection
-without sending a
-greeting banner, or when it sends no greeting banner within the
-deadline, the LMTP client tries the next address on the mail
-exchanger list.  </p>
-
-<p> Specify a non-zero time value (an integral value plus an optional
-one-letter suffix that specifies the time unit).  Time units: s
-(seconds), m (minutes), h (hours), d (days), w (weeks).
-The default time unit is s (seconds).  </p>
-
 %PARAM lmtp_mail_timeout 300s
 
 <p>
@@ -16090,7 +16076,7 @@ cache information. Since the cache is shared with smtpd(8) and managed
 by tlsmgr(8), there is only one expiration time for the SMTP server cache
 shared by all three services, namely smtpd_tls_session_cache_timeout. </p>
 
-<p> This feature is available in Postfix 2.8 and later. </p>
+<p> This feature is available in Postfix 2.8-2.10. </p>
 
 %PARAM tlsproxy_use_tls $smtpd_use_tls
 

@@ -46,6 +46,8 @@
 #	\fIinclude\fR directory.
 #	The following directives are special:
 # .RS
+# .IP \fB-DNO_CLOSEFROM\fR
+#	Do not use the system closefom() implementation.
 # .IP \fB-DNO_DB\fR
 #	Do not build with Berkeley DB support.
 # .IP \fB-DNO_DEVPOLL\fR
@@ -240,8 +242,6 @@ case $# in
  # Officially supported usage.
  0) SYSTEM=`(uname -s) 2>/dev/null`
     RELEASE=`(uname -r) 2>/dev/null`
-    # No ${x%%y} support in Solaris 11 /bin/sh
-    RELEASE_MAJOR=`expr "$RELEASE" : '\([0-9]*\)'` || exit 1
     VERSION=`(uname -v) 2>/dev/null`
     case "$VERSION" in
      dcosx*) SYSTEM=$VERSION;;
@@ -250,6 +250,9 @@ case $# in
  2) SYSTEM="$1"; RELEASE="$2";;
  *) echo usage: $0 [system release] 1>&2; exit 1;;
 esac
+
+# No ${x%%y} support in Solaris 11 /bin/sh
+RELEASE_MAJOR=`echo "$RELEASE" | sed 's/[^0-9].*//'` || exit 1
 
 case "$SYSTEM.$RELEASE" in
    SCO_SV.3.2)	SYSTYPE=SCO5

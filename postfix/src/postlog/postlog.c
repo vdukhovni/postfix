@@ -17,10 +17,10 @@
 /*	line, \fBpostlog\fR(1) reads from standard input and logs each input
 /*	line as one record.
 /*
-/*	By default, logging is sent to \fBsyslogd\fR(8) or
-/*	\fBpostlogd\fR(8); when the
-/*	standard error stream is connected to a terminal, logging
-/*	is sent there as well.
+/*	Logging is sent to \fBsyslogd\fR(8) or \fBpostlogd\fR(8), and
+/*	to the standard error stream (with Postfix < 3.8, \fBpostlog\fR(1)
+/*	writes to the standard error stream only if that stream is
+/*	connected to a terminal).
 /*
 /*	The following options are implemented:
 /* .IP "\fB-c \fIconfig_dir\fR"

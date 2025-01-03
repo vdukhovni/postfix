@@ -10,10 +10,19 @@ Wish list:
 
 	Add a mail_version chek to each pluggable database client.
 
+	Unify conf/postfix-wrapper and proto/postfix-wrapper (make
+	one a dependency of the other). They have diverged.
+
+	Should the SMTP client log the queue ID with the TLS status?
+
 	relay_recipient_maps empty should default to 'no valid
 	recipients'. Subject to compatibility level.
 
 	Make a reason available for messages placed on 'hold'.
+
+	In pipe_command() and spawn_command(), the child process
+	should call initgroups() to corrrectly the access rights
+	of interactive shell users.
 
 	relay_recipient_maps empty should default to 'no valid
 	recipients'. Subject to compatibility level.

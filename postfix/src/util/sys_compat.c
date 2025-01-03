@@ -286,7 +286,7 @@ int     dup2_pass_on_exec(int oldd, int newd)
 
 /* closefrom() - closes all file descriptors from the given one up */
 
-int     closefrom(int lowfd)
+void    closefrom(int lowfd)
 {
     int     fd_limit = open_limit(0);
     int     fd;
@@ -298,14 +298,12 @@ int     closefrom(int lowfd)
      */
     if (lowfd < 0) {
 	errno = EBADF;
-	return (-1);
+	return;
     }
     if (fd_limit > 500)
 	fd_limit = 500;
     for (fd = lowfd; fd < fd_limit; fd++)
 	(void) close(fd);
-
-    return (0);
 }
 
 #endif

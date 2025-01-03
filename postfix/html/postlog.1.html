@@ -21,9 +21,9 @@ POSTLOG(1)                                                          POSTLOG(1)
        record.  If  no <i>text</i> is specified on the command line, <a href="postlog.1.html"><b>postlog</b>(1)</a> reads
        from standard input and logs each input line as one record.
 
-       By default, logging is sent to  <b>syslogd</b>(8)  or  <a href="postlogd.8.html"><b>postlogd</b>(8)</a>;  when  the
-       standard error stream is connected to a terminal, logging is sent there
-       as well.
+       Logging is sent to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>, and to the standard error
+       stream  (with  Postfix  &lt;  3.8, <a href="postlog.1.html"><b>postlog</b>(1)</a> writes to the standard error
+       stream only if that stream is connected to a terminal).
 
        The following options are implemented:
 

@@ -146,3 +146,4 @@ proto  proto socketmap_table qmqpd qmqpd c tls tls_misc c
  a dependency for html html File html Makefile in 
  master dgram_server c master mail_server h postlogd postlogd c 
  reload etc File spawn spawn c 
+ logging to the standard error stream File postlog postlog c 

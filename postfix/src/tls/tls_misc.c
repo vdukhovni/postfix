@@ -1051,7 +1051,15 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
     if (SSL_version(ssl) < TLS1_3_VERSION)
 	return;
 
-    if (tls_get_peer_dh_pubkey(ssl, &dh_pkey)) {
+    /*
+     * On the client side, a TLS 1.3 KEM has no server key, just ciphertext
+     * to decapsulate, but, as of OpenSSL 3.0, the client can still obtain
+     * the negotiated group name directly.
+     */
+    if (!kex_name)
+	kex_name = TLS_GROUP_NAME(ssl);
+
+    if (kex_name == NULL && tls_get_peer_dh_pubkey(ssl, &dh_pkey)) {
 	switch (nid = EVP_PKEY_id(dh_pkey)) {
 	default:
 	    kex_name = OBJ_nid2sn(EVP_PKEY_type(nid));
@@ -1078,16 +1086,6 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	}
 	EVP_PKEY_free(dh_pkey);
     }
-
-    /*
-     * On the client side, a TLS 1.3 KEM has no server key, just ciphertext
-     * to decapsulate, but, as of OpenSSL 3.0, the client can still obtain
-     * the negotiated group name directly.  We nevertheless still try to get
-     * the group details from the peer key first, which works with OpenSSL
-     * 1.1.1 and retains the original output format for the (EC)DH groups.
-     */
-    if (!kex_name)
-	kex_name = TLS_GROUP_NAME(ssl);
 
     /*
      * On the client end, the certificate may be present, but not used, so we

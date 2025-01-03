@@ -1466,6 +1466,10 @@ typedef int WAIT_STATUS_T;
 #undef HAVE_POSIX_GETPW_R
 #endif
 
+#ifdef NO_CLOSEFROM
+#undef HAS_CLOSEFROM
+#endif
+
 #ifdef NO_DB
 #undef HAS_DB
 #endif
@@ -1526,7 +1530,7 @@ extern int setsid(void);
 #endif
 
 #ifndef HAS_CLOSEFROM
-extern int closefrom(int);
+extern void closefrom(int);
 
 #endif
 

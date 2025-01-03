@@ -28637,3 +28637,66 @@ Apologies for any names omitted.
 	datagram-based spawn(8) service. It was too difficult to
 	enforce that processes terminate as expected after "postfix
 	reload" etc. File: spawn/spawn.c.
+
+20241205
+
+	Portability: include <sys_socket.h> for a SUNOS5 workaround.
+	Gary R. Schmidt. File: util/peekfd.c.
+
+20241210
+
+	Documentation: ESMTP parameters that are supported in Milter
+	requests to change the envelope sender address, or to add
+	an envelope recipient address. File: proto/MILTER_README.html.
+
+20241213
+
+	Bugfix (defect introduced Postfix 3.1 date 20150523): makedefs did
+	not handle Major release version of zero. Michael Tokarev. File:
+	makedefs.
+
+	Portability: changed the closefrom() result type from 'int'
+	to 'void', for compatibility with systems that have a
+	closefrom() implementation that we don't want to use.
+	Michael Tokarev. Files: util/sys_defs.h, util/sys_compat.c.
+
+20241214
+
+	Documentation: updated the postlog(1) manpage text for
+	logging to the standard error stream. File postlog/postlog.c.
+
+20241226
+
+	Bit rot: The Postfix code for logging the TLS group wasn't
+	quite right. Instead of the TLS group name, it logged the
+	underlying public key algorithm name. These names may differ
+	when some of the newer constructs are used. Viktor Dukhovni.
+	File: tls/tls_misc.c.
+
+20241230
+
+	Bugfix (defect introduced: Postfix 3.3, date 20180107) small
+	memory leak in the cleanup daemon when generating a "From:
+	full-name <addr-spec>" message header. The impact is limited
+	because the number of requests is bounded by the "max_use"
+	configuration parameter. Found during code maintenance.
+	File: cleanup/cleanup_message.c.
+
+20250101
+
+	Wietse added -DNO_CLOSEFROM support to make the change
+	20241213 easily testable, and documented it in the makedefs(1)
+	manpage.
+
+20250102
+
+	Added pre-release checks for configuration parameters that
+	are implemented but not documented, and for configuration
+	parameters that are documented but not implemented. Files:
+	mantools/check-postconf-unimplemented,
+	mantools/check-postconf-undocumented.
+
+	Documentation: eliminated an "unused" postconf(5) entry for
+	the lmtp_lhlo_timeout parameter, and added end-of-life info
+	for the obsolete proxy_tls_session_cache_timeout parameter.
+	File: proto/postconf.proto.
