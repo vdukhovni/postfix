@@ -4481,6 +4481,13 @@ extern char *var_smtp_tlsrpt_sockname;
 #define DEF_LMTP_TLSRPT_SKIP_REUSED_HS	DEF_SMTP_TLSRPT_SKIP_REUSED_HS
 extern int var_smtp_tlsrpt_skip_reused_hs;
 
+ /*
+  * RFC 2047 encoding of full name info.
+  */
+#define VAR_FULL_NAME_ENCODING_CHARSET	"full_name_encoding_charset"
+#define DEF_FULL_NAME_ENCODING_CHARSET	"utf-8"
+extern char *var_full_name_encoding_charset;
+
 /* LICENSE
 /* .ad
 /* .fi

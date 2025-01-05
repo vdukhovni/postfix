@@ -1157,6 +1157,7 @@ cleanup_masquerade.o: ../../include/vstring.h
 cleanup_masquerade.o: cleanup.h
 cleanup_masquerade.o: cleanup_masquerade.c
 cleanup_message.o: ../../include/argv.h
+cleanup_message.o: ../../include/ascii_header_text.h
 cleanup_message.o: ../../include/attr.h
 cleanup_message.o: ../../include/been_here.h
 cleanup_message.o: ../../include/check_arg.h
@@ -1193,11 +1194,13 @@ cleanup_message.o: ../../include/quote_flags.h
 cleanup_message.o: ../../include/rec_type.h
 cleanup_message.o: ../../include/record.h
 cleanup_message.o: ../../include/resolve_clnt.h
+cleanup_message.o: ../../include/rfc2047_code.h
 cleanup_message.o: ../../include/split_at.h
 cleanup_message.o: ../../include/string_list.h
 cleanup_message.o: ../../include/stringops.h
 cleanup_message.o: ../../include/sys_defs.h
 cleanup_message.o: ../../include/tok822.h
+cleanup_message.o: ../../include/clean_ascii_cntrl_space.h
 cleanup_message.o: ../../include/vbuf.h
 cleanup_message.o: ../../include/vstream.h
 cleanup_message.o: ../../include/vstring.h

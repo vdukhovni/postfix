@@ -487,7 +487,6 @@ tls_proxy_server_scan.o: ../../include/vstring.h
 tls_proxy_server_scan.o: tls.h
 tls_proxy_server_scan.o: tls_proxy.h
 tls_proxy_server_scan.o: tls_proxy_server_scan.c
-tls_rsa.o: tls_rsa.c
 tls_scache.o: ../../include/argv.h
 tls_scache.o: ../../include/check_arg.h
 tls_scache.o: ../../include/dict.h

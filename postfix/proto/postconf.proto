@@ -19424,3 +19424,39 @@ handshakes, for example to troubleshoot Postfix TLSRPT support.
 </p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
+
+%PARAM full_name_encoding_charset utf-8
+
+<p> The character set name (also called "charset") that Postfix
+will output when it automatically generates an RFC 2047 encoded
+full name. Encoding non-ASCII full names can avoid the need to use
+SMTPUTF8, and therefore can avoid incompatibility with sites that
+do not support SMTPUTF8. </p>
+
+<p> The encoded names look like "=?charset?q?gibberish?=" with
+quoted-printable encoding, or "=?charset?b?gibberish?=" with base64
+encoding. Postfix uses quoted-printable encoding for a full name
+that is short or mostly printable ASCII, and uses base64 otherwise.
+</p>
+
+<p> Background: when a message without a From: header is submitted
+with the Postfix sendmail(1) command, the Postfix cleanup(8) daemon
+will add a From: header and will try to use the sender's full name
+specified with the Postfix sendmail(1) "-F" option, with the Postfix
+sendmail(1) "NAME" environment variable, or with the GECOS field
+in the UNIX password database. In the latter case, Postfix will
+replace the "&amp;" character with the login name, with a lowercase
+ASCII first character converted to uppercase. </p>
+
+<p> NOTE: Postfix does not convert between character sets; it simply
+encodes the raw bytes in a full name as printable ASCII gibberish.
+The full_name_encoding_charset value specifies how a mail reader
+program should display the decoded gibberish. </p>
+
+<p> Specify a valid character set name such as "utf-8" or "iso-8859-1
+(specify the latter for full names that use the Latin1 encoding).
+The character set name is case insensitive. When a character set
+name violates RFC 2047 syntax, Postfix will log a warning and will
+skip the full name. </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>

@@ -342,3 +342,4 @@ address  address string length
 additional_info  additional_info 
 ignored  ignored 
 USE_TLSRPT  USE_TLSRPT 
+encoded  encoded text can contain only alpha digit 

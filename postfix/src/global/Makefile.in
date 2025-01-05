@@ -37,7 +37,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	normalize_mailhost_addr.c map_search.c reject_deliver_request.c \
 	info_log_addr_form.c sasl_mech_filter.c login_sender_match.c \
 	test_main.c compat_level.c config_known_tcp_ports.c \
-	hfrom_format.c
+	hfrom_format.c rfc2047_code.c ascii_header_text.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -76,7 +76,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	normalize_mailhost_addr.o map_search.o reject_deliver_request.o \
 	info_log_addr_form.o sasl_mech_filter.o login_sender_match.o \
 	test_main.o compat_level.o config_known_tcp_ports.o \
-	hfrom_format.o
+	hfrom_format.o rfc2047_code.o ascii_header_text.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -113,7 +113,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	maillog_client.h normalize_mailhost_addr.h map_search.h \
 	info_log_addr_form.h sasl_mech_filter.h login_sender_match.h \
 	test_main.h compat_level.h config_known_tcp_ports.h \
-	hfrom_format.h
+	hfrom_format.h rfc2047_code.h ascii_header_text.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -130,7 +130,8 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	mail_version mail_dict server_acl uxtext mail_parm_split \
 	fold_addr smtp_reply_footer mail_addr_map normalize_mailhost_addr \
 	haproxy_srvr map_search delivered_hdr login_sender_match \
-	compat_level config_known_tcp_ports hfrom_format
+	compat_level config_known_tcp_ports hfrom_format rfc2047_code \
+	ascii_header_text
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
@@ -398,6 +399,12 @@ compat_level: compat_level.c $(LIB) $(LIBS)
 hfrom_format: hfrom_format.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
+rfc2047_code: rfc2047_code.c $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+
+ascii_header_text: ascii_header_text.c $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+
 config_known_tcp_ports: config_known_tcp_ports.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
@@ -410,7 +417,8 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	mail_addr_find_test mail_addr_map_test quote_822_local_test \
 	normalize_mailhost_addr_test haproxy_srvr_test map_search_test \
 	delivered_hdr_test login_sender_match_test compat_level_test \
-	config_known_tcp_ports_test hfrom_format_test
+	config_known_tcp_ports_test hfrom_format_test rfc2047_code_test \
+	ascii_header_text_test
 
 mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3 mime_garb4
@@ -776,6 +784,12 @@ hfrom_format_test: update hfrom_format \
 	diff hfrom_format.ref hfrom_format.tmp
 	rm -f hfrom_format.tmp
 
+rfc2047_code_test: update rfc2047_code
+	$(SHLIB_ENV) $(VALGRIND) ./rfc2047_code
+
+ascii_header_text_test: update ascii_header_text 
+	$(SHLIB_ENV) $(VALGRIND) ./ascii_header_text
+
 clean:
 	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAPS)
 
@@ -838,6 +852,18 @@ anvil_clnt.o: anvil_clnt.c
 anvil_clnt.o: anvil_clnt.h
 anvil_clnt.o: mail_params.h
 anvil_clnt.o: mail_proto.h
+ascii_header_text.o: ../../include/check_arg.h
+ascii_header_text.o: ../../include/msg.h
+ascii_header_text.o: ../../include/stringops.h
+ascii_header_text.o: ../../include/sys_defs.h
+ascii_header_text.o: ../../include/vbuf.h
+ascii_header_text.o: ../../include/vstring.h
+ascii_header_text.o: ascii_header_text.c
+ascii_header_text.o: ascii_header_text.h
+ascii_header_text.o: lex_822.h
+ascii_header_text.o: mail_params.h
+ascii_header_text.o: resolve_clnt.h
+ascii_header_text.o: tok822.h
 attr_override.o: ../../include/check_arg.h
 attr_override.o: ../../include/msg.h
 attr_override.o: ../../include/stringops.h
@@ -2567,6 +2593,16 @@ rewrite_clnt.o: quote_822_local.h
 rewrite_clnt.o: quote_flags.h
 rewrite_clnt.o: rewrite_clnt.c
 rewrite_clnt.o: rewrite_clnt.h
+rfc2047_code.o: ../../include/base64_code.h
+rfc2047_code.o: ../../include/check_arg.h
+rfc2047_code.o: ../../include/msg.h
+rfc2047_code.o: ../../include/stringops.h
+rfc2047_code.o: ../../include/sys_defs.h
+rfc2047_code.o: ../../include/vbuf.h
+rfc2047_code.o: ../../include/vstring.h
+rfc2047_code.o: lex_822.h
+rfc2047_code.o: rfc2047_code.c
+rfc2047_code.o: rfc2047_code.h
 safe_ultostr.o: ../../include/check_arg.h
 safe_ultostr.o: ../../include/msg.h
 safe_ultostr.o: ../../include/mymalloc.h

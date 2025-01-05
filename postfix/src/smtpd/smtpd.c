@@ -679,9 +679,8 @@
 /*	The Internet protocols Postfix will attempt to use when making
 /*	or accepting connections.
 /* .IP "\fBlocal_recipient_maps (proxy:unix:passwd.byname $alias_maps)\fR"
-/*	Lookup tables with all names or addresses of local recipients:
-/*	a recipient address is local when its domain matches $mydestination,
-/*	$inet_interfaces or $proxy_interfaces.
+/*	Lookup tables with all names or addresses of valid local
+/*	recipients.
 /* .IP "\fBunknown_local_recipient_reject_code (550)\fR"
 /*	The numerical Postfix SMTP server response code when a recipient
 /*	address is local, and $local_recipient_maps specifies a list of
@@ -1221,6 +1220,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*
 /*	SASL support originally by:
 /*	Till Franke
@@ -6113,20 +6115,26 @@ static void smtpd_proto(SMTPD_STATE *state)
      * troubles.
      */
     if (state->reason && state->where) {
+	const char *queue_id_or_noqueue = (state->queue_id ?
+					   state->queue_id : "NOQUEUE");
+
 	if (strcmp(state->where, SMTPD_AFTER_DATA) == 0) {
-	    msg_info("%s after %s (%lu bytes) from %s",	/* 2.5 compat */
+	    msg_info("%s: %s after %s (%lu bytes) from %s",	/* 2.5 compat */
+		     queue_id_or_noqueue,
 		     state->reason, SMTPD_CMD_DATA,	/* 2.5 compat */
 		     (long) (state->act_size + vstream_peek(state->client)),
 		     state->namaddr);
 	} else if (strcmp(state->where, SMTPD_AFTER_BDAT) == 0) {
-	    msg_info("%s after %s (%lu bytes) from %s",
+	    msg_info("%s: %s after %s (%lu bytes) from %s",
+		     queue_id_or_noqueue,
 		     state->reason, SMTPD_CMD_BDAT,
 		     (long) (state->act_size + VSTRING_LEN(state->buffer)
 			     + VSTRING_LEN(state->bdat_get_buffer)),
 		     state->namaddr);
 	} else if (strcmp(state->where, SMTPD_AFTER_EOM)
 		   || strcmp(state->reason, REASON_LOST_CONNECTION)) {
-	    msg_info("%s after %s from %s",
+	    msg_info("%s: %s after %s from %s",
+		     queue_id_or_noqueue,
 		     state->reason, state->where, state->namaddr);
 	}
     }

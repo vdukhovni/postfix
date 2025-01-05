@@ -3939,6 +3939,46 @@ process instance while mail is being forwarded.  </p>
 
 </DD>
 
+<DT><b><a name="full_name_encoding_charset">full_name_encoding_charset</a>
+(default: utf-8)</b></DT><DD>
+
+<p> The character set name (also called "charset") that Postfix
+will output when it automatically generates an <a href="https://tools.ietf.org/html/rfc2047">RFC 2047</a> encoded
+full name. Encoding non-ASCII full names can avoid the need to use
+SMTPUTF8, and therefore can avoid incompatibility with sites that
+do not support SMTPUTF8. </p>
+
+<p> The encoded names look like "=?charset?q?gibberish?=" with
+quoted-printable encoding, or "=?charset?b?gibberish?=" with base64
+encoding. Postfix uses quoted-printable encoding for a full name
+that is short or mostly printable ASCII, and uses base64 otherwise.
+</p>
+
+<p> Background: when a message without a From: header is submitted
+with the Postfix <a href="sendmail.1.html">sendmail(1)</a> command, the Postfix <a href="cleanup.8.html">cleanup(8)</a> daemon
+will add a From: header and will try to use the sender's full name
+specified with the Postfix <a href="sendmail.1.html">sendmail(1)</a> "-F" option, with the Postfix
+<a href="sendmail.1.html">sendmail(1)</a> "NAME" environment variable, or with the GECOS field
+in the UNIX password database. In the latter case, Postfix will
+replace the "&amp;" character with the login name, with a lowercase
+ASCII first character converted to uppercase. </p>
+
+<p> NOTE: Postfix does not convert between character sets; it simply
+encodes the raw bytes in a full name as printable ASCII gibberish.
+The <a href="postconf.5.html#full_name_encoding_charset">full_name_encoding_charset</a> value specifies how a mail reader
+program should display the decoded gibberish. </p>
+
+<p> Specify a valid character set name such as "utf-8" or "iso-8859-1
+(specify the latter for full names that use the Latin1 encoding).
+The character set name is case insensitive. When a character set
+name violates <a href="https://tools.ietf.org/html/rfc2047">RFC 2047</a> syntax, Postfix will log a warning and will
+skip the full name. </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>
+
+
+</DD>
+
 <DT><b><a name="hash_queue_depth">hash_queue_depth</a>
 (default: 1)</b></DT><DD>
 

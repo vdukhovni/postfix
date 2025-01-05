@@ -48,6 +48,7 @@ typedef struct CLEANUP_STATE {
     VSTRING *attr_buf;			/* storage for named attribute */
     VSTRING *temp1;			/* scratch buffer, local use only */
     VSTRING *temp2;			/* scratch buffer, local use only */
+    VSTRING *temp3;			/* scratch buffer, local use only */
     VSTRING *stripped_buf;		/* character stripped input */
     VSTREAM *src;			/* current input stream */
     VSTREAM *dst;			/* current output stream */

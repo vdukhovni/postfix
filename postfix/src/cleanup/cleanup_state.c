@@ -33,6 +33,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -69,6 +72,7 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->attr_buf = vstring_alloc(10);
     state->temp1 = vstring_alloc(10);
     state->temp2 = vstring_alloc(10);
+    state->temp3 = vstring_alloc(10);
     if (cleanup_strip_chars)
 	state->stripped_buf = vstring_alloc(10);
     state->src = src;
@@ -147,6 +151,7 @@ void    cleanup_state_free(CLEANUP_STATE *state)
     vstring_free(state->attr_buf);
     vstring_free(state->temp1);
     vstring_free(state->temp2);
+    vstring_free(state->temp3);
     if (cleanup_strip_chars)
 	vstring_free(state->stripped_buf);
     if (state->fullname)

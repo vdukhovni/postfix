@@ -59,6 +59,9 @@
 #if !defined(SQLITE_VERSION_NUMBER) || (SQLITE_VERSION_NUMBER < 3005004)
 #define sqlite3_prepare_v2 sqlite3_prepare
 #endif
+#if !defined(SQLITE_VERSION_NUMBER) || (SQLITE_VERSION_NUMBER < 3005000)
+#define sqlite3_open_v2(fname,ppDB,flags,zVfs) sqlite_open(fname,ppDB)
+#endif
 
 /* Utility library. */
 
@@ -320,10 +323,16 @@ DICT   *dict_sqlite_open(const char *name, int open_flags, int dict_flags)
     dict_sqlite->parser = parser;
     sqlite_parse_config(dict_sqlite, name);
 
-    if (sqlite3_open(dict_sqlite->dbpath, &dict_sqlite->db))
-	msg_fatal("%s:%s: Can't open database: %s\n",
-		  DICT_TYPE_SQLITE, name, sqlite3_errmsg(dict_sqlite->db));
+    if (sqlite3_open_v2(dict_sqlite->dbpath, &dict_sqlite->db,
+			SQLITE_OPEN_READONLY, NULL) != SQLITE_OK) {
+	DICT   *dict = dict_surrogate(DICT_TYPE_SQLITE, name, open_flags,
+			      dict_flags, "%s:%s: open database %s: %s: %m",
+				DICT_TYPE_SQLITE, name, dict_sqlite->dbpath,
+				      sqlite3_errmsg(dict_sqlite->db));
 
+	dict_sqlite_close(&dict_sqlite->dict);
+	return dict;
+    }
     dict_sqlite->dict.owner = cfg_get_owner(dict_sqlite->parser);
 
     return (DICT_DEBUG (&dict_sqlite->dict));

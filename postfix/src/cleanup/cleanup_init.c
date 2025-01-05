@@ -174,6 +174,7 @@ int     var_auto_8bit_enc_hdr;		/* auto-detect 8bit encoding header */
 int     var_always_add_hdrs;		/* always add missing headers */
 int     var_virt_addrlen_limit;		/* stop exponential growth */
 char   *var_hfrom_format;		/* header_from_format */
+char   *var_full_name_encoding_charset;	/* in =?charset?encoding?gibberish=? */
 int     var_force_mime_iconv;		/* force mime downgrade on input */
 int     var_cleanup_mask_stray_cr_lf;	/* replace stray CR or LF with space */
 
@@ -245,6 +246,7 @@ const CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_MILT_HEAD_CHECKS, DEF_MILT_HEAD_CHECKS, &var_milt_head_checks, 0, 0,
     VAR_MILT_MACRO_DEFLTS, DEF_MILT_MACRO_DEFLTS, &var_milt_macro_deflts, 0, 0,
     VAR_HFROM_FORMAT, DEF_HFROM_FORMAT, &var_hfrom_format, 1, 0,
+    VAR_FULL_NAME_ENCODING_CHARSET, DEF_FULL_NAME_ENCODING_CHARSET, &var_full_name_encoding_charset, 1, 0,
     0,
 };
 

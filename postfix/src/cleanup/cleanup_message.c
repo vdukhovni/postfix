@@ -44,6 +44,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -68,9 +71,11 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <nvtable.h>
+#include <clean_ascii_cntrl_space.h>
 
 /* Global library. */
 
+#include <ascii_header_text.h>
 #include <record.h>
 #include <rec_type.h>
 #include <cleanup_user.h>
@@ -90,6 +95,7 @@
 #include <conv_time.h>
 #include <info_log_addr_form.h>
 #include <hfrom_format.h>
+#include <rfc2047_code.h>
 
 /* Application-specific. */
 
@@ -662,6 +668,43 @@ static void cleanup_header_callback(void *context, int header_class,
     }
 }
 
+/* get_fullname_hdr_text - helper wrapper */
+
+static char *get_fullname_hdr_text(VSTRING *result, const char *raw_name,
+				           const char *separator)
+{
+    VSTRING *sanitized;
+    char   *ret;
+
+    if (raw_name == 0 || *raw_name == 0)
+	return (0);
+
+    /*
+     * TODO(wietse) in the ASCII-only path, add support to insert newline
+     * instead of space, to enable header folding with cleanup_fold_header().
+     */
+    sanitized = vstring_alloc(100);
+    if (clean_ascii_cntrl_space(sanitized, raw_name, strlen(raw_name)) == 0) {
+	ret = 0;
+    } else if (allascii(vstring_str(sanitized))) {
+	ret = make_ascii_header_text(result,
+			     cleanup_hfrom_format == HFROM_FORMAT_CODE_STD ?
+				     HDR_TEXT_FLAG_PHRASE :
+				     HDR_TEXT_FLAG_COMMENT,
+				     vstring_str(sanitized));
+    } else {
+	ret = rfc2047_encode(result,
+			     cleanup_hfrom_format == HFROM_FORMAT_CODE_STD ?
+			     RFC2047_HEADER_CONTEXT_PHRASE :
+			     RFC2047_HEADER_CONTEXT_COMMENT,
+			     var_full_name_encoding_charset,
+			     vstring_str(sanitized),
+			     VSTRING_LEN(sanitized), separator);
+    }
+    vstring_free(sanitized);
+    return (ret);
+}
+
 /* cleanup_header_done_callback - insert missing message headers */
 
 static void cleanup_header_done_callback(void *context)
@@ -670,8 +713,6 @@ static void cleanup_header_done_callback(void *context)
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
     char    time_stamp[1024];		/* XXX locale dependent? */
     struct tm *tp;
-    TOK822 *token;
-    TOK822 *dummy_token;
     time_t  tv;
 
     /*
@@ -763,49 +804,31 @@ static void cleanup_header_done_callback(void *context)
     if ((state->hdr_rewrite_context || var_always_add_hdrs)
 	&& (state->headers_seen & (1 << (state->resent[0] ?
 				       HDR_RESENT_FROM : HDR_FROM))) == 0) {
+	char   *fullname;
+
 	quote_822_local(state->temp1, *state->sender ?
 			state->sender : MAIL_ADDR_MAIL_DAEMON);
-	if (*state->sender && state->fullname && *state->fullname) {
-	    char   *cp;
-
-	    /* Enforce some sanity on full name content. */
-	    while ((cp = strchr(state->fullname, '\r')) != 0
-		   || (cp = strchr(state->fullname, '\n')) != 0)
-		*cp = ' ';
+	if (*state->sender != 0
+	    && (fullname = get_fullname_hdr_text(state->temp3,
+						 state->fullname, "\n")) != 0
+	    && *fullname != 0) {
 
 	    /*
-	     * "From: phrase <route-addr>". Quote the phrase if it contains
-	     * specials or the "%!" legacy address operators.
+	     * "From: phrase <addr-spec>".
 	     */
 	    if (cleanup_hfrom_format == HFROM_FORMAT_CODE_STD) {
-		vstring_sprintf(state->temp2, "%sFrom: ", state->resent);
-		if (state->fullname[strcspn(state->fullname,
-					    "%!" LEX_822_SPECIALS)] == 0) {
-		    /* Normalize whitespace. */
-		    token = tok822_scan_limit(state->fullname, &dummy_token,
-					      var_token_limit);
-		} else {
-		    token = tok822_alloc(TOK822_QSTRING, state->fullname);
-		}
-		if (token) {
-		    tok822_externalize(state->temp2, token, TOK822_STR_NONE);
-		    tok822_free_tree(token);
-		    vstring_strcat(state->temp2, " ");
-		}
-		vstring_sprintf_append(state->temp2, "<%s>",
-				       vstring_str(state->temp1));
+		vstring_sprintf(state->temp2, "%sFrom: %s\n<%s>",
+				state->resent, fullname,
+				vstring_str(state->temp1));
 	    }
 
 	    /*
 	     * "From: addr-spec (ctext)". This is the obsolete form.
 	     */
 	    else {
-		vstring_sprintf(state->temp2, "%sFrom: %s ",
-				state->resent, vstring_str(state->temp1));
-		vstring_sprintf(state->temp1, "(%s)", state->fullname);
-		token = tok822_parse(vstring_str(state->temp1));
-		tok822_externalize(state->temp2, token, TOK822_STR_NONE);
-		tok822_free_tree(token);
+		vstring_sprintf(state->temp2, "%sFrom: %s\n(%s)",
+				state->resent, vstring_str(state->temp1),
+				fullname);
 	    }
 	}
 
@@ -817,7 +840,7 @@ static void cleanup_header_done_callback(void *context)
 	    vstring_sprintf(state->temp2, "%sFrom: %s",
 			    state->resent, vstring_str(state->temp1));
 	}
-	cleanup_out_header(state, state->temp2);
+	cleanup_fold_header(state, state->temp2);
     }
 
     /*

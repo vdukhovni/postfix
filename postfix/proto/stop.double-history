@@ -146,4 +146,7 @@ proto  proto socketmap_table qmqpd qmqpd c tls tls_misc c
  a dependency for html html File html Makefile in 
  master dgram_server c master mail_server h postlogd postlogd c 
  reload etc File spawn spawn c 
+ proto postconf proto cleanup cleanup c cleanup cleanup_init c 
  logging to the standard error stream File postlog postlog c 
+ Files mantools postlink proto postconf proto cleanup cleanup c 
+ many errors I O timeout lost connection File smtpd smtpd c 

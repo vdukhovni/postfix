@@ -28700,3 +28700,42 @@ Apologies for any names omitted.
 	the lmtp_lhlo_timeout parameter, and added end-of-life info
 	for the obsolete proxy_tls_session_cache_timeout parameter.
 	File: proto/postconf.proto.
+
+20250104
+
+	Cleanup: the SMTP client complained about "missing
+	trw_set_tls_policy call" when a destination had a TLSRPT
+	policy, but TLS was disabled. File: smtp/smtp_connect.c.
+
+	Logging: the Postfix SMTP server now logs the queue ID or
+	"NOQUEUE" when an SMTP session terminates abnormally (too
+	many errors, I/O timeout, lost connection). File: smtpd/smtpd.c.
+
+	Cleanup: improved error handling when the sqlite: client
+	tries to open a non-existent database: do not attempt to
+	create a read-write database file; and do log the underlying
+	system error (example: No such file or directory). Michael
+	Tokarev.File: global/dict_sqlite.c.
+
+	Feature: automatic RFC 2047 encoding for non-ASCII full
+	name information when Postfix generates a From: message
+	header. Encoding non-ASCII full names can avoid the need
+	to use SMTPUTF8, and therefore can avoid incompatibility
+	with sites that do not support SMTPUTF8.
+
+	The new parameter "full_name_encoding_charset" (default:
+	"utf-8") specifies the character set of the full name in
+	the Postfix sendmail "-F" option, in the Postfix sendmail
+	"NAME" environment variable, or in the GECOS field of the
+	UNIX password database.
+
+	The encoded result looks like "=?charset?Q?gibberish?= for
+	quoted-printable encoding, or "=?charset?B?gibberish?= for
+	base64 encoding. Postfix uses quoted-printable for a full
+	name that is short or mostly ASCII, and uses base64 otherwise.
+
+	Files: mantools/postlink, proto/postconf.proto, cleanup/cleanup.c,
+	cleanup/cleanup_init.c, cleanup/cleanup_message.c,
+	global/ascii_header_text.c, global/ascii_header_text.h,
+	global/mail_params.h, global/rfc2047_code.c, global/rfc2047_code.h,
+	util/clean_ascii_cntrl_space.c, util/clean_ascii_cntrl_space.h.

@@ -1655,5 +1655,7 @@ hs
 ccformat
 xxsql
 MEMCACHE
+GECOS
+iso
 ORCPT
 RET

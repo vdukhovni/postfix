@@ -26,6 +26,35 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+[Feature 20250105]
+
+Support for automatic RFC 2047 encoding of non-ASCII "full name"
+information in Postfix-generated From: message headers. Encoding
+non-ASCII full names can avoid the need to use SMTPUTF8, and therefore
+can avoid incompatibility with sites that do not support SMTPUTF8.
+
+Background: when a message without a From: header is submitted with the
+Postfix sendmail(1) command, Postfix will add a From: header and will
+try to use the sender's full name specified with the Postfix sendmail(1)
+"-F" option, with the sendmail(1) "NAME" environment variable, or
+with the GECOS field in the UNIX password database.
+
+This introduces a new configuration parameter "full_name_encoding_charset"
+(default: utf8) which specifies the character set of the full name
+information in the Postfix sendmail(1) "-F" option or "NAME"
+environment variable, or in the GECOS field in the UNIX password
+database.
+
+[Incompat 20250105]
+
+The SMTP server now logs the queue ID (or "NOQUEUE") when a connection
+ends abnormally (timeout, lost connection, or too many errors).
+
+[Feature 20250105]
+
+The SMTP server now logs the queue ID (or "NOQUEUE") when a connection
+ends abnormally (timeout, lost connection, or too many errors).
+
 [Feature 20241104]
 
 The cleanup server now logs "queueid: canceled" when a message
