@@ -2063,19 +2063,22 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
 	return (0);
     switch (resp[0]) {
     case 'H':
-	/* XXX Should log the reason here. */
 	if (state->flags & CLEANUP_FLAG_HOLD)
 	    return (0);
 	state->flags |= CLEANUP_FLAG_HOLD;
 	action = "milter-hold";
-	text = "milter triggers HOLD action";
+	text = resp[1] ? resp + 1 : "milter triggers HOLD action";
 	break;
     case 'D':
+	if (state->flags & CLEANUP_FLAG_DISCARD)
+	    return (0);
 	state->flags |= CLEANUP_FLAG_DISCARD;
 	action = "milter-discard";
 	text = "milter triggers DISCARD action";
 	break;
     case 'S':
+	if (state->flags & CLEANUP_STAT_CONT)
+	    return (0);
 	/* XXX Can this happen after end-of-message? */
 	state->flags |= CLEANUP_STAT_CONT;
 	action = "milter-reject";

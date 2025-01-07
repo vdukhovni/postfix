@@ -223,6 +223,7 @@
 #include <dict.h>
 #include <dict_db.h>
 #include <dict_lmdb.h>
+#include <dict_sockmap.h>
 #include <inet_proto.h>
 #include <vstring_vstream.h>
 #include <iostuff.h>
@@ -352,6 +353,7 @@ int     var_strict_encoding;
 int     var_verify_neg_cache;
 int     var_oldlog_compat;
 int     var_delay_max_res;
+int     var_sockmap_max_reply;
 char   *var_int_filt_classes;
 int     var_cyrus_sasl_authzid;
 
@@ -838,6 +840,7 @@ void    mail_params_init()
 	VAR_MIME_BOUND_LEN, DEF_MIME_BOUND_LEN, &var_mime_bound_len, 1, 0,
 	VAR_DELAY_MAX_RES, DEF_DELAY_MAX_RES, &var_delay_max_res, MIN_DELAY_MAX_RES, MAX_DELAY_MAX_RES,
 	VAR_INET_WINDOW, DEF_INET_WINDOW, &var_inet_windowsize, 0, 0,
+	VAR_SOCKMAP_MAX_REPLY, DEF_SOCKMAP_MAX_REPLY, &var_sockmap_max_reply, 1, 0,
 	0,
     };
     static const CONFIG_LONG_TABLE long_defaults[] = {
@@ -986,6 +989,7 @@ void    mail_params_init()
     check_overlap();
     dict_db_cache_size = var_db_read_buf;
     dict_lmdb_map_size = var_lmdb_map_size;
+    dict_sockmap_max_reply = var_sockmap_max_reply;
     inet_windowsize = var_inet_windowsize;
     if (set_logwriter_create_perms(var_maillog_file_perms) < 0)
 	msg_warn("ignoring bad permissions: %s = %s",

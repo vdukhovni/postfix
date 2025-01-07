@@ -26,12 +26,37 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+[Incompat 20250106]
+
+The logging of the Milter 'quarantine' action has changed. Instead
+of logging "milter triggers HOLD action", it logs the reason given
+by a Milter application, or "default_action" if a Milter application
+was unavailable and the milter_default_action parameter or Milter
+"default_action" property specifies "quarantine".
+
+[Feature 20250106]
+
+The Postfix Milter implementation now logs the reason for a 
+'quarantine' action, instead of "milter triggers HOLD action".
+
+- If the quarantine action was requested by a Milter application,
+  Postfix will log the reason given by the application.
+
+- If the quarantine action was requested with the "milter_default_action"
+  parameter setting or with a Milter "default_action" property,
+  Postfix will log "default_action".
+
 [Feature 20250105]
 
 Support for automatic RFC 2047 encoding of non-ASCII "full name"
 information in Postfix-generated From: message headers. Encoding
 non-ASCII full names can avoid the need to use SMTPUTF8, and therefore
 can avoid incompatibility with sites that do not support SMTPUTF8.
+
+The encoded result looks like "=?charset?Q?gibberish?=: for
+quoted-printable encoding, or "=?charset?B?gibberish?=" for base64
+encoding. Postfix uses quoted-printable for a full name that is
+short or mostly ASCII, and uses base64 otherwise.
 
 Background: when a message without a From: header is submitted with the
 Postfix sendmail(1) command, Postfix will add a From: header and will
@@ -43,7 +68,8 @@ This introduces a new configuration parameter "full_name_encoding_charset"
 (default: utf8) which specifies the character set of the full name
 information in the Postfix sendmail(1) "-F" option or "NAME"
 environment variable, or in the GECOS field in the UNIX password
-database.
+database. The parameter value is also part of the encoded full name,
+and informs a Mail User Agent how to display the decoded gibberish.
 
 [Incompat 20250105]
 

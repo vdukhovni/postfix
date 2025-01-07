@@ -119,7 +119,7 @@ typedef struct {
   * Class variables.
   */
 static int dict_sockmap_timeout = DICT_SOCKMAP_DEF_TIMEOUT;
-static int dict_sockmap_max_reply = DICT_SOCKMAP_DEF_MAX_REPLY;
+int     dict_sockmap_max_reply = DICT_SOCKMAP_DEF_MAX_REPLY;
 static int dict_sockmap_max_idle = DICT_SOCKMAP_DEF_MAX_IDLE;
 static int dict_sockmap_max_ttl = DICT_SOCKMAP_DEF_MAX_TTL;
 

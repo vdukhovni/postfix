@@ -22,6 +22,7 @@
 #define DICT_TYPE_SOCKMAP	"socketmap"
 
 extern DICT *dict_sockmap_open(const char *, int, int);
+extern int dict_sockmap_max_reply;
 
 /* LICENSE
 /* .ad

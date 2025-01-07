@@ -1943,6 +1943,7 @@ mail_params.o: ../../include/check_arg.h
 mail_params.o: ../../include/dict.h
 mail_params.o: ../../include/dict_db.h
 mail_params.o: ../../include/dict_lmdb.h
+mail_params.o: ../../include/dict_sockmap.h
 mail_params.o: ../../include/get_hostname.h
 mail_params.o: ../../include/htable.h
 mail_params.o: ../../include/inet_addr_list.h

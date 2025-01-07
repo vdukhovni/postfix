@@ -28723,19 +28723,60 @@ Apologies for any names omitted.
 	to use SMTPUTF8, and therefore can avoid incompatibility
 	with sites that do not support SMTPUTF8.
 
+	The encoded result looks like "=?charset?Q?gibberish?=" for
+	quoted-printable encoding, or "=?charset?B?gibberish?=" for
+	base64 encoding. Postfix uses quoted-printable for a full
+	name that is short or mostly ASCII, and uses base64 otherwise.
+
 	The new parameter "full_name_encoding_charset" (default:
 	"utf-8") specifies the character set of the full name in
 	the Postfix sendmail "-F" option, in the Postfix sendmail
 	"NAME" environment variable, or in the GECOS field of the
-	UNIX password database.
-
-	The encoded result looks like "=?charset?Q?gibberish?= for
-	quoted-printable encoding, or "=?charset?B?gibberish?= for
-	base64 encoding. Postfix uses quoted-printable for a full
-	name that is short or mostly ASCII, and uses base64 otherwise.
+	UNIX password database. The parameter value is also part
+	of the encoded full name, and informs a Mail User Agent how
+	to display the decoded gibberish.
 
 	Files: mantools/postlink, proto/postconf.proto, cleanup/cleanup.c,
 	cleanup/cleanup_init.c, cleanup/cleanup_message.c,
 	global/ascii_header_text.c, global/ascii_header_text.h,
 	global/mail_params.h, global/rfc2047_code.c, global/rfc2047_code.h,
 	util/clean_ascii_cntrl_space.c, util/clean_ascii_cntrl_space.h.
+
+20250106
+
+	Cleanup: the Postfix Milter implementation now logs the
+	reason for a quarantine request. If a quarantine action is
+	requested by a Milter application, Postfix will log the
+	reason given by the application. If the quarantine action
+	is requested with the "milter_default_action" parameter
+	setting or with a per-Milter "default_action" property,
+	Postfix will log "default_action". Files: smtpd/smtp_milter.c,
+	cleanup/cleanup_milter.c, milter/milter8.c, milter/test-milter.c.
+
+	Cleanup: suppress repeated logging of a Milter "quarantine",
+	"discard", or "shutdown" request. Files: cleanup/cleanup_milter.c,
+	smtpd/smtpd.c.
+
+	Documentation: cleanup_replace_stray_cr_lf is disabled
+	with "receive_override_options = no_header_body_checks".
+	File: proto/postconf.proto.
+
+20250107
+
+	Re-worded the documentation for RFC 2047 full name encoding.
+	Files: HISTORY, RELEASE_NOTES, proto/postconf.proto.
+
+	Cleanup: eliminated a bogus warning "unexpected SMFIC_UNKNOWN
+	response" when a Milter default action is "quarantine", the
+	milter is unavailable, and a remote SMTP client sends a
+	command that is unknown or known-but-disabled. File:
+	smtpd/smtpd.c.
+
+	Cleanup: the maximum netstring reply size is now configurable
+	with the socketmap_max_reply_size configuration parameter.
+	Code by Christian Roessner. Files: util/dict_sockmap.[hc],
+	global/mail_params.[hc], proto/postconf.proto,
+	proto/socketmap_table.
+
+	Cleanup: the netstring client sets or clears errno to improve
+	error messages from its callers. File: util/netstring.c.

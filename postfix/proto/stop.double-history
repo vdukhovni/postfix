@@ -150,3 +150,5 @@ proto  proto socketmap_table qmqpd qmqpd c tls tls_misc c
  logging to the standard error stream File postlog postlog c 
  Files mantools postlink proto postconf proto cleanup cleanup c 
  many errors I O timeout lost connection File smtpd smtpd c 
+ that is unknown or known but disabled File smtpd smtpd c 
+proto  proto socketmap_table 

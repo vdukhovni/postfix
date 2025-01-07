@@ -2,7 +2,8 @@ Wish list:
 
 	Things to do before the stable release:
 
-	Make the spawn_command fix conditional on compatibility_level.
+	For the stable releases, make the spawn_command fix conditional
+	on compatibility_level.
 
 	make pre-release-check, HTML validator check.
 
@@ -18,7 +19,10 @@ Wish list:
 	relay_recipient_maps empty should default to 'no valid
 	recipients'. Subject to compatibility level.
 
-	Make a reason available for messages placed on 'hold'.
+	The Milter 'quarantine' action should be reported with a
+	call-back function, instead of setting the Milter default
+	reply. However, we still need the existing 'reply' based
+	channel to support "milter_default_action = quarantine".
 
 	In pipe_command() and spawn_command(), the child process
 	should call initgroups() to corrrectly the access rights

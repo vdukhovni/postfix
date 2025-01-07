@@ -156,6 +156,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -163,6 +166,7 @@
 #include <sys_defs.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -367,12 +371,18 @@ const char *netstring_strerror(int err)
 	case NETSTRING_ERR_EOF:
 	return ("unexpected disconnect");
     case NETSTRING_ERR_TIME:
+	errno = ETIMEDOUT;
 	return ("time limit exceeded");
     case NETSTRING_ERR_FORMAT:
+	errno = 0;
 	return ("input format error");
     case NETSTRING_ERR_SIZE:
+#ifdef EMSGSIZE
+	errno = EMSGSIZE;
+#endif
 	return ("input exceeds size limit");
     default:
+	errno = 0;
 	return ("unknown netstring error");
     }
 }

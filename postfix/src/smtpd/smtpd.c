@@ -1787,12 +1787,16 @@ static const char *check_milter_reply(SMTPD_STATE *state, const char *reply)
 
     switch (reply[0]) {
     case 'H':
+	if (state->saved_flags & CLEANUP_FLAG_HOLD)
+	    return (0);
 	state->saved_flags |= CLEANUP_FLAG_HOLD;
 	action = "milter-hold";
+	text = reply[1] ? reply + 1 : "milter triggers HOLD action";
 	reply = 0;
-	text = "milter triggers HOLD action";
 	break;
     case 'D':
+	if (state->saved_flags & CLEANUP_FLAG_DISCARD)
+	    return (0);
 	state->saved_flags |= CLEANUP_FLAG_DISCARD;
 	action = "milter-discard";
 	reply = 0;
@@ -5524,6 +5528,9 @@ static int milter_unknown_reply_override(SMTPD_STATE *state)
      * 
      * As a compromise, we will not override the Postfix SMTP server's specific
      * "5XX Unknown command" etc. reply.
+     * 
+     * We're not calling check_milter_reply() because that has unwanted side
+     * effects including logging and replying with 421.
      */
     if (state->milters != 0
 	&& (err = milter_unknown_event(state->milters,
@@ -5531,7 +5538,7 @@ static int milter_unknown_reply_override(SMTPD_STATE *state)
 	if (err[0] == '4') {
 	    smtpd_chat_reply(state, "%s", err);
 	    return (1);
-	} else if (err[0] != '5') {
+	} else if (strchr("HDS5", err[0]) == 0) {
 	    msg_warn("unexpected SMFIC_UNKNOWN response: %s", err);
 	}
     }

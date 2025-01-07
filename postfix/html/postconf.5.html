@@ -1520,6 +1520,9 @@ signature validation by later mail system will not depend on how
 that mail system handles those stray characters in an
 implementation-dependent manner. </p>
 
+<p> Note: this feature is disabled with "<a href="postconf.5.html#receive_override_options">receive_override_options</a> =
+<a href="postconf.5.html#no_header_body_checks">no_header_body_checks</a>". </p>
+
 <p> This feature is available in Postfix &ge; 3.9, 3.8.5, 3.7.10,
 3.6.14, and 3.5.24. </p>
 
@@ -3963,10 +3966,13 @@ in the UNIX password database. In the latter case, Postfix will
 replace the "&amp;" character with the login name, with a lowercase
 ASCII first character converted to uppercase. </p>
 
-<p> NOTE: Postfix does not convert between character sets; it simply
-encodes the raw bytes in a full name as printable ASCII gibberish.
-The <a href="postconf.5.html#full_name_encoding_charset">full_name_encoding_charset</a> value specifies how a mail reader
-program should display the decoded gibberish. </p>
+<p> NOTE: Postfix does not convert between character sets. The
+<a href="postconf.5.html#full_name_encoding_charset">full_name_encoding_charset</a> parameter specifies the character set
+of the full name in the Postfix sendmail "-F" option, in the Postfix
+sendmail "NAME" environment variable, or in the GECOS field of the
+UNIX password database. The parameter value is also part of the
+encoded full name, and informs a Mail User Agent how to display the
+decoded gibberish. </p>
 
 <p> Specify a valid character set name such as "utf-8" or "iso-8859-1
 (specify the latter for full names that use the Latin1 encoding).
@@ -19600,6 +19606,17 @@ in <a href="https://tools.ietf.org/html/rfc6531">RFC 6531</a>, <a href="https://
 built to support these protocols. </p>
 
 <p> This feature is available in Postfix 3.0 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="socketmap_max_reply_size">socketmap_max_reply_size</a>
+(default: 100000)</b></DT><DD>
+
+<p> The maximum allowed reply size from a socketmap server, not
+including the netstring encapsulation. </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>
 
 
 </DD>

@@ -4488,6 +4488,13 @@ extern int var_smtp_tlsrpt_skip_reused_hs;
 #define DEF_FULL_NAME_ENCODING_CHARSET	"utf-8"
 extern char *var_full_name_encoding_charset;
 
+ /*
+  * Limit for the sockmap reply size
+  */
+#define VAR_SOCKMAP_MAX_REPLY  "socketmap_max_reply_size"
+#define DEF_SOCKMAP_MAX_REPLY  100000	/* reply size limit */
+extern int var_sockmap_max_reply;
+
 /* LICENSE
 /* .ad
 /* .fi
