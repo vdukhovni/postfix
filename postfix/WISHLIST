@@ -19,6 +19,9 @@ Wish list:
 	relay_recipient_maps empty should default to 'no valid
 	recipients'. Subject to compatibility level.
 
+	Replace static result buffers with per-instance buffers in
+	dict_unix.c, dict_ni*c.
+
 	The Milter 'quarantine' action should be reported with a
 	call-back function, instead of setting the Milter default
 	reply. However, we still need the existing 'reply' based

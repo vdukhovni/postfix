@@ -97,7 +97,7 @@ def_config_directory=`$command_directory/postconf -dh config_directory` || {
 
 instances=`test ! -f $def_config_directory/main.cf ||
     $command_directory/postconf -qc $def_config_directory \
-    -h multi_instance_directories | sed 's/,/ /'` || {
+    -h multi_instance_directories | sed 'y/,/ /'` || {
 	$FATAL cannot execute $command_directory/postconf!
 	exit 1
 }

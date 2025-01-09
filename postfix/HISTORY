@@ -28780,3 +28780,18 @@ Apologies for any names omitted.
 
 	Cleanup: the netstring client sets or clears errno to improve
 	error messages from its callers. File: util/netstring.c.
+
+20250109
+
+	Bugfix (defect introduced: Postfix 2.6): fixed the parsing
+	of multiple commas in a multi_instance_directories parameter
+	value. Michael Tokarev. Files: conf/postfix-script,
+	conf/post-install, conf/postfix-wrapper, proto/postfix-wrapper.
+
+	Cleanup: replace static result buffer with per-instance buffer.
+	Michael Tokarev. File: util/dict_cdb.c.
+
+	Feature: first/next iterator support for cdb: tables, if
+	built with tinycdb. Michael Tokarev. Wietse added a test
+	and documentation. Files: util/dict_cdb.c proto/CDB_README.html,
+	postmap/Makefile.in.
