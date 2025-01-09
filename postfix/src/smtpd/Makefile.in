@@ -227,6 +227,7 @@ smtpd.o: ../../include/rec_type.h
 smtpd.o: ../../include/recipient_list.h
 smtpd.o: ../../include/record.h
 smtpd.o: ../../include/resolve_clnt.h
+smtpd.o: ../../include/sendopts.h
 smtpd.o: ../../include/smtp_stream.h
 smtpd.o: ../../include/smtputf8.h
 smtpd.o: ../../include/sock_addr.h
@@ -288,6 +289,7 @@ smtpd_chat.o: ../../include/nvtable.h
 smtpd_chat.o: ../../include/post_mail.h
 smtpd_chat.o: ../../include/rec_type.h
 smtpd_chat.o: ../../include/record.h
+smtpd_chat.o: ../../include/sendopts.h
 smtpd_chat.o: ../../include/smtp_reply_footer.h
 smtpd_chat.o: ../../include/smtp_stream.h
 smtpd_chat.o: ../../include/smtputf8.h

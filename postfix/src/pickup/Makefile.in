@@ -72,6 +72,7 @@ pickup.o: ../../include/rec_type.h
 pickup.o: ../../include/record.h
 pickup.o: ../../include/safe_open.h
 pickup.o: ../../include/scan_dir.h
+pickup.o: ../../include/sendopts.h
 pickup.o: ../../include/set_ugid.h
 pickup.o: ../../include/smtputf8.h
 pickup.o: ../../include/stringops.h

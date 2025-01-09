@@ -28780,3 +28780,80 @@ Apologies for any names omitted.
 
 	Cleanup: the netstring client sets or clears errno to improve
 	error messages from its callers. File: util/netstring.c.
+
+20250109
+
+	Bugfix (defect introduced: Postfix 2.6): fixed the parsing
+	of multiple commas in a multi_instance_directories parameter
+	value. Michael Tokarev. Files: conf/postfix-script,
+	conf/post-install, conf/postfix-wrapper, proto/postfix-wrapper.
+
+	Cleanup: replace static result buffer with per-instance buffer.
+	Michael Tokarev. File: util/dict_cdb.c.
+
+	Feature: first/next iterator support for cdb: tables, if
+	built with tinycdb. Michael Tokarev. Wietse added a test
+	and documentation. Files: util/dict_cdb.c proto/CDB_README.html,
+	postmap/Makefile.in.
+
+20241111
+
+	Zero code change baseline for new features. Code base is
+	20241027.
+
+	This renames symbols that are part of the Postfix SMTPUTF8
+	implementation. The result still uses the same bitflags,
+	but the unused bitflags can now officially be used to
+	implement other Postfix features. The only change is that
+	in three debug messages, "smtputf8" becomes "sendopts".
+	Otherwise, the compiler output is bit-for-bit identical.
+
+	This change makes it possible to propagate new bitflags
+	from Postfix mail receiving programs through queue files
+	into delivery agents without having to rip up internal APIs
+	like when we implemented SMTPUTF8 support.
+
+	There is some SMTPUTF8-related code that will need to be
+	updated to read only specific bitflags instead of testing
+	an entire integer for (non)zero. Older Postfix implementations
+	will not do evil things when they encounter queue file with
+	new flags from a newer Postfix version. They will correctly
+	handle SMTPUTF8 messages and ignore the new flags. Some
+	programs may falsely claim that a non-SMTPUTF8 message with
+	a non-ASCII envelope address has an UTF8 envelope address.
+	Although such messages violate SMTP, Postfix will do no
+	harm.
+
+20250109
+
+	No intentional behavior change.
+
+	Code cleanup: in SMTPUTF8 support, set and read the sender
+	options flags more selectively, instead of assuming that
+	all bits are used exclusively for SMTPUTF8 support. Files:
+	bounce/bounce_notify_util.c, cleanup/cleanup_api.c,
+	cleanup/cleanup_envelope.c, smtp/smtp_proto.c.
+
+	TODO: in smtp_proto.c, add valid_utf8_stringz() check when
+	sending a DSN ORCPT address. Better: reuse IS_UTF8_ADDRESS()
+	(it's currently defined in bounce_notify_util.c).
+
+	TODO: take a cue from Arnt Gulbrandsen's qmail patch. In the SMTP
+	client, enforce SMTPUTF8 if the message headers or envelope
+	require SMTPUTF8, or if the sender requested it. Ditto for
+	bounces. The qmail patch does not look for UTF8 text in headers,
+	but Exim will reject UTF8 headers unless the client requests
+	SMTPUTF8.
+
+	TODO: If we don't auto-generate the "SMTPUTF8 requested"
+	flag we may need to update the bounce daemon. Maybe it can
+	use similar logic as the SMTP client.
+
+	TODO: in the bounce daemon consider replacing
+	(bounce_info->smtputf8 & SMTPUTF8_FLAG_REQUESTED) with
+	(bounce_info->smtputf8 & SMTPUTF8_FLAG_ALL): message/global
+	should be selected if a message has 8bit header or envelope.
+
+	TODO: in stable releases in the queue managers "and" the
+	queue file's smtputf8 value with SMTPUTF8_FLAG_ALL, for
+	forward compatibility.

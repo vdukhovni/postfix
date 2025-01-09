@@ -650,8 +650,8 @@ int     smtp_helo(SMTP_STATE *state)
      * non-SMTPUTF8 server? That could make life easier for mailing lists.
      */
 #define DELIVERY_REQUIRES_SMTPUTF8 \
-	((request->smtputf8 & SMTPUTF8_FLAG_REQUESTED) \
-	&& (request->smtputf8 & ~SMTPUTF8_FLAG_REQUESTED))
+	((request->sendopts & SMTPUTF8_FLAG_REQUESTED) \
+	&& (request->sendopts & SMTPUTF8_FLAG_DERIVED))
 
     /*
      * Require that the server supports SMTPUTF8 when delivery requires
@@ -1776,7 +1776,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     * the SMTPUTF8 promise that was made to the sender.
 	     */
 	    if ((session->features & SMTP_FEATURE_SMTPUTF8) != 0
-		&& (request->smtputf8 & SMTPUTF8_FLAG_REQUESTED) != 0)
+		&& (request->sendopts & SMTPUTF8_FLAG_REQUESTED) != 0)
 		vstring_strcat(next_command, " SMTPUTF8");
 
 	    /*
@@ -1841,7 +1841,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		    quote_822_local(session->scratch, rcpt->orig_addr);
 		    vstring_sprintf(session->scratch2, "%s;%s",
 		    /* Fix 20140707: sender must request SMTPUTF8. */
-				    (request->smtputf8 != 0
+				    ((request->sendopts & SMTPUTF8_FLAG_ALL)
 			      && !allascii(vstring_str(session->scratch))) ?
 				    "utf-8" : "rfc822",
 				    vstring_str(session->scratch));

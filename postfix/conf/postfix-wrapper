@@ -188,7 +188,7 @@ POSTFIX=$command_directory/postfix
 # Canonicalize the instance directory list. The list is specified
 # in startup order.
 
-instance_dirs=`$POSTCONF -h multi_instance_directories | sed 's/,/ /'` ||
+instance_dirs=`$POSTCONF -h multi_instance_directories | sed 'y/,/ /'` ||
     exit 1
 
 case "$1" in

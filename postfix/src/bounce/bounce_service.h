@@ -90,7 +90,7 @@ typedef struct {
     DSN_BUF *dsn_buf;			/* delivery status info */
     BOUNCE_LOG *log_handle;		/* open logfile */
     char   *mail_name;			/* $mail_name, cooked */
-    int     smtputf8;			/* SMTPUTF8 requested */
+    int     sendopts;			/* smtputf8, requiretls, etc. */
 } BOUNCE_INFO;
 
  /* */

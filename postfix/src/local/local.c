@@ -530,7 +530,7 @@
 /*	request before it is terminated by a built-in watchdog timer.
 /* .IP "\fBdelay_logging_resolution_limit (2)\fR"
 /*	The maximal number of digits after the decimal point when logging
-/*	sub-second delay values.
+/*	delay values.
 /* .IP "\fBexport_environment (see 'postconf -d' output)\fR"
 /*	The list of environment variables that a Postfix process will export
 /*	to non-Postfix processes.
@@ -619,6 +619,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -747,7 +750,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     state.msg_attr.fp = rqst->fp;
     state.msg_attr.offset = rqst->data_offset;
     state.msg_attr.encoding = rqst->encoding;
-    state.msg_attr.smtputf8 = rqst->smtputf8;
+    state.msg_attr.sendopts = rqst->sendopts;
     state.msg_attr.sender = rqst->sender;
     state.msg_attr.dsn_envid = rqst->dsn_envid;
     state.msg_attr.dsn_ret = rqst->dsn_ret;

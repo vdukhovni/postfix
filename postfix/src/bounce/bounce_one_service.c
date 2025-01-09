@@ -7,13 +7,13 @@
 /*	#include "bounce_service.h"
 /*
 /*	int     bounce_one_service(flags, queue_name, queue_id, encoding,
-/*					smtputf8, orig_sender, envid, ret,
+/*					sendopts, orig_sender, envid, ret,
 /*					rcpt_buf, dsn_buf, templates)
 /*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
-/*	int	smtputf8;
+/*	int	sendopts;
 /*	char	*orig_sender;
 /*	char	*envid;
 /*	int	ret;
@@ -83,7 +83,7 @@
 /* bounce_one_service - send a bounce for one recipient */
 
 int     bounce_one_service(int flags, char *queue_name, char *queue_id,
-			           char *encoding, int smtputf8,
+			           char *encoding, int sendopts,
 			           char *orig_sender, char *dsn_envid,
 			           int dsn_ret, RCPT_BUF *rcpt_buf,
 			           DSN_BUF *dsn_buf, BOUNCE_TEMPLATES *ts)
@@ -100,7 +100,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
      * Initialize. Open queue file, bounce log, etc.
      */
     bounce_info = bounce_mail_one_init(queue_name, queue_id, encoding,
-				       smtputf8, dsn_envid, rcpt_buf,
+				       sendopts, dsn_envid, rcpt_buf,
 				       dsn_buf, ts->failure);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
@@ -148,7 +148,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 						 var_2bounce_rcpt,
 						 MAIL_SRC_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
-						 smtputf8,
+						 sendopts,
 						 new_id)) != 0) {
 
 		/*
@@ -185,7 +185,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 	    if ((bounce = post_mail_fopen_nowait(NULL_SENDER, orig_sender,
 						 MAIL_SRC_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
-						 smtputf8,
+						 sendopts,
 						 new_id)) != 0) {
 
 		/*
@@ -231,7 +231,7 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 						 var_bounce_rcpt,
 						 MAIL_SRC_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
-						 smtputf8,
+						 sendopts,
 						 new_id)) != 0) {
 		if (bounce_header(bounce, bounce_info, var_bounce_rcpt,
 				  POSTMASTER_COPY) == 0

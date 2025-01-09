@@ -74,6 +74,7 @@ verify.o: ../../include/mymalloc.h
 verify.o: ../../include/nvtable.h
 verify.o: ../../include/post_mail.h
 verify.o: ../../include/recipient_list.h
+verify.o: ../../include/sendopts.h
 verify.o: ../../include/set_eugid.h
 verify.o: ../../include/smtputf8.h
 verify.o: ../../include/split_at.h

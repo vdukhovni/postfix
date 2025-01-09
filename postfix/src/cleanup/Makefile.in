@@ -778,6 +778,7 @@ cleanup_addr.o: ../../include/nvtable.h
 cleanup_addr.o: ../../include/rec_type.h
 cleanup_addr.o: ../../include/record.h
 cleanup_addr.o: ../../include/resolve_clnt.h
+cleanup_addr.o: ../../include/sendopts.h
 cleanup_addr.o: ../../include/smtputf8.h
 cleanup_addr.o: ../../include/string_list.h
 cleanup_addr.o: ../../include/stringops.h
@@ -821,6 +822,7 @@ cleanup_api.o: ../../include/nvtable.h
 cleanup_api.o: ../../include/rec_type.h
 cleanup_api.o: ../../include/recipient_list.h
 cleanup_api.o: ../../include/resolve_clnt.h
+cleanup_api.o: ../../include/sendopts.h
 cleanup_api.o: ../../include/smtputf8.h
 cleanup_api.o: ../../include/string_list.h
 cleanup_api.o: ../../include/sys_defs.h
@@ -937,6 +939,7 @@ cleanup_envelope.o: ../../include/rec_type.h
 cleanup_envelope.o: ../../include/recipient_list.h
 cleanup_envelope.o: ../../include/record.h
 cleanup_envelope.o: ../../include/resolve_clnt.h
+cleanup_envelope.o: ../../include/sendopts.h
 cleanup_envelope.o: ../../include/smtputf8.h
 cleanup_envelope.o: ../../include/string_list.h
 cleanup_envelope.o: ../../include/stringops.h
@@ -1276,6 +1279,7 @@ cleanup_out.o: ../../include/nvtable.h
 cleanup_out.o: ../../include/rec_type.h
 cleanup_out.o: ../../include/record.h
 cleanup_out.o: ../../include/resolve_clnt.h
+cleanup_out.o: ../../include/sendopts.h
 cleanup_out.o: ../../include/smtputf8.h
 cleanup_out.o: ../../include/split_at.h
 cleanup_out.o: ../../include/string_list.h

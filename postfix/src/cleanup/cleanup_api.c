@@ -100,6 +100,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -206,7 +209,8 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
 	state->err_mask = ~0;
     }
     if (state->flags & CLEANUP_FLAG_SMTPUTF8)
-	state->smtputf8 = SMTPUTF8_FLAG_REQUESTED;
+	state->sendopts |= SMTPUTF8_FLAG_REQUESTED;
+    /* TODO: REQUIRETLS */
 }
 
 /* cleanup_flush - finish queue file */

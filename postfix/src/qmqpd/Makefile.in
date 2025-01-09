@@ -79,6 +79,7 @@ qmqpd.o: ../../include/quote_flags.h
 qmqpd.o: ../../include/rec_type.h
 qmqpd.o: ../../include/recipient_list.h
 qmqpd.o: ../../include/record.h
+qmqpd.o: ../../include/sendopts.h
 qmqpd.o: ../../include/smtputf8.h
 qmqpd.o: ../../include/sys_defs.h
 qmqpd.o: ../../include/vbuf.h

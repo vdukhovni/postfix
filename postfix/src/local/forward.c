@@ -53,6 +53,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -160,7 +163,7 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
 #define FORWARD_CLEANUP_FLAGS \
 	(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_INTERNAL \
 	| smtputf8_autodetect(MAIL_SRC_MASK_FORWARD) \
-	| ((request->smtputf8 & SMTPUTF8_FLAG_REQUESTED) ? \
+	| ((request->sendopts & SMTPUTF8_FLAG_REQUESTED) ? \
 	CLEANUP_FLAG_SMTPUTF8 : 0))
 
     attr_print(cleanup, ATTR_FLAG_NONE,

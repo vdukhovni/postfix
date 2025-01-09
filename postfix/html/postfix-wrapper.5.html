@@ -106,7 +106,7 @@ POSTFIX-WRAPPER(5)                                          POSTFIX-WRAPPER(5)
               POSTCONF=$<a href="postconf.5.html#command_directory">command_directory</a>/postconf
               POSTFIX=$<a href="postconf.5.html#command_directory">command_directory</a>/postfix
               instance_dirs=`$POSTCONF -h <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> |
-                              sed 's/,/ /'` || exit 1
+                              sed 'y/,/ /'` || exit 1
 
               err=0
               for dir in $<a href="postconf.5.html#config_directory">config_directory</a> $instance_dirs

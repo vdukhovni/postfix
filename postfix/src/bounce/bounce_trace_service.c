@@ -7,14 +7,14 @@
 /*	#include "bounce_service.h"
 /*
 /*	int     bounce_trace_service(flags, service, queue_name, queue_id,
-/*					encoding, smtputf8, sender, envid,
+/*					encoding, sendopts, sender, envid,
 /*					ret, templates)
 /*	int	flags;
 /*	char	*service;
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
-/*	int	smtputf8;
+/*	int	sendopts;
 /*	char	*sender;
 /*	char	*envid;
 /*	int	ret;
@@ -81,7 +81,7 @@
 
 int     bounce_trace_service(int flags, char *service, char *queue_name,
 			             char *queue_id, char *encoding,
-			             int smtputf8,
+			             int sendopts,
 			             char *recipient, char *dsn_envid,
 			             int unused_dsn_ret,
 			             BOUNCE_TEMPLATES *ts)
@@ -140,7 +140,7 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
 #define NON_DSN_FLAGS (DEL_REQ_FLAG_USR_VRFY | DEL_REQ_FLAG_RECORD)
 
     bounce_info = bounce_mail_init(service, queue_name, queue_id,
-				   encoding, smtputf8, dsn_envid,
+				   encoding, sendopts, dsn_envid,
 				   flags & NON_DSN_FLAGS ?
 				   ts->verify : ts->success);
 
@@ -179,7 +179,7 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
     if ((bounce = post_mail_fopen_nowait(sender, recipient,
 					 MAIL_SRC_MASK_BOUNCE,
 					 NULL_TRACE_FLAGS,
-					 smtputf8,
+					 sendopts,
 					 new_id)) != 0) {
 	count = -1;
 	if (bounce_header(bounce, bounce_info, recipient,

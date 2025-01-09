@@ -1854,3 +1854,6 @@ Charset
 atext
 qp
 cntrl
+TINYCDB
+getdata
+XXXSENDOPTS

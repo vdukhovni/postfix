@@ -279,6 +279,7 @@ bounce_notify_service.o: ../../include/post_mail.h
 bounce_notify_service.o: ../../include/rcpt_buf.h
 bounce_notify_service.o: ../../include/rec_type.h
 bounce_notify_service.o: ../../include/recipient_list.h
+bounce_notify_service.o: ../../include/sendopts.h
 bounce_notify_service.o: ../../include/smtputf8.h
 bounce_notify_service.o: ../../include/stringops.h
 bounce_notify_service.o: ../../include/sys_defs.h
@@ -322,6 +323,7 @@ bounce_notify_util.o: ../../include/rcpt_buf.h
 bounce_notify_util.o: ../../include/rec_type.h
 bounce_notify_util.o: ../../include/recipient_list.h
 bounce_notify_util.o: ../../include/record.h
+bounce_notify_util.o: ../../include/sendopts.h
 bounce_notify_util.o: ../../include/smtputf8.h
 bounce_notify_util.o: ../../include/stringops.h
 bounce_notify_util.o: ../../include/sys_defs.h
@@ -382,6 +384,7 @@ bounce_notify_verp.o: ../../include/post_mail.h
 bounce_notify_verp.o: ../../include/rcpt_buf.h
 bounce_notify_verp.o: ../../include/rec_type.h
 bounce_notify_verp.o: ../../include/recipient_list.h
+bounce_notify_verp.o: ../../include/sendopts.h
 bounce_notify_verp.o: ../../include/smtputf8.h
 bounce_notify_verp.o: ../../include/stringops.h
 bounce_notify_verp.o: ../../include/sys_defs.h
@@ -417,6 +420,7 @@ bounce_one_service.o: ../../include/post_mail.h
 bounce_one_service.o: ../../include/rcpt_buf.h
 bounce_one_service.o: ../../include/rec_type.h
 bounce_one_service.o: ../../include/recipient_list.h
+bounce_one_service.o: ../../include/sendopts.h
 bounce_one_service.o: ../../include/smtputf8.h
 bounce_one_service.o: ../../include/stringops.h
 bounce_one_service.o: ../../include/sys_defs.h
@@ -497,6 +501,7 @@ bounce_trace_service.o: ../../include/post_mail.h
 bounce_trace_service.o: ../../include/rcpt_buf.h
 bounce_trace_service.o: ../../include/rec_type.h
 bounce_trace_service.o: ../../include/recipient_list.h
+bounce_trace_service.o: ../../include/sendopts.h
 bounce_trace_service.o: ../../include/smtputf8.h
 bounce_trace_service.o: ../../include/stringops.h
 bounce_trace_service.o: ../../include/sys_defs.h
@@ -529,6 +534,7 @@ bounce_warn_service.o: ../../include/post_mail.h
 bounce_warn_service.o: ../../include/rcpt_buf.h
 bounce_warn_service.o: ../../include/rec_type.h
 bounce_warn_service.o: ../../include/recipient_list.h
+bounce_warn_service.o: ../../include/sendopts.h
 bounce_warn_service.o: ../../include/smtputf8.h
 bounce_warn_service.o: ../../include/stringops.h
 bounce_warn_service.o: ../../include/sys_defs.h
