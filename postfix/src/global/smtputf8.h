@@ -93,10 +93,6 @@ extern int smtputf8_autodetect(int);
   * delivering messages to non-SMTPUTF8 servers. Delivery agents may then
   * pass the flag to the bounce daemon.
   * 
-  * XXXSENDOPTS Verify that the flag is sent for only one recipient. What
-  * problem would that solve? The recipient becomes message content in the
-  * delivery status notification; it is just data.
-  * 
   * If a delivery request has none of the flags SMTPUTF8_FLAG_RECIPIENT,
   * SMTPUTF8_FLAG_SENDER, or SMTPUTF8_FLAG_HEADER, then the message can
   * safely be delivered to a non-SMTPUTF8 server (DSN original recipients

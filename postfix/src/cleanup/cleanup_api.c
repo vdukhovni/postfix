@@ -210,7 +210,7 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
     }
     if (state->flags & CLEANUP_FLAG_SMTPUTF8)
 	state->sendopts |= SMTPUTF8_FLAG_REQUESTED;
-    /* TODO: REQUIRETLS */
+    /* TODO(wietse) REQUIRETLS. */
 }
 
 /* cleanup_flush - finish queue file */

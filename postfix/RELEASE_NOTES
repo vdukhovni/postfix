@@ -26,6 +26,16 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+[Incompat 20250109]
+
+Postfix needs "postfix reload" after upgrade, because of a change in
+the delivery agent protocol. If this step is skipped, Postfix delivery
+agents will log a warning:
+
+    unexpected attribute smtputf8 from xxx socket (expecting: sendopts)
+
+where xxx is the delivery agent service name.
+
 [Incompat 20250106]
 
 The logging of the Milter 'quarantine' action has changed. Instead

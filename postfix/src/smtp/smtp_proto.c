@@ -1778,6 +1778,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    if ((session->features & SMTP_FEATURE_SMTPUTF8) != 0
 		&& (request->sendopts & SMTPUTF8_FLAG_REQUESTED) != 0)
 		vstring_strcat(next_command, " SMTPUTF8");
+	    /* TODO(wietse) REQUIRETLS. */
 
 	    /*
 	     * We authenticate the local MTA only, but not the sender.
@@ -1842,7 +1843,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		    vstring_sprintf(session->scratch2, "%s;%s",
 		    /* Fix 20140707: sender must request SMTPUTF8. */
 				    ((request->sendopts & SMTPUTF8_FLAG_ALL)
-			      && !allascii(vstring_str(session->scratch))) ?
+				 && !allascii(vstring_str(session->scratch))
+		     && valid_utf8_stringz(vstring_str(session->scratch))) ?
 				    "utf-8" : "rfc822",
 				    vstring_str(session->scratch));
 		    orcpt_type_addr = vstring_str(session->scratch2);

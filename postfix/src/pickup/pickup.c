@@ -486,6 +486,7 @@ static int pickup_file(PICKUP_INFO *info)
 	cleanup_flags &= ~CLEANUP_FLAG_MILTER;
     else
 	cleanup_flags |= smtputf8_autodetect(MAIL_SRC_MASK_SENDMAIL);
+    /* TODO(wietse) REQUIRETLS? */
 
     cleanup = mail_connect_wait(MAIL_CLASS_PUBLIC, var_cleanup_service);
     if (attr_scan(cleanup, ATTR_FLAG_STRICT,

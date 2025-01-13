@@ -292,7 +292,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     request->queue_id = mystrdup(vstring_str(queue_id));
     request->nexthop = mystrdup(vstring_str(nexthop));
     request->encoding = mystrdup(vstring_str(encoding));
-    /* Fix 20140708: dedicated sendopts attribute with its own flags. */
+    /* Fix 20140708: dedicated attribute for SMTPUTF8 etc. flags. */
     request->sendopts = sendopts;
     request->sender = mystrdup(vstring_str(address));
     request->client_name = mystrdup(vstring_str(client_name));

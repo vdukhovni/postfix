@@ -28828,32 +28828,73 @@ Apologies for any names omitted.
 
 	No intentional behavior change.
 
-	Code cleanup: in SMTPUTF8 support, set and read the sender
+20250110
+
+	Completed: in SMTPUTF8 support, set and read the sender
 	options flags more selectively, instead of assuming that
 	all bits are used exclusively for SMTPUTF8 support. Files:
 	bounce/bounce_notify_util.c, cleanup/cleanup_api.c,
 	cleanup/cleanup_envelope.c, smtp/smtp_proto.c.
 
-	TODO: in smtp_proto.c, add valid_utf8_stringz() check when
-	sending a DSN ORCPT address. Better: reuse IS_UTF8_ADDRESS()
+20240111
+
+	Completed: in smtp_proto.c, add valid_utf8_stringz() check
+	when sending a DSN ORCPT address. Better: reuse IS_UTF8_ADDRESS()
 	(it's currently defined in bounce_notify_util.c).
 
-	TODO: take a cue from Arnt Gulbrandsen's qmail patch. In the SMTP
-	client, enforce SMTPUTF8 if the message headers or envelope
-	require SMTPUTF8, or if the sender requested it. Ditto for
-	bounces. The qmail patch does not look for UTF8 text in headers,
-	but Exim will reject UTF8 headers unless the client requests
-	SMTPUTF8.
+	Completed: in stable releases in the queue managers "and"
+	the queue file's smtputf8 value with SMTPUTF8_FLAG_ALL, for
+	forward compatibility. Files: *qmgr/qmgr_message.c.
 
-	TODO: If we don't auto-generate the "SMTPUTF8 requested"
-	flag we may need to update the bounce daemon. Maybe it can
-	use similar logic as the SMTP client.
+	Completed: convert post_mail.c to use sendopts instead of
+	smtputf8.
 
-	TODO: in the bounce daemon consider replacing
-	(bounce_info->smtputf8 & SMTPUTF8_FLAG_REQUESTED) with
-	(bounce_info->smtputf8 & SMTPUTF8_FLAG_ALL): message/global
-	should be selected if a message has 8bit header or envelope.
+20250113
 
-	TODO: in stable releases in the queue managers "and" the
-	queue file's smtputf8 value with SMTPUTF8_FLAG_ALL, for
-	forward compatibility.
+	Baseline is postfix-3.10-20250109.
+
+	Postfix needs "postfix reload" after upgrade, because of a
+	change in the delivery agent protocol. if this step is
+	skipped, Postfix delivery agents will log a warning:
+	"unexpected attribute smtputf8 from xxx socket (expecting:
+	sendopts)" where xxx is the delivery agent service name.
+
+TODO:
+
+	Behavior change (request SMTPUTF8 more often): In Arnt
+	Gulbrandsen's qmail patch, the SMTP client enforces SMTPUTF8
+	if the message envelope requires SMTPUTF8, or (instead of
+	AND) if the remote SMTP client requested SMTPUTF8 in the
+	MAIL FROM command.
+
+	(Background: the qmail patch does not look for UTF8 text
+	in headers; Exim rejects UTF8 headers unless the client
+	requests SMTPUTF8; Postfix detects UTF8 in headers.)
+
+	Changing Postfix SMTP client from "request SMTPUTF8 if UTF8
+	was detected AND origin requested SMTPUTF8" to "request
+	SMTPUTF8 if ... OR ..." is like Postfix auto-requesting
+	SMTPUTF8 unconditionally. Thus the Postfix SMTP client would
+	request SMTPUTF8 more often than it does now.
+
+	With Postfix, this means don't store the "origin requested
+	SMTPUTF8" flag while receiving mail, and don't set that
+	flag on-the-fly. During delivery, just look at the derived
+	flags.
+
+	Behavior change (request SMTPUTF8 less often): In the bounce
+	daemon, look at derived flags instead of "origin requested
+	SMTPUTF8". Generate message/global-delivery-status only if
+	the return address requires SMTPUTF8 or some returned message
+	header requires SMTPUTF8.
+
+	Verify: the bounce daemon in non-VERP mode should not generate
+	message/global-delivery-status just because some recipient was
+	flagged as UTF8. (With VERP, the failed recipient becomes a
+	suffix of the bounce recipient return address.)
+
+	Verify: re-queue or generate a message with a SIZE record
+	that contains SMTPUTF8_{REQUESTED,SENDER,HEADER} and verify
+	that cleanup_envelope_process() strips the derived flags.
+
+	Verify: all instances of smtputf8_autodetect() calls.
