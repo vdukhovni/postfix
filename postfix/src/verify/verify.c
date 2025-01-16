@@ -534,6 +534,7 @@ static void verify_query_service(VSTREAM *client_stream)
 	    post_mail_fopen_async(make_verify_sender_addr(), STR(addr),
 				  MAIL_SRC_MASK_VERIFY,
 				  DEL_REQ_FLAG_MTA_VRFY,
+				  /* TODO(wietse) disable REQUIRETLS? */
 				  SMTPUTF8_FLAG_NONE,
 				  (VSTRING *) 0,
 				  verify_post_mail_action,

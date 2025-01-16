@@ -129,9 +129,9 @@ typedef struct CLEANUP_STATE {
     struct CLEANUP_REGION *curr_body_region;
 
     /*
-     * Internationalization.
+     * Internationalization, RequireTLS, etc.
      */
-    int     smtputf8;			/* what support is desired */
+    int     sendopts;			/* what support is desired */
 } CLEANUP_STATE;
 
  /*
@@ -369,4 +369,7 @@ extern int cleanup_hfrom_format;
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/

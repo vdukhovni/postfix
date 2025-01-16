@@ -75,6 +75,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -307,7 +310,7 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
 			      message->queue_name,
 			      message->queue_id,
 			      message->encoding,
-			      message->smtputf8,
+			      message->sendopts,
 			      message->sender,
 			      message->dsn_envid,
 			      message->dsn_ret,
@@ -318,7 +321,7 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
 				   message->queue_name,
 				   message->queue_id,
 				   message->encoding,
-				   message->smtputf8,
+				   message->sendopts,
 				   message->sender,
 				   message->dsn_envid,
 				   message->dsn_ret,
@@ -403,7 +406,7 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
 		     message->queue_name,
 		     message->queue_id,
 		     message->encoding,
-		     message->smtputf8,
+		     message->sendopts,
 		     message->sender,
 		     message->dsn_envid,
 		     message->dsn_ret,
@@ -465,7 +468,7 @@ static void qmgr_active_done_25_generic(QMGR_MESSAGE *message)
 			     message->queue_name,
 			     message->queue_id,
 			     message->encoding,
-			     message->smtputf8,
+			     message->sendopts,
 			     message->sender,
 			     message->dsn_envid,
 			     message->dsn_ret,
@@ -476,7 +479,7 @@ static void qmgr_active_done_25_generic(QMGR_MESSAGE *message)
 				  message->queue_name,
 				  message->queue_id,
 				  message->encoding,
-				  message->smtputf8,
+				  message->sendopts,
 				  message->sender,
 				  message->dsn_envid,
 				  message->dsn_ret,
@@ -492,7 +495,7 @@ static void qmgr_active_done_25_generic(QMGR_MESSAGE *message)
 			message->queue_name,
 			message->queue_id,
 			message->encoding,
-			message->smtputf8,
+			message->sendopts,
 			message->sender,
 			message->dsn_envid,
 			message->dsn_ret,

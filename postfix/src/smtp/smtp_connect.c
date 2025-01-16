@@ -921,7 +921,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	 */
 #ifdef USE_TLSRPT
 	if (smtp_mode && var_smtp_tlsrpt_enable
-	    && state->tls->level > TLS_LEV_NONE
+	    && tls_level_lookup(var_smtp_tls_level) > TLS_LEV_NONE
 	    && !valid_hostaddr(domain, DONT_GRIPE))
 	    smtp_tlsrpt_create_wrapper(state, domain);
 	else

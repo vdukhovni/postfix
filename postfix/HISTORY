@@ -28795,3 +28795,62 @@ Apologies for any names omitted.
 	built with tinycdb. Michael Tokarev. Wietse added a test
 	and documentation. Files: util/dict_cdb.c proto/CDB_README.html,
 	postmap/Makefile.in.
+
+20250114
+
+	Bugfix (defect introduced: Postfix 3.0): the flag "SMTPUTF8
+	was requested" was random after a message was re-queued,
+	for example with the command "postsuper -r". The result was
+	be that some messages that need to be sent using SMTPUTF8
+	would be sent without using SMTPUTF8 and might be bounced.
+	Found during code maintenance. File: cleanup/cleanup_envelope.c.
+
+20250115
+
+	Bugfix (defect introduced: Postfix 3.0): the bounce daemon
+	mangled a non-ASCII address localpart in the "X-Postfix-Sender:"
+	field of a delivery status notification. It backslash-escaped
+	each byte in a multi-byte character. This behavior was
+	implemented in Postfix 2.1 (no support for UTF8 local-parts),
+	but it became incorrect after SMTPUTF8 support was implemented
+	in Postfix 3.0. File: bounce/bounce_notify_util.c.
+
+20250116
+
+	Bugfix (defect introduced: 20250104): a 'fix' not only
+	eliminated a Postfix TLSRPT client warning message, it also
+	eliminated all the TLSRPT client functionality. Reported
+	by Andreas Schulze. File: smtp/smtp_connect.c.
+
+	Infrastructure: completed an overhaul of the infrastructure
+	for passing around SMTPUTF8 related flag bits. This
+	infrastructure can now be reused to implement the "TLS-Required:
+	no" header and the REQUIRETLS ESMTP verb with very little
+	additional code.
+
+	This change requires "postfix reload" after upgrade, because
+	of an intentional change in the delivery agent protocol.
+	If this step is skipped, Postfix delivery agents will log
+	a warning: "unexpected attribute smtputf8 from xxx socket
+	(expecting: sendopts)" where xxx is the delivery agent
+	service name.
+
+	Most changes are for renaming parameters, variables, structure
+	fields, and protocol fields, without changing their type.
+	Files: bounce/bounce.c, bounce/bounce_notify_service.c,
+	bounce/bounce_notify_util.c, bounce/bounce_notify_verp.c,
+	bounce/bounce_one_service.c, bounce/bounce_service.h,
+	bounce/bounce_trace_service.c, bounce/bounce_warn_service.c,
+	cleanup/cleanup.h, cleanup/cleanup_addr.c, cleanup/cleanup_api.c,
+	cleanup/cleanup_bounce.c, cleanup/cleanup_envelope.c,
+	cleanup/cleanup_envelope_test.c, cleanup/cleanup_final.c,
+	cleanup/cleanup_out.c, cleanup/cleanup_state.c, global/abounce.c,
+	global/bounce.c, global/defer.c, global/deliver_pass.c,
+	global/deliver_request.c, global/deliver_request.h,
+	global/mail_proto.h, global/mail_version.h, global/post_mail.c,
+	global/sendopts.c, global/sendopts.h, global/smtputf8.h,
+	local/forward.c, local/local.c, local/local.h, oqmgr/qmgr.h,
+	oqmgr/qmgr_active.c, oqmgr/qmgr_deliver.c, oqmgr/qmgr_message.c,
+	pickup/pickup.c, qmgr/qmgr.h, qmgr/qmgr_active.c,
+	qmgr/qmgr_deliver.c, qmgr/qmgr_message.c, qmqpd/qmqpd.c,
+	smtp/smtp_proto.c, smtpd/smtpd.c, verify/verify.c,

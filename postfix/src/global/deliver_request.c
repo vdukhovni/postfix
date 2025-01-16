@@ -16,6 +16,7 @@
 /*		long	data_size;
 /*		char	*nexthop;
 /*		char	*encoding;
+/*		int	sendopts;
 /*		char	*sender;
 /*		MSG_STATS msg_stats;
 /*		RECIPIENT_LIST rcpt_list;
@@ -97,6 +98,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -213,7 +217,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     static VSTRING *dsn_envid;
     static RCPT_BUF *rcpt_buf;
     int     rcpt_count;
-    int     smtputf8;
+    int     sendopts;
     int     dsn_ret;
 
     /*
@@ -253,7 +257,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  RECV_ATTR_LONG(MAIL_ATTR_SIZE, &request->data_size),
 		  RECV_ATTR_STR(MAIL_ATTR_NEXTHOP, nexthop),
 		  RECV_ATTR_STR(MAIL_ATTR_ENCODING, encoding),
-		  RECV_ATTR_INT(MAIL_ATTR_SMTPUTF8, &smtputf8),
+		  RECV_ATTR_INT(MAIL_ATTR_SENDOPTS, &sendopts),
 		  RECV_ATTR_STR(MAIL_ATTR_SENDER, address),
 		  RECV_ATTR_STR(MAIL_ATTR_DSN_ENVID, dsn_envid),
 		  RECV_ATTR_INT(MAIL_ATTR_DSN_RET, &dsn_ret),
@@ -288,8 +292,8 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     request->queue_id = mystrdup(vstring_str(queue_id));
     request->nexthop = mystrdup(vstring_str(nexthop));
     request->encoding = mystrdup(vstring_str(encoding));
-    /* Fix 20140708: dedicated smtputf8 attribute with its own flags. */
-    request->smtputf8 = smtputf8;
+    /* Fix 20140708: dedicated attribute for SMTPUTF8 etc. flags. */
+    request->sendopts = sendopts;
     request->sender = mystrdup(vstring_str(address));
     request->client_name = mystrdup(vstring_str(client_name));
     request->client_addr = mystrdup(vstring_str(client_addr));

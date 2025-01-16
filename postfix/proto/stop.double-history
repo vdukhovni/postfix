@@ -152,3 +152,9 @@ proto  proto socketmap_table qmqpd qmqpd c tls tls_misc c
  many errors I O timeout lost connection File smtpd smtpd c 
  that is unknown or known but disabled File smtpd smtpd c 
 proto  proto socketmap_table 
+ Files bounce bounce c bounce bounce_notify_service c 
+ cleanup cleanup h cleanup cleanup_addr c cleanup cleanup_api c 
+ local forward c local local c local local h oqmgr qmgr h 
+ pickup pickup c qmgr qmgr h qmgr qmgr_active c 
+ qmgr qmgr_deliver c qmgr qmgr_message c qmqpd qmqpd c 
+ smtp smtp_proto c smtpd smtpd c verify verify c 

@@ -7,7 +7,7 @@
 /*	#include "bounce_service.h"
 /*
 /*	int     bounce_notify_verp(flags, service, queue_name, queue_id,
-/*					encoding, smtputf8, sender,
+/*					encoding, sendopts, sender,
 /*					dsn_envid, dsn_ret, verp_delims,
 /*					templates)
 /*	int	flags;
@@ -15,7 +15,7 @@
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
-/*	int	smtputf8;
+/*	int	sendopts;
 /*	char	*sender;
 /*	char	*dsn_envid;
 /*	int	dsn_ret;
@@ -87,7 +87,7 @@
 
 int     bounce_notify_verp(int flags, char *service, char *queue_name,
 			           char *queue_id, char *encoding,
-			           int smtputf8, char *recipient,
+			           int sendopts, char *recipient,
 			           char *dsn_envid, int dsn_ret,
 			           char *verp_delims, BOUNCE_TEMPLATES *ts)
 {
@@ -115,7 +115,7 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
      * Initialize. Open queue file, bounce log, etc.
      */
     bounce_info = bounce_mail_init(service, queue_name, queue_id,
-				   encoding, smtputf8, dsn_envid,
+				   encoding, sendopts, dsn_envid,
 				   ts->failure);
 
     /*
@@ -131,7 +131,7 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 	vstring_strcpy(rcpt_buf->address, "(recipient address unavailable)");
 	(void) RECIPIENT_FROM_RCPT_BUF(rcpt_buf);
 	bounce_status = bounce_one_service(flags, queue_name, queue_id,
-					   encoding, smtputf8, recipient,
+					   encoding, sendopts, recipient,
 					   dsn_envid, dsn_ret, rcpt_buf,
 					   dsn_buf, ts);
 	rcpb_free(rcpt_buf);
@@ -166,7 +166,7 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 	    if ((bounce = post_mail_fopen_nowait(NULL_SENDER, STR(verp_buf),
 						 MAIL_SRC_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
-						 smtputf8,
+						 sendopts,
 						 new_id)) != 0) {
 
 		/*
@@ -226,7 +226,7 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 						 postmaster,
 						 MAIL_SRC_MASK_BOUNCE,
 						 NULL_TRACE_FLAGS,
-						 smtputf8,
+						 sendopts,
 						 new_id)) != 0) {
 		if (bounce_header(bounce, bounce_info, postmaster,
 				  POSTMASTER_COPY) == 0

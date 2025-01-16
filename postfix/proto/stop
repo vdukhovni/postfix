@@ -1660,3 +1660,7 @@ iso
 ORCPT
 RET
 ILP
+REQUIRETLS
+RequireTLS
+requiretls
+sendopts

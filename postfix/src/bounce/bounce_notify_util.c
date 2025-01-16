@@ -13,22 +13,22 @@
 /*	} BOUNCE_INFO;
 /*
 /*	BOUNCE_INFO *bounce_mail_init(service, queue_name, queue_id, encoding,
-/*					smtputf8, dsn_envid, template)
+/*					sendopts, dsn_envid, template)
 /*	const char *service;
 /*	const char *queue_name;
 /*	const char *queue_id;
 /*	const char *encoding;
-/*	int	smtputf8;
+/*	int	sendopts;
 /*	const char *dsn_envid;
 /*	const BOUNCE_TEMPLATE *template;
 /*
 /*	BOUNCE_INFO *bounce_mail_one_init(queue_name, queue_id, encoding,
-/*					smtputf8, dsn_envid, dsn_notify,
+/*					sendopts, dsn_envid, dsn_notify,
 /*					rcpt_buf, dsn_buf, template)
 /*	const char *queue_name;
 /*	const char *queue_id;
 /*	const char *encoding;
-/*	int	smtputf8;
+/*	int	sendopts;
 /*	int	dsn_notify;
 /*	const char *dsn_envid;
 /*	RCPT_BUF *rcpt_buf;
@@ -160,6 +160,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -221,7 +224,7 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 				              const char *queue_name,
 				              const char *queue_id,
 				              const char *encoding,
-				              int smtputf8,
+				              int sendopts,
 				              const char *dsn_envid,
 				              RCPT_BUF *rcpt_buf,
 				              DSN_BUF *dsn_buf,
@@ -244,7 +247,7 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
     bounce_info->service = service;
     bounce_info->queue_name = queue_name;
     bounce_info->queue_id = queue_id;
-    bounce_info->smtputf8 = smtputf8;
+    bounce_info->sendopts = sendopts;
     /* Fix 20140708: override MIME encoding: addresses may be 8bit. */
     /* Fix 20140718: override MIME encoding: 8bit $myhostname expansion. */
     if (var_smtputf8_enable /* was: bounce_info->smtputf8 */ ) {
@@ -352,7 +355,8 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 		quote_822_local_flags(bounce_info->sender,
 				      VSTRING_LEN(bounce_info->buf) ?
 				      STR(bounce_info->buf) :
-				      mail_addr_mail_daemon(), 0);
+				      mail_addr_mail_daemon(),
+				      QUOTE_FLAG_8BITCLEAN);
 	    }
 
 	    /*
@@ -422,7 +426,7 @@ BOUNCE_INFO *bounce_mail_init(const char *service,
 			              const char *queue_name,
 			              const char *queue_id,
 			              const char *encoding,
-			              int smtputf8,
+			              int sendopts,
 			              const char *dsn_envid,
 			              BOUNCE_TEMPLATE *template)
 {
@@ -449,7 +453,7 @@ BOUNCE_INFO *bounce_mail_init(const char *service,
 	dsn_buf = dsb_create();
     }
     bounce_info = bounce_mail_alloc(service, queue_name, queue_id, encoding,
-				    smtputf8, dsn_envid, rcpt_buf, dsn_buf,
+				    sendopts, dsn_envid, rcpt_buf, dsn_buf,
 				    template, log_handle);
     return (bounce_info);
 }
@@ -459,7 +463,7 @@ BOUNCE_INFO *bounce_mail_init(const char *service,
 BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
 				          const char *queue_id,
 				          const char *encoding,
-				          int smtputf8,
+				          int sendopts,
 				          const char *dsn_envid,
 				          RCPT_BUF *rcpt_buf,
 				          DSN_BUF *dsn_buf,
@@ -471,7 +475,7 @@ BOUNCE_INFO *bounce_mail_one_init(const char *queue_name,
      * Initialize the bounce_info structure for just one recipient.
      */
     bounce_info = bounce_mail_alloc("none", queue_name, queue_id, encoding,
-				    smtputf8, dsn_envid, rcpt_buf, dsn_buf,
+				    sendopts, dsn_envid, rcpt_buf, dsn_buf,
 				    template, (BOUNCE_LOG *) 0);
     return (bounce_info);
 }
@@ -694,12 +698,12 @@ int     bounce_header_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 		      "Delivery report");
     /* Generate *global* only if the original requested SMTPUTF8 support. */
     post_mail_fprintf(bounce, "Content-Type: message/%sdelivery-status",
-		      (bounce_info->smtputf8 & SMTPUTF8_FLAG_REQUESTED) ?
+		      (bounce_info->sendopts & SMTPUTF8_FLAG_REQUESTED) ?
 		      "global-" : "");
     /* Fix 20140709: addresses may be 8bit. */
     if (NOT_7BIT_MIME(bounce_info)
     /* BC Fix 20170610: prevent MIME downgrade of message/delivery-status. */
-	&& (bounce_info->smtputf8 & SMTPUTF8_FLAG_REQUESTED))
+	&& (bounce_info->sendopts & SMTPUTF8_FLAG_REQUESTED))
 	post_mail_fprintf(bounce, "Content-Transfer-Encoding: %s",
 			  bounce_info->mime_encoding);
 
@@ -727,7 +731,8 @@ int     bounce_header_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
     /* Fix 20140708: use "utf-8" or "rfc822" as appropriate. */
     if (VSTRING_LEN(bounce_info->sender) > 0)
 	post_mail_fprintf(bounce, "X-%s-Sender: %s; %s",
-			  bounce_info->mail_name, bounce_info->smtputf8
+			  bounce_info->mail_name,
+			  (bounce_info->sendopts & SMTPUTF8_FLAG_ALL)
 			  && IS_UTF8_ADDRESS(STR(bounce_info->sender)) ?
 			  "utf-8" : "rfc822", STR(bounce_info->sender));
     if (bounce_info->arrival_time > 0)
@@ -746,7 +751,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
     post_mail_fputs(bounce, "");
     /* Fix 20140708: Don't send "utf-8" type with non-UTF8 address. */
     post_mail_fprintf(bounce, "Final-Recipient: %s; %s",
-		      bounce_info->smtputf8
+		      (bounce_info->sendopts & SMTPUTF8_FLAG_ALL)
 		      && IS_UTF8_ADDRESS(rcpt->address) ?
 		      "utf-8" : "rfc822", rcpt->address);
 
@@ -774,7 +779,7 @@ int     bounce_recipient_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
     } else if (NON_NULL_EMPTY(rcpt->orig_addr)) {
 	/* Fix 20140708: Don't send "utf-8" type with non-UTF8 address. */
 	post_mail_fprintf(bounce, "Original-Recipient: %s; %s",
-			  bounce_info->smtputf8
+			  (bounce_info->sendopts & SMTPUTF8_FLAG_ALL)
 			  && IS_UTF8_ADDRESS(rcpt->orig_addr) ?
 			  "utf-8" : "rfc822", rcpt->orig_addr);
     }
@@ -869,7 +874,7 @@ int     bounce_original(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
 		      headers_only == DSN_RET_HDRS ?
 		      "Message Headers" : "Message");
     /* Generate *global* only if the original requested SMTPUTF8 support. */
-    if (bounce_info->smtputf8 & SMTPUTF8_FLAG_REQUESTED)
+    if (bounce_info->sendopts & SMTPUTF8_FLAG_REQUESTED)
 	post_mail_fprintf(bounce, "Content-Type: message/%s",
 			  headers_only == DSN_RET_HDRS ?
 			  "global-headers" : "global");
