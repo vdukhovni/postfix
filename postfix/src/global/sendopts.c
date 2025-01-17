@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include <sendopts.h>
 /*
-/*	const char *sendopts_strflags(code)
-/*	int	code;
+/*	const char *sendopts_strflags(
+/*	int	flags,
+/*	int	delim)
 /* DESCRIPTION
 /*	Postfix queue files and IPC messages contain a sendopts field
 /*	with flags that control SMTPUTF8, REQUIRETLS, etc. support. The
@@ -18,6 +19,14 @@
 /*
 /*	sendopts_strflags() maps a sendopts flag value to printable
 /*	string. The result is overwritten upon each call.
+/*
+/*	Arguments:
+/* .IP flags
+/*	A bitmask that is to be converted to text.
+/* .IP delim
+/*	The character to separate output words with: one of ' ,|'.
+/* DIAGNOSTICS
+/*	Panic: invalid delimiter. Fatal error: invalid flag.
 /* LICENSE
 /* .ad
 /* .fi
@@ -30,6 +39,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <string.h>
 
  /*
   * Utility library.
@@ -44,7 +54,7 @@
 #include <sendopts.h>
 
  /*
-  * Mapping from flags code to printable string.
+  * Mapping from flags to printable string.
   */
 static NAME_MASK sendopts_flag_map[] = {
     "smtputf8_requested", SOPT_SMTPUTF8_REQUESTED,
@@ -58,9 +68,13 @@ static NAME_MASK sendopts_flag_map[] = {
 
 /* sendopts_strflags - map flags code to printable string */
 
-const char *sendopts_strflags(unsigned flags)
+const char *sendopts_strflags(unsigned flags, int delim)
 {
+    const char myname[] = "sendopts_strflags";
+    static const char delims[] = " ,|";
+    static const int dflags[] = {0, NAME_MASK_COMMA, NAME_MASK_PIPE};
     static VSTRING *result;
+    const char *cp;
 
     if (flags == 0)
 	return ("none");
@@ -70,92 +84,10 @@ const char *sendopts_strflags(unsigned flags)
     else
 	VSTRING_RESET(result);
 
+    if ((cp = strchr(delims, delim)) == 0)
+	msg_panic("%s: bad delimiter: '%c'", myname, delim);
+
     return (str_name_mask_opt(result, "sendopts_strflags", sendopts_flag_map,
-			      flags, NAME_MASK_FATAL));
+			      flags, NAME_MASK_FATAL | dflags[cp - delims]));
 }
 
-#ifdef TEST
-#include <stdlib.h>
-#include <string.h>
-#include <stringops.h>
-#include <msg_vstream.h>
-
- /*
-  * Tests and test cases.
-  */
-typedef struct TEST_CASE {
-    const char *label;			/* identifies test case */
-    int     mask;
-    const char *want;
-} TEST_CASE;
-
-static const TEST_CASE test_cases[] = {
-    {"SOPT_SMTPUTF8_ALL",
-	SOPT_SMTPUTF8_ALL,
-	"smtputf8_requested smtputf8_header smtputf8_sender smtputf8_recipient"
-    },
-    {"SOPT_SMTPUTF8_DERIVED",
-	SOPT_SMTPUTF8_DERIVED,
-	"smtputf8_header smtputf8_sender smtputf8_recipient"
-    },
-    {"SOPT_SMTPUTF8_REQUESTED",
-	SOPT_SMTPUTF8_REQUESTED,
-	"smtputf8_requested"
-    },
-    {"SOPT_SMTPUTF8_HEADER",
-	SOPT_SMTPUTF8_HEADER,
-	"smtputf8_header"
-    },
-    {"SOPT_SMTPUTF8_SENDER",
-	SOPT_SMTPUTF8_SENDER,
-	"smtputf8_sender"
-    },
-    {"SOPT_SMTPUTF8_RECIPIENT",
-	SOPT_SMTPUTF8_RECIPIENT,
-	"smtputf8_recipient"
-    },
-    {"SOPT_REQUIRETLS_ALL",
-	SOPT_REQUIRETLS_ALL,
-	"requiretls_header requiretls_esmtp"
-    },
-    {"SOPT_REQUIRETLS_DERIVED",
-	SOPT_REQUIRETLS_DERIVED,
-	"requiretls_header"
-    },
-    {"SOPT_REQUIRETLS_HEADER",
-	SOPT_REQUIRETLS_HEADER,
-	"requiretls_header"
-    },
-    {"SOPT_REQUIRETLS_ESMTP",
-	SOPT_REQUIRETLS_ESMTP,
-	"requiretls_esmtp"
-    },
-    {0},
-};
-
-int     main(int argc, char **argv)
-{
-    const TEST_CASE *tp;
-    int     pass = 0;
-    int     fail = 0;
-    const char *got;
-
-    msg_vstream_init(sane_basename((VSTRING *) 0, argv[0]), VSTREAM_ERR);
-
-    for (tp = test_cases; tp->label != 0; tp++) {
-	msg_info("RUN  %s", tp->label);
-	got = sendopts_strflags(tp->mask);
-	if (strcmp(got, tp->want) != 0) {
-	    msg_warn("got result '%s', want: '%s'", got, tp->want);
-	    fail++;
-	    msg_info("FAIL %s", tp->label);
-	} else {
-	    msg_info("PASS %s", tp->label);
-	    pass++;
-	}
-    }
-    msg_info("PASS=%d FAIL=%d", pass, fail);
-    exit(fail != 0);
-}
-
-#endif

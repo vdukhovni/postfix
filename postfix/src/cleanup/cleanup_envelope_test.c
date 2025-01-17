@@ -132,8 +132,8 @@ static int overrides_size_fields(const TEST_CASE *tp)
     CLEANUP_STATE saved_state = *state;
 
     /*
-     * Process the test SIZE record payload and write an place-holder SIZE
-     * record that will be overwritten later with final information.
+     * Process the test SIZE record payload, clear some bits from the
+     * sendopts field, and write an all-zeroes preliminary SIZE record.
      */
     VSTRING *output_stream_buf = vstring_alloc(100);
 
@@ -153,7 +153,8 @@ static int overrides_size_fields(const TEST_CASE *tp)
     input_buf = 0;
 
     /*
-     * Write an updated SIZE record to the output stream.
+     * Overwrite the SIZE record with an updated version that includes the
+     * modified sendopts field.
      */
     cleanup_final(state);
     if (state->errs != CLEANUP_STAT_OK) {
@@ -166,7 +167,8 @@ static int overrides_size_fields(const TEST_CASE *tp)
     state->dst = 0;
 
     /*
-     * Compare the stored record content against the expected content.
+     * Read the final SIZE record content. This normally happens in the queue
+     * manager, and in the pickup daemon after a message is re-queued.
      */
     VSTREAM *fp;
 
@@ -185,6 +187,13 @@ static int overrides_size_fields(const TEST_CASE *tp)
     (void) vstream_fclose(fp);
     vstring_free(output_stream_buf);
 
+    /*
+     * Compare the stored SIZE record content against the expected content.
+     * We expect that the fields for data_size, data_offset, rcpt_count,
+     * qmgr_opts, and cont_length, are consistent with the saved
+     * CLEANUP_STATE, and we expect to see a specific value for the sendopts
+     * field that was made by cleanup_envelope().
+     */
     int     got_conv;
     long    data_size, data_offset, cont_length;
     int     rcpt_count, qmgr_opts, sendopts;

@@ -105,6 +105,7 @@
 #include <dsn_buf.h>
 #include <mail_addr.h>
 #include <valid_hostname.h>
+#include <sendopts.h>
 
 /* DNS library. */
 
@@ -497,6 +498,51 @@ static void smtp_cache_policy(SMTP_STATE *state, const char *dest)
     }
 }
 
+/* smtp_get_effective_tls_level - get the effective TLS security level */
+
+static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
+{
+    SMTP_ITERATOR *iter = state->iterator;
+    SMTP_TLS_POLICY *tls = state->tls;
+
+    /*
+     * Determine the TLS level for this destination.
+     */
+    if (!smtp_tls_policy_cache_query(why, tls, iter)) {
+	return (0);
+    }
+
+    /*
+     * If the sender requires verified TLS, the TLS level must enforce a
+     * server certificate match.
+     */
+#if 0
+    else if ((state->request->sendopts & SOPT_REQUIRETLS_ESMTP)) {
+	if (TLS_MUST_MATCH(tls->level) == 0) {
+	    dsb_simple(why, "5.7.10", "Sender requires verified TLS, "
+		       " but my configured TLS security level is '%s %s'",
+		       var_mail_name, str_tls_level(tls->level));
+	    return (0);
+	}
+    }
+#endif
+
+    /*
+     * Otherwise, if the TLS level is not TLS_LEV_NONE or some non-level, and
+     * the message contains a "TLS-Required: no" header, limit the level to
+     * TLS_LEV_MAY.
+     */
+    else if (tls->level > TLS_LEV_NONE
+	     && (state->request->sendopts & SOPT_REQUIRETLS_HEADER)) {
+	tls->level = TLS_LEV_MAY;
+    }
+
+    /*
+     * Success.
+     */
+    return (1);
+}
+
 /* smtp_connect_local - connect to local server */
 
 static void smtp_connect_local(SMTP_STATE *state, const char *path)
@@ -552,7 +598,7 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
      * of SASL-unauthenticated connections.
      */
 #ifdef USE_TLS
-    if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
+    if (!smtp_get_effective_tls_level(why, state)) {
 	msg_warn("TLS policy lookup error for %s/%s: %s",
 		 STR(iter->host), STR(iter->addr), STR(why->reason));
 	return;
@@ -777,7 +823,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 	}
 	SMTP_ITER_UPDATE_HOST(iter, SMTP_HNAME(addr), hostaddr.buf, addr);
 #ifdef USE_TLS
-	if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
+	if (!smtp_get_effective_tls_level(why, state)) {
 	    msg_warn("TLS policy lookup error for %s/%s: %s",
 		     STR(iter->dest), STR(iter->host), STR(why->reason));
 	    continue;
@@ -1065,7 +1111,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    }
 	    SMTP_ITER_UPDATE_HOST(iter, SMTP_HNAME(addr), hostaddr.buf, addr);
 #ifdef USE_TLS
-	    if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
+	    if (!smtp_get_effective_tls_level(why, state)) {
 		msg_warn("TLS policy lookup for %s/%s: %s",
 			 STR(iter->dest), STR(iter->host), STR(why->reason));
 		continue;

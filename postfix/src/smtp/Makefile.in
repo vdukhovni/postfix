@@ -259,6 +259,7 @@ smtp_connect.o: ../../include/recipient_list.h
 smtp_connect.o: ../../include/resolve_clnt.h
 smtp_connect.o: ../../include/sane_connect.h
 smtp_connect.o: ../../include/scache.h
+smtp_connect.o: ../../include/sendopts.h
 smtp_connect.o: ../../include/sock_addr.h
 smtp_connect.o: ../../include/split_at.h
 smtp_connect.o: ../../include/string_list.h
@@ -804,7 +805,6 @@ smtp_tlsrpt.o: ../../include/header_body_checks.h
 smtp_tlsrpt.o: ../../include/header_opts.h
 smtp_tlsrpt.o: ../../include/hex_code.h
 smtp_tlsrpt.o: ../../include/htable.h
-smtp_tlsrpt.o: ../../include/inet_proto.h
 smtp_tlsrpt.o: ../../include/mail_params.h
 smtp_tlsrpt.o: ../../include/maps.h
 smtp_tlsrpt.o: ../../include/match_list.h

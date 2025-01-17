@@ -131,7 +131,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	fold_addr smtp_reply_footer mail_addr_map normalize_mailhost_addr \
 	haproxy_srvr map_search delivered_hdr login_sender_match \
 	compat_level config_known_tcp_ports hfrom_format rfc2047_code \
-	ascii_header_text sendopts
+	ascii_header_text sendopts_test
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
@@ -405,7 +405,7 @@ rfc2047_code: rfc2047_code.c $(LIB) $(LIBS)
 ascii_header_text: ascii_header_text.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
-sendopts: sendopts.c $(LIB) $(LIBS)
+sendopts_test: sendopts_test.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
 config_known_tcp_ports: config_known_tcp_ports.c $(LIB) $(LIBS)
@@ -421,7 +421,7 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	normalize_mailhost_addr_test haproxy_srvr_test map_search_test \
 	delivered_hdr_test login_sender_match_test compat_level_test \
 	config_known_tcp_ports_test hfrom_format_test rfc2047_code_test \
-	ascii_header_text_test sendopts_test
+	ascii_header_text_test test_sendopts
 
 mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3 mime_garb4
@@ -793,8 +793,8 @@ rfc2047_code_test: update rfc2047_code
 ascii_header_text_test: update ascii_header_text 
 	$(SHLIB_ENV) $(VALGRIND) ./ascii_header_text
 
-sendopts_test: update sendopts
-	-$(SHLIB_ENV) $(VALGRIND) ./sendopts
+test_sendopts: update sendopts_test
+	-$(SHLIB_ENV) $(VALGRIND) ./sendopts_test
 
 clean:
 	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAPS)
@@ -2679,6 +2679,24 @@ scache_single.o: ../../include/vbuf.h
 scache_single.o: ../../include/vstring.h
 scache_single.o: scache.h
 scache_single.o: scache_single.c
+sendopts.o: ../../include/check_arg.h
+sendopts.o: ../../include/msg.h
+sendopts.o: ../../include/name_mask.h
+sendopts.o: ../../include/sys_defs.h
+sendopts.o: ../../include/vbuf.h
+sendopts.o: ../../include/vstring.h
+sendopts.o: sendopts.c
+sendopts.o: sendopts.h
+sendopts_test.o: ../../include/check_arg.h
+sendopts_test.o: ../../include/msg.h
+sendopts_test.o: ../../include/msg_vstream.h
+sendopts_test.o: ../../include/stringops.h
+sendopts_test.o: ../../include/sys_defs.h
+sendopts_test.o: ../../include/vbuf.h
+sendopts_test.o: ../../include/vstream.h
+sendopts_test.o: ../../include/vstring.h
+sendopts_test.o: sendopts.h
+sendopts_test.o: sendopts_test.c
 sent.o: ../../include/attr.h
 sent.o: ../../include/check_arg.h
 sent.o: ../../include/htable.h

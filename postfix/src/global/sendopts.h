@@ -44,7 +44,7 @@
  /*
   * Debug helper.
   */
-extern const char *sendopts_strflags(unsigned flags);
+extern const char *sendopts_strflags(unsigned flags, int delim);
 
 /* LICENSE
 /* .ad

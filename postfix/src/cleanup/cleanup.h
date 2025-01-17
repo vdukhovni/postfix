@@ -12,6 +12,7 @@
   * System library.
   */
 #include <sys/time.h>
+#include <stdint.h>			/* C99 uint64_t */
 
  /*
   * Utility library.
@@ -69,7 +70,7 @@ typedef struct CLEANUP_STATE {
     int     qmgr_opts;			/* qmgr processing options */
     int     errs;			/* any badness experienced */
     int     err_mask;			/* allowed badness */
-    int     headers_seen;		/* which headers were seen */
+    uint64_t headers_seen;		/* which headers were seen */
     int     hop_count;			/* count of received: headers */
     char   *resent;			/* any resent- header seen */
     BH_TABLE *dups;			/* recipient dup filter */
@@ -140,6 +141,11 @@ typedef struct CLEANUP_STATE {
 #define CLEANUP_FLAG_INRCPT	(1<<16)	/* Processing recipient records */
 #define CLEANUP_FLAG_WARN_SEEN	(1<<17)	/* REC_TYPE_WARN record seen */
 #define CLEANUP_FLAG_END_SEEN	(1<<18)	/* REC_TYPE_END record seen */
+
+ /*
+  * Bit mask for the CLEANUP_STATE.headers_seen member.
+  */
+#define HDRS_SEEN_MASK(hval)		((uint64_t) 1 << (hval))
 
  /*
   * Mappings.

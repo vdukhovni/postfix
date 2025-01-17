@@ -807,7 +807,7 @@ int     main(int argc, char **argv)
 
 	argvp = argv_alloc(1);
 	if (setjmp(test_panic_jbuf) == 0)
-	    tp->populate_fn(tp, argvp);
+	    argvp = tp->populate_fn(tp, argvp);
 	test_failed = test_argv_verify(tp, argvp);
 	if (test_failed) {
 	    msg_info("%s: FAIL", tp->label);

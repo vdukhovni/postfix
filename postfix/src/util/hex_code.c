@@ -296,6 +296,7 @@ int     main(int unused_argc, char **unused_argv)
 	    fail++;
 	}
     }
+    vstring_free(buf);
     msg_info("PASS=%d FAIL=%d", pass, fail);
     return (fail > 0);
 }

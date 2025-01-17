@@ -181,6 +181,12 @@ request that TLS enforcement will be disabled when submitting an email message.
 
 Options:
 
+  * Specify the "TTLLSS--RReeqquuiirreedd:: nnoo" message header, defined in RFC 8689, to
+    reduce the TLS security level to "mmaayy" (that is, do not verify remote SMTP
+    server certificates, and fall back to plaintext if TLS is unavailable).
+
+    This feature is available in Postfix 3.10 and later.
+
   * Do nothing. When TLS security enforcement is required but fails, a TLSRPT
     summary message will be delayed until the problem is addressed, or until
     the message expires in the mail queue. Keep in mind that TLSRPT is not a

@@ -25,6 +25,17 @@ now also distributed with the more recent Eclipse Public License
 (EPL) 2.0. Recipients can choose to take the software under the
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
+ 
+[Feature 20250117]
+
+Support for the RFC 8689 "TLS-Required: no" message header to request
+delivery of messages such as TLSRPT summaries even if the preferred
+TLS security policy cannot be enforced. This limits the Postfix
+SMTP client to "smtp_tls_security_level = may" which does not
+authenticate server certificates and which allows falling back to
+plaintext.
+
+Support for the REQUIRETLS SMTP service extension remains future work.
 
 [Incompat 20250116]
 

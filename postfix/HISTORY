@@ -28854,3 +28854,27 @@ Apologies for any names omitted.
 	pickup/pickup.c, qmgr/qmgr.h, qmgr/qmgr_active.c,
 	qmgr/qmgr_deliver.c, qmgr/qmgr_message.c, qmqpd/qmqpd.c,
 	smtp/smtp_proto.c, smtpd/smtpd.c, verify/verify.c,
+
+20250117
+
+	Cleanup: factored out the sendopts.c unit test code, and
+	added two missing tests. File: global/sendopts_test.c.
+
+	Cleanup: increased the capacity to remember which types of
+	message headers have been seen, and encapsulated some set
+	operations. Files: cleanup/cleanup.h, cleanup/cleanup_message.c.
+
+	Feature: support for the RFC 8689 "TLS-Required: no" message
+	header. This limits the Postfix SMTP client TLS security
+	level to "smtp_tls_security = may", which does not authenticate
+	remote SMTP server TLS certificates, and which allows falling
+	back to plaintext. This is needed for the delivery of
+	messages such as TLSRPT summaries, which should be sent
+	even when the preferred TLS security policy cannot be
+	enforced. Support for the REQUIRETLS ESMTP extension remains
+	future work. Files: cleanup/cleanup_message.c,
+	global/header_opts.c, global/header_opts.h, smtp/smtp_connect.c,
+	proto/TLSRPT_README.html.
+
+	Cleanup: memory leaks in test code. Files: util/hex_code.c,
+	util/argv.c.

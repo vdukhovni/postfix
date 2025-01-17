@@ -96,6 +96,7 @@
 #include <info_log_addr_form.h>
 #include <hfrom_format.h>
 #include <rfc2047_code.h>
+#include <sendopts.h>
 
 /* Application-specific. */
 
@@ -631,7 +632,7 @@ static void cleanup_header_callback(void *context, int header_class,
      * MAY remove Return-path headers before adding their own.
      */
     else {
-	state->headers_seen |= (1 << hdr_opts->type);
+	state->headers_seen |= HDRS_SEEN_MASK(hdr_opts->type);
 	if (hdr_opts->type == HDR_MESSAGE_ID) {
 	    ssize_t len;
 
@@ -651,6 +652,17 @@ static void cleanup_header_callback(void *context, int header_class,
 	    /* Save our Received: header after maybe updating headers above. */
 	    if (state->hop_count == 1)
 		argv_add(state->auto_hdrs, vstring_str(header_buf), ARGV_END);
+	}
+	if (hdr_opts->type == HDR_TLS_REQUIRED) {
+	    char   *cp = vstring_str(header_buf) + strlen(hdr_opts->name) + 1;
+
+	    while (ISSPACE(*cp))
+		cp++;
+	    if (strcasecmp(cp, "no") == 0)
+		state->sendopts |= SOPT_REQUIRETLS_HEADER;
+	    else
+		msg_warn("ignoring malformed header: '%.100s'",
+			 vstring_str(header_buf));
 	}
 	if (CLEANUP_OUT_OK(state)) {
 	    if (hdr_opts->flags & HDR_OPT_RR)
@@ -758,8 +770,8 @@ static void cleanup_header_done_callback(void *context)
      * complicate future code that wants to log more name=value attributes.
      */
     if ((state->hdr_rewrite_context || var_always_add_hdrs)
-	&& (state->headers_seen & (1 << (state->resent[0] ?
-			   HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID))) == 0) {
+	&& (state->headers_seen & HDRS_SEEN_MASK(state->resent[0] ?
+			    HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID)) == 0) {
 	if (var_long_queue_ids) {
 	    vstring_sprintf(state->temp1, "%s@%s",
 			    state->queue_id, var_myhostname);
@@ -776,14 +788,14 @@ static void cleanup_header_done_callback(void *context)
 	msg_info("%s: %smessage-id=<%s>",
 		 state->queue_id, *state->resent ? "resent-" : "",
 		 vstring_str(state->temp1));
-	state->headers_seen |= (1 << (state->resent[0] ?
-				   HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID));
+	state->headers_seen |= HDRS_SEEN_MASK(state->resent[0] ?
+				    HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID);
 	if (state->resent[0] == 0 && state->message_id == 0)
 	    state->message_id = concatenate("<", vstring_str(state->temp1),
 					    ">", (char *) 0);
 
     }
-    if ((state->headers_seen & (1 << HDR_MESSAGE_ID)) == 0)
+    if ((state->headers_seen & HDRS_SEEN_MASK(HDR_MESSAGE_ID)) == 0)
 	msg_info("%s: message-id=<>", state->queue_id);
 
     /*
@@ -791,8 +803,8 @@ static void cleanup_header_done_callback(void *context)
      * with the GMT offset at the end.
      */
     if ((state->hdr_rewrite_context || var_always_add_hdrs)
-	&& (state->headers_seen & (1 << (state->resent[0] ?
-				       HDR_RESENT_DATE : HDR_DATE))) == 0) {
+	&& (state->headers_seen & HDRS_SEEN_MASK(state->resent[0] ?
+					HDR_RESENT_DATE : HDR_DATE)) == 0) {
 	vstring_sprintf(state->temp2, "%sDate: %s",
 		      state->resent, mail_date(state->arrival_time.tv_sec));
 	cleanup_out_header(state, state->temp2);
@@ -802,8 +814,8 @@ static void cleanup_header_done_callback(void *context)
      * Add a missing (Resent-)From: header.
      */
     if ((state->hdr_rewrite_context || var_always_add_hdrs)
-	&& (state->headers_seen & (1 << (state->resent[0] ?
-				       HDR_RESENT_FROM : HDR_FROM))) == 0) {
+	&& (state->headers_seen & HDRS_SEEN_MASK(state->resent[0] ?
+					HDR_RESENT_FROM : HDR_FROM)) == 0) {
 	char   *fullname;
 
 	quote_822_local(state->temp1, *state->sender ?
@@ -869,8 +881,10 @@ static void cleanup_header_done_callback(void *context)
     /*
      * Add a missing destination header.
      */
-#define VISIBLE_RCPT	((1 << HDR_TO) | (1 << HDR_RESENT_TO) \
-			| (1 << HDR_CC) | (1 << HDR_RESENT_CC))
+#define VISIBLE_RCPT	(HDRS_SEEN_MASK(HDR_TO) \
+			| HDRS_SEEN_MASK(HDR_RESENT_TO) \
+			| HDRS_SEEN_MASK(HDR_CC) \
+			| HDRS_SEEN_MASK(HDR_RESENT_CC))
 
     if ((state->hdr_rewrite_context || var_always_add_hdrs)
 	&& (state->headers_seen & VISIBLE_RCPT) == 0 && *var_rcpt_witheld) {
