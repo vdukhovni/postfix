@@ -10570,6 +10570,26 @@ the mail server (IMPORTING HOME DIRECTORIES IS NOT RECOMMENDED).
 
 </DD>
 
+<DT><b><a name="requiretls_enable">requiretls_enable</a>
+(default: yes)</b></DT><DD>
+
+<p> Enable support for the ESMTP verb "REQUIRETLS", defined in <a href="https://tools.ietf.org/html/rfc8689">RFC</a>
+<a href="https://tools.ietf.org/html/rfc8689">8689</a>. By issuing this verb in the "MAIL FROM" command, a sender
+requires that a message must be delivered over TLS connections with
+a verified server certificate. This corresponds to the Postfix SMTP
+client TLS security levels "secure", "verify", "fingerprint",
+opportunistic "dane" with a successful certificate match, or
+"dane-only" (the postfix-mta-sts-resolver plugin tells Postfix to
+enforce a "secure with certificate match" policy). Otherwise, Postfix
+returns the message as undeliverable. </p>
+
+<p> Note: REQUIRETLS overrides "TLS-Required: no". </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>
+
+
+</DD>
+
 <DT><b><a name="reset_owner_alias">reset_owner_alias</a>
 (default: no)</b></DT><DD>
 
@@ -20601,6 +20621,23 @@ device file.  </p>
 gives timeout errors.  </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="tls_required_enable">tls_required_enable</a>
+(default: yes)</b></DT><DD>
+
+<p> Enable support for the "TLS-Required: no" message header, defined
+in <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a>. By adding this header to a message, a sender requests no
+enforcement of TLS policy. This limits the Postfix SMTP client TLS
+security level to "may", that is, do not verify remote SMTP server
+certificates, and fall back to plaintext if TLS is unavailable.
+</p>
+
+<p> Note: REQUIRETLS overrides "TLS-Required: no". </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>
 
 
 </DD>

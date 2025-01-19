@@ -26,6 +26,12 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
  
+[Feature 20250119]
+
+Support for the REQUIRETLS verb in SMTP. As specified in RFC 8689,
+this not only requires TLS encryption, but also server certificate
+matching. TODO(wietse): new configuration parameters.
+
 [Feature 20250117]
 
 Support for the RFC 8689 "TLS-Required: no" message header to request

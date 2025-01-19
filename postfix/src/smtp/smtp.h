@@ -286,6 +286,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_XFORWARD_IDENT	(1<<20)
 #define SMTP_FEATURE_SMTPUTF8		(1<<21)	/* RFC 6531 */
 #define SMTP_FEATURE_FROM_PROXY		(1<<22)	/* proxied connection */
+#define SMTP_FEATURE_REQUIRETLS		(1<<23)	/* RFC 8689 */
 
  /*
   * Features that passivate under the endpoint.

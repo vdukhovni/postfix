@@ -172,6 +172,7 @@
 /*	RFC 6531 (Internationalized SMTP)
 /*	RFC 6533 (Internationalized Delivery Status Notifications)
 /*	RFC 7672 (SMTP security via opportunistic DANE TLS)
+/*	RFC 8689 (SMTP REQUIRETLS extension)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8)
 /*	or \fBpostlogd\fR(8).
@@ -452,7 +453,7 @@
 /* .IP "\fBsmtp_sasl_password_result_delimiter (:)\fR"
 /*	The delimiter between username and password in sasl_passwd_maps lookup
 /*	results.
-/* STARTTLS SUPPORT CONTROLS
+/* TLS SUPPORT CONTROLS
 /* .ad
 /* .fi
 /*	Detailed information about STARTTLS configuration may be found
@@ -648,7 +649,10 @@
 /*	Do not report the TLSRPT status for TLS protocol handshakes
 /*	that reuse a previously-negotiated TLS session (there is no new
 /*	information to report).
-/* OBSOLETE STARTTLS CONTROLS
+/* .IP "\fBrequiretls_enable (yes)\fR"
+/*	Enable support for the ESMTP verb "REQUIRETLS", defined in RFC
+/*	8689.
+/* OBSOLETE TLS CONTROLS
 /* .ad
 /* .fi
 /*	The following configuration parameters exist for compatibility

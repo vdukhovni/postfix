@@ -4377,6 +4377,17 @@ extern char *var_smtputf8_autoclass;
 extern int var_idna2003_compat;
 
  /*
+  * REQUIRETLS support (RFC 8689).
+  */
+#define VAR_REQUIRETLS_ENABLE		"requiretls_enable"
+#define DEF_REQUIRETLS_ENABLE		"yes"
+extern int var_requiretls_enable;
+
+#define VAR_TLSREQUIRED_ENABLE		"tls_required_enable"
+#define DEF_TLSREQUIRED_ENABLE		"yes"
+extern int var_tls_required_enable;
+
+ /*
   * Workaround for future incompatibility. Our implementation of RFC 2308
   * negative reply caching relies on the promise that res_query() and
   * res_search() invoke res_send(), which returns the server response in an

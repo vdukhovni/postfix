@@ -277,10 +277,10 @@ when submitting an email message. </p>
 <ul>
 
 <li> <p> Specify the "<b>TLS-Required: no</b>" message header,
-defined in <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a>, to reduce the TLS security level to "<b>may</b>"
-(that is, do not verify remote SMTP server certificates, and fall
-back to plaintext if TLS is unavailable). <br> <br> This feature
-is available in Postfix 3.10 and later. </p>
+defined in <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a>, to reduce the Postfix SMTP client TLS security
+level to "<b>may</b>" (that is, do not verify remote SMTP server
+certificates, and fall back to plaintext if TLS is unavailable).
+<br> <br> This feature is available in Postfix 3.10 and later. </p>
 
 <li> <p> Do nothing. When TLS security enforcement is required but
 fails, a TLSRPT summary message will be delayed

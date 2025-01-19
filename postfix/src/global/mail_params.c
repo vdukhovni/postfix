@@ -125,9 +125,11 @@
 /*	bool	var_long_queue_ids;
 /*	bool	var_daemon_open_fatal;
 /*	char	*var_dsn_filter;
-/*	int	var_smtputf8_enable
+/*	int	var_smtputf8_enable;
 /*	int	var_strict_smtputf8;
 /*	char	*var_smtputf8_autoclass;
+/*	int	var_requiretls_enable;
+/*	int	var_tls_required_enable;
 /*	int     var_idna2003_compat;
 /*	char	*var_compatibility_level;
 /*	char	*var_drop_hdrs;
@@ -369,6 +371,8 @@ char   *var_dsn_filter;
 int     var_smtputf8_enable;
 int     var_strict_smtputf8;
 char   *var_smtputf8_autoclass;
+int	var_requiretls_enable;
+int	var_tls_required_enable;
 int     var_idna2003_compat;
 char   *var_compatibility_level;
 char   *var_drop_hdrs;
@@ -755,6 +759,8 @@ void    mail_params_init()
 	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
 	VAR_IDNA2003_COMPAT, DEF_IDNA2003_COMPAT, &var_idna2003_compat,
 	VAR_RESPECTFUL_LOGGING, DEF_RESPECTFUL_LOGGING, &var_respectful_logging,
+	VAR_REQUIRETLS_ENABLE, DEF_REQUIRETLS_ENABLE, &var_requiretls_enable,
+	VAR_TLSREQUIRED_ENABLE, DEF_TLSREQUIRED_ENABLE, &var_tls_required_enable,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults[] = {

@@ -28878,3 +28878,43 @@ Apologies for any names omitted.
 
 	Cleanup: memory leaks in test code. Files: util/hex_code.c,
 	util/argv.c.
+
+20250119
+
+	Feature: REQUIRETLS verb in SMTP. According to RFC 8689 this
+	not only requires TLS, but also requires server certificate
+	matching. TODO: parameters, defaults, files.
+
+TODO:
+
+	If the TLS policy, or remote server, does not support
+	REQUIRETLS, try alternate MX hosts before returning the
+	message as undeliverable. Code: smtp_connect.c,
+	smtp_proto.c (ehlo response and post-TLS handshake check).
+
+	If a message contains "TLS-Required: no", should a bounce message
+	also contain this header?
+
+	If a message with REQUIRETLS is bounced, and we return a
+	headers-only bounce (NOTIFY-HDRS) does the bounce still
+	need REQUIRETLS?
+
+	If the Postfix SMTP server accepted REQUIRETLS, should that stay
+	in effect if, before the message is forwarded, the configuration
+	is changed to "requiretls_enable = no"? Same for "postsuper -r".
+
+	Same question for "TLS-Required: no".
+
+	Problem. After a certificate check fails, we want the SMTP
+	client to try other MX servers. This requires a 4.x.x status
+	code.  But then, the Postfix SMTP client will defer the
+	message.
+
+	How does the delivery_status_filter solve that?
+
+	With "smtp_tls_security_level = secure" and "smtp_mx_session_limit
+	= 2" the Postfix SMTP client will make three connections.
+
+	Simplify cleanup_envelope_test. Write the initial SIZE record
+	to /dev/null, don't call cleanup_final(), and  verify the value
+	of state->sendopts.

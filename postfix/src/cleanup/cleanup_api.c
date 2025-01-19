@@ -80,6 +80,8 @@
 /* .IP CLEANUP_FLAG_AUTOUTF8
 /*	Autodetection: request SMTPUTF8 support if the message
 /*	contains an UTF8 message header, sender, or recipient.
+/* .IP CLEANUP_FLAG_REQUIRETLS
+/*	The sender requested 'authenticated' TLS enforcement.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8)
 /*	or \fBpostlogd\fR(8).
@@ -202,15 +204,23 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
      * definition.
      */
     if (msg_verbose)
-	msg_info("cleanup flags = %s", cleanup_strflags(flags));
+	msg_info("client flags = %s", cleanup_strflags(flags));
     if ((state->flags = flags) & CLEANUP_FLAG_BOUNCE) {
 	state->err_mask = CLEANUP_STAT_MASK_INCOMPLETE;
     } else {
 	state->err_mask = ~0;
     }
+
+    /*
+     * Propagate requests that are specified at the envelope level. This may
+     * be augmented later with information derived from message content.
+     */
     if (state->flags & CLEANUP_FLAG_SMTPUTF8)
 	state->sendopts |= SMTPUTF8_FLAG_REQUESTED;
-    /* TODO(wietse) REQUIRETLS. */
+    if (state->flags & CLEANUP_FLAG_REQUIRETLS)
+	state->sendopts |= SOPT_REQUIRETLS_ESMTP;
+    if (msg_verbose)
+	msg_info("server flags = %s", cleanup_strflags(state->flags));
 }
 
 /* cleanup_flush - finish queue file */

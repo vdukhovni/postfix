@@ -498,6 +498,8 @@ static void smtp_cache_policy(SMTP_STATE *state, const char *dest)
     }
 }
 
+#ifdef USE_TLS
+
 /* smtp_get_effective_tls_level - get the effective TLS security level */
 
 static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
@@ -513,19 +515,18 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
     }
 
     /*
-     * If the sender requires verified TLS, the TLS level must enforce a
-     * server certificate match.
+     * If the sender requires TLS with server certificate verification, the
+     * TLS level must enforce a server certificate match.
      */
-#if 0
     else if ((state->request->sendopts & SOPT_REQUIRETLS_ESMTP)) {
 	if (TLS_MUST_MATCH(tls->level) == 0) {
-	    dsb_simple(why, "5.7.10", "Sender requires verified TLS, "
-		       " but my configured TLS security level is '%s %s'",
+	    dsb_simple(why, "5.7.10", "Sender requires a TLS server "
+		       "certificate match, but the configured %s TLS "
+		       "security level (%s) does not support that",
 		       var_mail_name, str_tls_level(tls->level));
 	    return (0);
 	}
     }
-#endif
 
     /*
      * Otherwise, if the TLS level is not TLS_LEV_NONE or some non-level, and
@@ -542,6 +543,8 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
      */
     return (1);
 }
+
+#endif
 
 /* smtp_connect_local - connect to local server */
 

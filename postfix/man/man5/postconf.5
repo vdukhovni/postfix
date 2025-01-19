@@ -6578,6 +6578,20 @@ Require that a \fBlocal\fR(8) recipient's home directory exists
 before mail delivery is attempted. By default this test is disabled.
 It can be useful for environments that import home directories to
 the mail server (IMPORTING HOME DIRECTORIES IS NOT RECOMMENDED).
+.SH requiretls_enable (default: yes)
+Enable support for the ESMTP verb "REQUIRETLS", defined in RFC
+8689. By issuing this verb in the "MAIL FROM" command, a sender
+requires that a message must be delivered over TLS connections with
+a verified server certificate. This corresponds to the Postfix SMTP
+client TLS security levels "secure", "verify", "fingerprint",
+opportunistic "dane" with a successful certificate match, or
+"dane\-only" (the postfix\-mta\-sts\-resolver plugin tells Postfix to
+enforce a "secure with certificate match" policy). Otherwise, Postfix
+returns the message as undeliverable.
+.PP
+Note: REQUIRETLS overrides "TLS\-Required: no".
+.PP
+This feature is available in Postfix >= 3.10.
 .SH reset_owner_alias (default: no)
 Reset the \fBlocal\fR(8) delivery agent's idea of the owner\-alias
 attribute, when delivering mail to a child alias that does not have
@@ -14331,6 +14345,16 @@ Note: on OpenBSD systems specify dev:/dev/arandom when dev:/dev/urandom
 gives timeout errors.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH tls_required_enable (default: yes)
+Enable support for the "TLS\-Required: no" message header, defined
+in RFC 8689. By adding this header to a message, a sender requests no
+enforcement of TLS policy. This limits the Postfix SMTP client TLS
+security level to "may", that is, do not verify remote SMTP server
+certificates, and fall back to plaintext if TLS is unavailable.
+.PP
+Note: REQUIRETLS overrides "TLS\-Required: no".
+.PP
+This feature is available in Postfix >= 3.10.
 .SH tls_server_sni_maps (default: empty)
 Optional lookup tables that map names received from remote SMTP
 clients via the TLS Server Name Indication (SNI) extension to the
