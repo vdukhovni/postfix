@@ -638,8 +638,9 @@ extern void smtp_rcpt_done(SMTP_STATE *, SMTP_RESP *, RECIPIENT *);
  /*
   * smtp_trouble.c
   */
-#define SMTP_THROTTLE	1
-#define SMTP_NOTHROTTLE	0
+#define SMTP_MISC_FAIL_NONE		0
+#define SMTP_MISC_FAIL_THROTTLE		(1<<0)
+#define SMTP_MISC_FAIL_SOFT_NON_FINAL	(1<<1)
 extern int smtp_sess_fail(SMTP_STATE *);
 extern int PRINTFLIKE(5, 6) smtp_misc_fail(SMTP_STATE *, int, const char *,
 				             SMTP_RESP *, const char *,...);
@@ -649,9 +650,9 @@ extern void PRINTFLIKE(5, 6) smtp_rcpt_fail(SMTP_STATE *, RECIPIENT *,
 extern int smtp_stream_except(SMTP_STATE *, int, const char *);
 
 #define smtp_site_fail(state, mta, resp, ...) \
-	smtp_misc_fail((state), SMTP_THROTTLE, (mta), (resp), __VA_ARGS__)
+    smtp_misc_fail((state), SMTP_MISC_FAIL_THROTTLE, (mta), (resp), __VA_ARGS__)
 #define smtp_mesg_fail(state, mta, resp, ...) \
-	smtp_misc_fail((state), SMTP_NOTHROTTLE, (mta), (resp), __VA_ARGS__)
+    smtp_misc_fail((state), SMTP_MISC_FAIL_NONE, (mta), (resp), __VA_ARGS__)
 
  /*
   * smtp_unalias.c

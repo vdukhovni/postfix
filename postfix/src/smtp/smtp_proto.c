@@ -685,18 +685,20 @@ int     smtp_helo(SMTP_STATE *state)
 
     /*
      * Require that the server announces REQUIRETLS when the sender required
-     * REQUIRETLS. TODO(wietse) try alternative MX hosts before returning the
-     * message as undeliverable.
+     * REQUIRETLS. Return the message as undeliverable only when there are no
+     * more alternative MX hosts.
      */
 #ifdef USE_TLS
     if ((state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) != 0
 	&& (session->features & SMTP_FEATURE_REQUIRETLS) == 0
 	&& (request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0)
-	return (smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
+	return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
+			       DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "5.7.30"),
-			       "REQUIRETLS is required, "
-			       "but was not offered by host %s",
-			       session->namaddr));
+			       "Sender requires authenticated TLS, but no "
+			       "mail server was found with REQUIRETLS "
+			       "support. The last attempted server "
+			       "was %s", session->namaddr));
 #endif
 
     /*
@@ -1163,7 +1165,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 	if (PLAINTEXT_FALLBACK_OK_AFTER_STARTTLS_FAILURE)
 	    RETRY_AS_PLAINTEXT;
 	return (smtp_misc_fail(state, state->tls->level == TLS_LEV_MAY ?
-			       SMTP_NOTHROTTLE : SMTP_THROTTLE,
+			       SMTP_MISC_FAIL_NONE : SMTP_MISC_FAIL_THROTTLE,
 			       DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "4.7.5"),
 			       "Cannot start TLS: handshake failure"));
@@ -1211,15 +1213,18 @@ static int smtp_start_tls(SMTP_STATE *state)
 
 	    /*
 	     * Require a server certificate match when the sender requested
-	     * REQUIRETLS. TODO(wietse) try alternative MX hosts before
-	     * returning the message as undeliverable.
+	     * REQUIRETLS. Return the message as undeliverable only when
+	     * there are no more alternative MX hosts.
 	     */
 	    if ((state->request->sendopts & SOPT_REQUIRETLS_ESMTP)) {
-		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+		return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
+				       DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "5.7.10"),
 				       "Sender requires a TLS server "
-				       "certificate match, but the remote "
-				       "server certificate did not match"));
+				       "certificate match, but no matching "
+				       "mail server was found. The last "
+				       "attempted server was %s",
+				       session->namaddr));
 	    }
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),

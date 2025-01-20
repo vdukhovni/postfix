@@ -28881,40 +28881,55 @@ Apologies for any names omitted.
 
 20250119
 
-	Feature: REQUIRETLS verb in SMTP. According to RFC 8689 this
-	not only requires TLS, but also requires server certificate
-	matching. TODO: parameters, defaults, files.
+	Feature: support for the REQUIRETLS verb in SMTP. According
+	to RFC 8689, this requires TLS server certificate matching.
+	Files: cleanup/cleanup_api.c, global/cleanup_strflags.c,
+	global/post_mail.c, global/post_mail.c, global/ehlo_mask.[hc],
+	global/ehlo_mask_test.c, local/forward.c, smtpd/smtpd.c,
+	smtp/smtp_connect.c, smtp/smtp_proto.c.
+
+20250120
+
+	Added a configuration parameter "tls_required_enable (default:
+	yes) to control support for the "TLS-Required: no" message
+	header. Files: global/mail_params.[hc], cleanup/cleanup_message.c.
+
+	Added a configuration parameter "requiretls_enable" (default:
+	yes). Files: cleanup/cleanup_api.c, global/cleanup_strflags.c,
+	global/post_mail.c, global/post_mail.c, global/ehlo_mask.[hc],
+	global/ehlo_mask_test.c, local/forward.c, smtpd/smtpd.c,
+	smtp/smtp_connect.c, smtp/smtp_proto.c.
+
+	REQUIRETLS support: After a certificate check fails, or a
+	remote SMTP server does not announce REQUIRETLS support,
+	the Postfix SMTP client will override the RFC 8689 5.x.x.
+	status and treat it as a soft error, until there are no
+	more alternate MX servers to try. Files: smtp/smtp.h,
+	smtp/smtp_proto.c, smtp/smtp_trouble.c.
+
+	Completed: when a message received with REQUIRETLS is
+	returned in a delivery status notification, return the
+	message headers only, and do not request delivery with
+	REQUIRETLS. Files: bounce/bounce_notify_service.c,
+	bounce/bounce_one_service.c, bounce/bounce_trace_service.c,
+	bounce/bounce_verp_service.c, bounce/bounce_warn_service.c.
 
 TODO:
 
-	If the TLS policy, or remote server, does not support
-	REQUIRETLS, try alternate MX hosts before returning the
-	message as undeliverable. Code: smtp_connect.c,
-	smtp_proto.c (ehlo response and post-TLS handshake check).
+	The RFC says that REQUIRETLS applies to LMTP. Dovecot supports
+	TLS, but how common is it for Postfix to verify a Dovecot
+	server certificate? Should we add a 'cheat' setting that does
+	not enforce REQUIRETLS?
 
 	If a message contains "TLS-Required: no", should a bounce message
 	also contain this header?
-
-	If a message with REQUIRETLS is bounced, and we return a
-	headers-only bounce (NOTIFY-HDRS) does the bounce still
-	need REQUIRETLS?
 
 	If the Postfix SMTP server accepted REQUIRETLS, should that stay
 	in effect if, before the message is forwarded, the configuration
 	is changed to "requiretls_enable = no"? Same for "postsuper -r".
 
-	Same question for "TLS-Required: no".
+	Ditto for "tls_required_enable = no" and "TLS-Required: no".
 
-	Problem. After a certificate check fails, we want the SMTP
-	client to try other MX servers. This requires a 4.x.x status
-	code.  But then, the Postfix SMTP client will defer the
-	message.
-
-	How does the delivery_status_filter solve that?
-
-	With "smtp_tls_security_level = secure" and "smtp_mx_session_limit
-	= 2" the Postfix SMTP client will make three connections.
-
-	Simplify cleanup_envelope_test. Write the initial SIZE record
+	Simplify the cleanup_envelope_test. Write the initial SIZE record
 	to /dev/null, don't call cleanup_final(), and  verify the value
 	of state->sendopts.

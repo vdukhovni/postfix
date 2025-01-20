@@ -534,6 +534,14 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     }
 
     /*
+     * Trade confidentiality against availability.
+     */
+#if 0
+    if (var_tls_required_enable)
+	post_mail_fprintf(bounce, "TLS-Required: no");
+#endif
+
+    /*
      * Auto-Submitted header, as per RFC 3834.
      */
     post_mail_fprintf(bounce, "Auto-Submitted: %s", postmaster_copy ?

@@ -2687,6 +2687,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	     /* Already processed early. */ ;
 #ifdef USE_TLS
 	} else if (var_requiretls_enable
+		   && state->tls_context != 0
 		   && (state->ehlo_discard_mask & EHLO_MASK_REQUIRETLS) == 0
 		   && strcasecmp(arg, "REQUIRETLS") == 0) {	/* RFC 8689 */
 	    state->flags |= SMTPD_FLAG_REQUIRETLS;
