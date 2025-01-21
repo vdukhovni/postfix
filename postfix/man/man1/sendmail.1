@@ -162,6 +162,24 @@ notification when delivery is delayed), or \fBsuccess\fR
 \fBnever\fR (don't send any notifications at all).
 
 This feature is available in Postfix 2.3 and later.
+.IP "\fB\-O requiretls"
+When delivering the message with SMTP, the connection must use TLS
+with a verified server certificate, and the remote SMTP server
+must support REQUIRETLS. Try multiple SMTP servers if possible,
+and return the message as undeliverable when these requirements
+were not satisfied with any of the remote SMTP servers that were
+tried. The "requiretls" option value is case\-insensitive.
+
+This feature is available in Postfix 3.10 and later.
+.IP "\fB\-O smtputf8"
+When delivering the message with SMTP, the connection must use
+the SMTPUTF8 extension. Try multiple SMTP servers if possible,
+and return the message as undeliverable when a message contains
+an UTF8 envelope address or message header, but SMTPUTF8 was not
+supported by any of the remote SMTP servers that were tried. The
+"smtputf8" option value is case\-insensitive.
+
+This feature is available in Postfix 3.10 and later.
 .IP "\fB\-n\fR (ignored)"
 Backwards compatibility.
 .IP "\fB\-oA\fIalias_database\fR"
@@ -462,6 +480,11 @@ these directories belong to additional Postfix instances that share
 the Postfix executable files and documentation with the default
 Postfix instance, and that are started, stopped, etc., together
 with the default Postfix instance.
+.PP
+Postfix 3.10 and later:
+.IP "\fBrequiretls_enable (yes)\fR"
+Enable support for the ESMTP verb "REQUIRETLS", defined in RFC
+8689.
 .SH "FILES"
 .na
 .nf

@@ -28914,22 +28914,75 @@ Apologies for any names omitted.
 	bounce/bounce_one_service.c, bounce/bounce_trace_service.c,
 	bounce/bounce_verp_service.c, bounce/bounce_warn_service.c.
 
+	Completed: new Postfix sendmail command option "-O requiretls"
+	to request that deliveries over SMTP use the REQUIRETLS
+	extension. The option value "requiretls" is case-insensitive.
+	Files: sendmail/sendmail.c, global/rec_types.h.
+
+	Cleanup: new Postfix sendmail command option "-O smtputf8"
+	to request that deliveries over SMTP use the SMTPUTF8
+	extension. This reuses logic that was introduced for
+	REQUIRETLS. The option value "smtputf8" is case-insensitive.
+	Files: sendmail/sendmail.c.
+
+	Cleanup: when message delivery requires that a remote SMTP
+	server supports SMTPUTF8, try multiple MX servers before
+	returning a message as undeliverable. This reuses logic
+	that was introduced for REQUIRETLS. File: smtp/smtp_proto.c.
+
 TODO:
 
-	The RFC says that REQUIRETLS applies to LMTP. Dovecot supports
-	TLS, but how common is it for Postfix to verify a Dovecot
-	server certificate? Should we add a 'cheat' setting that does
-	not enforce REQUIRETLS?
+	What REQUIRETLS expectations can we enforce when delivering
+	over a UNIX-domain channel? The SMTP/LMTP client currently
+	implements the same behavior as for TCP, except that
+	opportunistic TLS is converted into 'none'.
 
-	If a message contains "TLS-Required: no", should a bounce message
-	also contain this header?
+	Document how REQUIRETLS works (or does not) with external
+	content filters.
 
-	If the Postfix SMTP server accepted REQUIRETLS, should that stay
-	in effect if, before the message is forwarded, the configuration
-	is changed to "requiretls_enable = no"? Same for "postsuper -r".
+	- REQUIRETLS will work with Milter-based content filters.
 
-	Ditto for "tls_required_enable = no" and "TLS-Required: no".
+	- REQUIRETLS will work with smtpd_proxy_filter as long as
+	  the filter passes the entire Postfix SMTP client's MAIL
+	  FROM command line through the filter to the Postfix SMTP
+	  server after the proxy filter. The Postfix proxy filter
+	  client does not need to see REQUIRETLS (or SMTPUTF8)
+	  announcements in the filter's EHLO response.
 
-	Simplify the cleanup_envelope_test. Write the initial SIZE record
-	to /dev/null, don't call cleanup_final(), and  verify the value
-	of state->sendopts.
+	- REQUIRETLS will work with an SMTP-based after-queue content
+	  filters as long as the filter announces REQUIRETLS in the
+	  EHLO response (this could be 'always', or copied from the
+	  after-filter Postfix SMTP server's EHLO response), and
+	  as long as the filter passes the entire MAIL FROM command
+	  from the before-filter Postfix SMTP client to the
+	  after-filter Postfix SMTP server. Apart from that, the
+	  content filter does not need to 'know' that REQUIRETLS
+	  exists.
+
+	- There currently is no sendmail(1) command-line option to
+	  request REQUIRETLS, and no pipe(8) option to propagate
+	  REQUIRETLS. We could invent a custom long option,
+	  such as '-O RequireTLS' and some way to emit that with
+	  pipe(8). Absent such a command-line option we could use
+	  an environment variable but that will have to be supported
+	  long-term.
+
+	The RFC says that REQUIRETLS applies to LMTP. Dovecot
+	supports TLS, but how common is it for Postfix to verify a
+	Dovecot server certificate? Should we add a 'cheat' setting
+	that does not enforce REQUIRETLS?
+
+	If a message contains "TLS-Required: no", should a bounce
+	message also contain this header?
+
+	If the Postfix SMTP server accepted REQUIRETLS, should that
+	stay in effect if, before the message is forwarded, the
+	configuration is changed to "requiretls_enable = no"? Same
+	for "postsuper -r".
+
+	Ditto for "tls_required_enable = no" and "TLS-Required:
+	no".
+
+	Simplify the cleanup_envelope_test. Write the initial SIZE
+	record to /dev/null, don't call cleanup_final(), and  verify
+	the value of state->sendopts.

@@ -161,3 +161,5 @@ proto  proto socketmap_table
  operations Files cleanup cleanup h cleanup cleanup_message c 
  global ehlo_mask_test c local forward c smtpd smtpd c 
  more alternate MX servers to try Files smtp smtp h 
+ Files sendmail sendmail c global rec_types h 
+ Files sendmail sendmail c 

@@ -665,7 +665,8 @@ int     smtp_helo(SMTP_STATE *state)
      */
     if ((session->features & SMTP_FEATURE_SMTPUTF8) == 0
 	&& DELIVERY_REQUIRES_SMTPUTF8)
-	return (smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
+	return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
+			       DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "5.6.7"),
 			       "SMTPUTF8 is required, "
 			       "but was not offered by host %s",

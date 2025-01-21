@@ -522,8 +522,10 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
 	if (TLS_MUST_MATCH(tls->level) == 0) {
 	    dsb_simple(why, "5.7.10", "Sender requires a TLS server "
 		       "certificate match, but the configured %s TLS "
-		       "security level (%s) does not support that",
-		       var_mail_name, str_tls_level(tls->level));
+		       "security level '%s' does not support that. "
+		       "The last attempted server was %s",
+		       var_mail_name, str_tls_level(tls->level),
+		       STR(iter->host));
 	    return (0);
 	}
     }
