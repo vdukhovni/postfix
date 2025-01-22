@@ -265,7 +265,7 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	}
 	if (type == REC_TYPE_TIME)
 	    time_seen = 1;
-	if (type == REC_TYPE_SIZE && count > 0)
+	if (type == REC_TYPE_SIZE && count > 5)
 	    /* Discard SIZE record not at beginning of segment. */
 	    continue;
 

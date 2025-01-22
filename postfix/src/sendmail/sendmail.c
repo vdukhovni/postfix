@@ -152,26 +152,26 @@
 /*	comma-separated list with one or more of \fBfailure\fR (send
 /*	notification when delivery fails), \fBdelay\fR (send
 /*	notification when delivery is delayed), or \fBsuccess\fR
-/*	(send notification when the message is delivered); or specify
+/*	(send notification after the message is delivered); or specify
 /*	\fBnever\fR (don't send any notifications at all).
 /*
 /*	This feature is available in Postfix 2.3 and later.
 /* .IP "\fB-O requiretls"
-/*	When delivering the message with SMTP, the connection must use TLS
-/*	with a verified server certificate, and the remote SMTP server
-/*	must support REQUIRETLS. Try multiple SMTP servers if possible,
-/*	and return the message as undeliverable when these requirements
-/*	were not satisfied with any of the remote SMTP servers that were
-/*	tried. The "requiretls" option value is case-insensitive.
+/*	When delivering a message to an SMTP or LMTP server, the
+/*	connection must use TLS with a verified server certificate,
+/*	and the server must support REQUIRETLS. Try multiple servers if
+/*	possible, and return the message as undeliverable when these
+/*	requirements were not satisfied with any of the servers that
+/*	were tried. The "requiretls" option value is case-insensitive.
 /*
 /*	This feature is available in Postfix 3.10 and later.
 /* .IP "\fB-O smtputf8"
-/*	When delivering the message with SMTP, the connection must use
-/*	the SMTPUTF8 extension. Try multiple SMTP servers if possible,
-/*	and return the message as undeliverable when a message contains
-/*	an UTF8 envelope address or message header, but SMTPUTF8 was not
-/*	supported by any of the remote SMTP servers that were tried. The
-/*	"smtputf8" option value is case-insensitive.
+/*	When delivering a message to an SMTP or LMTP server, the server
+/*	must support SMTPUTF8. Try multiple servers if possible, and
+/*	return the message as undeliverable when a message contains an
+/*	UTF8 envelope address or message header, but SMTPUTF8 was not
+/*	supported by any of the servers that were tried. The "smtputf8"
+/*	option value is case-insensitive.
 /*
 /*	This feature is available in Postfix 3.10 and later.
 /* .IP "\fB-n\fR (ignored)"
@@ -1291,6 +1291,7 @@ int     main(int argc, char **argv)
 		msg_warn("bad -N option value: '%s' -- ignored", optarg);
 	    break;
 	case 'O':
+	    /* NOOP is used to implement ${requiretls} in pipe(8). */
 	    if (strcasecmp(optarg, "REQUIRETLS") == 0) {
 		sm_sendopts |= SOPT_REQUIRETLS_ESMTP;
 	    if (var_requiretls_enable == 0)
@@ -1298,7 +1299,7 @@ int     main(int argc, char **argv)
 			 "configuration is 'requiretls_enable = no'");
 	    } else if (strcasecmp(optarg, "SMTPUTF8") == 0) {
 		sm_sendopts |= SOPT_SMTPUTF8_REQUESTED;
-	    } else {
+	    } else if (strcasecmp(optarg, "NOOP") != 0) {
 		msg_warn("bad -O option value: '%s' -- ignored", optarg);
 	    }
 	    break;

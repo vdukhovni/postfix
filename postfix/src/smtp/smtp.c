@@ -139,9 +139,11 @@
 /*	Indicates that the delivery is final. This flag affects
 /*	the status reported in "success" DSN (delivery status
 /*	notification) messages, and changes it from "relayed" into
-/*	"delivered".
+/*	"delivered". The flag also suppresses the requirement that
+/*	the remote server announces REQUIRETLS support.
 /* .sp
-/*	This feature is available as of Postfix 3.5.
+/*	This feature is available as of Postfix 3.5;
+/*	REQUIRETLS support was introduced with Postfix 3.10.
 /* .RE
 /* SECURITY
 /* .ad

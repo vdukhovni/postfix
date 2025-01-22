@@ -685,21 +685,31 @@ int     smtp_helo(SMTP_STATE *state)
     }
 
     /*
-     * Require that the server announces REQUIRETLS when the sender required
-     * REQUIRETLS. Return the message as undeliverable only when there are no
-     * more alternative MX hosts.
+     * If delivery of a REQUIRETLS message is not final, require that the
+     * server announces REQUIRETLS when the sender requested REQUIRETLS.
+     * Return the message as undeliverable only when there are no more
+     * alternative MX hosts.
+     * 
+     * If delivery of a REQUIRETLS message is final, we don't need the server to
+     * announce REQUIRETLS support (but we still had to enforce the
+     * requirement that the TLS session has a matched server certificate).
      */
+#define SERVER_MUST_OFFER_REQUIRETLS \
+        ((request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0 \
+        && (smtp_cli_attr.flags & SMTP_CLI_FLAG_FINAL_DELIVERY) == 0)
+
 #ifdef USE_TLS
     if ((state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) != 0
 	&& (session->features & SMTP_FEATURE_REQUIRETLS) == 0
-	&& (request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0)
+	&& SERVER_MUST_OFFER_REQUIRETLS)
 	return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
 			       DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "5.7.30"),
-			       "Sender requires authenticated TLS, but no "
-			       "mail server was found with REQUIRETLS "
-			       "support. The last attempted server "
-			       "was %s", session->namaddr));
+			       "Sender requested delivery wth "
+			       "REQUIRETLS, but no mail server was "
+			       "found with REQUIRETLS support. The "
+			       "last attempted server was %s",
+			       session->namaddr));
 #endif
 
     /*
@@ -1826,10 +1836,10 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    if ((request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0) {
 		if ((session->features & SMTP_FEATURE_REQUIRETLS) != 0)
 		    vstring_strcat(next_command, " REQUIRETLS");
-		else
-		    msg_warn("Can't happen: message requires REQUIRETLS, but "
-			     "host %s did not announce REQUIRETLS support",
-			     session->namaddr);
+		else if (SERVER_MUST_OFFER_REQUIRETLS)
+		    msg_panic("Can't happen: message requires REQUIRETLS, but "
+			      "host %s did not announce REQUIRETLS support",
+			      session->namaddr);
 	    }
 #endif
 

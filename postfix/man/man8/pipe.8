@@ -180,6 +180,7 @@ specify \fB$sender\fR as an argument by itself:
 .nf
     \fIRight\fR: command \-f $sender \-\- $recipient
 .fi
+.IP
 NOTE: DO NOT put quotes around the command, $sender, or $recipient.
 .IP
 This feature is available as of Postfix 2.3.
@@ -293,6 +294,14 @@ expands to as many command\-line arguments as there are recipients.
 .sp
 This information is modified by the \fBhqu\fR flags for quoting
 and case folding.
+.IP \fB${requiretls}\fR
+This feature should be used with content filters that pass
+filtered mail to the Postfix sendmail(1) command. The macro
+expands to the sendmail(1) command\-line option \fB\-Orequiretls\fR
+if the sender requested REQUIRETLS, otherwise it expands to
+\fB\-Onoop\fR.
+.sp
+This feature is available as of Postfix 3.10.
 .IP \fB${sasl_method}\fR
 This macro expands to the name of the SASL authentication
 mechanism in the AUTH command when the Postfix SMTP server
@@ -412,7 +421,7 @@ How much time a Postfix daemon process may take to handle a
 request before it is terminated by a built\-in watchdog timer.
 .IP "\fBdelay_logging_resolution_limit (2)\fR"
 The maximal number of digits after the decimal point when logging
-sub\-second delay values.
+delay values.
 .IP "\fBexport_environment (see 'postconf -d' output)\fR"
 The list of environment variables that a Postfix process will export
 to non\-Postfix processes.

@@ -28914,10 +28914,12 @@ Apologies for any names omitted.
 	bounce/bounce_one_service.c, bounce/bounce_trace_service.c,
 	bounce/bounce_verp_service.c, bounce/bounce_warn_service.c.
 
+20240121
+
 	Completed: new Postfix sendmail command option "-O requiretls"
 	to request that deliveries over SMTP use the REQUIRETLS
 	extension. The option value "requiretls" is case-insensitive.
-	Files: sendmail/sendmail.c, global/rec_types.h.
+	Files: sendmail/sendmail.c, global/rec_types.h, pickup/pickup.c.
 
 	Cleanup: new Postfix sendmail command option "-O smtputf8"
 	to request that deliveries over SMTP use the SMTPUTF8
@@ -28929,6 +28931,26 @@ Apologies for any names omitted.
 	server supports SMTPUTF8, try multiple MX servers before
 	returning a message as undeliverable. This reuses logic
 	that was introduced for REQUIRETLS. File: smtp/smtp_proto.c.
+
+20250122
+
+	Completed: support in the pipe(8) daemon to propagate
+	REQUIRETLS through post-queue content filters that pass
+	filtered mail to the Postfix sendmail(1) command. This
+	involves a new a pipe(8) macro ${requiretls} that expands
+	into a suitable sendmail(1) command-line option. A more
+	secretive alternative would be to pass the info with a
+	REQUIRETLS environment variable, but that would require
+	change to the default import_environment setting. Files:
+	pipe/pipe.c, sendmail/sendmail.c.
+
+	Completed: the SMTP/LMTP client with "flags=X" will not
+	require REQUIRETLS support in the final server. Files:
+	smtp/smtp.c, smtp/smtp_proto.c.
+
+	("sendmail -Orequiretls" support was temporarily broken)
+
+	Completed: simplify the code in cleanup_envelope_test.c.
 
 TODO:
 
@@ -28959,18 +28981,14 @@ TODO:
 	  content filter does not need to 'know' that REQUIRETLS
 	  exists.
 
-	- There currently is no sendmail(1) command-line option to
-	  request REQUIRETLS, and no pipe(8) option to propagate
-	  REQUIRETLS. We could invent a custom long option,
-	  such as '-O RequireTLS' and some way to emit that with
-	  pipe(8). Absent such a command-line option we could use
-	  an environment variable but that will have to be supported
-	  long-term.
+	- REQUIRETLS will work with pipe(8)-filter-sendmail(1)
+	  after-queue content filters, by specifying a pipe(8) macro
+	  ${requiretls} which expands to a suitable sendmail(1)
+	  command-line option.
 
-	The RFC says that REQUIRETLS applies to LMTP. Dovecot
-	supports TLS, but how common is it for Postfix to verify a
-	Dovecot server certificate? Should we add a 'cheat' setting
-	that does not enforce REQUIRETLS?
+	- The Postfix LMTP client when run with the -X option will
+	  not require that the LMTP server announces REQUIRETLS
+	  support.
 
 	If a message contains "TLS-Required: no", should a bounce
 	message also contain this header?
