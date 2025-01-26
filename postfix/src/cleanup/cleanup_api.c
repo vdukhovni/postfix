@@ -81,7 +81,7 @@
 /*	Autodetection: request SMTPUTF8 support if the message
 /*	contains an UTF8 message header, sender, or recipient.
 /* .IP CLEANUP_FLAG_REQUIRETLS
-/*	The sender requested 'authenticated' TLS enforcement.
+/*	The sender requested REQUIRETLS (RFC 8689) enforcement.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8)
 /*	or \fBpostlogd\fR(8).

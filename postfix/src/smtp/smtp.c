@@ -139,11 +139,9 @@
 /*	Indicates that the delivery is final. This flag affects
 /*	the status reported in "success" DSN (delivery status
 /*	notification) messages, and changes it from "relayed" into
-/*	"delivered". The flag also suppresses the requirement that
-/*	the remote server announces REQUIRETLS support.
+/*	"delivered".
 /* .sp
-/*	This feature is available as of Postfix 3.5;
-/*	REQUIRETLS support was introduced with Postfix 3.10.
+/*	This feature is available as of Postfix 3.5.
 /* .RE
 /* SECURITY
 /* .ad
@@ -641,7 +639,8 @@
 /* .IP "\fBsmtp_tls_enable_rpk (no)\fR"
 /*	Request that remote SMTP servers send an RFC7250 raw public key
 /*	instead of an X.509 certificate.
-/* .PP Available in Postfix version 3.10 and later:
+/* .PP
+/*	Available in Postfix version 3.10 and later:
 /* .IP "\fBsmtp_tlsrpt_enable (no)\fR"
 /*	Enable support for RFC 8460 TLSRPT notifications.
 /* .IP "\fBsmtp_tlsrpt_socket_name (empty)\fR"

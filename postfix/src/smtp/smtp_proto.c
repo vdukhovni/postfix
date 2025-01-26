@@ -685,23 +685,15 @@ int     smtp_helo(SMTP_STATE *state)
     }
 
     /*
-     * If delivery of a REQUIRETLS message is not final, require that the
-     * server announces REQUIRETLS when the sender requested REQUIRETLS.
-     * Return the message as undeliverable only when there are no more
-     * alternative MX hosts.
-     * 
-     * If delivery of a REQUIRETLS message is final, we don't need the server to
-     * announce REQUIRETLS support (but we still had to enforce the
-     * requirement that the TLS session has a matched server certificate).
+     * Require that the server announces REQUIRETLS when the sender requested
+     * REQUIRETLS. Return the message as undeliverable only when there are no
+     * more alternative MX hosts.
      */
-#define SERVER_MUST_OFFER_REQUIRETLS \
-        ((request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0 \
-        && (smtp_cli_attr.flags & SMTP_CLI_FLAG_FINAL_DELIVERY) == 0)
-
 #ifdef USE_TLS
-    if ((state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) != 0
-	&& (session->features & SMTP_FEATURE_REQUIRETLS) == 0
-	&& SERVER_MUST_OFFER_REQUIRETLS)
+    if (var_requiretls_enable
+	&& (request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0
+	&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) != 0
+	&& (session->features & SMTP_FEATURE_REQUIRETLS) == 0)
 	return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
 			       DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "5.7.30"),
@@ -1227,7 +1219,8 @@ static int smtp_start_tls(SMTP_STATE *state)
 	     * REQUIRETLS. Return the message as undeliverable only when
 	     * there are no more alternative MX hosts.
 	     */
-	    if ((state->request->sendopts & SOPT_REQUIRETLS_ESMTP)) {
+	    if (var_requiretls_enable
+		&& (state->request->sendopts & SOPT_REQUIRETLS_ESMTP)) {
 		return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
 				       DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "5.7.10"),
@@ -1833,10 +1826,11 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     * REQUIRETLS and the sender requested REQUIRETLS.
 	     */
 #ifdef USE_TLS
-	    if ((request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0) {
+	    if (var_requiretls_enable
+		&& (request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0) {
 		if ((session->features & SMTP_FEATURE_REQUIRETLS) != 0)
 		    vstring_strcat(next_command, " REQUIRETLS");
-		else if (SERVER_MUST_OFFER_REQUIRETLS)
+		else if ((request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0)
 		    msg_panic("Can't happen: message requires REQUIRETLS, but "
 			      "host %s did not announce REQUIRETLS support",
 			      session->namaddr);

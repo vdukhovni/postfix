@@ -28952,7 +28952,27 @@ Apologies for any names omitted.
 
 	Completed: simplify the code in cleanup_envelope_test.c.
 
+	Completed: REQUIRETLS support can be disabled in the Postfix
+	SMTP/LMTP client with "{ -o requiretls_enable = no }". This
+	is recommended for a perimeter MTA that hands off mail to
+	internal servers that may not support REQUIRETLS.
+
+	Completed: simplified cleanup_envelope_test implementation.
+
 TODO:
+
+	Add a log-only mode for REQUIRETLS, so that one can find out
+	how much would break. Maybe make it a map, so that different
+	sites can have different enforcement levels.
+
+	If we support log-only REQUIRETLS, then don't panic ("can't
+	happen") when the code reaches a point that can't be reached
+	when REQUIRETLS is actually enforced.
+
+	Encapsulate the sendopts-to-cleanup-flags mapping.
+
+	How do we make it work with multi-instance SMTP-based content
+	filters?  How is this different from the single-instance case?
 
 	What REQUIRETLS expectations can we enforce when delivering
 	over a UNIX-domain channel? The SMTP/LMTP client currently
@@ -28990,17 +29010,13 @@ TODO:
 	  not require that the LMTP server announces REQUIRETLS
 	  support.
 
+	- Perimeter MTA configuration: disable REQUIRETLS on the
+	  inbound relay transport when internal infrastructure may
+	  not be suitable for REQUIRETLS enforcement.
+
 	If a message contains "TLS-Required: no", should a bounce
 	message also contain this header?
 
-	If the Postfix SMTP server accepted REQUIRETLS, should that
-	stay in effect if, before the message is forwarded, the
-	configuration is changed to "requiretls_enable = no"? Same
-	for "postsuper -r".
-
 	Ditto for "tls_required_enable = no" and "TLS-Required:
-	no".
-
-	Simplify the cleanup_envelope_test. Write the initial SIZE
-	record to /dev/null, don't call cleanup_final(), and  verify
-	the value of state->sendopts.
+	no". The header is provided by the sender, and enforcement
+	is up the Postfix SMTP client.
