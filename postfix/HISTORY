@@ -28878,3 +28878,13 @@ Apologies for any names omitted.
 
 	Cleanup: memory leaks in test code. Files: util/hex_code.c,
 	util/argv.c.
+
+20250127
+
+	Cleanup: broken non-TLS builds because of a missing #ifdef
+	USE_TLS/#endif around a new function get_effective_tls_level().
+	File: smtp/smtp_connect.c.
+
+	Cleanup: a few remaining pre-ANSI C function definitions
+	in the lowest-level Postfix code. Files: util/binhash.c,
+	util/close_on_exec.c, util/non_blocking.c.

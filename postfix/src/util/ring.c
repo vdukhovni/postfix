@@ -76,17 +76,14 @@
 
 /* ring_init - initialize ring head */
 
-void    ring_init(ring)
-RING   *ring;
+void    ring_init(RING *ring)
 {
     ring->pred = ring->succ = ring;
 }
 
 /* ring_append - insert entry after ring head */
 
-void    ring_append(ring, entry)
-RING   *ring;
-RING   *entry;
+void    ring_append(RING *ring, RING *entry)
 {
     entry->succ = ring->succ;
     entry->pred = ring;
@@ -96,9 +93,7 @@ RING   *entry;
 
 /* ring_prepend - insert new entry before ring head */
 
-void    ring_prepend(ring, entry)
-RING   *ring;
-RING   *entry;
+void    ring_prepend(RING *ring, RING *entry)
 {
     entry->pred = ring->pred;
     entry->succ = ring;
@@ -108,8 +103,7 @@ RING   *entry;
 
 /* ring_detach - remove entry from ring */
 
-void    ring_detach(entry)
-RING   *entry;
+void    ring_detach(RING *entry)
 {
     RING   *succ = entry->succ;
     RING   *pred = entry->pred;

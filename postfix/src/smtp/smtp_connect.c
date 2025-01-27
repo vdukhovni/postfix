@@ -498,6 +498,8 @@ static void smtp_cache_policy(SMTP_STATE *state, const char *dest)
     }
 }
 
+#ifdef USE_TLS
+
 /* smtp_get_effective_tls_level - get the effective TLS security level */
 
 static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
@@ -542,6 +544,8 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
      */
     return (1);
 }
+
+#endif
 
 /* smtp_connect_local - connect to local server */
 

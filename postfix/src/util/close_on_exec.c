@@ -46,9 +46,7 @@
 
 /* close_on_exec - set/clear close-on-exec flag */
 
-int     close_on_exec(fd, on)
-int     fd;
-int     on;
+int     close_on_exec(int fd, int on)
 {
     int     flags;
 
