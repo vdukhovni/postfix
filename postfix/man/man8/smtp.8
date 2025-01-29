@@ -687,6 +687,12 @@ information to report).
 .IP "\fBrequiretls_enable (yes)\fR"
 Enable support for the ESMTP verb "REQUIRETLS", defined in RFC
 8689.
+.IP "\fBsmtp_enforce_requiretls (empty)\fR"
+An optional list of next\-hop destinations that the Postfix
+SMTP/LMTP client will enforce REQUIRETLS for, when a message was
+received with the REQUIRETLS option: the next\-hop server must offer
+a matching TLS server certificate, and the server must announce
+REQUIRETLS support).
 .SH "OBSOLETE TLS CONTROLS"
 .na
 .nf

@@ -52,9 +52,7 @@
 
 /* non_blocking - set/clear non-blocking flag */
 
-int     non_blocking(fd, on)
-int     fd;
-int     on;
+int     non_blocking(int fd, int on)
 {
     int     flags;
 

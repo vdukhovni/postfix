@@ -106,6 +106,7 @@
 #include <mail_addr.h>
 #include <valid_hostname.h>
 #include <sendopts.h>
+#include <domain_list.h>
 
 /* DNS library. */
 
@@ -521,13 +522,24 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
     else if (var_requiretls_enable
 	     && (state->request->sendopts & SOPT_REQUIRETLS_ESMTP)) {
 	if (TLS_MUST_MATCH(tls->level) == 0) {
-	    dsb_simple(why, "5.7.10", "Sender requires a TLS server "
-		       "certificate match, but the configured %s TLS "
-		       "security level '%s' does not support that. "
-		       "The last attempted server was %s",
-		       var_mail_name, str_tls_level(tls->level),
-		       STR(iter->host));
-	    return (0);
+	    if (state->enforce_requiretls) {
+		dsb_simple(why, "5.7.10", "REQUIRETLS Failure: Sender "
+			   "requires a TLS server certificate match, "
+			   "but the configured %s TLS security level '%s' "
+			   "does not support that. The last attempted "
+			   "server was %s",
+			   var_mail_name, str_tls_level(tls->level),
+			   STR(iter->host));
+		return (0);
+	    } else {
+		msg_info("REQUIRETLS Debug: Sender requires a TLS server "
+			 "certificate match, but the configured %s TLS "
+			 "security level '%s' does not support that. "
+			 "The last attempted server was %s",
+			 var_mail_name, str_tls_level(tls->level),
+			 STR(iter->host));
+		return (0);
+	    }
 	}
     }
 
@@ -575,6 +587,18 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
     smtp_cache_policy(state, path);
     if (state->misc_flags & SMTP_MISC_FLAG_CONN_CACHE_MASK)
 	SET_SCACHE_REQUEST_NEXTHOP(state, path);
+
+    /*
+     * REQUIRETLS enforcement is based on the UNIX-domain pathname, without
+     * the "unix:" prefix.
+     */
+#ifdef USE_TLS
+    state->enforce_requiretls =
+	(var_requiretls_enable
+	 && smtp_enforce_requiretls
+	 && (state->request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0
+	 && domain_list_match(smtp_enforce_requiretls, path));
+#endif
 
     /*
      * Here we ensure that the iter->addr member refers to a copy of the
@@ -979,6 +1003,18 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	else
 	    state->tlsrpt = 0;
 #endif						/* USE_TLSRPT */
+
+	/*
+	 * REQUIRETLS enforcement is based on the next-hop domain name
+	 * without the service or port.
+	 */
+#ifdef USE_TLS
+	state->enforce_requiretls =
+	    (var_requiretls_enable
+	     && smtp_enforce_requiretls
+	     && (state->request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0
+	     && domain_list_match(smtp_enforce_requiretls, domain));
+#endif
 
 	/*
 	 * Resolve an SMTP or LMTP server. Skip MX or SRV lookups when a

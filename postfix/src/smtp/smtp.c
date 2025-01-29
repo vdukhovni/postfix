@@ -653,6 +653,12 @@
 /* .IP "\fBrequiretls_enable (yes)\fR"
 /*	Enable support for the ESMTP verb "REQUIRETLS", defined in RFC
 /*	8689.
+/* .IP "\fBsmtp_enforce_requiretls (empty)\fR"
+/*	An optional list of next-hop destinations that the Postfix
+/*	SMTP/LMTP client will enforce REQUIRETLS for, when a message was
+/*	received with the REQUIRETLS option: the next-hop server must offer
+/*	a matching TLS server certificate, and the server must announce
+/*	REQUIRETLS support).
 /* OBSOLETE TLS CONTROLS
 /* .ad
 /* .fi
@@ -1020,6 +1026,8 @@
 #include <maps.h>
 #include <ext_prop.h>
 #include <hfrom_format.h>
+#include <domain_list.h>
+#include <match_parent_style.h>
 
 /* DNS library. */
 
@@ -1164,6 +1172,7 @@ bool    var_allow_srv_fallback;
 bool    var_smtp_tlsrpt_enable;
 char   *var_smtp_tlsrpt_sockname;
 bool    var_smtp_tlsrpt_skip_reused_hs;
+char   *var_smtp_enforce_requiretls;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -1191,6 +1200,7 @@ HBC_CHECKS *smtp_body_checks;		/* limited body checks */
 SMTP_CLI_ATTR smtp_cli_attr;		/* parsed command-line */
 int     smtp_hfrom_format;		/* postmaster notifications */
 STRING_LIST *smtp_use_srv_lookup;
+DOMAIN_LIST *smtp_enforce_requiretls;
 
 #ifdef USE_TLS
 
@@ -1692,6 +1702,23 @@ static void pre_init(char *unused_name, char **unused_argv)
     if (*var_smtp_dns_re_filter)
 	dns_rr_filter_compile(VAR_LMTP_SMTP(DNS_RE_FILTER),
 			      var_smtp_dns_re_filter);
+
+    /*
+     * REQUIRETLS enforcement uses a match list. No MATCH_FLAG_RETURN after
+     * table lookup error, because fail-open is not a good option. We would
+     * have to defer all delivery requests anyway. Disable magic syntax for
+     * LMTP, because the syntax would interfere with UNIX-domain socket
+     * pathnames.
+     */
+    if (var_requiretls_enable && *var_smtp_enforce_requiretls) {
+	int     flags = smtp_mode ? 0 : (MATCH_FLAG_NOFILE | MATCH_FLAG_NODICT);
+	const char *param_name = VAR_LMTP_SMTP(ENFORCE_REQUIRETLS);
+
+	smtp_enforce_requiretls =
+	    string_list_init(param_name,
+			     match_parent_style(param_name) | flags,
+			     var_smtp_enforce_requiretls);
+    }
 }
 
 /* pre_accept - see if tables have changed */

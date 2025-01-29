@@ -38,8 +38,10 @@ struct MATCH_LIST {
 #define MATCH_FLAG_NONE		0
 #define MATCH_FLAG_PARENT	(1<<0)
 #define MATCH_FLAG_RETURN	(1<<1)
-#define MATCH_FLAG_ALL		(MATCH_FLAG_PARENT | MATCH_FLAG_RETURN)
-
+#define MATCH_FLAG_NOFILE	(1<<2)
+#define MATCH_FLAG_NODICT	(1<<3)
+#define MATCH_FLAG_ALL		(MATCH_FLAG_PARENT | MATCH_FLAG_RETURN | \
+				MATCH_FLAG_NOFILE | MATCH_FLAG_NODICT)
 extern MATCH_LIST *match_list_init(const char *, int, const char *, int,...);
 extern int match_list_match(MATCH_LIST *,...);
 extern void match_list_free(MATCH_LIST *);

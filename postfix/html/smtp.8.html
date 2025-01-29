@@ -765,6 +765,13 @@ SMTP(8)                                                                SMTP(8)
               Enable  support  for the ESMTP verb "REQUIRETLS", defined in <a href="https://tools.ietf.org/html/rfc8689">RFC</a>
               <a href="https://tools.ietf.org/html/rfc8689">8689</a>.
 
+       <b><a href="postconf.5.html#smtp_enforce_requiretls">smtp_enforce_requiretls</a> (empty)</b>
+              An optional list  of  next-hop  destinations  that  the  Postfix
+              SMTP/LMTP client will enforce REQUIRETLS for, when a message was
+              received with the REQUIRETLS option: the  next-hop  server  must
+              offer  a  matching  TLS  server certificate, and the server must
+              announce REQUIRETLS support).
+
 <b><a name="obsolete_tls_controls">OBSOLETE TLS CONTROLS</a></b>
        The following configuration parameters  exist  for  compatibility  with
        Postfix  versions  before  2.3.  Support for these will be removed in a

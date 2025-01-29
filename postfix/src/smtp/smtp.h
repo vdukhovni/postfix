@@ -32,6 +32,7 @@
 #include <tok822.h>
 #include <dsn_buf.h>
 #include <header_body_checks.h>
+#include <domain_list.h>
 
  /*
   * Postfix TLS library.
@@ -200,6 +201,7 @@ typedef struct SMTP_STATE {
 #ifdef USE_TLSRPT
     struct TLSRPT_WRAPPER *tlsrpt;
 #endif
+    int enforce_requiretls;		/* from smtp_enforce_requiretls */
 #endif
 
     /*
@@ -359,6 +361,7 @@ extern STRING_LIST *smtp_use_srv_lookup;/* services with SRV record lookup */
 
 extern TLS_APPL_STATE *smtp_tls_ctx;	/* client-side TLS engine */
 extern int smtp_tls_insecure_mx_policy;	/* DANE post insecure MX? */
+extern DOMAIN_LIST *smtp_enforce_requiretls;	/* parsed list */
 
 #endif
 

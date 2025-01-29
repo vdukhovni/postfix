@@ -693,15 +693,24 @@ int     smtp_helo(SMTP_STATE *state)
     if (var_requiretls_enable
 	&& (request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0
 	&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) != 0
-	&& (session->features & SMTP_FEATURE_REQUIRETLS) == 0)
-	return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
-			       DSN_BY_LOCAL_MTA,
-			       SMTP_RESP_FAKE(&fake, "5.7.30"),
-			       "Sender requested delivery wth "
-			       "REQUIRETLS, but no mail server was "
-			       "found with REQUIRETLS support. The "
-			       "last attempted server was %s",
-			       session->namaddr));
+	&& (session->features & SMTP_FEATURE_REQUIRETLS) == 0) {
+	if (state->enforce_requiretls) {
+	    return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
+				   DSN_BY_LOCAL_MTA,
+				   SMTP_RESP_FAKE(&fake, "5.7.30"),
+				   "REQUIRETLS Failure: Sender requested "
+				   "delivery wth REQUIRETLS, but no mail "
+				   "server was found with REQUIRETLS "
+				   "support. The last attempted server "
+				   "was %s", session->namaddr));
+	} else {
+	    msg_info("REQUIRETLS Debug: Sender requested delivery wth "
+		     "REQUIRETLS, but no mail server was found with "
+		     "REQUIRETLS support. The last attempted server was "
+		     "%s", session->namaddr);
+	}
+
+    }
 #endif
 
     /*
@@ -1221,14 +1230,22 @@ static int smtp_start_tls(SMTP_STATE *state)
 	     */
 	    if (var_requiretls_enable
 		&& (state->request->sendopts & SOPT_REQUIRETLS_ESMTP)) {
-		return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
-				       DSN_BY_LOCAL_MTA,
-				       SMTP_RESP_FAKE(&fake, "5.7.10"),
-				       "Sender requires a TLS server "
-				       "certificate match, but no matching "
-				       "mail server was found. The last "
-				       "attempted server was %s",
-				       session->namaddr));
+		if (state->enforce_requiretls) {
+		    return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
+					   DSN_BY_LOCAL_MTA,
+					   SMTP_RESP_FAKE(&fake, "5.7.10"),
+					   "REQUIRETLS Failure: Sender "
+					   "requested a TLS server "
+					   "certificate match, but no "
+					   "match was found. The last "
+					   "attempted server was %s",
+					   session->namaddr));
+		} else {
+		    msg_info("REQUIRETLS Debug: Sender requested a TLS "
+			     "server certificate match, but no match was "
+			     "found. The last attempted server was %s",
+			     session->namaddr);
+		}
 	    }
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
@@ -1830,8 +1847,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		&& (request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0) {
 		if ((session->features & SMTP_FEATURE_REQUIRETLS) != 0)
 		    vstring_strcat(next_command, " REQUIRETLS");
-		else if ((request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0)
-		    msg_panic("Can't happen: message requires REQUIRETLS, but "
+		else if (state->enforce_requiretls)
+		    msg_panic("Can't happen: must enforce REQUIRETLS, but "
 			      "host %s did not announce REQUIRETLS support",
 			      session->namaddr);
 	    }

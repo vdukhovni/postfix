@@ -346,8 +346,7 @@ void    binhash_walk(BINHASH *table, void (*action) (BINHASH_INFO *, void *),
 
 /* binhash_list - list all table members */
 
-BINHASH_INFO **binhash_list(table)
-BINHASH *table;
+BINHASH_INFO **binhash_list(BINHASH *table)
 {
     BINHASH_INFO **list;
     BINHASH_INFO *member;

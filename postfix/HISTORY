@@ -28959,20 +28959,29 @@ Apologies for any names omitted.
 
 	Completed: simplified cleanup_envelope_test implementation.
 
-TODO:
+20250127
 
-	Add a log-only mode for REQUIRETLS, so that one can find out
-	how much would break. Maybe make it a map, so that different
-	sites can have different enforcement levels.
+	Cleanup: broken non-TLS builds because of a missing #ifdef
+	USE_TLS/#endif around a new function get_effective_tls_level().
+	File: smtp/smtp_connect.c.
 
-	If we support log-only REQUIRETLS, then don't panic ("can't
-	happen") when the code reaches a point that can't be reached
-	when REQUIRETLS is actually enforced.
+	Cleanup: a few remaining pre-ANSI C function definitions
+	in the lowest-level Postfix code. Files: util/binhash.c,
+	util/close_on_exec.c, util/non_blocking.c, util/ring.c.
+
+20250129
+
+	Completed: smtp_enforce_requiretls list of next-hop domains
+	(or UNIX-domain pathnames) that are ready for REQUIRETLS
+	enforcement. This may help with gradual adoption.
+
+TODO
 
 	Encapsulate the sendopts-to-cleanup-flags mapping.
 
 	How do we make it work with multi-instance SMTP-based content
-	filters?  How is this different from the single-instance case?
+	filters?  How is this different from the single-instance
+	case?
 
 	What REQUIRETLS expectations can we enforce when delivering
 	over a UNIX-domain channel? The SMTP/LMTP client currently
