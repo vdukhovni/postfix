@@ -312,7 +312,14 @@ TLSRPT_WRAPPER *trw_create(const char *rpt_socket_name,
 			           const char *rpt_policy_string,
 			           int skip_reused_hs)
 {
+    const char myname[] = "trw_create";
     TLSRPT_WRAPPER *trw;
+
+    if (msg_verbose > 1)
+	msg_info("%s(rpt_socket_name=%s, rpt_policy_domain=%s, "
+		 "rpt_policy_string=%s, skip_reused_hs=%d)",
+		 myname, rpt_socket_name, rpt_policy_domain,
+		 rpt_policy_string, skip_reused_hs);
 
     /*
      * memset() is not portable for pointer etc. types.
@@ -338,6 +345,10 @@ TLSRPT_WRAPPER *trw_create(const char *rpt_socket_name,
 
 void    trw_free(TLSRPT_WRAPPER *trw)
 {
+    if (msg_verbose > 1)
+	msg_info("trw_free: rpt_socket_name=%s, rpt_policy_domain=%s, ...",
+		 trw->rpt_socket_name, trw->rpt_policy_domain);
+
     /* Destroy fields set with trw_create(). */
     myfree(trw->rpt_socket_name);
     myfree(trw->rpt_policy_domain);
@@ -362,6 +373,19 @@ void    trw_set_tls_policy(TLSRPT_WRAPPER *trw,
 			           const char *tls_policy_domain,
 			           const char *const * mx_host_patterns)
 {
+    const char myname[] = "trw_set_tls_policy";
+
+#define STR_OR_NULL(s)	((s) ? (s) : "(Null)")
+#define PSTR_OR_NULL(p)	((p) ? STR_OR_NULL(*p) : "(Null)")
+
+    if (msg_verbose > 1)
+	msg_info("%s(tlsrpt_policy_type_t=%d, tls_policy_strings=%s..., "
+		 "tls_policy_domain=%s, mx_host_patterns=%s...)",
+		 myname, tls_policy_type,
+		 PSTR_OR_NULL(tls_policy_strings),
+		 STR_OR_NULL(tls_policy_domain),
+		 PSTR_OR_NULL(mx_host_patterns));
+
     trw->tls_policy_type = tls_policy_type;
     MYFREE_IF_SET_AND_COPY(trw->tls_policy_domain, tls_policy_domain);
     if (tls_policy_type == TLSRPT_NO_POLICY_FOUND) {
@@ -385,6 +409,11 @@ void    trw_set_tcp_connection(TLSRPT_WRAPPER *trw,
 {
     const char myname[] = "trw_set_tcp_connection";
 
+    if (msg_verbose > 1 && (snd_mta_addr || rcv_mta_name || rcv_mta_addr))
+	msg_info("%s(snd_mta_addr=%s, rcv_mta_name=%s, rcv_mta_addr=%s)",
+		 myname, STR_OR_NULL(snd_mta_addr),
+		 STR_OR_NULL(rcv_mta_name), STR_OR_NULL(rcv_mta_addr));
+
     /*
      * Sanity check: usage errors are not a show stopper.
      */
@@ -404,6 +433,9 @@ void    trw_set_tcp_connection(TLSRPT_WRAPPER *trw,
 void    trw_set_ehlo_resp(TLSRPT_WRAPPER *trw, const char *rcv_mta_ehlo)
 {
     const char myname[] = "trw_set_ehlo_resp";
+
+    if (msg_verbose > 1 && rcv_mta_ehlo)
+	msg_info("%s(rcv_mta_ehlo=%s)", myname, rcv_mta_ehlo);
 
     /*
      * Sanity check: usage errors are not a show stopper.
@@ -499,6 +531,11 @@ int     trw_report_failure(TLSRPT_WRAPPER *trw,
     struct tlsrpt_connection_t *con;
     int     res;
 
+    if (msg_verbose > 1)
+	msg_info("%s(failure_type=%d, additional_info=%s, failure_reason=%s)",
+		 myname, failure_type, STR_OR_NULL(additional_info),
+		 STR_OR_NULL(failure_reason));
+
     /*
      * Sanity check: usage errors are not a show stopper.
      */
@@ -578,6 +615,9 @@ int     trw_report_success(TLSRPT_WRAPPER *trw)
     const char myname[] = "trw_report_success";
     struct tlsrpt_connection_t *con;
     int     res;
+
+    if (msg_verbose > 1)
+	msg_info("trw_report_success");
 
     /*
      * Sanity check: usage errors are not a show stopper.

@@ -30,14 +30,12 @@ successful and failed SMTP over TLS connections to domain example.com, and to
 report those summaries via email to the specified address. Instead of mailto:,
 a policy may specify an https: destination.
 
-The high-level diagram shows how Postfix reports summaries to domains that
-publish a TLSRPT policy.
+The high-level diagram below shows how TLS handshake success and failure events
+from Postfix are collected and processed into daily summary reports.
 
-    Postfix SMTP and     TLSRPT client      TLSRPT summary      Email or HTTP
-       TLS client    -->    library     -->    generator    -->    delivery
-        engines
-
-When Postfix TLSRPT support is enabled (with "smtp_tlsrpt_enable = yes"):
+     Postfix SMTP and      TLSRPT client     TLSRPT collector,    Email or HTTP
+    TLS client engines -> library (linked ->   fetcher, and    ->   delivery
+                           into Postfix)     summary generator
 
   * The Postfix SMTP and TLS client engines will generate a "success" or
     "failure" event for each TLS handshake,
@@ -45,9 +43,13 @@ When Postfix TLSRPT support is enabled (with "smtp_tlsrpt_enable = yes"):
   * They will pass those events to an in-process TLSRPT client library that
     sends data over a local socket to
 
-  * A TLSRPT report generator that produces daily summary reports.
+  * A local TLSRPT collector that runs on each Postfix machine. A TLSRPT
+    fetcher gathers information from individual collectors, and a central
+    TLSRPT report generator produces daily summary reports.
 
-The TLSRPT client library and report generator are maintained by sys4.
+The TLSRPT client library, and the infrastructure to collect, fetch, and report
+TLSRPT information are maintained by sys4 at https://github.com/sys4/libtlsrpt
+and https://github.com/sys4/tlsrpt-reporter, respectively.
 
 The Postfix implementation supports both DANE (Postfix built-in) and MTA-STS
 (through an smtp_tls_policy_maps plug-in).
@@ -64,33 +66,35 @@ These instructions assume that you build Postfix from source code as described
 in the INSTALL document. Some modification may be required if you build Postfix
 from a vendor-specific source package.
 
-The Postfix TLSRPT client builds on a TLSRPT client library whose source code
-can be obtained from:
+The Postfix TLSRPT client builds on a TLSRPT library which may be available as
+a built package (rpm, deb, etc.), or which you can build from source code from:
 
-    https://github.com/sys4/tlsrpt
+    https://github.com/sys4/libtlsrpt
 
 The library is typically installed as a header file in /usr/local/include/
 tlsrpt.h and an object library in /usr/local/lib/libtlsrpt.a or /usr/local/lib/
 libtlsrpt.so. The actual pathnames will depend on OS platform conventions.
 
 In order to build Postfix with TLSRPT support, you will need to add compiler
-options -DUSE_TLSRPT (to build with TLSRPT support), and -I (with the directory
+options -DUSE_TLSRPT (to build with TLSRPT support) and -I (with the directory
 containing the tlsrpt.h header file), and you will need to add linker options
 to link with the TLSRPT client library, for example:
 
     make -f Makefile.init makefiles \
       "CCARGS=-DUSE_TLSRPT -I/usr/local/include" \
-      "AUXLIBS=-L/usr/local/lib -ltlsrpt"
+      "AUXLIBS=-L/usr/local/lib -Wl,-rpath,/usr/local/lib -ltlsrpt"
+
+(On Solaris systems you may need to use "-Wl,-R" instead of "-Wl,-rpath".)
 
 Then, just run 'make'.
 
     Note: if your build command line already has CCARGS or AUXLIBS settings,
     then simply append the above settings to the existing CCARGS or AUXLIBS
-    values.
+    values:
 
-        make -f Makefile.init makefiles \
-          "CCARGS=existing settings... -DUSE_TLSRPT -I/usr/local/include" \
-          "AUXLIBS=existing settings... -L/usr/local/lib -ltlsrpt"
+    make -f Makefile.init makefiles \
+      "CCARGS=... -DUSE_TLSRPT -I/usr/local/include" \
+      "AUXLIBS=... -L/usr/local/lib -Wl,-rpath,/usr/local/lib -ltlsrpt"
 
 TTuurrnniinngg oonn TTLLSSRRPPTT
 
@@ -98,20 +102,29 @@ After installing Postfix TLSRPT support, you can enable TLSRPT support in
 main.cf like this:
 
     smtp_tlsrpt_enable = yes
-    smtp_tlsrpt_socket_name = /path/to/socket
+    smtp_tlsrpt_socket_name = path/to/socket
 
-The smtp_tlsrpt_socket_name parameter specifies an absolute pathname, or a
-pathname that is relative to $queue_directory.
+The smtp_tlsrpt_socket_name parameter specifies either an absolute pathname, or
+a pathname that is relative to $queue_directory.
 
-    Note: the recommended socket location is still to be determined. A good
-    socket location would be under the Postfix queue directory, for example:
+Notes:
+
+  * The recommended socket location is still to be determined. A good socket
+    location would be under the Postfix queue directory, for example:
     "smtp_tlsrpt_socket_name = run/tlsrpt/tlsrpt.sock". The advantage of using
     a relative name is that it will work equally well whether or not Postfix
     chroot is turned on.
 
-Do not specify a location under a directory such as private or public that is
-already used by Postfix programs. Only Postfix programs should create sockets
-there.
+  * Regardless of whether Postfix chroot is enabled, the TLSRPT receiver
+    (tlsrpt_collectd) will need to be configured with the socket's absolute
+    pathname.
+
+  * Do not specify a TLSRPT socket location under a Postfix socket directory
+    such as private or public. Only Postfix programs should create sockets
+    there.
+
+For details on how to run the TLSRPT collection and reporting infrastructure,
+see the documentation at https://github.com/sys4/tlsrpt-reporter.
 
 TTLLSSRRPPTT SSttaattuuss llooggggiinngg
 
@@ -176,16 +189,17 @@ Notes:
 DDeelliivveerriinngg TTLLSSRRPPTT ssuummmmaarriieess vviiaa eemmaaiill
 
 RFC 8460 Section 3 specifies that an MTA must not enforce TLS security when
-sending failure reports via email. However, Postfix currently has no way to
-request that TLS enforcement will be disabled when submitting an email message.
+sending failure reports via email.
 
 Options:
 
-  * Specify the "TTLLSS--RReeqquuiirreedd:: nnoo" message header, defined in RFC 8689, to
-    reduce the TLS security level to "mmaayy" (that is, do not verify remote SMTP
-    server certificates, and fall back to plaintext if TLS is unavailable).
+  * In an email report, specify the "TTLLSS--RReeqquuiirreedd:: nnoo" message header, defined
+    in RFC 8689, to reduce the Postfix SMTP client TLS security level to "mmaayy"
+    (that is, do not verify remote SMTP server certificates, and fall back to
+    plaintext if TLS is unavailable).
 
-    This feature is available in Postfix 3.10 and later.
+    This feature is available in Postfix 3.10 and later. If your outbound MTAs
+    run an older version, you can use one of the options described below.
 
   * Do nothing. When TLS security enforcement is required but fails, a TLSRPT
     summary message will be delayed until the problem is addressed, or until
@@ -193,10 +207,11 @@ Options:
     real-time monitoring service; it takes on average 12 hours before a failure
     is reported through TLSRPT.
 
-  * Exclude the sender of TLSRPT summaries from TLS security enforcement.
-    Implement the configuration below on outbound MTA instances (replace
-    noreply-smtp-tls-reporting@example.com with your actual report generator's
-    sender address):
+  * On outbound MTAs that don't support the "TTLLSS--RReeqquuiirreedd:: nnoo" header feature
+    (such as Postfix 3.9 and earlier), disable TLS security enforcement for the
+    sender of TLSRPT summaries. Implement the configuration below on outbound
+    MTA instances (replace noreply-smtp-tls-reporting@example.com with your
+    actual report generator's sender address):
 
     /etc/postfix/main.cf:
         # Limitation: this setting is overruled with transport_maps.

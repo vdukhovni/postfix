@@ -28887,4 +28887,14 @@ Apologies for any names omitted.
 
 	Cleanup: a few remaining pre-ANSI C function definitions
 	in the lowest-level Postfix code. Files: util/binhash.c,
-	util/close_on_exec.c, util/non_blocking.c.
+	util/close_on_exec.c, util/non_blocking.c, util/ring.c.
+
+20250130
+
+	Updated the TLSRPT_README introduction, github info, and
+	build instructions. File: proto/TLSRPT_README.html.
+
+20250131
+
+	Debug: verbose logging for the tlsrpt_wrapper functions.
+	File: tls/tlsrpt_wrapper.c.
