@@ -202,7 +202,7 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
      * definition.
      */
     if (msg_verbose)
-	msg_info("cleanup flags = %s", cleanup_strflags(flags));
+	msg_info("client flags = %s", cleanup_strflags(flags));
     if ((state->flags = flags) & CLEANUP_FLAG_BOUNCE) {
 	state->err_mask = CLEANUP_STAT_MASK_INCOMPLETE;
     } else {
@@ -211,6 +211,8 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
     if (state->flags & CLEANUP_FLAG_SMTPUTF8)
 	state->sendopts |= SMTPUTF8_FLAG_REQUESTED;
     /* TODO(wietse) REQUIRETLS. */
+    if (msg_verbose)
+	msg_info("server flags = %s", cleanup_strflags(state->flags));
 }
 
 /* cleanup_flush - finish queue file */

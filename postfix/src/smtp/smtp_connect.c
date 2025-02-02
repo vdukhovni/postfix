@@ -534,7 +534,7 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
      * the message contains a "TLS-Required: no" header, limit the level to
      * TLS_LEV_MAY.
      */
-    else if (tls->level > TLS_LEV_NONE
+    else if (var_tls_required_enable && tls->level > TLS_LEV_NONE
 	     && (state->request->sendopts & SOPT_REQUIRETLS_HEADER)) {
 	tls->level = TLS_LEV_MAY;
     }

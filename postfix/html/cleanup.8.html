@@ -70,6 +70,7 @@ CLEANUP(8)                                                          CLEANUP(8)
        <a href="https://tools.ietf.org/html/rfc3463">RFC 3463</a> (Enhanced Status Codes)
        <a href="https://tools.ietf.org/html/rfc3464">RFC 3464</a> (Delivery status notifications)
        <a href="https://tools.ietf.org/html/rfc5322">RFC 5322</a> (Internet Message Format)
+       <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a> (TLS-Required: message header)
 
 <b><a name="diagnostics">DIAGNOSTICS</a></b>
        Problems and transactions are logged to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.
@@ -461,29 +462,36 @@ CLEANUP(8)                                                          CLEANUP(8)
               IDNA2008, when converting UTF-8 domain names to/from  the  ASCII
               form that is used for DNS lookups.
 
+<b><a name="tls_support">TLS SUPPORT</a></b>
+       Available in Postfix version 3.10 and later:
+
+       <b><a href="postconf.5.html#tls_required_enable">tls_required_enable</a> (yes)</b>
+              Enable  support  for  the  "TLS-Required:  no"  message  header,
+              defined in <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a>.
+
 <b><a name="miscellaneous_controls">MISCELLANEOUS CONTROLS</a></b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
+              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
               figuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How much time a Postfix daemon process  may  take  to  handle  a
+              How  much  time  a  Postfix  daemon process may take to handle a
               request before it is terminated by a built-in watchdog timer.
 
        <b><a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> (2)</b>
-              The  maximal  number of digits after the decimal point when log-
+              The maximal number of digits after the decimal point  when  log-
               ging delay values.
 
        <b><a href="postconf.5.html#delay_warning_time">delay_warning_time</a> (0h)</b>
-              The time after which the sender receives a copy of  the  message
+              The  time  after which the sender receives a copy of the message
               headers of mail that is still queued.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
-              The  time  limit  for  sending  or receiving information over an
+              The time limit for sending  or  receiving  information  over  an
               internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The maximum amount of time that an idle Postfix  daemon  process
+              The  maximum  amount of time that an idle Postfix daemon process
               waits for an incoming connection before terminating voluntarily.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
@@ -494,7 +502,7 @@ CLEANUP(8)                                                          CLEANUP(8)
               The internet hostname of this mail system.
 
        <b><a href="postconf.5.html#myorigin">myorigin</a> ($<a href="postconf.5.html#myhostname">myhostname</a>)</b>
-              The  domain  name that locally-posted mail appears to come from,
+              The domain name that locally-posted mail appears to  come  from,
               and that locally posted mail is delivered to.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
@@ -507,21 +515,21 @@ CLEANUP(8)                                                          CLEANUP(8)
               The location of the Postfix top-level queue directory.
 
        <b><a href="postconf.5.html#soft_bounce">soft_bounce</a> (no)</b>
-              Safety net to keep mail queued that would otherwise be  returned
+              Safety  net to keep mail queued that would otherwise be returned
               to the sender.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              A  prefix  that  is  prepended  to  the  process  name in syslog
+              A prefix that  is  prepended  to  the  process  name  in  syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Available in Postfix version 2.1 and later:
 
        <b><a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> (yes)</b>
-              Enable support for  the  original  recipient  address  after  an
-              address  is  rewritten  to a different address (for example with
+              Enable  support  for  the  original  recipient  address after an
+              address is rewritten to a different address  (for  example  with
               aliasing or with canonical mapping).
 
        Available in Postfix 3.3 and later:
@@ -532,14 +540,14 @@ CLEANUP(8)                                                          CLEANUP(8)
        Available in Postfix 3.5 and later:
 
        <b><a href="postconf.5.html#info_log_address_format">info_log_address_format</a> (external)</b>
-              The email address form that will be used  in  non-debug  logging
+              The  email  address  form that will be used in non-debug logging
               (info, warning, etc.).
 
        Available in Postfix 3.9 and later:
 
        <b><a href="postconf.5.html#force_mime_input_conversion">force_mime_input_conversion</a> (no)</b>
-              Convert  body content that claims to be 8-bit into quoted-print-
-              able, before <a href="postconf.5.html#header_checks">header_checks</a>,  <a href="postconf.5.html#body_checks">body_checks</a>,  Milters,  and  before
+              Convert body content that claims to be 8-bit into  quoted-print-
+              able,  before  <a href="postconf.5.html#header_checks">header_checks</a>,  <a href="postconf.5.html#body_checks">body_checks</a>,  Milters, and before
               after-queue content filters.
 
 <b><a name="files">FILES</a></b>

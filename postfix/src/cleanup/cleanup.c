@@ -70,6 +70,7 @@
 /*	RFC 3463 (Enhanced Status Codes)
 /*	RFC 3464 (Delivery status notifications)
 /*	RFC 5322 (Internet Message Format)
+/*	RFC 8689 (TLS-Required: message header)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8)
 /*	or \fBpostlogd\fR(8).
@@ -390,6 +391,13 @@
 /*	Enable 'transitional' compatibility between IDNA2003 and IDNA2008,
 /*	when converting UTF-8 domain names to/from the ASCII form that is
 /*	used for DNS lookups.
+/* TLS SUPPORT
+/* .ad
+/* .fi
+/*	Available in Postfix version 3.10 and later:
+/* .IP "\fBtls_required_enable (yes)\fR"
+/*	Enable support for the "TLS-Required: no" message header, defined
+/*	in RFC 8689.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi

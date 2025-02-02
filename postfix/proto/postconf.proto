@@ -19473,3 +19473,16 @@ skip the full name. </p>
 including the netstring encapsulation. </p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
+
+%PARAM tls_required_enable yes
+
+<p> Enable support for the "TLS-Required: no" message header, defined
+in RFC 8689. By adding this header to a message, a sender requests
+no enforcement of TLS policy. This limits the Postfix SMTP client
+TLS security level to "may", that is, do not verify remote SMTP
+server certificates, and fall back to plaintext if TLS is unavailable.
+If a message contains a "TLS-Required: no" header, then Postfix
+will add that header to a delivery status notification for that
+message. </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>

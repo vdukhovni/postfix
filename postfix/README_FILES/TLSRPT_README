@@ -30,8 +30,8 @@ successful and failed SMTP over TLS connections to domain example.com, and to
 report those summaries via email to the specified address. Instead of mailto:,
 a policy may specify an https: destination.
 
-The high-level diagram below shows how TLS handshake success and failure events
-from Postfix are collected and processed into daily summary reports.
+The diagram below shows how Postfix TLS handshake success and failure events
+are collected and processed into daily summary reports.
 
      Postfix SMTP and      TLSRPT client     TLSRPT collector,    Email or HTTP
     TLS client engines -> library (linked ->   fetcher, and    ->   delivery

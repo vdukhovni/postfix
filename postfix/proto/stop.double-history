@@ -159,3 +159,4 @@ proto  proto socketmap_table
  qmgr qmgr_deliver c qmgr qmgr_message c qmqpd qmqpd c 
  smtp smtp_proto c smtpd smtpd c verify verify c 
  operations Files cleanup cleanup h cleanup cleanup_message c 
+ proto postconf proto pipe pipe c 

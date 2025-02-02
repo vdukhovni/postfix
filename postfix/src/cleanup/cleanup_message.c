@@ -653,7 +653,7 @@ static void cleanup_header_callback(void *context, int header_class,
 	    if (state->hop_count == 1)
 		argv_add(state->auto_hdrs, vstring_str(header_buf), ARGV_END);
 	}
-	if (hdr_opts->type == HDR_TLS_REQUIRED) {
+	if (hdr_opts->type == HDR_TLS_REQUIRED && var_tls_required_enable) {
 	    char   *cp = vstring_str(header_buf) + strlen(hdr_opts->name) + 1;
 
 	    while (ISSPACE(*cp))

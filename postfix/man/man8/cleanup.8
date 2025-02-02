@@ -78,6 +78,7 @@ RFC 2822 (Internet Message Format)
 RFC 3463 (Enhanced Status Codes)
 RFC 3464 (Delivery status notifications)
 RFC 5322 (Internet Message Format)
+RFC 8689 (TLS\-Required: message header)
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -422,6 +423,15 @@ Available in Postfix version 3.2 and later:
 Enable 'transitional' compatibility between IDNA2003 and IDNA2008,
 when converting UTF\-8 domain names to/from the ASCII form that is
 used for DNS lookups.
+.SH "TLS SUPPORT"
+.na
+.nf
+.ad
+.fi
+Available in Postfix version 3.10 and later:
+.IP "\fBtls_required_enable (yes)\fR"
+Enable support for the "TLS\-Required: no" message header, defined
+in RFC 8689.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf

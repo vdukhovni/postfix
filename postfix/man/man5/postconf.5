@@ -14331,6 +14331,17 @@ Note: on OpenBSD systems specify dev:/dev/arandom when dev:/dev/urandom
 gives timeout errors.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH tls_required_enable (default: yes)
+Enable support for the "TLS\-Required: no" message header, defined
+in RFC 8689. By adding this header to a message, a sender requests
+no enforcement of TLS policy. This limits the Postfix SMTP client
+TLS security level to "may", that is, do not verify remote SMTP
+server certificates, and fall back to plaintext if TLS is unavailable.
+If a message contains a "TLS\-Required: no" header, then Postfix
+will add that header to a delivery status notification for that
+message.
+.PP
+This feature is available in Postfix >= 3.10.
 .SH tls_server_sni_maps (default: empty)
 Optional lookup tables that map names received from remote SMTP
 clients via the TLS Server Name Indication (SNI) extension to the

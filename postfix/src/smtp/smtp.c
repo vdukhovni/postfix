@@ -172,6 +172,7 @@
 /*	RFC 6531 (Internationalized SMTP)
 /*	RFC 6533 (Internationalized Delivery Status Notifications)
 /*	RFC 7672 (SMTP security via opportunistic DANE TLS)
+/*	RFC 8689 (TLS-Required message header)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8)
 /*	or \fBpostlogd\fR(8).
@@ -638,7 +639,8 @@
 /* .IP "\fBsmtp_tls_enable_rpk (no)\fR"
 /*	Request that remote SMTP servers send an RFC7250 raw public key
 /*	instead of an X.509 certificate.
-/* .PP Available in Postfix version 3.10 and later:
+/* .PP
+/*	Available in Postfix version 3.10 and later:
 /* .IP "\fBsmtp_tlsrpt_enable (no)\fR"
 /*	Enable support for RFC 8460 TLSRPT notifications.
 /* .IP "\fBsmtp_tlsrpt_socket_name (empty)\fR"
@@ -648,6 +650,9 @@
 /*	Do not report the TLSRPT status for TLS protocol handshakes
 /*	that reuse a previously-negotiated TLS session (there is no new
 /*	information to report).
+/* .IP "\fBtls_required_enable (yes)\fR"
+/*	Enable support for the "TLS-Required: no" message header, defined
+/*	in RFC 8689.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi

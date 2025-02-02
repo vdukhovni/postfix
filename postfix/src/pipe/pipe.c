@@ -170,7 +170,8 @@
 /* .nf
 /*	    \fIRight\fR: command -f $sender -- $recipient
 /* .fi
-/* NOTE: DO NOT put quotes around the command, $sender, or $recipient.
+/* .IP
+/*	NOTE: DO NOT put quotes around the command, $sender, or $recipient.
 /* .IP
 /*	This feature is available as of Postfix 2.3.
 /* .IP "\fBsize\fR=\fIsize_limit\fR (optional)"
@@ -390,7 +391,7 @@
 /*	request before it is terminated by a built-in watchdog timer.
 /* .IP "\fBdelay_logging_resolution_limit (2)\fR"
 /*	The maximal number of digits after the decimal point when logging
-/*	sub-second delay values.
+/*	delay values.
 /* .IP "\fBexport_environment (see 'postconf -d' output)\fR"
 /*	The list of environment variables that a Postfix process will export
 /*	to non-Postfix processes.

@@ -5,7 +5,6 @@
 #include <sys_defs.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>			/* ssscanf() */
 #include <ctype.h>
 
  /*
@@ -20,7 +19,6 @@
  /*
   * Global library.
   */
-#include <been_here.h>
 #include <record.h>
 #include <rec_type.h>
 #include <cleanup_user.h>
@@ -135,10 +133,8 @@ static int overrides_size_fields(const TEST_CASE *tp)
      * Process the test SIZE record payload, clear some bits from the
      * sendopts field, and write an all-zeroes preliminary SIZE record.
      */
-    VSTRING *output_stream_buf = vstring_alloc(100);
-
-    if ((state->dst = vstream_memopen(output_stream_buf, O_WRONLY)) == 0) {
-	msg_warn("vstream_memopen(output_stream_buf, O_WRONLY): %m");
+    if ((state->dst = vstream_fopen("/dev/null", O_WRONLY, 0)) == 0) {
+	msg_warn("vstream_fopen(\"/dev/null\", O_WRONLY, 0): %m");
 	return (FAIL);
     }
     cleanup_envelope(state, REC_TYPE_SIZE, vstring_str(input_buf),
@@ -151,94 +147,50 @@ static int overrides_size_fields(const TEST_CASE *tp)
     }
     vstring_free(input_buf);
     input_buf = 0;
-
-    /*
-     * Overwrite the SIZE record with an updated version that includes the
-     * modified sendopts field.
-     */
-    cleanup_final(state);
-    if (state->errs != CLEANUP_STAT_OK) {
-	msg_warn("cleanup_final: got: '%s', want: '%s'",
-		 cleanup_strerror(state->errs),
-		 cleanup_strerror(CLEANUP_STAT_OK));
-	return (FAIL);
-    }
     (void) vstream_fclose(state->dst);
     state->dst = 0;
 
     /*
-     * Read the final SIZE record content. This normally happens in the queue
-     * manager, and in the pickup daemon after a message is re-queued.
+     * Compare the updated state against the expected content. We expect that
+     * the fields for xtra_offset, data_offset, rcpt_count, qmgr_opts, and
+     * cont_length, are consistent with the saved CLEANUP_STATE, and we
+     * expect to see a specific value for the sendopts field that was
+     * assigned in cleanup_envelope().
      */
-    VSTREAM *fp;
-
-    if ((fp = vstream_memopen(output_stream_buf, O_RDONLY)) == 0) {
-	msg_warn("vstream_memopen(output_stream_buf, O_RDONLY): %m");
+    if (state->xtra_offset != saved_state.xtra_offset) {
+	msg_warn("state->xtra_offset: got %ld, want: %ld",
+		 (long) state->xtra_offset, (long) saved_state.xtra_offset);
 	return (FAIL);
     }
-    VSTRING *got_size_payload = vstring_alloc(VSTRING_LEN(output_stream_buf));
-    int     got_rec_type;
-
-    if ((got_rec_type = rec_get(fp, got_size_payload, 0)) != REC_TYPE_SIZE) {
-	msg_warn("rec_get: got: %s, want: %s",
-		 rec_type_name(got_rec_type), rec_type_name(REC_TYPE_SIZE));
+    if (state->data_offset != saved_state.data_offset) {
+	msg_warn("state->data_offset: got %ld, want: %ld",
+		 (long) state->data_offset, (long) saved_state.data_offset);
 	return (FAIL);
     }
-    (void) vstream_fclose(fp);
-    vstring_free(output_stream_buf);
-
-    /*
-     * Compare the stored SIZE record content against the expected content.
-     * We expect that the fields for data_size, data_offset, rcpt_count,
-     * qmgr_opts, and cont_length, are consistent with the saved
-     * CLEANUP_STATE, and we expect to see a specific value for the sendopts
-     * field that was made by cleanup_envelope().
-     */
-    int     got_conv;
-    long    data_size, data_offset, cont_length;
-    int     rcpt_count, qmgr_opts, sendopts;
-
-    if ((got_conv = sscanf(vstring_str(got_size_payload), "%ld %ld %d %d %ld %d",
-			   &data_size, &data_offset, &rcpt_count, &qmgr_opts,
-			   &cont_length, &sendopts)) != 6) {
-	msg_warn("sscanf SIZE record fields: got: %d, want 6", got_conv);
+    if (state->rcpt_count != saved_state.rcpt_count) {
+	msg_warn("state->rcpt_count: got: %ld, want: %ld",
+		 (long) state->rcpt_count, (long) saved_state.rcpt_count);
 	return (FAIL);
     }
-    if (data_size != saved_state.xtra_offset - saved_state.data_offset) {
-	msg_warn("SIZE.data_size: got %ld, want: %ld", (long) data_size,
-		 (long) (saved_state.xtra_offset - saved_state.data_offset));
+    if (state->qmgr_opts != saved_state.qmgr_opts) {
+	msg_warn("state=>qmgr_opts: got: %d, want: %d",
+		 state->qmgr_opts, saved_state.qmgr_opts);
 	return (FAIL);
     }
-    if (data_offset != saved_state.data_offset) {
-	msg_warn("SIZE.data_offset: got %ld, want: %ld", (long) data_offset,
-		 (long) saved_state.data_offset);
+    if (state->cont_length != saved_state.cont_length) {
+	msg_warn("state->cont_length: got %ld, want: %ld",
+		 (long) state->cont_length, (long) saved_state.cont_length);
 	return (FAIL);
     }
-    if (rcpt_count != saved_state.rcpt_count) {
-	msg_warn("SIZE.rcpt_count: got: %d, want: %d", rcpt_count,
-		 (int) saved_state.rcpt_count);
-	return (FAIL);
-    }
-    if (qmgr_opts != saved_state.qmgr_opts) {
-	msg_warn("SIZE.qmgr_opts: got: %d, want: %d", qmgr_opts,
-		 saved_state.qmgr_opts);
-	return (FAIL);
-    }
-    if (cont_length != saved_state.cont_length) {
-	msg_warn("SIZE.cont_length: got %ld, want: %ld", (long) cont_length,
-		 (long) saved_state.cont_length);
-	return (FAIL);
-    }
-    if (sendopts != (SOPT_FLAG_ALL & ~SOPT_FLAG_DERIVED)) {
-	msg_warn("SIZE.sendopts: got: 0x%x, want: 0x%x",
-		 sendopts, SOPT_FLAG_ALL & ~SOPT_FLAG_DERIVED);
+    if (state->sendopts != (SOPT_FLAG_ALL & ~SOPT_FLAG_DERIVED)) {
+	msg_warn("state->sendopts: got: 0x%x, want: 0x%x",
+		 state->sendopts, SOPT_FLAG_ALL & ~SOPT_FLAG_DERIVED);
 	return (FAIL);
     }
 
     /*
      * Cleanup.
      */
-    vstring_free(got_size_payload);
     cleanup_state_free(state);
     return (PASS);
 }

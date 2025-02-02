@@ -28866,7 +28866,7 @@ Apologies for any names omitted.
 
 	Feature: support for the RFC 8689 "TLS-Required: no" message
 	header. This limits the Postfix SMTP client TLS security
-	level to "smtp_tls_security = may", which does not authenticate
+	level to "smtp_tls_security = may", which does not verify
 	remote SMTP server TLS certificates, and which allows falling
 	back to plaintext. This is needed for the delivery of
 	messages such as TLSRPT summaries, which should be sent
@@ -28898,3 +28898,24 @@ Apologies for any names omitted.
 
 	Debug: verbose logging for the tlsrpt_wrapper functions.
 	File: tls/tlsrpt_wrapper.c.
+
+20250201
+
+	Cleanup: simplified the code in cleanup_envelope_test.c.
+
+	Feature: configuration parameter "tls_required_enable
+	(default: yes) to control support for the "TLS-Required:
+	no" message header. Files: global/mail_params.[hc],
+	bounce/bounce.c, bounce/bounce_notify_util.c, cleanup/cleanup.c,
+	cleanup/cleanup_message.c, smtp/smtp.c, smtp/smtp_connect.c,
+	mantools/postlink.
+
+20250202
+
+	Documentation: edited for clarity. Files: pipe/pipe.c,
+	proto/postconf.proto.
+
+	Debug logging: cleanup/cleanup_api.c. tls/tlsrpt_wrapper.c.
+	proto/TLSRPT_README.html.
+
+	Postfix 3.10 code freeze.
