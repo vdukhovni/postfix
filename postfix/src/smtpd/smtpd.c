@@ -1174,6 +1174,11 @@
 /* .IP "\fBsmtpd_reject_footer_maps (empty)\fR"
 /*	Lookup tables, indexed by the complete Postfix SMTP server 4xx or
 /*	5xx response, with reject footer templates.
+/* .PP
+/*	Available in Postfix 3.10 and later:
+/* .IP "\fBsmtpd_hide_client_session (no)\fR"
+/*	Do not include SMTP client session information in the Postfix
+/*	SMTP server's Received: message header.
 /* SEE ALSO
 /*	anvil(8), connection/rate limiting
 /*	cleanup(8), message canonicalization
@@ -1558,6 +1563,7 @@ char   *var_smtpd_forbid_bare_lf_excl;
 int     var_smtpd_forbid_bare_lf_code;
 static int bare_lf_mask;
 static NAMADR_LIST *bare_lf_excl;
+bool    var_smtpd_hide_client_session;
 
  /*
   * Silly little macros.
@@ -3434,10 +3440,13 @@ static void common_pre_message_handling(SMTPD_STATE *state,
 {
     SMTPD_PROXY *proxy = state->proxy;
     char  **cpp;
-    const char *rfc3848_sess;
-    const char *rfc3848_auth;
+    const char *rfc3848_sess = "";
+    const char *rfc3848_auth = "";
+    const char *with_verb = " with ";
     const char *with_protocol = (state->flags & SMTPD_FLAG_SMTPUTF8) ?
     "UTF8SMTP" : state->protocol;
+    const char *id_verb = state->cleanup ? " id " : "";
+    const char *id_value = state->cleanup ? state->queue_id : "";
 
 #ifdef USE_TLS
     VSTRING *peer_CN;
@@ -3483,152 +3492,153 @@ static void common_pre_message_handling(SMTPD_STATE *state,
      * intermediate proxy.
      */
     if (!proxy || state->xforward.flags == 0) {
-	out_fprintf(out_stream, REC_TYPE_NORM,
-		    "Received: from %s (%s [%s])",
-		    state->helo_name ? state->helo_name : state->name,
-		    state->name, state->rfc_addr);
+	if (!var_smtpd_hide_client_session) {
+	    out_fprintf(out_stream, REC_TYPE_NORM,
+			"Received: from %s (%s [%s])",
+			state->helo_name ? state->helo_name : state->name,
+			state->name, state->rfc_addr);
 
 #define VSTRING_STRDUP(s) vstring_strcpy(vstring_alloc(strlen(s) + 1), (s))
 
 #ifdef USE_TLS
-	if (var_smtpd_tls_received_header && state->tls_context) {
-	    int     cont = 0;
+	    if (var_smtpd_tls_received_header && state->tls_context) {
+		int     cont = 0;
 
-	    vstring_sprintf(state->buffer,
-			    "\t(using %s with cipher %s (%d/%d bits)",
-			    state->tls_context->protocol,
-			    state->tls_context->cipher_name,
-			    state->tls_context->cipher_usebits,
-			    state->tls_context->cipher_algbits);
-	    if (state->tls_context->kex_name && *state->tls_context->kex_name) {
-		out_record(out_stream, REC_TYPE_NORM, STR(state->buffer),
-			   LEN(state->buffer));
-		vstring_sprintf(state->buffer, "\t key-exchange %s",
-				state->tls_context->kex_name);
-		if (state->tls_context->kex_curve
-		    && *state->tls_context->kex_curve)
-		    vstring_sprintf_append(state->buffer, " (%s)",
-					   state->tls_context->kex_curve);
-		else if (state->tls_context->kex_bits > 0)
-		    vstring_sprintf_append(state->buffer, " (%d bits)",
-					   state->tls_context->kex_bits);
-		cont = 1;
-	    }
-	    if (state->tls_context->srvr_sig_name
-		&& *state->tls_context->srvr_sig_name) {
-		if (cont) {
-		    vstring_sprintf_append(state->buffer, " server-signature %s",
-					 state->tls_context->srvr_sig_name);
-		} else {
+		vstring_sprintf(state->buffer,
+				"\t(using %s with cipher %s (%d/%d bits)",
+				state->tls_context->protocol,
+				state->tls_context->cipher_name,
+				state->tls_context->cipher_usebits,
+				state->tls_context->cipher_algbits);
+		if (state->tls_context->kex_name && *state->tls_context->kex_name) {
 		    out_record(out_stream, REC_TYPE_NORM, STR(state->buffer),
 			       LEN(state->buffer));
-		    vstring_sprintf(state->buffer, "\t server-signature %s",
-				    state->tls_context->srvr_sig_name);
+		    vstring_sprintf(state->buffer, "\t key-exchange %s",
+				    state->tls_context->kex_name);
+		    if (state->tls_context->kex_curve
+			&& *state->tls_context->kex_curve)
+			vstring_sprintf_append(state->buffer, " (%s)",
+					     state->tls_context->kex_curve);
+		    else if (state->tls_context->kex_bits > 0)
+			vstring_sprintf_append(state->buffer, " (%d bits)",
+					       state->tls_context->kex_bits);
+		    cont = 1;
 		}
-		if (state->tls_context->srvr_sig_curve
-		    && *state->tls_context->srvr_sig_curve)
-		    vstring_sprintf_append(state->buffer, " (%s%s)",
+		if (state->tls_context->srvr_sig_name
+		    && *state->tls_context->srvr_sig_name) {
+		    if (cont) {
+			vstring_sprintf_append(state->buffer, " server-signature %s",
+					 state->tls_context->srvr_sig_name);
+		    } else {
+			out_record(out_stream, REC_TYPE_NORM, STR(state->buffer),
+				   LEN(state->buffer));
+			vstring_sprintf(state->buffer, "\t server-signature %s",
+					state->tls_context->srvr_sig_name);
+		    }
+		    if (state->tls_context->srvr_sig_curve
+			&& *state->tls_context->srvr_sig_curve)
+			vstring_sprintf_append(state->buffer, " (%s%s)",
 					 state->tls_context->srvr_sig_curve,
-					   state->tls_context->stoc_rpk ?
-					   " raw public key" : "");
-		else if (state->tls_context->srvr_sig_bits > 0)
-		    vstring_sprintf_append(state->buffer, " (%d bit%s)",
-					   state->tls_context->srvr_sig_bits,
-					   state->tls_context->stoc_rpk ?
-					   " raw public key" : "s");
-		if (state->tls_context->srvr_sig_dgst
-		    && *state->tls_context->srvr_sig_dgst)
-		    vstring_sprintf_append(state->buffer, " server-digest %s",
+					       state->tls_context->stoc_rpk ?
+					       " raw public key" : "");
+		    else if (state->tls_context->srvr_sig_bits > 0)
+			vstring_sprintf_append(state->buffer, " (%d bit%s)",
+					  state->tls_context->srvr_sig_bits,
+					       state->tls_context->stoc_rpk ?
+					       " raw public key" : "s");
+		    if (state->tls_context->srvr_sig_dgst
+			&& *state->tls_context->srvr_sig_dgst)
+			vstring_sprintf_append(state->buffer, " server-digest %s",
 					 state->tls_context->srvr_sig_dgst);
-	    }
-	    if (state->tls_context->clnt_sig_name
-		&& *state->tls_context->clnt_sig_name) {
-		out_record(out_stream, REC_TYPE_NORM, STR(state->buffer),
-			   LEN(state->buffer));
-		vstring_sprintf(state->buffer, "\t client-signature %s",
-				state->tls_context->clnt_sig_name);
-		if (state->tls_context->clnt_sig_curve
-		    && *state->tls_context->clnt_sig_curve)
-		    vstring_sprintf_append(state->buffer, " (%s%s)",
+		}
+		if (state->tls_context->clnt_sig_name
+		    && *state->tls_context->clnt_sig_name) {
+		    out_record(out_stream, REC_TYPE_NORM, STR(state->buffer),
+			       LEN(state->buffer));
+		    vstring_sprintf(state->buffer, "\t client-signature %s",
+				    state->tls_context->clnt_sig_name);
+		    if (state->tls_context->clnt_sig_curve
+			&& *state->tls_context->clnt_sig_curve)
+			vstring_sprintf_append(state->buffer, " (%s%s)",
 					 state->tls_context->clnt_sig_curve,
-					   state->tls_context->ctos_rpk ?
-					   " raw public key" : "");
-		else if (state->tls_context->clnt_sig_bits > 0)
-		    vstring_sprintf_append(state->buffer, " (%d bit%s)",
-					   state->tls_context->clnt_sig_bits,
-					   state->tls_context->ctos_rpk ?
-					   " raw public key" : "s");
-		if (state->tls_context->clnt_sig_dgst
-		    && *state->tls_context->clnt_sig_dgst)
-		    vstring_sprintf_append(state->buffer, " client-digest %s",
+					       state->tls_context->ctos_rpk ?
+					       " raw public key" : "");
+		    else if (state->tls_context->clnt_sig_bits > 0)
+			vstring_sprintf_append(state->buffer, " (%d bit%s)",
+					  state->tls_context->clnt_sig_bits,
+					       state->tls_context->ctos_rpk ?
+					       " raw public key" : "s");
+		    if (state->tls_context->clnt_sig_dgst
+			&& *state->tls_context->clnt_sig_dgst)
+			vstring_sprintf_append(state->buffer, " client-digest %s",
 					 state->tls_context->clnt_sig_dgst);
-	    }
-	    out_fprintf(out_stream, REC_TYPE_NORM, "%s)", STR(state->buffer));
-	    if (TLS_CERT_IS_PRESENT(state->tls_context)) {
-		peer_CN = VSTRING_STRDUP(state->tls_context->peer_CN);
-		comment_sanitize(peer_CN);
-		issuer_CN = VSTRING_STRDUP(state->tls_context->issuer_CN ?
+		}
+		out_fprintf(out_stream, REC_TYPE_NORM, "%s)", STR(state->buffer));
+		if (TLS_CERT_IS_PRESENT(state->tls_context)) {
+		    peer_CN = VSTRING_STRDUP(state->tls_context->peer_CN);
+		    comment_sanitize(peer_CN);
+		    issuer_CN = VSTRING_STRDUP(state->tls_context->issuer_CN ?
 					state->tls_context->issuer_CN : "");
-		comment_sanitize(issuer_CN);
-		out_fprintf(out_stream, REC_TYPE_NORM,
-			    "\t(Client CN \"%s\", Issuer \"%s\" (%s))",
-			    STR(peer_CN), STR(issuer_CN),
-			    TLS_CERT_IS_TRUSTED(state->tls_context) ?
-			    "verified OK" : "not verified");
-		vstring_free(issuer_CN);
-		vstring_free(peer_CN);
-	    } else if (TLS_RPK_IS_PRESENT(state->tls_context)) {
-		out_fprintf(out_stream, REC_TYPE_NORM,
-			    "\t(Client RPK %s digest %s)",
-			    var_smtpd_tls_fpt_dgst,
-			    state->tls_context->peer_pkey_fprint);
-	    } else if (var_smtpd_tls_ask_ccert)
-		out_fprintf(out_stream, REC_TYPE_NORM,
-			    "\t(Client did not present a certificate)");
-	    else
-		out_fprintf(out_stream, REC_TYPE_NORM,
-			    "\t(No client certificate requested)");
-	}
-	/* RFC 3848 is defined for ESMTP only. */
-	if (state->tls_context != 0
-	    && strcmp(state->protocol, MAIL_PROTO_ESMTP) == 0)
-	    rfc3848_sess = "S";
-	else
+		    comment_sanitize(issuer_CN);
+		    out_fprintf(out_stream, REC_TYPE_NORM,
+				"\t(Client CN \"%s\", Issuer \"%s\" (%s))",
+				STR(peer_CN), STR(issuer_CN),
+				TLS_CERT_IS_TRUSTED(state->tls_context) ?
+				"verified OK" : "not verified");
+		    vstring_free(issuer_CN);
+		    vstring_free(peer_CN);
+		} else if (TLS_RPK_IS_PRESENT(state->tls_context)) {
+		    out_fprintf(out_stream, REC_TYPE_NORM,
+				"\t(Client RPK %s digest %s)",
+				var_smtpd_tls_fpt_dgst,
+				state->tls_context->peer_pkey_fprint);
+		} else if (var_smtpd_tls_ask_ccert)
+		    out_fprintf(out_stream, REC_TYPE_NORM,
+				"\t(Client did not present a certificate)");
+		else
+		    out_fprintf(out_stream, REC_TYPE_NORM,
+				"\t(No client certificate requested)");
+	    }
+	    /* RFC 3848 is defined for ESMTP only. */
+	    if (state->tls_context != 0
+		&& strcmp(state->protocol, MAIL_PROTO_ESMTP) == 0)
+		rfc3848_sess = "S";
 #endif
-	    rfc3848_sess = "";
 #ifdef USE_SASL_AUTH
-	if (var_smtpd_sasl_auth_hdr && state->sasl_username) {
-	    username = VSTRING_STRDUP(state->sasl_username);
-	    comment_sanitize(username);
-	    out_fprintf(out_stream, REC_TYPE_NORM,
-			"\t(Authenticated sender: %s)", STR(username));
-	    vstring_free(username);
-	}
-	/* RFC 3848 is defined for ESMTP only. */
-	if (state->sasl_username
-	    && strcmp(state->protocol, MAIL_PROTO_ESMTP) == 0)
-	    rfc3848_auth = "A";
-	else
+	    if (var_smtpd_sasl_auth_hdr && state->sasl_username) {
+		username = VSTRING_STRDUP(state->sasl_username);
+		comment_sanitize(username);
+		out_fprintf(out_stream, REC_TYPE_NORM,
+			    "\t(Authenticated sender: %s)", STR(username));
+		vstring_free(username);
+	    }
+	    /* RFC 3848 is defined for ESMTP only. */
+	    if (state->sasl_username
+		&& strcmp(state->protocol, MAIL_PROTO_ESMTP) == 0)
+		rfc3848_auth = "A";
 #endif
-	    rfc3848_auth = "";
+	} else {
+	    with_verb = "";
+	    with_protocol = "";
+	}
 	if (state->rcpt_count == 1 && state->recipient) {
 	    out_fprintf(out_stream, REC_TYPE_NORM,
-			state->cleanup ? "\tby %s (%s) with %s%s%s id %s" :
-			"\tby %s (%s) with %s%s%s",
+			"%sby %s (%s)%s%s%s%s%s%s",
+			var_smtpd_hide_client_session ? "Received: " : "\t",
 			var_myhostname, var_mail_name,
-			with_protocol, rfc3848_sess,
-			rfc3848_auth, state->queue_id);
+			with_verb, with_protocol, rfc3848_sess,
+			rfc3848_auth, id_verb, id_value);
 	    quote_822_local(state->buffer, state->recipient);
 	    out_fprintf(out_stream, REC_TYPE_NORM,
 			"\tfor <%s>; %s", STR(state->buffer),
 			mail_date(state->arrival_time.tv_sec));
 	} else {
 	    out_fprintf(out_stream, REC_TYPE_NORM,
-			state->cleanup ? "\tby %s (%s) with %s%s%s id %s;" :
-			"\tby %s (%s) with %s%s%s;",
+			"%sby %s (%s)%s%s%s%s%s%s;",
+			var_smtpd_hide_client_session ? "Received: " : "\t",
 			var_myhostname, var_mail_name,
-			with_protocol, rfc3848_sess,
-			rfc3848_auth, state->queue_id);
+			with_verb, with_protocol, rfc3848_sess,
+			rfc3848_auth, id_verb, id_value);
 	    out_fprintf(out_stream, REC_TYPE_NORM,
 			"\t%s", mail_date(state->arrival_time.tv_sec));
 	}
@@ -6790,6 +6800,7 @@ int     main(int argc, char **argv)
     static const CONFIG_NBOOL_TABLE nbool_table[] = {
 	VAR_RELAY_BEFORE_RCPT_CHECKS, DEF_RELAY_BEFORE_RCPT_CHECKS, &var_relay_before_rcpt_checks,
 	VAR_SMTPD_REQ_DEADLINE, DEF_SMTPD_REQ_DEADLINE, &var_smtpd_req_deadline,
+	VAR_SMTPD_HIDE_CLIENT_SESSION, DEF_SMTPD_HIDE_CLIENT_SESSION, &var_smtpd_hide_client_session,
 	0,
     };
     static const CONFIG_STR_TABLE str_table[] = {

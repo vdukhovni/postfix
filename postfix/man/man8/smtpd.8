@@ -1232,6 +1232,11 @@ Available in Postfix 3.4 and later:
 .IP "\fBsmtpd_reject_footer_maps (empty)\fR"
 Lookup tables, indexed by the complete Postfix SMTP server 4xx or
 5xx response, with reject footer templates.
+.PP
+Available in Postfix 3.10 and later:
+.IP "\fBsmtpd_hide_client_session (no)\fR"
+Do not include SMTP client session information in the Postfix
+SMTP server's Received: message header.
 .SH "SEE ALSO"
 .na
 .nf

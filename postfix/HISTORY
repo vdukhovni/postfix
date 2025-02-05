@@ -28918,4 +28918,19 @@ Apologies for any names omitted.
 	Debug logging: cleanup/cleanup_api.c. tls/tlsrpt_wrapper.c.
 	proto/TLSRPT_README.html.
 
-	Postfix 3.10 code freeze.
+20250204
+
+	Feature: with "smtpd_hide_client_session = yes", the Postfix
+	SMTP server generates a Received: header without client
+	session info (EHLO, hostname, IP address, TLS session
+	details, SASL login details, SMTP protocol details). Files:
+	conf/master.cf, mantools/postlink, proto/postconf.proto,
+	global/mail_params.h, smtpd/smtpd.c.
+
+20250205
+
+	Documentation: updated TLSRPT_README, added postfix-tlspol
+	policy plugin, deprecated the policy_ttl attribute. File:
+	proto/TLSRPT_README.html.
+
+ 	Postfix 3.10 code freeze.

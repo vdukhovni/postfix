@@ -48,11 +48,12 @@ are collected and processed into daily summary reports.
     TLSRPT report generator produces daily summary reports.
 
 The TLSRPT client library, and the infrastructure to collect, fetch, and report
-TLSRPT information are maintained by sys4 at https://github.com/sys4/libtlsrpt
-and https://github.com/sys4/tlsrpt-reporter, respectively.
+TLSRPT information, are implemented and maintained by sys4 at https://
+github.com/sys4/libtlsrpt and https://github.com/sys4/tlsrpt-reporter,
+respectively.
 
-The Postfix implementation supports both DANE (Postfix built-in) and MTA-STS
-(through an smtp_tls_policy_maps plug-in).
+The Postfix implementation supports domains with DANE (Postfix built-in) and
+MTA-STS (through an smtp_tls_policy_maps plug-in).
 
 The Postfix smtp(8) client process implements the SMTP client engine. With
 "smtp_tls_connection_reuse = no", the smtp(8) client process also implements
@@ -228,19 +229,25 @@ Options:
 MMTTAA--SSTTSS SSuuppppoorrtt vviiaa ssmmttpp__ttllss__ppoolliiccyy__mmaappss
 
 Postfix supports MTA-STS though an smtp_tls_policy_maps policy plugin, which
-replies with a TLS security level and optional matching requirements. Postfix
-3.10 and later optionally also accept the name=value attributes described
-below. Specify { name = value } when a value may contain whitespace.
+replies with a TLS security level and name=value attributes with certificate
+matching requirements. Postfix 3.10 and later accept additional name=value
+attributes that are needed for TLSRPT.
 
-    Note 1: Postfix 3.10 and later will accept these attributes in an MTA-STS
-    response even if TLSRPT support is disabled (at build time or run time).
-    With TLSRPT support turned off, Postfix will use the ttl and policy_failure
-    attributes, and will ignore the attributes that are used only for TLSRPT.
+Examples of smtp_tls_policy_maps plugins with MTA-STS support are:
 
-    Note 2: It is an error to specify these attributes for a non-STS policy.
+  * postfix-tlspol, supports domains with DANE (using Postfix built-in DANE),
+    and domains with MTA-STS.
 
-The examples in the table apply to the MTA-STS policy example given in RFC 8461
-Section 3.2:
+  * postfix-mta-sts-resolver, supports domains with MTA-STS.
+
+Both plugins can generate the additional name=value attributes that Postfix
+needs for TLSRPT support (as of February 2025). This is enabled by setting a
+tlsrpt boolean in a plugin configuration file. This setting is safe with
+Postfix 3.10 and later, even if Postfix TLSRPT support is disabled (at build
+time or at run time).
+
+The examples in the text below apply to this MTA-STS policy example given in
+RFC 8461 Section 3.2:
 
     version: STSv1
     mode: enforce
@@ -249,7 +256,9 @@ Section 3.2:
     mx: backupmx.example.com
     max_age: 604800
 
-A policy response may contain line breaks.
+The list of supported attributes is given below. Instead of name=value, specify
+{ name = value } when a value may contain whitespace. A policy response may
+contain line breaks.
 
   * policy_type=type
 
@@ -259,45 +268,49 @@ A policy response may contain line breaks.
 
     The domain that the MTA-STS policy applies to.
 
-  * policy_ttl=time
-
-    How long (in seconds) a Postfix SMTP client process will cache the MTA-STS
-    plugin response.
+    Example: policy_domain=example.com
 
   * { policy_string = value }
 
     Specify one policy_string instance for each MTA-STS policy feature,
     enclosed inside "{" and "}" to protect whitespace in attribute values.
 
-    Example:
+    Example: { policy_string = version: STSv1 } { policy_string = mode: enforce
+    } ...
 
-        { policy_string = version: STSv1 } { policy_string = mode: enforce }
-        ...
-
-    This form ignores whitespace after the opening "{", around the "=", and
-    before the closing "}".
+    The above form ignores whitespace after the opening "{", around the "=",
+    and before the closing "}".
 
   * mx_host_pattern=pattern
 
     Specify one mx_host_pattern instance for each "mx:" feature in the MTA-STS
     policy.
 
-    Example:
-
-        mx_host_pattern=mail.example.com mx_host_pattern=*.example.net ...
+    Example: mx_host_pattern=mail.example.com mx_host_pattern=*.example.net ...
 
   * policy_failure=type
 
     If specified, forces MTA-STS policy enforcement to fail with the indicated
     error, even if a server certificate would satisfy conventional PKI
-    constraints.
+    constraints. Valid errors are sts-policy-fetch-error, sts-policy-invalid,
+    sts-webpki-invalid, or the less informative validation-failure.
 
-    Valid errors are sts-policy-fetch-error, sts-policy-invalid, sts-webpki-
-    invalid, or the less informative validation-failure.
+    Example: policy_failure=sts-webpki-invalid
 
-    Example:
+  * policy_ttl=time
 
-        policy_failure=sts-webpki-invalid
+    This attribute is deprecated. The time value is not used, and support for
+    this attribute will eventually be removed from the code.
+
+Notes:
+
+  * Postfix 3.10 and later will accept these additional attributes in an MTA-
+    STS response even if TLSRPT support is disabled (at build time or at run
+    time). With TLSRPT support turned off, Postfix may still use the
+    policy_failure attribute, and will ignore the attributes that are used only
+    for TLSRPT.
+
+  * It is an error to specify these attributes for a non-STS policy.
 
 LLiimmiittaattiioonnss
 
@@ -314,7 +327,7 @@ SMTP protocol engine. It just is not how Postfix works internally.
 
 CCrreeddiittss
 
-  * The TLSRPT client library and report generator are implemented and
-    maintained by sys4.
+  * The TLSRPT client library, and the infrastructure to collect, fetch, and
+    report TLSRPT information, are implemented and maintained by sys4.
   * Wietse Venema implemented the integration with Postfix.
 

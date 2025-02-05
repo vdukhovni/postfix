@@ -160,3 +160,7 @@ proto  proto socketmap_table
  smtp smtp_proto c smtpd smtpd c verify verify c 
  operations Files cleanup cleanup h cleanup cleanup_message c 
  proto postconf proto pipe pipe c 
+ bounce bounce c bounce bounce_notify_util c cleanup cleanup c 
+ cleanup cleanup_message c smtp smtp c smtp smtp_connect c 
+ Documentation edited for clarity Files pipe pipe c 
+ global mail_params h smtpd smtpd c 

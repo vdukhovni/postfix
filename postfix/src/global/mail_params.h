@@ -4502,6 +4502,13 @@ extern char *var_full_name_encoding_charset;
 #define DEF_SOCKMAP_MAX_REPLY  100000	/* reply size limit */
 extern int var_sockmap_max_reply;
 
+ /*
+  * Client privacy.
+  */
+#define VAR_SMTPD_HIDE_CLIENT_SESSION	"smtpd_hide_client_session"
+#define DEF_SMTPD_HIDE_CLIENT_SESSION	"no"
+extern int var_smtpd_hide_client_session;
+
 /* LICENSE
 /* .ad
 /* .fi

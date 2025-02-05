@@ -19486,3 +19486,40 @@ will add that header to a delivery status notification for that
 message. </p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
+
+%PARAM smtpd_hide_client_session no
+
+<p> Do not include SMTP client session information in the Postfix
+SMTP server's Received: message header. </p>
+
+<ul>
+
+<li> <p> The default setting, "smtpd_hide_client_session = no",
+must be used for the port 25 MTA service. It provides information
+that is required by RFC 5321. </p>
+
+<li> <p> The setting "smtpd_hide_client_session = yes" may be used
+for the port 587 and 465 MUA services. This hides the SMTP client
+hostname and IP address, TLS session details, SASL login details,
+and SMTP protocol details. </p>
+
+</ul>
+
+<p> Depending on the number of recipients, a redacted Received:
+header has one of the following forms: </p>
+
+<blockquote>
+<pre>
+Received: by mail.example.com (Postfix) id postfix-queue-id
+        for &lt;user@example.com&gt;; Day, dd Mon yyyy hh:mm:ss tz-offset (zone)
+<br>
+Received: by mail.example.com (Postfix) id postfix-queue-id
+        Day, dd Mon yyyy hh:mm:ss tz-offset (zone)
+</pre>
+</blockquote>
+
+<p> The redacted form hides that a message was received with SMTP,
+and therefore it does not need to provide the information required by
+RFC 5321. The form does still meet RFC 5322 requirements. </p>
+
+<p> This feature is available in Postfix &ge; 3.10. </p>
