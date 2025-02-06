@@ -11532,8 +11532,9 @@ configuration parameter.  See there for details. </p>
 <p> Optional lookup tables with the Postfix SMTP client TLS security
 policy by next-hop destination; when a non-empty value is specified,
 this overrides the obsolete smtp_tls_per_site parameter.  See
-TLS_README for a more detailed discussion of TLS security levels.
-</p>
+TLS_README for a more detailed discussion of TLS security levels,
+and see TLSRPT_README for additional configuration that may be
+needed for MTA-STS plugins. </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
@@ -19406,6 +19407,9 @@ summaries of successful and failed SMTP over TLS connections to
 their MX servers. This feature requires that Postfix is built
 with a TLSRPT supporting library. </p>
 
+<p> See TLSRPT_README for configuration examples and additional
+requirements for MTA-STS smtp_tls_policy_maps plugins. </p>
+
 <p> This feature is available in Postfix &ge; 3.10. </p>
 
 %PARAM smtp_tlsrpt_socket_name
@@ -19414,6 +19418,9 @@ with a TLSRPT supporting library. </p>
 by a local TLSRPT reporting service. This parameter must specify a
 pathname (absolute, or relative to $queue_directory) when
 "smtp_tlsrpt_enable = yes". </p>
+
+<p> See TLSRPT_README for configuration examples and additional
+requirements for MTA-STS smtp_tls_policy_maps plugins. </p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
 
@@ -19425,6 +19432,9 @@ information to report). Report the TLSRPT status only for "new" TLS
 sessions. Set this to "no" to log the TLSRPT status of all TLS
 handshakes, for example to troubleshoot Postfix TLSRPT support.
 </p>
+
+<p> Note: if an SMTP over TLS connection is reused, there is no
+second etc. TLS handshake to report. </p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
 

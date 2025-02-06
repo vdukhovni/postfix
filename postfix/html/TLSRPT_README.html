@@ -41,7 +41,7 @@ summary reports for successful and failed SMTP over TLS connections
 to that domain's MX hosts. Support for TLSRPT was added in Postfix
 3.10. </p>
 
-<p> A policy example looks like this: </p>
+<p> A policy for domain <tt>example.com</tt> could look like this: </p>
 
 <blockquote>
 <pre>
@@ -49,11 +49,8 @@ _smtp._tls.example.com. IN TXT "v=TLSRPTv1; rua=mailto:smtp-tls-report@example.c
 </pre>
 </blockquote>
 
-<p> Translation: email sending systems are requested to generate daily
-summaries of successful and failed SMTP over TLS connections to domain
-<tt>example.com</tt>, and to report those summaries via email to the
-specified address. Instead of <tt>mailto:</tt>, a policy may specify an
-<tt>https:</tt> destination. </p>
+<p> Instead of <tt>mailto:</tt>, a policy may specify an <tt>https:</tt>
+destination. </p>
 
 <p> The diagram below shows how Postfix TLS handshake success and
 failure events are collected and processed into daily summary
@@ -102,9 +99,9 @@ fetch, and report TLSRPT information, are implemented and maintained
 by sys4 at <a href="https://github.com/sys4/libtlsrpt">https://github.com/sys4/libtlsrpt</a> and
 <a href="https://github.com/sys4/tlsrpt-reporter">https://github.com/sys4/tlsrpt-reporter</a>, respectively. </p>
 
-<p> The Postfix implementation supports domains with DANE (Postfix
-built-in) and MTA-STS (through an <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> plug-in).
-</p>
+<p> The Postfix implementation supports TLSRPT or domains with DANE
+(Postfix built-in) and MTA-STS (through an <a href="#mta-sts">
+smtp_tls_policy_maps plug-in</a>). </p>
 
 <p> The Postfix <a href="smtp.8.html">smtp(8)</a> client process implements the SMTP client
 engine. With "<a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> = no", the <a href="smtp.8.html">smtp(8)</a> client
@@ -335,8 +332,8 @@ generator's sender address): </p>
 <p> Postfix supports MTA-STS though an <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> policy
 plugin, which replies with a TLS security level and name=value
 attributes with certificate matching requirements. Postfix 3.10 and
-later accept additional name=value attributes that are needed for
-TLSRPT. </p>
+later extend the policy plugin response with additional name=value
+attributes that are needed for TLSRPT. </p>
 
 <p> Examples of <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> plugins with MTA-STS support
 are: </p>
@@ -357,7 +354,8 @@ that Postfix needs for TLSRPT support (as of February 2025). This
 is enabled by setting a <tt>tlsrpt</tt> boolean in a plugin
 configuration file.  This setting is safe with Postfix 3.10 and
 later, even if Postfix TLSRPT support is disabled (at build time
-or at run time). </p>
+or at run time). Postfix versions 3.9 and earlier will report a
+policy error with "<tt>invalid attribute name</tt>". </p>
 
 <p> The examples in the text below apply to this MTA-STS policy example
 given in <a
@@ -384,12 +382,13 @@ may contain whitespace. A policy response may contain line breaks.
 
 <li> <p> <tt> policy_type=<i>type</i> </tt> </p>
 
-<p> Specify <tt>sts</tt> or <tt>no-policy-found</tt>. </p> </li>
+<p> Specify <tt>sts</tt> or <tt>no-policy-found</tt>. </p>
+
+<p> Example: <tt>policy_type=sts</tt> </p> </li>
 
 <li> <p> <tt> policy_domain=<i>name</i> </tt> </p>
 
 <p> The domain that the MTA-STS policy applies to. </p>
-
 
 <p> Example: <tt>policy_domain=example.com</tt> </p>
 
@@ -425,7 +424,7 @@ informative <tt>validation-failure</tt>. </p>
 
 <p> Example: <tt>policy_failure=sts-webpki-invalid</tt> </p> </li>
 
-<li> <p> <tt> policy_ttl=<i>time</i> </tt> </p>
+<li> <p> <tt> policy_ttl=<i>time</i> </tt> (deprecated) </p>
 
 <p> This attribute is deprecated. The <i>time</i> value is not used,
 and support for this attribute will eventually be removed from the
@@ -438,9 +437,9 @@ code. </p> </li>
 <ul>
 
 <li> <p> Postfix 3.10 and later will accept these additional
-attributes in an MTA-STS response even if TLSRPT support is disabled
-(at build time or at run time). With TLSRPT support turned off,
-Postfix may still use the <tt>policy_failure</tt>
+attributes in an MTA-STS response even if Postfix TLSRPT support
+is disabled (at build time or at run time). With Postfix TLSRPT
+support turned off, Postfix may still use the <tt>policy_failure</tt>
 attribute, and will ignore the attributes that are used only for
 TLSRPT. </p>
 

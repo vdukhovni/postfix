@@ -14049,8 +14049,9 @@ Postfix 2.3 and later use <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tl
 <p> Optional lookup tables with the Postfix SMTP client TLS security
 policy by next-hop destination; when a non-empty value is specified,
 this overrides the obsolete <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> parameter.  See
-<a href="TLS_README.html">TLS_README</a> for a more detailed discussion of TLS security levels.
-</p>
+<a href="TLS_README.html">TLS_README</a> for a more detailed discussion of TLS security levels,
+and see <a href="TLSRPT_README.html">TLSRPT_README</a> for additional configuration that may be
+needed for MTA-STS plugins. </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
@@ -14856,6 +14857,9 @@ summaries of successful and failed SMTP over TLS connections to
 their MX servers. This feature requires that Postfix is built
 with a TLSRPT supporting library. </p>
 
+<p> See <a href="TLSRPT_README.html">TLSRPT_README</a> for configuration examples and additional
+requirements for MTA-STS <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> plugins. </p>
+
 <p> This feature is available in Postfix &ge; 3.10. </p>
 
 
@@ -14871,6 +14875,9 @@ sessions. Set this to "no" to log the TLSRPT status of all TLS
 handshakes, for example to troubleshoot Postfix TLSRPT support.
 </p>
 
+<p> Note: if an SMTP over TLS connection is reused, there is no
+second etc. TLS handshake to report. </p>
+
 <p> This feature is available in Postfix &ge; 3.10. </p>
 
 
@@ -14883,6 +14890,9 @@ handshakes, for example to troubleshoot Postfix TLSRPT support.
 by a local TLSRPT reporting service. This parameter must specify a
 pathname (absolute, or relative to $<a href="postconf.5.html#queue_directory">queue_directory</a>) when
 "<a href="postconf.5.html#smtp_tlsrpt_enable">smtp_tlsrpt_enable</a> = yes". </p>
+
+<p> See <a href="TLSRPT_README.html">TLSRPT_README</a> for configuration examples and additional
+requirements for MTA-STS <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> plugins. </p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
 

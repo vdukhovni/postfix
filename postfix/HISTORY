@@ -28038,7 +28038,7 @@ Apologies for any names omitted.
 
 	Documentation: replace the obsolete pickup service type
 	fifo with unix, and fix typos. Dilyan Palauzov. Files:
-	HISTORY< proto/BUILTIN_FILTER_README.html,
+	HISTORY, proto/BUILTIN_FILTER_README.html,
 	proto/STANDARD_CONFIGURATION_README.html
 
 20240418

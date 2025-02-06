@@ -9168,7 +9168,9 @@ Postfix 2.3 and later use smtp_tls_policy_maps instead.
 Optional lookup tables with the Postfix SMTP client TLS security
 policy by next\-hop destination; when a non\-empty value is specified,
 this overrides the obsolete smtp_tls_per_site parameter.  See
-TLS_README for a more detailed discussion of TLS security levels.
+TLS_README for a more detailed discussion of TLS security levels,
+and see TLSRPT_README for additional configuration that may be
+needed for MTA\-STS plugins.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
 whitespace or comma. Tables will be searched in the specified order
@@ -9911,6 +9913,9 @@ summaries of successful and failed SMTP over TLS connections to
 their MX servers. This feature requires that Postfix is built
 with a TLSRPT supporting library.
 .PP
+See TLSRPT_README for configuration examples and additional
+requirements for MTA\-STS smtp_tls_policy_maps plugins.
+.PP
 This feature is available in Postfix >= 3.10.
 .SH smtp_tlsrpt_skip_reused_handshakes (default: yes)
 Do not report the TLSRPT status for TLS protocol handshakes
@@ -9919,12 +9924,18 @@ information to report). Report the TLSRPT status only for "new" TLS
 sessions. Set this to "no" to log the TLSRPT status of all TLS
 handshakes, for example to troubleshoot Postfix TLSRPT support.
 .PP
+Note: if an SMTP over TLS connection is reused, there is no
+second etc. TLS handshake to report.
+.PP
 This feature is available in Postfix >= 3.10.
 .SH smtp_tlsrpt_socket_name (default: empty)
 The pathname of a UNIX\-domain datagram socket that is managed
 by a local TLSRPT reporting service. This parameter must specify a
 pathname (absolute, or relative to $queue_directory) when
 "smtp_tlsrpt_enable = yes".
+.PP
+See TLSRPT_README for configuration examples and additional
+requirements for MTA\-STS smtp_tls_policy_maps plugins.
 .PP
 This feature is available in Postfix >= 3.10.
 .SH smtp_use_tls (default: no)
