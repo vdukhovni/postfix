@@ -65,11 +65,11 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
               URI, the Postfix PostgreSQL client will ignore the <b>dbname</b>, <b>user</b>,
               and <b>password</b> settings for that connection.
 
-              NOTE: if the <b>hosts</b> setting specifies one load  balancer  and  no
-              alternative  servers,  specify the load balancer multiple times.
-              Without the duplicate info, the Postfix PostgreSQL client  would
-              not  reconnect  immediately  to  the  same load balancer after a
-              request failure.
+              NOTE: if the <b>hosts</b> setting specifies  one  server,  this  client
+              assumes  that  the  target is a load balancer and will reconnect
+              immediately after a  single  failure,  instead  of  failing  all
+              requests  temporarily. With older versions of this client, spec-
+              ify the same server twice.
 
        <b>user</b>
 
@@ -112,11 +112,11 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
               The number of seconds that a database connection will be skipped
               after an error.
 
-              NOTE:  if  the  <b>hosts</b> setting specifies one load balancer and no
-              alternative servers, specify the load balancer  multiple  times.
-              Without  the duplicate info, the Postfix PostgreSQL client would
-              not reconnect immediately to the  same  load  balancer  after  a
-              request failure.
+              NOTE:  if  the  <b>hosts</b>  setting specifies one server, this client
+              assumes that the target is a load balancer  and  will  reconnect
+              immediately  after  a  single  failure,  instead  of failing all
+              requests temporarily. With older versions of this client,  spec-
+              ify the same server twice.
 
               This feature is available in Postfix 3.9 and later.
 

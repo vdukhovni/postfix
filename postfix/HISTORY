@@ -28933,4 +28933,12 @@ Apologies for any names omitted.
 	policy plugin, deprecated the policy_ttl attribute. File:
 	proto/TLSRPT_README.html.
 
+20250207
+
+	Performance: when a mysql: or pgsql: configuration specifies
+	a single host, assume that it is a load balancer and reconnect
+	immediately after a single failure, instead of failing all
+	requests for 60s. Files: global/dict_pgsql.c, global/dict_mysql.c,
+	proto/pgsql_table, proto/mysql_table.
+
  	Postfix 3.10 code freeze.

@@ -81,11 +81,11 @@ NOTE: if the \fBhosts\fR setting specifies a PostgreSQL connection
 URI, the Postfix PostgreSQL client will ignore the \fBdbname\fR,
 \fBuser\fR, and \fBpassword\fR settings for that connection.
 
-NOTE: if the \fBhosts\fR setting specifies one load balancer
-and no alternative servers, specify the load balancer multiple
-times. Without the duplicate info, the Postfix PostgreSQL client
-would not reconnect immediately to the same load balancer after
-a request failure.
+NOTE: if the \fBhosts\fR setting specifies one server, this client
+assumes that the target is a load balancer and will reconnect
+immediately after a single failure, instead of failing all
+requests temporarily. With older versions of this client,
+specify the same server twice.
 .IP "\fBuser\fR"
 .IP "\fBpassword\fR"
 The user name and password to log into the pgsql server.
@@ -129,11 +129,11 @@ This feature is available in Postfix 3.9 and later.
 The number of seconds that a database connection will be
 skipped after an error.
 
-NOTE: if the \fBhosts\fR setting specifies one load balancer
-and no alternative servers, specify the load balancer multiple
-times. Without the duplicate info, the Postfix PostgreSQL client
-would not reconnect immediately to the same load balancer after
-a request failure.
+NOTE: if the \fBhosts\fR setting specifies one server, this client
+assumes that the target is a load balancer and will reconnect
+immediately after a single failure, instead of failing all
+requests temporarily. With older versions of this client,
+specify the same server twice.
 
 This feature is available in Postfix 3.9 and later.
 .IP "\fBquery\fR"
