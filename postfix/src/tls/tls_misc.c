@@ -660,9 +660,9 @@ void    tls_param_init(void)
 	VAR_TLS_LOW_CLIST, DEF_TLS_LOW_CLIST, &var_tls_low_clist, 1, 0,
 	VAR_TLS_EXPORT_CLIST, DEF_TLS_EXPORT_CLIST, &var_tls_export_clist, 1, 0,
 	VAR_TLS_NULL_CLIST, DEF_TLS_NULL_CLIST, &var_tls_null_clist, 1, 0,
-	VAR_TLS_EECDH_AUTO, DEF_TLS_EECDH_AUTO, &var_tls_eecdh_auto, 1, 0,
-	VAR_TLS_EECDH_STRONG, DEF_TLS_EECDH_STRONG, &var_tls_eecdh_strong, 1, 0,
-	VAR_TLS_EECDH_ULTRA, DEF_TLS_EECDH_ULTRA, &var_tls_eecdh_ultra, 1, 0,
+	VAR_TLS_EECDH_AUTO, DEF_TLS_EECDH_AUTO, &var_tls_eecdh_auto, 0, 0,
+	VAR_TLS_EECDH_STRONG, DEF_TLS_EECDH_STRONG, &var_tls_eecdh_strong, 0, 0,
+	VAR_TLS_EECDH_ULTRA, DEF_TLS_EECDH_ULTRA, &var_tls_eecdh_ultra, 0, 0,
 	VAR_TLS_BUG_TWEAKS, DEF_TLS_BUG_TWEAKS, &var_tls_bug_tweaks, 0, 0,
 	VAR_TLS_SSL_OPTIONS, DEF_TLS_SSL_OPTIONS, &var_tls_ssl_options, 0, 0,
 	VAR_TLS_DANE_DIGESTS, DEF_TLS_DANE_DIGESTS, &var_tls_dane_digests, 1, 0,
@@ -1050,6 +1050,12 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	    kex_name = OBJ_nid2sn(EVP_PKEY_type(nid));
 	    break;
 
+#if defined(EVP_PKEY_KEYMGMT)
+	case EVP_PKEY_KEYMGMT:
+	    kex_name = EVP_PKEY_get0_type_name(dh_pkey);
+	    break;
+#endif
+
 	case EVP_PKEY_DH:
 	    kex_name = "DHE";
 	    TLScontext->kex_bits = EVP_PKEY_bits(dh_pkey);
@@ -1062,8 +1068,17 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	    break;
 #endif
 	}
-	EVP_PKEY_free(dh_pkey);
     }
+    if (kex_name) {
+	TLScontext->kex_name = mystrdup(kex_name);
+	TLScontext->kex_curve = kex_curve;
+    }
+    /* Not a problem if NULL */
+    EVP_PKEY_free(dh_pkey);
+
+    /* Resumption makes no use of signature keys or digests */
+    if (TLScontext->session_reused)
+	return;
 
     /*
      * On the client end, the certificate may be preset, but not used, so we
@@ -1084,11 +1099,18 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	 * the more familiar name.  For "RSA" keys report "RSA-PSS", which
 	 * must be used with TLS 1.3.
 	 */
-	if ((nid = EVP_PKEY_type(EVP_PKEY_id(local_pkey))) != NID_undef) {
+	if ((nid = EVP_PKEY_id(local_pkey)) != NID_undef) {
 	    switch (nid) {
 	    default:
-		locl_sig_name = OBJ_nid2sn(nid);
+		if ((nid = EVP_PKEY_type(nid)) != NID_undef)
+		    locl_sig_name = OBJ_nid2sn(nid);
 		break;
+
+#if defined(EVP_PKEY_KEYMGMT)
+	    case EVP_PKEY_KEYMGMT:
+		locl_sig_name = EVP_PKEY_get0_type_name(local_pkey);
+		break;
+#endif
 
 	    case EVP_PKEY_RSA:
 		/* For RSA, TLS 1.3 mandates PSS signatures */
@@ -1112,6 +1134,13 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	 */
 	if (SSL_get_signature_nid(ssl, &nid) && nid != NID_undef)
 	    locl_sig_dgst = OBJ_nid2sn(nid);
+
+	if (locl_sig_name) {
+	    SIG_PROP(TLScontext, srvr, name) = mystrdup(locl_sig_name);
+	    SIG_PROP(TLScontext, srvr, curve) = locl_sig_curve;
+	    if (locl_sig_dgst)
+		SIG_PROP(TLScontext, srvr, dgst) = mystrdup(locl_sig_dgst);
+	}
     }
     /* Signature algorithms for the peer end of the connection */
     if ((peer_cert = TLS_PEEK_PEER_CERT(ssl)) != 0) {
@@ -1122,11 +1151,18 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	 * the more familiar name.  For "RSA" keys report "RSA-PSS", which
 	 * must be used with TLS 1.3.
 	 */
-	if ((nid = EVP_PKEY_type(EVP_PKEY_id(peer_pkey))) != NID_undef) {
+	if ((nid = EVP_PKEY_id(peer_pkey)) != NID_undef) {
 	    switch (nid) {
 	    default:
-		peer_sig_name = OBJ_nid2sn(nid);
+		if ((nid = EVP_PKEY_type(nid)) != NID_undef)
+		    peer_sig_name = OBJ_nid2sn(nid);
 		break;
+
+#if defined(EVP_PKEY_KEYMGMT)
+	    case EVP_PKEY_KEYMGMT:
+		peer_sig_name = EVP_PKEY_get0_type_name(peer_pkey);
+		break;
+#endif
 
 	    case EVP_PKEY_RSA:
 		/* For RSA, TLS 1.3 mandates PSS signatures */
@@ -1150,23 +1186,13 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	if (SSL_get_peer_signature_nid(ssl, &nid) && nid != NID_undef)
 	    peer_sig_dgst = OBJ_nid2sn(nid);
 
+	if (peer_sig_name) {
+	    SIG_PROP(TLScontext, !srvr, name) = mystrdup(peer_sig_name);
+	    SIG_PROP(TLScontext, !srvr, curve) = peer_sig_curve;
+	    if (peer_sig_dgst)
+		SIG_PROP(TLScontext, !srvr, dgst) = mystrdup(peer_sig_dgst);
+	}
 	TLS_FREE_PEER_CERT(peer_cert);
-    }
-    if (kex_name) {
-	TLScontext->kex_name = mystrdup(kex_name);
-	TLScontext->kex_curve = kex_curve;
-    }
-    if (locl_sig_name) {
-	SIG_PROP(TLScontext, srvr, name) = mystrdup(locl_sig_name);
-	SIG_PROP(TLScontext, srvr, curve) = locl_sig_curve;
-	if (locl_sig_dgst)
-	    SIG_PROP(TLScontext, srvr, dgst) = mystrdup(locl_sig_dgst);
-    }
-    if (peer_sig_name) {
-	SIG_PROP(TLScontext, !srvr, name) = mystrdup(peer_sig_name);
-	SIG_PROP(TLScontext, !srvr, curve) = peer_sig_curve;
-	if (peer_sig_dgst)
-	    SIG_PROP(TLScontext, !srvr, dgst) = mystrdup(peer_sig_dgst);
     }
 }
 
