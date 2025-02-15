@@ -594,10 +594,11 @@
 /*	Available in Postfix version 3.0 and later:
 /* .IP "\fBsmtp_tls_wrappermode (no)\fR"
 /*	Request that the Postfix SMTP client connects using the
-/*	SUBMISSIONS/SMTPS protocol instead of using the STARTTLS command.
+/*	SUBMISSIONS (formerly called SMTPS) protocol instead of using the
+/*	STARTTLS command.
 /* .PP
 /*	Available in Postfix version 3.1 and later:
-/* .IP "\fBsmtp_tls_dane_insecure_mx_policy (see 'postconf -d' output)\fR"
+/* .IP "\fBsmtp_tls_dane_insecure_mx_policy (dane)\fR"
 /*	The TLS policy for MX hosts with "secure" TLSA records when the
 /*	nexthop destination security level is \fBdane\fR, but the MX
 /*	record was found via an "insecure" MX lookup.

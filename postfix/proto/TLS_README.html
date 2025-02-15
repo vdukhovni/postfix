@@ -552,8 +552,8 @@ and OE (5.01 Mac on all ports). </p>
 <p> It is strictly discouraged to use this mode from main.cf. If
 you want to support this service, enable a special port in master.cf
 and specify "-o smtpd_tls_wrappermode=yes" (note: no space around
-the "=") as an smtpd(8) command line option.  Port 465 (smtps) was
-once chosen for this feature.
+the "=") as an smtpd(8) command line option.  Port 465 (submissions,
+formerly called smtps) is the most common example.
 </p>
 
 <p> Example: </p>
@@ -561,7 +561,7 @@ once chosen for this feature.
 <blockquote>
 <pre>
 /etc/postfix/master.cf:
-    smtps    inet  n       -       n       -       -       smtpd
+    submissions inet  n       -       n       -       -       smtpd
       -o smtpd_tls_wrappermode=yes -o smtpd_sasl_auth_enable=yes
 </pre>
 </blockquote>
@@ -1065,7 +1065,7 @@ key configuration </a>
 
 <li> <a href="#client_cipher">Client-side cipher controls </a>
 
-<li> <a href="#client_smtps">Client-side SMTPS support </a>
+<li> <a href="#client_smtps">Client-side submissions (formerly called smtps) support </a>
 
 <li> <a href="#client_misc"> Miscellaneous client controls </a>
 
@@ -2560,32 +2560,33 @@ the TLS protocols used with opportunistic TLS. </p>
 </pre>
 </blockquote>
 
-<h3> <a name="client_smtps">Client-side SMTPS support </a> </h3>
+<h3> <a name="client_smtps">Client-side submissions (formerly called smtps) support </a> </h3>
 
 <p> These sections show how to send mail to a server that does not
-support STARTTLS, but that provides the SMTPS service
+support STARTTLS, but that provides the submissions (smtps) service
 on TCP port 465.  Depending on the Postfix version, some additional
 tooling may be required. </p>
 
 <h4> Postfix &ge; 3.0 </h4>
 
-<p> The Postfix SMTP client has SMTPS support built-in as of version
+<p> The Postfix SMTP client has submissions service support built-in
+as of version
 3.0.  Use one of the following examples, to send all remote mail,
-or to send only some remote mail, to an SMTPS server.  </p>
+or to send only some remote mail, to a submissions (smtps) server.  </p>
 
-<h5> Postfix &ge; 3.0: Sending all remote mail to an SMTPS server </h5>
+<h5> Postfix &ge; 3.0: Sending all remote mail to a submissions (formerly called smtps) server </h5>
 
-<p> The first example will send all remote mail over SMTPS through
-a provider's server called "mail.example.com": </p>
+<p> The first example will send all remote mail to through a
+provider's submissions server called "mail.example.com": </p>
 
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    # Client-side SMTPS requires "encrypt" or stronger.
+    # Client-side submissions requires "encrypt" or stronger.
     smtp_tls_security_level = encrypt
     smtp_tls_wrappermode = yes
     # The [] suppress MX lookups.
-    relayhost = [mail.example.com]:465
+    relayhost = [mail.example.com]:submissions
 </pre>
 </blockquote>
 
@@ -2595,11 +2596,12 @@ a provider's server called "mail.example.com": </p>
 </p>
 
 <h5> Postfix &ge; 3.0: Sending only mail for a specific destination
-via SMTPS </h5>
+to a submissions (formerly called smtps) service </h5>
 
-<p> The second example will send only mail for "example.com" via
-SMTPS.  This time, Postfix uses a transport map to deliver only
-mail for "example.com" via SMTPS: </p>
+<p> The second example will send only mail for "example.com" using
+the submissions (smtps) service.
+This time, Postfix uses a transport map to deliver only
+mail for "example.com" using the submissions (smtps) service: </p>
 
 <blockquote>
 <pre>
@@ -2607,11 +2609,11 @@ mail for "example.com" via SMTPS: </p>
     transport_maps = hash:/etc/postfix/transport
 
 /etc/postfix/transport:
-    example.com  relay-smtps:example.com:465
+    example.com  relay-submissions:example.com:submissions
 
 /etc/postfix/master.cf:
-    relay-smtps  unix  -       -       n       -       -       smtp
-	# Client-side SMTPS requires "encrypt" or stronger.
+    relay-submissions  unix  -       -       n       -       -       smtp
+	# Client-side submissions service requires "encrypt" or stronger.
 	-o smtp_tls_security_level=encrypt
 	-o smtp_tls_wrappermode=yes
 </pre>
@@ -2625,81 +2627,7 @@ authentication. </p>
 
 <h4> Postfix &lt; 3.0 </h4>
 
-<p> Although older Postfix SMTP client versions do not support TLS
-wrapper mode, it is relatively easy to forward a connection through
-the stunnel program if Postfix needs to deliver mail to some legacy
-system that doesn't support STARTTLS. </p>
-
-<h5> Postfix &lt; 3.0: Sending all remote mail to an SMTPS server </h5>
-
-<p> The first example uses SMTPS to send all remote mail to a
-provider's mail server called "mail.example.com".  </p>
-
-<p> A minimal stunnel.conf file is sufficient to set up a tunnel
-from local port 11125 to the remote destination "mail.example.com"
-and port "smtps". Postfix will later use this tunnel to connect to
-the remote server. </p>
-
-<blockquote>
-<pre>
-/path/to/stunnel.conf:
-    [smtp-tls-wrapper]
-    accept = 11125
-    client = yes
-    connect = mail.example.com:smtps
-</pre>
-</blockquote>
-
-<p> To test this tunnel, use: </p>
-
-<blockquote>
-<pre>
-$ telnet localhost 11125
-</pre>
-</blockquote>
-
-<p> This should produce the greeting from the remote SMTP server
-at mail.example.com. </p>
-
-<p> On the Postfix side, the relayhost feature sends all remote
-mail through the local stunnel listener on port 11125: </p>
-
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    relayhost = [127.0.0.1]:11125
-</pre>
-</blockquote>
-
-<p> Use "postfix reload" to make the change effective. </p>
-
-<p> See SOHO_README for additional information about SASL
-authentication. </p>
-
-<h4> Postfix &lt; 3.0: Sending only mail for a specific destination via SMTPS </h4>
-
-<p> The second example will use SMTPS to send only mail for
-"example.com" via SMTPS. It uses the same stunnel configuration
-file as the first example, so it won't be repeated here. </p>
-
-<p> This time, the Postfix side uses a transport map to direct only
-mail for "example.com" through the tunnel: </p>
-
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    transport_maps = hash:/etc/postfix/transport
-
-/etc/postfix/transport:
-    example.com  relay:[127.0.0.1]:11125
-</pre>
-</blockquote>
-
-<p> Use "postmap hash:/etc/postfix/transport" and "postfix reload"
-to make the change effective. </p>
-
-<p> See SOHO_README for additional information about SASL authentication.
-</p>
+<p> Please see TLS_LEGACY_README. </p>
 
 <h3> <a name="client_misc"> Miscellaneous client controls </a> </h3>
 
@@ -2710,7 +2638,7 @@ tries the next network address on the mail exchanger list, and
 defers delivery if no alternative server is available. </p>
 
 <p> Example: </p>
- 
+  
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
@@ -2727,7 +2655,7 @@ are disabled in the default value of the parameter when linked with
 an OpenSSL library that could be vulnerable. </p>
 
 <p> Example: </p>
- 
+
 <blockquote>
 <pre>
 /etc/postfix/main.cf:

@@ -393,7 +393,6 @@ static int setup_auto_groups(SSL_CTX *ctx, const char *origin,
 
 void    tls_auto_groups(SSL_CTX *ctx, const char *eecdh, const char *ffdhe)
 {
-#ifndef OPENSSL_NO_ECDH
     char   *def_eecdh = DEF_TLS_EECDH_AUTO;
 
 #if OPENSSL_VERSION_PREREQ(3, 0)
@@ -406,6 +405,10 @@ void    tls_auto_groups(SSL_CTX *ctx, const char *eecdh, const char *ffdhe)
     ffdhe = def_ffdhe;
 #endif
     const char *origin;
+
+    /* Use OpenSSL defaults */
+    if (!*eecdh && !*ffdhe)
+        return;
 
     /*
      * Try the user-specified list first. If that fails (empty list or no
@@ -432,7 +435,6 @@ void    tls_auto_groups(SSL_CTX *ctx, const char *eecdh, const char *ffdhe)
 	    return;
 	}
     }
-#endif
 }
 
 #ifdef TEST

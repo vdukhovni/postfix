@@ -6708,7 +6708,8 @@ envelope sender
 
 <blockquote> <p> Note: to enforce that the From: header address
 matches the envelope sender (MAIL FROM) address, use an external
-filter such as a Milter, for the submission, submissions, or smtps 
+filter such as a Milter, for the submission or submissions (formerly
+called smtps )
 services. For example: https://github.com/magcks/milterfrom. </p>
 </blockquote>
 
@@ -6812,8 +6813,8 @@ that they do not explicitly own.
 <br> 
 Note: to enforce that the From: header address matches the envelope
 sender (MAIL FROM) address, use an external filter such as a Milter,
-for the submission, submissions, or smtps services. For example:
-https://github.com/magcks/milterfrom.
+for the submission or submissions (formerly called smtps) services.
+For example: https://github.com/magcks/milterfrom.
 <br>
 This feature is available in Postfix version 2.1 and later. </dd>
 
@@ -6833,8 +6834,8 @@ unlisted MAIL FROM address.
 <br> 
 Note: to enforce that the From: header address matches the envelope
 sender (MAIL FROM) address, use an external filter such as a Milter,
-for the submission, submissions, or smtps services. For example:
-https://github.com/magcks/milterfrom.
+for the submission or submissions (formerly called smtps) services.
+For example: https://github.com/magcks/milterfrom.
 <br>
 This feature is available in Postfix version 2.11 and later.</dd>
 
@@ -6879,8 +6880,8 @@ using any MAIL FROM address that is listed in $smtpd_sender_login_maps.
 <br> 
 Note: to enforce that the From: header address matches the envelope
 sender (MAIL FROM) address, use an external filter such as a Milter,
-for the submission, submissions, or smtps services. For example:
-https://github.com/magcks/milterfrom.
+for the submission or submissions (formerly called smtps) services.
+For example: https://github.com/magcks/milterfrom.
 <br>
 This feature is available in Postfix version 2.1 and later.</dd>
 
@@ -8466,11 +8467,11 @@ use the same program name. </p>
 <p> Example master.cf entries: </p>
 
 <pre>
-# Distinguish inbound MTA logging from submission and smtps logging.
+# Distinguish inbound MTA logging from submission and submissions logging.
 smtp      inet  n       -       n       -       -       smtpd
 submission inet n       -       n       -       -       smtpd
     -o syslog_name=postfix/$service_name
-smtps     inet  n       -       n       -       -       smtpd
+submissions inet n      -       n       -       -       smtpd
     -o syslog_name=postfix/$service_name
 </pre>
 
@@ -9930,8 +9931,8 @@ instead of using the STARTTLS command. </p>
 
 <p> If you want to support this service, enable a special port in
 master.cf, and specify "-o smtpd_tls_wrappermode=yes" on the SMTP
-server's command line. Port 465 (submissions/smtps) is reserved for
-this purpose. </p>
+server's command line. Port 465 (submissions, formerly called smtps)
+is reserved for this purpose. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -13349,8 +13350,7 @@ parameter. See there for details. </p>
 %PARAM tls_eecdh_auto_curves see "postconf -d" output
 
 <p> The prioritized list of elliptic curves, that should be enabled in the
-Postfix SMTP client and server.  These are used by the Postfix SMTP server when
-"smtpd_tls_eecdh_grade = auto".  The selected curves should be implemented
+Postfix SMTP client and server.  The selected curves should be implemented
 by OpenSSL and be standardized for use in the TLS "supported groups" extension
 (RFC8422, RFC8446 and RFC8447).  Be sure to include at least "x25519" and
 "prime256v1" (the OpenSSL name for "secp256r1", a.k.a. "P-256").  The default
@@ -13373,6 +13373,14 @@ loaded from an external "provider" (via a suitable tls_config_file).  </p>
 <p> See also the "tls_ffdhe_auto_groups" parameter, which supports
 customizing the list of FFDHE groups enabled with TLS 1.3.  That setting
 is introduced with Postfix 3.8, when built against OpenSSL 3.0 or later.
+</p>
+
+<p> Post-quantum cryptography support: OpenSSL 3.5 introduces new
+configuration syntax that Postfix will not attempt to imitate.
+Instead, with Postfix 3.6.17, 3.7.13, 3.8.8, 3.9.2, and later, set
+both tls_eecdh_auto_curves and if available tls_ffdhe_auto_groups
+to the empty value, to enable algorithm selection through OpenSSL
+configuration. See tls_config_file for a configuration example.
 </p>
 
 <p> This feature is available in Postfix 3.2 and later, when it is
@@ -13405,10 +13413,15 @@ on whether any of the "kDHE" ciphers are included in the cipherlist.
 </p>
 
 <p> Conversely, setting "tls_eecdh_auto_curves" empty disables TLS 1.3
-EC key agreement in OpenSSL 3.0 and later.  Note that at least one of
-"tls_eecdh_auto_curves" and "tls_ffdhe_auto_groups" must be non-empty,
-this is required by OpenSSL 3.0.  If both are inadvertently set empty,
-Postfix will fall back to the compiled-in defaults. </p>
+EC key agreement in OpenSSL 3.0 and later. If both are set empty,
+Postfix will fall back to OpenSSL preferences as described next. </p>
+
+<p> Post-quantum cryptography support: OpenSSL 3.5 introduces new
+configuration syntax that Postfix will not attempt to imitate.
+Instead, with Postfix 3.6.17, 3.7.13, 3.8.8, 3.9.2, and later, set
+both tls_eecdh_auto_curves and tls_ffdhe_auto_groups to the empty
+value, to enable algorithm selection through OpenSSL configuration.
+See tls_config_file for a configuration example. </p>
 
 <p> All the default groups and EC curves should be sufficiently strong to make
 "pruning" the defaults unwise.  At a minimum, "x25519" and "prime256v1" (the
@@ -13432,6 +13445,8 @@ generally change this setting.  Remote SMTP client implementations
 must support this curve for EECDH key exchange to take place.  It
 is unwise to choose only "bleeding-edge" curves supported by only a
 small subset of clients.  </p>
+
+<p> This feature is not used as of Postfix 3.6. Do not specify. </p>
 
 <p> The default "strong" curve is rated in NSA <a
 href="https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/">Suite
@@ -13473,6 +13488,8 @@ client implementations must support this curve for EECDH key exchange
 to take place.  It is unwise to choose only "bleeding-edge" curves
 supported by only a small subset of clients. </p>
 
+<p> This feature is not used as of Postfix 3.6. Do not specify. </p>
+
 <p> This default "ultra" curve is rated in NSA <a
 href="https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/">Suite
 B</a> for information classified up to TOP SECRET. </p>
@@ -13498,6 +13515,8 @@ Diffie-Hellman (EECDH) key exchange.   As of Postfix 3.6, the value of
 this parameter is always ignored, and Postfix behaves as though the
 <b>auto</b> value (described below) was chosen.
 </p>
+
+<p> This feature is not used as of Postfix 3.6. Do not specify. </p>
 
 <p> The available choices are: </p>
 
@@ -15979,7 +15998,7 @@ the "tlsproxy_tls_chain_files" parameter. </p>
 elliptic-curve Diffie-Hellman (EECDH) key exchange. See
 smtpd_tls_eecdh_grade for further details. </p>
 
-<p> This feature is deprecated as of Postfix 3.9. Do not specify. </p>
+<p> This feature is not used as of Postfix 3.6. Do not specify. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
@@ -17507,21 +17526,22 @@ with valid PTR etc. records. </p>
 %PARAM smtp_tls_wrappermode no
 
 <p> Request that the Postfix SMTP client connects using the
-SUBMISSIONS/SMTPS protocol instead of using the STARTTLS command. </p>
+SUBMISSIONS (formerly called SMTPS) protocol instead of using the
+STARTTLS command. </p>
 
 <p> This mode requires "smtp_tls_security_level = encrypt" or
 stronger. </p>
 
-<p> Example: deliver all remote mail via a provider's server
-"mail.example.com".  </p>
+<p> Example: deliver all remote mail via a provider's submissions
+service at "mail.example.com".  </p>
 
 <pre>
 /etc/postfix/main.cf:
-    # Client-side SMTPS requires "encrypt" or stronger.
+    # Client-side SUBMISSIONS requires "encrypt" or stronger.
     smtp_tls_security_level = encrypt
     smtp_tls_wrappermode = yes
     # The [] suppress MX lookups.
-    relayhost = [mail.example.com]:465
+    relayhost = [mail.example.com]:submissions
 </pre>
 
 <p> More examples are in TLS_README, including examples for older
@@ -17591,7 +17611,7 @@ clients).  </p>
 This feature is available in Postfix 3.1 and later.
 </p>
 
-%PARAM smtp_tls_dane_insecure_mx_policy see "postconf -d" output
+%PARAM smtp_tls_dane_insecure_mx_policy dane
 
 <p> The TLS policy for MX hosts with "secure" TLSA records when the
 nexthop destination security level is <b>dane</b>, but the MX
@@ -17615,10 +17635,9 @@ authentication succeeds, it will be logged only as "Trusted", not
 "Verified", because the MX host name could have been forged.  </dd>
 </dl>
 
-<p> The default setting for Postfix &ge; 3.6 is "dane" with
-"smtp_tls_security_level = dane", otherwise "may". This behavior
-was backported to Postfix versions 3.5.9, 3.4.19, 3.3.16. 3.2.21.
-With earlier Postfix versions the default setting was always "dane".
+<p> The default setting is "dane" as of Postfix versions 3.6.17,
+3.7.13, 3.8.8, 3.9.2, and 3.10.0. With earlier versions the default
+was mistakenly dependent on the smtp_tls_security_level setting.
 </p>
 
 <p> Though with "insecure" MX records an active attacker can
@@ -18985,8 +19004,8 @@ process. </p>
 
 <p> Specify zero or more service names separated by comma and/or
 whitespace. Any name in the services(5) database may be specified,
-though in practice only submission, submissions, and smtp make
-sense.  </p>
+though in practice only submission or submissions (formerly called
+smtp) make sense.  </p>
 
 <p> When SRV record lookup is enabled with use_srv_lookup, you can
 enclose a domain name in "[]" to force IP address lookup instead
@@ -19192,6 +19211,47 @@ system_default = baseline_postfix_settings
 MinProtocol = TLSv1
 </pre>
 </blockquote>
+
+<p> Example: Custom OpenSSL group settings. </p>
+
+<pre>
+main.cf:
+    tls_config_file = ${config_directory}/openssl.cnf
+    tls_config_name = postfix
+</pre>
+
+<pre>
+openssl.cnf:
+    postfix = postfix_settings
+</pre>
+
+<pre>
+    [postfix_settings]
+    ssl_conf = postfix_ssl_settings
+</pre>
+
+<pre>
+    [postfix_ssl_settings]
+    system_default = baseline_postfix_settings
+</pre>
+
+<pre>
+    [baseline_postfix_settings]
+    # New OpenSSL 3.5 syntax, for older releases consider
+    # the Postfix default:
+    #
+    # Groups = X25519:X448:prime256v1:secp384r1:secp521r1:ffdhe2048:ffdhe3072
+    #
+    Groups = *X25519MLKEM768 / *X25519:X448 / P-256:P-384
+</pre>
+
+<p> Caution: It is typically best to just use the default group
+settings, for which no $tls_config_file is required (you can set
+"tls_config_file = none", to avoid unwanted leakage of system-wide
+settings that strive to harden HTTPS against mostly browser-specific
+security and privacy issues into Postfix use of opportunistic TLS,
+where they're they can be counterproductive, leading to downgrades
+to cleartext, rather than more "secure" TLS). </p>
 
 <p> This feature is available in Postfix &ge; 3.9, 3.8.1, 3.7.6,
 3.6.10, and 3.5.20. </p>

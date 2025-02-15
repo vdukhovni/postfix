@@ -374,12 +374,13 @@ This is true for OE (Win32 < 5.0 and Win32 >=5.0 when run on a port<>25 and OE
 It is strictly discouraged to use this mode from main.cf. If you want to
 support this service, enable a special port in master.cf and specify "-
 o smtpd_tls_wrappermode=yes" (note: no space around the "=") as an smtpd(8)
-command line option. Port 465 (smtps) was once chosen for this feature.
+command line option. Port 465 (submissions, formerly called smtps) is the most
+common example.
 
 Example:
 
     /etc/postfix/master.cf:
-        smtps    inet  n       -       n       -       -       smtpd
+        submissions inet  n       -       n       -       -       smtpd
           -o smtpd_tls_wrappermode=yes -o smtpd_sasl_auth_enable=yes
 
 CClliieenntt cceerrttiiffiiccaattee vveerriiffiiccaattiioonn
@@ -760,7 +761,7 @@ Topics covered in this section:
   * Discovering servers that support TLS
   * Server certificate verification depth
   * Client-side cipher controls
-  * Client-side SMTPS support
+  * Client-side submissions (formerly called smtps) support
   * Miscellaneous client controls
 
 CCoonnffiigguurriinngg TTLLSS iinn tthhee SSMMTTPP//LLMMTTPP cclliieenntt
@@ -1970,48 +1971,51 @@ Example:
         smtp_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
         smtp_tls_protocols = !SSLv2,!SSLv3
 
-CClliieenntt--ssiiddee SSMMTTPPSS ssuuppppoorrtt
+CClliieenntt--ssiiddee ssuubbmmiissssiioonnss ((ffoorrmmeerrllyy ccaalllleedd ssmmttppss)) ssuuppppoorrtt
 
 These sections show how to send mail to a server that does not support
-STARTTLS, but that provides the SMTPS service on TCP port 465. Depending on the
-Postfix version, some additional tooling may be required.
+STARTTLS, but that provides the submissions (smtps) service on TCP port 465.
+Depending on the Postfix version, some additional tooling may be required.
 
 PPoossttffiixx >>== 33..00
 
-The Postfix SMTP client has SMTPS support built-in as of version 3.0. Use one
-of the following examples, to send all remote mail, or to send only some remote
-mail, to an SMTPS server.
+The Postfix SMTP client has submissions service support built-in as of version
+3.0. Use one of the following examples, to send all remote mail, or to send
+only some remote mail, to a submissions (smtps) server.
 
-PPoossttffiixx >>== 33..00:: SSeennddiinngg aallll rreemmoottee mmaaiill ttoo aann SSMMTTPPSS sseerrvveerr
+PPoossttffiixx >>== 33..00:: SSeennddiinngg aallll rreemmoottee mmaaiill ttoo aa ssuubbmmiissssiioonnss ((ffoorrmmeerrllyy ccaalllleedd
+ssmmttppss)) sseerrvveerr
 
-The first example will send all remote mail over SMTPS through a provider's
+The first example will send all remote mail to through a provider's submissions
 server called "mail.example.com":
 
     /etc/postfix/main.cf:
-        # Client-side SMTPS requires "encrypt" or stronger.
+        # Client-side submissions requires "encrypt" or stronger.
         smtp_tls_security_level = encrypt
         smtp_tls_wrappermode = yes
         # The [] suppress MX lookups.
-        relayhost = [mail.example.com]:465
+        relayhost = [mail.example.com]:submissions
 
 Use "postfix reload" to make the change effective.
 
 See SOHO_README for additional information about SASL authentication.
 
-PPoossttffiixx >>== 33..00:: SSeennddiinngg oonnllyy mmaaiill ffoorr aa ssppeecciiffiicc ddeessttiinnaattiioonn vviiaa SSMMTTPPSS
+PPoossttffiixx >>== 33..00:: SSeennddiinngg oonnllyy mmaaiill ffoorr aa ssppeecciiffiicc ddeessttiinnaattiioonn ttoo aa ssuubbmmiissssiioonnss
+((ffoorrmmeerrllyy ccaalllleedd ssmmttppss)) sseerrvviiccee
 
-The second example will send only mail for "example.com" via SMTPS. This time,
-Postfix uses a transport map to deliver only mail for "example.com" via SMTPS:
+The second example will send only mail for "example.com" using the submissions
+(smtps) service. This time, Postfix uses a transport map to deliver only mail
+for "example.com" using the submissions (smtps) service:
 
     /etc/postfix/main.cf:
         transport_maps = hash:/etc/postfix/transport
 
     /etc/postfix/transport:
-        example.com  relay-smtps:example.com:465
+        example.com  relay-submissions:example.com:submissions
 
     /etc/postfix/master.cf:
-        relay-smtps  unix  -       -       n       -       -       smtp
-            # Client-side SMTPS requires "encrypt" or stronger.
+        relay-submissions  unix  -       -       n       -       -       smtp
+            # Client-side submissions service requires "encrypt" or stronger.
             -o smtp_tls_security_level=encrypt
             -o smtp_tls_wrappermode=yes
 
@@ -2022,62 +2026,7 @@ See SOHO_README for additional information about SASL authentication.
 
 PPoossttffiixx << 33..00
 
-Although older Postfix SMTP client versions do not support TLS wrapper mode, it
-is relatively easy to forward a connection through the stunnel program if
-Postfix needs to deliver mail to some legacy system that doesn't support
-STARTTLS.
-
-PPoossttffiixx << 33..00:: SSeennddiinngg aallll rreemmoottee mmaaiill ttoo aann SSMMTTPPSS sseerrvveerr
-
-The first example uses SMTPS to send all remote mail to a provider's mail
-server called "mail.example.com".
-
-A minimal stunnel.conf file is sufficient to set up a tunnel from local port
-11125 to the remote destination "mail.example.com" and port "smtps". Postfix
-will later use this tunnel to connect to the remote server.
-
-    /path/to/stunnel.conf:
-        [smtp-tls-wrapper]
-        accept = 11125
-        client = yes
-        connect = mail.example.com:smtps
-
-To test this tunnel, use:
-
-    $ telnet localhost 11125
-
-This should produce the greeting from the remote SMTP server at
-mail.example.com.
-
-On the Postfix side, the relayhost feature sends all remote mail through the
-local stunnel listener on port 11125:
-
-    /etc/postfix/main.cf:
-        relayhost = [127.0.0.1]:11125
-
-Use "postfix reload" to make the change effective.
-
-See SOHO_README for additional information about SASL authentication.
-
-PPoossttffiixx << 33..00:: SSeennddiinngg oonnllyy mmaaiill ffoorr aa ssppeecciiffiicc ddeessttiinnaattiioonn vviiaa SSMMTTPPSS
-
-The second example will use SMTPS to send only mail for "example.com" via
-SMTPS. It uses the same stunnel configuration file as the first example, so it
-won't be repeated here.
-
-This time, the Postfix side uses a transport map to direct only mail for
-"example.com" through the tunnel:
-
-    /etc/postfix/main.cf:
-        transport_maps = hash:/etc/postfix/transport
-
-    /etc/postfix/transport:
-        example.com  relay:[127.0.0.1]:11125
-
-Use "postmap hash:/etc/postfix/transport" and "postfix reload" to make the
-change effective.
-
-See SOHO_README for additional information about SASL authentication.
+Please see TLS_LEGACY_README.
 
 MMiisscceellllaanneeoouuss cclliieenntt ccoonnttrroollss
 
