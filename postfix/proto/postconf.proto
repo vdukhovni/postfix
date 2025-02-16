@@ -12892,8 +12892,7 @@ parameter. See there for details. </p>
 %PARAM tls_eecdh_auto_curves see "postconf -d" output
 
 <p> The prioritized list of elliptic curves supported by the Postfix
-SMTP client and server.  These curves are used by the Postfix SMTP
-server when "smtpd_tls_eecdh_grade = auto".  The selected curves
+SMTP client and server.  The selected curves
 must be implemented by OpenSSL and be standardized for use in TLS
 (RFC 4492 or its imminent successor).  It is unwise to list only
 "bleeding-edge" curves supported by a small subset of clients.  The
@@ -12907,6 +12906,14 @@ available.  In particular, in some OpenSSL versions, the new RFC
 support for either or both may be missing.  These curves may appear
 in the default value of this parameter, even though they'll only
 be usable with later versions of OpenSSL.  </p>
+
+<p> Post-quantum cryptography support: OpenSSL 3.5 introduces new
+configuration syntax that Postfix will not attempt to imitate.
+Instead, with Postfix 3.6.17, 3.7.13, 3.8.8, 3.9.2, and later, set
+both tls_eecdh_auto_curves and if available tls_ffdhe_auto_groups
+to the empty value, to enable algorithm selection through OpenSSL
+configuration. See tls_config_file for a configuration example.
+</p>
 
 <p> This feature is available in Postfix 3.2 and later, when it is
 compiled and linked with OpenSSL 1.0.2 or later on platforms where
@@ -12926,6 +12933,8 @@ generally change this setting.  Remote SMTP client implementations
 must support this curve for EECDH key exchange to take place.  It
 is unwise to choose an "bleeding-edge" curve supported by only a
 small subset of clients.  </p>
+
+<p> This feature is not used as of Postfix 3.6. Do not specify. </p>
 
 <p> The default "strong" curve is rated in NSA <a
 href="https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/">Suite
@@ -12964,6 +12973,8 @@ curve must be implemented by OpenSSL (as reported by ecparam(1) with the
 "-list_curves" option) and be one of the curves listed in Section 5.1.1
 of RFC 4492. You should not generally change this setting. </p>
 
+<p> This feature is not used as of Postfix 3.6. Do not specify. </p>
+
 <p> This default "ultra" curve is rated in NSA <a
 href="https://web.archive.org/web/20160330034144/https://www.nsa.gov/ia/programs/suiteb_cryptography/">Suite
 B</a> for information classified up to TOP SECRET. </p>
@@ -12989,6 +13000,8 @@ Diffie-Hellman (EECDH) key exchange.   As of Postfix 3.6, the value of
 this parameter is always ignored, and Postfix behaves as though the
 <b>auto</b> value (described below) was chosen.
 </p>
+
+<p> This feature is not used as of Postfix 3.6. Do not specify. </p>
 
 <p> The available choices are: </p>
 
@@ -15374,6 +15387,8 @@ the "tlsproxy_tls_chain_files" parameter. </p>
 elliptic-curve Diffie-Hellman (EECDH) key exchange. See
 smtpd_tls_eecdh_grade for further details. </p>
 
+<p> This feature is not used as of Postfix 3.6. Do not specify. </p>
+
 <p> This feature is available in Postfix 2.8 and later. </p>
 
 %PARAM tlsproxy_tls_exclude_ciphers $smtpd_tls_exclude_ciphers
@@ -16969,7 +16984,7 @@ clients).  </p>
 This feature is available in Postfix 3.1 and later.
 </p>
 
-%PARAM smtp_tls_dane_insecure_mx_policy see "postconf -d" output
+%PARAM smtp_tls_dane_insecure_mx_policy dane
 
 <p> The TLS policy for MX hosts with "secure" TLSA records when the
 nexthop destination security level is <b>dane</b>, but the MX
@@ -16993,10 +17008,9 @@ authentication succeeds, it will be logged only as "Trusted", not
 "Verified", because the MX host name could have been forged.  </dd>
 </dl>
 
-<p> The default setting for Postfix &ge; 3.6 is "dane" with
-"smtp_tls_security_level = dane", otherwise "may". This behavior
-was backported to Postfix versions 3.5.9, 3.4.19, 3.3.16. 3.2.21.
-With earlier Postfix versions the default setting was always "dane".
+<p> The default setting is "dane" as of Postfix versions 3.6.17,
+3.7.13, 3.8.8, 3.9.2, and 3.10.0. With earlier versions the default
+was mistakenly dependent on the smtp_tls_security_level setting.
 </p>
 
 <p> Though with "insecure" MX records an active attacker can
@@ -18157,6 +18171,45 @@ system_default = baseline_postfix_settings
 MinProtocol = TLSv1
 </pre>
 </blockquote>
+
+<p> Example: Custom OpenSSL group settings. </p>
+
+<pre>
+main.cf:
+    tls_config_file = ${config_directory}/openssl.cnf
+    tls_config_name = postfix
+</pre>
+
+<pre>
+openssl.cnf:
+    postfix = postfix_settings
+</pre>
+
+<pre>
+    [postfix_settings]
+    ssl_conf = postfix_ssl_settings
+</pre>
+
+<pre>
+    [postfix_ssl_settings]
+    system_default = baseline_postfix_settings
+</pre>
+
+<pre>
+    [baseline_postfix_settings]
+    # New OpenSSL 3.5 syntax, for older releases consider
+    # the Postfix default:
+    #
+    # Groups = X25519:X448:prime256v1:secp384r1:secp521r1:ffdhe2048:ffdhe3072
+    #
+    Groups = *X25519MLKEM768 / *X25519:X448 / P-256:P-384
+</pre>
+
+<p> Caution: It is typically best to just use the default OpenSSL
+group settings, by setting "tls_config_file = none". Overly strict
+system-wide TLS settings will conflict with Postfix's opportunistic
+TLS, where being less restrictive is better than downgrading to
+cleartext SMTP. </p>
 
 <p> This feature is available in Postfix &ge; 3.9, 3.8.1, 3.7.6,
 3.6.10, and 3.5.20. </p>

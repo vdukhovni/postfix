@@ -26193,3 +26193,77 @@ Apologies for any names omitted.
 	by Postfix (for example, a From: header with UTF8 full name
 	information from the password file). Reported by Michael
 	Tokarev. File: src/cleanup/cleanup_message.c.
+
+20241205
+
+	Portability: include <sys_socket.h> for a SUNOS5 workaround.
+	Gary R. Schmidt. File: util/peekfd.c.
+
+20241230
+
+	Bugfix (defect introduced: Postfix 3.3, date 20180107) small
+	memory leak in the cleanup daemon when generating a "From:
+	full-name <addr-spec>" message header. The impact is limited
+	because the number of requests is bounded by the "max_use"
+	configuration parameter. Found during code maintenance.
+	File: cleanup/cleanup_message.c.
+
+20250111
+
+	Forward compatibility: ignore new queue file flag bits that may
+	be used with Postfix 3.10 and later. This is a safety in case
+	a Postfix 3.10 upgrade needs to be rolled back, after the new
+	TLS-Required feature has been used. Files: global/smtputf8.h,
+	*qmgr/qmgr_message.c.
+ 
+20250115
+
+	Bugfix (defect introduced: Postfix 3.0): the bounce daemon
+	mangled a non-ASCII address localpart in the "X-Postfix-Sender:"
+	field of a delivery status notification. It backslash-escaped
+	each byte in a multi-byte character. This behavior was
+	implemented in Postfix 2.1 (no support for UTF8 local-parts),
+	but it became incorrect after SMTPUTF8 support was implemented
+	in Postfix 3.0. File: bounce/bounce_notify_util.c.
+
+20250207
+
+	Performance: when a mysql: or pgsql: configuration specifies
+	a single host, assume that it is a load balancer and reconnect
+	immediately after a single failure, instead of failing all
+	requests for 60s. Files: global/dict_pgsql.c, global/dict_mysql.c.
+
+20250210
+
+	Bugfix (defect introduced: Postfix 3.6): Reverted the default
+	smtp_tls_dane_insecure_mx_policy setting to "dane" as of Postfix
+	3.6.17, 3.7.13, 3.8.8, 3.9.2, and 3.10.0. By mistake the default
+	was dependent on the smtp_tls_security_level setting. Files:
+	global/mail_params.h, proto/postconf.proto, smtp/smtp.c.
+
+20250212
+
+	Support for OpenSSL 3.5 post-quantum cryptography. To manage
+	algorithm selection, OpenSSL introduces new TLS group syntax
+	that Postfix will not attempt to imitate. Instead, Postfix
+	now allows the tls_eecdh_auto_curves and tls_ffdhe_auto_groups
+	parameter values to have an empty value. When both are set
+	empty, the algorithm selection can be managed through OpenSSL
+	configuration. Viktor Dukhovni. File: tls/tls_misc.c.
+
+	Bugfix (defect introduced: Postfix 3.4, date 20181113): a
+	server with multiple TLS certificates could report, for a
+	resumed TLS session, the wrong server-signature and
+	server-digest names in logging and Received: message headers.
+	Viktor Dukhovni. File: tls/tls_misc.c.
+
+20250213
+
+	Documentation: updated postconf(5) that the parameters
+	smtpd_tls_eecdh_grade, tls_eecdh_strong_curve,
+	tls_eecdh_ultra_curve, and tlsproxy_tls_eecdh_grade, are
+	not used since Postfix 3.6; updated the tls_eecdh_auto_curves
+	and tls_ffdhe_auto_groups description with post-quantum
+	configuration; added a post-quantum example to the
+	tls_config_file description. File: proto/postconf.proto.
+	The unused parameters will be deleted in Postfix 3.11.

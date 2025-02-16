@@ -356,7 +356,8 @@ static BOUNCE_INFO *bounce_mail_alloc(const char *service,
 		quote_822_local_flags(bounce_info->sender,
 				      VSTRING_LEN(bounce_info->buf) ?
 				      STR(bounce_info->buf) :
-				      mail_addr_mail_daemon(), 0);
+				      mail_addr_mail_daemon(),
+				      QUOTE_FLAG_8BITCLEAN);
 	    }
 
 	    /*
