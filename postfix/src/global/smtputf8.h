@@ -99,6 +99,11 @@ extern int smtputf8_autodetect(int);
 #define SMTPUTF8_FLAG_SENDER	(1<<2)	/* queue file/delivery/bounce request */
 #define SMTPUTF8_FLAG_RECIPIENT	(1<<3)	/* delivery request only */
 
+#define SMTPUTF8_FLAG_ALL	(SMTPUTF8_FLAG_REQUESTED \
+				| SMTPUTF8_FLAG_HEADER \
+				| SMTPUTF8_FLAG_SENDER \
+				| SMTPUTF8_FLAG_RECIPIENT)
+
 /* LICENSE
 /* .ad
 /* .fi

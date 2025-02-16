@@ -426,9 +426,7 @@
 /*	Detailed information about STARTTLS configuration may be found
 /*	in the TLS_README document.
 /* .IP "\fBsmtp_tls_security_level (empty)\fR"
-/*	The default SMTP TLS security level for the Postfix SMTP client;
-/*	when a non-empty value is specified, this overrides the obsolete
-/*	parameters smtp_use_tls, smtp_enforce_tls, and smtp_tls_enforce_peername.
+/*	The default SMTP TLS security level for the Postfix SMTP client.
 /* .IP "\fBsmtp_sasl_tls_security_options ($smtp_sasl_security_options)\fR"
 /*	The SASL authentication security options that the Postfix SMTP
 /*	client uses for TLS encrypted SMTP sessions.
@@ -561,10 +559,10 @@
 /*	Available in Postfix version 3.0 and later:
 /* .IP "\fBsmtp_tls_wrappermode (no)\fR"
 /*	Request that the Postfix SMTP client connects using the
-/*	legacy SMTPS protocol instead of using the STARTTLS command.
+/*	SUBMISSIONS/SMTPS protocol instead of using the STARTTLS command.
 /* .PP
 /*	Available in Postfix version 3.1 and later:
-/* .IP "\fBsmtp_tls_dane_insecure_mx_policy (see 'postconf -d' output)\fR"
+/* .IP "\fBsmtp_tls_dane_insecure_mx_policy (dane)\fR"
 /*	The TLS policy for MX hosts with "secure" TLSA records when the
 /*	nexthop destination security level is \fBdane\fR, but the MX
 /*	record was found via an "insecure" MX lookup.
@@ -727,7 +725,7 @@
 /*	Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
 /* .IP "\fBsmtputf8_enable (yes)\fR"
 /*	Enable preliminary SMTPUTF8 support for the protocols described
-/*	in RFC 6531..6533.
+/*	in RFC 6531, RFC 6532, and RFC 6533.
 /* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
 /*	Detect that a message requires SMTPUTF8 support for the specified
 /*	mail origin classes.

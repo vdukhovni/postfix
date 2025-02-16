@@ -776,6 +776,9 @@ static void pgsql_parse_config(DICT_PGSQL *dict_pgsql, const char *pgsqlcf)
 	    msg_info("%s: %s: no hostnames specified, defaulting to '%s'",
 		     myname, pgsqlcf, dict_pgsql->hosts->argv[0]);
     }
+    /* Don't blacklist the load balancer! */
+    if (dict_pgsql->hosts->argc == 1)
+	argv_add(dict_pgsql->hosts, dict_pgsql->hosts->argv[0], (char *) 0);
     myfree(hosts);
 }
 

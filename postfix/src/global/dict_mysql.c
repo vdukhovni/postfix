@@ -798,6 +798,9 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
 	    msg_info("%s: %s: no hostnames specified, defaulting to '%s'",
 		     myname, mysqlcf, dict_mysql->hosts->argv[0]);
     }
+    /* Don't blacklist the load balancer! */
+    if (dict_mysql->hosts->argc == 1)
+        argv_add(dict_mysql->hosts, dict_mysql->hosts->argv[0], (char *) 0);
     myfree(hosts);
 }
 
