@@ -137,6 +137,7 @@
 #include <split_addr.h>
 #include <dsn_mask.h>
 #include <rec_attr_map.h>
+#include <smtputf8.h>
 
 /* Client stubs. */
 
@@ -562,6 +563,8 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 			rec_type = REC_TYPE_ERROR;
 			break;
 		    }
+		    /* Forward compatibility. */
+		    message->smtputf8 &= SMTPUTF8_FLAG_ALL;
 		} else if (count == 1) {
 		    /* Postfix < 1.0 (a.k.a. 20010228). */
 		    qmgr_message_oldstyle_scan(message);
