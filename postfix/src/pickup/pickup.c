@@ -236,6 +236,7 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
     char   *attr_value;
     char   *saved_attr;
     int     skip_attr;
+    ssize_t count;
 
     /*
      * Limit the input record size. All front-end programs should protect the
@@ -246,7 +247,7 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
      * 
      * We must allow PTR records here because of "postsuper -r".
      */
-    for (;;) {
+    for (count = 0; /* void */; count++) {
 	if ((type = rec_get(qfile, buf, var_line_limit)) < 0
 	    || strchr(expected, type) == 0)
 	    return (file_read_error(info, type));
@@ -264,6 +265,9 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 	}
 	if (type == REC_TYPE_TIME)
 	    time_seen = 1;
+	if (type == REC_TYPE_SIZE && count > 5)
+	    /* Discard SIZE record not at beginning of segment. */
+	    continue;
 
 	/*
 	 * XXX Workaround: REC_TYPE_FILT (used in envelopes) == REC_TYPE_CONT

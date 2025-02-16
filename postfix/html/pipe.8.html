@@ -309,6 +309,15 @@ PIPE(8)                                                                PIPE(8)
                      This information is modified by the <b>hqu</b> flags for quoting
                      and case folding.
 
+              <b>${requiretls}</b>
+                     This  feature  should  be  used with content filters that
+                     pass filtered mail to the  Postfix  <a href="sendmail.1.html">sendmail(1)</a>  command.
+                     The  macro expands to the <a href="sendmail.1.html">sendmail(1)</a> command-line option
+                     <b>-Orequiretls</b> if the sender requested  REQUIRETLS,  other-
+                     wise it expands to <b>-Onoop</b>.
+
+                     This feature is available as of Postfix 3.10.
+
               <b>${sasl_method}</b>
                      This macro expands to the name of the SASL authentication
                      mechanism in the  AUTH  command  when  the  Postfix  SMTP

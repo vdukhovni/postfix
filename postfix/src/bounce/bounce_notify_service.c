@@ -99,6 +99,15 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
     int     count;
 
     /*
+     * If the original sender requested REQUIRETLS, return headers only, and
+     * do not enforce REQUIRETLS for the delivery status notification.
+     */
+    if ((sendopts & SOPT_REQUIRETLS_ESMTP) != 0) {
+	dsn_ret = DSN_RET_HDRS;
+	sendopts &= ~SOPT_REQUIRETLS_ESMTP;
+    }
+
+    /*
      * Initialize. Open queue file, bounce log, etc.
      * 
      * XXX DSN The bounce service produces RFC 3464-style "failed mail" reports
@@ -196,7 +205,8 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
 		    && bounce_header_dsn(bounce, bounce_info) == 0
 		    && bounce_diagnostic_dsn(bounce, bounce_info,
 					     DSN_NOTIFY_OVERRIDE) > 0) {
-		    bounce_original(bounce, bounce_info, DSN_RET_FULL);
+		    bounce_original(bounce, bounce_info, dsn_ret ?
+				    dsn_ret : DSN_RET_FULL);
 		    bounce_status = post_mail_fclose(bounce);
 		    if (bounce_status == 0)
 			msg_info("%s: postmaster non-delivery notification: %s",
