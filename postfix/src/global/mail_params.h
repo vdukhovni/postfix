@@ -1660,7 +1660,7 @@ extern bool var_smtp_tls_force_tlsa;
 
  /* SMTP only */
 #define VAR_SMTP_TLS_INSECURE_MX_POLICY "smtp_tls_dane_insecure_mx_policy"
-#define DEF_SMTP_TLS_INSECURE_MX_POLICY "${{$smtp_tls_security_level} == {dane} ? {dane} : {may}}"
+#define DEF_SMTP_TLS_INSECURE_MX_POLICY "dane"
 extern char *var_smtp_tls_insecure_mx_policy;
 
  /*

@@ -779,7 +779,7 @@ static void cleanup_header_done_callback(void *context)
 		}
 		if (token) {
 		    tok822_externalize(state->temp2, token, TOK822_STR_NONE);
-		    tok822_free(token);
+		    tok822_free_tree(token);
 		    vstring_strcat(state->temp2, " ");
 		}
 		vstring_sprintf_append(state->temp2, "<%s>",
