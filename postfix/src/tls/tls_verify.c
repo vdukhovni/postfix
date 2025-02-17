@@ -315,7 +315,7 @@ void    tls_log_verify_error(TLS_SESS_STATE *TLScontext,
 	if (tlsrpt)
 	    trw_report_failure(tlsrpt, TLSRPT_CERTIFICATE_EXPIRED,
 			        /* additional_info= */ (char *) 0,
-			        /* failure_code= */ (char *) 8);
+			        /* failure_code= */ (char *) 0);
 #endif
 	break;
     case X509_V_ERR_INVALID_PURPOSE:

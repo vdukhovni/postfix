@@ -28966,9 +28966,9 @@ Apologies for any names omitted.
 	tls/tls_misc.c.
 
 	Bugfix (defect introduced: Postfix 3.4, date 20181113): a
-	server with multiple TLS certificates could report for a
-	resumed TLS session, in logging and Received: message
-	headers, the wrong server-signature and server-digest names.
+	server with multiple TLS certificates could report, for a
+	resumed TLS session, the wrong server-signature and
+	server-digest names in logging and Received: message headers.
 	Viktor Dukhovni. File: tls/tls_misc.c.
 
 20250213
@@ -28982,4 +28982,16 @@ Apologies for any names omitted.
 	tls_config_file description. File: proto/postconf.proto.
 	The unused parameters will be deleted in Postfix 3.11.
 
-	Postfix 3.10 code freeze.
+20250215
+
+	Safety: added a TLSRPT library version check. Log a warning
+	when the run-time TLSRPT library API version is not compatible
+	with the build-time TLSRPT API version, where 'compatible'
+	is defined according to the rules of semantic versioning.
+	This completes the Postfix 3.10 stable release.
+
+20250216
+
+	Bugfix (defect introduced: Postfix 3.10): Postfix SMTP
+	client segfault while reporting a 'certificate expired'
+	event. Problem reported by Oemer Gueven. File: tls/tls_verify.c.
