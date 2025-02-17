@@ -252,6 +252,13 @@
 #include <tlsrpt.h>
 #endif
 
+#if !defined(TLSRPT_PREREQ)
+#define TLSRPT_PREREQ(maj, min) \
+    (defined(TLSRPT_VERSION_MAJOR) && \
+	((TLSRPT_VERSION_MAJOR << 16) + TLSRPT_VERSION_MINOR >= \
+	    ((maj) << 16) + (min)))
+#endif
+
  /*
   * Utility library.
   */
@@ -320,6 +327,15 @@ TLSRPT_WRAPPER *trw_create(const char *rpt_socket_name,
 		 "rpt_policy_string=%s, skip_reused_hs=%d)",
 		 myname, rpt_socket_name, rpt_policy_domain,
 		 rpt_policy_string, skip_reused_hs);
+
+#if TLSRPT_PREREQ(0, 6)
+    if (tlsrpt_version_check(TLSRPT_VERSION_MAJOR, TLSRPT_VERSION_MINOR,
+			     TLSRPT_VERSION_PATCH) == 0)
+	msg_warn("run-time library vs. compile-time header version mismatch: "
+		 "libtlsrpt API version '%s' is not compatible with "
+		 "libtlsrpt API version '%s' ", tlsrpt_version(),
+		 TLSRPT_VERSION_STRING);
+#endif
 
     /*
      * memset() is not portable for pointer etc. types.
