@@ -96,6 +96,15 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
     const char *sender;
 
     /*
+     * If the original sender requested REQUIRETLS, do not enforce REQUIRETLS
+     * for the delivery status notification. The trace service always returns
+     * headers only.
+     */
+    if ((sendopts & SOPT_REQUIRETLS_ESMTP) != 0) {
+	sendopts &= ~SOPT_REQUIRETLS_ESMTP;
+    }
+
+    /*
      * For consistency with fail/delay notifications, send notification for a
      * non-bounce message as a single-bounce message, send notification for a
      * single-bounce message as a double-bounce message, and drop requests to
