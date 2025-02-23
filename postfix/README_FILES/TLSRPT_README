@@ -49,8 +49,8 @@ TLSRPT information, are implemented and maintained by sys4 at https://
 github.com/sys4/libtlsrpt and https://github.com/sys4/tlsrpt-reporter,
 respectively.
 
-The Postfix implementation supports TLSRPT or domains with DANE (Postfix built-
-in) and MTA-STS (through an smtp_tls_policy_maps plug-in).
+The Postfix implementation supports TLSRPT for domains with DANE (Postfix
+built-in) and MTA-STS (through an smtp_tls_policy_maps plug-in).
 
 The Postfix smtp(8) client process implements the SMTP client engine. With
 "smtp_tls_connection_reuse = no", the smtp(8) client process also implements
