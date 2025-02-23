@@ -4383,6 +4383,17 @@ extern int var_idna2003_compat;
 #define DEF_TLSREQUIRED_ENABLE		"yes"
 extern int var_tls_required_enable;
 
+#define VAR_REQUIRETLS_ENABLE		"requiretls_enable"
+#define DEF_REQUIRETLS_ENABLE		"yes"
+extern int var_requiretls_enable;
+
+#define VAR_SMTP_ENFORCE_REQUIRETLS	"smtp_enforce_requiretls"
+#define DEF_SMTP_ENFORCE_REQUIRETLS	""
+extern char *var_smtp_enforce_requiretls;
+
+#define VAR_LMTP_ENFORCE_REQUIRETLS	"lmtp_enforce_requiretls"
+#define DEF_LMTP_ENFORCE_REQUIRETLS	""
+
  /*
   * Workaround for future incompatibility. Our implementation of RFC 2308
   * negative reply caching relies on the promise that res_query() and

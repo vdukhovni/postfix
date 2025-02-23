@@ -3136,6 +3136,11 @@ The LMTP\-specific version of the smtp_dns_support_level
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.11 and later.
+.SH lmtp_enforce_requiretls (default: empty)
+The LMTP\-specific version of the smtp_enforce_requiretls
+configuration parameter. See there for details.
+.PP
+This feature is available in Postfix >= 3.11.
 .SH lmtp_enforce_tls (default: no)
 The LMTP\-specific version of the smtp_enforce_tls configuration
 parameter.  See there for details.
@@ -5046,6 +5051,10 @@ postscreen_access_list
 .IP "Postfix version 3.0 and later"
 smtpd_client_event_limit_exceptions
 .br
+.IP "Postfix version 3.11 and later"
+smtp_enforce_requiretls,
+lmtp_enforce_requiretls
+.br
 .br
 .SH permit_mx_backup_networks (default: empty)
 Restrict the use of the permit_mx_backup SMTP access feature to
@@ -6578,6 +6587,28 @@ Require that a \fBlocal\fR(8) recipient's home directory exists
 before mail delivery is attempted. By default this test is disabled.
 It can be useful for environments that import home directories to
 the mail server (IMPORTING HOME DIRECTORIES IS NOT RECOMMENDED).
+.SH requiretls_enable (default: yes)
+Enable support for the ESMTP verb "REQUIRETLS", defined in RFC
+8689. By issuing this verb in the "MAIL FROM" command, a sender
+specifies that a message must be delivered over TLS connections
+with a verified server certificate, to a server that announces
+"REQUIRETLS" support. This corresponds to the Postfix SMTP client
+TLS security levels "secure", "verify", "fingerprint", dane\-only,
+or opportunistic "dane", with a successful certificate match. The
+Postfix SMTP client will try one or more servers, controlled with
+the smtp_mx_address_limit parameter, until it finds a server that
+satisfies requirements. Otherwise, Postfix returns the message as
+undeliverable.
+.PP
+Notes:
+.IP \(bu
+REQUIRETLS enforcement is controlled with smtp_enforce_requiretls
+or lmtp_enforce_requiretls.
+.IP \(bu
+REQUIRETLS overrides "TLS\-Required: no".
+.br
+.PP
+This feature is available in Postfix >= 3.11.
 .SH reset_owner_alias (default: no)
 Reset the \fBlocal\fR(8) delivery agent's idea of the owner\-alias
 attribute, when delivering mail to a child alias that does not have
@@ -7512,6 +7543,77 @@ reasonably\-modern DNS \fBresolver\fR(3) library that implements the
 RES_USE_DNSSEC and RES_USE_EDNS0 resolver options.
 .PP
 This feature is available in Postfix 2.11 and later.
+.SH smtp_enforce_requiretls (default: empty)
+An optional list of next\-hop destinations that the Postfix
+SMTP/LMTP client will enforce REQUIRETLS for, when a message was
+received with the REQUIRETLS option: the next\-hop server must offer
+a matching TLS server certificate, and the server must announce
+REQUIRETLS support). Such a message will be returned to the sender
+if some REQUIRETLS requirement cannot be satisfied. These "hard"
+REQUIRETLS failures are logged as "REQUIRETLS failure".
+.PP
+Other messages that were received with the REQUIRETLS option
+will be delivered with REQUIRETLS if possible. If not, a message
+will be delivered as if it was received without the REQUIRETLS
+option. This allows a mail sending site to discover when REQUIRETLS
+can be enforced, without disrupting email deliveries. These "soft"
+REQUIRETLS failures are logged with "REQUIRETLS Debug".
+.PP
+On a perimeter MTA, it can make sense to turn off REQUIRETLS
+enforcement, or even to turn off REQUIRETLS support, when delivering
+a message to an internal destination. The internal servers may not
+support REQUIRETLS, and their connections may be secured with means
+other than DANE, STS, and the like.
+.PP
+The supported syntax differs with SMTP and LMTP:
+.IP \(bu
+With SMTP, specify a list of next\-hop domain names (without
+the ":port" or ":service" suffix), "/file/name" patterns or
+"type:table" lookup tables, separated by commas and/or whitespace.
+Continue long lines by starting the next line with whitespace. A
+"/file/name" pattern is replaced by its contents.  A "type:table"
+lookup table is matched when a domain appears as lookup key. Specify
+"!pattern" to exclude a domain.
+.IP \(bu
+With LMTP, specify list of domain names (without the "inet":
+prefix, or  ":port" or ":service" suffix), or UNIX\-domain socket
+"/path/name" (without the "unix:" prefix), or "type:table" lookup
+tables, separated by commas and/or whitespace. Continue long lines
+by starting the next line with whitespace. A "type:table" lookup
+table is matched when a domain appears as lookup key. Specify
+"!pattern" to exclude a domain or socket path.
+.br
+.PP
+Specify the form ".domain" to match any name ending in ".domain".
+To change this behavior, list "smtp_enforce_requiretls" or
+"lmtp_enforce_requiretls" in the parent_domain_matches_subdomains
+parameter value.
+.PP
+SMTP Examples:
+.PP
+.nf
+.na
+# Enforce REQUIRETLS for SMTP with selected next\-hop domains.
+smtp_enforce_requiretls = example.com, foo.example
+.br
+# Enforce REQUIRETLS for SMTP with all but a few next\-hop domains.
+smtp_enforce_requiretls = !foo.example, static:all
+.fi
+.ad
+.PP
+LMTP examples:
+.PP
+.nf
+.na
+# Don't enforce REQUIRETLS
+lmtp_enforce_requiretls =
+.br
+# Enforce REQUIRETLS for specific destinations.
+lmtp_enforce_requiretls = /path/to/socket, message\-store.example
+.fi
+.ad
+.PP
+This feature is available in Postfix >= 3.11.
 .SH smtp_enforce_tls (default: no)
 Enforcement mode: require that remote SMTP servers use TLS
 encryption, and never send mail in the clear.  This also requires
@@ -14452,6 +14554,8 @@ server certificates, and fall back to plaintext if TLS is unavailable.
 If a message contains a "TLS\-Required: no" header, then Postfix
 will add that header to a delivery status notification for that
 message.
+.PP
+Note: REQUIRETLS overrides "TLS\-Required: no".
 .PP
 This feature is available in Postfix >= 3.10.
 .SH tls_server_sni_maps (default: empty)
