@@ -28995,3 +28995,10 @@ Apologies for any names omitted.
 	Bugfix (defect introduced: Postfix 3.10): Postfix SMTP
 	client segfault while reporting a 'certificate expired'
 	event. Problem reported by Oemer Gueven. File: tls/tls_verify.c.
+
+20250221
+
+	Bugfix (defect introduced: 20250210): a recent 'fix' for the
+	default smtp_tls_dane_insecure_mx_policy setting resulted in
+	unnecessary 'dnssec_probe' warnings, on systems that disable
+	DNSSEC lookups (the default). File: smtp/smtp_addr.c.
