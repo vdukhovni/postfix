@@ -28098,3 +28098,10 @@ Apologies for any names omitted.
 	configuration; added a post-quantum example to the
 	tls_config_file description. File: proto/postconf.proto.
 	The unused parameters will be deleted in Postfix 3.11.
+
+20250221
+
+	Bugfix (defect introduced: 20250210): a recent 'fix' for the
+	default smtp_tls_dane_insecure_mx_policy setting resulted in
+	unnecessary 'dnssec_probe' warnings, on systems that disable
+	DNSSEC lookups (the default). File: smtp/smtp_addr.c.
