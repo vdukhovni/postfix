@@ -269,7 +269,8 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, DSN_BUF *why)
     if (mx_names->dnssec_valid)
 	res_opt = RES_USE_DNSSEC;
 #ifdef USE_TLS
-    else if (smtp_tls_insecure_mx_policy > TLS_LEV_MAY)
+    else if (smtp_tls_insecure_mx_policy > TLS_LEV_MAY
+	     && smtp_dns_support == SMTP_DNS_DNSSEC)
 	res_opt = RES_USE_DNSSEC;
 #endif
 
