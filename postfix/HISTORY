@@ -29002,3 +29002,16 @@ Apologies for any names omitted.
 	default smtp_tls_dane_insecure_mx_policy setting resulted in
 	unnecessary 'dnssec_probe' warnings, on systems that disable
 	DNSSEC lookups (the default). File: smtp/smtp_addr.c.
+
+20250227
+
+	Improve and correct warning messages when converting (host
+	or service) information to (symbolic text, numerical text,
+	or binary) form. File: util/myaddrinfo.c.
+
+20250304
+
+	Bugfix (defect introduced: Postfix 2.3, date 20051222): the
+	Dovecot auth client did not attempt to create a new connection
+	after an I/O error on an existing connection. Reported by
+	Oleksandr Kozmenko. File: xsasl/xsasl_dovecot_server.c.
