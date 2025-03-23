@@ -123,7 +123,7 @@
  /*
   * Macro to return the last character added to a VSTRING, for consistency.
   */
-#define VSTRING_GET_RESULT(vp, baselen) \
+#define VSTRING_GET_RESULT(vp, base_len) \
     (VSTRING_LEN(vp) > (base_len) ? vstring_end(vp)[-1] : VSTREAM_EOF)
 
 /* vstring_get_flags - read line from file, keep newline */
@@ -142,7 +142,7 @@ int     vstring_get_flags(VSTRING *vp, VSTREAM *fp, int flags)
 	    break;
     }
     VSTRING_TERMINATE(vp);
-    return (VSTRING_GET_RESULT(vp, baselen));
+    return (VSTRING_GET_RESULT(vp, base_len));
 }
 
 /* vstring_get_flags_nonl - read line from file, strip newline */
@@ -158,7 +158,7 @@ int     vstring_get_flags_nonl(VSTRING *vp, VSTREAM *fp, int flags)
     while ((c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != '\n')
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);
-    return (c == '\n' ? c : VSTRING_GET_RESULT(vp, baselen));
+    return (c == '\n' ? c : VSTRING_GET_RESULT(vp, base_len));
 }
 
 /* vstring_get_flags_null - read null-terminated string from file */
@@ -174,7 +174,7 @@ int     vstring_get_flags_null(VSTRING *vp, VSTREAM *fp, int flags)
     while ((c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != 0)
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);
-    return (c == 0 ? c : VSTRING_GET_RESULT(vp, baselen));
+    return (c == 0 ? c : VSTRING_GET_RESULT(vp, base_len));
 }
 
 /* vstring_get_flags_bound - read line from file, keep newline, up to bound */
@@ -197,7 +197,7 @@ int     vstring_get_flags_bound(VSTRING *vp, VSTREAM *fp, int flags,
 	    break;
     }
     VSTRING_TERMINATE(vp);
-    return (VSTRING_GET_RESULT(vp, baselen));
+    return (VSTRING_GET_RESULT(vp, base_len));
 }
 
 /* vstring_get_flags_nonl_bound - read line from file, strip newline, up to bound */
@@ -217,7 +217,7 @@ int     vstring_get_flags_nonl_bound(VSTRING *vp, VSTREAM *fp, int flags,
     while (bound-- > 0 && (c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != '\n')
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);
-    return (c == '\n' ? c : VSTRING_GET_RESULT(vp, baselen));
+    return (c == '\n' ? c : VSTRING_GET_RESULT(vp, base_len));
 }
 
 /* vstring_get_flags_null_bound - read null-terminated string from file */
@@ -237,7 +237,7 @@ int     vstring_get_flags_null_bound(VSTRING *vp, VSTREAM *fp, int flags,
     while (bound-- > 0 && (c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != 0)
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);
-    return (c == 0 ? c : VSTRING_GET_RESULT(vp, baselen));
+    return (c == 0 ? c : VSTRING_GET_RESULT(vp, base_len));
 }
 
 #ifdef TEST

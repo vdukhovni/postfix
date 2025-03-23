@@ -131,7 +131,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	fold_addr smtp_reply_footer mail_addr_map normalize_mailhost_addr \
 	haproxy_srvr map_search delivered_hdr login_sender_match \
 	compat_level config_known_tcp_ports hfrom_format rfc2047_code \
-	ascii_header_text sendopts_test
+	ascii_header_text sendopts_test dict_sqlite_test
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
@@ -408,6 +408,10 @@ ascii_header_text: ascii_header_text.c $(LIB) $(LIBS)
 sendopts_test: sendopts_test.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
+dict_sqlite_test: dict_sqlite_test.c dict_sqlite.o $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c dict_sqlite.o $(LIB) $(LIBS) \
+	    $(SYSLIBS) $(AUXLIBS_SQLITE)
+
 config_known_tcp_ports: config_known_tcp_ports.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
@@ -421,7 +425,7 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	normalize_mailhost_addr_test haproxy_srvr_test map_search_test \
 	delivered_hdr_test login_sender_match_test compat_level_test \
 	config_known_tcp_ports_test hfrom_format_test rfc2047_code_test \
-	ascii_header_text_test test_sendopts
+	ascii_header_text_test test_sendopts test_dict_sqlite
 
 mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3 mime_garb4
@@ -794,7 +798,10 @@ ascii_header_text_test: update ascii_header_text
 	$(SHLIB_ENV) $(VALGRIND) ./ascii_header_text
 
 test_sendopts: update sendopts_test
-	-$(SHLIB_ENV) $(VALGRIND) ./sendopts_test
+	$(SHLIB_ENV) $(VALGRIND) ./sendopts_test
+
+test_dict_sqlite: update dict_sqlite_test
+	$(SHLIB_ENV) $(VALGRIND) ./dict_sqlite_test
 
 clean:
 	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAPS)
@@ -1331,6 +1338,19 @@ dict_sqlite.o: db_common.h
 dict_sqlite.o: dict_sqlite.c
 dict_sqlite.o: dict_sqlite.h
 dict_sqlite.o: string_list.h
+dict_sqlite_test.o: ../../include/argv.h
+dict_sqlite_test.o: ../../include/check_arg.h
+dict_sqlite_test.o: ../../include/dict.h
+dict_sqlite_test.o: ../../include/msg.h
+dict_sqlite_test.o: ../../include/msg_vstream.h
+dict_sqlite_test.o: ../../include/myflock.h
+dict_sqlite_test.o: ../../include/stringops.h
+dict_sqlite_test.o: ../../include/sys_defs.h
+dict_sqlite_test.o: ../../include/vbuf.h
+dict_sqlite_test.o: ../../include/vstream.h
+dict_sqlite_test.o: ../../include/vstring.h
+dict_sqlite_test.o: dict_sqlite.h
+dict_sqlite_test.o: dict_sqlite_test.c
 domain_list.o: ../../include/argv.h
 domain_list.o: ../../include/check_arg.h
 domain_list.o: ../../include/match_list.h

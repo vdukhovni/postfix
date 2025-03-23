@@ -29015,3 +29015,32 @@ Apologies for any names omitted.
 	Dovecot auth client did not attempt to create a new connection
 	after an I/O error on an existing connection. Reported by
 	Oleksandr Kozmenko. File: xsasl/xsasl_dovecot_server.c.
+
+20240315
+
+	Code health: two typos canceled each other's effect. Fix
+	by Michael Tokarev. No change in compiler output. File:
+	util/vstring_vstream.c.
+
+20250316
+
+	Bugfix (defect introduced: date 19991116): when appending a
+	setting to a main.cf or master.cf file that did not end in
+	a newline character, the "postconf -e" command did not add
+	an extra newline character before appending the new setting,
+	causing information to become garbled. Fix by Michael
+	Tokarev. File: postconf/postconf_edit.c.
+
+20259317
+
+	Documentation: added text to clarify the difference between
+	SMTP connection reuse and TLS session resumption, and that
+	these can be combined together. File: proto/TLSRPT_README.html.
+
+20250321
+
+	Safety: the SQLite client now logs a warning when a query
+	uses double quotes instead of the Postfix-recommended single
+	quotes. Oscar Bataille reported that the non-recommended
+	form is not protected against SQL injection. Files:
+	global/dict_sqlite.c, global/dict_sqlite_test.c.

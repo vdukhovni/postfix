@@ -23,7 +23,6 @@
 
 extern DICT *dict_sqlite_open(const char *, int, int);
 
-
 /* AUTHOR(S)
 /*	Axel Steiner
 /*	ast@treibsand.com
