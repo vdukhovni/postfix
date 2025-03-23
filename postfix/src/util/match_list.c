@@ -60,6 +60,10 @@
 /*	Request that match_list_match() logs a warning and returns
 /*	zero (with list->error set to a non-zero dictionary error
 /*	code) instead of raising a fatal run-time error.
+/* .IP MATCH_FLAG_NOFILE
+/*	Disable special handling for /file/name.
+/* .IP MATCH_FLAG_NODICT
+/*	Disable special handling for type:name.
 /* .RE
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /* .IP pattern_list
@@ -84,6 +88,9 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -152,7 +159,8 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
 	if (*item == 0)
 	    /* No graceful degradation for this... */
 	    msg_fatal("%s: no pattern after '!'", match_list->pname);
-	if (*item == '/') {			/* /file/name */
+	if (*item == '/'			/* /file/name */
+	    && (match_list->flags & MATCH_FLAG_NOFILE) == 0) {
 	    if ((fp = vstream_fopen(item, O_RDONLY, 0)) == 0) {
 		/* Replace unusable pattern with pseudo table. */
 		vstring_sprintf(buf, "%s:%s", DICT_TYPE_NOFILE, item);
@@ -169,7 +177,8 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
 		if (vstream_fclose(fp))
 		    msg_fatal("%s: read file %s: %m", myname, item);
 	    }
-	} else if (MATCH_DICTIONARY(item)) {	/* type:table */
+	} else if (MATCH_DICTIONARY(item)	/* type:table */
+		   &&(match_list->flags & MATCH_FLAG_NODICT) == 0) {
 	    vstring_sprintf(buf, "%s%s(%o,%s)", match ? "" : "!",
 			    item, OPEN_FLAGS, dict_flags_str(DICT_FLAGS));
 	    map_type_name_flags = STR(buf) + (match == 0);
