@@ -124,7 +124,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	off_cvt quote_822_local rec2stream recdump resolve_clnt \
 	resolve_local rewrite_clnt stream2rec string_list tok822_parse \
 	quote_821_local mail_conf_time mime_state strip_addr \
-	verify_clnt xtext anvil_clnt scache ehlo_mask \
+	verify_clnt xtext anvil_clnt scache ehlo_mask_test \
 	valid_mailhost_addr own_inet_addr header_body_checks \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
 	mail_version mail_dict server_acl uxtext mail_parm_split \
@@ -336,7 +336,7 @@ anvil_clnt: $(LIB) $(LIBS)
 scache: scache.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
-ehlo_mask: ehlo_mask.c $(LIB) $(LIBS)
+ehlo_mask_test: ehlo_mask_test.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
 valid_mailhost_addr: valid_mailhost_addr.c $(LIB) $(LIBS)
@@ -416,7 +416,7 @@ config_known_tcp_ports: config_known_tcp_ports.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
 tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
-	xtext_test scache_multi_test ehlo_mask_test \
+	xtext_test scache_multi_test test_ehlo_mask \
 	namadr_list_test mail_conf_time_test header_body_checks_tests \
 	mail_version_test server_acl_test resolve_local_test maps_test \
 	safe_ultostr_test mail_parm_split_test fold_addr_test \
@@ -616,10 +616,8 @@ scache_multi_test: scache scache_multi.in scache_multi.ref
 	diff scache_multi.ref scache_multi.tmp
 	rm -f scache_multi.tmp
 
-ehlo_mask_test: ehlo_mask ehlo_mask.in ehlo_mask.ref
-	$(SHLIB_ENV) $(VALGRIND) ./ehlo_mask <ehlo_mask.in >ehlo_mask.tmp
-	diff ehlo_mask.ref ehlo_mask.tmp
-	rm -f ehlo_mask.tmp
+test_ehlo_mask: ehlo_mask_test
+	$(SHLIB_ENV) $(VALGRIND) ./ehlo_mask_test
 
 namadr_list_test: namadr_list namadr_list.in namadr_list.ref
 	-$(SHLIB_ENV) sh namadr_list.in >namadr_list.tmp 2>&1
@@ -1479,6 +1477,16 @@ ehlo_mask.o: ../../include/vbuf.h
 ehlo_mask.o: ../../include/vstring.h
 ehlo_mask.o: ehlo_mask.c
 ehlo_mask.o: ehlo_mask.h
+ehlo_mask_test.o: ../../include/check_arg.h
+ehlo_mask_test.o: ../../include/msg.h
+ehlo_mask_test.o: ../../include/msg_vstream.h
+ehlo_mask_test.o: ../../include/stringops.h
+ehlo_mask_test.o: ../../include/sys_defs.h
+ehlo_mask_test.o: ../../include/vbuf.h
+ehlo_mask_test.o: ../../include/vstream.h
+ehlo_mask_test.o: ../../include/vstring.h
+ehlo_mask_test.o: ehlo_mask.h
+ehlo_mask_test.o: ehlo_mask_test.c
 ext_prop.o: ../../include/check_arg.h
 ext_prop.o: ../../include/name_mask.h
 ext_prop.o: ../../include/sys_defs.h
