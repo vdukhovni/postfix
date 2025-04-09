@@ -372,7 +372,7 @@ void    smtp_tlsrpt_set_tcp_connection(SMTP_STATE *state)
 	client_addr.buf[0] = 0;
     } else if ((aierr = sane_sockaddr_to_hostaddr(
 					  (struct sockaddr *) &addr_storage,
-					     addr_storage_len, &client_addr,
+					    &addr_storage_len, &client_addr,
 						  (MAI_SERVPORT_STR *) 0,
 						  SOCK_STREAM)) != 0) {
 	msg_warn("%s: cannot convert IP address to string (%s)"

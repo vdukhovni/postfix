@@ -8878,6 +8878,10 @@ clients,
 and <a href="postscreen.8.html">postscreen(8)</a> will update an SMTP client's DNSBL score with
 each non-error reply as described below. </p>
 
+<p> NOTE: Always respect the usage policies of reputation services.
+Avoid public or ISP resolvers, unless the queries use your unique
+API key. </p>
+
 <p> Caution: when postscreen rejects mail, its SMTP response contains
 the DNSBL
 domain name. Use the <a href="postconf.5.html#postscreen_dnsbl_reply_map">postscreen_dnsbl_reply_map</a> feature to hide
@@ -15553,7 +15557,12 @@ The <a href="postconf.5.html#maps_rbl_reject_code">maps_rbl_reject_code</a> para
 rejected requests (default:  554), the <a href="postconf.5.html#default_rbl_reply">default_rbl_reply</a>  parameter
 specifies the default server reply, and the <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a>  parameter
 specifies tables with server replies indexed by <i>rbl_domain</i>.
-This feature is available in Postfix 2.0 and later.  </dd>
+<br>
+NOTE: Always respect the usage policies of reputation services. Avoid
+public or ISP resolvers, unless the queries use your unique API key
+(see <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> for how to avoid leaking the key in SMTP server
+responses). <br>
+This feature is available in Postfix 2.0 and later. </dd>
 
 <dt><b><a name="permit_dnswl_client">permit_dnswl_client <i>dnswl_domain=d.d.d.d</i></a></b></dt>
 
@@ -15565,8 +15574,12 @@ If no "<i>=d.d.d.d</i>" is specified, accept the request when the
 reversed client network address is listed with any A record under
 <i>dnswl_domain</i>. <br> For safety, <a href="postconf.5.html#permit_dnswl_client">permit_dnswl_client</a> is silently
 ignored when it would override <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>.  The
-result is DEFER_IF_REJECT when allowlist lookup fails.  This feature
-is available in Postfix 2.8 and later.  </dd>
+result is DEFER_IF_REJECT when allowlist lookup fails. <br>
+NOTE: Always respect the usage policies of reputation services. Avoid
+public or ISP resolvers, unless the queries use your unique API key
+(see <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> for how to avoid leaking an API key in SMTP
+server responses). <br>
+This feature is available in Postfix 2.8 and later. </dd>
 
 <dt><b><a name="reject_rhsbl_client">reject_rhsbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
@@ -15579,9 +15592,14 @@ number..number ranges (Postfix version 2.8 and later).  If no
 hostname is listed with
 any A record under <i>rbl_domain</i>. See the <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a>
 description above for additional RBL related configuration parameters.
+<br>
+NOTE: Always respect the usage policies of reputation services. Avoid
+public or ISP resolvers, unless the queries use your unique API key
+(see <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> for how to avoid leaking an API key in SMTP
+server responses). <br>
 This feature is available in Postfix 2.0 and later; with Postfix
 version 2.8 and later, <a href="postconf.5.html#reject_rhsbl_reverse_client">reject_rhsbl_reverse_client</a> will usually
-produce better results.  </dd>
+produce better results. </dd>
 
 <dt><b><a name="permit_rhswl_client">permit_rhswl_client <i>rhswl_domain=d.d.d.d</i></a></b></dt>
 
@@ -15597,8 +15615,12 @@ allowlisting should be used only to reduce false positives in e.g.
 DNS-based blocklists, and not for making access rule exceptions.
 <br> For safety, <a href="postconf.5.html#permit_rhswl_client">permit_rhswl_client</a> is silently ignored when it
 would override <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>.  The result is DEFER_IF_REJECT
-when allowlist lookup fails.  This feature is available in Postfix
-2.8 and later.  </dd>
+when allowlist lookup fails. <br>
+NOTE: Always respect the usage policies of reputation services. Avoid
+public or ISP resolvers, unless the queries use your unique API key
+(see <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> for how to avoid leaking an API key in SMTP
+server responses). <br>
+This feature is available in Postfix 2.8 and later.</dd>
 
 <dt><b><a name="reject_rhsbl_reverse_client">reject_rhsbl_reverse_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
@@ -15609,8 +15631,12 @@ one or more ";"-separated numbers or number..number ranges.
 If no "<i>=d.d.d.d</i>" is specified, reject the request when the
 unverified reverse client hostname is listed with any A record under
 <i>rbl_domain</i>. See the <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a> description above for
-additional RBL related configuration parameters.  This feature is
-available in Postfix 2.8 and later.  </dd>
+additional RBL related configuration parameters. <br>
+NOTE: Always respect the usage policies of reputation services. Avoid
+public or ISP resolvers, unless the queries use your unique API key
+(see <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> for how to avoid leaking an API key in SMTP
+server responses). <br>
+This feature is available in Postfix 2.8 and later. </dd>
 
 <dt><b><a name="reject_unknown_client_hostname">reject_unknown_client_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_client)</dt>
 
@@ -16512,8 +16538,12 @@ listed with any A record under <i>rbl_domain</i>. See the
 parameters.  Note: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully
 enforce this restriction (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a
 client can simply skip <a href="postconf.5.html#reject_rhsbl_helo">reject_rhsbl_helo</a> by not sending HELO or
-EHLO). This feature is available in Postfix 2.0
-and later.  </dd>
+EHLO). <br>
+NOTE: Always respect the usage policies of reputation services. Avoid
+public or ISP resolvers, unless the queries use your unique API key
+(see <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> for how to avoid leaking an API key in SMTP
+server responses). <br>
+This feature is available in Postfix 2.0 and later. </dd>
 
 <dt><b><a name="reject_unknown_helo_hostname">reject_unknown_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_hostname)</dt>
 
@@ -17231,8 +17261,12 @@ any A record under <i>rbl_domain</i>. <br> The <a href="postconf.5.html#maps_rbl
 parameter specifies the response code for rejected requests (default:
 554); the <a href="postconf.5.html#default_rbl_reply">default_rbl_reply</a> parameter specifies the default server
 reply; and the <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> parameter specifies tables with server
-replies indexed by <i>rbl_domain</i>.  This feature is available
-in Postfix version 2.0 and later.</dd>
+replies indexed by <i>rbl_domain</i>. <br>
+NOTE: Always respect the usage policies of reputation services. Avoid
+public or ISP resolvers, unless the queries use your unique API key
+(see <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> for how to avoid leaking an API key in SMTP
+server responses). <br>
+This feature is available in Postfix version 2.0 and later.</dd>
 
 <dt><b><a name="reject_unauth_destination">reject_unauth_destination</a></b></dt>
 
@@ -18082,6 +18116,11 @@ listed with any A record under <i>rbl_domain</i>. <br> The
 rejected requests (default:  554); the <a href="postconf.5.html#default_rbl_reply">default_rbl_reply</a> parameter
 specifies the default server reply; and the <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> parameter
 specifies tables with server replies indexed by <i>rbl_domain</i>.
+<br>
+NOTE: Always respect the usage policies of reputation services. Avoid
+public or ISP resolvers, unless the queries use your unique API key
+(see <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> for how to avoid leaking an API key in SMTP
+server responses). <br>
 This feature is available in Postfix 2.0 and later.</dd>
 
 <dt><b><a name="reject_sender_login_mismatch">reject_sender_login_mismatch</a></b></dt>

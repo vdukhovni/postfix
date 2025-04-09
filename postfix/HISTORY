@@ -29044,3 +29044,40 @@ Apologies for any names omitted.
 	quotes. Oscar Bataille reported that the non-recommended
 	form is not protected against SQL injection. Files:
 	global/dict_sqlite.c, global/dict_sqlite_test.c.
+
+20250326
+
+	Updated myaddrinfo tests to also cover service/port conversion.
+	Files: util/myaddrinfo4.ref, util/myaddrinfo4.ref2,
+	util/myaddrinfo.c, util/myaddrinfo.ref, util/myaddrinfo.ref2.
+
+20260402
+
+	Documentation: updated guidance for using DNS-based reputation
+	services. File: proto/postconf.proto.
+
+20250404
+
+	Code health: simplified the conversions from IPv4 mapped
+	IPv6 addresses (::ffff:d.d.d.d) to their IPv4 form (d.d.d.d),
+	for both the binary form and human-readable form. Added
+	unit tests to show that the conversions work as expected.
+	Files: util/normalize_v4mapped_addr.[hc],
+	util/normalize_v4mapped_addr_test.c.
+
+20260406
+
+	Code health: overhauled the haproxy adapter to simplify
+	code and to avoid unnecessary conversions between binary
+	and human-readable forms. Added more unit tests for the v1
+	and v2 proxy protocols. A separate update will overhaul
+	the smtpd 'peer' lookups. Files: global/haproxy_srvr.c,
+	global/haproxy_srvr_test.c.
+
+20250408
+
+	Code health: replace explicit code with normalize_v4mapped_xxx()
+	call. File: util/sane_sockaddr_to_hostaddr.c.
+
+	Bit rot: sane_sockaddr_to_hostaddr() may modify its inputs.
+	smtp/smtp_tlsrpt.c, postscreen/postscreen_endpt.c

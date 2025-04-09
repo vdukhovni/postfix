@@ -58,6 +58,10 @@
 /* .IP dest_port
 /*	Server port, available as Milter {daemon_port} macro, and
 /*	as server_port policy delegation attribute.
+/* .IP sockaddr_len
+/* .IP dest_sockaddr_len
+/*	These are initialized to zero, to indicate that the corresponding
+/*	sockaddr_storage members are not set.
 /* .IP name_status
 /*	The name_status result field specifies how the name
 /*	information should be interpreted:
@@ -117,6 +121,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -617,6 +624,7 @@ void    smtpd_peer_init(SMTPD_STATE *state)
     state->anvil_range = 0;
     state->dest_addr = 0;
     state->dest_port = 0;
+    state->dest_sockaddr_len = 0;
 
     /*
      * Determine the remote SMTP client address and port.

@@ -129,7 +129,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
 	mail_version mail_dict server_acl uxtext mail_parm_split \
 	fold_addr smtp_reply_footer mail_addr_map normalize_mailhost_addr \
-	haproxy_srvr map_search delivered_hdr login_sender_match \
+	haproxy_srvr_test map_search delivered_hdr login_sender_match \
 	compat_level config_known_tcp_ports hfrom_format rfc2047_code \
 	ascii_header_text sendopts_test dict_sqlite_test
 
@@ -381,7 +381,7 @@ smtp_reply_footer: smtp_reply_footer.c $(LIB) $(LIBS)
 normalize_mailhost_addr: normalize_mailhost_addr.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
-haproxy_srvr: haproxy_srvr.c $(LIB) $(LIBS)
+haproxy_srvr_test: haproxy_srvr_test.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
 map_search: map_search.c $(LIB) $(LIBS)
@@ -422,7 +422,7 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	safe_ultostr_test mail_parm_split_test fold_addr_test \
 	smtp_reply_footer_test off_cvt_test mail_addr_crunch_test \
 	mail_addr_find_test mail_addr_map_test quote_822_local_test \
-	normalize_mailhost_addr_test haproxy_srvr_test map_search_test \
+	normalize_mailhost_addr_test test_haproxy_srvr map_search_test \
 	delivered_hdr_test login_sender_match_test compat_level_test \
 	config_known_tcp_ports_test hfrom_format_test rfc2047_code_test \
 	ascii_header_text_test test_sendopts test_dict_sqlite
@@ -743,10 +743,8 @@ normalize_mailhost_addr_test: update normalize_mailhost_addr
 	diff /dev/null normalize_mailhost_addr.tmp
 	rm -f normalize_mailhost_addr.tmp
 
-haproxy_srvr_test: update haproxy_srvr
-	-$(SHLIB_ENV) $(VALGRIND) ./haproxy_srvr >haproxy_srvr.tmp 2>&1
-	diff /dev/null haproxy_srvr.tmp
-	rm -f haproxy_srvr.tmp
+test_haproxy_srvr: update haproxy_srvr_test
+	$(SHLIB_ENV) $(VALGRIND) ./haproxy_srvr_test
 
 map_search_test: update map_search map_search.ref
 	-$(SHLIB_ENV) $(VALGRIND) ./map_search >map_search.tmp 2>&1
@@ -1532,6 +1530,7 @@ haproxy_srvr.o: ../../include/inet_proto.h
 haproxy_srvr.o: ../../include/msg.h
 haproxy_srvr.o: ../../include/myaddrinfo.h
 haproxy_srvr.o: ../../include/mymalloc.h
+haproxy_srvr.o: ../../include/normalize_v4mapped_addr.h
 haproxy_srvr.o: ../../include/sock_addr.h
 haproxy_srvr.o: ../../include/split_at.h
 haproxy_srvr.o: ../../include/stringops.h
@@ -1541,6 +1540,18 @@ haproxy_srvr.o: ../../include/vbuf.h
 haproxy_srvr.o: ../../include/vstring.h
 haproxy_srvr.o: haproxy_srvr.c
 haproxy_srvr.o: haproxy_srvr.h
+haproxy_srvr_test.o: ../../include/check_arg.h
+haproxy_srvr_test.o: ../../include/msg.h
+haproxy_srvr_test.o: ../../include/msg_vstream.h
+haproxy_srvr_test.o: ../../include/myaddrinfo.h
+haproxy_srvr_test.o: ../../include/sock_addr.h
+haproxy_srvr_test.o: ../../include/stringops.h
+haproxy_srvr_test.o: ../../include/sys_defs.h
+haproxy_srvr_test.o: ../../include/vbuf.h
+haproxy_srvr_test.o: ../../include/vstream.h
+haproxy_srvr_test.o: ../../include/vstring.h
+haproxy_srvr_test.o: haproxy_srvr.h
+haproxy_srvr_test.o: haproxy_srvr_test.c
 header_body_checks.o: ../../include/argv.h
 header_body_checks.o: ../../include/check_arg.h
 header_body_checks.o: ../../include/dict.h
