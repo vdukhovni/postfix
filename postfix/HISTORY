@@ -29081,3 +29081,24 @@ Apologies for any names omitted.
 
 	Bit rot: sane_sockaddr_to_hostaddr() may modify its inputs.
 	smtp/smtp_tlsrpt.c, postscreen/postscreen_endpt.c
+
+20250411
+
+	Code health: simplified the Postfix SMTP server code to
+	find out the client and server IP addresses for an SMTP
+	connection. This takes advantage of the improved support
+	for address normalization and for haproxy load balancers.
+	Files: smtpd/smtpd_peer.c, smtpd/smtpd_haproxy.c.
+
+	Documentation: XCLIENT attribute availability. File:
+	proto/XCLIENT.
+
+20250418
+
+	Code health: added unit tests for connection address and
+	port information received through haproxy or postscreen,
+	and improved error handling. Files: smtpd/smtpd_peer.c,
+	smtpd/smtpd_haproxy.c, smtpd/smtpd_peer_test.c.
+
+	Unit tests for 'direct' connections are deferred pending
+	support to mock or intercept system library function calls.

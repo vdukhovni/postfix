@@ -115,7 +115,8 @@ manpages:
 	done </dev/null
 
 # Some checks require a bin/postconf executable.
-pre-release-checks: typo-check double-check missing-proxy-read-maps-check \
+pre-release-checks: update typo-check double-check \
+	missing-proxy-read-maps-check \
 	postlink-check postfix-files-check \
 	postconf-unimplemented-check postconf-undocumented-check \
 	check-table-proto check-see-postconf-d-output \
