@@ -113,8 +113,13 @@ static char *pcf_find_cf_info(VSTRING *buf, VSTREAM *dst)
 static char *pcf_next_cf_line(VSTRING *buf, VSTREAM *src, VSTREAM *dst, int *lineno)
 {
     char   *cp;
+    int     last_char;
 
-    while (vstring_get(buf, src) != VSTREAM_EOF) {
+    while ((last_char = vstring_get(buf, src)) != VSTREAM_EOF) {
+	if (last_char != '\n') {
+	    VSTRING_ADDCH(buf, '\n');
+	    VSTRING_TERMINATE(buf);
+	}
 	if (lineno)
 	    *lineno += 1;
 	if ((cp = pcf_find_cf_info(buf, dst)) != 0)

@@ -217,8 +217,13 @@ static int smtpd_peer_sockaddr_to_hostaddr(SMTPD_STATE *state)
 	 */
 	if ((aierr = sockaddr_to_hostaddr(sa, sa_length, &client_addr,
 					  &client_port, 0)) != 0)
-	    msg_fatal("%s: cannot convert client address/port to string: %s",
-		      myname, MAI_STRERROR(aierr));
+	    msg_fatal("%s: cannot convert client sockaddr type %s length %ld "
+		      "to string: %s", myname,
+#ifdef AF_INET6
+		      sa->sa_family == AF_INET6 ? "AF_INET6" :
+#endif
+		      sa->sa_family == AF_INET ? "AF_INET" : "other",
+		      (long) sa_length, MAI_STRERROR(aierr));
 	state->port = mystrdup(client_port.buf);
 
 	/*
@@ -299,9 +304,15 @@ static int smtpd_peer_sockaddr_to_hostaddr(SMTPD_STATE *state)
 					  state->dest_sockaddr_len,
 					  &server_addr,
 					  &server_port, 0)) != 0)
-	    msg_fatal("%s: cannot convert server address/port to string: %s",
-		      myname, MAI_STRERROR(aierr));
-	/* TODO: convert IPv4-in-IPv6 to IPv4 form. */
+	    /* TODO: convert IPv4-in-IPv6 to IPv4 form. */
+	    msg_fatal("%s: cannot convert server sockaddr type %s length %ld "
+		    "to string: %s", myname,
+#ifdef AF_INET6
+		   state->dest_sockaddr.ss_family == AF_INET6 ? "AF_INET6" :
+#endif
+		      state->dest_sockaddr.ss_family == AF_INET ? "AF_INET" :
+		      "other", (long) state->dest_sockaddr_len,
+		      MAI_STRERROR(aierr));
 	state->dest_addr = mystrdup(server_addr.buf);
 	state->dest_port = mystrdup(server_port.buf);
 
@@ -409,8 +420,8 @@ static void smtpd_peer_hostaddr_to_sockaddr(SMTPD_STATE *state)
 
     if ((aierr = hostaddr_to_sockaddr(state->addr, state->port,
 				      SOCK_STREAM, &res)) != 0)
-	msg_fatal("%s: cannot convert client address/port to string: %s",
-		  myname, MAI_STRERROR(aierr));
+	msg_fatal("%s: cannot convert client address '%s' port '%s' to binary: %s",
+		  myname, state->addr, state->port, MAI_STRERROR(aierr));
     if (res->ai_addrlen > sizeof(state->sockaddr))
 	msg_panic("%s: address length > struct sockaddr_storage", myname);
     memcpy((void *) &(state->sockaddr), res->ai_addr, res->ai_addrlen);
