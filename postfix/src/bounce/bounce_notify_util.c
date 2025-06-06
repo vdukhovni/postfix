@@ -537,6 +537,7 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
      * Trade confidentiality against availability.
      */
     if (var_tls_required_enable
+	&& (bounce_info->sendopts & SOPT_REQUIRETLS_ESMTP) == 0
 	&& (bounce_info->sendopts & SOPT_REQUIRETLS_HEADER) != 0)
 	post_mail_fprintf(bounce, "TLS-Required: no");
 
