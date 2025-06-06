@@ -47,7 +47,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	mkmap_fail.c mkmap_lmdb.c mkmap_open.c mkmap_sdbm.c inet_prefix_top.c \
 	inet_addr_sizes.c quote_for_json.c mystrerror.c \
 	sane_sockaddr_to_hostaddr.c normalize_ws.c valid_uri_scheme.c \
-	clean_ascii_cntrl_space.c normalize_v4mapped_addr.c
+	clean_ascii_cntrl_space.c normalize_v4mapped_addr.c ossl_digest.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -96,7 +96,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	mkmap_fail.o mkmap_open.o inet_prefix_top.o inet_addr_sizes.o \
 	quote_for_json.o mystrerror.o sane_sockaddr_to_hostaddr.o \
 	normalize_ws.o valid_uri_scheme.o clean_ascii_cntrl_space.o \
-	normalize_v4mapped_addr.o
+	normalize_v4mapped_addr.o ossl_digest.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -129,7 +129,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	check_arg.h argv_attr.h msg_logger.h logwriter.h byte_mask.h \
 	known_tcp_ports.h sane_strtol.h hash_fnv.h ldseed.h mkmap.h \
 	inet_prefix_top.h inet_addr_sizes.h valid_uri_scheme.h \
-	clean_ascii_cntrl_space.h normalize_v4mapped_addr.h
+	clean_ascii_cntrl_space.h normalize_v4mapped_addr.h ossl_digest.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -153,7 +153,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	known_tcp_ports dict_stream find_inet binhash hash_fnv argv \
 	clean_env inet_prefix_top printable readlline quote_for_json \
 	normalize_ws valid_uri_scheme clean_ascii_cntrl_space \
-	normalize_v4mapped_addr_test
+	normalize_v4mapped_addr_test ossl_digest_test
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
@@ -635,6 +635,9 @@ clean_ascii_cntrl_space: $(LIB)
 normalize_v4mapped_addr_test: normalize_v4mapped_addr_test.c $(LIB)
 	$(CC) $(CFLAGS) -o $@ normalize_v4mapped_addr_test.c $(LIB) $(SYSLIBS)
 
+ossl_digest_test: ossl_digest_test.c $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.c $(LIB) $(SYSLIBS)
+
 tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test host_port_test dict_tests \
@@ -647,7 +650,7 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	binhash_test argv_test inet_prefix_top_test printable_test \
 	valid_utf8_string_test readlline_test quote_for_json_test \
 	normalize_ws_test valid_uri_scheme_test clean_ascii_cntrl_space_test \
-	test_normalize_v4mapped_addr
+	test_normalize_v4mapped_addr test_ossl_digest
  
 dict_tests: all dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
@@ -1135,6 +1138,9 @@ clean_ascii_cntrl_space_test: clean_ascii_cntrl_space
 
 test_normalize_v4mapped_addr: update normalize_v4mapped_addr_test
 	$(SHLIB_ENV) ${VALGRIND} ./normalize_v4mapped_addr_test
+
+test_ossl_digest: update ossl_digest_test
+	$(SHLIB_ENV) ${VALGRIND} ./ossl_digest_test
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -2480,10 +2486,14 @@ myaddrinfo.o: sys_defs.h
 myaddrinfo.o: valid_hostname.h
 myaddrinfo.o: vbuf.h
 myaddrinfo.o: vstring.h
+myflock.o: check_arg.h
 myflock.o: msg.h
 myflock.o: myflock.c
 myflock.o: myflock.h
+myflock.o: name_mask.h
 myflock.o: sys_defs.h
+myflock.o: vbuf.h
+myflock.o: vstring.h
 mymalloc.o: msg.h
 mymalloc.o: mymalloc.c
 mymalloc.o: mymalloc.h

@@ -51,10 +51,11 @@ extern bool var_show_unk_rcpt_table;
   * updating the current compatibility level.
   */
 #define COMPAT_LEVEL_0		"0"
-#define COMPAT_LEVEL_1		"1"
-#define COMPAT_LEVEL_2		"2"
+#define COMPAT_LEVEL_1		"1"	/* Introduced: Postfix 3.0 */
+#define COMPAT_LEVEL_2		"2"	/* Introduced: Postfix 3.0 */
 #define COMPAT_LEVEL_3_6	"3.6"
-#define LAST_COMPAT_LEVEL	COMPAT_LEVEL_3_6
+#define COMPAT_LEVEL_3_11	"3.11"
+#define LAST_COMPAT_LEVEL	COMPAT_LEVEL_3_11
 
 #define VAR_COMPAT_LEVEL	"compatibility_level"
 #define DEF_COMPAT_LEVEL	COMPAT_LEVEL_0
@@ -74,6 +75,8 @@ extern int warn_compat_break_smtp_tls_fpt_dgst;
 extern int warn_compat_break_lmtp_tls_fpt_dgst;
 extern int warn_compat_relay_before_rcpt_checks;
 extern int warn_compat_respectful_logging;
+
+extern int warn_compat_break_smtp_tlsrpt_skip_reused_hs;
 
 extern long compat_level;
 
@@ -4483,7 +4486,7 @@ extern bool var_smtp_tlsrpt_enable;
 extern char *var_smtp_tlsrpt_sockname;
 
 #define VAR_SMTP_TLSRPT_SKIP_REUSED_HS	"smtp_tlsrpt_skip_reused_handshakes"
-#define DEF_SMTP_TLSRPT_SKIP_REUSED_HS	"yes"
+#define DEF_SMTP_TLSRPT_SKIP_REUSED_HS	"no"
 #define VAR_LMTP_TLSRPT_SKIP_REUSED_HS	"lmtp_tlsrpt_skip_reused_handshakes"
 #define DEF_LMTP_TLSRPT_SKIP_REUSED_HS	DEF_SMTP_TLSRPT_SKIP_REUSED_HS
 extern int var_smtp_tlsrpt_skip_reused_hs;

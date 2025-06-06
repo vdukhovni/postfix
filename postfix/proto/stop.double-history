@@ -166,3 +166,8 @@ proto  proto socketmap_table
  global mail_params h smtpd smtpd c 
  global mail_params h proto postconf proto smtp smtp c 
  proto postconf proto proto TLS_README html 
+ the command line Files postmap postmap c postalias postalias c 
+ verification in progress File verify verify c 
++ address failed File verify verify c 
+ address failed File verify verify c 
+ address failed due to a database error File verify verify c 

@@ -391,6 +391,11 @@ char   *var_known_tcp_ports;
 const char null_format_string[1] = "";
 
  /*
+  * Compatibility level 3.11.
+  */
+int     warn_compat_break_smtp_tlsrpt_skip_reused_hs;
+
+ /*
   * Compatibility level 3.6.
   */
 int     warn_compat_break_smtpd_tls_fpt_dgst;
@@ -661,6 +666,15 @@ static void check_legacy_defaults(void)
      * shared variable. We don't want to rip up code when we need more flag
      * bits.
      */
+
+    /*
+     * Look for specific parameters whose default changed when the
+     * compatibility level changed to 3.11.
+     */
+    if (compat_level < compat_level_from_string(COMPAT_LEVEL_3_11, msg_panic)) {
+	if (mail_conf_lookup(VAR_SMTP_TLSRPT_SKIP_REUSED_HS) == 0)
+	    warn_compat_break_smtp_tlsrpt_skip_reused_hs = 1;
+    }
 
     /*
      * Look for specific parameters whose default changed when the

@@ -77,11 +77,10 @@ localhost over TCP you have to specify
     hosts = 127.0.0.1
 .fi
 
-NOTE: if the \fBhosts\fR setting specifies one server, this client
-assumes that the target is a load balancer and will reconnect
-immediately after a single failure, instead of failing all
-requests temporarily. With older versions of this client,
-specify the same server twice.
+NOTE: if the \fBhosts\fR setting specifies only one server,
+this client assumes that the target is a load balancer and
+will reconnect immediately after a single failure. With Postfix
+versions 3.9 and earlier, specify the same server twice.
 .IP "\fBuser\fR"
 .IP "\fBpassword\fR"
 The user name and password to log into the mysql server.
@@ -112,11 +111,10 @@ This feature is available in Postfix 3.9 and later.
 The number of seconds that a database connection will be
 skipped after an error.
 
-NOTE: if the \fBhosts\fR setting specifies one server, this client
-assumes that the target is a load balancer and will reconnect
-immediately after a single failure, instead of failing all
-requests temporarily. With older versions of this client,
-specify the same server twice.
+NOTE: if the \fBhosts\fR setting specifies only one server,
+this client assumes that the target is a load balancer and
+will reconnect immediately after a single failure. With Postfix
+versions 3.9 and earlier, specify the same server twice.
 
 This feature is available in Postfix 3.9 and later.
 .IP "\fBquery\fR"

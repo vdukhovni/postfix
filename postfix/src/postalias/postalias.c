@@ -734,6 +734,7 @@ int     main(int argc, char **argv)
     int     open_flags = O_RDWR | O_CREAT | O_TRUNC;
     int     dict_flags = (DICT_FLAG_DUP_WARN | DICT_FLAG_FOLD_FIX
 			  | DICT_FLAG_UTF8_REQUEST);
+    int     update = 0;
     char   *query = 0;
     char   *delkey = 0;
     int     sequence = 0;
@@ -798,14 +799,17 @@ int     main(int argc, char **argv)
 		msg_fatal("out of memory");
 	    break;
 	case 'd':
-	    if (sequence || query || delkey)
-		msg_fatal("specify only one of -s -q or -d");
+	    if (update || sequence || query || delkey)
+		msg_fatal("specify only one of -d -i -q or -s");
 	    delkey = optarg;
 	    break;
 	case 'f':
 	    dict_flags &= ~DICT_FLAG_FOLD_FIX;
 	    break;
 	case 'i':
+	    if (update || sequence || query || delkey)
+		msg_fatal("specify only one of -d -i -q or -s");
+	    update = 1;
 	    open_flags &= ~O_TRUNC;
 	    break;
 	case 'n':
@@ -819,8 +823,8 @@ int     main(int argc, char **argv)
 	    postalias_flags &= ~POSTALIAS_FLAG_SAVE_PERM;
 	    break;
 	case 'q':
-	    if (sequence || query || delkey)
-		msg_fatal("specify only one of -s -q or -d");
+	    if (update || sequence || query || delkey)
+		msg_fatal("specify only one of -d -i -q or -s");
 	    query = optarg;
 	    break;
 	case 'r':
@@ -828,8 +832,8 @@ int     main(int argc, char **argv)
 	    dict_flags |= DICT_FLAG_DUP_REPLACE;
 	    break;
 	case 's':
-	    if (query || delkey)
-		msg_fatal("specify only one of -s or -q or -d");
+	    if (update || sequence || query || delkey)
+		msg_fatal("specify only one of -d -i -q or -s");
 	    sequence = 1;
 	    break;
 	case 'u':

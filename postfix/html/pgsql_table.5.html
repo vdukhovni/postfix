@@ -65,16 +65,15 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
               URI, the Postfix PostgreSQL client will ignore the <b>dbname</b>, <b>user</b>,
               and <b>password</b> settings for that connection.
 
-              NOTE: if the <b>hosts</b> setting specifies  one  server,  this  client
-              assumes  that  the  target is a load balancer and will reconnect
-              immediately after a  single  failure,  instead  of  failing  all
-              requests  temporarily. With older versions of this client, spec-
-              ify the same server twice.
+              NOTE: if the <b>hosts</b>  setting  specifies  only  one  server,  this
+              client  assumes  that  the  target  is  a load balancer and will
+              reconnect immediately after a single failure. With Postfix  ver-
+              sions 3.9 and earlier, specify the same server twice.
 
        <b>user</b>
 
        <b>password</b>
-              The user name and password to log into the pgsql server.   Exam-
+              The  user name and password to log into the pgsql server.  Exam-
               ple:
                   user = someone
                   password = some_password
@@ -85,25 +84,25 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
        <b>dbname</b> The database name on the servers. Example:
                   dbname = customer_database
 
-              The <b>dbname</b> setting is ignored for  <b>hosts</b>  connections  that  are
+              The  <b>dbname</b>  setting  is  ignored for <b>hosts</b> connections that are
               specified as an URI.
 
               The <b>dbname</b> setting is required with Postfix 3.10 and later, when
-              <b>hosts</b> specifies any non-URI connection; it  is  always  required
+              <b>hosts</b>  specifies  any  non-URI connection; it is always required
               with earlier Postfix versions.
 
        <b>encoding</b>
-              The  encoding  used  by the database client. The default setting
+              The encoding used by the database client.  The  default  setting
               is:
                   encoding = UTF8
 
-              Historically, the database client was hard coded to  use  LATIN1
+              Historically,  the  database client was hard coded to use LATIN1
               in an attempt to disable multibyte character support.
 
               This feature is available in Postfix 3.8 and later.
 
        <b>idle_interval (default: 60)</b>
-              The  number  of  seconds after which an idle database connection
+              The number of seconds after which an  idle  database  connection
               will be closed.
 
               This feature is available in Postfix 3.9 and later.
@@ -112,11 +111,10 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
               The number of seconds that a database connection will be skipped
               after an error.
 
-              NOTE:  if  the  <b>hosts</b>  setting specifies one server, this client
-              assumes that the target is a load balancer  and  will  reconnect
-              immediately  after  a  single  failure,  instead  of failing all
-              requests temporarily. With older versions of this client,  spec-
-              ify the same server twice.
+              NOTE: if the <b>hosts</b>  setting  specifies  only  one  server,  this
+              client  assumes  that  the  target  is  a load balancer and will
+              reconnect immediately after a single failure. With Postfix  ver-
+              sions 3.9 and earlier, specify the same server twice.
 
               This feature is available in Postfix 3.9 and later.
 

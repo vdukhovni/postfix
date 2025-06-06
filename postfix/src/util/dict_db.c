@@ -650,9 +650,9 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 		       DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH,
 			       major_version, minor_version, patch_version));
     if (msg_verbose) {
-	msg_info("Compiled against Berkeley DB: %d.%d.%d\n",
+	msg_info("Compiled against Berkeley DB: %d.%d.%d",
 		 DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH);
-	msg_info("Run-time linked against Berkeley DB: %d.%d.%d\n",
+	msg_info("Run-time linked against Berkeley DB: %d.%d.%d",
 		 major_version, minor_version, patch_version);
     }
 #else

@@ -31,6 +31,7 @@ extern int dict_cache_delete(DICT_CACHE *, const char *);
 extern int dict_cache_sequence(DICT_CACHE *, int, const char **, const char **);
 extern void dict_cache_control(DICT_CACHE *,...);
 extern const char *dict_cache_name(DICT_CACHE *);
+extern int dict_cache_error(DICT_CACHE *);
 
 #define DICT_CACHE_FLAG_VERBOSE		(1<<0)	/* verbose operation */
 #define DICT_CACHE_FLAG_STATISTICS	(1<<1)	/* log cache statistics */

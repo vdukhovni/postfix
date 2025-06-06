@@ -20,7 +20,7 @@ if (hash && isChrome) {
     setTimeout(function() {
         window.location.hash = "";
         window.location.hash = hash;
-    }, 1000);
+    }, 1500);
 }
 
 </script>

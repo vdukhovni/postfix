@@ -2079,7 +2079,7 @@ Enable 'transitional' compatibility between IDNA2003 and IDNA2008,
 when converting UTF\-8 domain names to/from the ASCII form that is
 used for DNS lookups. Specify "yes" for compatibility with Postfix
 <= 3.1 (not recommended). This affects the conversion of domain
-names that contain for example the German sz and the Greek zeta.
+names that contain for example the German sz and the Greek sigma.
 See https://unicode.org/cldr/utility/idna.jsp for more examples.
 .PP
 This feature is available in Postfix 3.2 and later.
@@ -9921,12 +9921,10 @@ See TLSRPT_README for configuration examples and additional
 requirements for MTA\-STS smtp_tls_policy_maps plugins.
 .PP
 This feature is available in Postfix >= 3.10.
-.SH smtp_tlsrpt_skip_reused_handshakes (default: yes)
-Do not report the TLSRPT status for TLS protocol handshakes
-that reuse a previously\-negotiated TLS session (there is no new
-information to report). Report the TLSRPT status only for "new" TLS
-sessions. Set this to "no" to log the TLSRPT status of all TLS
-handshakes, for example to troubleshoot Postfix TLSRPT support.
+.SH smtp_tlsrpt_skip_reused_handshakes (default: Postfix >= 3.11: no, Postfix 3.10: yes)
+When set to "yes", report the TLSRPT status only for "new" TLS
+sessions. When set to "no", also report the TLSRPT status for TLS
+protocol handshakes that reuse a previously\-negotiated TLS session.
 .PP
 Note: if an SMTP over TLS connection is reused, there is no
 second etc. TLS handshake to report.

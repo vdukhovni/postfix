@@ -494,12 +494,18 @@ static DICT *dict_cdbm_open(const char *path, int dict_flags)
 DICT   *dict_cdb_open(const char *path, int open_flags, int dict_flags)
 {
     switch (open_flags & (O_RDONLY | O_RDWR | O_WRONLY | O_CREAT | O_TRUNC)) {
-	case O_RDONLY:			/* query mode */
+    case O_RDONLY:				/* query mode */
 	return dict_cdbq_open(path, dict_flags);
     case O_WRONLY | O_CREAT | O_TRUNC:		/* create mode */
     case O_RDWR | O_CREAT | O_TRUNC:		/* sloppiness */
 	return dict_cdbm_open(path, dict_flags);
+    case O_RDWR | O_CREAT:
+    case O_RDWR:
+	/* User error. */
+	return (dict_surrogate(DICT_TYPE_CDB, path, open_flags, dict_flags,
+			       "unsupported non-bulk change request"));
     default:
+	/* Programmer error. */
 	msg_fatal("dict_cdb_open: inappropriate open flags for cdb database"
 		  " - specify O_RDONLY or O_WRONLY|O_CREAT|O_TRUNC");
     }

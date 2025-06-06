@@ -99,18 +99,30 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               time. Smaller values are relative to the time of the update.
 
 <b><a name="memcache_key_parameters">MEMCACHE KEY PARAMETERS</a></b>
+       <b>key_digest (default: empty)</b>
+              After processing the <b>key_format</b> setting, and  before  sending  a
+              request  to  the  memcache server, run the key through the named
+              message digest algorithm and convert  the  result  to  lowercase
+              hexadecimal  characters.  This  prevents a database access error
+              when keys may exceed the  memcache  server's  key  length  limit
+              (usually, 250 bytes). Specify the name of a message digest algo-
+              rithm that is supported by OpenSSL, for example, <b>sha256</b>.
+
+              This feature  is  available  in  Postfix  3.11  and  later,  and
+              requires that Postfix is built with TLS support.
+
        <b>key_format (default: %s)</b>
-              Format of the lookup and update keys that the  Postfix  memcache
-              client  sends to the memcache server.  By default, these are the
-              same as the lookup and update  keys  that  the  memcache  client
+              Format  of  the lookup and update keys that the Postfix memcache
+              client sends to the memcache server.  By default, these are  the
+              same  as  the  lookup  and  update keys that the memcache client
               receives from Postfix applications.
 
-              NOTE  1:  The <b>key_format</b> feature is not used for <b>backup</b> database
+              NOTE 1: The <b>key_format</b> feature is not used for  <b>backup</b>  database
               requests.
 
-              NOTE 2: When multiple tables share the same  memcache  database,
-              each  table  should  prepend its own unique string to the lookup
-              key.  Otherwise,  automatic  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  or  <a href="verify.8.html"><b>verify</b>(8)</a>  cache
+              NOTE  2:  When multiple tables share the same memcache database,
+              each table should prepend its own unique string  to  the  lookup
+              key.   Otherwise,  automatic  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  or  <a href="verify.8.html"><b>verify</b>(8)</a> cache
               cleanup may not work.
 
               Examples:
@@ -126,37 +138,37 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               <b>%s</b>     This is replaced by the memcache client input key.
 
               <b>%u</b>     When the input key is an address of the form user@domain,
-                     <b>%u</b> is replaced by  the  SQL  quoted  local  part  of  the
-                     address.   Otherwise, <b>%u</b> is replaced by the entire search
-                     string.  If the localpart is empty, a lookup is  silently
-                     suppressed  and  returns no results (an update is skipped
+                     <b>%u</b>  is  replaced  by  the  SQL  quoted  local part of the
+                     address.  Otherwise, <b>%u</b> is replaced by the entire  search
+                     string.   If the localpart is empty, a lookup is silently
+                     suppressed and returns no results (an update  is  skipped
                      with a warning).
 
               <b>%d</b>     When the input key is an address of the form user@domain,
                      <b>%d</b> is replaced by the domain part of the address.  Other-
-                     wise, a lookup is  silently  suppressed  and  returns  no
+                     wise,  a  lookup  is  silently  suppressed and returns no
                      results (an update is skipped with a warning).
 
               <b>%[SUD]</b> The upper-case equivalents of the above expansions behave
-                     in  the  <b>key_format</b>  parameter   identically   to   their
+                     in   the   <b>key_format</b>   parameter  identically  to  their
                      lower-case counter-parts.
 
-              <b>%[1-9]</b> The  patterns  %1,  %2, ... %9 are replaced by the corre-
-                     sponding most significant component of  the  input  key's
-                     domain.  If  the input key is <i>user@mail.example.com</i>, then
+              <b>%[1-9]</b> The patterns %1, %2, ... %9 are replaced  by  the  corre-
+                     sponding  most  significant  component of the input key's
+                     domain. If the input key is  <i>user@mail.example.com</i>,  then
                      %1 is <b>com</b>, %2 is <b>example</b> and %3 is <b>mail</b>. If the input key
-                     is  unqualified or does not have enough domain components
-                     to satisfy  all  the  specified  patterns,  a  lookup  is
-                     silently  suppressed and returns no results (an update is
+                     is unqualified or does not have enough domain  components
+                     to  satisfy  all  the  specified  patterns,  a  lookup is
+                     silently suppressed and returns no results (an update  is
                      skipped with a warning).
 
        <b>domain (default: no domain list)</b>
-              This feature can  significantly  reduce  database  server  load.
-              Specify  a list of domain names, paths to files, or "<a href="DATABASE_README.html">type:table</a>"
-              databases.  When specified, only  fully  qualified  search  keys
-              with  a *non-empty* localpart and a matching domain are eligible
-              for lookup or update: bare 'user' lookups, bare  domain  lookups
-              and  "@domain" lookups are silently skipped (updates are skipped
+              This  feature  can  significantly  reduce  database server load.
+              Specify a list of domain names, paths to files, or  "<a href="DATABASE_README.html">type:table</a>"
+              databases.   When  specified,  only  fully qualified search keys
+              with a *non-empty* localpart and a matching domain are  eligible
+              for  lookup  or update: bare 'user' lookups, bare domain lookups
+              and "@domain" lookups are silently skipped (updates are  skipped
               with a warning).  Example:
 
                   domain = example.com, <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/searchdomains
@@ -169,30 +181,30 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               The maximal memcache reply line length in bytes.
 
        <b>max_try (default: 2)</b>
-              The number of times to try a memcache command before giving  up.
-              The  memcache  client does not retry a command when the memcache
+              The  number of times to try a memcache command before giving up.
+              The memcache client does not retry a command when  the  memcache
               server accepts no connection.
 
        <b>retry_pause (default: 1)</b>
               The time in seconds before retrying a failed memcache command.
 
        <b>timeout (default: 2)</b>
-              The time limit for sending a memcache command and for  receiving
+              The  time limit for sending a memcache command and for receiving
               a memcache reply.
 
 <b><a name="bugs">BUGS</a></b>
-       The  Postfix  memcache  client  cannot  be  used for security-sensitive
+       The Postfix memcache  client  cannot  be  used  for  security-sensitive
        tables such as <b><a href="postconf.5.html#alias_maps">alias_maps</a></b> (these may contain "<i>|command</i> and "<i>/file/name</i>"
-       destinations),  or <b><a href="postconf.5.html#virtual_uid_maps">virtual_uid_maps</a></b>, <b><a href="postconf.5.html#virtual_gid_maps">virtual_gid_maps</a></b> and <b><a href="postconf.5.html#virtual_mailbox_maps">virtual_mail</a>-</b>
-       <b><a href="postconf.5.html#virtual_mailbox_maps">box_maps</a></b> (these specify UNIX process privileges or "<i>/file/name</i>"  desti-
-       nations).   In  a typical deployment a memcache database is writable by
-       any process that can talk to the memcache server;  in  contrast,  secu-
-       rity-sensitive  tables must never be writable by the unprivileged Post-
+       destinations), or <b><a href="postconf.5.html#virtual_uid_maps">virtual_uid_maps</a></b>, <b><a href="postconf.5.html#virtual_gid_maps">virtual_gid_maps</a></b> and  <b><a href="postconf.5.html#virtual_mailbox_maps">virtual_mail</a>-</b>
+       <b><a href="postconf.5.html#virtual_mailbox_maps">box_maps</a></b> (these specify UNIX process privileges for "<i>/file/name</i>" desti-
+       nations).  In a typical deployment a memcache database is  writable  by
+       any  process  that  can talk to the memcache server; in contrast, secu-
+       rity-sensitive tables must never be writable by the unprivileged  Post-
        fix user.
 
        The Postfix memcache client requires additional configuration when used
-       as  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  or  <a href="verify.8.html"><b>verify</b>(8)</a> cache.  For details see the <b>backup</b> and
-       <b>ttl</b> parameter discussions  in  the  MEMCACHE  MAIN  PARAMETERS  section
+       as <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a> cache.  For details see  the  <b>backup</b>  and
+       <b>ttl</b>  parameter  discussions  in  the  MEMCACHE  MAIN PARAMETERS section
        above.
 
 <b><a name="see_also">SEE ALSO</a></b>

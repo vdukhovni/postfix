@@ -61,16 +61,15 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
               TCP you have to specify
                   hosts = 127.0.0.1
 
-              NOTE:  if  the  <b>hosts</b>  setting specifies one server, this client
-              assumes that the target is a load balancer  and  will  reconnect
-              immediately  after  a  single  failure,  instead  of failing all
-              requests temporarily. With older versions of this client,  spec-
-              ify the same server twice.
+              NOTE:  if  the  <b>hosts</b>  setting  specifies  only one server, this
+              client assumes that the target  is  a  load  balancer  and  will
+              reconnect  immediately after a single failure. With Postfix ver-
+              sions 3.9 and earlier, specify the same server twice.
 
        <b>user</b>
 
        <b>password</b>
-              The  user name and password to log into the mysql server.  Exam-
+              The user name and password to log into the mysql server.   Exam-
               ple:
                   user = someone
                   password = some_password
@@ -79,15 +78,15 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
                   dbname = customer_database
 
        <b>charset (default: utf8mb4)</b>
-              The default MySQL client character set; this  also  implies  the
+              The  default  MySQL  client character set; this also implies the
               collation order.
 
-              This  parameter  is  available with Postfix 3.9 and later.  With
-              earlier Postfix versions, the default was chosen  by  the  MySQL
+              This parameter is available with Postfix 3.9  and  later.   With
+              earlier  Postfix  versions,  the default was chosen by the MySQL
               implementation (<b>utf8mb4</b> as of MySQL 8.0, <b>latin1</b> historically).
 
        <b>idle_interval (default: 60)</b>
-              The  number  of  seconds after which an idle database connection
+              The number of seconds after which an  idle  database  connection
               will be closed.
 
               This feature is available in Postfix 3.9 and later.
@@ -96,11 +95,10 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
               The number of seconds that a database connection will be skipped
               after an error.
 
-              NOTE:  if  the  <b>hosts</b>  setting specifies one server, this client
-              assumes that the target is a load balancer  and  will  reconnect
-              immediately  after  a  single  failure,  instead  of failing all
-              requests temporarily. With older versions of this client,  spec-
-              ify the same server twice.
+              NOTE: if the <b>hosts</b>  setting  specifies  only  one  server,  this
+              client  assumes  that  the  target  is  a load balancer and will
+              reconnect immediately after a single failure. With Postfix  ver-
+              sions 3.9 and earlier, specify the same server twice.
 
               This feature is available in Postfix 3.9 and later.
 

@@ -10,6 +10,7 @@ PROG	= postalias
 INC_DIR	= ../../include
 LIBS	= ../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
 	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
+NOSLEEP	= LD_PRELOAD=../../lib/nosleep.so
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
@@ -23,42 +24,55 @@ Makefile: Makefile.in
 
 update: ../../bin/$(PROG)
 
-tests:	test1 test2 fail_test
+tests:	test1 test2 fail_test mode_conflict_test
 
 root_tests:
 
 test1:	$(PROG) map.in map-abc1.ref map-ghi1.ref map-uABC1.ref
-	${SHLIB_ENV} ${VALGRIND} ./$(PROG) map.in
+	rm -f main.cf
+	touch -t 197101010000 main.cf
+	${SHLIB_ENV} ${VALGRIND} ./$(PROG) -c . map.in
 	for key in abc ghi; \
 	do \
-	    ${SHLIB_ENV} ${VALGRIND} ./$(PROG) -q $${key} map.in | diff map-$${key}1.ref -; \
+	    ${SHLIB_ENV} ${VALGRIND} ./$(PROG) -c . -q $${key} map.in | diff map-$${key}1.ref -; \
 	done
-	${SHLIB_ENV} ${VALGRIND} ./$(PROG) -f map.in
+	${SHLIB_ENV} ${VALGRIND} ./$(PROG) -c . -f map.in
 	for key in ABC; \
 	do \
-	    ${SHLIB_ENV} ${VALGRIND} ./$(PROG) -fq $${key} map.in | diff map-u$${key}1.ref -; \
+	    ${SHLIB_ENV} ${VALGRIND} ./$(PROG) -c . -fq $${key} map.in | diff map-u$${key}1.ref -; \
 	done
-	rm -f map.in.db
+	rm -f map.in.db main.cf
 
 test2:	$(PROG) map.in map-abc2.ref map-ghi2.ref map-uABC2.ref
-	${SHLIB_ENV} ${VALGRIND} ./$(PROG) map.in
+	rm -f main.cf
+	touch -t 197101010000 main.cf
+	${SHLIB_ENV} ${VALGRIND} ./$(PROG) -c . map.in
 	for key in abc ghi; \
 	do \
-	    echo $${key} | ${SHLIB_ENV} ${VALGRIND} ./$(PROG) -q - map.in | diff map-$${key}2.ref -; \
+	    echo $${key} | ${SHLIB_ENV} ${VALGRIND} ./$(PROG) -c . -q - map.in | diff map-$${key}2.ref -; \
 	done
-	${SHLIB_ENV} ${VALGRIND} ./$(PROG) -f map.in
+	${SHLIB_ENV} ${VALGRIND} ./$(PROG) -c . -f map.in
 	for key in ABC; \
 	do \
-	    echo $${key} | ${SHLIB_ENV} ${VALGRIND} ./$(PROG) -fq - map.in | diff map-u$${key}2.ref -; \
+	    echo $${key} | ${SHLIB_ENV} ${VALGRIND} ./$(PROG) -c . -fq - map.in | diff map-u$${key}2.ref -; \
 	done
-	rm -f map.in.db
+	rm -f map.in.db main.cf
 
 fail_test: $(PROG) aliases fail_test.in fail_test.ref
-	-(${SHLIB_ENV} sh fail_test.in 2>&1 || exit 0) | sed \
+	rm -f main.cf
+	touch -t 197101010000 main.cf
+	-(${SHLIB_ENV} MAIL_CONFIG=. $(NOSLEEP) sh fail_test.in 2>&1 || exit 0) | sed \
 	    -e 's/No error:/Unknown error:/' \
 	    -e 's/Success/Unknown error: 0/' > fail_test.tmp
 	diff fail_test.ref fail_test.tmp
-	rm -f fail_test.tmp
+	rm -f fail_test.tmp main.cf
+
+mode_conflict_test: $(PROG) mode_conflict_test.in mode_conflict_test.ref
+	rm -f main.cf
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) MAIL_CONFIG=. $(NOSLEEP) sh -x mode_conflict_test.in >mode_conflict_test.tmp 2>&1
+	diff mode_conflict_test.ref mode_conflict_test.tmp
+	rm -f mode_conflict_test.tmp main.cf
 
 ../../bin/$(PROG): $(PROG)
 	cp $(PROG) ../../bin

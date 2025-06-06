@@ -29031,7 +29031,7 @@ Apologies for any names omitted.
 	causing information to become garbled. Fix by Michael
 	Tokarev. File: postconf/postconf_edit.c.
 
-20259317
+20250317
 
 	Documentation: added text to clarify the difference between
 	SMTP connection reuse and TLS session resumption, and that
@@ -29095,10 +29095,102 @@ Apologies for any names omitted.
 
 20250418
 
-	Code health: added unit tests for connection address and
+	Code health: added 16 unit tests for connection address and
 	port information received through haproxy or postscreen,
 	and improved error handling. Files: smtpd/smtpd_peer.c,
 	smtpd/smtpd_haproxy.c, smtpd/smtpd_peer_test.c.
 
 	Unit tests for 'direct' connections are deferred pending
 	support to mock or intercept system library function calls.
+
+20250419
+
+	Documentation: Postfix LMDB locking protocol description.
+	File: proto/lmdb_table.
+
+20250504
+
+	Logging: the memcache client truncated a memcached server
+	error message too aggressively. File: global/dict_memcache.c.
+
+	Code health: the dict_cache module did not expose a database
+	error to the caller. Files: util/dict_cache.[hc].
+
+	Code health: the verify(8) daemon now replies with 'address
+	verification status unavailable' when cache lookup fails
+	due to a database error, instead of replying with 'address
+	verification in progress'. File: verify/verify.c.
+
+	Code health: the verify(8) daemon no longer schedules an
+	address verification probe after a cache lookup for that
+	address failed due to a database error. File: verify/verify.c.
+
+20250523
+
+	Documentation: load balancer workaround for Postfix <= 3.9.
+	Files: proto/mysql_table, proto/pgsql_table.
+
+20250425
+
+	Documentation: TLSRPT_README typofix by Paul Menzel. File:
+	proto/TLSRPT_README.html.
+
+20250509
+
+	Documentation: in "enable_idna2003_compatibility" descriptions,
+	confused zeta with final sigma. Geert Hendrickx. Files:
+	proto/SMTPUTF8_README, proto/postconf.proto.
+
+	Feature: specify "key_digest = name-of-openssl-digest" to
+	run memcache lookup keys through the named OpenSSL digest
+	and convert the result to lowercase hexadecimal characters,
+	after processing the key_format feature. This prevents a
+	database access error when keys may exceed the memcache
+	server's key length limit (usually, 250 bytes). Files:
+
+20250523
+
+	Workaround: tweaked the timeout setting in postconf.proto
+	javascript. File: proto/postconf.html.prolog
+
+20250525
+
+	Code health: don't allow the postmap or postalias "-i"
+	option together with one of the (-d, -q, or -s) options on
+	the command line. Files: postmap/postmap.c, postalias/postalias.c,
+	postmap/mode_conflict_test.*, postalias/mode_conflict_test.*.
+
+	Testing: some postalias and postmap tests depended on the
+	installed main.cf file. Files: postalias/Makefile.in,
+	postmap/Makefile.in.
+
+	Testing: 'nosleep' preload module to eliminate the delay
+	after logging a fatal error and before terminating a program.
+	Files: testing/Makefile.in, testing/nosleep.c,
+	postalias/Makefile.in, postmap/Makefile.in
+
+20250526
+
+	Bugfix (defect introduced: Postfix 0.7.0, date 19990118):
+	postmap and postalias supported "-i" incremental updates
+	only for databases that support "bulk" create. With other
+	databases, the "-i" option was rejected with a misleading
+	error message "no 'map create' support". File: util/mkmap_open.c.
+
+	Usability: improved error message when a CDB table refuses
+	a delete or incremental update request (it complained about
+	some obscure POSIX open() flags). File: util/dict_cdb.c.
+
+	Cleanup: remove unnecessary newline characters in debug
+	logging. File: util/dict_db.c.
+
+	Debugging: added debug logging to the myflock() function.
+	File: util/myflock.c.
+
+20250601
+
+	Changed the default smtp_tlsrpt_skip_reused_handshakes
+	setting from "yes" to "no". The new default is enabled with
+	compatibility level >= 3.11. Files: smtp/smtp_tlsrpt.c,
+	global/mail_params.[hc], proto/COMPATIBILITY_README.html.
+	proto/memcache_table, global/dict_memcache.c, util/hex_code.[hc].

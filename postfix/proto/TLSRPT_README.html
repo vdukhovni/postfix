@@ -286,12 +286,12 @@ Untrusted <b>TLS connection reused</b> to mail.example.com[ipaddr]:25:
     TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)
 </pre>
 
-<li> <p> By default, Postfix does not report the TLSRPT status for
-a TLS handshake that reuses a previously-negotiated TLS session
-(there would be no new information to report). Specify
-"smtp_tlsrpt_skip_reused_handshakes = no" to report the TLSRPT
-status for all TLS handshakes. This may be useful for troubleshooting.
-</p>
+<li> <p> With TLSRPT enabled, the Postfix SMTP client reports the
+TLSRPT status for all TLS handshakes (the default as of Postfix
+3.11).  Specify "smtp_tlsrpt_skip_reused_handshakes = yes" (the
+default with Postfix 3.10) to skip reporting TLS handshakes that
+reuse a previously-negotiated TLS session as there would be no new
+information to report. </p>
 
 <li> <p> Postfix logging for certificate verification failures may
 differ between new or reused TLS sessions. </p>
@@ -373,7 +373,7 @@ generator's sender address): </p>
 <h2> <a name="mta-sts"> MTA-STS Support via smtp_tls_policy_maps
 </a></h2>
 
-<p> Postfix supports MTA-STS though an smtp_tls_policy_maps policy
+<p> Postfix supports MTA-STS through an smtp_tls_policy_maps policy
 plugin, which replies with a TLS security level and name=value
 attributes with certificate matching requirements. Postfix 3.10 and
 later extend the policy plugin response with additional name=value

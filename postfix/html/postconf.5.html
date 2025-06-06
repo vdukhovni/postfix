@@ -20,7 +20,7 @@ if (hash && isChrome) {
     setTimeout(function() {
         window.location.hash = "";
         window.location.hash = hash;
-    }, 1000);
+    }, 1500);
 }
 
 </script>
@@ -3349,7 +3349,7 @@ with older Postfix versions).  </p>
 when converting UTF-8 domain names to/from the ASCII form that is
 used for DNS lookups. Specify "yes" for compatibility with Postfix
 &le; 3.1 (not recommended). This affects the conversion of domain
-names that contain for example the German sz and the Greek zeta.
+names that contain for example the German sz and the Greek sigma.
 See <a href="https://unicode.org/cldr/utility/idna.jsp">https://unicode.org/cldr/utility/idna.jsp</a> for more examples.
 </p>
 
@@ -14870,13 +14870,11 @@ requirements for MTA-STS <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls
 </DD>
 
 <DT><b><a name="smtp_tlsrpt_skip_reused_handshakes">smtp_tlsrpt_skip_reused_handshakes</a>
-(default: yes)</b></DT><DD>
+(default: Postfix &ge; 3.11: no, Postfix 3.10: yes)</b></DT><DD>
 
-<p> Do not report the TLSRPT status for TLS protocol handshakes
-that reuse a previously-negotiated TLS session (there is no new
-information to report). Report the TLSRPT status only for "new" TLS
-sessions. Set this to "no" to log the TLSRPT status of all TLS
-handshakes, for example to troubleshoot Postfix TLSRPT support.
+<p> When set to "yes", report the TLSRPT status only for "new" TLS
+sessions. When set to "no", also report the TLSRPT status for TLS
+protocol handshakes that reuse a previously-negotiated TLS session.
 </p>
 
 <p> Note: if an SMTP over TLS connection is reused, there is no

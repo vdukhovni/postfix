@@ -1674,3 +1674,11 @@ MLKEM
 cleartext
 redacted
 subclassed
+nosleep
+preload
+memcached
+Geert
+Hendrickx
+typofix
+LD
+PRELOAD

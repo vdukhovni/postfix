@@ -1223,10 +1223,12 @@ dict_memcache.o: ../../include/argv.h
 dict_memcache.o: ../../include/auto_clnt.h
 dict_memcache.o: ../../include/check_arg.h
 dict_memcache.o: ../../include/dict.h
+dict_memcache.o: ../../include/hex_code.h
 dict_memcache.o: ../../include/match_list.h
 dict_memcache.o: ../../include/msg.h
 dict_memcache.o: ../../include/myflock.h
 dict_memcache.o: ../../include/mymalloc.h
+dict_memcache.o: ../../include/ossl_digest.h
 dict_memcache.o: ../../include/stringops.h
 dict_memcache.o: ../../include/sys_defs.h
 dict_memcache.o: ../../include/vbuf.h
