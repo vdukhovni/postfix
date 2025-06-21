@@ -2190,6 +2190,24 @@ This feature is available in Postfix 2.1 and later. Postfix
 version 2.0 behaves as if this parameter is always set to \fByes\fR.
 Postfix versions before 2.0 have no support for the original recipient
 address.
+.SH relocated_prefix_enable (default: yes)
+Prepend the prefix "\fB5.1.6 User has moved to \fR" to all
+relocated_maps lookup results. With "relocated_prefix_enable =
+no", all lookup results must contain a valid RFC 3463 compliant
+enhanced status code and text (format: "[45].number.number text...").
+.PP
+Example:
+.PP
+.nf
+.na
+/etc/postfix/main.cf:
+    relocated_maps = hash:/etc/postfix/relocated
+    relocated_prefix_enable = no
+.br
+hash:/etc/postfix/relocated:
+    user@example.com 5.2.1 User account is disabled
+.fi
+.ad
 .SH enable_threaded_bounces (default: no)
 Enable non\-delivery, success, and delay notifications that link
 to the original message by including a References: and In\-Reply\-To:

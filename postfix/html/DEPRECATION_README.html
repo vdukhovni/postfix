@@ -104,11 +104,16 @@ detailed description. </p>
 </th> <th> Removed <br> in version </th> <th> Replacement </th>
 </tr>
 
+<tr> <td> <a href="#xxx_tls_enforce_peername">
+<i>xxx</i>_tls_enforce_peername </a> </td> <td align="center"> 3.11
+</td> <td align="center"> - </td> <td> <i>xxx</i>_tls_security_level
+</td> </tr>
+
 <tr> <td> <a href="#disable_dns_lookups"> disable_dns_lookups </a>
 </td> <td align="center"> 3.9 </td> <td align="center"> - </td>
 <td> <a href="postconf.5.html#smtp_dns_support_level">smtp_dns_support_level</a> </td> </tr>
 
-<tr> <td> <a href="#xxx_enforce_tls"> <i>xxx</i>_use_tls </a> </td>
+<tr> <td> <a href="#xxx_use_tls"> <i>xxx</i>_use_tls </a> </td>
 <td align="center"> 3.9 </td> <td align="center"> - </td> <td>
 <i>xxx</i>_tls_security_level </td> </tr>
 
@@ -144,6 +149,45 @@ smtpd_tls_dh1024_param_file </a> </td> <td align="center"> 3.9 </td>
 <tr> <td> <a href="#permit_naked_ip_address"> permit_naked_ip_address
 </a> </td> <td align="center"> 2.0 </td> <td align="center"> 3.9
 </td> <td> <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> </td> </tr>
+
+</table>
+
+</blockquote>
+
+<h3> <a name="xxx_tls_enforce_peername"> Obsolete TLS peer name
+match configuration </a> </h3>
+
+<p> The <a href="postconf.1.html">postconf(1)</a> command logs one of the following: </p>
+
+<ul>
+
+<li> support for parameter "<a href="postconf.5.html#lmtp_tls_enforce_peername">lmtp_tls_enforce_peername</a>" will be
+removed; instead, specify "<a href="postconf.5.html#lmtp_tls_security_level">lmtp_tls_security_level</a>"
+
+<li> support for parameter "<a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>" will be
+removed; instead, specify "<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>"
+
+</ul>
+
+<p> There are similarly-named parameters and warnings for <a href="postscreen.8.html">postscreen(8)</a>
+and <a href="tlsproxy.8.html">tlsproxy(8)</a>, but those parameters should rarely be specified
+by hand. </p>
+
+<p> Replace obsolete configuration with its replacement: </p>
+
+<blockquote>
+
+<table border="1">
+
+<tr> <th width="33%"> Goal </th> <th width="33%"> Obsolete configuration </th> <th> Replacement configuration </th> </tr>
+
+<tr> <td> Enforce peer name match with server certificate </td>
+<td> <i>xxx</i>_enforce_peername = yes </td> <td> <i>xxx</i>_security_level
+= verify <br> <i>xxx</i>_security_level = secure </td> </tr>
+
+<tr> <td> Disable peer name match with server certificate </td>
+<td> <i>xxx</i>_enforce_peername = no </td> <td> <i>xxx</i>_security_level
+= may <br> <i>xxx</i>_security_level = encrypt </td> </tr>
 
 </table>
 

@@ -4012,6 +4012,26 @@ relocated_maps = dbm:/etc/postfix/relocated
 relocated_maps = hash:/etc/postfix/relocated
 </pre>
 
+%PARAM relocated_prefix_enable  yes
+
+<p> Prepend the prefix "<b>5.1.6 User has moved to </b>" to all
+relocated_maps lookup results. With "relocated_prefix_enable =
+no", all lookup results must contain a valid RFC 3463 compliant
+enhanced status code and text (format: "[45].number.number text...").
+
+<p>
+Example:
+</p>
+
+<pre>
+/etc/postfix/main.cf:
+    relocated_maps = hash:/etc/postfix/relocated
+    relocated_prefix_enable = no
+<br>
+hash:/etc/postfix/relocated:
+    user@example.com 5.2.1 User account is disabled
+</pre>
+
 %PARAM require_home_directory no
 
 <p>

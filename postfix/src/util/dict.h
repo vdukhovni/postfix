@@ -281,6 +281,13 @@ extern int dict_allow_surrogate;
 extern DICT *PRINTFLIKE(5, 6) dict_surrogate(const char *, const char *, int, int, const char *,...);
 
  /*
+  * Support for consistent sharing and collision avoidance when tables are
+  * registered with dict_register(). Only share instances that have the same
+  * type, name, open_flags, and (initial) dict_flags.
+  */
+extern char *dict_make_registered_name(VSTRING *, const char *, int, int);
+
+ /*
   * This name is reserved for matchlist error handling.
   */
 #define DICT_TYPE_NOFILE	"non-existent"

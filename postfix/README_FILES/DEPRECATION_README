@@ -58,6 +58,8 @@ the "obsolete feature" name for a more detailed description.
     |                           |ooff     |iinn vveerrssiioonn|                         |
     |                           |vveerrssiioonn|          |                         |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |xxx_tls_enforce_peername   |  3.11 |      -   |xxx_tls_security_level   |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |disable_dns_lookups        |   3.9 |      -   |smtp_dns_support_level   |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |xxx_use_tls                |   3.9 |      -   |xxx_tls_security_level   |
@@ -82,6 +84,33 @@ the "obsolete feature" name for a more detailed description.
     |permit_naked_ip_address    |   2.0 |     3.9  |permit_mynetworks,       |
     |                           |       |          |permit_sasl_authenticated|
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+
+OObbssoolleettee TTLLSS ppeeeerr nnaammee mmaattcchh ccoonnffiigguurraattiioonn
+
+The postconf(1) command logs one of the following:
+
+  * support for parameter "lmtp_tls_enforce_peername" will be removed; instead,
+    specify "lmtp_tls_security_level"
+  * support for parameter "smtp_tls_enforce_peername" will be removed; instead,
+    specify "smtp_tls_security_level"
+
+There are similarly-named parameters and warnings for postscreen(8) and
+tlsproxy(8), but those parameters should rarely be specified by hand.
+
+Replace obsolete configuration with its replacement:
+
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |GGooaall                   |OObbssoolleettee ccoonnffiigguurraattiioonn|RReeppllaacceemmeenntt ccoonnffiigguurraattiioonn|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |                       |                      |xxx_security_level =     |
+    |Enforce peer name match|xxx_enforce_peername =|verify                   |
+    |with server certificate|yes                   |xxx_security_level =     |
+    |                       |                      |secure                   |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |Disable peer name match|xxx_enforce_peername =|xxx_security_level = may |
+    |with server certificate|no                    |xxx_security_level =     |
+    |                       |                      |encrypt                  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
 OObbssoolleettee DDNNSS oonn//ooffff ccoonnffiigguurraattiioonn
 

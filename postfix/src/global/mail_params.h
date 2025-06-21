@@ -763,6 +763,10 @@ extern int var_tls_prng_upd_period;
 #define DEF_RELOCATED_MAPS		""
 extern char *var_relocated_maps;
 
+#define VAR_ENB_RELOCATED_PFX		"relocated_prefix_enable"
+#define DEF_ENB_RELOCATED_PFX		"yes"
+extern bool var_enb_relocated_pfx;
+
  /*
   * Queue manager: after each failed attempt the backoff time (how long we
   * won't try this host in seconds) is doubled until it reaches the maximum.

@@ -3484,6 +3484,30 @@ address. </p>
 
 </DD>
 
+<DT><b><a name="relocated_prefix_enable">relocated_prefix_enable</a>
+(default: yes)</b></DT><DD>
+
+<p> Prepend the prefix "<b>5.1.6 User has moved to </b>" to all
+<a href="postconf.5.html#relocated_maps">relocated_maps</a> lookup results. With "<a href="postconf.5.html#relocated_prefix_enable">relocated_prefix_enable</a> =
+no", all lookup results must contain a valid <a href="https://tools.ietf.org/html/rfc3463">RFC 3463</a> compliant
+enhanced status code and text (format: "[45].number.number text...").
+
+<p>
+Example:
+</p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#relocated_maps">relocated_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/relocated
+    <a href="postconf.5.html#relocated_prefix_enable">relocated_prefix_enable</a> = no
+<br>
+<a href="DATABASE_README.html#types">hash</a>:/etc/postfix/relocated:
+    user@example.com 5.2.1 User account is disabled
+</pre>
+
+
+</DD>
+
 <DT><b><a name="enable_threaded_bounces">enable_threaded_bounces</a>
 (default: no)</b></DT><DD>
 

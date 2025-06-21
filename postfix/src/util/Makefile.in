@@ -153,12 +153,14 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	known_tcp_ports dict_stream find_inet binhash hash_fnv argv \
 	clean_env inet_prefix_top printable readlline quote_for_json \
 	normalize_ws valid_uri_scheme clean_ascii_cntrl_space \
-	normalize_v4mapped_addr_test ossl_digest_test
+	normalize_v4mapped_addr_test ossl_digest_test dict_pipe_test \
+	dict_union_test
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
+TESTLIB	= $(LIB_DIR)/libtesting.a
 
 .c.o:;	$(CC) $(SHLIB_CFLAGS) $(CFLAGS) -c $*.c
 
@@ -638,6 +640,12 @@ normalize_v4mapped_addr_test: normalize_v4mapped_addr_test.c $(LIB)
 ossl_digest_test: ossl_digest_test.c $(LIB)
 	$(CC) $(CFLAGS) -o $@ $@.c $(LIB) $(SYSLIBS)
 
+dict_pipe_test: dict_pipe_test.c $(TESTLIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.c $(TESTLIB) $(LIB) $(SYSLIBS)
+
+dict_union_test: dict_union_test.c $(TESTLIB) $(LIB)
+	$(CC) $(CFLAGS) -o $@ $@.c $(TESTLIB) $(LIB) $(SYSLIBS)
+
 tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test host_port_test dict_tests \
@@ -650,12 +658,13 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	binhash_test argv_test inet_prefix_top_test printable_test \
 	valid_utf8_string_test readlline_test quote_for_json_test \
 	normalize_ws_test valid_uri_scheme_test clean_ascii_cntrl_space_test \
-	test_normalize_v4mapped_addr test_ossl_digest
+	test_normalize_v4mapped_addr test_ossl_digest test_dict_pipe
+	test_dict_union
  
 dict_tests: all dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
-	dict_inline_test dict_utf8_test dict_regexp_test dict_union_test \
-	dict_pipe_test dict_regexp_file_test dict_cidr_file_test \
+	dict_inline_test dict_utf8_test dict_regexp_test \
+	dict_regexp_file_test dict_cidr_file_test \
 	dict_static_file_test dict_random_test dict_random_file_test \
 	dict_inline_file_test dict_stream_test dict_inline_regexp_test \
 	dict_inline_cidr_test
@@ -1056,16 +1065,6 @@ vbuf_print_test: vbuf_print vbuf_print_test.in vbuf_print_test.ref
 	diff vbuf_print_test.ref vbuf_print_test.tmp
 	rm -f vbuf_print_test.tmp
 
-dict_union_test: dict_open dict_union_test.in dict_union_test.ref
-	$(SHLIB_ENV) ${VALGRIND} sh -x dict_union_test.in >dict_union_test.tmp 2>&1
-	diff dict_union_test.ref dict_union_test.tmp
-	rm -f dict_union_test.tmp
-
-dict_pipe_test: dict_open dict_pipe_test.in dict_pipe_test.ref
-	$(SHLIB_ENV) ${VALGRIND} sh -x dict_pipe_test.in >dict_pipe_test.tmp 2>&1
-	diff dict_pipe_test.ref dict_pipe_test.tmp
-	rm -f dict_pipe_test.tmp
-
 vstring_test: dict_open vstring vstring_test.ref
 	$(SHLIB_ENV) ${VALGRIND} ./vstring one two three >vstring_test.tmp 2>&1
 	diff vstring_test.ref vstring_test.tmp
@@ -1141,6 +1140,12 @@ test_normalize_v4mapped_addr: update normalize_v4mapped_addr_test
 
 test_ossl_digest: update ossl_digest_test
 	$(SHLIB_ENV) ${VALGRIND} ./ossl_digest_test
+
+test_dict_pipe: update dict_pipe_test
+	$(SHLIB_ENV) ${VALGRIND} ./dict_pipe_test
+
+test_dict_union: update dict_union_test
+	$(SHLIB_ENV) ${VALGRIND} ./dict_union_test
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -1735,6 +1740,20 @@ dict_pipe.o: sys_defs.h
 dict_pipe.o: vbuf.h
 dict_pipe.o: vstream.h
 dict_pipe.o: vstring.h
+dict_pipe_test.o: ../../include/dict_test_helper.h
+dict_pipe_test.o: argv.h
+dict_pipe_test.o: check_arg.h
+dict_pipe_test.o: dict.h
+dict_pipe_test.o: dict_pipe.h
+dict_pipe_test.o: dict_pipe_test.c
+dict_pipe_test.o: msg.h
+dict_pipe_test.o: msg_vstream.h
+dict_pipe_test.o: myflock.h
+dict_pipe_test.o: stringops.h
+dict_pipe_test.o: sys_defs.h
+dict_pipe_test.o: vbuf.h
+dict_pipe_test.o: vstream.h
+dict_pipe_test.o: vstring.h
 dict_random.o: argv.h
 dict_random.o: check_arg.h
 dict_random.o: dict.h
@@ -1902,6 +1921,20 @@ dict_union.o: sys_defs.h
 dict_union.o: vbuf.h
 dict_union.o: vstream.h
 dict_union.o: vstring.h
+dict_union_test.o: ../../include/dict_test_helper.h
+dict_union_test.o: argv.h
+dict_union_test.o: check_arg.h
+dict_union_test.o: dict.h
+dict_union_test.o: dict_union.h
+dict_union_test.o: dict_union_test.c
+dict_union_test.o: msg.h
+dict_union_test.o: msg_vstream.h
+dict_union_test.o: myflock.h
+dict_union_test.o: stringops.h
+dict_union_test.o: sys_defs.h
+dict_union_test.o: vbuf.h
+dict_union_test.o: vstream.h
+dict_union_test.o: vstring.h
 dict_unix.o: argv.h
 dict_unix.o: check_arg.h
 dict_unix.o: dict.h
@@ -2602,6 +2635,26 @@ open_lock.o: sys_defs.h
 open_lock.o: vbuf.h
 open_lock.o: vstream.h
 open_lock.o: vstring.h
+ossl_digest.o: argv.h
+ossl_digest.o: check_arg.h
+ossl_digest.o: msg.h
+ossl_digest.o: mymalloc.h
+ossl_digest.o: ossl_digest.c
+ossl_digest.o: ossl_digest.h
+ossl_digest.o: sys_defs.h
+ossl_digest.o: vbuf.h
+ossl_digest.o: vstring.h
+ossl_digest_test.o: argv.h
+ossl_digest_test.o: check_arg.h
+ossl_digest_test.o: hex_code.h
+ossl_digest_test.o: msg.h
+ossl_digest_test.o: mymalloc.h
+ossl_digest_test.o: ossl_digest.h
+ossl_digest_test.o: ossl_digest_test.c
+ossl_digest_test.o: stringops.h
+ossl_digest_test.o: sys_defs.h
+ossl_digest_test.o: vbuf.h
+ossl_digest_test.o: vstring.h
 pass_accept.o: attr.h
 pass_accept.o: check_arg.h
 pass_accept.o: htable.h

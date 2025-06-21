@@ -94,8 +94,15 @@ static const PCF_DEPR_PARAM_INFO pcf_depr_param_info[] = {
     "smtpd_tls_dh1024_param_file", "do not specify (leave at default)",
     "smtpd_tls_eecdh_grade", "do not specify (leave at default)",
     "deleted-test-only", "do not specify",	/* For testing */
+
+    /*
+     * Deprecated as of Postfix 3.11.
+     */
+    "lmtp_tls_enforce_peername", "specify \"lmtp_tls_security_level\"",
+    "smtp_tls_enforce_peername", "specify \"smtp_tls_security_level\"",
     0,
 };
+
 static HTABLE *pcf_depr_param_table;
 
 /* pcf_init_depr_params - initialize lookup table */

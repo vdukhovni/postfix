@@ -69,6 +69,12 @@
 /*
 /*	int	dict_flags_mask(names)
 /*	const char *names;
+/*
+/*	char	*dict_make_registered_name(
+/*	VSTRING	*out,
+/*	const char *type_name,
+/*	int	open_flags,
+/*	int	dict_flags)
 /* DESCRIPTION
 /*	This module maintains a collection of name-value dictionaries.
 /*	Each dictionary has its own name and has its own methods to read
@@ -166,6 +172,12 @@
 /*
 /*	dict_flags_mask() returns the bitmask for the specified
 /*	comma/space-separated dictionary flag names.
+/*
+/*	dict_make_registered_name() formats a dictionary type:name and
+/*	(initial) flag values for use in dict_register() calls.
+/*	This encourages consistent sharing of dictionary instances that
+/*	have the exact same type:name and (initial) flags. The result
+/*	value is the string value of the \fIout\fR VSTRING buffer.
 /* TRUST AND PROVENANCE
 /* .ad
 /* .fi
@@ -667,4 +679,14 @@ const char *dict_flags_str(int dict_flags)
 int     dict_flags_mask(const char *names)
 {
     return (name_mask("dictionary flags", dict_mask, names));
+}
+
+/* dict_make_registered_name - format registry name for consistent sharing */
+
+char   *dict_make_registered_name(VSTRING *out, const char *type_name,
+				          int open_flags, int dict_flags)
+{
+    return (STR(vstring_sprintf(out, "%s(%o,%s)",
+				type_name, open_flags,
+				dict_flags_str(dict_flags))));
 }

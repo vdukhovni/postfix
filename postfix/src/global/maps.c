@@ -154,9 +154,8 @@ MAPS   *maps_create(const char *title, const char *map_names, int dict_flags)
 #define OPEN_FLAGS	O_RDONLY
 
 	while ((map_type_name = mystrtokq(&bufp, sep, parens)) != 0) {
-	    vstring_sprintf(map_type_name_flags, "%s(%o,%s)",
-			    map_type_name, OPEN_FLAGS,
-			    dict_flags_str(dict_flags));
+	    dict_make_registered_name(map_type_name_flags, map_type_name,
+				      OPEN_FLAGS, dict_flags);
 	    if ((dict = dict_handle(vstring_str(map_type_name_flags))) == 0)
 		dict = dict_open(map_type_name, OPEN_FLAGS, dict_flags);
 	    if ((dict->flags & dict_flags) != dict_flags)

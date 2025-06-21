@@ -352,6 +352,7 @@ char   *var_virt_mailbox_maps;		/* XXX virtual_mailbox_domains */
 char   *var_virt_alias_doms;
 char   *var_virt_mailbox_doms;
 char   *var_relocated_maps;
+bool    var_enb_relocated_pfx;
 char   *var_def_transport;
 char   *var_snd_def_xport_maps;
 char   *var_empty_addr;
@@ -648,6 +649,7 @@ int     main(int argc, char **argv)
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {
 	VAR_APP_DOT_MYDOMAIN, DEF_APP_DOT_MYDOMAIN, &var_append_dot_mydomain,
+	VAR_ENB_RELOCATED_PFX, DEF_ENB_RELOCATED_PFX, &var_enb_relocated_pfx,
 	0,
     };
 

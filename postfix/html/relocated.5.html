@@ -41,71 +41,79 @@ RELOCATED(5)                                                      RELOCATED(5)
        lower case.
 
 <b><a name="table_format">TABLE FORMAT</a></b>
-       The input format for the <a href="postmap.1.html"><b>postmap</b>(1)</a> command is as follows:
-
-       <b>o</b>      An entry has one of the following form:
+       <b>o</b>      By default, Postfix will prepend a hard-coded prefix "5.1.6 User
+              has  moved  to  " to a table lookup result, and the format for a
+              table entry is as follows:
 
                    <i>pattern      new</i><b>_</b><i>location</i>
 
               Where <i>new</i><b>_</b><i>location</i> specifies  contact  information  such  as  an
               email  address, or perhaps a street address or telephone number.
 
-       <b>o</b>      Empty lines and whitespace-only lines are ignored, as are  lines
+       <b>o</b>      Postfix 3.11 and later can  optionally  disable  the  hard-coded
+              prefix.  Specify  "<a href="postconf.5.html#relocated_prefix_enable">relocated_prefix_enable</a> = no" in <a href="postconf.5.html">main.cf</a>, and
+              specify <a href="postconf.5.html#relocated_maps">relocated_maps</a> entries with your own <a href="https://tools.ietf.org/html/rfc3463">RFC  3463</a>-compliant
+              enhanced status code and text, for example:
+
+                   <i>pattern</i>      5.2.0 Mailbox is unavailable
+                   <i>pattern</i>      5.2.1 Mailbox is disabled
+
+       <b>o</b>      Empty  lines and whitespace-only lines are ignored, as are lines
               whose first non-whitespace character is a `#'.
 
-       <b>o</b>      A  logical  line  starts  with  non-whitespace text. A line that
+       <b>o</b>      A logical line starts with  non-whitespace  text.  A  line  that
               starts with whitespace continues a logical line.
 
 <b><a name="table_search_order">TABLE SEARCH ORDER</a></b>
-       With lookups from indexed files such as DB or DBM,  or  from  networked
-       tables  such  as  NIS,  LDAP or SQL, patterns are tried in the order as
+       With  lookups  from  indexed files such as DB or DBM, or from networked
+       tables such as NIS, LDAP or SQL, patterns are tried  in  the  order  as
        listed below:
 
        <i>user</i>@<i>domain</i>
-              Matches <i>user</i>@<i>domain</i>. This form has  precedence  over  all  other
+              Matches  <i>user</i>@<i>domain</i>.  This  form  has precedence over all other
               forms.
 
        <i>user</i>   Matches <i>user</i>@<i>site</i> when <i>site</i> is $<b><a href="postconf.5.html#myorigin">myorigin</a></b>, when <i>site</i> is listed in
-              $<b><a href="postconf.5.html#mydestination">mydestination</a></b>, or when <i>site</i> is listed  in  $<b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b>  or
+              $<b><a href="postconf.5.html#mydestination">mydestination</a></b>,  or  when  <i>site</i> is listed in $<b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a></b> or
               $<b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a></b>.
 
        @<i>domain</i>
-              Matches  other  addresses  in  <i>domain</i>.  This form has the lowest
+              Matches other addresses in <i>domain</i>.  This  form  has  the  lowest
               precedence.
 
 <b><a name="address_extension">ADDRESS EXTENSION</a></b>
        When a mail address localpart contains the optional recipient delimiter
-       (e.g.,  <i>user+foo</i>@<i>domain</i>),  the  lookup  order becomes: <i>user+foo</i>@<i>domain</i>,
+       (e.g., <i>user+foo</i>@<i>domain</i>), the  lookup  order  becomes:  <i>user+foo</i>@<i>domain</i>,
        <i>user</i>@<i>domain</i>, <i>user+foo</i>, <i>user</i>, and @<i>domain</i>.
 
 <b><a name="regular_expression_tables">REGULAR EXPRESSION TABLES</a></b>
-       This section describes how the table lookups change when the  table  is
-       given  in  the form of regular expressions or when lookups are directed
-       to a TCP-based server. For a description of regular  expression  lookup
-       table  syntax,  see <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>. For a description
+       This  section  describes how the table lookups change when the table is
+       given in the form of regular expressions or when lookups  are  directed
+       to  a  TCP-based server. For a description of regular expression lookup
+       table syntax, see <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>. For  a  description
        of the TCP client/server table lookup protocol, see <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.  This
        feature is available in Postfix 2.5 and later.
 
-       Each  pattern  is  a  regular  expression that is applied to the entire
-       address being looked up. Thus, <i>user@domain</i> mail addresses are not  bro-
-       ken  up  into their <i>user</i> and <i>@domain</i> constituent parts, nor is <i>user+foo</i>
+       Each pattern is a regular expression that  is  applied  to  the  entire
+       address  being looked up. Thus, <i>user@domain</i> mail addresses are not bro-
+       ken up into their <i>user</i> and <i>@domain</i> constituent parts, nor  is  <i>user+foo</i>
        broken up into <i>user</i> and <i>foo</i>.
 
-       Patterns are applied in the order as specified in the  table,  until  a
+       Patterns  are  applied  in the order as specified in the table, until a
        pattern is found that matches the search string.
 
-       Results  are the same as with indexed file lookups, with the additional
-       feature that parenthesized substrings from the pattern can be  interpo-
+       Results are the same as with indexed file lookups, with the  additional
+       feature  that parenthesized substrings from the pattern can be interpo-
        lated as <b>$1</b>, <b>$2</b> and so on.
 
 <b><a name="tcp-based_tables">TCP-BASED TABLES</a></b>
-       This  section  describes  how the table lookups change when lookups are
-       directed  to  a  TCP-based  server.  For  a  description  of  the   TCP
-       client/server  lookup  protocol,  see  <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.   This  feature is
+       This section describes how the table lookups change  when  lookups  are
+       directed   to  a  TCP-based  server.  For  a  description  of  the  TCP
+       client/server lookup  protocol,  see  <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.   This  feature  is
        available in Postfix 2.5 and later.
 
-       Each lookup operation uses the entire address once.  Thus,  <i>user@domain</i>
-       mail  addresses  are  not  broken  up  into their <i>user</i> and <i>@domain</i> con-
+       Each  lookup operation uses the entire address once.  Thus, <i>user@domain</i>
+       mail addresses are not broken up  into  their  <i>user</i>  and  <i>@domain</i>  con-
        stituent parts, nor is <i>user+foo</i> broken up into <i>user</i> and <i>foo</i>.
 
        Results are the same as with indexed file lookups.
@@ -114,13 +122,19 @@ RELOCATED(5)                                                      RELOCATED(5)
        The table format does not understand quoting conventions.
 
 <b><a name="configuration_parameters">CONFIGURATION PARAMETERS</a></b>
-       The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are  especially  relevant.   The  text
-       below  provides  only  a  parameter  summary.  See <a href="postconf.5.html"><b>postconf</b>(5)</a> for more
+       The  following  <a href="postconf.5.html"><b>main.cf</b></a>  parameters  are especially relevant.  The text
+       below provides only a  parameter  summary.  See  <a href="postconf.5.html"><b>postconf</b>(5)</a>  for  more
        details including examples.
 
        <b><a href="postconf.5.html#relocated_maps">relocated_maps</a> (empty)</b>
               Optional lookup tables with new contact information for users or
               domains that no longer exist.
+
+       Available with Postfix version 3.11 and later:
+
+       <b><a href="postconf.5.html#relocated_prefix_enable">relocated_prefix_enable</a> (yes)</b>
+              Prepend the prefix "<b>5.1.6 User has  moved  to</b>  "  to  all  relo-
+              cated_maps lookup results.
 
        Other parameters of interest:
 

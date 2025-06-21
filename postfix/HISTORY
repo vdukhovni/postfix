@@ -29194,3 +29194,70 @@ Apologies for any names omitted.
 	compatibility level >= 3.11. Files: smtp/smtp_tlsrpt.c,
 	global/mail_params.[hc], proto/COMPATIBILITY_README.html.
 	proto/memcache_table, global/dict_memcache.c, util/hex_code.[hc].
+
+20250608
+
+	Feature: specify "relocated_prefix_enable = no" to disable
+	the hard-coded prefix "5.1.6 User has moved to " that is
+	by default prepended to all relocated_maps lookup results.
+	This setting requires that the table contains responses
+	with both custom enhanced status code (X.Y.Z) and text.
+	Files: proto/postconf.proto, mantools/postlink,
+	global/mail_params.h, trivial-rewrite/trivial-rewrite.c,
+	trivial-rewrite/resolve.c.
+
+	This was tested against an unprivileged Postfix instance.
+	Support to spin up a disposable unprivileged Postfix instance
+	for testing will be made available later.
+
+20250609
+
+	Deprecation: smtp_tls_enforce_peername and
+	lmtp_tls_enforce_peername are now officially deprecated.
+	Files: proto/DEPRECATION_README.html, postconf/postconf_unused.c,
+	postconf/Makefile.in, postconf/test78.ref.
+
+20250614
+
+	Bugfix (defect introduced: Postfix 3.0, date 20140923):
+	Lookup tables specified inside the {} were left open after
+	unionmap:{} or pipemap:{} syntax error. Richard Hansen.
+	Files: util/dict_pipe.c, util/dict_union.c.
+
+20250617
+
+	Proper unit tests for the pipemap and unionmap implementations.
+	Files: testing/dict_test_helper.[hc], util/dict.[hc],
+	util/dict_pipe_test.c, util/dict_union_test.c. This obsoletes
+	the ad-hoc test files dict_pipe_test.{in,ref} and
+	dict_union_test.{in,ref} and corresponding Makefile targets.
+
+	Proper sharing of identical dictionary instances opened
+	with dict_pipe_open() and dict_union_open(), reusing the
+	sharing policy that was already implemented with maps_create().
+	Files: util/dict.c, util/dict.h, util/dict_pipe.c,
+	util/dict_union.c, global/maps.c.
+
+20250619
+
+	Bugfix (defect introduced: Postfix-3.10, date 20250117): the
+	Postfix SMTP client attempted to look up TLSA records even
+	with "TLS-Required: no". This could result in unnecessary
+	failures. Fix by Viktor Dukhovni & Wietse. Files: smtp/smtp.h,
+	smtp/smtp_policy.c, smtp/smtp_connect.c.
+
+	Bugfix (defect introduced: Postfix-3.10, date 20250117):
+	include the current TLS security level in the SMTP connection
+	cache lookup key for lookups by next-hop destination. The
+	idea is that to deliver a message without "TLS-Required:
+	no" header, the Postfix SMTP client must not reuse a
+	connection that was created during a burst of deliveries
+	of messages with "TLS-Required: no" to the same destination.
+	Including the TLS security level in the SMTP connection
+	cache lookup key will also prevent false connection reuse
+	when any future feature is added that overrides the TLS
+	security level based on message content or envelope metadata.
+	Files: smtp/smtp.h.
+
+	Likewise, include the current TLS security level in the TLS
+	client serverid field. File: smtp/smtp_proto.c.

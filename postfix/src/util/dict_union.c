@@ -128,15 +128,19 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
     int     match_flags = 0;
     struct DICT_OWNER aggr_owner;
     size_t  len;
+    VSTRING *reg_name_buf = vstring_alloc(100);
+    char   *reg_name;
 
     /*
      * Clarity first. Let the optimizer worry about redundant code.
      */
 #define DICT_UNION_RETURN(x) do { \
 	      if (saved_name != 0) \
-	          myfree(saved_name); \
+		  myfree(saved_name); \
 	      if (argv != 0) \
-	          argv_free(argv); \
+		  argv_free(argv); \
+	      if (reg_name_buf != 0) \
+		  vstring_free(reg_name_buf); \
 	      return (x); \
 	  } while (0)
 
@@ -164,13 +168,10 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
 					 DICT_TYPE_UNION));
 
     /*
-     * The least-trusted table in the set determines the over-all trust
-     * level. The first table determines the pattern-matching flags.
+     * Check all underlying table specs before registering any of them to
+     * avoid leaking refcounts if one of them is bad.
      */
-    DICT_OWNER_AGGREGATE_INIT(aggr_owner);
     for (cpp = argv->argv; (dict_type_name = *cpp) != 0; cpp++) {
-	if (msg_verbose)
-	    msg_info("%s: %s", myname, dict_type_name);
 	if (strchr(dict_type_name, ':') == 0)
 	    DICT_UNION_RETURN(dict_surrogate(DICT_TYPE_UNION, name,
 					     open_flags, dict_flags,
@@ -178,9 +179,22 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
 					     "need \"%s:{type:name...}\"",
 					     DICT_TYPE_UNION, name,
 					     DICT_TYPE_UNION));
-	if ((dict = dict_handle(dict_type_name)) == 0)
+    }
+
+    /*
+     * The least-trusted table in the set determines the over-all trust
+     * level. The first table determines the pattern-matching flags.
+     */
+    DICT_OWNER_AGGREGATE_INIT(aggr_owner);
+    for (cpp = argv->argv; (dict_type_name = *cpp) != 0; cpp++) {
+	if (msg_verbose)
+	    msg_info("%s: %s", myname, dict_type_name);
+	reg_name = dict_make_registered_name(reg_name_buf, dict_type_name,
+					     open_flags, dict_flags);
+	if ((dict = dict_handle(reg_name)) == 0)
 	    dict = dict_open(dict_type_name, open_flags, dict_flags);
-	dict_register(dict_type_name, dict);
+	dict_register(reg_name, dict);
+	argv_replace_one(argv, cpp - argv->argv, reg_name);
 	DICT_OWNER_AGGREGATE_UPDATE(aggr_owner, dict->owner);
 	if (cpp == argv->argv)
 	    match_flags = dict->flags & (DICT_FLAG_FIXED | DICT_FLAG_PATTERN);
@@ -195,7 +209,8 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
     dict_union->dict.close = dict_union_close;
     dict_union->dict.flags = dict_flags | match_flags;
     dict_union->dict.owner = aggr_owner;
-    dict_union->re_buf = vstring_alloc(100);
+    dict_union->re_buf = reg_name_buf;
+    reg_name_buf = 0;
     dict_union->map_union = argv;
     argv = 0;
     DICT_UNION_RETURN(DICT_DEBUG (&dict_union->dict));

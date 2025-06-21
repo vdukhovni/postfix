@@ -426,6 +426,7 @@
 -Td2i_X509_t
 -Tdane_digest
 -Tdane_mtype
+-Tdict_lookup_verify_data
 -Tfilter_ctx
 -Tgeneral_name_stack_t
 -Tiana_digest
