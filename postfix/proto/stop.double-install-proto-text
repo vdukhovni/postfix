@@ -46,3 +46,4 @@ Inbound SMTP smuggling don t strip extra CR in CR LF CR CR LF
  Prepend the prefix 5 1 6 User has moved to to all
  pattern number number number text 
 to  to the lookup result With Postfix 3 11 and later specify
+ has moved to to a table lookup result and the format for a

@@ -1690,6 +1690,12 @@ static void pre_jail_init_client(void)
      */
     tlsp_client_app_cache = htable_create(10);
 
+    /* Postfix <= 3.10 backwards compatibility. */
+    if (warn_compat_break_tlsp_clnt_level
+	&& warn_compat_break_smtp_tls_level)
+	msg_info("using backwards-compatible default setting "
+		 VAR_TLSP_CLNT_LEVEL "=(empty)");
+
     /*
      * Most sites don't use TLS client certs/keys. In that case, enabling
      * tlsproxy-based connection caching is trivial.

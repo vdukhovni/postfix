@@ -12114,14 +12114,16 @@ smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM smtp_tls_security_level
+%PARAM smtp_tls_security_level Postfix &ge; 3.11: may; Postfix &lt; 3.11: empty
 
 <p> The default SMTP TLS security level for the Postfix SMTP client.
 When a non-empty value is specified, this overrides the obsolete
 parameters smtp_use_tls, smtp_enforce_tls, and smtp_tls_enforce_peername;
-when no value is specified for smtp_tls_enforce_peername or the obsolete
-parameters, the default SMTP TLS security level is
-<a href="TLS_README.html#client_tls_none">none</a>. </p>
+when no value is specified for those obsolete parameters, the default
+SMTP TLS security level is <a href="TLS_README.html#client_tls_may">may</a>
+(compatibility_level &ge; 3.11) or <a
+href="TLS_README.html#client_tls_none">none</a> 
+(compatibility_level &lt; 3.11). </p>
 
 <p> Specify one of the following security levels: </p>
 

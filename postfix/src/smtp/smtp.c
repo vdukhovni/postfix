@@ -458,7 +458,7 @@
 /* .fi
 /*	Detailed information about STARTTLS configuration may be found
 /*	in the TLS_README document.
-/* .IP "\fBsmtp_tls_security_level (empty)\fR"
+/* .IP "\fBsmtp_tls_security_level (Postfix >= 3.11: may; Postfix < 3.11: empty)\fR"
 /*	The default SMTP TLS security level for the Postfix SMTP client.
 /* .IP "\fBsmtp_sasl_tls_security_options ($smtp_sasl_security_options)\fR"
 /*	The SASL authentication security options that the Postfix SMTP
@@ -647,10 +647,9 @@
 /* .IP "\fBsmtp_tlsrpt_socket_name (empty)\fR"
 /*	The pathname of a UNIX-domain datagram socket that is managed
 /*	by a local TLSRPT reporting service.
-/* .IP "\fBsmtp_tlsrpt_skip_reused_handshakes (yes)\fR"
-/*	Do not report the TLSRPT status for TLS protocol handshakes
-/*	that reuse a previously-negotiated TLS session (there is no new
-/*	information to report).
+/* .IP "\fBsmtp_tlsrpt_skip_reused_handshakes (Postfix >= 3.11: no, Postfix 3.10: yes)\fR"
+/*	When set to "yes", report the TLSRPT status only for "new" TLS
+/*	sessions.
 /* .IP "\fBtls_required_enable (yes)\fR"
 /*	Enable support for the "TLS-Required: no" message header, defined
 /*	in RFC 8689.
@@ -1549,6 +1548,12 @@ static void pre_init(char *unused_name, char **unused_argv)
 		 VAR_LMTP_SMTP(SASL_ENABLE));
 #endif
 
+#ifdef USE_TLS
+    /* Postfix <= 3.10 backwards compatibility. */
+    if (WARN_COMPAT_BREAK_LMTP_SMTP(tls_level))
+	msg_info("using backwards-compatible default setting %s=(empty)",
+		 VAR_LMTP_SMTP(TLS_LEVEL));
+#endif
     if (*var_smtp_tls_level != 0)
 	switch (tls_level_lookup(var_smtp_tls_level)) {
 	case TLS_LEV_SECURE:

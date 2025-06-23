@@ -2190,24 +2190,6 @@ This feature is available in Postfix 2.1 and later. Postfix
 version 2.0 behaves as if this parameter is always set to \fByes\fR.
 Postfix versions before 2.0 have no support for the original recipient
 address.
-.SH relocated_prefix_enable (default: yes)
-Prepend the prefix "\fB5.1.6 User has moved to \fR" to all
-relocated_maps lookup results. With "relocated_prefix_enable =
-no", all lookup results must contain a valid RFC 3463 compliant
-enhanced status code and text (format: "[45].number.number text...").
-.PP
-Example:
-.PP
-.nf
-.na
-/etc/postfix/main.cf:
-    relocated_maps = hash:/etc/postfix/relocated
-    relocated_prefix_enable = no
-.br
-hash:/etc/postfix/relocated:
-    user@example.com 5.2.1 User account is disabled
-.fi
-.ad
 .SH enable_threaded_bounces (default: no)
 Enable non\-delivery, success, and delay notifications that link
 to the original message by including a References: and In\-Reply\-To:
@@ -6561,6 +6543,24 @@ relocated_maps = dbm:/etc/postfix/relocated
 relocated_maps = hash:/etc/postfix/relocated
 .fi
 .ad
+.SH relocated_prefix_enable (default: yes)
+Prepend the prefix "\fB5.1.6 User has moved to \fR" to all
+relocated_maps lookup results. With "relocated_prefix_enable =
+no", all lookup results must contain a valid RFC 3463 compliant
+enhanced status code and text (format: "[45].number.number text...").
+.PP
+Example:
+.PP
+.nf
+.na
+/etc/postfix/main.cf:
+    relocated_maps = hash:/etc/postfix/relocated
+    relocated_prefix_enable = no
+.br
+hash:/etc/postfix/relocated:
+    user@example.com 5.2.1 User account is disabled
+.fi
+.ad
 .SH remote_header_rewrite_domain (default: empty)
 Rewrite or add message headers in mail from remote clients if
 the remote_header_rewrite_domain parameter value is non\-empty,
@@ -9541,13 +9541,14 @@ example.net     secure match=example.com:.example.com
 .in -4
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH smtp_tls_security_level (default: empty)
+.SH smtp_tls_security_level (default: Postfix >= 3.11: may; Postfix < 3.11: empty)
 The default SMTP TLS security level for the Postfix SMTP client.
 When a non\-empty value is specified, this overrides the obsolete
 parameters smtp_use_tls, smtp_enforce_tls, and smtp_tls_enforce_peername;
-when no value is specified for smtp_tls_enforce_peername or the obsolete
-parameters, the default SMTP TLS security level is
-none.
+when no value is specified for those obsolete parameters, the default
+SMTP TLS security level is may
+(compatibility_level >= 3.11) or none
+(compatibility_level < 3.11).
 .PP
 Specify one of the following security levels:
 .IP "\fBnone\fR"

@@ -29261,3 +29261,24 @@ Apologies for any names omitted.
 
 	Likewise, include the current TLS security level in the TLS
 	client serverid field. File: smtp/smtp_proto.c.
+
+20250622
+
+	Bugfix (defect introduced: 20250509): added missing ``#ifdef
+	USE_TLS'' guards around memcache key_digest support. File:
+	global/dict_memcache.c.
+
+20250623
+
+	Feature: change the Postfix SMTP client smtp_tls_security_level
+	default value to "may" if Postfix was built with TLS support,
+	and the compatibility_level is 3.11 or higher. At lower
+	compatibility levels, change the default to "empty" and log
+	a backwards compatibility reminder. Files: global/mail_params.h,
+	smtp/smtp.c, tlsproxy/tlsproxy.c, proto/postconf.proto,
+	proto/COMPATIBILITY_README.html.
+
+	There is no equivalent change for Postfix server TLS security
+	levels, because changing the level alone is not sufficient.
+	Server-side TLS requires that at least one private key and
+	corresponding public-key certificate chain are configured.

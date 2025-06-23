@@ -3484,30 +3484,6 @@ address. </p>
 
 </DD>
 
-<DT><b><a name="relocated_prefix_enable">relocated_prefix_enable</a>
-(default: yes)</b></DT><DD>
-
-<p> Prepend the prefix "<b>5.1.6 User has moved to </b>" to all
-<a href="postconf.5.html#relocated_maps">relocated_maps</a> lookup results. With "<a href="postconf.5.html#relocated_prefix_enable">relocated_prefix_enable</a> =
-no", all lookup results must contain a valid <a href="https://tools.ietf.org/html/rfc3463">RFC 3463</a> compliant
-enhanced status code and text (format: "[45].number.number text...").
-
-<p>
-Example:
-</p>
-
-<pre>
-/etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#relocated_maps">relocated_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/relocated
-    <a href="postconf.5.html#relocated_prefix_enable">relocated_prefix_enable</a> = no
-<br>
-<a href="DATABASE_README.html#types">hash</a>:/etc/postfix/relocated:
-    user@example.com 5.2.1 User account is disabled
-</pre>
-
-
-</DD>
-
 <DT><b><a name="enable_threaded_bounces">enable_threaded_bounces</a>
 (default: no)</b></DT><DD>
 
@@ -10548,6 +10524,30 @@ Examples:
 
 </DD>
 
+<DT><b><a name="relocated_prefix_enable">relocated_prefix_enable</a>
+(default: yes)</b></DT><DD>
+
+<p> Prepend the prefix "<b>5.1.6 User has moved to </b>" to all
+<a href="postconf.5.html#relocated_maps">relocated_maps</a> lookup results. With "<a href="postconf.5.html#relocated_prefix_enable">relocated_prefix_enable</a> =
+no", all lookup results must contain a valid <a href="https://tools.ietf.org/html/rfc3463">RFC 3463</a> compliant
+enhanced status code and text (format: "[45].number.number text...").
+
+<p>
+Example:
+</p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#relocated_maps">relocated_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/relocated
+    <a href="postconf.5.html#relocated_prefix_enable">relocated_prefix_enable</a> = no
+<br>
+<a href="DATABASE_README.html#types">hash</a>:/etc/postfix/relocated:
+    user@example.com 5.2.1 User account is disabled
+</pre>
+
+
+</DD>
+
 <DT><b><a name="remote_header_rewrite_domain">remote_header_rewrite_domain</a>
 (default: empty)</b></DT><DD>
 
@@ -14453,14 +14453,16 @@ example.net     secure match=example.com:.example.com
 </DD>
 
 <DT><b><a name="smtp_tls_security_level">smtp_tls_security_level</a>
-(default: empty)</b></DT><DD>
+(default: Postfix &ge; 3.11: may; Postfix &lt; 3.11: empty)</b></DT><DD>
 
 <p> The default SMTP TLS security level for the Postfix SMTP client.
 When a non-empty value is specified, this overrides the obsolete
 parameters <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>, <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>, and <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a>;
-when no value is specified for <a href="postconf.5.html#smtp_tls_enforce_peername">smtp_tls_enforce_peername</a> or the obsolete
-parameters, the default SMTP TLS security level is
-<a href="TLS_README.html#client_tls_none">none</a>. </p>
+when no value is specified for those obsolete parameters, the default
+SMTP TLS security level is <a href="TLS_README.html#client_tls_may">may</a>
+(<a href="postconf.5.html#compatibility_level">compatibility_level</a> &ge; 3.11) or <a
+href="TLS_README.html#client_tls_none">none</a>
+(<a href="postconf.5.html#compatibility_level">compatibility_level</a> &lt; 3.11). </p>
 
 <p> Specify one of the following security levels: </p>
 

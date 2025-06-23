@@ -765,6 +765,8 @@ extern int smtp_mode;
 
 #define VAR_LMTP_SMTP(x) (smtp_mode ? VAR_SMTP_##x : VAR_LMTP_##x)
 #define LMTP_SMTP_SUFFIX(x) (smtp_mode ? x##_SMTP : x##_LMTP)
+#define WARN_COMPAT_BREAK_LMTP_SMTP(x) \
+    (smtp_mode ? warn_compat_break_smtp_##x : warn_compat_break_lmtp_##x)
 
  /*
   * Parsed command-line attributes. These do not change during the process

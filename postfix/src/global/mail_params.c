@@ -394,6 +394,9 @@ const char null_format_string[1] = "";
   * Compatibility level 3.11.
   */
 int     warn_compat_break_smtp_tlsrpt_skip_reused_hs;
+int     warn_compat_break_smtp_tls_level;
+int     warn_compat_break_lmtp_tls_level;
+int     warn_compat_break_tlsp_clnt_level;
 
  /*
   * Compatibility level 3.6.
@@ -665,6 +668,17 @@ static void check_legacy_defaults(void)
      * Each incompatible change has its own flag variable, instead of bit in a
      * shared variable. We don't want to rip up code when we need more flag
      * bits.
+     * 
+     * Note: the purpose of these mail_conf_lookup() calls is to detect if a
+     * parameter value is not specified. The calls must happen before
+     * parameter default settings are enforced with mail_conf_update().
+     * 
+     * The preferred flow is: 1) in mail_params.h, specify a configuration
+     * parameter default value that depends on the compatibility level; 2)
+     * below, set a flag to indicate that the parameter will be set to the
+     * legacy default value; 3) in the program-specific code, log a message
+     * when the legacy default value is actually used, and optionally clear
+     * the flag to avoid spamming the log.
      */
 
     /*
@@ -672,8 +686,16 @@ static void check_legacy_defaults(void)
      * compatibility level changed to 3.11.
      */
     if (compat_level < compat_level_from_string(COMPAT_LEVEL_3_11, msg_panic)) {
+#ifdef USE_TLS
 	if (mail_conf_lookup(VAR_SMTP_TLSRPT_SKIP_REUSED_HS) == 0)
 	    warn_compat_break_smtp_tlsrpt_skip_reused_hs = 1;
+	if (mail_conf_lookup(VAR_SMTP_TLS_LEVEL) == 0)
+	    warn_compat_break_smtp_tls_level = 1;
+	if (mail_conf_lookup(VAR_LMTP_TLS_LEVEL) == 0)
+	    warn_compat_break_lmtp_tls_level = 1;
+	if (mail_conf_lookup(VAR_TLSP_CLNT_LEVEL) == 0)
+	    warn_compat_break_tlsp_clnt_level = 1;
+#endif
     }
 
     /*

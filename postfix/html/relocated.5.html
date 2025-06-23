@@ -5,7 +5,7 @@
 <link rel='stylesheet' type='text/css' href='postfix-doc.css'>
 <title> Postfix manual - relocated(5) </title>
 </head> <body> <pre>
-RELOCATED(5)                                                      RELOCATED(5)
+<i>RELOCATED</i>(5)                  File Formats Manual                 <i>RELOCATED</i>(5)
 
 <b><a name="name">NAME</a></b>
        relocated - Postfix relocated table format
@@ -19,25 +19,25 @@ RELOCATED(5)                                                      RELOCATED(5)
 
        Normally, the <a href="relocated.5.html"><b>relocated</b>(5)</a> table is  specified  as  a  text  file  that
        serves as input to the <a href="postmap.1.html"><b>postmap</b>(1)</a> command.  The result, an indexed file
-       in <b>dbm</b> or <b>db</b> format, is used for fast searching  by  the  mail  system.
-       Execute  the  command  "<b>postmap  /etc/postfix/relocated</b>"  to rebuild an
-       indexed file after changing the corresponding relocated table.
+       in <b>dbm</b> or <b>db</b> format, is used for fast searching by the mail system. Ex-
+       ecute  the  command  "<b>postmap /etc/postfix/relocated</b>" to rebuild an in-
+       dexed file after changing the corresponding relocated table.
 
        When the table is provided via other means such as NIS,  LDAP  or  SQL,
        the same lookups are done as for ordinary indexed files.
 
        Alternatively,  the  table  can be provided as a regular-expression map
-       where patterns are given as regular  expressions,  or  lookups  can  be
-       directed  to a TCP-based server. In those case, the lookups are done in
-       a slightly different way as described below under  "REGULAR  EXPRESSION
-       TABLES" or "TCP-BASED TABLES".
+       where patterns are given as regular expressions, or lookups can be  di-
+       rected  to a TCP-based server. In those case, the lookups are done in a
+       slightly different way as described below under "REGULAR EXPRESSION TA-
+       BLES" or "TCP-BASED TABLES".
 
        Table lookups are case insensitive.
 
 <b><a name="case_folding">CASE FOLDING</a></b>
-       The  search string is folded to lowercase before database lookup. As of
-       Postfix 2.3, the search string is not case folded with  database  types
-       such  as  <a href="regexp_table.5.html">regexp</a>: or <a href="pcre_table.5.html">pcre</a>: whose lookup fields can match both upper and
+       The search string is folded to lowercase before database lookup. As  of
+       Postfix  2.3,  the search string is not case folded with database types
+       such as <a href="regexp_table.5.html">regexp</a>: or <a href="pcre_table.5.html">pcre</a>: whose lookup fields can match both  upper  and
        lower case.
 
 <b><a name="table_format">TABLE FORMAT</a></b>
@@ -48,29 +48,29 @@ RELOCATED(5)                                                      RELOCATED(5)
                    <i>pattern      new</i><b>_</b><i>location</i>
 
               Where <i>new</i><b>_</b><i>location</i> specifies  contact  information  such  as  an
-              email  address, or perhaps a street address or telephone number.
+              email address, or perhaps a street address or telephone number.
 
-       <b>o</b>      Postfix 3.11 and later can  optionally  disable  the  hard-coded
-              prefix.  Specify  "<a href="postconf.5.html#relocated_prefix_enable">relocated_prefix_enable</a> = no" in <a href="postconf.5.html">main.cf</a>, and
-              specify <a href="postconf.5.html#relocated_maps">relocated_maps</a> entries with your own <a href="https://tools.ietf.org/html/rfc3463">RFC  3463</a>-compliant
+       <b>o</b>      Postfix  3.11  and  later  can optionally disable the hard-coded
+              prefix. Specify "<a href="postconf.5.html#relocated_prefix_enable">relocated_prefix_enable</a> = no" in  <a href="postconf.5.html">main.cf</a>,  and
+              specify  <a href="postconf.5.html#relocated_maps">relocated_maps</a> entries with your own <a href="https://tools.ietf.org/html/rfc3463">RFC 3463</a>-compliant
               enhanced status code and text, for example:
 
                    <i>pattern</i>      5.2.0 Mailbox is unavailable
                    <i>pattern</i>      5.2.1 Mailbox is disabled
 
-       <b>o</b>      Empty  lines and whitespace-only lines are ignored, as are lines
+       <b>o</b>      Empty lines and whitespace-only lines are ignored, as are  lines
               whose first non-whitespace character is a `#'.
 
-       <b>o</b>      A logical line starts with  non-whitespace  text.  A  line  that
+       <b>o</b>      A  logical  line  starts  with  non-whitespace text. A line that
               starts with whitespace continues a logical line.
 
 <b><a name="table_search_order">TABLE SEARCH ORDER</a></b>
-       With  lookups  from  indexed files such as DB or DBM, or from networked
-       tables such as NIS, LDAP or SQL, patterns are tried  in  the  order  as
+       With lookups from indexed files such as DB or DBM,  or  from  networked
+       tables  such  as  NIS,  LDAP or SQL, patterns are tried in the order as
        listed below:
 
        <i>user</i>@<i>domain</i>
-              Matches  <i>user</i>@<i>domain</i>.  This  form  has precedence over all other
+              Matches <i>user</i>@<i>domain</i>. This form has  precedence  over  all  other
               forms.
 
        <i>user</i>   Matches <i>user</i>@<i>site</i> when <i>site</i> is $<b><a href="postconf.5.html#myorigin">myorigin</a></b>, when <i>site</i> is listed in
@@ -83,21 +83,21 @@ RELOCATED(5)                                                      RELOCATED(5)
 
 <b><a name="address_extension">ADDRESS EXTENSION</a></b>
        When a mail address localpart contains the optional recipient delimiter
-       (e.g., <i>user+foo</i>@<i>domain</i>), the  lookup  order  becomes:  <i>user+foo</i>@<i>domain</i>,
+       (e.g.,  <i>user+foo</i>@<i>domain</i>),  the  lookup  order becomes: <i>user+foo</i>@<i>domain</i>,
        <i>user</i>@<i>domain</i>, <i>user+foo</i>, <i>user</i>, and @<i>domain</i>.
 
 <b><a name="regular_expression_tables">REGULAR EXPRESSION TABLES</a></b>
-       This  section  describes how the table lookups change when the table is
-       given in the form of regular expressions or when lookups  are  directed
-       to  a  TCP-based server. For a description of regular expression lookup
-       table syntax, see <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>. For  a  description
+       This section describes how the table lookups change when the  table  is
+       given  in  the form of regular expressions or when lookups are directed
+       to a TCP-based server. For a description of regular  expression  lookup
+       table  syntax,  see <a href="regexp_table.5.html"><b>regexp_table</b>(5)</a> or <a href="pcre_table.5.html"><b>pcre_table</b>(5)</a>. For a description
        of the TCP client/server table lookup protocol, see <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.  This
        feature is available in Postfix 2.5 and later.
 
-       Each pattern is a regular expression that  is  applied  to  the  entire
-       address  being looked up. Thus, <i>user@domain</i> mail addresses are not bro-
-       ken up into their <i>user</i> and <i>@domain</i> constituent parts, nor  is  <i>user+foo</i>
-       broken up into <i>user</i> and <i>foo</i>.
+       Each pattern is a regular expression that is applied to the entire  ad-
+       dress  being looked up. Thus, <i>user@domain</i> mail addresses are not broken
+       up into their <i>user</i> and <i>@domain</i> constituent parts, nor is <i>user+foo</i>  bro-
+       ken up into <i>user</i> and <i>foo</i>.
 
        Patterns  are  applied  in the order as specified in the table, until a
        pattern is found that matches the search string.
@@ -122,9 +122,9 @@ RELOCATED(5)                                                      RELOCATED(5)
        The table format does not understand quoting conventions.
 
 <b><a name="configuration_parameters">CONFIGURATION PARAMETERS</a></b>
-       The  following  <a href="postconf.5.html"><b>main.cf</b></a>  parameters  are especially relevant.  The text
-       below provides only a  parameter  summary.  See  <a href="postconf.5.html"><b>postconf</b>(5)</a>  for  more
-       details including examples.
+       The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant.  The text be-
+       low provides only a parameter summary. See <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details
+       including examples.
 
        <b><a href="postconf.5.html#relocated_maps">relocated_maps</a> (empty)</b>
               Optional lookup tables with new contact information for users or
@@ -133,27 +133,27 @@ RELOCATED(5)                                                      RELOCATED(5)
        Available with Postfix version 3.11 and later:
 
        <b><a href="postconf.5.html#relocated_prefix_enable">relocated_prefix_enable</a> (yes)</b>
-              Prepend the prefix "<b>5.1.6 User has  moved  to</b>  "  to  all  relo-
+              Prepend  the  prefix  "<b>5.1.6  User  has  moved to</b> " to all relo-
               cated_maps lookup results.
 
        Other parameters of interest:
 
        <b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a> (all)</b>
-              The  local  network  interface  addresses  that this mail system
-              receives mail on.
+              The local network interface addresses that this mail system  re-
+              ceives mail on.
 
        <b><a href="postconf.5.html#mydestination">mydestination</a> ($<a href="postconf.5.html#myhostname">myhostname</a>, localhost.$<a href="postconf.5.html#mydomain">mydomain</a>, localhost)</b>
-              The list of domains that are delivered via the  $<a href="postconf.5.html#local_transport">local_transport</a>
+              The  list of domains that are delivered via the $<a href="postconf.5.html#local_transport">local_transport</a>
               mail delivery transport.
 
        <b><a href="postconf.5.html#myorigin">myorigin</a> ($<a href="postconf.5.html#myhostname">myhostname</a>)</b>
-              The  domain  name that locally-posted mail appears to come from,
+              The domain name that locally-posted mail appears to  come  from,
               and that locally posted mail is delivered to.
 
        <b><a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a> (empty)</b>
-              The remote network interface addresses  that  this  mail  system
-              receives  mail  on by way of a proxy or network address transla-
-              tion unit.
+              The remote network interface addresses that this mail system re-
+              ceives  mail on by way of a proxy or network address translation
+              unit.
 
 <b><a name="see_also">SEE ALSO</a></b>
        <a href="trivial-rewrite.8.html">trivial-rewrite(8)</a>, address resolver
@@ -178,5 +178,5 @@ RELOCATED(5)                                                      RELOCATED(5)
        111 8th Avenue
        New York, NY 10011, USA
 
-                                                                  RELOCATED(5)
+                                                                  <i>RELOCATED</i>(5)
 </pre> </body> </html>

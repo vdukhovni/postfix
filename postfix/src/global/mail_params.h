@@ -61,6 +61,9 @@ extern bool var_show_unk_rcpt_table;
 #define DEF_COMPAT_LEVEL	COMPAT_LEVEL_0
 extern char *var_compatibility_level;
 
+ /*
+  * See comment in mail_params.c.
+  */
 extern int warn_compat_break_app_dot_mydomain;
 extern int warn_compat_break_smtputf8_enable;
 extern int warn_compat_break_chroot;
@@ -77,6 +80,9 @@ extern int warn_compat_relay_before_rcpt_checks;
 extern int warn_compat_respectful_logging;
 
 extern int warn_compat_break_smtp_tlsrpt_skip_reused_hs;
+extern int warn_compat_break_smtp_tls_level;
+extern int warn_compat_break_lmtp_tls_level;
+extern int warn_compat_break_tlsp_clnt_level;
 
 extern long compat_level;
 
@@ -1469,9 +1475,16 @@ extern bool var_smtp_tls_enforce_peername;
 extern bool var_smtp_tls_wrappermode;
 
 #define VAR_SMTP_TLS_LEVEL	"smtp_tls_security_level"
-#define DEF_SMTP_TLS_LEVEL	""
 #define VAR_LMTP_TLS_LEVEL	"lmtp_tls_security_level"
+#ifdef USE_TLS
+#define DEF_SMTP_TLS_LEVEL	"${{$compatibility_level} <level {3.11} ?" \
+				" {} : {may}}"
+#define DEF_LMTP_TLS_LEVEL	"${{$compatibility_level} <level {3.11} ?" \
+				" {} : {may}}"
+#else
+#define DEF_SMTP_TLS_LEVEL	""
 #define DEF_LMTP_TLS_LEVEL	""
+#endif
 extern char *var_smtp_tls_level;
 
 #define VAR_SMTP_TLS_SCERT_VD	"smtp_tls_scert_verifydepth"

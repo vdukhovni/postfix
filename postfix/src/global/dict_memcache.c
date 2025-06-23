@@ -78,8 +78,10 @@ typedef struct {
     CFG_PARSER *parser;			/* common parameter parser */
     void   *dbc_ctxt;			/* db_common context */
     char   *key_digest;			/* digest the query key */
+#ifdef USE_TLS
     OSSL_DGST *key_dgst_eng;		/* digest engine */
     VSTRING *key_dgst_out;		/* digest result */
+#endif
     char   *key_format;			/* query key translation */
     int     timeout;			/* client timeout */
     int     mc_ttl;			/* memcache update expiration */
@@ -292,6 +294,7 @@ static ssize_t dict_memcache_prepare_key(DICT_MC *dict_mc, const char *name)
     } else {
 	vstring_strcpy(dict_mc->key_buf, name);
     }
+#ifdef USE_TLS
     if (dict_mc->key_dgst_eng) {
 	if (ossl_digest_data(dict_mc->key_dgst_eng, STR(dict_mc->key_buf),
 			LEN(dict_mc->key_buf), dict_mc->key_dgst_out) < 0) {
@@ -302,8 +305,9 @@ static ssize_t dict_memcache_prepare_key(DICT_MC *dict_mc, const char *name)
 	    return (-1);
 	}
 	hex_encode_opt(dict_mc->key_buf, STR(dict_mc->key_dgst_out),
-		   LEN(dict_mc->key_dgst_out), HEX_ENCODE_FLAG_LOWERCASE);
+		     LEN(dict_mc->key_dgst_out), HEX_ENCODE_FLAG_LOWERCASE);
     }
+#endif
 
     /*
      * The length indicates whether the expansion is empty or not.
@@ -503,10 +507,12 @@ static void dict_memcache_close(DICT *dict)
     db_common_free_ctx(dict_mc->dbc_ctxt);
     if (dict_mc->key_digest)
 	myfree(dict_mc->key_digest);
+#ifdef USE_TLS
     if (dict_mc->key_dgst_eng)
 	ossl_digest_free(dict_mc->key_dgst_eng);
     if (dict_mc->key_dgst_out)
 	vstring_free(dict_mc->key_dgst_out);
+#endif
     if (dict_mc->key_format)
 	myfree(dict_mc->key_format);
     myfree(dict_mc->memcache);
@@ -571,6 +577,7 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
     dict_mc->parser = parser;
     dict_mc->key_digest = cfg_get_str(dict_mc->parser, DICT_MC_NAME_KEY_DGST,
 				      DICT_MC_DEF_KEY_DGST, 0, 0);
+#ifdef USE_TLS
     if (*dict_mc->key_digest) {
 	if ((dict_mc->key_dgst_eng = ossl_digest_new(dict_mc->key_digest)) == 0)
 	    /* See below for dict_surrogate() error propagation. */
@@ -580,6 +587,7 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
 	dict_mc->key_dgst_eng = 0;
 	dict_mc->key_dgst_out = 0;
     }
+#endif
     dict_mc->key_format = cfg_get_str(dict_mc->parser, DICT_MC_NAME_KEY_FMT,
 				      DICT_MC_DEF_KEY_FMT, 0, 0);
     dict_mc->timeout = cfg_get_int(dict_mc->parser, DICT_MC_NAME_MC_TIMEOUT,
@@ -632,6 +640,7 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
 
     dict_mc->dict.flags |= DICT_FLAG_MULTI_WRITER;
 
+#ifdef USE_TLS
     if (*dict_mc->key_digest && dict_mc->key_dgst_eng == 0) {
 	/* See above for ossl_digest_new() error detection. */
 	DICT   *d = dict_surrogate(DICT_TYPE_MEMCACHE, name,
@@ -642,5 +651,16 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
 	dict_memcache_close(&dict_mc->dict);
 	return (d);
     }
+#else
+    if (*dict_mc->key_digest) {
+	DICT   *d = dict_surrogate(DICT_TYPE_MEMCACHE, name,
+				   open_flags, dict_flags, "%s support "
+				   "requires build with -DUSE_TLS",
+				   DICT_MC_NAME_KEY_DGST);
+
+	dict_memcache_close(&dict_mc->dict);
+	return (d);
+    }
+#endif
     return (&dict_mc->dict);
 }

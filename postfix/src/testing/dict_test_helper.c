@@ -112,7 +112,7 @@
   * TODO(wietse) make this a proper VSTREAM interface or test helper API.
   */
 
-/* vstream_swap - capture msg(3) output output for testing */
+/* vstream_swap - capture msg(3) output for testing */
 
 static void vstream_swap(VSTREAM *one, VSTREAM *two)
 {
@@ -157,7 +157,7 @@ char   *dict_compose_spec(const char *dict_type,
      * A dictionary spec is formatted as "type:name", and a dictionary is
      * registered with dict_register() as "type:name(open_flags,dict_flags)".
      * The latter form is used to share dictionary instances that have the
-     * exact same same properties.
+     * exact same properties.
      * 
      * Build the composite dictionary spec from the dict_type and component
      * dictionary specs, and build the list of component specs decorated with
