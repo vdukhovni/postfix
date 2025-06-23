@@ -1,0 +1,139 @@
+Script started on Mon Jun 23 17:41:36 2025
+
+tail% psth[K[Kas[K[K[Katch -p1 </tmp/doiff[K[K[K[Kiff; exit
+Hmm...  Looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/HISTORY ./HISTORY
+|--- /var/tmp/postfix-3.11-20250621/HISTORY	2025-06-21 19:22:42.000000000 -0400
+|+++ ./HISTORY	2025-06-23 16:38:42.000000000 -0400
+--------------------------
+Patching file HISTORY using Plan A...
+Hunk #1 succeeded at 29261.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/proto/COMPATIBILITY_README.html ./proto/COMPATIBILITY_README.html
+|--- /var/tmp/postfix-3.11-20250621/proto/COMPATIBILITY_README.html	2025-06-05 14:35:53.000000000 -0400
+|+++ ./proto/COMPATIBILITY_README.html	2025-06-23 16:45:22.000000000 -0400
+--------------------------
+Patching file proto/COMPATIBILITY_README.html using Plan A...
+Hunk #1 succeeded at 109.
+Hunk #2 succeeded at 610.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/proto/postconf.proto ./proto/postconf.proto
+|--- /var/tmp/postfix-3.11-20250621/proto/postconf.proto	2025-06-21 19:22:42.000000000 -0400
+|+++ ./proto/postconf.proto	2025-06-23 16:35:19.000000000 -0400
+--------------------------
+Patching file proto/postconf.proto using Plan A...
+Hunk #1 succeeded at 12121 (offset 7 lines).
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/proto/stop.double-history ./proto/stop.double-history
+|--- /var/tmp/postfix-3.11-20250621/proto/stop.double-history	2025-06-06 13:13:58.000000000 -0400
+|+++ ./proto/stop.double-history	2025-06-23 17:03:22.000000000 -0400
+--------------------------
+Patching file proto/stop.double-history using Plan A...
+Hunk #1 succeeded at 178 (offset 7 lines).
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/proto/stop.double-install-proto-text ./proto/stop.double-install-proto-text
+|--- /var/tmp/postfix-3.11-20250621/proto/stop.double-install-proto-text	2025-06-21 18:44:19.000000000 -0400
+|+++ ./proto/stop.double-install-proto-text	2025-06-23 17:02:22.000000000 -0400
+--------------------------
+Patching file proto/stop.double-install-proto-text using Plan A...
+Hunk #1 succeeded at 46.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/src/global/dict_memcache.c ./src/global/dict_memcache.c
+|--- /var/tmp/postfix-3.11-20250621/src/global/dict_memcache.c	2025-06-05 14:44:21.000000000 -0400
+|+++ ./src/global/dict_memcache.c	2025-06-23 16:34:52.000000000 -0400
+--------------------------
+Patching file src/global/dict_memcache.c using Plan A...
+Hunk #1 succeeded at 78.
+Hunk #2 succeeded at 294.
+Hunk #3 succeeded at 305.
+Hunk #4 succeeded at 507.
+Hunk #5 succeeded at 577.
+Hunk #6 succeeded at 587.
+Hunk #7 succeeded at 640.
+Hunk #8 succeeded at 651.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/src/global/mail_params.c ./src/global/mail_params.c
+|--- /var/tmp/postfix-3.11-20250621/src/global/mail_params.c	2025-06-05 14:35:53.000000000 -0400
+|+++ ./src/global/mail_params.c	2025-06-23 16:58:15.000000000 -0400
+--------------------------
+Patching file src/global/mail_params.c using Plan A...
+Hunk #1 succeeded at 396 (offset 2 lines).
+Hunk #2 succeeded at 670 (offset 2 lines).
+Hunk #3 succeeded at 688 (offset 2 lines).
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/src/global/mail_params.h ./src/global/mail_params.h
+|--- /var/tmp/postfix-3.11-20250621/src/global/mail_params.h	2025-06-21 19:22:42.000000000 -0400
+|+++ ./src/global/mail_params.h	2025-06-23 16:35:19.000000000 -0400
+--------------------------
+Patching file src/global/mail_params.h using Plan A...
+Hunk #1 succeeded at 61.
+Hunk #2 succeeded at 80.
+Hunk #3 succeeded at 1475.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/src/global/mail_version.h ./src/global/mail_version.h
+|--- /var/tmp/postfix-3.11-20250621/src/global/mail_version.h	2025-06-21 18:43:21.000000000 -0400
+|+++ ./src/global/mail_version.h	2025-06-23 16:19:07.000000000 -0400
+--------------------------
+Patching file src/global/mail_version.h using Plan A...
+Hunk #1 succeeded at 20.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/src/smtp/smtp.c ./src/smtp/smtp.c
+|--- /var/tmp/postfix-3.11-20250621/src/smtp/smtp.c	2025-02-15 15:21:58.000000000 -0500
+|+++ ./src/smtp/smtp.c	2025-06-23 16:41:44.000000000 -0400
+--------------------------
+Patching file src/smtp/smtp.c using Plan A...
+Hunk #1 succeeded at 458.
+Hunk #2 succeeded at 647.
+Hunk #3 succeeded at 1561 (offset 13 lines).
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/src/smtp/smtp.h ./src/smtp/smtp.h
+|--- /var/tmp/postfix-3.11-20250621/src/smtp/smtp.h	2025-06-21 18:46:58.000000000 -0400
+|+++ ./src/smtp/smtp.h	2025-06-23 16:35:19.000000000 -0400
+--------------------------
+Patching file src/smtp/smtp.h using Plan A...
+Hunk #1 succeeded at 770 (offset 5 lines).
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/src/testing/dict_test_helper.c ./src/testing/dict_test_helper.c
+|--- /var/tmp/postfix-3.11-20250621/src/testing/dict_test_helper.c	2025-06-21 18:50:09.000000000 -0400
+|+++ ./src/testing/dict_test_helper.c	2025-06-23 17:01:46.000000000 -0400
+--------------------------
+Patching file src/testing/dict_test_helper.c using Plan A...
+Hunk #1 succeeded at 112.
+Hunk #2 succeeded at 157.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff --exclude=man --exclude=html --exclude=README_FILES --exclude=INSTALL --exclude=.indent.pro -r -ur /var/tmp/postfix-3.11-20250621/src/tlsproxy/tlsproxy.c ./src/tlsproxy/tlsproxy.c
+|--- /var/tmp/postfix-3.11-20250621/src/tlsproxy/tlsproxy.c	2024-11-13 11:22:42.000000000 -0500
+|+++ ./src/tlsproxy/tlsproxy.c	2025-06-23 16:35:19.000000000 -0400
+--------------------------
+Patching file src/tlsproxy/tlsproxy.c using Plan A...
+Hunk #1 succeeded at 1690.
+done
+exit
+
+Script done on Mon Jun 23 17:41:49 2025

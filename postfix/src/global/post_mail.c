@@ -225,8 +225,8 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
     int     cleanup_flags =
     int_filt_flags(source_class) | CLEANUP_FLAG_MASK_INTERNAL
     | smtputf8_autodetect(source_class)
+    | ((sendopts & SOPT_REQUIRETLS_ESMTP) ? CLEANUP_FLAG_REQUIRETLS : 0)
     | ((sendopts & SMTPUTF8_FLAG_REQUESTED) ? CLEANUP_FLAG_SMTPUTF8 : 0);
-    /* TODO(wietse) REQUIRETLS. */
 
     GETTIMEOFDAY(&now);
     date = mail_date(now.tv_sec);
