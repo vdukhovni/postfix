@@ -102,10 +102,6 @@ typedef struct DICT {
 extern DICT *dict_alloc(const char *, const char *, ssize_t);
 extern void dict_free(DICT *);
 
-extern DICT *dict_debug(DICT *);
-
-#define DICT_DEBUG(d) ((d)->flags & DICT_FLAG_DEBUG ? dict_debug(d) : (d))
-
  /*
   * See dict_open.c embedded manpage for flag definitions.
   */
@@ -119,7 +115,7 @@ extern DICT *dict_debug(DICT *);
 #define DICT_FLAG_LOCK		(1<<6)	/* use temp lock before access */
 #define DICT_FLAG_DUP_REPLACE	(1<<7)	/* replace dups if supported */
 #define DICT_FLAG_SYNC_UPDATE	(1<<8)	/* sync updates if supported */
-#define DICT_FLAG_DEBUG		(1<<9)	/* log access */
+/*#define DICT_FLAG_DEBUG	(1<<9)	/* log access */
 /*#define DICT_FLAG_FOLD_KEY	(1<<10)	/* lowercase the lookup key */
 #define DICT_FLAG_NO_REGSUB	(1<<11)	/* disallow regexp substitution */
 #define DICT_FLAG_NO_PROXY	(1<<12)	/* disallow proxy mapping */

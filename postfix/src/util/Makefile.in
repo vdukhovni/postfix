@@ -104,7 +104,8 @@ MAP_OBJ	= dict_pcre.o dict_cdb.o dict_lmdb.o dict_sdbm.o slmdb.o \
 	mkmap_cdb.o mkmap_lmdb.o mkmap_sdbm.o 
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
-	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
+	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_debug.h dict_env.h \
+	dict_ht.h \
 	dict_lmdb.h dict_ni.h dict_nis.h dict_nisplus.h dict_pcre.h dict_regexp.h \
 	dict_sdbm.h dict_static.h dict_tcp.h dict_unix.h dir_forest.h \
 	events.h exec_command.h find_inet.h fsspace.h fullname.h \
@@ -667,7 +668,7 @@ dict_tests: all dict_test \
 	dict_regexp_file_test dict_cidr_file_test \
 	dict_static_file_test dict_random_test dict_random_file_test \
 	dict_inline_file_test dict_stream_test dict_inline_regexp_test \
-	dict_inline_cidr_test
+	dict_inline_cidr_test dict_debug_test
 
 dict_pcre_tests: dict_pcre_test miss_endif_pcre_test dict_pcre_file_test \
 	dict_inline_pcre_test
@@ -1112,6 +1113,11 @@ dict_inline_cidr_test: dict_open dict_inline_cidr.ref
 	diff dict_inline_cidr.ref dict_inline_cidr.tmp
 	rm -f dict_inline_cidr.tmp
 
+dict_debug_test: dict_open dict_debug_test.sh dict_debug_test.ref
+	$(SHLIB_ENV) ./dict_debug_test.sh >dict_debug_test.tmp 2>&1
+	diff dict_debug_test.ref dict_debug_test.tmp
+	rm -f dict_debug_test.tmp
+
 find_inet_test: find_inet find_inet.ref
 	$(SHLIB_ENV) ${VALGRIND} ./find_inet >find_inet.tmp 2>&1
 	diff find_inet.ref find_inet.tmp
@@ -1550,6 +1556,7 @@ dict_debug.o: argv.h
 dict_debug.o: check_arg.h
 dict_debug.o: dict.h
 dict_debug.o: dict_debug.c
+dict_debug.o: dict_debug.h
 dict_debug.o: msg.h
 dict_debug.o: myflock.h
 dict_debug.o: mymalloc.h
@@ -1677,6 +1684,7 @@ dict_open.o: dict_cdb.h
 dict_open.o: dict_cidr.h
 dict_open.o: dict_db.h
 dict_open.o: dict_dbm.h
+dict_open.o: dict_debug.h
 dict_open.o: dict_env.h
 dict_open.o: dict_fail.h
 dict_open.o: dict_ht.h

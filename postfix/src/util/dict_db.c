@@ -821,7 +821,7 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
     dict_db->val_buf = 0;
 
     myfree(db_path);
-    return (DICT_DEBUG (&dict_db->dict));
+    return (&dict_db->dict);
 }
 
 /* dict_hash_open - create association with data base */

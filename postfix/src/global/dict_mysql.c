@@ -759,7 +759,7 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     }
     /* Don't blacklist the load balancer! */
     if (dict_mysql->hosts->argc == 1)
-        argv_add(dict_mysql->hosts, dict_mysql->hosts->argv[0], (char *) 0);
+	argv_add(dict_mysql->hosts, dict_mysql->hosts->argv[0], (char *) 0);
     myfree(hosts);
 }
 
@@ -797,7 +797,7 @@ DICT   *dict_mysql_open(const char *name, int open_flags, int dict_flags)
     if (dict_mysql->pldb == NULL)
 	msg_fatal("couldn't initialize pldb!\n");
     dict_mysql->dict.owner = cfg_get_owner(dict_mysql->parser);
-    return (DICT_DEBUG (&dict_mysql->dict));
+    return (&dict_mysql->dict);
 }
 
 /*

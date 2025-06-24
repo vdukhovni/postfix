@@ -200,5 +200,5 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
     reg_name_buf = 0;
     dict_pipe->map_pipe = argv;
     argv = 0;
-    DICT_PIPE_RETURN(DICT_DEBUG (&dict_pipe->dict));
+    DICT_PIPE_RETURN(&dict_pipe->dict);
 }

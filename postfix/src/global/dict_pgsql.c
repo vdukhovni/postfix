@@ -744,7 +744,7 @@ DICT   *dict_pgsql_open(const char *name, int open_flags, int dict_flags)
 	return (ret);
     }
     dict_pgsql->dict.owner = cfg_get_owner(dict_pgsql->parser);
-    return (DICT_DEBUG (&dict_pgsql->dict));
+    return (&dict_pgsql->dict);
 }
 
 /* plpgsql_init - initialize a PGSQL database */

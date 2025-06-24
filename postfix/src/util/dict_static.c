@@ -147,5 +147,5 @@ DICT   *dict_static_open(const char *name, int open_flags, int dict_flags)
     dict_static->value = mystrdup(value);
     dict_file_purge_buffers(&dict_static->dict);
 
-    DICT_STATIC_OPEN_RETURN(DICT_DEBUG (&(dict_static->dict)));
+    DICT_STATIC_OPEN_RETURN(&(dict_static->dict));
 }

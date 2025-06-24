@@ -74,6 +74,7 @@
 
 #include <mail_conf.h>
 #include <mail_params.h>
+#include <dict_debug.h>
 #include <dict_ht.h>
 #include <dict_proxy.h>
 #include <dict_ldap.h>
@@ -280,11 +281,12 @@ static void pcf_register_dbms_helper(int mode, char *str_value,
 	}
 
 	/*
-	 * Skip over "proxy:" maptypes, to emulate the proxymap(8) server's
-	 * behavior when opening a local database configuration file.
+	 * Skip over adapter maptypes "proxy:" and "debug:", to emulate their
+	 * behavior when wrapping a local database configuration file.
 	 */
 	while ((prefix = split_at(db_type, ':')) != 0
-	       && strcmp(db_type, DICT_TYPE_PROXY) == 0)
+	       && (strcmp(db_type, DICT_TYPE_PROXY) == 0 ||
+		   strcmp(db_type, DICT_TYPE_DEBUG) == 0))
 	    db_type = prefix;
 
 	if (prefix == 0)

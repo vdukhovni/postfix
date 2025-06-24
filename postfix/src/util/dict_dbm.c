@@ -497,7 +497,7 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     dict_dbm->key_buf = 0;
     dict_dbm->val_buf = 0;
 
-    DICT_DBM_OPEN_RETURN(DICT_DEBUG (&dict_dbm->dict));
+    DICT_DBM_OPEN_RETURN(&dict_dbm->dict);
 }
 
 #endif

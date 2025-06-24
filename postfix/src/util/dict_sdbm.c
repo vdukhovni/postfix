@@ -477,7 +477,7 @@ DICT   *dict_sdbm_open(const char *path, int open_flags, int dict_flags)
     if ((dict_flags & DICT_FLAG_LOCK))
 	myfree(dbm_path);
 
-    return (DICT_DEBUG (&dict_sdbm->dict));
+    return (&dict_sdbm->dict);
 }
 
 #endif

@@ -358,5 +358,5 @@ DICT   *dict_cidr_open(const char *mapname, int open_flags, int dict_flags)
 	(void) mvect_free(&mvect);
 
     dict_file_purge_buffers(&dict_cidr->dict);
-    DICT_CIDR_OPEN_RETURN(DICT_DEBUG (&dict_cidr->dict));
+    DICT_CIDR_OPEN_RETURN(&dict_cidr->dict);
 }

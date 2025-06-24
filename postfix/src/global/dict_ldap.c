@@ -1876,7 +1876,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int open_flags, int dict_flags)
      * Return the new dict_ldap structure.
      */
     dict_ldap->dict.owner = cfg_get_owner(dict_ldap->parser);
-    return (DICT_DEBUG (&dict_ldap->dict));
+    return (&dict_ldap->dict);
 }
 
 #endif

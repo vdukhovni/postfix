@@ -520,7 +520,7 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 	    case PROXY_STAT_OK:
 		dict_proxy->dict.flags = (dict_flags & ~DICT_FLAG_IMPL_MASK)
 		    | (server_flags & DICT_FLAG_IMPL_MASK);
-		return (DICT_DEBUG (&dict_proxy->dict));
+		return (&dict_proxy->dict);
 	    default:
 		msg_warn("%s open failed for table \"%s\": unexpected status %d",
 			 dict_proxy->service, dict_proxy->dict.name, status);

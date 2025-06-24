@@ -380,5 +380,5 @@ DICT   *dict_sockmap_open(const char *mapname, int open_flags, int dict_flags)
     /* Don't look up parent domains or network superblocks. */
     dp->dict.flags = dict_flags | DICT_FLAG_PATTERN;
 
-    DICT_SOCKMAP_OPEN_RETURN(DICT_DEBUG (&dp->dict));
+    DICT_SOCKMAP_OPEN_RETURN(&dp->dict);
 }

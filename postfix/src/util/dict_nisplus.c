@@ -298,7 +298,7 @@ DICT   *dict_nisplus_open(const char *map, int open_flags, int dict_flags)
     if (msg_verbose)
 	msg_info("%s: opened NIS+ table %s for column %d",
 		 myname, dict_nisplus->template, dict_nisplus->column);
-    return (DICT_DEBUG (&dict_nisplus->dict));
+    return (&dict_nisplus->dict);
 }
 
 #endif

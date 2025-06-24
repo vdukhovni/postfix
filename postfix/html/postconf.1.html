@@ -226,6 +226,16 @@ POSTCONF(1)                                                        POSTCONF(1)
               <b>dbm</b>    An indexed file type based on hashing.  Available on sys-
                      tems with support for DBM databases.
 
+              <b>debug</b>  An  adapter for another table that causes all accesses to
+                     be logged.  The table name syntax is <i>type</i><b>:</b><i>name</i>.   Example
+                     usage:  <b>debug:<a href="DATABASE_README.html#types">hash</a>:/etc/postfix/example</b>.   The formats of
+                     the log messages are unspecified and subject  to  change.
+                     Warning: If a query or the underlying table contains sen-
+                     sitive information (such as a password), that information
+                     might be logged.
+
+                     This feature is available with Postfix 3.11 and later.
+
               <b>environ</b>
                      The UNIX process environment array. The lookup key is the
                      environment variable name; the  table  name  is  ignored.

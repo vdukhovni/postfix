@@ -200,5 +200,5 @@ DICT   *dict_unix_open(const char *map, int open_flags, int dict_flags)
 	dict_unix->dict.fold_buf = vstring_alloc(10);
     dict_unix->dict.owner.status = DICT_OWNER_TRUSTED;
 
-    return (DICT_DEBUG (&dict_unix->dict));
+    return (&dict_unix->dict);
 }

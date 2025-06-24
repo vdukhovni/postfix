@@ -213,5 +213,5 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
     reg_name_buf = 0;
     dict_union->map_union = argv;
     argv = 0;
-    DICT_UNION_RETURN(DICT_DEBUG (&dict_union->dict));
+    DICT_UNION_RETURN(&dict_union->dict);
 }

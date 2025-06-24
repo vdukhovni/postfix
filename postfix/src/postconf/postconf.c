@@ -252,6 +252,16 @@
 /* .IP \fBdbm\fR
 /*	An indexed file type based on hashing.  Available on systems
 /*	with support for DBM databases.
+/* .IP \fBdebug\fR
+/*	An adapter for another table that causes all accesses to be
+/*	logged.  The table name syntax is \fItype\fB:\fIname\fR.
+/*	Example usage: \fBdebug:hash:/etc/postfix/example\fR.  The
+/*	formats of the log messages are unspecified and subject to
+/*	change.  Warning: If a query or the underlying table contains
+/*	sensitive information (such as a password), that information
+/*	might be logged.
+/*
+/*	This feature is available with Postfix 3.11 and later.
 /* .IP \fBenviron\fR
 /*	The UNIX process environment array. The lookup key is the
 /*	environment variable name; the table name is ignored.  Originally

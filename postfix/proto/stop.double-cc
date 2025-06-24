@@ -344,3 +344,4 @@ ignored  ignored
 USE_TLSRPT  USE_TLSRPT 
 encoded  encoded text can contain only alpha digit 
 ossl_digest_new  ossl_digest_new returns NULL after error ossl_digest_data 
+ Richard Hansen rhansen rhansen org 

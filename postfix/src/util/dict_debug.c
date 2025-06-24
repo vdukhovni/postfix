@@ -4,23 +4,20 @@
 /* SUMMARY
 /*	dictionary manager, logging proxy
 /* SYNOPSIS
-/*	#include <dict.h>
+/*	#include <dict_debug.h>
 /*
-/*	DICT	*dict_debug(dict_handle)
-/*	DICT	*dict_handle;
-/*
-/*	DICT	*DICT_DEBUG(dict_handle)
-/*	DICT	*dict_handle;
+/*	DICT	*dict_debug_open(name, open_flags, dict_flags);
+/*	const char *name;
+/*	int	open_flags;
+/*	int	dict_flags;
 /* DESCRIPTION
-/*	dict_debug() encapsulates the given dictionary object and returns
-/*	a proxy object that logs all access to the encapsulated object.
-/*	This is more convenient than having to add logging capability
-/*	to each individual dictionary access method.
+/*	dict_debug_open() encapsulates the named dictionary object and
+/*	returns a proxy object that logs all access to the encapsulated
+/*	object.
 /*
-/*	DICT_DEBUG() is an unsafe macro that returns the original object if
-/*	the object's debugging flag is not set, and that otherwise encapsulates
-/*	the object with dict_debug(). This macro simplifies usage by avoiding
-/*	clumsy expressions. The macro evaluates its argument multiple times.
+/*	If the encapsulated dictionary is not already registered, it is
+/*	opened with a call to dict_open(\fIname\fR, \fIopen_flags\fR,
+/*	\fIdict_flags\fR) before registering it.
 /* DIAGNOSTICS
 /*	Fatal errors: out of memory.
 /* LICENSE
@@ -32,17 +29,24 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Richard Hansen <rhansen@rhansen.org>
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System libraries. */
 
 #include <sys_defs.h>
+#include <string.h>
 
 /* Utility library. */
 
 #include <msg.h>
 #include <mymalloc.h>
 #include <dict.h>
+#include <dict_debug.h>
 
 /* Application-specific. */
 
@@ -62,7 +66,7 @@ static const char *dict_debug_lookup(DICT *dict, const char *key)
     real_dict->flags = dict->flags;
     result = dict_get(real_dict, key);
     dict->flags = real_dict->flags;
-    msg_info("%s:%s lookup: \"%s\" = \"%s\"", dict->type, dict->name, key,
+    msg_info("%s lookup: \"%s\" = \"%s\"", dict->name, key,
 	     result ? result : real_dict->error ? "error" : "not_found");
     DICT_ERR_VAL_RETURN(dict, real_dict->error, result);
 }
@@ -78,7 +82,7 @@ static int dict_debug_update(DICT *dict, const char *key, const char *value)
     real_dict->flags = dict->flags;
     result = dict_put(real_dict, key, value);
     dict->flags = real_dict->flags;
-    msg_info("%s:%s update: \"%s\" = \"%s\": %s", dict->type, dict->name,
+    msg_info("%s update: \"%s\" = \"%s\": %s", dict->name,
 	     key, value, result == 0 ? "success" : real_dict->error ?
 	     "error" : "failed");
     DICT_ERR_VAL_RETURN(dict, real_dict->error, result);
@@ -95,7 +99,7 @@ static int dict_debug_delete(DICT *dict, const char *key)
     real_dict->flags = dict->flags;
     result = dict_del(real_dict, key);
     dict->flags = real_dict->flags;
-    msg_info("%s:%s delete: \"%s\": %s", dict->type, dict->name, key,
+    msg_info("%s delete: \"%s\": %s", dict->name, key,
 	     result == 0 ? "success" : real_dict->error ?
 	     "error" : "failed");
     DICT_ERR_VAL_RETURN(dict, real_dict->error, result);
@@ -114,10 +118,9 @@ static int dict_debug_sequence(DICT *dict, int function,
     result = dict_seq(real_dict, function, key, value);
     dict->flags = real_dict->flags;
     if (result == 0)
-	msg_info("%s:%s sequence: \"%s\" = \"%s\"", dict->type, dict->name,
-		 *key, *value);
+	msg_info("%s sequence: \"%s\" = \"%s\"", dict->name, *key, *value);
     else
-	msg_info("%s:%s sequence: found EOF", dict->type, dict->name);
+	msg_info("%s sequence: found EOF", dict->name);
     DICT_ERR_VAL_RETURN(dict, real_dict->error, result);
 }
 
@@ -125,20 +128,39 @@ static int dict_debug_sequence(DICT *dict, int function,
 
 static void dict_debug_close(DICT *dict)
 {
-    DICT_DEBUG *dict_debug = (DICT_DEBUG *) dict;
-
-    dict_close(dict_debug->real_dict);
+    /* TODO(wietse) use the annotated name from dict_make_registered_name(). */
+    dict_unregister(dict->name);
     dict_free(dict);
 }
 
-/* dict_debug - encapsulate dictionary object and install proxies */
+/* dict_debug_open - encapsulate dictionary object and install proxies */
 
-DICT   *dict_debug(DICT *real_dict)
+DICT   *dict_debug_open(const char *name, int open_flags, int dict_flags)
 {
-    DICT_DEBUG *dict_debug;
+    static const char myname[] = "dict_debug_open";
 
-    dict_debug = (DICT_DEBUG *) dict_alloc(real_dict->type,
-				      real_dict->name, sizeof(*dict_debug));
+    if (msg_verbose)
+	msg_info("%s: %s", myname, name);
+
+    /*
+     * Reuse a previously registered table if present. This prevents a config
+     * containing both debug:foo:bar and foo:bar from creating two DICT
+     * objects for foo:bar.
+     * 
+     * TODO(wietse) use the annotated name from dict_make_registered_name().
+     */
+    DICT   *real_dict = dict_handle(name);
+
+    if (real_dict == 0)
+	real_dict = dict_open(name, open_flags, dict_flags);
+    dict_register(name, real_dict);
+
+    /*
+     * Encapsulate the real dictionary.
+     */
+    DICT_DEBUG *dict_debug = (DICT_DEBUG *) dict_alloc(DICT_TYPE_DEBUG, name,
+						       sizeof(*dict_debug));
+
     dict_debug->dict.flags = real_dict->flags;	/* XXX not synchronized */
     dict_debug->dict.lookup = dict_debug_lookup;
     dict_debug->dict.update = dict_debug_update;
@@ -146,5 +168,6 @@ DICT   *dict_debug(DICT *real_dict)
     dict_debug->dict.sequence = dict_debug_sequence;
     dict_debug->dict.close = dict_debug_close;
     dict_debug->real_dict = real_dict;
+    dict_debug->dict.owner = real_dict->owner;
     return (&dict_debug->dict);
 }

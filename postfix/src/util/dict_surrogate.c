@@ -176,5 +176,5 @@ DICT   *dict_surrogate(const char *dict_type, const char *dict_name,
     vstring_vsprintf(buf, fmt, ap2);
     va_end(ap2);
     dp->reason = vstring_export(buf);
-    return (DICT_DEBUG (&dp->dict));
+    return (&dp->dict);
 }

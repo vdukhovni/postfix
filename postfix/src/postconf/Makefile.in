@@ -1065,6 +1065,15 @@ test76:	$(PROG) test76.ref
 	diff /dev/null test76.tmp
 	rm -f main.cf master.cf test76.tmp
 
+test77: $(PROG) test77-main.cf test77.ref
+	rm -f main.cf master.cf
+	cp test77-main.cf main.cf
+	touch master.cf
+	touch -t 197701010000 main.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc . >test77.tmp 2>&1
+	diff test77.ref test77.tmp
+	rm -f main.cf master.cf test77.tmp
+
 # Warn about unused, deprecated, or deleted parameters.
 test78:	$(PROG) test78.ref
 	rm -f main.cf master.cf
@@ -1175,6 +1184,7 @@ postconf_builtin.o: time_vars.h
 postconf_dbms.o: ../../include/argv.h
 postconf_dbms.o: ../../include/check_arg.h
 postconf_dbms.o: ../../include/dict.h
+postconf_dbms.o: ../../include/dict_debug.h
 postconf_dbms.o: ../../include/dict_ht.h
 postconf_dbms.o: ../../include/dict_ldap.h
 postconf_dbms.o: ../../include/dict_memcache.h

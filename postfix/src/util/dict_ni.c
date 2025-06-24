@@ -188,7 +188,7 @@ DICT   *dict_ni_open(const char *path, int unused_flags, int dict_flags)
 	d->dict.fold_buf = vstring_alloc(10);
     d->dict.owner.status = DICT_OWNER_TRUSTED;
 
-    return (DICT_DEBUG (&d->dict));
+    return (&d->dict);
 }
 
 #endif

@@ -175,5 +175,5 @@ DICT   *dict_random_open(const char *name, int open_flags, int dict_flags)
 					  "%s", err));
     }
     dict_file_purge_buffers(&dict_random->dict);
-    DICT_RANDOM_RETURN(DICT_DEBUG (&dict_random->dict));
+    DICT_RANDOM_RETURN(&dict_random->dict);
 }

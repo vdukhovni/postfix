@@ -1115,7 +1115,7 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
 	(void) mvect_free(&mvect);
 
     dict_file_purge_buffers(&dict_pcre->dict);
-    DICT_PCRE_OPEN_RETURN(DICT_DEBUG (&dict_pcre->dict));
+    DICT_PCRE_OPEN_RETURN(&dict_pcre->dict);
 }
 
 #endif					/* HAS_PCRE */

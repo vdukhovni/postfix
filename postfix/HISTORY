@@ -29282,3 +29282,30 @@ Apologies for any names omitted.
 	levels, because changing the level alone is not sufficient.
 	Server-side TLS requires that at least one private key and
 	corresponding public-key certificate chain are configured.
+
+20250624
+
+	Feature: a new debug: pseudo lookup table. Specify
+	debug:maptype:mapname to encapsulate a maptype:mapname
+	lookup table and log all access. This builds on existing
+	but unused code to log table access. Richard Hansen
+	(rhansen@rhansen.org). Files: proto/DATABASE_README.html,
+	postconf/Makefile.in, /postconf/postconf.c,
+	postconf/postconf_dbms.c, postconf/test77-main.cf,
+	postconf/test77.ref, util/Makefile.in, util/dict_debug.c,
+	util/dict_debug.h, util/dict_debug_test.ref,
+	util/dict_debug_test.sh, util/dict_open.c.
+
+	Cleanup: To keep the dict_debug: code clean, Wietse removed
+	support for the DICT_FLAG_DEBUG feature that had not been
+	used for decades. Files: util/dict_debug.c, util/dict.c,
+	util/dict.h, src/global/dict_ldap.c, global/dict_mongodb.c,
+	global/dict_mysql.c, global/dict_pgsql.c, global/dict_proxy.c,
+	global/dict_sqlite.c, util/dict_cdb.c, util/dict_cidr.c,
+	util/dict_db.c, util/dict_dbm.c, util/dict_env.c,
+	util/dict_fail.c, util/dict_inline.c, util/dict_lmdb.c,
+	util/dict_ni.c, util/dict_nis.c, util/dict_nisplus.c,
+	util/dict_pcre.c, util/dict_pipe.c, util/dict_random.c,
+	util/dict_regexp.c, util/dict_sdbm.c, util/dict_sockmap.c,
+	util/dict_static.c, util/dict_surrogate.c, util/dict_tcp.c,
+	util/dict_thash.c, util/dict_union.c, util/dict_unix.c.

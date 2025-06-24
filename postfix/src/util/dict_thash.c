@@ -251,5 +251,5 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
     dict->owner.uid = st.st_uid;
     dict->owner.status = (st.st_uid != 0);
 
-    DICT_THASH_OPEN_RETURN(DICT_DEBUG (dict));
+    DICT_THASH_OPEN_RETURN(dict);
 }

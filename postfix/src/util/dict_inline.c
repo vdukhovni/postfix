@@ -146,5 +146,5 @@ DICT   *dict_inline_open(const char *name, int open_flags, int dict_flags)
     dict->owner.status = DICT_OWNER_TRUSTED;
 
     dict_file_purge_buffers(dict);
-    DICT_INLINE_RETURN(DICT_DEBUG (dict));
+    DICT_INLINE_RETURN(dict);
 }

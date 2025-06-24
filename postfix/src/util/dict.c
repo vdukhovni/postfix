@@ -646,7 +646,7 @@ static const NAME_MASK dict_mask[] = {
     "lock", DICT_FLAG_LOCK,		/* lock before access */
     "replace", DICT_FLAG_DUP_REPLACE,	/* if file, replace dups */
     "sync_update", DICT_FLAG_SYNC_UPDATE,	/* if file, sync updates */
-    "debug", DICT_FLAG_DEBUG,		/* log access */
+    /*"debug", DICT_FLAG_DEBUG,		/* log access */
     "no_regsub", DICT_FLAG_NO_REGSUB,	/* disallow regexp substitution */
     "no_proxy", DICT_FLAG_NO_PROXY,	/* disallow proxy mapping */
     "no_unauth", DICT_FLAG_NO_UNAUTH,	/* disallow unauthenticated data */

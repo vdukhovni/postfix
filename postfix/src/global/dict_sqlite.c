@@ -377,7 +377,7 @@ DICT   *dict_sqlite_open(const char *name, int open_flags, int dict_flags)
     }
     dict_sqlite->dict.owner = cfg_get_owner(dict_sqlite->parser);
 
-    return (DICT_DEBUG (&dict_sqlite->dict));
+    return (&dict_sqlite->dict);
 }
 
 #endif

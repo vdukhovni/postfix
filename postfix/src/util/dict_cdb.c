@@ -297,7 +297,7 @@ static DICT *dict_cdbq_open(const char *path, int dict_flags)
     if (dict_flags & DICT_FLAG_FOLD_FIX)
 	dict_cdbq->dict.fold_buf = vstring_alloc(10);
 
-    DICT_CDBQ_OPEN_RETURN(DICT_DEBUG (&dict_cdbq->dict));
+    DICT_CDBQ_OPEN_RETURN(&dict_cdbq->dict);
 }
 
 /* dict_cdbm_update - add database entry, create mode */
@@ -486,7 +486,7 @@ static DICT *dict_cdbm_open(const char *path, int dict_flags)
     if (dict_flags & DICT_FLAG_FOLD_FIX)
 	dict_cdbm->dict.fold_buf = vstring_alloc(10);
 
-    DICT_CDBM_OPEN_RETURN(DICT_DEBUG (&dict_cdbm->dict));
+    DICT_CDBM_OPEN_RETURN(&dict_cdbm->dict);
 }
 
 /* dict_cdb_open - open data base for query mode or create mode */
@@ -494,7 +494,7 @@ static DICT *dict_cdbm_open(const char *path, int dict_flags)
 DICT   *dict_cdb_open(const char *path, int open_flags, int dict_flags)
 {
     switch (open_flags & (O_RDONLY | O_RDWR | O_WRONLY | O_CREAT | O_TRUNC)) {
-    case O_RDONLY:				/* query mode */
+	case O_RDONLY:			/* query mode */
 	return dict_cdbq_open(path, dict_flags);
     case O_WRONLY | O_CREAT | O_TRUNC:		/* create mode */
     case O_RDWR | O_CREAT | O_TRUNC:		/* sloppiness */

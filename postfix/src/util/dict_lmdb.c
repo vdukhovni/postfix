@@ -700,7 +700,7 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
 	dict_lmdb_notify((void *) dict_lmdb, MDB_SUCCESS,
 			 slmdb_curr_limit(&dict_lmdb->slmdb));
 
-    DICT_LMDB_OPEN_RETURN(DICT_DEBUG (&dict_lmdb->dict));
+    DICT_LMDB_OPEN_RETURN(&dict_lmdb->dict);
 }
 
 #endif

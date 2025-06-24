@@ -311,5 +311,5 @@ DICT   *dict_tcp_open(const char *map, int open_flags, int dict_flags)
     if (dict_flags & DICT_FLAG_FOLD_MUL)
 	dict_tcp->dict.fold_buf = vstring_alloc(10);
 
-    return (DICT_DEBUG (&dict_tcp->dict));
+    return (&dict_tcp->dict);
 }
