@@ -1,0 +1,505 @@
+Script started on 2025-06-24 17:24:15-04:00 [TERM="xterm-256color" TTY="/dev/pts/1" COLUMNS="80" LINES="24"]
+wzv$ patch -p1 < /tmp./[K[K/duff[K[K[Kiff; exit
+Hmm...  Looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/HISTORY ./HISTORY
+|--- /var/tmp/postfix-3.11-20250623/HISTORY	2025-06-23 16:38:42.000000000 -0400
+|+++ ./HISTORY	2025-06-24 16:27:25.820760631 -0400
+--------------------------
+patching file HISTORY
+Using Plan A...
+Hunk #1 FAILED at 29282.
+1 out of 1 hunk FAILED -- saving rejects to file HISTORY.rej
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/proto/DATABASE_README.html ./proto/DATABASE_README.html
+|--- /var/tmp/postfix-3.11-20250623/proto/DATABASE_README.html	2024-11-21 12:49:05.000000000 -0500
+|+++ ./proto/DATABASE_README.html	2025-06-24 16:25:42.033692807 -0400
+--------------------------
+patching file proto/DATABASE_README.html
+Using Plan A...
+Hunk #1 succeeded at 293.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/proto/stop ./proto/stop
+|--- /var/tmp/postfix-3.11-20250623/proto/stop	2025-06-06 13:13:27.000000000 -0400
+|+++ ./proto/stop	2025-06-24 16:25:42.034020296 -0400
+--------------------------
+patching file proto/stop
+Using Plan A...
+Hunk #1 succeeded at 1685 (offset 3 lines).
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/proto/stop.double-cc ./proto/stop.double-cc
+|--- /var/tmp/postfix-3.11-20250623/proto/stop.double-cc	2025-06-05 14:38:46.000000000 -0400
+|+++ ./proto/stop.double-cc	2025-06-24 16:25:42.034321250 -0400
+--------------------------
+patching file proto/stop.double-cc
+Using Plan A...
+Hunk #1 succeeded at 344.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/proto/stop.double-history ./proto/stop.double-history
+|--- /var/tmp/postfix-3.11-20250623/proto/stop.double-history	2025-06-23 17:03:22.000000000 -0400
+|+++ ./proto/stop.double-history	2025-06-24 16:28:05.395531685 -0400
+--------------------------
+patching file proto/stop.double-history
+Using Plan A...
+Hunk #1 succeeded at 182 (offset 7 lines).
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/global/dict_ldap.c ./src/global/dict_ldap.c
+|--- /var/tmp/postfix-3.11-20250623/src/global/dict_ldap.c	2023-10-12 11:34:40.000000000 -0400
+|+++ ./src/global/dict_ldap.c	2025-06-24 16:25:42.034982780 -0400
+--------------------------
+patching file src/global/dict_ldap.c
+Using Plan A...
+Hunk #1 succeeded at 1876.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/global/dict_mongodb.c ./src/global/dict_mongodb.c
+|--- /var/tmp/postfix-3.11-20250623/src/global/dict_mongodb.c	2024-02-15 13:59:11.000000000 -0500
+|+++ ./src/global/dict_mongodb.c	2025-06-24 16:25:42.035447272 -0400
+--------------------------
+patching file src/global/dict_mongodb.c
+Using Plan A...
+Hunk #1 succeeded at 564.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/global/dict_mysql.c ./src/global/dict_mysql.c
+|--- /var/tmp/postfix-3.11-20250623/src/global/dict_mysql.c	2025-02-07 10:36:50.000000000 -0500
+|+++ ./src/global/dict_mysql.c	2025-06-24 16:25:42.035792607 -0400
+--------------------------
+patching file src/global/dict_mysql.c
+Using Plan A...
+Hunk #1 succeeded at 759.
+Hunk #2 succeeded at 797.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/global/dict_pgsql.c ./src/global/dict_pgsql.c
+|--- /var/tmp/postfix-3.11-20250623/src/global/dict_pgsql.c	2025-02-07 10:32:55.000000000 -0500
+|+++ ./src/global/dict_pgsql.c	2025-06-24 16:25:42.036130895 -0400
+--------------------------
+patching file src/global/dict_pgsql.c
+Using Plan A...
+Hunk #1 succeeded at 744.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/global/dict_proxy.c ./src/global/dict_proxy.c
+|--- /var/tmp/postfix-3.11-20250623/src/global/dict_proxy.c	2020-09-19 17:40:11.000000000 -0400
+|+++ ./src/global/dict_proxy.c	2025-06-24 16:25:42.036456119 -0400
+--------------------------
+patching file src/global/dict_proxy.c
+Using Plan A...
+Hunk #1 succeeded at 520.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/global/dict_sqlite.c ./src/global/dict_sqlite.c
+|--- /var/tmp/postfix-3.11-20250623/src/global/dict_sqlite.c	2025-03-23 18:29:15.000000000 -0400
+|+++ ./src/global/dict_sqlite.c	2025-06-24 16:25:42.036755824 -0400
+--------------------------
+patching file src/global/dict_sqlite.c
+Using Plan A...
+Hunk #1 succeeded at 377.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/global/mail_version.h ./src/global/mail_version.h
+|--- /var/tmp/postfix-3.11-20250623/src/global/mail_version.h	2025-06-23 16:19:07.000000000 -0400
+|+++ ./src/global/mail_version.h	2025-06-24 16:57:34.293114786 -0400
+--------------------------
+patching file src/global/mail_version.h
+Using Plan A...
+Hunk #1 succeeded at 20.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/postconf/Makefile.in ./src/postconf/Makefile.in
+|--- /var/tmp/postfix-3.11-20250623/src/postconf/Makefile.in	2025-06-21 18:43:48.000000000 -0400
+|+++ ./src/postconf/Makefile.in	2025-06-24 16:25:42.037164654 -0400
+--------------------------
+patching file src/postconf/Makefile.in
+Using Plan A...
+Hunk #1 succeeded at 1085.
+Hunk #2 succeeded at 1184.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/postconf/postconf.c ./src/postconf/postconf.c
+|--- /var/tmp/postfix-3.11-20250623/src/postconf/postconf.c	2024-02-18 18:05:13.000000000 -0500
+|+++ ./src/postconf/postconf.c	2025-06-24 16:25:42.037552287 -0400
+--------------------------
+patching file src/postconf/postconf.c
+Using Plan A...
+Hunk #1 succeeded at 252.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/postconf/postconf_dbms.c ./src/postconf/postconf_dbms.c
+|--- /var/tmp/postfix-3.11-20250623/src/postconf/postconf_dbms.c	2024-02-18 18:05:13.000000000 -0500
+|+++ ./src/postconf/postconf_dbms.c	2025-06-24 16:25:42.037842491 -0400
+--------------------------
+patching file src/postconf/postconf_dbms.c
+Using Plan A...
+Hunk #1 succeeded at 74.
+Hunk #2 succeeded at 281.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/postconf/test77-main.cf ./src/postconf/test77-main.cf
+|--- /var/tmp/postfix-3.11-20250623/src/postconf/test77-main.cf	1969-12-31 19:00:00.000000000 -0500
+|+++ ./src/postconf/test77-main.cf	2025-06-24 16:25:42.038021897 -0400
+--------------------------
+patching file src/postconf/test77-main.cf
+Using Plan A...
+Hunk #1 succeeded at 1.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/postconf/test77.ref ./src/postconf/test77.ref
+|--- /var/tmp/postfix-3.11-20250623/src/postconf/test77.ref	1969-12-31 19:00:00.000000000 -0500
+|+++ ./src/postconf/test77.ref	2025-06-24 16:25:42.038206622 -0400
+--------------------------
+patching file src/postconf/test77.ref
+Using Plan A...
+Hunk #1 succeeded at 1.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/Makefile.in ./src/util/Makefile.in
+|--- /var/tmp/postfix-3.11-20250623/src/util/Makefile.in	2025-06-21 18:50:09.000000000 -0400
+|+++ ./src/util/Makefile.in	2025-06-24 16:25:42.038540838 -0400
+--------------------------
+patching file src/util/Makefile.in
+Using Plan A...
+Hunk #1 succeeded at 104.
+Hunk #2 succeeded at 668.
+Hunk #3 succeeded at 1113.
+Hunk #4 succeeded at 1556.
+Hunk #5 succeeded at 1684.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict.c ./src/util/dict.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict.c	2025-06-21 19:32:13.000000000 -0400
+|+++ ./src/util/dict.c	2025-06-24 16:37:32.479547350 -0400
+--------------------------
+patching file src/util/dict.c
+Using Plan A...
+Hunk #1 succeeded at 646.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict.h ./src/util/dict.h
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict.h	2025-06-21 18:50:09.000000000 -0400
+|+++ ./src/util/dict.h	2025-06-24 16:25:42.039075233 -0400
+--------------------------
+patching file src/util/dict.h
+Using Plan A...
+Hunk #1 succeeded at 102.
+Hunk #2 succeeded at 115.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_cdb.c ./src/util/dict_cdb.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_cdb.c	2025-06-06 12:01:24.000000000 -0400
+|+++ ./src/util/dict_cdb.c	2025-06-24 16:25:42.039378516 -0400
+--------------------------
+patching file src/util/dict_cdb.c
+Using Plan A...
+Hunk #1 succeeded at 297.
+Hunk #2 succeeded at 486.
+Hunk #3 succeeded at 494.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_cidr.c ./src/util/dict_cidr.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_cidr.c	2023-04-16 16:41:47.000000000 -0400
+|+++ ./src/util/dict_cidr.c	2025-06-24 16:25:42.039726833 -0400
+--------------------------
+patching file src/util/dict_cidr.c
+Using Plan A...
+Hunk #1 succeeded at 358.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_db.c ./src/util/dict_db.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_db.c	2025-06-05 14:37:33.000000000 -0400
+|+++ ./src/util/dict_db.c	2025-06-24 16:25:42.040034180 -0400
+--------------------------
+patching file src/util/dict_db.c
+Using Plan A...
+Hunk #1 succeeded at 821.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_dbm.c ./src/util/dict_dbm.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_dbm.c	2014-11-17 13:28:01.000000000 -0500
+|+++ ./src/util/dict_dbm.c	2025-06-24 16:25:42.040338531 -0400
+--------------------------
+patching file src/util/dict_dbm.c
+Using Plan A...
+Hunk #1 succeeded at 497.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_debug.c ./src/util/dict_debug.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_debug.c	2015-01-09 20:17:43.000000000 -0500
+|+++ ./src/util/dict_debug.c	2025-06-24 16:25:42.040708830 -0400
+--------------------------
+patching file src/util/dict_debug.c
+Using Plan A...
+Hunk #1 succeeded at 4.
+Hunk #2 succeeded at 29.
+Hunk #3 succeeded at 66.
+Hunk #4 succeeded at 82.
+Hunk #5 succeeded at 99.
+Hunk #6 succeeded at 118.
+Hunk #7 succeeded at 128.
+Hunk #8 succeeded at 168.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_debug.h ./src/util/dict_debug.h
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_debug.h	1969-12-31 19:00:00.000000000 -0500
+|+++ ./src/util/dict_debug.h	2025-06-24 16:25:42.040964704 -0400
+--------------------------
+patching file src/util/dict_debug.h
+Using Plan A...
+Hunk #1 succeeded at 1.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_debug_test.ref ./src/util/dict_debug_test.ref
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_debug_test.ref	1969-12-31 19:00:00.000000000 -0500
+|+++ ./src/util/dict_debug_test.ref	2025-06-24 16:25:42.041203142 -0400
+--------------------------
+patching file src/util/dict_debug_test.ref
+Using Plan A...
+Hunk #1 succeeded at 1.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_debug_test.sh ./src/util/dict_debug_test.sh
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_debug_test.sh	1969-12-31 19:00:00.000000000 -0500
+|+++ ./src/util/dict_debug_test.sh	2025-06-24 16:25:42.041453961 -0400
+--------------------------
+patching file src/util/dict_debug_test.sh
+Using Plan A...
+Hunk #1 succeeded at 1.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_env.c ./src/util/dict_env.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_env.c	2012-01-03 19:10:46.000000000 -0500
+|+++ ./src/util/dict_env.c	2025-06-24 16:25:42.041716282 -0400
+--------------------------
+patching file src/util/dict_env.c
+Using Plan A...
+Hunk #1 succeeded at 108.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_fail.c ./src/util/dict_fail.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_fail.c	2021-06-03 19:13:15.000000000 -0400
+|+++ ./src/util/dict_fail.c	2025-06-24 16:25:42.041966422 -0400
+--------------------------
+patching file src/util/dict_fail.c
+Using Plan A...
+Hunk #1 succeeded at 111.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_inline.c ./src/util/dict_inline.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_inline.c	2023-10-12 11:34:40.000000000 -0400
+|+++ ./src/util/dict_inline.c	2025-06-24 16:25:42.042219412 -0400
+--------------------------
+patching file src/util/dict_inline.c
+Using Plan A...
+Hunk #1 succeeded at 146.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_lmdb.c ./src/util/dict_lmdb.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_lmdb.c	2021-06-04 16:42:49.000000000 -0400
+|+++ ./src/util/dict_lmdb.c	2025-06-24 16:25:42.042498216 -0400
+--------------------------
+patching file src/util/dict_lmdb.c
+Using Plan A...
+Hunk #1 succeeded at 700.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_ni.c ./src/util/dict_ni.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_ni.c	2013-06-02 13:57:01.000000000 -0400
+|+++ ./src/util/dict_ni.c	2025-06-24 16:25:42.042814509 -0400
+--------------------------
+patching file src/util/dict_ni.c
+Using Plan A...
+Hunk #1 succeeded at 188.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_nis.c ./src/util/dict_nis.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_nis.c	2012-01-13 17:28:55.000000000 -0500
+|+++ ./src/util/dict_nis.c	2025-06-24 16:25:42.043104706 -0400
+--------------------------
+patching file src/util/dict_nis.c
+Using Plan A...
+Hunk #1 succeeded at 241.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_nisplus.c ./src/util/dict_nisplus.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_nisplus.c	2012-01-13 17:28:55.000000000 -0500
+|+++ ./src/util/dict_nisplus.c	2025-06-24 16:25:42.043408087 -0400
+--------------------------
+patching file src/util/dict_nisplus.c
+Using Plan A...
+Hunk #1 succeeded at 298.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_open.c ./src/util/dict_open.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_open.c	2022-05-06 20:12:26.000000000 -0400
+|+++ ./src/util/dict_open.c	2025-06-24 16:25:42.043711273 -0400
+--------------------------
+patching file src/util/dict_open.c
+Using Plan A...
+Hunk #1 succeeded at 337.
+Hunk #2 succeeded at 416.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_pcre.c ./src/util/dict_pcre.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_pcre.c	2023-04-16 16:42:29.000000000 -0400
+|+++ ./src/util/dict_pcre.c	2025-06-24 16:25:42.044052303 -0400
+--------------------------
+patching file src/util/dict_pcre.c
+Using Plan A...
+Hunk #1 succeeded at 1115.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_pipe.c ./src/util/dict_pipe.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_pipe.c	2025-06-21 18:50:09.000000000 -0400
+|+++ ./src/util/dict_pipe.c	2025-06-24 16:25:42.044367915 -0400
+--------------------------
+patching file src/util/dict_pipe.c
+Using Plan A...
+Hunk #1 succeeded at 200.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_random.c ./src/util/dict_random.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_random.c	2021-12-19 17:36:39.000000000 -0500
+|+++ ./src/util/dict_random.c	2025-06-24 16:25:42.044666590 -0400
+--------------------------
+patching file src/util/dict_random.c
+Using Plan A...
+Hunk #1 succeeded at 175.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_regexp.c ./src/util/dict_regexp.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_regexp.c	2023-04-16 16:43:01.000000000 -0400
+|+++ ./src/util/dict_regexp.c	2025-06-24 16:25:42.044960847 -0400
+--------------------------
+patching file src/util/dict_regexp.c
+Using Plan A...
+Hunk #1 succeeded at 868.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_sdbm.c ./src/util/dict_sdbm.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_sdbm.c	2012-01-24 19:41:08.000000000 -0500
+|+++ ./src/util/dict_sdbm.c	2025-06-24 16:25:42.045289597 -0400
+--------------------------
+patching file src/util/dict_sdbm.c
+Using Plan A...
+Hunk #1 succeeded at 477.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_sockmap.c ./src/util/dict_sockmap.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_sockmap.c	2025-01-07 17:30:28.000000000 -0500
+|+++ ./src/util/dict_sockmap.c	2025-06-24 16:25:42.045622645 -0400
+--------------------------
+patching file src/util/dict_sockmap.c
+Using Plan A...
+Hunk #1 succeeded at 380.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_static.c ./src/util/dict_static.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_static.c	2020-10-25 12:36:37.000000000 -0400
+|+++ ./src/util/dict_static.c	2025-06-24 16:25:42.045912659 -0400
+--------------------------
+patching file src/util/dict_static.c
+Using Plan A...
+Hunk #1 succeeded at 147.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_surrogate.c ./src/util/dict_surrogate.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_surrogate.c	2014-12-06 20:35:33.000000000 -0500
+|+++ ./src/util/dict_surrogate.c	2025-06-24 16:25:42.046176425 -0400
+--------------------------
+patching file src/util/dict_surrogate.c
+Using Plan A...
+Hunk #1 succeeded at 176.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_tcp.c ./src/util/dict_tcp.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_tcp.c	2015-01-29 07:16:48.000000000 -0500
+|+++ ./src/util/dict_tcp.c	2025-06-24 16:25:42.046464061 -0400
+--------------------------
+patching file src/util/dict_tcp.c
+Using Plan A...
+Hunk #1 succeeded at 311.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_thash.c ./src/util/dict_thash.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_thash.c	2023-10-12 11:34:40.000000000 -0400
+|+++ ./src/util/dict_thash.c	2025-06-24 16:25:42.046757326 -0400
+--------------------------
+patching file src/util/dict_thash.c
+Using Plan A...
+Hunk #1 succeeded at 251.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_union.c ./src/util/dict_union.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_union.c	2025-06-21 18:50:09.000000000 -0400
+|+++ ./src/util/dict_union.c	2025-06-24 16:25:42.047039873 -0400
+--------------------------
+patching file src/util/dict_union.c
+Using Plan A...
+Hunk #1 succeeded at 213.
+Hmm...  The next patch looks like a unified diff to me...
+The text leading up to this was:
+--------------------------
+|diff '--exclude=man' '--exclude=html' '--exclude=README_FILES' '--exclude=INSTALL' --no-dereference -r -ur --new-file /var/tmp/postfix-3.11-20250623/src/util/dict_unix.c ./src/util/dict_unix.c
+|--- /var/tmp/postfix-3.11-20250623/src/util/dict_unix.c	2012-01-13 20:07:51.000000000 -0500
+|+++ ./src/util/dict_unix.c	2025-06-24 16:25:42.047326144 -0400
+--------------------------
+patching file src/util/dict_unix.c
+Using Plan A...
+Hunk #1 succeeded at 200.
+done
+exit
+
+Script done on 2025-06-24 17:24:27-04:00 [COMMAND_EXIT_CODE="1"]

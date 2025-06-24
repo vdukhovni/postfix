@@ -1065,15 +1065,6 @@ test76:	$(PROG) test76.ref
 	diff /dev/null test76.tmp
 	rm -f main.cf master.cf test76.tmp
 
-test77: $(PROG) test77-main.cf test77.ref
-	rm -f main.cf master.cf
-	cp test77-main.cf main.cf
-	touch master.cf
-	touch -t 197701010000 main.cf
-	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc . >test77.tmp 2>&1
-	diff test77.ref test77.tmp
-	rm -f main.cf master.cf test77.tmp
-
 # Warn about unused, deprecated, or deleted parameters.
 test78:	$(PROG) test78.ref
 	rm -f main.cf master.cf
@@ -1093,6 +1084,15 @@ test78:	$(PROG) test78.ref
 	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -qnc. >/dev/null 2>test78.tmp
 	diff /dev/null test78.tmp
 	rm -f main.cf master.cf test78.tmp
+
+test77: $(PROG) test77-main.cf test77.ref
+	rm -f main.cf master.cf
+	cp test77-main.cf main.cf
+	touch master.cf
+	touch -t 197701010000 main.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc . >test77.tmp 2>&1
+	diff test77.ref test77.tmp
+	rm -f main.cf master.cf test77.tmp
 
 clean:
 	rm -f *.o *core $(PROG) $(TESTPROG) junk $(MAKES) $(AUTOS) $(DUMMIES) \
