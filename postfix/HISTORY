@@ -29309,3 +29309,26 @@ Apologies for any names omitted.
 	util/dict_regexp.c, util/dict_sdbm.c, util/dict_sockmap.c,
 	util/dict_static.c, util/dict_surrogate.c, util/dict_tcp.c,
 	util/dict_thash.c, util/dict_union.c, util/dict_unix.c.
+
+20250626
+
+	Cleanup: removed explicit dictionary life-cycle management
+	complexity from dict_xxx_open() and maps_create(), and
+	centralized it under the generic dict_open() API. Files:
+	global/maps.c, util/dict.c, util/dict.h, util/dict_alloc.c,
+	util/dict_debug.c, util/dict_inline.c, util/dict_open.c,
+	util/dict_pipe.c, util/dict_test.c, util/dict_thash.c,
+	util/dict_union.c.
+
+20250627
+
+	Temporary workaround: allow the proxymap server to continue
+	registering a dictionary under a legacy name, in addition
+	to the preferred name that it is registered under by
+	dict_open(). Files: util/dict.[hc], proxymap/proxymap.c.
+
+	Cleanup: some unused test binaries failed to build.  Files:
+	global/own_inet_addr.c, global/data_redirect.c,
+	global/mynetworks.c.
+
+	Baseline is postfix-3.11-20250624.

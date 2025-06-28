@@ -170,12 +170,12 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
 		    msg_fatal("%s: read file %s: %m", myname, item);
 	    }
 	} else if (MATCH_DICTIONARY(item)) {	/* type:table */
-	    vstring_sprintf(buf, "%s%s(%o,%s)", match ? "" : "!",
-			    item, OPEN_FLAGS, dict_flags_str(DICT_FLAGS));
-	    map_type_name_flags = STR(buf) + (match == 0);
+	    map_type_name_flags = dict_make_registered_name(buf, item, OPEN_FLAGS,
+							    DICT_FLAGS);
 	    if (dict_handle(map_type_name_flags) == 0)
-		dict_register(map_type_name_flags,
-			      dict_open(item, OPEN_FLAGS, DICT_FLAGS));
+		dict_open(item, OPEN_FLAGS, DICT_FLAGS);
+	    if (match == 0)
+		vstring_prepend(buf, "!", 1);
 	    argv_add(pat_list, STR(buf), (char *) 0);
 	} else {				/* other pattern */
 	    casefold(match_list->fold_buf, match ?

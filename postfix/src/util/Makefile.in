@@ -659,13 +659,13 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	binhash_test argv_test inet_prefix_top_test printable_test \
 	valid_utf8_string_test readlline_test quote_for_json_test \
 	normalize_ws_test valid_uri_scheme_test clean_ascii_cntrl_space_test \
-	test_normalize_v4mapped_addr test_ossl_digest test_dict_pipe
+	test_normalize_v4mapped_addr test_ossl_digest test_dict_pipe \
 	test_dict_union
  
 dict_tests: all dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
 	dict_inline_test dict_utf8_test dict_regexp_test \
-	dict_regexp_file_test dict_cidr_file_test \
+	dict_regexp_file_test dict_cidr_file_test dict_seq_test \
 	dict_static_file_test dict_random_test dict_random_file_test \
 	dict_inline_file_test dict_stream_test dict_inline_regexp_test \
 	dict_inline_cidr_test dict_debug_test
@@ -811,7 +811,7 @@ split_qnameval_test: split_qnameval update
 
 dict_seq_test: dict_open testdb dict_seq.in dict_seq.ref
 	rm -f testdb.db testdb.dir testdb.pag
-	$(SHLIB_ENV) ${VALGRIND} ./dict_open hash:testdb create sync < dict_seq.in 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' > dict_seq.tmp
+	${HTABLE_FIX} $(SHLIB_ENV) ${VALGRIND} ./dict_open internal:testdb create sync_update < dict_seq.in 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' > dict_seq.tmp
 	diff dict_seq.ref dict_seq.tmp
 	rm -f testdb.db testdb.dir testdb.pag dict_seq.tmp
 

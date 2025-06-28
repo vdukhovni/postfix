@@ -187,13 +187,18 @@ static void pcf_check_dbms_client(int mode, const PCF_DBMS_INFO *dp,
     const char *value;
     char   *dict_spec;
     int     dir;
+    VSTRING *reg_name;
 
     /*
      * We read each database client configuration file into its own
      * dictionary, and nag only the first time that a file is visited.
      */
     dict_spec = concatenate(dp->db_type, ":", cf_file, (char *) 0);
-    if ((dict = dict_handle(dict_spec)) == 0) {
+    reg_name = vstring_alloc(100);
+    /* This should match the dict_open3() call below. */
+    dict_make_registered_name4(reg_name, DICT_TYPE_HT, dict_spec, 0, 0);
+
+    if ((dict = dict_handle(STR(reg_name))) == 0) {
 	struct stat st;
 
 	/*
@@ -202,13 +207,13 @@ static void pcf_check_dbms_client(int mode, const PCF_DBMS_INFO *dp,
 	 * files may contain passwords and should not be world-readable.
 	 * Note: dict_load_fp() nags about duplicate parameter settings.
 	 */
-	dict = dict_ht_open(dict_spec, O_CREAT | O_RDWR, 0);
-	dict_register(dict_spec, dict);
+	dict = dict_open3(DICT_TYPE_HT, dict_spec, 0, 0);
 	if ((fp = vstream_fopen(cf_file, O_RDONLY, 0)) == 0) {
 	    if (errno != EACCES)
 		msg_warn("open \"%s\" configuration \"%s\": %m",
 			 dp->db_type, cf_file);
 	    myfree(dict_spec);
+	    vstring_free(reg_name);
 	    return;
 	}
 	if (fstat(vstream_fileno(fp), &st) == 0 && !S_ISREG(st.st_mode)) {
@@ -216,13 +221,15 @@ static void pcf_check_dbms_client(int mode, const PCF_DBMS_INFO *dp,
 		     dp->db_type, cf_file);
 	    myfree(dict_spec);
 	    (void) vstream_fclose(fp);
+	    vstring_free(reg_name);
 	    return;
 	}
-	dict_load_fp(dict_spec, fp);
+	dict_load_fp(STR(reg_name), fp);
 	if (vstream_fclose(fp)) {
 	    msg_warn("read \"%s\" configuration \"%s\": %m",
 		     dp->db_type, cf_file);
 	    myfree(dict_spec);
+	    vstring_free(reg_name);
 	    return;
 	}
 
@@ -242,6 +249,7 @@ static void pcf_check_dbms_client(int mode, const PCF_DBMS_INFO *dp,
 	}
     }
     myfree(dict_spec);
+    vstring_free(reg_name);
 }
 
 /* pcf_register_dbms_helper - parse one possible database type:name */

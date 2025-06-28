@@ -110,7 +110,7 @@ DICT   *dict_inline_open(const char *name, int open_flags, int dict_flags)
     /*
      * Reuse the "internal" dictionary type.
      */
-    dict = dict_open3(DICT_TYPE_HT, name, open_flags, dict_flags);
+    dict = dict_ht_open(name, open_flags, dict_flags);
     dict_type_override(dict, DICT_TYPE_INLINE);
     while ((nameval = mystrtokq(&cp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
 	if (nameval[0] == CHARS_BRACE[0])

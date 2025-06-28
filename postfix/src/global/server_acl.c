@@ -122,10 +122,14 @@ SERVER_ACL *server_acl_parse(const char *extern_acl, const char *origin)
     char   *saved_acl = mystrdup(extern_acl);
     SERVER_ACL *intern_acl = argv_alloc(1);
     char   *bp = saved_acl;
+    VSTRING *reg_name = 0;
     char   *acl;
 
 #define STREQ(x,y) (strcasecmp((x), (y)) == 0)
 #define STRNE(x,y) (strcasecmp((x), (y)) != 0)
+#define OPEN_FLAGS O_RDONLY
+#define DICT_FLAGS (DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX \
+		     | DICT_FLAG_UTF8_REQUEST)
 
     /*
      * Nested tables are not allowed. Tables are opened before entering the
@@ -141,10 +145,13 @@ SERVER_ACL *server_acl_parse(const char *extern_acl, const char *origin)
 		argv_add(intern_acl, SERVER_ACL_NAME_DUNNO, (char *) 0);
 		break;
 	    } else {
-		if (dict_handle(acl) == 0)
-		    dict_register(acl, dict_open(acl, O_RDONLY, DICT_FLAG_LOCK
-						 | DICT_FLAG_FOLD_FIX
-						 | DICT_FLAG_UTF8_REQUEST));
+		if (reg_name == 0)
+		    reg_name = vstring_alloc(100);
+		dict_make_registered_name(reg_name, acl, OPEN_FLAGS,
+					  DICT_FLAGS);
+		if (dict_handle(STR(reg_name)) == 0)
+		    dict_open(acl, OPEN_FLAGS, DICT_FLAGS);
+		acl = STR(reg_name);
 	    }
 	}
 	argv_add(intern_acl, acl, (char *) 0);
@@ -154,6 +161,8 @@ SERVER_ACL *server_acl_parse(const char *extern_acl, const char *origin)
     /*
      * Cleanup.
      */
+    if (reg_name)
+	vstring_free(reg_name);
     myfree(saved_acl);
     return (intern_acl);
 }
@@ -212,8 +221,9 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 		if (ret != SERVER_ACL_ACT_DUNNO)
 		    return (ret);
 	    } else if (dict->error != 0) {
-		msg_warn("%s: %s: table lookup error -- ignoring the remainder "
-			 "of this access list", origin, acl);
+		msg_warn("%s: %s:%s: table lookup error -- ignoring the "
+			 "remainder of this access list", origin, dict->type,
+			 dict->name);
 		return (SERVER_ACL_ACT_ERROR);
 	    }
 	} else if (STREQ(acl, SERVER_ACL_NAME_DUNNO)) {

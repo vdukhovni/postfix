@@ -110,7 +110,7 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
 	/*
 	 * Reuse the "internal" dictionary type.
 	 */
-	dict = dict_open3(DICT_TYPE_HT, path, open_flags, dict_flags);
+	dict = dict_ht_open(path, open_flags, dict_flags);
 	dict_type_override(dict, DICT_TYPE_THASH);
 
 	/*

@@ -844,6 +844,14 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
+     * Workaround for programs that make explicit dict_register() calls with
+     * a table that is already registered under a different name. This is
+     * safe only in programs that do not unregister or close a table that is
+     * registered with multiple names.
+     */
+    dict_allow_multiple_dict_register_names = 1;
+
+    /*
      * XXX When invoked with the master.cf service name "proxywrite", the
      * proxymap daemon will allow update requests. To update a table that is
      * not multi-writer safe (for example, some versions of Berkeley DB), the

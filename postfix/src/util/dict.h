@@ -97,6 +97,8 @@ typedef struct DICT {
     struct DICT_UTF8_BACKUP *utf8_backup;	/* see below */
     struct VSTRING *file_buf;		/* dict_file_to_buf() */
     struct VSTRING *file_b64;		/* dict_file_to_b64() */
+    char   *reg_name;			/* owned by dict_register() */
+    void    (*saved_close) (struct DICT *);	/* owned by dict_register() */
 } DICT;
 
 extern DICT *dict_alloc(const char *, const char *, ssize_t);
@@ -282,6 +284,15 @@ extern DICT *PRINTFLIKE(5, 6) dict_surrogate(const char *, const char *, int, in
   * type, name, open_flags, and (initial) dict_flags.
   */
 extern char *dict_make_registered_name(VSTRING *, const char *, int, int);
+extern char *dict_make_registered_name4(VSTRING *, const char *, const char *, int, int);
+
+ /*
+  * Workaround for programs that make explicit dict_register() calls with a
+  * table that is already registered under a different name. This is safe
+  * only in programs that do not unregister or close a table that is
+  * registered with multiple names.
+  */
+extern int dict_allow_multiple_dict_register_names;
 
  /*
   * This name is reserved for matchlist error handling.
