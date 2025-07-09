@@ -72,13 +72,13 @@ static const char *dict_pipe_lookup(DICT *dict, const char *query)
     DICT_PIPE *dict_pipe = (DICT_PIPE *) dict;
     DICT   *map;
     char  **cpp;
-    char   *dict_type_name;
+    char   *reg_name;
     const char *result = 0;
 
     vstring_strcpy(dict_pipe->qr_buf, query);
-    for (cpp = dict_pipe->map_pipe->argv; (dict_type_name = *cpp) != 0; cpp++) {
-	if ((map = dict_handle(dict_type_name)) == 0)
-	    msg_panic("%s: dictionary \"%s\" not found", myname, dict_type_name);
+    for (cpp = dict_pipe->map_pipe->argv; (reg_name = *cpp) != 0; cpp++) {
+	if ((map = dict_handle(reg_name)) == 0)
+	    msg_panic("%s: dictionary \"%s\" not found", myname, reg_name);
 	if ((result = dict_get(map, STR(dict_pipe->qr_buf))) == 0)
 	    DICT_ERR_VAL_RETURN(dict, map->error, result);
 	vstring_strcpy(dict_pipe->qr_buf, result);
@@ -90,12 +90,17 @@ static const char *dict_pipe_lookup(DICT *dict, const char *query)
 
 static void dict_pipe_close(DICT *dict)
 {
+    static const char myname[] = "dict_pipe_close";
     DICT_PIPE *dict_pipe = (DICT_PIPE *) dict;
+    DICT   *map;
     char  **cpp;
-    char   *dict_type_name;
+    char   *reg_name;
 
-    for (cpp = dict_pipe->map_pipe->argv; (dict_type_name = *cpp) != 0; cpp++)
-	dict_unregister(dict_type_name);
+    for (cpp = dict_pipe->map_pipe->argv; (reg_name = *cpp) != 0; cpp++) {
+	if ((map = dict_handle(reg_name)) == 0)
+	    msg_panic("%s: dictionary \"%s\" not found", myname, reg_name);
+	dict_close(map);
+    }
     argv_free(dict_pipe->map_pipe);
     vstring_free(dict_pipe->qr_buf);
     dict_free(dict);
@@ -115,8 +120,6 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
     int     match_flags = 0;
     struct DICT_OWNER aggr_owner;
     size_t  len;
-    VSTRING *reg_name_buf = vstring_alloc(100);
-    char   *reg_name;
 
     /*
      * Clarity first. Let the optimizer worry about redundant code.
@@ -126,8 +129,6 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
 		myfree(saved_name); \
 	    if (argv != 0) \
 		argv_free(argv); \
-	    if (reg_name_buf != 0) \
-		vstring_free(reg_name_buf); \
 	    return (x); \
 	} while (0)
 
@@ -176,12 +177,8 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
     for (cpp = argv->argv; (dict_type_name = *cpp) != 0; cpp++) {
 	if (msg_verbose)
 	    msg_info("%s: %s", myname, dict_type_name);
-	reg_name = dict_make_registered_name(reg_name_buf, dict_type_name,
-					     open_flags, dict_flags);
-	if ((dict = dict_handle(reg_name)) == 0)
-	    dict = dict_open(dict_type_name, open_flags, dict_flags);
-	dict_register(reg_name, dict);
-	argv_replace_one(argv, cpp - argv->argv, reg_name);
+	dict = dict_open(dict_type_name, open_flags, dict_flags);
+	argv_replace_one(argv, cpp - argv->argv, dict->reg_name);
 	DICT_OWNER_AGGREGATE_UPDATE(aggr_owner, dict->owner);
 	if (cpp == argv->argv)
 	    match_flags = dict->flags & (DICT_FLAG_FIXED | DICT_FLAG_PATTERN);
@@ -196,8 +193,7 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
     dict_pipe->dict.close = dict_pipe_close;
     dict_pipe->dict.flags = dict_flags | match_flags;
     dict_pipe->dict.owner = aggr_owner;
-    dict_pipe->qr_buf = reg_name_buf;
-    reg_name_buf = 0;
+    dict_pipe->qr_buf = vstring_alloc(100);
     dict_pipe->map_pipe = argv;
     argv = 0;
     DICT_PIPE_RETURN(&dict_pipe->dict);

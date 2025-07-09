@@ -177,3 +177,5 @@ proto  proto COMPATIBILITY_README html
  smtp smtp c tlsproxy tlsproxy c proto postconf proto 
  rhansen rhansen org Files proto DATABASE_README html 
  postconf Makefile in postconf postconf c 
+ dict_open Files util dict hc proxymap proxymap c 
+ proxymap proxymap c 

@@ -58,6 +58,8 @@ lib_update: $(LIB_DIR)/$(LIB) $(HDRS) $(MOCK_OBJ)
 	  cmp -s $$i $(LIB_DIR)/$$i 2>/dev/null || cp $$i $(LIB_DIR); \
 	done
 
+tests:
+
 clean:
 	rm -f $(LIB_SO) *.o
 

@@ -128,8 +128,9 @@ static int dict_debug_sequence(DICT *dict, int function,
 
 static void dict_debug_close(DICT *dict)
 {
-    /* TODO(wietse) use the annotated name from dict_make_registered_name(). */
-    dict_unregister(dict->name);
+    DICT_DEBUG *dict_debug = (DICT_DEBUG *) dict;
+
+    dict_close(dict_debug->real_dict);
     dict_free(dict);
 }
 
@@ -143,21 +144,11 @@ DICT   *dict_debug_open(const char *name, int open_flags, int dict_flags)
 	msg_info("%s: %s", myname, name);
 
     /*
-     * Reuse a previously registered table if present. This prevents a config
-     * containing both debug:foo:bar and foo:bar from creating two DICT
-     * objects for foo:bar.
-     * 
-     * TODO(wietse) use the annotated name from dict_make_registered_name().
+     * dict_open() will reuse a previously registered table if present. This
+     * prevents a config containing both debug:foo:bar and foo:bar from
+     * creating two DICT objects for foo:bar.
      */
-    DICT   *real_dict = dict_handle(name);
-
-    if (real_dict == 0)
-	real_dict = dict_open(name, open_flags, dict_flags);
-    dict_register(name, real_dict);
-
-    /*
-     * Encapsulate the real dictionary.
-     */
+    DICT *real_dict = dict_open(name, open_flags, dict_flags);
     DICT_DEBUG *dict_debug = (DICT_DEBUG *) dict_alloc(DICT_TYPE_DEBUG, name,
 						       sizeof(*dict_debug));
 

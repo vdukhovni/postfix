@@ -124,7 +124,6 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
     char   *bp = string;
     char   *start;
     char   *item;
-    char   *map_type_name_flags;
     int     match;
 
     /*
@@ -170,12 +169,8 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
 		    msg_fatal("%s: read file %s: %m", myname, item);
 	    }
 	} else if (MATCH_DICTIONARY(item)) {	/* type:table */
-	    vstring_sprintf(buf, "%s%s(%o,%s)", match ? "" : "!",
-			    item, OPEN_FLAGS, dict_flags_str(DICT_FLAGS));
-	    map_type_name_flags = STR(buf) + (match == 0);
-	    if (dict_handle(map_type_name_flags) == 0)
-		dict_register(map_type_name_flags,
-			      dict_open(item, OPEN_FLAGS, DICT_FLAGS));
+	    vstring_sprintf(buf, "%s%s", match ? "" : "!",
+			 dict_open(item, OPEN_FLAGS, DICT_FLAGS)->reg_name);
 	    argv_add(pat_list, STR(buf), (char *) 0);
 	} else {				/* other pattern */
 	    casefold(match_list->fold_buf, match ?

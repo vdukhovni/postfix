@@ -141,6 +141,10 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
 {
     DICT   *dict = (DICT *) mymalloc(size);
 
+    if (msg_verbose > 2)
+	msg_info("dict_alloc(\"%s\", \"%s\", %ld)",
+		 dict_type, dict_name, (long) size);
+
     dict->type = mystrdup(dict_type);
     dict->name = mystrdup(dict_name);
     dict->flags = DICT_FLAG_FIXED;
@@ -162,6 +166,8 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
     dict->utf8_backup = 0;
     dict->file_buf = 0;
     dict->file_b64 = 0;
+    dict->reg_name = 0;
+    dict->saved_close = 0;
     return dict;
 }
 
@@ -169,6 +175,11 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
 
 void    dict_free(DICT *dict)
 {
+    if (msg_verbose > 2)
+	msg_info("dict_free type=\"%s\" name=\"%s\" reg_name=\"%s\")",
+		 dict->type, dict->name, dict->reg_name ?
+		 dict->reg_name : "(null)");
+
     myfree(dict->type);
     myfree(dict->name);
     if (dict->jbuf)
@@ -179,6 +190,8 @@ void    dict_free(DICT *dict)
 	vstring_free(dict->file_buf);
     if (dict->file_b64)
 	vstring_free(dict->file_b64);
+    if (dict->reg_name)
+	myfree(dict->reg_name);
     myfree((void *) dict);
 }
 

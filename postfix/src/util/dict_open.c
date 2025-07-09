@@ -82,7 +82,17 @@
 /*	const char *type;
 /* DESCRIPTION
 /*	This module implements a low-level interface to multiple
-/*	physical dictionary types.
+/*	dictionary types.
+/*
+/*	In addition to providing a mapping from type names to
+/*	implementations, this module deduplicates requests to open a
+/*	dictionary with the same fingerprint (type, name, and initial
+/*	flags), and manages the dictionary life cycle using reference
+/*	counts maintained with dict_(un)register().
+/*
+/*	The fingerprint, generated with dict_make_registered_name()
+/*	and available as DICT.reg_name, may be used in dict_handle()
+/*	calls.
 /*
 /*	dict_open() takes a type:name pair that specifies a dictionary type
 /*	and dictionary name, opens the dictionary, and returns a dictionary
@@ -164,8 +174,6 @@
 /*	Enable preliminary code for bulk-mode database updates.
 /*	The caller must create an exception handler with dict_jmp_alloc()
 /*	and must trap exceptions from the database client with dict_setjmp().
-/* .IP DICT_FLAG_DEBUG
-/*	Enable additional logging.
 /* .IP DICT_FLAG_UTF8_REQUEST
 /*	With util_utf8_enable != 0, require that lookup/update/delete
 /*	keys and values are valid UTF-8. Skip a lookup/update/delete
@@ -281,7 +289,11 @@
 /*
 /*	dict_type_override() changes the symbolic dictionary type.
 /*	This is used by dictionaries whose internals are based on
-/*	some other dictionary type.
+/*	some other dictionary type. dict_type_override() requires that
+/*	the dictionary is not already registered with dict_register(),
+/*	i.e., it must be the result from dict_xxx_open(), not from
+/*	dict_open(). If needed in the future, this limitation may
+/*	be lifted.
 /* DIAGNOSTICS
 /*	Fatal error: open error, unsupported dictionary type, attempt to
 /*	update non-writable dictionary.
@@ -481,19 +493,36 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
 {
     const char *myname = "dict_open";
     const DICT_OPEN_INFO *dp;
+    VSTRING *reg_name = vstring_alloc(100);
     DICT   *dict;
 
+#define DICT_OPEN3_RETURN(d) do { \
+	DICT *_d = (d); \
+	dict_register(vstring_str(reg_name), _d); \
+	vstring_free(reg_name); \
+	return (_d); \
+    } while (0)
+
+    /*
+     * If the dictionary is already open, simply increase the reference count
+     * to update an existing life cycle.
+     */
+    dict_make_registered_name4(reg_name, dict_type, dict_name,
+			       open_flags, dict_flags);
+    if ((dict = dict_handle(vstring_str(reg_name))) != 0)
+	DICT_OPEN3_RETURN(dict);
+ 
     if (*dict_type == 0 || *dict_name == 0)
 	msg_fatal("open dictionary: expecting \"type:name\" form instead of \"%s:%s\"",
 		  dict_type, dict_name);
     if (NEED_DICT_OPEN_INIT())
 	dict_open_init();
     if ((dp = dict_open_lookup(dict_type)) == 0)
-	return (dict_surrogate(dict_type, dict_name, open_flags, dict_flags,
-			     "unsupported dictionary type: %s", dict_type));
+	DICT_OPEN3_RETURN(dict_surrogate(dict_type, dict_name, open_flags,
+		 dict_flags, "unsupported dictionary type: %s", dict_type));
     if ((dict = dp->dict_fn(dict_name, open_flags, dict_flags)) == 0)
-	return (dict_surrogate(dict_type, dict_name, open_flags, dict_flags,
-			    "cannot open %s:%s: %m", dict_type, dict_name));
+	DICT_OPEN3_RETURN(dict_surrogate(dict_type, dict_name, open_flags,
+		dict_flags, "cannot open %s:%s: %m", dict_type, dict_name));
     if (msg_verbose)
 	msg_info("%s: %s:%s", myname, dict_type, dict_name);
     /* XXX The choice between wait-for-lock or no-wait is hard-coded. */
@@ -515,7 +544,8 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
     if ((dict->flags & DICT_FLAG_UTF8_ACTIVE) == 0
 	&& DICT_NEED_UTF8_ACTIVATION(util_utf8_enable, dict_flags))
 	dict = dict_utf8_activate(dict);
-    return (dict);
+    /* Register the result. */
+    DICT_OPEN3_RETURN(dict);
 }
 
 /* dict_open_register - register dictionary type */
@@ -601,6 +631,16 @@ DICT_MAPNAMES_EXTEND_FN dict_mapnames_extend(DICT_MAPNAMES_EXTEND_FN new_cb)
 
 void    dict_type_override(DICT *dict, const char *type)
 {
+
+    /*
+     * To lift this limitation, compute a new reg_name, and implement a move
+     * (copy+delete) operation from the old reg_name to the new one. Also
+     * handle the case that the new destination name is already in use. The
+     * above should be encapsulated in code adjacent to dict_register().
+     */
+    if (dict->reg_name)
+	msg_panic("%s: %s:%s is already registered",
+		  __func__, dict->type, dict->name);
     myfree(dict->type);
     dict->type = mystrdup(type);
 }

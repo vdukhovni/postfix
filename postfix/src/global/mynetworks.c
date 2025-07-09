@@ -315,12 +315,9 @@ const char *mynetworks_host(void)
 #ifdef TEST
 #include <inet_proto.h>
 
-char   *var_inet_interfaces;
-char   *var_mynetworks_style;
-
 int     main(int argc, char **argv)
 {
-    INET_PROTO_INFO *proto_info;
+    const INET_PROTO_INFO *proto_info;
 
     if (argc != 4)
 	msg_fatal("usage: %s protocols mask_style interface_list (e.g. \"all subnet all\")",

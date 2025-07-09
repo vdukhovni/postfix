@@ -132,7 +132,6 @@ MAPS   *maps_create(const char *title, const char *map_names, int dict_flags)
     static char parens[] = CHARS_BRACE;
     MAPS   *maps;
     char   *map_type_name;
-    VSTRING *map_type_name_flags;
     DICT   *dict;
 
     /*
@@ -149,23 +148,17 @@ MAPS   *maps_create(const char *title, const char *map_names, int dict_flags)
      */
     if (*map_names) {
 	bufp = temp = mystrdup(map_names);
-	map_type_name_flags = vstring_alloc(10);
 
 #define OPEN_FLAGS	O_RDONLY
 
 	while ((map_type_name = mystrtokq(&bufp, sep, parens)) != 0) {
-	    dict_make_registered_name(map_type_name_flags, map_type_name,
-				      OPEN_FLAGS, dict_flags);
-	    if ((dict = dict_handle(vstring_str(map_type_name_flags))) == 0)
-		dict = dict_open(map_type_name, OPEN_FLAGS, dict_flags);
+	    dict = dict_open(map_type_name, OPEN_FLAGS, dict_flags);
 	    if ((dict->flags & dict_flags) != dict_flags)
 		msg_panic("%s: map %s has flags 0%o, want flags 0%o",
 			  myname, map_type_name, dict->flags, dict_flags);
-	    dict_register(vstring_str(map_type_name_flags), dict);
-	    argv_add(maps->argv, vstring_str(map_type_name_flags), ARGV_END);
+	    argv_add(maps->argv, dict->reg_name, ARGV_END);
 	}
 	myfree(temp);
-	vstring_free(map_type_name_flags);
     }
     return (maps);
 }
@@ -299,12 +292,16 @@ const char *maps_file_find(MAPS *maps, const char *name, int flags)
 
 MAPS   *maps_free(MAPS *maps)
 {
+    const char *myname = "maps_free";
+    DICT   *dict;
     char  **map_name;
 
     for (map_name = maps->argv->argv; *map_name; map_name++) {
 	if (msg_verbose)
 	    msg_info("maps_free: %s", *map_name);
-	dict_unregister(*map_name);
+	if ((dict = dict_handle(*map_name)) == 0)
+	    msg_panic("%s: dictionary not found: %s", myname, *map_name);
+	dict_close(dict);
     }
     myfree(maps->title);
     argv_free(maps->argv);

@@ -76,16 +76,16 @@ static const char *dict_union_lookup(DICT *dict, const char *query)
     DICT_UNION *dict_union = (DICT_UNION *) dict;
     DICT   *map;
     char  **cpp;
-    char   *dict_type_name;
+    char   *reg_name;
     const char *result = 0;
 
     /*
      * After Roel van Meer, postfix-users mailing list, Sept 2014.
      */
     VSTRING_RESET(dict_union->re_buf);
-    for (cpp = dict_union->map_union->argv; (dict_type_name = *cpp) != 0; cpp++) {
-	if ((map = dict_handle(dict_type_name)) == 0)
-	    msg_panic("%s: dictionary \"%s\" not found", myname, dict_type_name);
+    for (cpp = dict_union->map_union->argv; (reg_name = *cpp) != 0; cpp++) {
+	if ((map = dict_handle(reg_name)) == 0)
+	    msg_panic("%s: dictionary \"%s\" not found", myname, reg_name);
 	if ((result = dict_get(map, query)) != 0) {
 	    if (VSTRING_LEN(dict_union->re_buf) > 0)
 		VSTRING_ADDCH(dict_union->re_buf, ',');
@@ -103,12 +103,17 @@ static const char *dict_union_lookup(DICT *dict, const char *query)
 
 static void dict_union_close(DICT *dict)
 {
+    static const char myname[] = "dict_union_close";
     DICT_UNION *dict_union = (DICT_UNION *) dict;
+    DICT   *map;
     char  **cpp;
-    char   *dict_type_name;
+    char   *reg_name;
 
-    for (cpp = dict_union->map_union->argv; (dict_type_name = *cpp) != 0; cpp++)
-	dict_unregister(dict_type_name);
+    for (cpp = dict_union->map_union->argv; (reg_name = *cpp) != 0; cpp++) {
+	if ((map = dict_handle(reg_name)) == 0)
+	    msg_panic("%s: dictionary \"%s\" not found", myname, reg_name);
+	dict_close(map);
+    }
     argv_free(dict_union->map_union);
     vstring_free(dict_union->re_buf);
     dict_free(dict);
@@ -128,8 +133,6 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
     int     match_flags = 0;
     struct DICT_OWNER aggr_owner;
     size_t  len;
-    VSTRING *reg_name_buf = vstring_alloc(100);
-    char   *reg_name;
 
     /*
      * Clarity first. Let the optimizer worry about redundant code.
@@ -139,8 +142,6 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
 		  myfree(saved_name); \
 	      if (argv != 0) \
 		  argv_free(argv); \
-	      if (reg_name_buf != 0) \
-		  vstring_free(reg_name_buf); \
 	      return (x); \
 	  } while (0)
 
@@ -189,12 +190,8 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
     for (cpp = argv->argv; (dict_type_name = *cpp) != 0; cpp++) {
 	if (msg_verbose)
 	    msg_info("%s: %s", myname, dict_type_name);
-	reg_name = dict_make_registered_name(reg_name_buf, dict_type_name,
-					     open_flags, dict_flags);
-	if ((dict = dict_handle(reg_name)) == 0)
-	    dict = dict_open(dict_type_name, open_flags, dict_flags);
-	dict_register(reg_name, dict);
-	argv_replace_one(argv, cpp - argv->argv, reg_name);
+	dict = dict_open(dict_type_name, open_flags, dict_flags);
+	argv_replace_one(argv, cpp - argv->argv, dict->reg_name);
 	DICT_OWNER_AGGREGATE_UPDATE(aggr_owner, dict->owner);
 	if (cpp == argv->argv)
 	    match_flags = dict->flags & (DICT_FLAG_FIXED | DICT_FLAG_PATTERN);
@@ -209,8 +206,7 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
     dict_union->dict.close = dict_union_close;
     dict_union->dict.flags = dict_flags | match_flags;
     dict_union->dict.owner = aggr_owner;
-    dict_union->re_buf = reg_name_buf;
-    reg_name_buf = 0;
+    dict_union->re_buf = vstring_alloc(100);
     dict_union->map_union = argv;
     argv = 0;
     DICT_UNION_RETURN(&dict_union->dict);

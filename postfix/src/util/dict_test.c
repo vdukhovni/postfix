@@ -86,7 +86,6 @@ void    dict_test(int argc, char **argv)
     dict_allow_surrogate = 1;
     util_utf8_enable = 1;
     dict = dict_open(dict_name, open_flags, dict_flags);
-    dict_register(dict_name, dict);
     vstream_printf("owner=%s (uid=%ld)\n",
 		   dict->owner.status == DICT_OWNER_TRUSTED ? "trusted" :
 		   dict->owner.status == DICT_OWNER_UNTRUSTED ? "untrusted" :

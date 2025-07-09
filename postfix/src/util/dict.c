@@ -75,6 +75,15 @@
 /*	const char *type_name,
 /*	int	open_flags,
 /*	int	dict_flags)
+/*
+/*	char	*dict_make_registered_name4(
+/*	VSTRING	*out,
+/*	const char *type,
+/*	const char *name,
+/*	int	open_flags,
+/*	int	dict_flags)
+/*
+/*	int	dict_allow_multiple_dict_register_names;
 /* DESCRIPTION
 /*	This module maintains a collection of name-value dictionaries.
 /*	Each dictionary has its own name and has its own methods to read
@@ -173,11 +182,19 @@
 /*	dict_flags_mask() returns the bitmask for the specified
 /*	comma/space-separated dictionary flag names.
 /*
-/*	dict_make_registered_name() formats a dictionary type:name and
-/*	(initial) flag values for use in dict_register() calls.
+/*	dict_make_registered_name*() format a dictionary type, name,
+/*	and (initial) flag values for use in dict_register() calls.
 /*	This encourages consistent sharing of dictionary instances that
 /*	have the exact same type:name and (initial) flags. The result
 /*	value is the string value of the \fIout\fR VSTRING buffer.
+/*
+/*	dict_allow_multiple_dict_register_names enables a temporary
+/*	workaround for programs that make explicit dict_register()
+/*	calls with a table that is already registered under a different
+/*	name. Setting this to non-zero allows a dictionary to be
+/*	registered under multiple names. This workaround is safe only
+/*	in programs that do not unregister or close a table that is
+/*	registered with multiple names.
 /* TRUST AND PROVENANCE
 /* .ad
 /* .fi
@@ -322,7 +339,23 @@ typedef struct {
 	dict = node->dict; \
 } while (0)
 
+ /*
+  * Workaround for programs that make explicit dict_register() calls with
+  * tables that are already registered under a different name. This is safe
+  * only in programs that do not unregister or close a table that is
+  * registered with multiple names.
+  */
+int     dict_allow_multiple_dict_register_names = 0;
+
 #define STR(x)	vstring_str(x)
+
+/* dict_register_close - trigger dictionary cleanup */
+
+static void dict_register_close(DICT *dict)
+{
+    /* This will eventually call dict->saved_lose(). */
+    dict_unregister(dict->reg_name);
+}
 
 /* dict_register - make association with dictionary */
 
@@ -331,6 +364,15 @@ void    dict_register(const char *dict_name, DICT *dict_info)
     const char *myname = "dict_register";
     DICT_NODE *node;
 
+    /*
+     * Enforce referential integrity.
+     */
+    if (dict_allow_multiple_dict_register_names == 0
+	&& dict_info->reg_name && strcmp(dict_name, dict_info->reg_name) != 0)
+	msg_panic("%s: '%s:%s' is already registered under '%s' and cannot "
+		  "also be registered under '%s'", myname, dict_info->type,
+		  dict_info->name, dict_info->reg_name, dict_name);
+
     if (dict_table == 0)
 	dict_table = htable_create(0);
     if ((node = dict_node(dict_name)) == 0) {
@@ -338,6 +380,9 @@ void    dict_register(const char *dict_name, DICT *dict_info)
 	node->dict = dict_info;
 	node->refcount = 0;
 	htable_enter(dict_table, dict_name, (void *) node);
+	dict_info->reg_name = mystrdup(dict_name);
+	dict_info->saved_close = dict_info->close;
+	dict_info->close = dict_register_close;
     } else if (dict_info != node->dict)
 	msg_fatal("%s: dictionary name exists: %s", myname, dict_name);
     node->refcount++;
@@ -361,7 +406,9 @@ static void dict_node_free(void *ptr)
     DICT_NODE *node = (DICT_NODE *) ptr;
     DICT   *dict = node->dict;
 
-    if (dict->close)
+    if (dict->saved_close)			/* managed by dict_register() */
+	dict->saved_close(dict);
+    else
 	dict->close(dict);
     myfree((void *) node);
 }
@@ -644,9 +691,9 @@ static const NAME_MASK dict_mask[] = {
     "fixed", DICT_FLAG_FIXED,		/* fixed key map */
     "pattern", DICT_FLAG_PATTERN,	/* keys are patterns */
     "lock", DICT_FLAG_LOCK,		/* lock before access */
-    "replace", DICT_FLAG_DUP_REPLACE,	/* if file, replace dups */
+    "dup_replace", DICT_FLAG_DUP_REPLACE,	/* if file, replace dups */
     "sync_update", DICT_FLAG_SYNC_UPDATE,	/* if file, sync updates */
-    /*"debug", DICT_FLAG_DEBUG,		/* log access */
+    /* "debug", DICT_FLAG_DEBUG,		/* log access */
     "no_regsub", DICT_FLAG_NO_REGSUB,	/* disallow regexp substitution */
     "no_proxy", DICT_FLAG_NO_PROXY,	/* disallow proxy mapping */
     "no_unauth", DICT_FLAG_NO_UNAUTH,	/* disallow unauthenticated data */
@@ -688,5 +735,16 @@ char   *dict_make_registered_name(VSTRING *out, const char *type_name,
 {
     return (STR(vstring_sprintf(out, "%s(%o,%s)",
 				type_name, open_flags,
+				dict_flags_str(dict_flags))));
+}
+
+/* dict_make_registered_name4 - format registry name for consistent sharing */
+
+char   *dict_make_registered_name4(VSTRING *out, const char *type,
+				           const char *name,
+				           int open_flags, int dict_flags)
+{
+    return (STR(vstring_sprintf(out, "%s:%s(%o,%s)",
+				type, name, open_flags,
 				dict_flags_str(dict_flags))));
 }
