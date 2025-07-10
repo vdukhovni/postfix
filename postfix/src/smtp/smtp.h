@@ -59,6 +59,9 @@ typedef struct SMTP_ITERATOR {
     VSTRING *host;			/* hostname or empty */
     VSTRING *addr;			/* printable address or empty */
     unsigned port;			/* network byte order or null */
+#ifdef USE_TLS
+    int     tlsreqno;			/* "TLS-Required: no" */
+#endif
     struct DNS_RR *rr;			/* DNS resource record or null */
     struct DNS_RR *mx;			/* DNS resource record or null */
     /* Private members. */
@@ -66,11 +69,18 @@ typedef struct SMTP_ITERATOR {
     struct SMTP_STATE *parent;		/* parent linkage */
 } SMTP_ITERATOR;
 
+#ifdef USE_TLS
+#define IF_USE_TLS(...) (__VA_ARGS__)
+#else
+#define IF_USE_TLS(...)
+#endif
+
 #define SMTP_ITER_INIT(iter, _dest, _host, _addr, _port, state) do { \
 	vstring_strcpy((iter)->dest, (_dest)); \
 	vstring_strcpy((iter)->host, (_host)); \
 	vstring_strcpy((iter)->addr, (_addr)); \
 	(iter)->port = (_port); \
+	IF_USE_TLS((iter)->tlsreqno = 0); \
 	(iter)->mx = (iter)->rr = 0; \
 	vstring_strcpy((iter)->saved_dest, ""); \
 	(iter)->parent = (state); \
@@ -728,7 +738,7 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
   */
 #define SMTP_KEY_MASK_SCACHE_DEST_LABEL \
 	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
-	| SMTP_KEY_FLAG_REQ_NEXTHOP)
+	| SMTP_KEY_FLAG_REQ_NEXTHOP | SMTP_KEY_FLAG_TLS_LEVEL)
 
  /*
   * Connection-cache endpoint lookup key. The SENDER, CUR_NEXTHOP, HOSTNAME,

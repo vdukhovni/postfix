@@ -508,6 +508,24 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
     SMTP_TLS_POLICY *tls = state->tls;
 
     /*
+     * If the message contains a "TLS-Required: no" header, update the
+     * iterator to limit the policy at TLS_LEV_MAY.
+     * 
+     * We must do this early to avoid possible failure if TLSA record lookups
+     * fail, or if TLSA records are found, but can't be activated because the
+     * security level has been reset to "may".
+     * 
+     * Note that the REQUIRETLS verb in ESMTP overrides the "TLS-Required: no"
+     * header.
+     */
+#ifdef USE_TLS
+    if (var_tls_required_enable
+	&& (state->request->sendopts & SOPT_REQUIRETLS_HEADER)) {
+	iter->tlsreqno = 1;
+    }
+#endif
+
+    /*
      * Determine the TLS level for this destination.
      */
     if (!smtp_tls_policy_cache_query(why, tls, iter)) {
@@ -528,16 +546,6 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
 	}
     }
 #endif
-
-    /*
-     * Otherwise, if the TLS level is not TLS_LEV_NONE or some non-level, and
-     * the message contains a "TLS-Required: no" header, limit the level to
-     * TLS_LEV_MAY.
-     */
-    else if (var_tls_required_enable && tls->level > TLS_LEV_NONE
-	     && (state->request->sendopts & SOPT_REQUIRETLS_HEADER)) {
-	tls->level = TLS_LEV_MAY;
-    }
 
     /*
      * Success.

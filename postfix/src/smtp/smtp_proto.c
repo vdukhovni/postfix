@@ -926,13 +926,16 @@ static int smtp_start_tls(SMTP_STATE *state)
      * XXX: The TLS library will salt the serverid with further details of the
      * protocol and cipher requirements including the server ehlo response.
      * Deferring the helo to the digested suffix results in more predictable
-     * SSL session lookup key lengths.
+     * SSL session lookup key lengths. Add the current TLS security level to
+     * account for TLS level overrides based on message content or envelope
+     * metadata.
      */
     serverid = vstring_alloc(10);
     smtp_key_prefix(serverid, "&", state->iterator, SMTP_KEY_FLAG_SERVICE
 		    | SMTP_KEY_FLAG_CUR_NEXTHOP	/* With port */
 		    | SMTP_KEY_FLAG_HOSTNAME
-		    | SMTP_KEY_FLAG_ADDR);
+		    | SMTP_KEY_FLAG_ADDR
+		    | SMTP_KEY_FLAG_TLS_LEVEL);
 
     if (state->tls->conn_reuse) {
 	TLS_CLIENT_PARAMS tls_params;

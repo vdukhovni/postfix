@@ -29029,3 +29029,28 @@ Apologies for any names omitted.
 	add an extra newline character before appending the new
 	setting, causing information to become garbled. Fix by
 	Michael Tokarev. File: postconf/postconf_edit.c.
+
+20250619
+
+	Bugfix (defect introduced: Postfix-3.10, date 20250117):
+	include the current TLS security level in the SMTP connection
+	cache lookup key for lookups by next-hop destination. The
+	idea is that to deliver a message without "TLS-Required:
+	no" header, the Postfix SMTP client must not reuse a
+	connection that was created during a burst of deliveries
+	of messages with "TLS-Required: no" to the same destination.
+
+	Including the TLS security level in the SMTP connection
+	cache lookup key will also prevent false connection reuse
+	when any future feature is added that overrides the TLS
+	security level based on message content or envelope metadata.
+	Files: smtp/smtp.h.
+
+	Likewise, include the current TLS security level in the TLS
+	client serverid field. File: smtp/smtp_proto.c.
+
+	Bugfix (defect introduced: Postfix-3.10, date 20250117): the
+	Postfix SMTP client attempted to look up TLSA records even
+	with "TLS-Required: no". This could result in unnecessary
+	failures. Fix by Viktor Dukhovni & Wietse. Files: smtp/smtp.h,
+	smtp/smtp_policy.c, smtp/smtp_connect.c.

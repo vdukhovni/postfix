@@ -651,7 +651,12 @@ static void *policy_create(const char *unused_key, void *context)
     tls->level = global_tls_level();
     site_level = TLS_LEV_NOTFOUND;
 
-    if (tls_policy) {
+    if (iter->tlsreqno) {
+	if (msg_verbose)
+	    msg_info("%s: no tls policy lookup", __func__);
+	if (tls->level > TLS_LEV_MAY)
+	    tls->level = TLS_LEV_MAY;
+    } else if (tls_policy) {
 	tls_policy_lookup(tls, &site_level, dest, "next-hop destination");
     } else if (tls_per_site) {
 	tls_site_lookup(tls, &site_level, dest, "next-hop destination");
