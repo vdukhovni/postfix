@@ -320,7 +320,7 @@ static char *get_nested_dict_name(char *type_name)
 
 /* proxy_map_find - look up or open table */
 
-static DICT *proxy_map_find(const char *map_type_name, int request_flags,
+static DICT *proxy_map_find(const char *map_type_name, int inst_flags,
 			            int *statp)
 {
     DICT   *dict;
@@ -354,26 +354,12 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
 
     /*
      * Open one instance of a map for each combination of name+flags.
-     * 
-     * Assume that a map instance can be shared among clients with different
-     * paranoia flag settings and with different map lookup flag settings.
-     * 
-     * XXX The open() flags are passed implicitly, via the selection of the
-     * service name. For a more sophisticated interface, appropriate subsets
-     * of open() flags should be received directly from the client.
      */
-    vstring_sprintf(map_type_name_flags, "%s:%s", map_type_name,
-		    dict_flags_str(request_flags & DICT_FLAG_INST_MASK));
-    if (msg_verbose)
-	msg_info("proxy_map_find: %s", STR(map_type_name_flags));
-    if ((dict = dict_handle(STR(map_type_name_flags))) == 0) {
-	dict = dict_open(map_type_name, proxy_writer ?
-			 WRITE_OPEN_FLAGS : READ_OPEN_FLAGS,
-			 request_flags);
-	if (dict == 0)
-	    msg_panic("proxy_map_find: dict_open null result");
-	dict_register(STR(map_type_name_flags), dict);
-    }
+    dict = dict_open(map_type_name, proxy_writer ?
+		     WRITE_OPEN_FLAGS : READ_OPEN_FLAGS,
+		     inst_flags);
+    if (dict == 0)
+	msg_panic("proxy_map_find: dict_open null result");
     dict->error = 0;
     return (dict);
 }
@@ -382,6 +368,7 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
 
 static void proxymap_sequence_service(VSTREAM *client_stream)
 {
+    int     inst_flags;
     int     request_flags;
     DICT   *dict;
     int     request_func;
@@ -395,19 +382,19 @@ static void proxymap_sequence_service(VSTREAM *client_stream)
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 		  RECV_ATTR_STR(MAIL_ATTR_TABLE, request_map),
+		  RECV_ATTR_INT(MAIL_ATTR_INST_FLAGS, &inst_flags),
 		  RECV_ATTR_INT(MAIL_ATTR_FLAGS, &request_flags),
 		  RECV_ATTR_INT(MAIL_ATTR_FUNC, &request_func),
-		  ATTR_TYPE_END) != 3
+		  ATTR_TYPE_END) != 4
 	|| (request_func != DICT_SEQ_FUN_FIRST
 	    && request_func != DICT_SEQ_FUN_NEXT)) {
 	reply_status = PROXY_STAT_BAD;
 	reply_key = reply_value = "";
-    } else if ((dict = proxy_map_find(STR(request_map), request_flags,
+    } else if ((dict = proxy_map_find(STR(request_map), inst_flags,
 				      &reply_status)) == 0) {
 	reply_key = reply_value = "";
     } else {
-	dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
-		       | (request_flags & DICT_FLAG_RQST_MASK));
+	dict->flags = request_flags;
 	dict_status = dict_seq(dict, request_func, &reply_key, &reply_value);
 	if (dict_status == 0) {
 	    reply_status = PROXY_STAT_OK;
@@ -426,6 +413,7 @@ static void proxymap_sequence_service(VSTREAM *client_stream)
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
 	       SEND_ATTR_INT(MAIL_ATTR_STATUS, reply_status),
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, dict->flags),
 	       SEND_ATTR_STR(MAIL_ATTR_KEY, reply_key),
 	       SEND_ATTR_STR(MAIL_ATTR_VALUE, reply_value),
 	       ATTR_TYPE_END);
@@ -435,6 +423,7 @@ static void proxymap_sequence_service(VSTREAM *client_stream)
 
 static void proxymap_lookup_service(VSTREAM *client_stream)
 {
+    int     inst_flags;
     int     request_flags;
     DICT   *dict;
     const char *reply_value;
@@ -445,16 +434,16 @@ static void proxymap_lookup_service(VSTREAM *client_stream)
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 		  RECV_ATTR_STR(MAIL_ATTR_TABLE, request_map),
+		  RECV_ATTR_INT(MAIL_ATTR_INST_FLAGS, &inst_flags),
 		  RECV_ATTR_INT(MAIL_ATTR_FLAGS, &request_flags),
 		  RECV_ATTR_STR(MAIL_ATTR_KEY, request_key),
-		  ATTR_TYPE_END) != 3) {
+		  ATTR_TYPE_END) != 4) {
 	reply_status = PROXY_STAT_BAD;
 	reply_value = "";
-    } else if ((dict = proxy_map_find(STR(request_map), request_flags,
+    } else if ((dict = proxy_map_find(STR(request_map), inst_flags,
 				      &reply_status)) == 0) {
 	reply_value = "";
-    } else if (dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
-			      | (request_flags & DICT_FLAG_RQST_MASK)),
+    } else if (dict->flags = request_flags,
 	       (reply_value = dict_get(dict, STR(request_key))) != 0) {
 	reply_status = PROXY_STAT_OK;
     } else if (dict->error == 0) {
@@ -471,6 +460,7 @@ static void proxymap_lookup_service(VSTREAM *client_stream)
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
 	       SEND_ATTR_INT(MAIL_ATTR_STATUS, reply_status),
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, dict->flags),
 	       SEND_ATTR_STR(MAIL_ATTR_VALUE, reply_value),
 	       ATTR_TYPE_END);
 }
@@ -479,6 +469,7 @@ static void proxymap_lookup_service(VSTREAM *client_stream)
 
 static void proxymap_update_service(VSTREAM *client_stream)
 {
+    int     inst_flags;
     int     request_flags;
     DICT   *dict;
     int     dict_status;
@@ -495,21 +486,22 @@ static void proxymap_update_service(VSTREAM *client_stream)
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 		  RECV_ATTR_STR(MAIL_ATTR_TABLE, request_map),
+		  RECV_ATTR_INT(MAIL_ATTR_INST_FLAGS, &inst_flags),
 		  RECV_ATTR_INT(MAIL_ATTR_FLAGS, &request_flags),
 		  RECV_ATTR_STR(MAIL_ATTR_KEY, request_key),
 		  RECV_ATTR_STR(MAIL_ATTR_VALUE, request_value),
-		  ATTR_TYPE_END) != 4) {
+		  ATTR_TYPE_END) != 5) {
 	reply_status = PROXY_STAT_BAD;
     } else if (proxy_writer == 0) {
 	msg_warn("refusing %s update request on non-%s service",
 		 STR(request_map), MAIL_SERVICE_PROXYWRITE);
 	reply_status = PROXY_STAT_DENY;
-    } else if ((dict = proxy_map_find(STR(request_map), request_flags,
+    } else if ((dict = proxy_map_find(STR(request_map), inst_flags,
 				      &reply_status)) == 0) {
 	 /* void */ ;
     } else {
-	dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
-		       | (request_flags & DICT_FLAG_RQST_MASK)
+	/* Sync the table now. Don't abort on duplicate update. */
+	dict->flags = (request_flags
 		       | DICT_FLAG_SYNC_UPDATE | DICT_FLAG_DUP_REPLACE);
 	dict_status = dict_put(dict, STR(request_key), STR(request_value));
 	if (dict_status == 0) {
@@ -527,6 +519,7 @@ static void proxymap_update_service(VSTREAM *client_stream)
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
 	       SEND_ATTR_INT(MAIL_ATTR_STATUS, reply_status),
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, dict->flags),
 	       ATTR_TYPE_END);
 }
 
@@ -534,6 +527,7 @@ static void proxymap_update_service(VSTREAM *client_stream)
 
 static void proxymap_delete_service(VSTREAM *client_stream)
 {
+    int     inst_flags;
     int     request_flags;
     DICT   *dict;
     int     dict_status;
@@ -547,20 +541,21 @@ static void proxymap_delete_service(VSTREAM *client_stream)
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 		  RECV_ATTR_STR(MAIL_ATTR_TABLE, request_map),
+		  RECV_ATTR_INT(MAIL_ATTR_INST_FLAGS, &inst_flags),
 		  RECV_ATTR_INT(MAIL_ATTR_FLAGS, &request_flags),
 		  RECV_ATTR_STR(MAIL_ATTR_KEY, request_key),
-		  ATTR_TYPE_END) != 3) {
+		  ATTR_TYPE_END) != 4) {
 	reply_status = PROXY_STAT_BAD;
     } else if (proxy_writer == 0) {
 	msg_warn("refusing %s delete request on non-%s service",
 		 STR(request_map), MAIL_SERVICE_PROXYWRITE);
 	reply_status = PROXY_STAT_DENY;
-    } else if ((dict = proxy_map_find(STR(request_map), request_flags,
+    } else if ((dict = proxy_map_find(STR(request_map), inst_flags,
 				      &reply_status)) == 0) {
 	 /* void */ ;
     } else {
-	dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
-		       | (request_flags & DICT_FLAG_RQST_MASK)
+	/* Sync the table now. There is no close() request. */
+	dict->flags = (request_flags
 		       | DICT_FLAG_SYNC_UPDATE);
 	dict_status = dict_del(dict, STR(request_key));
 	if (dict_status == 0) {
@@ -578,6 +573,7 @@ static void proxymap_delete_service(VSTREAM *client_stream)
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
 	       SEND_ATTR_INT(MAIL_ATTR_STATUS, reply_status),
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, dict->flags),
 	       ATTR_TYPE_END);
 }
 
@@ -585,7 +581,7 @@ static void proxymap_delete_service(VSTREAM *client_stream)
 
 static void proxymap_open_service(VSTREAM *client_stream)
 {
-    int     request_flags;
+    int     inst_flags;
     DICT   *dict;
     int     reply_status;
     int     reply_flags;
@@ -595,11 +591,11 @@ static void proxymap_open_service(VSTREAM *client_stream)
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 		  RECV_ATTR_STR(MAIL_ATTR_TABLE, request_map),
-		  RECV_ATTR_INT(MAIL_ATTR_FLAGS, &request_flags),
+		  RECV_ATTR_INT(MAIL_ATTR_INST_FLAGS, &inst_flags),
 		  ATTR_TYPE_END) != 2) {
 	reply_status = PROXY_STAT_BAD;
 	reply_flags = 0;
-    } else if ((dict = proxy_map_find(STR(request_map), request_flags,
+    } else if ((dict = proxy_map_find(STR(request_map), inst_flags,
 				      &reply_status)) == 0) {
 	reply_flags = 0;
     } else {
@@ -842,14 +838,6 @@ int     main(int argc, char **argv)
      * Fingerprint executables and core dumps.
      */
     MAIL_VERSION_STAMP_ALLOCATE;
-
-    /*
-     * Workaround for programs that make explicit dict_register() calls with
-     * a table that is already registered under a different name. This is
-     * safe only in programs that do not unregister or close a table that is
-     * registered with multiple names.
-     */
-    dict_allow_multiple_dict_register_names = 1;
 
     /*
      * XXX When invoked with the master.cf service name "proxywrite", the

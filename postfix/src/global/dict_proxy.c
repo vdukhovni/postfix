@@ -113,6 +113,7 @@ static int dict_proxy_sequence(DICT *dict, int function,
     VSTREAM *stream;
     int     status;
     int     count = 0;
+    int     inst_flags;
     int     request_flags;
 
     /*
@@ -126,8 +127,8 @@ static int dict_proxy_sequence(DICT *dict, int function,
     VSTRING_TERMINATE(dict_proxy->reskey);
     VSTRING_RESET(dict_proxy->result);
     VSTRING_TERMINATE(dict_proxy->result);
-    request_flags = dict_proxy->inst_flags
-	| (dict->flags & DICT_FLAG_RQST_MASK);
+    inst_flags = dict_proxy->inst_flags;
+    request_flags = dict->flags;
     for (;;) {
 	stream = clnt_stream_access(dict_proxy->clnt);
 	errno = 0;
@@ -136,15 +137,17 @@ static int dict_proxy_sequence(DICT *dict, int function,
 	    || attr_print(stream, ATTR_FLAG_NONE,
 			  SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_SEQUENCE),
 			  SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
+			  SEND_ATTR_INT(MAIL_ATTR_INST_FLAGS, inst_flags),
 			  SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
 			  SEND_ATTR_INT(MAIL_ATTR_FUNC, function),
 			  ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
+			 RECV_ATTR_INT(MAIL_ATTR_FLAGS, &dict->flags),
 			 RECV_ATTR_STR(MAIL_ATTR_KEY, dict_proxy->reskey),
 			 RECV_ATTR_STR(MAIL_ATTR_VALUE, dict_proxy->result),
-			 ATTR_TYPE_END) != 3) {
+			 ATTR_TYPE_END) != 4) {
 	    if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno != ENOENT))
 		msg_warn("%s: service %s: %m", myname, dict_proxy->service);
 	} else {
@@ -194,6 +197,7 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
     VSTREAM *stream;
     int     status;
     int     count = 0;
+    int     inst_flags;
     int     request_flags;
 
     /*
@@ -205,8 +209,8 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
      */
     VSTRING_RESET(dict_proxy->result);
     VSTRING_TERMINATE(dict_proxy->result);
-    request_flags = dict_proxy->inst_flags
-	| (dict->flags & DICT_FLAG_RQST_MASK);
+    inst_flags = dict_proxy->inst_flags;
+    request_flags = dict->flags;
     for (;;) {
 	stream = clnt_stream_access(dict_proxy->clnt);
 	errno = 0;
@@ -215,14 +219,16 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
 	    || attr_print(stream, ATTR_FLAG_NONE,
 			  SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_LOOKUP),
 			  SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
+			  SEND_ATTR_INT(MAIL_ATTR_INST_FLAGS, inst_flags),
 			  SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
 			  SEND_ATTR_STR(MAIL_ATTR_KEY, key),
 			  ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
+			 RECV_ATTR_INT(MAIL_ATTR_FLAGS, &dict->flags),
 			 RECV_ATTR_STR(MAIL_ATTR_VALUE, dict_proxy->result),
-			 ATTR_TYPE_END) != 2) {
+			 ATTR_TYPE_END) != 3) {
 	    if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno != ENOENT))
 		msg_warn("%s: service %s: %m", myname, dict_proxy->service);
 	} else {
@@ -267,6 +273,7 @@ static int dict_proxy_update(DICT *dict, const char *key, const char *value)
     VSTREAM *stream;
     int     status;
     int     count = 0;
+    int     inst_flags;
     int     request_flags;
 
     /*
@@ -276,8 +283,8 @@ static int dict_proxy_update(DICT *dict, const char *key, const char *value)
      * associated with a specific connection. Each lookup needs to specify
      * the table and the flags that were specified to dict_proxy_open().
      */
-    request_flags = dict_proxy->inst_flags
-	| (dict->flags & DICT_FLAG_RQST_MASK);
+    inst_flags = dict_proxy->inst_flags;
+    request_flags = dict->flags;
     for (;;) {
 	stream = clnt_stream_access(dict_proxy->clnt);
 	errno = 0;
@@ -286,6 +293,7 @@ static int dict_proxy_update(DICT *dict, const char *key, const char *value)
 	    || attr_print(stream, ATTR_FLAG_NONE,
 			  SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_UPDATE),
 			  SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
+			  SEND_ATTR_INT(MAIL_ATTR_INST_FLAGS, inst_flags),
 			  SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
 			  SEND_ATTR_STR(MAIL_ATTR_KEY, key),
 			  SEND_ATTR_STR(MAIL_ATTR_VALUE, value),
@@ -293,7 +301,8 @@ static int dict_proxy_update(DICT *dict, const char *key, const char *value)
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
-			 ATTR_TYPE_END) != 1) {
+			 RECV_ATTR_INT(MAIL_ATTR_FLAGS, &dict->flags),
+			 ATTR_TYPE_END) != 2) {
 	    if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno != ENOENT))
 		msg_warn("%s: service %s: %m", myname, dict_proxy->service);
 	} else {
@@ -337,6 +346,7 @@ static int dict_proxy_delete(DICT *dict, const char *key)
     VSTREAM *stream;
     int     status;
     int     count = 0;
+    int     inst_flags;
     int     request_flags;
 
     /*
@@ -346,8 +356,8 @@ static int dict_proxy_delete(DICT *dict, const char *key)
      * associated with a specific connection. Each lookup needs to specify
      * the table and the flags that were specified to dict_proxy_open().
      */
-    request_flags = dict_proxy->inst_flags
-	| (dict->flags & DICT_FLAG_RQST_MASK);
+    inst_flags = dict_proxy->inst_flags;
+    request_flags = dict->flags;
     for (;;) {
 	stream = clnt_stream_access(dict_proxy->clnt);
 	errno = 0;
@@ -356,13 +366,15 @@ static int dict_proxy_delete(DICT *dict, const char *key)
 	    || attr_print(stream, ATTR_FLAG_NONE,
 			  SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_DELETE),
 			  SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
+			  SEND_ATTR_INT(MAIL_ATTR_INST_FLAGS, inst_flags),
 			  SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
 			  SEND_ATTR_STR(MAIL_ATTR_KEY, key),
 			  ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
-			 ATTR_TYPE_END) != 1) {
+			 RECV_ATTR_INT(MAIL_ATTR_FLAGS, &dict->flags),
+			 ATTR_TYPE_END) != 2) {
 	    if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno !=
 					     ENOENT))
 		msg_warn("%s: service %s: %m", myname, dict_proxy->service);
@@ -478,16 +490,20 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
     dict_proxy->dict.delete = dict_proxy_delete;
     dict_proxy->dict.sequence = dict_proxy_sequence;
     dict_proxy->dict.close = dict_proxy_close;
-    dict_proxy->inst_flags = (dict_flags & DICT_FLAG_INST_MASK);
+    dict_proxy->inst_flags = dict_flags;
     dict_proxy->reskey = vstring_alloc(10);
     dict_proxy->result = vstring_alloc(10);
     dict_proxy->clnt = *pstream;
     dict_proxy->service = service;
 
+#define DICT_PROXY_ERR_RETURN(d) do { \
+	DICT *_d = (d); \
+	dict_proxy_close(&dict_proxy->dict); \
+	return (_d); \
+    } while (0)
+
     /*
      * Establish initial contact and get the map type specific flags.
-     * 
-     * XXX Should retrieve flags from local instance.
      */
     for (;;) {
 	stream = clnt_stream_access(dict_proxy->clnt);
@@ -496,7 +512,7 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 	    || attr_print(stream, ATTR_FLAG_NONE,
 			  SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_OPEN),
 		      SEND_ATTR_STR(MAIL_ATTR_TABLE, dict_proxy->dict.name),
-		     SEND_ATTR_INT(MAIL_ATTR_FLAGS, dict_proxy->inst_flags),
+		 SEND_ATTR_INT(MAIL_ATTR_INST_FLAGS, dict_proxy->inst_flags),
 			  ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
@@ -512,14 +528,17 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 			 dict_flags_str(server_flags));
 	    switch (status) {
 	    case PROXY_STAT_BAD:
-		msg_fatal("%s open failed for table \"%s\": invalid request",
-			  dict_proxy->service, dict_proxy->dict.name);
+		DICT_PROXY_ERR_RETURN(dict_surrogate(DICT_TYPE_PROXY,
+			      dict_proxy->dict.name, open_flags, dict_flags,
+			 "%s open failed for table \"%s\": invalid request",
+			       dict_proxy->service, dict_proxy->dict.name));
 	    case PROXY_STAT_DENY:
-		msg_fatal("%s service is not configured for table \"%s\"",
-			  dict_proxy->service, dict_proxy->dict.name);
+		DICT_PROXY_ERR_RETURN(dict_surrogate(DICT_TYPE_PROXY,
+			      dict_proxy->dict.name, open_flags, dict_flags,
+			    "%s service is not configured for table \"%s\"",
+			       dict_proxy->service, dict_proxy->dict.name));
 	    case PROXY_STAT_OK:
-		dict_proxy->dict.flags = (dict_flags & ~DICT_FLAG_IMPL_MASK)
-		    | (server_flags & DICT_FLAG_IMPL_MASK);
+		dict_proxy->dict.flags = server_flags;
 		return (&dict_proxy->dict);
 	    default:
 		msg_warn("%s open failed for table \"%s\": unexpected status %d",

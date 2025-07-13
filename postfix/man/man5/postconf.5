@@ -2633,13 +2633,16 @@ Needed for debugging Postfix daemons with an X\-windows debugger.
 .IP "\fBMAIL_CONFIG\fR"
 Needed to make "\fBpostfix \-c\fR" work.
 .br
+.IP "\fBPOSTLOG_HOSTNAME\fR"
+Needed to make "\fBmaillog_file\fR" work during daemon
+process initialization.
+.br
 .IP "\fBPOSTLOG_SERVICE\fR"
 Needed to make "\fBmaillog_file\fR" work during daemon
 process initialization.
 .br
-.IP "\fBPOSTLOG_HOSTNAME\fR"
-Needed to make "\fBmaillog_file\fR" work during daemon
-process initialization.
+.IP "\fBXDG_RUNTIME_DIR\fR"
+Needed for debugging Postfix daemons with an XDG\-style debugger.
 .br
 .br
 .PP
@@ -7892,6 +7895,14 @@ Examples:
 .nf
 .na
 /etc/postfix/reply_filter:
+    # Some Microsoft servers violate RFC 2554 section 4, causing Postfix
+    # to complain with "non\-empty initial GSSAPI challenge from server"
+    /^334\es+GSSAPI\es+supported/ 334
+.fi
+.ad
+.PP
+.nf
+.na
     # Transform garbage into "250\-filler..." so that it looks like
     # one line from a multi\-line reply. It does not matter what we
     # substitute here as long it has the right syntax.  The Postfix

@@ -82,8 +82,6 @@
 /*	const char *name,
 /*	int	open_flags,
 /*	int	dict_flags)
-/*
-/*	int	dict_allow_multiple_dict_register_names;
 /* DESCRIPTION
 /*	This module maintains a collection of name-value dictionaries.
 /*	Each dictionary has its own name and has its own methods to read
@@ -187,14 +185,6 @@
 /*	This encourages consistent sharing of dictionary instances that
 /*	have the exact same type:name and (initial) flags. The result
 /*	value is the string value of the \fIout\fR VSTRING buffer.
-/*
-/*	dict_allow_multiple_dict_register_names enables a temporary
-/*	workaround for programs that make explicit dict_register()
-/*	calls with a table that is already registered under a different
-/*	name. Setting this to non-zero allows a dictionary to be
-/*	registered under multiple names. This workaround is safe only
-/*	in programs that do not unregister or close a table that is
-/*	registered with multiple names.
 /* TRUST AND PROVENANCE
 /* .ad
 /* .fi
@@ -339,14 +329,6 @@ typedef struct {
 	dict = node->dict; \
 } while (0)
 
- /*
-  * Workaround for programs that make explicit dict_register() calls with
-  * tables that are already registered under a different name. This is safe
-  * only in programs that do not unregister or close a table that is
-  * registered with multiple names.
-  */
-int     dict_allow_multiple_dict_register_names = 0;
-
 #define STR(x)	vstring_str(x)
 
 /* dict_register_close - trigger dictionary cleanup */
@@ -367,8 +349,7 @@ void    dict_register(const char *dict_name, DICT *dict_info)
     /*
      * Enforce referential integrity.
      */
-    if (dict_allow_multiple_dict_register_names == 0
-	&& dict_info->reg_name && strcmp(dict_name, dict_info->reg_name) != 0)
+    if (dict_info->reg_name && strcmp(dict_name, dict_info->reg_name) != 0)
 	msg_panic("%s: '%s:%s' is already registered under '%s' and cannot "
 		  "also be registered under '%s'", myname, dict_info->type,
 		  dict_info->name, dict_info->reg_name, dict_name);

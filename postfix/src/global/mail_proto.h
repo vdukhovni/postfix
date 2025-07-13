@@ -210,6 +210,8 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_COMPAT_LEVEL	"compatibility_level"
 #define MAIL_ATTR_MAIL_VERSION	"mail_version"
 
+#define MAIL_ATTR_INST_FLAGS	"instance_flags"
+
  /*
   * Suffixes for sender_name, sender_domain etc.
   */

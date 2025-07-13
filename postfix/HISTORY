@@ -29345,3 +29345,53 @@ Apologies for any names omitted.
 	Cleanup: simplified the rule parser in global/server_acl.c.
 
 	Unbroke dict_debug Valgrind checks. File: util/dict_debug_test.sh.
+
+20250710
+
+	Bugfix (defect introduced: postfix-2.2, date 20050203):
+	after detecting a lookup table change, and after starting
+	a new postscreen process, the old postscreen process logged
+	an ENOTSOCK error while attempting to accept a connection
+	on a socket that it was no longer listening on. This error
+	was introduced first in the multi_server skeleton code, and
+	was five years later duplicated in the event_server skeleton
+	that was created for postscreen. Problem reported by Florian
+	Piekert. Files: master/multi_server.c, master/event_server.c.
+
+20250713
+
+	Cleanup: allow "postmap -s" and "postalias -s" with proxied
+	tables. The proxymap protocol already supported this. Files:
+	postmap/postmap.c, postalias/postalias.c.
+
+	Cleanup: simplified the proxymap protocol and the proxymap
+	table sharing strategy. Share only table instances that
+	have identical client-side dictionary flags when opening a
+	table (instead of sharing tables that have a common subset
+	of flags). With each client request, propagate all client-side
+	dictionary flags to the server, and upon request completion,
+	propagate all resulting server-side dictionary flags to the
+	client. Files: dict.h, dict_proxy.c, proxymap/proxymap.c,
+	global/mail_proto.h.
+
+	Cleanup; stop hard-coding "dict->flags = DICT_FLAG_FIXED"
+	in dict_alloc.c. All tables already overwrote that information.
+
+	Debugging: the default import_environment now also imports
+	XDG_RUNTIME_DIR to support GUI debugging a Postfix daemon
+	process on some platforms (it already imported XAUTHORITY
+	and DISPLAY for X-based debuggers). These environment
+	variables are set only when Postfix is started 'by hand'.
+	File: global/mail_params.h.
+
+	Graceful degradation: when a proxymap or proxywrite server
+	denies access to a table, do not terminate the program.
+	Instead, return a surrogate object that fails all requests
+	with an informative message. File: global/dict_proxy.c.
+
+	Workaround: added an example to the smtp_reply_filter
+	documentation that works around Microsoft SASL server
+	implementations that send a non-empty initial GSSAPI
+	challenge. File: proto/postconf.proto.
+
+	Typo in COMPATIBILITY_README.html. Emmanuel Fusté.

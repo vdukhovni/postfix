@@ -147,7 +147,7 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
 
     dict->type = mystrdup(dict_type);
     dict->name = mystrdup(dict_name);
-    dict->flags = DICT_FLAG_FIXED;
+    dict->flags = 0;
     dict->lookup = dict_default_lookup;
     dict->update = dict_default_update;
     dict->delete = dict_default_delete;

@@ -146,14 +146,8 @@ void    dict_test(int argc, char **argv)
 	    vstream_printf("dict flags %s\n",
 			   dict_flags_str(dict->flags));
 	} else if (strcmp(cmd, "masks") == 0 && !key && !value) {
-	    vstream_printf("DICT_FLAG_IMPL_MASK %s\n",
-			   dict_flags_str(DICT_FLAG_IMPL_MASK));
 	    vstream_printf("DICT_FLAG_PARANOID %s\n",
 			   dict_flags_str(DICT_FLAG_PARANOID));
-	    vstream_printf("DICT_FLAG_RQST_MASK %s\n",
-			   dict_flags_str(DICT_FLAG_RQST_MASK));
-	    vstream_printf("DICT_FLAG_INST_MASK %s\n",
-			   dict_flags_str(DICT_FLAG_INST_MASK));
 	} else {
 	    vstream_printf("usage: %s\n", USAGE);
 	}

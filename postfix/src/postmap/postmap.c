@@ -899,8 +899,6 @@ static void postmap_seq(const char *map_type, const char *map_name,
     const char *value;
     int     func;
 
-    if (strcmp(map_type, DICT_TYPE_PROXY) == 0)
-	msg_fatal("can't sequence maps via the proxy service");
     dict = dict_open3(map_type, map_name, O_RDONLY, dict_flags);
     for (func = DICT_SEQ_FUN_FIRST; /* void */ ; func = DICT_SEQ_FUN_NEXT) {
 	if (dict_seq(dict, func, &key, &value) != 0)

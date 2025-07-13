@@ -179,3 +179,5 @@ proto  proto COMPATIBILITY_README html
  postconf Makefile in postconf postconf c 
  dict_open Files util dict hc proxymap proxymap c 
  proxymap proxymap c 
+ postmap postmap c postalias postalias c 
+ client Files dict h dict_proxy c proxymap proxymap c 

@@ -2663,7 +2663,8 @@ extern int var_fflush_refresh;
 #define VAR_IMPORT_ENVIRON		"import_environment"
 #define DEF_IMPORT_ENVIRON		"MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG " \
 					"TZ XAUTHORITY DISPLAY LANG=C " \
-					"POSTLOG_SERVICE POSTLOG_HOSTNAME"
+					"POSTLOG_SERVICE POSTLOG_HOSTNAME" \
+					"XDG_RUNTIME_DIR"
 extern char *var_import_environ;
 
 #define VAR_EXPORT_ENVIRON		"export_environment"

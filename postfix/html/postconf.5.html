@@ -4236,15 +4236,20 @@ environment.  Examples of relevant environment variables: </p>
 
 <dd>Needed to make "<b>postfix -c</b>" work. </dd>
 
+<dt><b>POSTLOG_HOSTNAME</b></dt>
+
+<dd>Needed to make "<b><a href="postconf.5.html#maillog_file">maillog_file</a></b>" work during daemon
+process initialization. </dd>
+
 <dt><b>POSTLOG_SERVICE</b></dt>
 
 <dd>Needed to make "<b><a href="postconf.5.html#maillog_file">maillog_file</a></b>" work during daemon
 process initialization. </dd>
 
-<dt><b>POSTLOG_HOSTNAME</b></dt>
+<dt><b>XDG_RUNTIME_DIR</b></dt>
 
-<dd>Needed to make "<b><a href="postconf.5.html#maillog_file">maillog_file</a></b>" work during daemon
-process initialization. </dd>
+<dd>Needed for debugging Postfix daemons with an XDG-style debugger.
+</dd>
 
 </dl>
 
@@ -12497,6 +12502,12 @@ line. </p>
 
 <pre>
 /etc/postfix/reply_filter:
+    # Some Microsoft servers violate <a href="https://tools.ietf.org/html/rfc2554">RFC 2554</a> section 4, causing Postfix
+    # to complain with "non-empty initial GSSAPI challenge from server"
+    /^334\s+GSSAPI\s+supported/ 334
+</pre>
+
+<pre>
     # Transform garbage into "250-filler..." so that it looks like
     # one line from a multi-line reply. It does not matter what we
     # substitute here as long it has the right syntax.  The Postfix
