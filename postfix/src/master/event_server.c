@@ -329,7 +329,7 @@ int     event_server_drain(void)
     int     fd;
 
     if (event_server_drain_was_called)
-	return;
+	return (0);
 
     switch (fork()) {
 	/* Try again later. */
