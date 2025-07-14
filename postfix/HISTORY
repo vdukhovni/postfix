@@ -29395,3 +29395,8 @@ Apologies for any names omitted.
 	challenge. File: proto/postconf.proto.
 
 	Typo in COMPATIBILITY_README.html. Emmanuel Fusté.
+
+20250714
+
+	Uploaded the wrong postfix-3.11-20250713 tarball. Files:
+	master/event_server.c, master/multi_server.c.

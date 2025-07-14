@@ -297,7 +297,7 @@ int     multi_server_drain(void)
     int     fd;
 
     if (multi_server_drain_was_called)
-	return;
+	return (0);
 
     switch (fork()) {
 	/* Try again later. */
