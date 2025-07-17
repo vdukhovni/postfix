@@ -5048,6 +5048,17 @@ configuration parameter.  See there for details.  </p>
 
 </DD>
 
+<DT><b><a name="lmtp_enforce_requiretls">lmtp_enforce_requiretls</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_enforce_requiretls">smtp_enforce_requiretls</a>
+configuration parameter. See there for details. </p>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_enforce_tls">lmtp_enforce_tls</a>
 (default: no)</b></DT><DD>
 
@@ -8223,6 +8234,13 @@ you really want to match subdomains.
 <a href="postconf.5.html#smtpd_client_event_limit_exceptions">smtpd_client_event_limit_exceptions</a>
 </dd>
 
+<dt> Postfix version 3.11 and later </dt>
+
+<dd>
+<a href="postconf.5.html#smtp_enforce_requiretls">smtp_enforce_requiretls</a>,
+<a href="postconf.5.html#lmtp_enforce_requiretls">lmtp_enforce_requiretls</a>
+</dd>
+
 </dl>
 
 
@@ -10603,6 +10621,37 @@ the mail server (IMPORTING HOME DIRECTORIES IS NOT RECOMMENDED).
 
 </DD>
 
+<DT><b><a name="requiretls_enable">requiretls_enable</a>
+(default: yes)</b></DT><DD>
+
+<p> Enable support for the ESMTP verb "REQUIRETLS", defined in <a href="https://tools.ietf.org/html/rfc8689">RFC</a>
+<a href="https://tools.ietf.org/html/rfc8689">8689</a>. By issuing this verb in the "MAIL FROM" command, a sender
+specifies that a message must be delivered over TLS connections
+with a verified server certificate, to a server that announces
+"REQUIRETLS" support. This corresponds to the Postfix SMTP client
+TLS security levels "secure", "verify", "fingerprint", dane-only,
+or opportunistic "dane", with a successful certificate match. The
+Postfix SMTP client will try one or more servers, controlled with
+the <a href="postconf.5.html#smtp_mx_address_limit">smtp_mx_address_limit</a> parameter, until it finds a server that
+satisfies requirements. Otherwise, Postfix returns the message as
+undeliverable. </p>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> REQUIRETLS enforcement is controlled with <a href="postconf.5.html#smtp_enforce_requiretls">smtp_enforce_requiretls</a>
+or <a href="postconf.5.html#lmtp_enforce_requiretls">lmtp_enforce_requiretls</a>. </p>
+
+<li> <p> REQUIRETLS overrides "TLS-Required: no". </p>
+
+</ul>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+
+</DD>
+
 <DT><b><a name="reset_owner_alias">reset_owner_alias</a>
 (default: no)</b></DT><DD>
 
@@ -11930,6 +11979,86 @@ reasonably-modern DNS resolver(3) library that implements the
 RES_USE_DNSSEC and RES_USE_EDNS0 resolver options. </p>
 
 <p> This feature is available in Postfix 2.11 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_enforce_requiretls">smtp_enforce_requiretls</a>
+(default: empty)</b></DT><DD>
+
+<p> An optional list of next-hop destinations that the Postfix
+SMTP/LMTP client will enforce REQUIRETLS for, when a message was
+received with the REQUIRETLS option: the next-hop server must offer
+a matching TLS server certificate, and the server must announce
+REQUIRETLS support). Such a message will be returned to the sender
+if some REQUIRETLS requirement cannot be satisfied. These "hard"
+REQUIRETLS failures are logged as "REQUIRETLS failure". </p>
+
+<p> Other messages that were received with the REQUIRETLS option
+will be delivered with REQUIRETLS if possible. If not, a message
+will be delivered as if it was received without the REQUIRETLS
+option. This allows a mail sending site to discover when REQUIRETLS
+can be enforced, without disrupting email deliveries. These "soft"
+REQUIRETLS failures are logged with "REQUIRETLS Debug". </p>
+
+<p> On a perimeter MTA, it can make sense to turn off REQUIRETLS
+enforcement, or even to turn off REQUIRETLS support, when delivering
+a message to an internal destination. The internal servers may not
+support REQUIRETLS, and their connections may be secured with means
+other than DANE, STS, and the like. </p>
+
+<p> The supported syntax differs with SMTP and LMTP: </p>
+
+<ul>
+
+<li> <p> With SMTP, specify a list of next-hop domain names (without
+the ":port" or ":service" suffix), "/file/name" patterns or
+"<a href="DATABASE_README.html">type:table</a>" lookup tables, separated by commas and/or whitespace.
+Continue long lines by starting the next line with whitespace. A
+"/file/name" pattern is replaced by its contents.  A "<a href="DATABASE_README.html">type:table</a>"
+lookup table is matched when a domain appears as lookup key. Specify
+"!pattern" to exclude a domain. </p>
+
+<li> <p> With LMTP, specify list of domain names (without the "inet":
+prefix, or  ":port" or ":service" suffix), or UNIX-domain socket
+"/path/name" (without the "unix:" prefix), or "<a href="DATABASE_README.html">type:table</a>" lookup
+tables, separated by commas and/or whitespace. Continue long lines
+by starting the next line with whitespace. A "<a href="DATABASE_README.html">type:table</a>" lookup
+table is matched when a domain appears as lookup key. Specify
+"!pattern" to exclude a domain or socket path. </p>
+
+</ul>
+
+<p> Specify the form ".domain" to match any name ending in ".domain".
+To change this behavior, list "<a href="postconf.5.html#smtp_enforce_requiretls">smtp_enforce_requiretls</a>" or
+"<a href="postconf.5.html#lmtp_enforce_requiretls">lmtp_enforce_requiretls</a>" in the <a href="postconf.5.html#parent_domain_matches_subdomains">parent_domain_matches_subdomains</a>
+parameter value.  </p>
+
+<p>
+SMTP Examples:
+</p>
+
+<pre>
+# Enforce REQUIRETLS for SMTP with selected next-hop domains.
+<a href="postconf.5.html#smtp_enforce_requiretls">smtp_enforce_requiretls</a> = example.com, foo.example
+<br>
+# Enforce REQUIRETLS for SMTP with all but a few next-hop domains.
+<a href="postconf.5.html#smtp_enforce_requiretls">smtp_enforce_requiretls</a> = !foo.example, <a href="DATABASE_README.html#types">static</a>:all
+</pre>
+
+<p>
+LMTP examples:
+</p>
+
+<pre>
+# Don't enforce REQUIRETLS
+<a href="postconf.5.html#lmtp_enforce_requiretls">lmtp_enforce_requiretls</a> =
+<br>
+# Enforce REQUIRETLS for specific destinations.
+<a href="postconf.5.html#lmtp_enforce_requiretls">lmtp_enforce_requiretls</a> = /path/to/socket, message-store.example
+</pre>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
 
 
 </DD>
@@ -20799,6 +20928,8 @@ server certificates, and fall back to plaintext if TLS is unavailable.
 If a message contains a "TLS-Required: no" header, then Postfix
 will add that header to a delivery status notification for that
 message. </p>
+
+<p> Note: REQUIRETLS overrides "TLS-Required: no". </p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
 
