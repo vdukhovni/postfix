@@ -40,21 +40,24 @@
 /*	file-based tables that are not based on \fBlmdb\fR).
 /* .PP
 /*	The \fBproxymap\fR(8) server implements the following requests:
-/* .IP "\fBopen\fR \fImaptype:mapname flags\fR"
+/* .IP "\fBopen\fR \fImaptype:mapname instance-flags\fR"
 /*	Open the table with type \fImaptype\fR and name \fImapname\fR,
-/*	as controlled by \fIflags\fR. The reply includes the \fImaptype\fR
-/*	dependent flags (to distinguish a fixed string table from a regular
-/*	expression table).
-/* .IP "\fBlookup\fR \fImaptype:mapname flags key\fR"
-/*	Look up the data stored under the requested key.
-/*	The reply is the request completion status code and
-/*	the lookup result value.
-/*	The \fImaptype:mapname\fR and \fIflags\fR are the same
+/*	with initial dictionary flags \fIinstance-flags\fR. The reply
+/*	contains the actual dictionary flags (for example, to distinguish
+/*	a fixed-string table from a regular-expression table).
+/* .IP "\fBlookup\fR \fImaptype:mapname instance-flags request-flags key\fR"
+/*	Look up the data stored under the requested key using the
+/*	dictionary flags in \fIrequest-flags\fR.
+/*	The reply contains the request completion status code, the
+/*	resulting dictionary flags, and the lookup result value.
+/*	The \fImaptype:mapname\fR and \fIinstance-flags\fR are the same
 /*	as with the \fBopen\fR request.
-/* .IP "\fBupdate\fR \fImaptype:mapname flags key value\fR"
-/*	Update the data stored under the requested key.
-/*	The reply is the request completion status code.
-/*	The \fImaptype:mapname\fR and \fIflags\fR are the same
+/* .IP "\fBupdate\fR \fImaptype:mapname instance-flags request-flags key value\fR"
+/*	Update the data stored under the requested key using the
+/*	dictionary flags in \fIrequest-flags\fR.
+/*	The reply contains the request completion status code and the
+/*	resulting dictionary flags.
+/*	The \fImaptype:mapname\fR and \fIinstance-flags\fR are the same
 /*	as with the \fBopen\fR request.
 /* .sp
 /*	To implement single-updater maps, specify a process limit
@@ -62,29 +65,36 @@
 /*	service.
 /* .sp
 /*	This request is supported in Postfix 2.5 and later.
-/* .IP "\fBdelete\fR \fImaptype:mapname flags key\fR"
-/*	Delete the data stored under the requested key.
-/*	The reply is the request completion status code.
-/*	The \fImaptype:mapname\fR and \fIflags\fR are the same
+/* .IP "\fBdelete\fR \fImaptype:mapname instance-flags request-flags key\fR"
+/*	Delete the data stored under the requested key, using the
+/*	dictionary flags in \fIrequest-flags\fR.
+/*	The reply contains the request completion status code and the
+/*	resulting dictionary flags.
+/*	The \fImaptype:mapname\fR and \fIinstance-flags\fR are the same
 /*	as with the \fBopen\fR request.
 /* .sp
 /*	This request is supported in Postfix 2.5 and later.
-/* .IP "\fBsequence\fR \fImaptype:mapname flags function\fR"
-/*	Iterate over the specified database. The \fIfunction\fR
-/*	is one of DICT_SEQ_FUN_FIRST or DICT_SEQ_FUN_NEXT.
-/*	The reply is the request completion status code and
-/*	a lookup key and result value, if found.
+/* .IP "\fBsequence\fR \fImaptype:mapname instance-flags request-flags function\fR"
+/*	Iterate over the specified database, using the dictionary flags
+/*	in \fIrequest-flags\fR. The \fIfunction\fR is either
+/*	DICT_SEQ_FUN_FIRST or DICT_SEQ_FUN_NEXT.
+/*	The reply contains the request completion status code, the
+/*	resulting dictionary flags, and a lookup key and result value
+/*	if found.
+/*	The \fImaptype:mapname\fR and \fIinstance-flags\fR are the same
+/*	as with the \fBopen\fR request.
 /* .sp
 /*	This request is supported in Postfix 2.9 and later.
+/* .IP "Not implemented: close"
+/*	There is no \fBclose\fR request, nor are tables implicitly closed
+/*	when a client disconnects. The purpose is to share tables among
+/*	multiple client processes. Due to the absence of an explicit or
+/*	implicit \fBclose\fR, updates are forced to be synchronous.
 /* .PP
 /*	The request completion status is one of OK, RETRY, NOKEY
 /*	(lookup failed because the key was not found), BAD (malformed
 /*	request) or DENY (the table is not approved for proxy read
 /*	or update access).
-/*
-/*	There is no \fBclose\fR command, nor are tables implicitly closed
-/*	when a client disconnects. The purpose is to share tables among
-/*	multiple client processes.
 /* SERVER PROCESS MANAGEMENT
 /* .ad
 /* .fi
@@ -215,6 +225,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -323,6 +336,8 @@ static char *get_nested_dict_name(char *type_name)
 static DICT *proxy_map_find(const char *map_type_name, int inst_flags,
 			            int *statp)
 {
+    static HTABLE *new_flags;
+    HTABLE_INFO *ht;
     DICT   *dict;
 
 #define PROXY_COLON	DICT_TYPE_PROXY ":"
@@ -360,6 +375,20 @@ static DICT *proxy_map_find(const char *map_type_name, int inst_flags,
 		     inst_flags);
     if (dict == 0)
 	msg_panic("proxy_map_find: dict_open null result");
+
+    /*
+     * Remember the mapping from dict->reg_name to the dict->flags of a
+     * newly-initialized instance. Always return an instance with those new
+     * dict->flags, to avoid crosstalk between different clients.
+     */
+    if (new_flags == 0)
+	new_flags = htable_create(100);
+    if ((ht = htable_locate(new_flags, dict->reg_name)) == 0) {
+	(void) htable_enter(new_flags, dict->reg_name,
+			    CAST_INT_TO_VOID_PTR(dict->flags));
+    } else {
+	dict->flags = CAST_ANY_PTR_TO_INT(ht->value);
+    }
     dict->error = 0;
     return (dict);
 }

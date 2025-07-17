@@ -449,7 +449,8 @@ DICT   *dict_sdbm_open(const char *path, int open_flags, int dict_flags)
     dict_sdbm->dict.stat_fd = sdbm_pagfno(dbm);
     if (fstat(dict_sdbm->dict.stat_fd, &st) < 0)
 	msg_fatal("dict_sdbm_open: fstat: %m");
-    dict_sdbm->dict.mtime = st.st_mtime;
+    if (open_flags == O_RDONLY)
+	dict_sdbm->dict.mtime = st.st_mtime;
     dict_sdbm->dict.owner.uid = st.st_uid;
     dict_sdbm->dict.owner.status = (st.st_uid != 0);
 

@@ -370,7 +370,7 @@
 /*	configuration files.
 /* .IP "\fBdelay_logging_resolution_limit (2)\fR"
 /*	The maximal number of digits after the decimal point when logging
-/*	sub-second delay values.
+/*	delay values.
 /* .IP "\fBcommand_directory (see 'postconf -d' output)\fR"
 /*	The location of all postfix administrative commands.
 /* .IP "\fBmax_idle (100s)\fR"
@@ -430,6 +430,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -996,7 +999,7 @@ static void pre_accept(char *unused_name, char **unused_argv)
     if (new_event_time >= last_event_time + 1
 	&& (name = dict_changed_name()) != 0) {
 	msg_info("table %s has changed - finishing in the background", name);
-	event_server_drain();
+	psc_drain(unused_name, unused_argv);
     } else {
 	last_event_time = new_event_time;
     }

@@ -29400,3 +29400,44 @@ Apologies for any names omitted.
 
 	Uploaded the wrong postfix-3.11-20250713 tarball. Files:
 	master/event_server.c, master/multi_server.c.
+
+	Deleted an <openssl/engine.h> dependency, because the feature is
+	being removed from OpenSSL, and Postfix no longer needs it. File:
+	posttls-finger/posttls-finger.c.
+
+	Updated the proxymap(8) manpage and some internal documentation.
+	File: proxymap/proxymap.c.
+
+20250715
+
+	Cleanup: the proxymap 'open' service always returns the
+	dict->flags from a newly-initialized instance. This avoids
+	cross-talk between different clients. File: proxymap/proxymap.c.
+
+20250716
+
+	Bugfix (defect introduced: Postfix 2.7, date 20121223):
+	segfault in the internal: table iterator when the table
+	contained exactly one element. File: util/htable.c.
+
+	Technical debt: allow an element to be deleted before the
+	internal: table's first/next iterator has visited it. File:
+	util/htable.c.
+
+20250716
+
+	Bugfix (defect introduced: Postfix 2.8, date 20101230):
+	after detecting a cache table change and before starting a
+	new postscreen process, the old postscreen process did not
+	close the postscreen_cache_map, and therefore kept an
+	exclusive lock that could prevent a new postscreen process
+	from starting. Problem reported by Florian Piekert. File:
+	postscreen/postscreen.c.
+
+20250717
+
+	Workaround: Postfix daemons no longer automatically restart
+	after a btree:, dbm:, hash:, lmdb:, or sdbm: table file
+	modification time change, when they opened that table for
+	writing. Files: util/dict.c, util/dict_db.c, util/dict_dbm.c,
+	util/dict_lmdb.c, util/dict_sdbm.c.

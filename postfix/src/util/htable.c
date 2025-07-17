@@ -93,8 +93,7 @@
 /*	htable_sequence() returns the first or next element depending
 /*	on the value of the "how" argument.  Specify HTABLE_SEQ_FIRST
 /*	to start a new sequence, HTABLE_SEQ_NEXT to continue, and
-/*	HTABLE_SEQ_STOP to terminate a sequence early.  The caller
-/*	must not delete an element before it is visited.
+/*	HTABLE_SEQ_STOP to terminate a sequence early.
 /* RESTRICTIONS
 /*	A callback function should not modify the hash table that is
 /*	specified to its caller.
@@ -272,7 +271,7 @@ HTABLE_INFO *htable_locate(HTABLE *table, const char *key)
 void    htable_delete(HTABLE *table, const char *key, void (*free_fn) (void *))
 {
     if (table) {
-	HTABLE_INFO *ht;
+	HTABLE_INFO *ht, **sp;
 	HTABLE_INFO **h = table->data + htable_hash(key, table->size);
 
 #define	STREQ(x,y) (x == y || (x[0] == y[0] && strcmp(x,y) == 0))
@@ -290,6 +289,14 @@ void    htable_delete(HTABLE *table, const char *key, void (*free_fn) (void *))
 		if (free_fn && ht->value)
 		    (*free_fn) (ht->value);
 		myfree((void *) ht);
+		/* In case the first/next iterator has not yet visited it */
+		for (sp = table->seq_element; sp && *sp; sp++) {
+		    if (*sp == ht) {
+			while ((*sp = sp[1]) != 0)
+			    sp += 1;
+			break;
+		    }
+		}
 		return;
 	    }
 	}
@@ -374,7 +381,7 @@ HTABLE_INFO *htable_sequence(HTABLE *table, int how)
 	    myfree((void *) table->seq_bucket);
 	table->seq_bucket = htable_list(table);
 	table->seq_element = table->seq_bucket;
-	return (*(table->seq_element)++);
+	/* FALLTHROUGH */
     case HTABLE_SEQ_NEXT:			/* next element */
 	if (table->seq_element && *table->seq_element)
 	    return (*(table->seq_element)++);

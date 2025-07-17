@@ -789,7 +789,8 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
     dict_db->dict.stat_fd = dbfd;
     if (fstat(dict_db->dict.stat_fd, &st) < 0)
 	msg_fatal("dict_db_open: fstat: %m");
-    dict_db->dict.mtime = st.st_mtime;
+    if (open_flags == O_RDONLY)
+	dict_db->dict.mtime = st.st_mtime;
     dict_db->dict.owner.uid = st.st_uid;
     dict_db->dict.owner.status = (st.st_uid != 0);
 
