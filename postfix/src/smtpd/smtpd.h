@@ -209,6 +209,7 @@ typedef struct {
 #define SMTPD_FLAG_AUTH_USED	   (1<<2)	/* don't reuse SASL state */
 #define SMTPD_FLAG_SMTPUTF8	   (1<<3)	/* RFC 6531/2 transaction */
 #define SMTPD_FLAG_NEED_MILTER_ABORT (1<<4)	/* undo milter_mail_event() */
+#define SMTPD_FLAG_REQUIRETLS	   (1<<5)	/* RFC 8689 */
 
 #define SMTPD_NOTE_BARE_LF	   (1<<0)	/* saw at least one bare LF */
 

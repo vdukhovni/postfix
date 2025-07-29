@@ -1858,6 +1858,7 @@ TINYCDB
 getdata
 XXXSENDOPTS
 xtra
+NODICT
 HAPROXY
 SRVR
 DGST
@@ -1865,5 +1866,6 @@ DIGEST
 OSSL
 ossl
 deduplicates
+crosstalk
 intmax
 lflag
