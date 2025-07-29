@@ -29441,3 +29441,50 @@ Apologies for any names omitted.
 	modification time change, when they opened that table for
 	writing. Files: util/dict.c, util/dict_db.c, util/dict_dbm.c,
 	util/dict_lmdb.c, util/dict_sdbm.c.
+
+20250728
+
+	Documentation: in the postmap(1) manual page, fix the caveat
+	for the '-h' option. Robert Hansen. File: postmap/postmap.c.
+
+	Documentation: make MULTI_INSTANCE_README terminology
+	(default and non-default instances) consistent with
+	postmulti(1) terminology (primary and secondary instances).
+	Robert Hansen. File: proto/MULTI_INSTANCE_README.html.
+
+	Documentation: clarify vstring(3) handling of functions
+	that expect null-terminated inputs. File: util/vstring.c.
+
+	Bugfix (defect introduced: Postfix 3.6, date 20200710):
+	Postfix TLS client code logged "Untrusted TLS connection"
+	(wrong) instead of "Trusted TLS connection" (right), when
+	a server offered a trusted (valid PKI trust chain) certificate
+	that did not match the expected server name pattern. Viktor
+	Dukhovni. Files: tls/tls_client.c, tls/tls_verify.c.
+
+	Cleanup: the TLS client stores no more than one session
+	ticket per TLS connection (a remote TLS 1.3 server can send
+	multiple tickets). Viktor Dukhovni. File: tls/tls_client.c.
+
+20250729
+
+	Cleanup: more precise handling of session tickets in the
+	Postfix TLS server. Viktor Dukhovni. File: tls/tls_server.c.
+
+	Cleanup: TLS_SESS_STATE.rpt_reported should be a public member.
+	File: tls/tls.h
+
+	Cleanup: document that TLS_SESS_STATE.ticketed is now a
+	dual-purpose field. File: tls/tls.h.
+
+	Support for the 'll' (long long, etc.) and 'j' (intmax_t,
+	etc.) format modifiers. These may appear in the expansion
+	of the C99 PRI?MAX macros. File: util/vbuf_print.c.
+
+	Y2038 compatibility for 32-bit computer systems: 'long'
+	will be too small for the YP_LAST_MODIFIED field in a NIS
+	or NISPLUS mail.aliases map. Jiaying Song, Wind River. File:
+	postalias/postalias.c. There is more time-handling code in
+	Postfix that would need to be converted to int64_t, or to
+	long long which just like time_t is a 64-bit type on many
+	ILP32 and LP64 systems.

@@ -340,8 +340,8 @@ static int ticket_cb(SSL *con, unsigned char name[], unsigned char iv[],
 	if (TLScontext->log_mask & TLS_LOG_CACHE)
 	    msg_info("%s: Decrypting session ticket, key expiration: %ld",
 		     TLScontext->namaddr, (long) key->tout);
+	TLScontext->ticketed = 1;
     }
-    TLScontext->ticketed = 1;
     return (TLS_TKT_ACCEPT);
 }
 
@@ -375,8 +375,8 @@ static int ticket_cb(SSL *con, unsigned char name[], unsigned char iv[],
 	if (TLScontext->log_mask & TLS_LOG_CACHE)
 	    msg_info("%s: Decrypting session ticket, key expiration: %ld",
 		     TLScontext->namaddr, (long) key->tout);
+	TLScontext->ticketed = 1;
     }
-    TLScontext->ticketed = 1;
     return (TLS_TKT_ACCEPT);
 }
 

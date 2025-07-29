@@ -183,3 +183,9 @@ proto  proto COMPATIBILITY_README html
  client Files dict h dict_proxy c proxymap proxymap c 
  cross talk between different clients File proxymap proxymap c 
  postscreen postscreen c 
+ for the h option Robert Hansen File postmap postmap c 
+ Support for the ll long long etc and j intmax_t 
+ postalias postalias c There is more time handling code in
+ long long which just like time_t is a 64 bit type on many
+ File tls tls h
+ dual purpose field File tls tls h 
