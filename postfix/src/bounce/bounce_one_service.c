@@ -97,6 +97,15 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
     VSTRING *new_id = vstring_alloc(10);
 
     /*
+     * If the original sender requested REQUIRETLS, return headers only, and
+     * do not enforce REQUIRETLS for the delivery status notification.
+     */
+    if ((sendopts & SOPT_REQUIRETLS_ESMTP) != 0) {
+	dsn_ret = DSN_RET_HDRS;
+	sendopts &= ~SOPT_REQUIRETLS_ESMTP;
+    }
+
+    /*
      * Initialize. Open queue file, bounce log, etc.
      */
     bounce_info = bounce_mail_one_init(queue_name, queue_id, encoding,
@@ -162,7 +171,8 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 		    && bounce_recipient_log(bounce, bounce_info) == 0
 		    && bounce_header_dsn(bounce, bounce_info) == 0
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
-		    bounce_original(bounce, bounce_info, DSN_RET_FULL);
+		    bounce_original(bounce, bounce_info, dsn_ret ?
+				    dsn_ret : DSN_RET_FULL);
 		bounce_status = post_mail_fclose(bounce);
 		if (bounce_status == 0)
 		    msg_info("%s: postmaster non-delivery notification: %s",

@@ -163,9 +163,10 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
 #define FORWARD_CLEANUP_FLAGS \
 	(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_INTERNAL \
 	| smtputf8_autodetect(MAIL_SRC_MASK_FORWARD) \
+	| ((request->sendopts & SOPT_REQUIRETLS_ESMTP) ? \
+	CLEANUP_FLAG_REQUIRETLS : 0) \
 	| ((request->sendopts & SMTPUTF8_FLAG_REQUESTED) ? \
 	CLEANUP_FLAG_SMTPUTF8 : 0))
-	/* TODO(wietse) REQUIRETLS. */
 
     attr_print(cleanup, ATTR_FLAG_NONE,
 	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, FORWARD_CLEANUP_FLAGS),
