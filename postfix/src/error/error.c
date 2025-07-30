@@ -61,7 +61,7 @@
 /*	request before it is terminated by a built-in watchdog timer.
 /* .IP "\fBdelay_logging_resolution_limit (2)\fR"
 /*	The maximal number of digits after the decimal point when logging
-/*	sub-second delay values.
+/*	delay values.
 /* .IP "\fBdouble_bounce_sender (double-bounce)\fR"
 /*	The sender address of postmaster notifications that are generated
 /*	by the mail system.

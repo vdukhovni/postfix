@@ -29488,3 +29488,26 @@ Apologies for any names omitted.
 	Postfix that would need to be converted to int64_t, or to
 	long long which just like time_t is a 64-bit type on many
 	ILP32 and LP64 systems.
+
+20250730
+
+	Bugfix (defect introduced: Postfix 3.6, date 20200710):
+	Postfix TLS client code logged "Untrusted TLS connection"
+	(wrong) instead of "Trusted TLS connection" (right) for a
+	resumed TLS session, when a server offered a trusted (valid
+	PKI trust chain) certificate that did not match the expected
+	server name pattern. Viktor Dukhovni. Files: tls/tls_client.c,
+	tls/tls_verify.c.
+
+	Cleanup: make the manpage extraction tooling smarter about
+	section headings, and remove the now unnecessary explicit
+	".SH" formatting requests. This produces zero visible change
+	in formatted Postfix manpages. Files: mantools/srctoman,
+	src/global/config_known_tcp_ports.c, postmulti/postmulti.c,
+	tls/tls_misc.c.
+
+	Regenerate all manpages, causing parameter summaries to be
+	updated with new descriptions from postconf(5). Files:
+	conf/postfix-tls-script, discard/discard.c, error/error.c,
+	oqmgr/qmgr.c, postmulti/postmulti.c, qmgr/qmgr.c,
+	virtual/virtual.c.

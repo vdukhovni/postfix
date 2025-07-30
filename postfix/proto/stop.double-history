@@ -189,3 +189,7 @@ proto  proto COMPATIBILITY_README html
  long long which just like time_t is a 64 bit type on many
  File tls tls h
  dual purpose field File tls tls h 
+ conf postfix tls script discard discard c error error c 
+ oqmgr qmgr c postmulti postmulti c qmgr qmgr c 
+ src global config_known_tcp_ports c postmulti postmulti c 
+ virtual virtual c 

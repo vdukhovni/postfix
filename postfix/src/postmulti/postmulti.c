@@ -84,7 +84,9 @@
 /*	command is performed just for the primary instance.
 /* .PP
 /*	Iterator mode implements the following command options:
-/* .SH "Instance selection"
+/* Instance selection
+/* .ad
+/* .fi
 /* .IP \fB-a\fR
 /*	Perform the operation on all instances. This is the default.
 /* .IP "\fB-g \fIgroup\fR"
@@ -100,11 +102,15 @@
 /*	are started before "source" instances.
 /* .sp
 /*	This option cannot be used with \fB-p\fR.
-/* .SH "List mode"
+/* List mode
+/* .ad
+/* .fi
 /* .IP \fB-l\fR
 /*	List Postfix instances with their instance name, instance
 /*	group name, enable/disable status and configuration directory.
-/* .SH "Postfix-wrapper mode"
+/* Postfix-wrapper mode
+/* .ad
+/* .fi
 /* .IP "\fB-p \fIpostfix-command\fR"
 /*	Invoke \fBpostfix(1)\fR to execute \fIpostfix-command\fR.
 /*	This option implements the \fBpostfix-wrapper\fR(5) interface.
@@ -135,7 +141,9 @@
 /* .IP
 /*	# postmulti -g msa -p start
 /* .RE
-/* .SH "Command mode"
+/* Command mode
+/* .ad
+/* .fi
 /* .IP "\fB-x \fIunix-command\fR"
 /*	Execute the specified \fIunix-command\fR for all Postfix instances.
 /*	The command runs with appropriate environment settings for
@@ -143,7 +151,9 @@
 /*	config_directory, queue_directory, data_directory,
 /*	multi_instance_name, multi_instance_group and
 /*	multi_instance_enable.
-/* .SH "Other options"
+/* Other options
+/* .ad
+/* .fi
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple
 /*	\fB-v\fR options make the software increasingly verbose.
@@ -155,7 +165,9 @@
 /*	multi-instance status of an existing instance.
 /* .PP
 /*	The following options are implemented:
-/* .SH "Existing instance selection"
+/* Existing instance selection
+/* .ad
+/* .fi
 /* .IP \fB-a\fR
 /*	When creating or importing an instance, place the new
 /*	instance at the front of the secondary instance list.
@@ -170,7 +182,9 @@
 /*	With other life-cycle operations, apply the operation to
 /*	the named existing instance.  Specify "-" to select the
 /*	primary Postfix instance.
-/* .SH "New or existing instance name assignment"
+/* New or existing instance name assignment
+/* .ad
+/* .fi
 /* .IP "\fB-I \fIname\fR"
 /*	Assign the specified instance \fIname\fR to an existing
 /*	instance, newly-created instance, or imported instance.
@@ -181,7 +195,9 @@
 /* .IP "\fB-G \fIgroup\fR"
 /*	Assign the specified \fIgroup\fR name to an existing instance
 /*	or to a newly created or imported instance.
-/* .SH "Instance creation/deletion/status change"
+/* Instance creation/deletion/status change
+/* .ad
+/* .fi
 /* .IP "\fB-e \fIaction\fR"
 /*	"Edit" managed instances. The following actions are supported:
 /* .RS
@@ -302,7 +318,9 @@
 /*	the instance will not be started etc. with "postfix start",
 /*	"postmulti -p start" and so on. The instance can still be
 /*	started etc. with "postfix -c config-directory start".
-/* .SH "Other options"
+/* Other options
+/* .ad
+/* .fi
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple
 /*	\fB-v\fR options make the software increasingly verbose.
