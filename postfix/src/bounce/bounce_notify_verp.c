@@ -112,6 +112,15 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 	msg_panic("%s: attempt to bounce a double bounce", myname);
 
     /*
+     * If the original sender requested REQUIRETLS, return headers only, and
+     * do not enforce REQUIRETLS for the delivery status notification.
+     */
+    if ((sendopts & SOPT_REQUIRETLS_ESMTP) != 0) {
+	dsn_ret = DSN_RET_HDRS;
+	sendopts &= ~SOPT_REQUIRETLS_ESMTP;
+    }
+
+    /*
      * Initialize. Open queue file, bounce log, etc.
      */
     bounce_info = bounce_mail_init(service, queue_name, queue_id,

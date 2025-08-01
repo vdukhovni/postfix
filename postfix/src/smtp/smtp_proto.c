@@ -604,6 +604,10 @@ int     smtp_helo(SMTP_STATE *state)
 		    /* Ignored later if we already sent STARTTLS. */
 		    if ((discard_mask & EHLO_MASK_STARTTLS) == 0)
 			session->features |= SMTP_FEATURE_STARTTLS;
+		} else if (strcasecmp(word, "REQUIRETLS") == 0) {
+		    if ((discard_mask & EHLO_MASK_REQUIRETLS) == 0
+			&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS))
+			session->features |= SMTP_FEATURE_REQUIRETLS;
 #endif
 #ifdef USE_SASL_AUTH
 		} else if (var_smtp_sasl_enable
@@ -661,7 +665,8 @@ int     smtp_helo(SMTP_STATE *state)
      */
     if ((session->features & SMTP_FEATURE_SMTPUTF8) == 0
 	&& DELIVERY_REQUIRES_SMTPUTF8)
-	return (smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
+	return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
+			       DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "5.6.7"),
 			       "SMTPUTF8 is required, "
 			       "but was not offered by host %s",
@@ -678,6 +683,35 @@ int     smtp_helo(SMTP_STATE *state)
 		 session->namaddr);
 	session->features |= SMTP_FEATURE_8BITMIME;
     }
+
+    /*
+     * Require that the server announces REQUIRETLS when the sender requested
+     * REQUIRETLS. Return the message as undeliverable only when there are no
+     * more alternative MX hosts.
+     */
+#ifdef USE_TLS
+    if (var_requiretls_enable
+	&& (request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0
+	&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) != 0
+	&& (session->features & SMTP_FEATURE_REQUIRETLS) == 0) {
+	if (state->enforce_requiretls) {
+	    return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
+				   DSN_BY_LOCAL_MTA,
+				   SMTP_RESP_FAKE(&fake, "5.7.30"),
+				   "REQUIRETLS Failure: Sender requested "
+				   "delivery wth REQUIRETLS, but no mail "
+				   "server was found with REQUIRETLS "
+				   "support. The last attempted server "
+				   "was %s", session->namaddr));
+	} else {
+	    msg_info("REQUIRETLS Debug: Sender requested delivery wth "
+		     "REQUIRETLS, but no mail server was found with "
+		     "REQUIRETLS support. The last attempted server was "
+		     "%s", session->namaddr);
+	}
+
+    }
+#endif
 
     /*
      * We use SMTP command pipelining if the server said it supported it.
@@ -1146,7 +1180,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 	if (PLAINTEXT_FALLBACK_OK_AFTER_STARTTLS_FAILURE)
 	    RETRY_AS_PLAINTEXT;
 	return (smtp_misc_fail(state, state->tls->level == TLS_LEV_MAY ?
-			       SMTP_NOTHROTTLE : SMTP_THROTTLE,
+			       SMTP_MISC_FAIL_NONE : SMTP_MISC_FAIL_THROTTLE,
 			       DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "4.7.5"),
 			       "Cannot start TLS: handshake failure"));
@@ -1191,6 +1225,31 @@ static int smtp_start_tls(SMTP_STATE *state)
 		}
 	    }
 #endif
+
+	    /*
+	     * Require a server certificate match when the sender requested
+	     * REQUIRETLS. Return the message as undeliverable only when
+	     * there are no more alternative MX hosts.
+	     */
+	    if (var_requiretls_enable
+		&& (state->request->sendopts & SOPT_REQUIRETLS_ESMTP)) {
+		if (state->enforce_requiretls) {
+		    return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
+					   DSN_BY_LOCAL_MTA,
+					   SMTP_RESP_FAKE(&fake, "5.7.10"),
+					   "REQUIRETLS Failure: Sender "
+					   "requested a TLS server "
+					   "certificate match, but no "
+					   "match was found. The last "
+					   "attempted server was %s",
+					   session->namaddr));
+		} else {
+		    msg_info("REQUIRETLS Debug: Sender requested a TLS "
+			     "server certificate match, but no match was "
+			     "found. The last attempted server was %s",
+			     session->namaddr);
+		}
+	    }
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not verified"));
@@ -1781,7 +1840,22 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    if ((session->features & SMTP_FEATURE_SMTPUTF8) != 0
 		&& (request->sendopts & SMTPUTF8_FLAG_REQUESTED) != 0)
 		vstring_strcat(next_command, " SMTPUTF8");
-	    /* TODO(wietse) REQUIRETLS. */
+
+	    /*
+	     * Request REQUIRETLS when the remote SMTP server supports
+	     * REQUIRETLS and the sender requested REQUIRETLS.
+	     */
+#ifdef USE_TLS
+	    if (var_requiretls_enable
+		&& (request->sendopts & SOPT_REQUIRETLS_ESMTP) != 0) {
+		if ((session->features & SMTP_FEATURE_REQUIRETLS) != 0)
+		    vstring_strcat(next_command, " REQUIRETLS");
+		else if (state->enforce_requiretls)
+		    msg_panic("Can't happen: must enforce REQUIRETLS, but "
+			      "host %s did not announce REQUIRETLS support",
+			      session->namaddr);
+	    }
+#endif
 
 	    /*
 	     * We authenticate the local MTA only, but not the sender.

@@ -28932,7 +28932,7 @@ Apologies for any names omitted.
 	Documentation: updated TLSRPT_README, added postfix-tlspol
 	policy plugin, deprecated the policy_ttl attribute. File:
 	proto/TLSRPT_README.html.
-
+ 
 20250207
 
 	Performance: when a mysql: or pgsql: configuration specifies
@@ -29398,9 +29398,6 @@ Apologies for any names omitted.
 
 20250714
 
-	Uploaded the wrong postfix-3.11-20250713 tarball. Files:
-	master/event_server.c, master/multi_server.c.
-
 	Deleted an <openssl/engine.h> dependency, because the feature is
 	being removed from OpenSSL, and Postfix no longer needs it. File:
 	posttls-finger/posttls-finger.c.
@@ -29530,3 +29527,139 @@ Apologies for any names omitted.
 	change did not have space between POSTLOG_HOSTNAME and
 	XDG_RUNTIME_DIR, breaking maillog_file support and graphical
 	debugging. File: global/mail_params.h.
+
+	Baseline is postfix-3.11-20250801
+
+NONPROD CODE
+
+	Feature: support for the REQUIRETLS verb in SMTP. According
+	to RFC 8689, this requires TLS server certificate matching.
+	Files: cleanup/cleanup_api.c, global/cleanup_strflags.c,
+	global/post_mail.c, global/post_mail.c, global/ehlo_mask.[hc],
+	global/ehlo_mask_test.c, local/forward.c, smtpd/smtpd.c,
+	smtp/smtp_connect.c, smtp/smtp_proto.c.
+
+	Added a configuration parameter "requiretls_enable" (default:
+	yes). Files: cleanup/cleanup_api.c, global/cleanup_strflags.c,
+	global/post_mail.c, global/post_mail.c, global/ehlo_mask.[hc],
+	global/ehlo_mask_test.c, local/forward.c, smtpd/smtpd.c,
+	smtp/smtp_connect.c, smtp/smtp_proto.c.
+
+	After a certificate check fails, or a remote SMTP server
+	does not announce REQUIRETLS support, the Postfix SMTP
+	client will override the RFC 8689 5.x.x.  status and treat
+	it as a soft error, until there are no more alternate MX
+	servers to try. Files: smtp/smtp.h, smtp/smtp_proto.c,
+	smtp/smtp_trouble.c.
+
+	When a message received with REQUIRETLS is returned in a
+	delivery status notification, return the message headers
+	only, and do not request delivery with REQUIRETLS. Files:
+	bounce/bounce_notify_service.c, bounce/bounce_one_service.c,
+	bounce/bounce_trace_service.c, bounce/bounce_verp_service.c,
+	bounce/bounce_warn_service.c.
+
+	Completed: new Postfix sendmail command option "-O requiretls"
+	to request that deliveries over SMTP use the REQUIRETLS
+	extension. The option value "requiretls" is case-insensitive.
+	Files: sendmail/sendmail.c, global/rec_types.h, pickup/pickup.c.
+
+	Cleanup: new Postfix sendmail command option "-O smtputf8"
+	to request that deliveries over SMTP use the SMTPUTF8
+	extension. This reuses logic that was introduced for
+	REQUIRETLS. The option value "smtputf8" is case-insensitive.
+	Files: sendmail/sendmail.c.
+
+	Cleanup: when message delivery requires that a remote SMTP
+	server supports SMTPUTF8, try multiple MX servers before
+	returning a message as undeliverable. This reuses logic
+	that was introduced for REQUIRETLS. File: smtp/smtp_proto.c.
+
+	Completed: support in the pipe(8) daemon to propagate
+	REQUIRETLS through post-queue content filters that pass
+	filtered mail to the Postfix sendmail(1) command. This
+	involves a new a pipe(8) macro ${requiretls} that expands
+	into a suitable sendmail(1) command-line option. A more
+	secretive alternative would be to pass the info with a
+	REQUIRETLS environment variable, but that would require
+	change to the default import_environment setting. Files:
+	pipe/pipe.c, sendmail/sendmail.c.
+
+	Completed: the SMTP/LMTP client with "flags=X" will not
+	require REQUIRETLS support in the final server. Files:
+	smtp/smtp.c, smtp/smtp_proto.c.
+
+	Completed: REQUIRETLS support can be disabled in the Postfix
+	SMTP/LMTP client with "{ -o requiretls_enable = no }". This
+	is recommended for a perimeter MTA that hands off mail to
+	internal servers that may not support REQUIRETLS.
+
+	Completed: smtp_enforce_requiretls list of next-hop domains
+	(or UNIX-domain pathnames) that are ready for REQUIRETLS
+	enforcement. This may help with gradual adoption.
+
+TODO
+
+	Encapsulate the sendopts-to-cleanup-flags mapping.
+
+	Postfix sendmail -O TlsRequired option?
+
+	What REQUIRETLS expectations can we enforce when delivering
+	over a UNIX-domain channel? The SMTP/LMTP client currently
+	implements the same behavior as for TCP, except that
+	opportunistic TLS is converted into 'none'.
+
+	Document how REQUIRETLS works (or does not) with external
+	content filters.
+
+	- REQUIRETLS will not affect Milter-based content filters,
+	  assuming that they don't expose message content via some
+	  side channel.
+
+	- REQUIRETLS can work with smtpd_proxy_filter as long as
+	  - the Postfix SMTP server passes the entire Postfix SMTP
+	    client's MAIL FROM command line through the filter to
+	    the Postfix SMTP server after the proxy filter,
+	  - the post-filter Postfix SMTP server allows REQUIRETLS
+	    in a plaintext session.
+	  The Postfix proxy filter client does not need to require
+	  REQUIRETLS (or SMTPUTF8) announcements in the filter's
+	  EHLO response.
+
+	- REQUIRETLS can work with a local SMTP-based after-queue
+	  content filters as long as
+	  - the filter announces REQUIRETLS in the EHLO response
+	    (this could be 'always', or copied from the after-filter
+	    Postfix SMTP server's EHLO response),
+	  - the filter passes the entire MAIL FROM command from the
+	    before-filter Postfix SMTP client to the after-filter
+	    Postfix SMTP server,
+	  - the post-filter Postfix SMTP server allows MAIL FROM
+	    with REQUIRETLS in a plaintext session.
+	  Apart from that, the content filter does not need to
+	  'know' that REQUIRETLS is active (assuming that it does
+	  not leak message content through some side channel.
+
+	- REQUIRETLS can work with pipe(8)-filter-sendmail(1)
+	  after-queue content filters, by specifying a pipe(8) macro
+	  ${requiretls} which expands to a suitable sendmail(1)
+	  command-line option. Maybe we can also make this work
+	  with a REQUIRETLS environment variable (requires change
+	  to the (Postfix sendmail) import_environment list.
+
+	- The Postfix LMTP client when run with the -X option will
+	  not require that the LMTP server announces REQUIRETLS
+	  support.
+
+	- Perimeter MTA configuration: disable REQUIRETLS (or
+	  REQUIRETLS enforcement) on the inbound relay transport
+	  when internal infrastructure may not be suitable for
+	  REQUIRETLS enforcement.
+
+	If a message contains "TLS-Required: no", should a bounce
+	message also contain this header?
+
+	Ditto for "tls_required_enable = no" and "TLS-Required:
+	no". The header is provided by the sender, and enforcement
+	is up the Postfix SMTP client.
+
