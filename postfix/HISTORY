@@ -29511,3 +29511,22 @@ Apologies for any names omitted.
 	conf/postfix-tls-script, discard/discard.c, error/error.c,
 	oqmgr/qmgr.c, postmulti/postmulti.c, qmgr/qmgr.c,
 	virtual/virtual.c.
+
+20250801
+
+	Bugfix (defect introduced: Postfix 3.7): incorrect backwards
+	compatible support for the legacy configuration parameters
+	tlsproxy_client_level and tlsproxy_client_policy. This
+	disabled the tlsproxy TLS client role when a legacy parameter
+	was set. Reported by John Doe, diagnosed by Viktor Dukhovni.
+	File: global/mail_params.h.
+
+	Bugfix (defect introduced: Postfix 3.4): with the TLS client
+	role disabled by configuration, the tlsproxy daemon
+	dereferenced a null pointer while handling a tlsproxy client
+	request. Reported by John Doe. File: tlsproxy/tlsproxy.c.
+
+	Bugfix (defect introduced: 20250713): the import_environment
+	change did not have space between POSTLOG_HOSTNAME and
+	XDG_RUNTIME_DIR, breaking maillog_file support and graphical
+	debugging. File: global/mail_params.h.
