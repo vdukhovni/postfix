@@ -46,6 +46,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -60,6 +63,7 @@
 #include <float.h>			/* range of doubles */
 #include <errno.h>
 #include <limits.h>			/* CHAR_BIT, INT_MAX */
+#include <inttypes.h>			/* intmax_t */
 
 /* Application-specific. */
 
@@ -97,6 +101,8 @@
   * floating-point numbers, use a similar estimate, and add DBL_MAX_10_EXP
   * just to be sure.
   */
+#define IMX_SPACE	((CHAR_BIT * sizeof(intmax_t)) / 2)
+#define LL_SPACE	((CHAR_BIT * sizeof(long long)) / 2)
 #define INT_SPACE	((CHAR_BIT * sizeof(long)) / 2)
 #define DBL_SPACE	((CHAR_BIT * sizeof(double)) / 2 + DBL_MAX_10_EXP)
 #define PTR_SPACE	((CHAR_BIT * sizeof(char *)) / 2)
@@ -152,7 +158,8 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
     unsigned char *cp;
     int     width;			/* width and numerical precision */
     int     prec;			/* are signed for overflow defense */
-    unsigned long_flag;			/* long or plain integer */
+    unsigned long_flag;			/* long long, or long integer */
+    unsigned intmax_flag;		/* intmax_t */
     int     ch;
     char   *s;
     int     saved_errno = errno;	/* VBUF_SPACE() may clobber it */
@@ -181,7 +188,7 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	     * strings, since we are ging to let sprintf() do the hard work.
 	     * In regular expression notation, we recognize:
 	     * 
-	     * %-?+?0?([0-9]+|\*)?(\.([0-9]+|\*))?l?[a-zA-Z]
+	     * %-?+?0?([0-9]+|\*)?(\.([0-9]+|\*))?l{1,2}?j?[a-zA-Z]
 	     * 
 	     * which includes some combinations that do not make sense. Garbage
 	     * in, garbage out.
@@ -241,7 +248,12 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	    } else {
 		prec = -1;
 	    }
-	    if ((long_flag = (*cp == 'l')) != 0)/* long whatever */
+	    long_flag = 0;
+	    while (long_flag < 2 && *cp == 'l') {	/* long whatever */
+		long_flag += 1;
+		VSTRING_ADDCH(fmt, *cp++);
+	    }
+	    if ((intmax_flag = (*cp == 'j')) != 0)	/* intmax_t whatever */
 		VSTRING_ADDCH(fmt, *cp++);
 	    if (*cp == 0)			/* premature end, punt */
 		break;
@@ -258,6 +270,8 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	    case 's':				/* string-valued argument */
 		if (long_flag)
 		    msg_panic("%s: %%l%c is not supported", myname, *cp);
+		if (intmax_flag)
+		    msg_panic("%s: %%j%c is not supported", myname, *cp);
 		s = va_arg(ap, char *);
 		if (prec >= 0 || (width > 0 && width > strlen(s))) {
 		    VBUF_SNPRINTF(bp, (width > prec ? width : prec) + INT_SPACE,
@@ -269,18 +283,31 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	    case 'c':				/* integral-valued argument */
 		if (long_flag)
 		    msg_panic("%s: %%l%c is not supported", myname, *cp);
+		if (intmax_flag)
+		    msg_panic("%s: %%j%c is not supported", myname, *cp);
 		/* FALLTHROUGH */
 	    case 'd':
 	    case 'u':
 	    case 'o':
 	    case 'x':
 	    case 'X':
-		if (long_flag)
+		if (intmax_flag && long_flag)
+		    msg_panic("%s: '%s%c' has both 'j' and 'l' modifiers",
+			      myname, vstring_str(fmt), *cp);
+		if (intmax_flag)
+		    VBUF_SNPRINTF(bp, (width > prec ? width : prec) + IMX_SPACE,
+				  vstring_str(fmt), va_arg(ap, intmax_t));
+		else if (long_flag == 2)
+		    VBUF_SNPRINTF(bp, (width > prec ? width : prec) + LL_SPACE,
+				  vstring_str(fmt), va_arg(ap, long long));
+		else if (long_flag == 1)
 		    VBUF_SNPRINTF(bp, (width > prec ? width : prec) + INT_SPACE,
 				  vstring_str(fmt), va_arg(ap, long));
-		else
+		else if (long_flag == 0)
 		    VBUF_SNPRINTF(bp, (width > prec ? width : prec) + INT_SPACE,
 				  vstring_str(fmt), va_arg(ap, int));
+		else
+		    msg_panic("%s: bad long_flag: %u", myname, long_flag);
 		break;
 	    case 'e':				/* float-valued argument */
 	    case 'f':
@@ -290,12 +317,14 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 			      vstring_str(fmt), va_arg(ap, double));
 		break;
 	    case 'm':
-		/* Ignore the 'l' modifier, width and precision. */
+		/* Ignore the 'l' or 'j' modifier, width and precision. */
 		VBUF_STRCAT(bp, mystrerror(saved_errno));
 		break;
 	    case 'p':
 		if (long_flag)
 		    msg_panic("%s: %%l%c is not supported", myname, *cp);
+		if (intmax_flag)
+		    msg_panic("%s: %%j%c is not supported", myname, *cp);
 		VBUF_SNPRINTF(bp, (width > prec ? width : prec) + PTR_SPACE,
 			      vstring_str(fmt), va_arg(ap, char *));
 		break;
@@ -332,10 +361,16 @@ int     main(int argc, char **argv)
 	} else {
 	    char   *fmt = cp++;
 	    int     lflag;
+	    int     jflag;
 
 	    /* Determine the vstring_sprintf() argument type. */
 	    cp += strspn(cp, "+-*0123456789.");
-	    if ((lflag = (*cp == 'l')) != 0)
+	    lflag = 0;
+	    while (*cp == 'l') {
+		lflag += 1;
+		cp++;
+	    }
+	    if ((jflag = (*cp == 'j')) != 0)
 		cp++;
 	    if (cp[1] != 0) {
 		msg_warn("bad format: \"%s\"", fmt);
@@ -354,10 +389,15 @@ int     main(int argc, char **argv)
 		case 'u':
 		case 'x':
 		case 'X':
-		    if (lflag)
+		    if (jflag) {
+			vstring_sprintf(obuf, fmt, (intmax_t) atoll(val));
+		    } else if (lflag == 2) {
+			vstring_sprintf(obuf, fmt, atoll(val));
+		    } else if (lflag == 1) {
 			vstring_sprintf(obuf, fmt, atol(val));
-		    else
+		    } else {			/* lflag==0 or bogus */
 			vstring_sprintf(obuf, fmt, atoi(val));
+		    }
 		    msg_info("\"%s\"", vstring_str(obuf));
 		    break;
 		case 's':

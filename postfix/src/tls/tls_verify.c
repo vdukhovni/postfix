@@ -120,12 +120,26 @@
 
 /* update_error_state - safely stash away error state */
 
-static void update_error_state(TLS_SESS_STATE *TLScontext, int depth,
-			               X509 *errorcert, int errorcode)
+static void update_error_state(X509_STORE_CTX *ctx, TLS_SESS_STATE *TLScontext,
+			          int depth, X509 *errorcert, int errorcode)
 {
-    /* No news is good news */
-    if (TLScontext->errordepth >= 0 && TLScontext->errordepth <= depth)
-	return;
+
+    /*
+     * Report the error that is closest to the leaf certificate, any errors
+     * higher up the chain are immaterial until the "inner" errors are fixed.
+     * 
+     * We special-case "X509_V_ERR_HOSTNAME_MISMATCH" (at depth 0) in order to
+     * distinguish between untrusted certificates and trusted certificates
+     * with a hostname mismatch.  Any other error has a higher priority.
+     */
+    if (TLScontext->errordepth >= 0) {
+	if ((TLScontext->errordepth <= depth &&
+	     TLScontext->errorcode != X509_V_ERR_HOSTNAME_MISMATCH) ||
+	    errorcode == X509_V_ERR_HOSTNAME_MISMATCH) {
+	    X509_STORE_CTX_set_error(ctx, TLScontext->errorcode);
+	    return;
+	}
+    }
 
     /*
      * The certificate pointer is stable during the verification callback,
@@ -179,12 +193,12 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
     if (TLScontext->must_fail) {
 	if (depth == 0) {
 	    X509_STORE_CTX_set_error(ctx, err = X509_V_ERR_UNSPECIFIED);
-	    update_error_state(TLScontext, depth, cert, err);
+	    update_error_state(ctx, TLScontext, depth, cert, err);
 	}
 	return (1);
     }
     if (ok == 0)
-	update_error_state(TLScontext, depth, cert, err);
+	update_error_state(ctx, TLScontext, depth, cert, err);
 
     if (TLScontext->log_mask & TLS_LOG_VERBOSE) {
 	if (cert) {

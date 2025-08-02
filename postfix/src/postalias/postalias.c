@@ -487,10 +487,10 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
      * this information MUST be written without a trailing null appended to
      * key or value.
      */
+#if (defined(HAS_NIS) || defined(HAS_NISPLUS))
     mkmap->dict->flags &= ~DICT_FLAG_TRY1NULL;
     mkmap->dict->flags |= DICT_FLAG_TRY0NULL;
-    vstring_sprintf(value_buffer, "%010ld", (long) time((time_t *) 0));
-#if (defined(HAS_NIS) || defined(HAS_NISPLUS))
+    vstring_sprintf(value_buffer, "%010" PRId64, (int64_t) time((time_t *) 0));
     mkmap->dict->flags &= ~DICT_FLAG_FOLD_FIX;
     mkmap_append(mkmap, "YP_LAST_MODIFIED", STR(value_buffer));
     mkmap_append(mkmap, "YP_MASTER_NAME", var_myhostname);

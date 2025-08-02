@@ -4,9 +4,7 @@
 /* SUMMARY
 /*	miscellaneous TLS support routines
 /* SYNOPSIS
-/* .SH Public functions
-/* .nf
-/* .na
+/* Public functions
 /*	#include <tls.h>
 /*
 /*	void tls_log_summary(role, usage, TLScontext)
@@ -23,9 +21,7 @@
 /*	void	tls_pre_jail_init(TLS_ROLE)
 /*	TLS_ROLE role;
 /*
-/* .SH Internal functions
-/* .nf
-/* .na
+/* Internal functions
 /*	#define TLS_INTERNAL
 /*	#include <tls.h>
 /*

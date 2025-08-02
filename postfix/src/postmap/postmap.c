@@ -126,7 +126,7 @@
 /*	generates header-style lookup keys for attachment MIME
 /*	headers and for attached message/* headers.
 /* .sp
-/*	NOTE: with "smtputf8_enable = yes", the \fB-b\fR option
+/*	NOTE: with "smtputf8_enable = yes", the \fB-h\fR option
 /*	option disables UTF-8 syntax checks on query keys and
 /*	lookup results. Specify the \fB-U\fR option to force UTF-8
 /*	syntax checks anyway.

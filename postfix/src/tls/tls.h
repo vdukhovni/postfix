@@ -252,10 +252,11 @@ typedef struct {
     const char *srvr_sig_curve;		/* server's ECDSA curve name */
     int     srvr_sig_bits;		/* server's RSA signature key bits */
     const char *srvr_sig_dgst;		/* server's signature digest */
+    int     rpt_reported;		/* Failure was reported with TLSRPT */
     /* Private. */
     SSL    *con;
     char   *cache_type;			/* tlsmgr(8) cache type if enabled */
-    int     ticketed;			/* Session ticket issued */
+    int     ticketed;			/* Issued (server) or cached (client) */
     char   *serverid;			/* unique server identifier */
     char   *namaddr;			/* nam[addr] for logging */
     int     log_mask;			/* What to log */
@@ -270,8 +271,8 @@ typedef struct {
     int     errordepth;			/* Chain depth of error cert */
     int     errorcode;			/* First error at error depth */
     int     must_fail;			/* Failed to load trust settings */
-    int     rpt_reported;		/* Failure was reported with TLSRPT */
     char   *ffail_type;			/* Forced verification failure */
+    /* End of Private members. */
 } TLS_SESS_STATE;
 
  /*
