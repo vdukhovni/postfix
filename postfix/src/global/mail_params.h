@@ -2568,7 +2568,8 @@ extern int var_local_rcpt_code;
 				" $" VAR_SMTP_BODY_CHKS \
 				" $" VAR_SMTP_HEAD_CHKS \
 				" $" VAR_SMTP_MIME_CHKS \
-				" $" VAR_SMTP_NEST_CHKS
+				" $" VAR_SMTP_NEST_CHKS \
+				" $" VAR_SMTPD_REJECT_FILTER_MAPS
 extern char *var_proxy_read_maps;
 
 #define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"
@@ -4533,6 +4534,13 @@ extern int var_sockmap_max_reply;
 #define VAR_SMTPD_HIDE_CLIENT_SESSION	"smtpd_hide_client_session"
 #define DEF_SMTPD_HIDE_CLIENT_SESSION	"no"
 extern int var_smtpd_hide_client_session;
+
+ /*
+  * SMTP server reject response filter.
+  */
+#define VAR_SMTPD_REJECT_FILTER_MAPS	"smtpd_reject_filter_maps"
+#define DEF_SMTPD_REJECT_FILTER_MAPS	""
+extern char *var_smtpd_reject_filter_maps;
 
 /* LICENSE
 /* .ad

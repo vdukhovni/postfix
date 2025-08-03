@@ -29530,3 +29530,21 @@ Apologies for any names omitted.
 	change did not have space between POSTLOG_HOSTNAME and
 	XDG_RUNTIME_DIR, breaking maillog_file support and graphical
 	debugging. File: global/mail_params.h.
+
+20250801
+
+	Feature: smtpd_reject_filter_maps can selectively replace a
+	reject response from the Postfix SMTP server, or from a
+	program that replies through the Postfix SMTP server. Files:
+	smtpd/smtpd.c, smtpd/smtpd_chat.c, global/mail_params.h,
+	proto/postconf.proto, mantools/postlink.
+
+20250803
+
+	Cleanup: when "tls_required_enable = yes" and a message
+	contains a "TLS-Required: no" header", the Postfix SMTP
+	client now also ignores the recipient-side TLSRPT policy,
+	in addition to the already ignored recipient-side MTA-STS
+	and DANE policies. This prevents TLSRPT notifications for
+	all SMTP deliveries that do not require TLS. File:
+	smtp/smtp_connect.c.

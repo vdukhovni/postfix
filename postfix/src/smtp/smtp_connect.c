@@ -508,24 +508,6 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
     SMTP_TLS_POLICY *tls = state->tls;
 
     /*
-     * If the message contains a "TLS-Required: no" header, update the
-     * iterator to limit the policy at TLS_LEV_MAY.
-     * 
-     * We must do this early to avoid possible failure if TLSA record lookups
-     * fail, or if TLSA records are found, but can't be activated because the
-     * security level has been reset to "may".
-     * 
-     * Note that the REQUIRETLS verb in ESMTP overrides the "TLS-Required: no"
-     * header.
-     */
-#ifdef USE_TLS
-    if (var_tls_required_enable
-	&& (state->request->sendopts & SOPT_REQUIRETLS_HEADER)) {
-	iter->tlsreqno = 1;
-    }
-#endif
-
-    /*
      * Determine the TLS level for this destination.
      */
     if (!smtp_tls_policy_cache_query(why, tls, iter)) {
@@ -971,14 +953,39 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	SMTP_ITER_INIT(iter, dest, NO_HOST, NO_ADDR, port, state);
 
 	/*
+	 * If a "TLS-Required: no" header is in effect, update the iterator
+	 * to override TLS policy selection and to limit the security level
+	 * to "may". Do not reset the security level after policy selection,
+	 * as that would result in errors. For example, when TLSA records are
+	 * looked up for security level "dane", and then the security level
+	 * is reset to "may", the activation of those TLSA records will fail.
+	 * 
+	 * Note that the REQUIRETLS verb in ESMTP overrides the "TLS-Required:
+	 * no" header.
+	 */
+#ifdef USE_TLS
+	if (var_tls_required_enable
+	    && (state->request->sendopts & SOPT_REQUIRETLS_HEADER)) {
+	    iter->tlsreqno = 1;
+	}
+#endif
+
+	/*
 	 * TODO(wietse) If the domain publishes a TLSRPT policy, they expect
 	 * that clients use SMTP over TLS. Should we upgrade a TLS security
 	 * level of "may" to "encrypt"? This would disable falling back to
 	 * plaintext, and could break interoperability with receivers that
 	 * crank up security up to 11.
+	 * 
+	 * As of change 20250803, with "TLS-Required: no", the SMTP client also
+	 * ignores the recipient-side policy mechanism TLSRPT, in addition to
+	 * the already ignored DANE and MTA-STS mechanisms. This prevents
+	 * TLSRPT notifications for all SMTP deliveries that do not require
+	 * TLS.
 	 */
 #ifdef USE_TLSRPT
 	if (smtp_mode && var_smtp_tlsrpt_enable
+	    && iter->tlsreqno == 0
 	    && tls_level_lookup(var_smtp_tls_level) > TLS_LEV_NONE
 	    && !valid_hostaddr(domain, DONT_GRIPE))
 	    smtp_tlsrpt_create_wrapper(state, domain);

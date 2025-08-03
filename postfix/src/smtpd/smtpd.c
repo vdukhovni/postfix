@@ -1179,6 +1179,12 @@
 /* .IP "\fBsmtpd_hide_client_session (no)\fR"
 /*	Do not include SMTP client session information in the Postfix
 /*	SMTP server's Received: message header.
+/* .PP
+/*	Available in Postfix version 3.11 and later:
+/* .IP "\fBsmtpd_reject_filter_maps (empty)\fR"
+/*	An optional filter that can replace a reject response from the
+/*	Postfix SMTP server itself, or from a program that replies through
+/*	the Postfix SMTP server.
 /* SEE ALSO
 /*	anvil(8), connection/rate limiting
 /*	cleanup(8), message canonicalization
@@ -1478,6 +1484,7 @@ bool    var_smtpd_tls_auth_only;
 char   *var_smtpd_cmd_filter;
 char   *var_smtpd_rej_footer;
 char   *var_smtpd_rej_ftr_maps;
+char   *var_smtpd_reject_filter_maps;
 char   *var_smtpd_acl_perm_log;
 char   *var_smtpd_dns_re_filter;
 
@@ -6635,9 +6642,9 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 			      var_smtpd_dns_re_filter);
 
     /*
-     * Reject footer.
+     * Reject filter and footer.
      */
-    if (*var_smtpd_rej_ftr_maps)
+    if (*var_smtpd_rej_ftr_maps || *var_smtpd_reject_filter_maps)
 	smtpd_chat_pre_jail_init();
 }
 
@@ -6911,6 +6918,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_POLICY_CONTEXT, DEF_SMTPD_POLICY_CONTEXT, &var_smtpd_policy_context, 0, 0,
 	VAR_SMTPD_DNS_RE_FILTER, DEF_SMTPD_DNS_RE_FILTER, &var_smtpd_dns_re_filter, 0, 0,
 	VAR_SMTPD_REJ_FTR_MAPS, DEF_SMTPD_REJ_FTR_MAPS, &var_smtpd_rej_ftr_maps, 0, 0,
+	VAR_SMTPD_REJECT_FILTER_MAPS, DEF_SMTPD_REJECT_FILTER_MAPS, &var_smtpd_reject_filter_maps, 0, 0,
 	VAR_HFROM_FORMAT, DEF_HFROM_FORMAT, &var_hfrom_format, 1, 0,
 	VAR_SMTPD_FORBID_BARE_LF_EXCL, DEF_SMTPD_FORBID_BARE_LF_EXCL, &var_smtpd_forbid_bare_lf_excl, 0, 0,
 	VAR_SMTPD_FORBID_BARE_LF, DEF_SMTPD_FORBID_BARE_LF, &var_smtpd_forbid_bare_lf, 1, 0,

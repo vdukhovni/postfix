@@ -11815,6 +11815,60 @@ Example:
 smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
 .fi
 .ad
+.SH smtpd_reject_filter_maps (default: empty)
+An optional filter that can replace a reject response from the
+Postfix SMTP server itself, or from a program that replies through
+the Postfix SMTP server. The filter is applied before the optional
+reject footers are appended. Typically, the filter will be a regexp:
+or pcre: table, where the left\-hand side specifies a pattern, and
+the right\-hand side specifies replacement text.
+.PP
+The input is a server response that starts with a 4XX or 5XX
+reply code (see RFC 5321), usually followed by an enhanced status
+code (see RFC 3463) and text. The filter returns replacement text
+or indicates that there was no match. This feature cannot be used
+to change a reject reply into a non\-reject one or vice versa.
+.PP
+LIMITATION: smtpd_reject_filter_maps will not replace text that
+was already logged before the Postfix SMTP server replies to the
+remote SMTP client. To help with logfile analysis, the Postfix SMTP
+server logs both the unmodified reply (logged below as "reject
+filter in") and the replacement reply (logged below as "reject
+filter out").
+.PP
+Example:
+.PP
+.nf
+.na
+/etc/postfix/main.cf:
+    smtpd_reject_filter_maps = regexp:/etc/postfix/smtpd_reject_filter
+.fi
+.ad
+.PP
+.nf
+.na
+/etc/postfix/smtpd_reject_filter:
+    # Replace soft reject with hard reject.
+    /^451 4(\e.6\e.0 Alias expansion error)/ 550 5${1}
+.fi
+.ad
+.PP
+.nf
+.na
+    # Silly rule for demo purposes.
+    /^(4.+[^.])\e.*$/ $1. See you later.
+.fi
+.ad
+.PP
+.nf
+.na
+/var/log/maillog:
+    NOQUEUE: reject filter in: 451 4.6.0 Alias expansion error
+    NOQUEUE: reject filter out: 550 5.6.0 Alias expansion error
+.fi
+.ad
+.PP
+This feature is available in Postfix >= 3.11.
 .SH smtpd_reject_footer (default: empty)
 Optional information that is appended after each Postfix SMTP
 server

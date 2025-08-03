@@ -770,6 +770,7 @@ while (<>) {
     s;\bsmtpd_use_tls\b;<a href="postconf.5.html#smtpd_use_tls">$&</a>;g;
     s;\bsmtpd_reject_footer\b;<a href="postconf.5.html#smtpd_reject_footer">$&</a>;g;
     s;\bsmtpd_reject_footer_maps\b;<a href="postconf.5.html#smtpd_reject_footer_maps">$&</a>;g;
+    s;\bsmtpd_reject_filter_maps\b;<a href="postconf.5.html#smtpd_reject_filter_maps">$&</a>;g;
     s;\bsmtpd_per_record_deadline\b;<a href="postconf.5.html#smtpd_per_record_deadline">$&</a>;g;
     s;\bsmtpd_per_request_deadline\b;<a href="postconf.5.html#smtpd_per_request_deadline">$&</a>;g;
     s;\bsmtpd_min_data_rate\b;<a href="postconf.5.html#smtpd_min_data_rate">$&</a>;g;

@@ -17395,6 +17395,58 @@ Example:
 
 </DD>
 
+<DT><b><a name="smtpd_reject_filter_maps">smtpd_reject_filter_maps</a>
+(default: empty)</b></DT><DD>
+
+<p> An optional filter that can replace a reject response from the
+Postfix SMTP server itself, or from a program that replies through
+the Postfix SMTP server. The filter is applied before the optional
+reject footers are appended. Typically, the filter will be a <a href="regexp_table.5.html">regexp</a>:
+or <a href="pcre_table.5.html">pcre</a>: table, where the left-hand side specifies a pattern, and
+the right-hand side specifies replacement text. </p>
+
+<p> The input is a server response that starts with a 4XX or 5XX
+reply code (see <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>), usually followed by an enhanced status
+code (see <a href="https://tools.ietf.org/html/rfc3463">RFC 3463</a>) and text. The filter returns replacement text
+or indicates that there was no match. This feature cannot be used
+to change a reject reply into a non-reject one or vice versa. </p>
+
+<p> LIMITATION: <a href="postconf.5.html#smtpd_reject_filter_maps">smtpd_reject_filter_maps</a> will not replace text that
+was already logged before the Postfix SMTP server replies to the
+remote SMTP client. To help with logfile analysis, the Postfix SMTP
+server logs both the unmodified reply (logged below as "reject
+filter in") and the replacement reply (logged below as "reject
+filter out").
+
+<p> Example: </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtpd_reject_filter_maps">smtpd_reject_filter_maps</a> = <a href="regexp_table.5.html">regexp</a>:/etc/postfix/smtpd_reject_filter
+</pre>
+
+<pre>
+/etc/postfix/smtpd_reject_filter:
+    # Replace soft reject with hard reject.
+    /^451 4(\.6\.0 Alias expansion error)/ 550 5${1}
+</pre>
+
+<pre>
+    # Silly rule for demo purposes.
+    /^(4.+[^.])\.*$/ $1. See you later.
+</pre>
+
+<pre>
+/var/log/maillog:
+    NOQUEUE: reject filter in: 451 4.6.0 Alias expansion error
+    NOQUEUE: reject filter out: 550 5.6.0 Alias expansion error
+</pre>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_reject_footer">smtpd_reject_footer</a>
 (default: empty)</b></DT><DD>
 

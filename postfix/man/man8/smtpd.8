@@ -1237,6 +1237,12 @@ Available in Postfix 3.10 and later:
 .IP "\fBsmtpd_hide_client_session (no)\fR"
 Do not include SMTP client session information in the Postfix
 SMTP server's Received: message header.
+.PP
+Available in Postfix version 3.11 and later:
+.IP "\fBsmtpd_reject_filter_maps (empty)\fR"
+An optional filter that can replace a reject response from the
+Postfix SMTP server itself, or from a program that replies through
+the Postfix SMTP server.
 .SH "SEE ALSO"
 .na
 .nf
