@@ -45,6 +45,10 @@
 /*	Request that domain_list_match() logs a warning and returns
 /*	zero, with list->error set to a non-zero dictionary error
 /*	code, instead of raising a fatal error.
+/* .IP MATCH_FLAG_NOFILE
+/*	Disable special handling for /file/name.
+/* .IP MATCH_FLAG_NODICT
+/*	Disable special handling for type:name.
 /* .PP
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*	The last argument is a list of domain patterns, or the name of
@@ -69,6 +73,9 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
