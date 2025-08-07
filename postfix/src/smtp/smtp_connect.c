@@ -576,6 +576,24 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
     SMTP_ITER_INIT(iter, path, var_myhostname, path, NO_PORT, state);
 
     /*
+     * If a "TLS-Required: no" header is in effect, update the iterator to
+     * override TLS policy selection and to limit the security level to
+     * "may". Do not reset the security level after policy selection, as that
+     * would result in errors. For example, when TLSA records are looked up
+     * for security level "dane", and then the security level is reset to
+     * "may", the activation of those TLSA records will fail.
+     * 
+     * Note that the REQUIRETLS verb in ESMTP overrides the "TLS-Required: no"
+     * header.
+     */
+#ifdef USE_TLS
+    if (var_tls_required_enable
+	&& (state->request->sendopts & SOPT_REQUIRETLS_HEADER)) {
+	iter->tlsreqno = 1;
+    }
+#endif
+
+    /*
      * Opportunistic TLS for unix domain sockets does not make much sense,
      * since the channel is private, mere encryption without authentication
      * is just wasted cycles and opportunity for breakage. Since we are not

@@ -16637,7 +16637,7 @@ SMTP server's Received: message header. </p>
 
 <li> <p> The default setting, "<a href="postconf.5.html#smtpd_hide_client_session">smtpd_hide_client_session</a> = no",
 must be used for the port 25 MTA service. It provides information
-that is required by <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>. </p>
+that is required by <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a> section 4.4. </p>
 
 <li> <p> The setting "<a href="postconf.5.html#smtpd_hide_client_session">smtpd_hide_client_session</a> = yes" may be used
 for the port 587 and 465 MUA services. This hides the SMTP client
@@ -16660,8 +16660,9 @@ Received: by mail.example.com (Postfix) id postfix-queue-id
 </blockquote>
 
 <p> The redacted form hides that a message was received with SMTP,
-and therefore it does not need to provide the information required by
-<a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a>. The form does still meet <a href="https://tools.ietf.org/html/rfc5322">RFC 5322</a> requirements. </p>
+and therefore it does not need to provide the FROM clause according
+to <a href="https://tools.ietf.org/html/rfc5321">RFC 5321</a> section 4.4. The redacted form still meets <a href="https://tools.ietf.org/html/rfc5322">RFC 5322</a>
+requirements. </p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
 

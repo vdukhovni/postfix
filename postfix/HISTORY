@@ -29193,7 +29193,6 @@ Apologies for any names omitted.
 	setting from "yes" to "no". The new default is enabled with
 	compatibility level >= 3.11. Files: smtp/smtp_tlsrpt.c,
 	global/mail_params.[hc], proto/COMPATIBILITY_README.html.
-	proto/memcache_table, global/dict_memcache.c, util/hex_code.[hc].
 
 20250608
 
@@ -29548,3 +29547,15 @@ Apologies for any names omitted.
 	and DANE policies. This prevents TLSRPT notifications for
 	all SMTP deliveries that do not require TLS. File:
 	smtp/smtp_connect.c.
+
+20250806
+
+	Documentation: updated the smtpd_hide_client_session
+	description with specific reference to RFC 5321 section
+	4.4. File: proto/postconf.proto.
+
+20250807
+
+	Bugfix (defect introduced: 20250803): "TLS-Required: no" was
+	no longer in effect for LMTP deliveries. Viktor Dukhovni.
+	File: smtp/smtp_connect.c.
