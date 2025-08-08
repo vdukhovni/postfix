@@ -32,6 +32,7 @@
 #include <tok822.h>
 #include <dsn_buf.h>
 #include <header_body_checks.h>
+#include <sendopts.h>
 
  /*
   * Postfix TLS library.
@@ -59,9 +60,6 @@ typedef struct SMTP_ITERATOR {
     VSTRING *host;			/* hostname or empty */
     VSTRING *addr;			/* printable address or empty */
     unsigned port;			/* network byte order or null */
-#ifdef USE_TLS
-    int     tlsreqno;			/* "TLS-Required: no" */
-#endif
     struct DNS_RR *rr;			/* DNS resource record or null */
     struct DNS_RR *mx;			/* DNS resource record or null */
     /* Private members. */
@@ -69,18 +67,11 @@ typedef struct SMTP_ITERATOR {
     struct SMTP_STATE *parent;		/* parent linkage */
 } SMTP_ITERATOR;
 
-#ifdef USE_TLS
-#define IF_USE_TLS(...) (__VA_ARGS__)
-#else
-#define IF_USE_TLS(...)
-#endif
-
 #define SMTP_ITER_INIT(iter, _dest, _host, _addr, _port, state) do { \
 	vstring_strcpy((iter)->dest, (_dest)); \
 	vstring_strcpy((iter)->host, (_host)); \
 	vstring_strcpy((iter)->addr, (_addr)); \
 	(iter)->port = (_port); \
-	IF_USE_TLS((iter)->tlsreqno = 0); \
 	(iter)->mx = (iter)->rr = 0; \
 	vstring_strcpy((iter)->saved_dest, ""); \
 	(iter)->parent = (state); \
@@ -247,6 +238,12 @@ typedef struct SMTP_STATE {
      */
     unsigned logged_line_length_limit:1;
 } SMTP_STATE;
+
+#ifdef USE_TLS
+#define STATE_TLS_NOT_REQUIRED(state) \
+	(var_tls_required_enable && \
+	    ((state)->request->sendopts & SOPT_REQUIRETLS_HEADER))
+#endif
 
  /*
   * Primitives to enable/disable/test connection caching and reuse based on

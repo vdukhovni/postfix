@@ -29556,6 +29556,15 @@ Apologies for any names omitted.
 
 20250807
 
-	Bugfix (defect introduced: 20250803): "TLS-Required: no" was
-	no longer in effect for LMTP deliveries. Viktor Dukhovni.
+	Bugfix (defect introduced: 20250803): "TLS-Required: no"
+	was no longer in effect for deliveries over UNIX-domain
+	sockets (which are supported for LMTP only). Viktor Dukhovni.
 	File: smtp/smtp_connect.c.
+
+20250808
+
+	Cleanup: simplify the code to determine if "TLS-Required:
+	no" is in effect, and improve the tls_required_enable
+	documentation. This will be back-ported to Postfix 3.10.
+	Files: Makefile.in, smtp/smtp.h smtp/smtp_connect.c,
+	smtp/smtp_tls_policy.c, proto/postconf.proto.

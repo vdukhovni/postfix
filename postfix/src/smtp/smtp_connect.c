@@ -576,33 +576,15 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
     SMTP_ITER_INIT(iter, path, var_myhostname, path, NO_PORT, state);
 
     /*
-     * If a "TLS-Required: no" header is in effect, update the iterator to
-     * override TLS policy selection and to limit the security level to
-     * "may". Do not reset the security level after policy selection, as that
-     * would result in errors. For example, when TLSA records are looked up
-     * for security level "dane", and then the security level is reset to
-     * "may", the activation of those TLSA records will fail.
-     * 
-     * Note that the REQUIRETLS verb in ESMTP overrides the "TLS-Required: no"
-     * header.
-     */
-#ifdef USE_TLS
-    if (var_tls_required_enable
-	&& (state->request->sendopts & SOPT_REQUIRETLS_HEADER)) {
-	iter->tlsreqno = 1;
-    }
-#endif
-
-    /*
      * Opportunistic TLS for unix domain sockets does not make much sense,
      * since the channel is private, mere encryption without authentication
      * is just wasted cycles and opportunity for breakage. Since we are not
      * willing to retry after TLS handshake failures here, we downgrade "may"
      * no "none". Nothing is lost, and much waste is avoided.
      * 
-     * We don't know who is authenticating whom, so if a client cert is
-     * available, "encrypt" may be a sensible policy. Otherwise, we also
-     * downgrade "encrypt" to "none", this time just to avoid waste.
+     * If a client cert is available, "encrypt" may be a sensible policy.
+     * Without client cert, "encrypt" and "may" over UNIX-domain sockets are
+     * not useful.
      * 
      * We use smtp_reuse_nexthop() instead of smtp_reuse_addr(), so that we can
      * reuse a SASL-authenticated connection (however unlikely this scenario
@@ -971,39 +953,20 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	SMTP_ITER_INIT(iter, dest, NO_HOST, NO_ADDR, port, state);
 
 	/*
-	 * If a "TLS-Required: no" header is in effect, update the iterator
-	 * to override TLS policy selection and to limit the security level
-	 * to "may". Do not reset the security level after policy selection,
-	 * as that would result in errors. For example, when TLSA records are
-	 * looked up for security level "dane", and then the security level
-	 * is reset to "may", the activation of those TLSA records will fail.
-	 * 
-	 * Note that the REQUIRETLS verb in ESMTP overrides the "TLS-Required:
-	 * no" header.
-	 */
-#ifdef USE_TLS
-	if (var_tls_required_enable
-	    && (state->request->sendopts & SOPT_REQUIRETLS_HEADER)) {
-	    iter->tlsreqno = 1;
-	}
-#endif
-
-	/*
 	 * TODO(wietse) If the domain publishes a TLSRPT policy, they expect
 	 * that clients use SMTP over TLS. Should we upgrade a TLS security
 	 * level of "may" to "encrypt"? This would disable falling back to
 	 * plaintext, and could break interoperability with receivers that
 	 * crank up security up to 11.
 	 * 
-	 * As of change 20250803, with "TLS-Required: no", the SMTP client also
-	 * ignores the recipient-side policy mechanism TLSRPT, in addition to
-	 * the already ignored DANE and MTA-STS mechanisms. This prevents
-	 * TLSRPT notifications for all SMTP deliveries that do not require
-	 * TLS.
+	 * With "TLS-Required: no" in effect, the SMTP client ignores the
+	 * recipient-side policy mechanism TLSRPT, in addition to the already
+	 * ignored DANE and MTA-STS mechanisms. This prevents TLSRPT
+	 * notifications for all SMTP deliveries that do not require TLS.
 	 */
 #ifdef USE_TLSRPT
 	if (smtp_mode && var_smtp_tlsrpt_enable
-	    && iter->tlsreqno == 0
+	    && STATE_TLS_NOT_REQUIRED(state) == 0
 	    && tls_level_lookup(var_smtp_tls_level) > TLS_LEV_NONE
 	    && !valid_hostaddr(domain, DONT_GRIPE))
 	    smtp_tlsrpt_create_wrapper(state, domain);

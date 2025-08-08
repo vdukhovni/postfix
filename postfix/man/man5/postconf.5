@@ -14581,7 +14581,8 @@ This feature is available in Postfix 2.2 and later.
 .SH tls_required_enable (default: yes)
 Enable support for the "TLS\-Required: no" message header, defined
 in RFC 8689. By adding this header to a message, a sender requests
-no enforcement of TLS policy. This limits the Postfix SMTP client
+no enforcement of TLS policy. This disables TLS policy lookup, and
+limits the Postfix SMTP client
 TLS security level to "may", that is, do not verify remote SMTP
 server certificates, and fall back to plaintext if TLS is unavailable.
 If a message contains a "TLS\-Required: no" header, then Postfix
