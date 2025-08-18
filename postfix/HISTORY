@@ -28132,3 +28132,53 @@ Apologies for any names omitted.
 	add an extra newline character before appending the new
 	setting, causing information to become garbled. Fix by
 	Michael Tokarev. File: postconf/postconf_edit.c.
+
+20250710
+
+	Bugfix (defect introduced: postfix-2.2, date 20050203):
+	after detecting a lookup table change, and after starting
+	a new postscreen process, the old postscreen process logged
+	an ENOTSOCK error while attempting to accept a connection
+	on a socket that it was no longer listening on. This error
+	was introduced first in the multi_server skeleton code, and
+	was five years later duplicated in the event_server skeleton
+	that was created for postscreen. Problem reported by Florian
+	Piekert. Files: master/multi_server.c, master/event_server.c.
+
+20250714
+
+	Deleted an <openssl/engine.h> dependency, because the feature is
+	being removed from OpenSSL, and Postfix no longer needs it. File:
+	posttls-finger/posttls-finger.c.
+
+20250716
+
+	Bugfix (defect introduced: Postfix 2.8, date 20101230):
+	after detecting a cache table change and before starting a
+	new postscreen process, the old postscreen process did not
+	close the postscreen_cache_map, and therefore kept an
+	exclusive lock that could prevent a new postscreen process
+	from starting. Problem reported by Florian Piekert. File:
+	postscreen/postscreen.c.
+
+20250717
+
+	Workaround: Postfix daemons no longer automatically restart
+	after a btree:, dbm:, hash:, lmdb:, or sdbm: table file
+	modification time change, when they opened that table for
+	writing. Files: util/dict.c, util/dict_db.c, util/dict_dbm.c,
+	util/dict_lmdb.c, util/dict_sdbm.c.
+
+20250801
+
+	Bugfix (defect introduced: Postfix 3.7): incorrect backwards
+	compatible support for the legacy configuration parameters
+	tlsproxy_client_level and tlsproxy_client_policy. This
+	disabled the tlsproxy TLS client role when a legacy parameter
+	was set. Reported by John Doe, diagnosed by Viktor Dukhovni.
+	File: global/mail_params.h.
+
+	Bugfix (defect introduced: Postfix 3.4): with the TLS client
+	role disabled by configuration, the tlsproxy daemon
+	dereferenced a null pointer while handling a tlsproxy client
+	request. Reported by John Doe. File: tlsproxy/tlsproxy.c.
