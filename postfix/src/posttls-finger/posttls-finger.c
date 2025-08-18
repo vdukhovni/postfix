@@ -402,7 +402,6 @@
 
 #ifdef USE_TLS
 #include <tls_proxy.h>
-#include <openssl/engine.h>
 #endif
 
  /*

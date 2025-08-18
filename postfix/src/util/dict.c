@@ -147,8 +147,8 @@
 /* .IP "char *context"
 /*	Application context from the caller.
 /* .PP
-/*	dict_changed_name() returns non-zero when any dictionary needs to
-/*	be re-opened because it has changed or because it was unlinked.
+/*	dict_changed_name() returns non-zero when any dictionary is
+/*	opened read-only and has changed, or because it was unlinked.
 /*	A non-zero result is the name of a changed dictionary.
 /*
 /*	dict_load_file_xt() reads name-value entries from the named file.
@@ -595,11 +595,12 @@ const char *dict_changed_name(void)
 	dict = ((DICT_NODE *) h->value)->dict;
 	if (dict->stat_fd < 0)			/* not file-based */
 	    continue;
-	if (dict->mtime == 0)			/* not bloody likely */
-	    msg_warn("%s: table %s: null time stamp", myname, h->key);
+	if (dict->mtime < 0)			/* not bloody likely */
+	    msg_warn("%s: table %s: negative time stamp", myname, h->key);
 	if (fstat(dict->stat_fd, &st) < 0)
 	    msg_fatal("%s: fstat: %m", myname);
 	if (((dict->flags & DICT_FLAG_MULTI_WRITER) == 0
+	     && dict->mtime > 0
 	     && st.st_mtime != dict->mtime)
 	    || st.st_nlink == 0)
 	    status = h->key;

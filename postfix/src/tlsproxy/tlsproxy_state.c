@@ -105,7 +105,7 @@ TLSP_STATE *tlsp_state_create(const char *service,
 {
     TLSP_STATE *state = (TLSP_STATE *) mymalloc(sizeof(*state));
 
-    state->flags = TLSP_FLAG_DO_HANDSHAKE;
+    state->flags = 0;
     state->service = mystrdup(service);
     state->plaintext_stream = plaintext_stream;
     state->plaintext_buf = 0;
