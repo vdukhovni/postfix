@@ -69,6 +69,7 @@
 	VAR_HFROM_FORMAT, DEF_HFROM_FORMAT, &var_hfrom_format, 1, 0,
 	VAR_USE_SRV_LOOKUP, DEF_USE_SRV_LOOKUP, &var_use_srv_lookup, 0, 0,
 	VAR_SMTP_TLSRPT_SOCKNAME, DEF_SMTP_TLSRPT_SOCKNAME, &var_smtp_tlsrpt_sockname, 0, 0,
+	VAR_SMTP_ENFORCE_REQUIRETLS, DEF_SMTP_ENFORCE_REQUIRETLS, &var_smtp_enforce_requiretls, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE smtp_time_table[] = {

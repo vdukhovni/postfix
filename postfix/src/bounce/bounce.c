@@ -196,6 +196,7 @@
 #include <rcpt_buf.h>
 #include <dsb_scan.h>
 #include <hfrom_format.h>
+#include <sendopts.h>
 
 /* Single-threaded server skeleton. */
 
@@ -369,6 +370,11 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
 	bounce_cleanup_register(service_name, STR(queue_id));
 
     /*
+     * Do not enforce the REQUIRETLS verb for bounce messages.
+     */
+    sendopts &= ~SOPT_REQUIRETLS_ESMTP;
+
+    /*
      * Execute the request.
      */
     return (service(flags, service_name, STR(queue_name),
@@ -435,6 +441,11 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
      */
     if (flags & BOUNCE_FLAG_CLEAN)
 	bounce_cleanup_register(service_name, STR(queue_id));
+
+    /*
+     * Do not enforce the REQUIRETLS verb for bounce messages.
+     */
+    sendopts &= ~SOPT_REQUIRETLS_ESMTP;
 
     /*
      * Execute the request. Fall back to traditional notification if a bounce
@@ -527,6 +538,11 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
 		 rcpt_buf->offset, STR(rcpt_buf->dsn_orcpt),
 		 rcpt_buf->dsn_notify, STR(dsn_buf->status),
 		 STR(dsn_buf->action), STR(dsn_buf->reason));
+
+    /*
+     * Do not enforce the REQUIRETLS verb for bounce messages.
+     */
+    sendopts &= ~SOPT_REQUIRETLS_ESMTP;
 
     /*
      * Execute the request.

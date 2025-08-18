@@ -174,7 +174,7 @@ SMTP(8)                                                                SMTP(8)
        <a href="https://tools.ietf.org/html/rfc6531">RFC 6531</a> (Internationalized SMTP)
        <a href="https://tools.ietf.org/html/rfc6533">RFC 6533</a> (Internationalized Delivery Status Notifications)
        <a href="https://tools.ietf.org/html/rfc7672">RFC 7672</a> (SMTP security via opportunistic DANE TLS)
-       <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a> (TLS-Required message header)
+       <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a> (SMTP REQUIRETLS extension)
 
 <b><a name="diagnostics">DIAGNOSTICS</a></b>
        Problems  and  transactions  are  logged  to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.
@@ -507,7 +507,7 @@ SMTP(8)                                                                SMTP(8)
               The delimiter between username and password in  sasl_passwd_maps
               lookup results.
 
-<b><a name="starttls_support_controls">STARTTLS SUPPORT CONTROLS</a></b>
+<b><a name="tls_support_controls">TLS SUPPORT CONTROLS</a></b>
        Detailed  information  about STARTTLS configuration may be found in the
        <a href="TLS_README.html">TLS_README</a> document.
 
@@ -766,7 +766,15 @@ SMTP(8)                                                                SMTP(8)
               Enable  support  for  the  "TLS-Required:  no"  message  header,
               defined in <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a>.
 
-<b><a name="obsolete_starttls_controls">OBSOLETE STARTTLS CONTROLS</a></b>
+       <b><a href="postconf.5.html#requiretls_enable">requiretls_enable</a> (yes)</b>
+              Enable support for the ESMTP  verb  "REQUIRETLS"  in  the  "MAIL
+              FROM" command.
+
+       <b><a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> (<a href="DATABASE_README.html#types">inline</a>:{{.$<a href="postconf.5.html#mydomain">mydomain</a> = ignore}}, best-effort)</b>
+              The policy for how the Postfix SMTP and LMTP client will enforce
+              REQUIRETLS for messages received with the REQUIRETLS option.
+
+<b><a name="obsolete_tls_controls">OBSOLETE TLS CONTROLS</a></b>
        The following configuration parameters  exist  for  compatibility  with
        Postfix  versions  before  2.3.  Support for these will be removed in a
        future release.

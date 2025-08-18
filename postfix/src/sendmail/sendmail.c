@@ -152,10 +152,28 @@
 /*	comma-separated list with one or more of \fBfailure\fR (send
 /*	notification when delivery fails), \fBdelay\fR (send
 /*	notification when delivery is delayed), or \fBsuccess\fR
-/*	(send notification when the message is delivered); or specify
+/*	(send notification after the message is delivered); or specify
 /*	\fBnever\fR (don't send any notifications at all).
 /*
 /*	This feature is available in Postfix 2.3 and later.
+/* .IP "\fB-O requiretls"
+/*	When delivering a message to an SMTP or LMTP server, the
+/*	connection must use TLS with a verified server certificate,
+/*	and the server must support REQUIRETLS. Try multiple servers if
+/*	possible, and return the message as undeliverable when these
+/*	requirements were not satisfied with any of the servers that
+/*	were tried. The "requiretls" option value is case-insensitive.
+/*
+/*	This feature is available in Postfix 3.11 and later.
+/* .IP "\fB-O smtputf8"
+/*	When delivering a message to an SMTP or LMTP server, the server
+/*	must support SMTPUTF8. Try multiple servers if possible, and
+/*	return the message as undeliverable when a message contains an
+/*	UTF8 envelope address or message header, but SMTPUTF8 was not
+/*	supported by any of the servers that were tried. The "smtputf8"
+/*	option value is case-insensitive.
+/*
+/*	This feature is available in Postfix 3.10 and later.
 /* .IP "\fB-n\fR (ignored)"
 /*	Backwards compatibility.
 /* .IP "\fB-oA\fIalias_database\fR"
@@ -434,6 +452,11 @@
 /*	the Postfix executable files and documentation with the default
 /*	Postfix instance, and that are started, stopped, etc., together
 /*	with the default Postfix instance.
+/* .PP
+/*	Postfix 3.10 and later:
+/* .IP "\fBrequiretls_enable (yes)\fR"
+/*	Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
+/*	FROM" command.
 /* FILES
 /*	/var/spool/postfix, mail queue
 /*	/etc/postfix, configuration files
@@ -537,6 +560,7 @@
 #include <user_acl.h>
 #include <dsn_mask.h>
 #include <mail_parm_split.h>
+#include <sendopts.h>
 
 /* Application-specific. */
 
@@ -588,6 +612,11 @@ static const CONFIG_STR_TABLE str_table[] = {
     VAR_SM_FIX_EOL, DEF_SM_FIX_EOL, &var_sm_fix_eol, 1, 0,
     0,
 };
+
+ /*
+  * Sender options.
+  */
+static int sm_sendopts;
 
  /*
   * Silly little macros (SLMs).
@@ -788,6 +817,14 @@ static void enqueue(const int flags, const char *encoding,
      * With "sendmail -N", instead of a per-message NOTIFY record we store one
      * per recipient so that we can simplify the implementation somewhat.
      */
+    if (sm_sendopts)
+	rec_fprintf(dst, REC_TYPE_SIZE, REC_TYPE_SIZE_FORMAT,
+		    (REC_TYPE_SIZE_CAST1) ~ 0,	/* message segment size */
+		    (REC_TYPE_SIZE_CAST2) ~ 0,	/* content offset */
+		    (REC_TYPE_SIZE_CAST3) ~ 0,	/* recipient count */
+		    (REC_TYPE_SIZE_CAST4) ~ 0,	/* qmgr options */
+		    (REC_TYPE_SIZE_CAST5) ~ 0,	/* content length */
+		    (REC_TYPE_SIZE_CAST6) sm_sendopts);
     if (dsn_envid)
 	rec_fprintf(dst, REC_TYPE_ATTR, "%s=%s",
 		    MAIL_ATTR_DSN_ENVID, dsn_envid);
@@ -1251,7 +1288,27 @@ int     main(int argc, char **argv)
 	    break;
 	case 'N':
 	    if ((dsn_notify = dsn_notify_mask(optarg)) == 0)
-		msg_warn("bad -N option value -- ignored");
+		msg_warn("bad -N option value: '%s' -- ignored", optarg);
+	    break;
+	case 'O':
+	    /* NOOP is used to implement ${requiretls} in pipe(8). */
+	    if (strcasecmp(optarg, "REQUIRETLS") == 0) {
+		if (var_requiretls_enable)
+		    sm_sendopts |= SOPT_REQUIRETLS_ESMTP;
+		else
+		    msg_warn("'-O %s' was requested, but the "
+			     "configuration is '%s = %s'", optarg,
+			     VAR_REQUIRETLS_ENABLE, CONFIG_BOOL_NO);
+	    } else if (strcasecmp(optarg, "SMTPUTF8") == 0) {
+		if (var_smtputf8_enable)
+		    sm_sendopts |= SOPT_SMTPUTF8_REQUESTED;
+		else
+		    msg_warn("'-O %s' was requested, but the "
+			     "configuration is '%s = %s'", optarg,
+			     VAR_SMTPUTF8_ENABLE, CONFIG_BOOL_NO);
+	    } else if (strcasecmp(optarg, "NOOP") != 0) {
+		msg_warn("bad -O option value: '%s' -- ignored", optarg);
+	    }
 	    break;
 	case 'R':
 	    if ((dsn_ret = dsn_ret_code(optarg)) == 0)

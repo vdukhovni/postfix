@@ -172,7 +172,7 @@
 /*	RFC 6531 (Internationalized SMTP)
 /*	RFC 6533 (Internationalized Delivery Status Notifications)
 /*	RFC 7672 (SMTP security via opportunistic DANE TLS)
-/*	RFC 8689 (TLS-Required message header)
+/*	RFC 8689 (SMTP REQUIRETLS extension)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8)
 /*	or \fBpostlogd\fR(8).
@@ -453,7 +453,7 @@
 /* .IP "\fBsmtp_sasl_password_result_delimiter (:)\fR"
 /*	The delimiter between username and password in sasl_passwd_maps lookup
 /*	results.
-/* STARTTLS SUPPORT CONTROLS
+/* TLS SUPPORT CONTROLS
 /* .ad
 /* .fi
 /*	Detailed information about STARTTLS configuration may be found
@@ -653,7 +653,13 @@
 /* .IP "\fBtls_required_enable (yes)\fR"
 /*	Enable support for the "TLS-Required: no" message header, defined
 /*	in RFC 8689.
-/* OBSOLETE STARTTLS CONTROLS
+/* .IP "\fBrequiretls_enable (yes)\fR"
+/*	Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
+/*	FROM" command.
+/* .IP "\fBsmtp_requiretls_policy (inline:{{.$mydomain = ignore}}, best-effort)\fR"
+/*	The policy for how the Postfix SMTP and LMTP client will enforce
+/*	REQUIRETLS for messages received with the REQUIRETLS option.
+/* OBSOLETE TLS CONTROLS
 /* .ad
 /* .fi
 /*	The following configuration parameters exist for compatibility
@@ -1020,6 +1026,8 @@
 #include <maps.h>
 #include <ext_prop.h>
 #include <hfrom_format.h>
+#include <domain_list.h>
+#include <match_parent_style.h>
 
 /* DNS library. */
 
@@ -1164,6 +1172,7 @@ bool    var_allow_srv_fallback;
 bool    var_smtp_tlsrpt_enable;
 char   *var_smtp_tlsrpt_sockname;
 bool    var_smtp_tlsrpt_skip_reused_hs;
+char   *var_smtp_enforce_requiretls;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -1191,6 +1200,7 @@ HBC_CHECKS *smtp_body_checks;		/* limited body checks */
 SMTP_CLI_ATTR smtp_cli_attr;		/* parsed command-line */
 int     smtp_hfrom_format;		/* postmaster notifications */
 STRING_LIST *smtp_use_srv_lookup;
+DOMAIN_LIST *smtp_enforce_requiretls;
 
 #ifdef USE_TLS
 
@@ -1698,6 +1708,23 @@ static void pre_init(char *unused_name, char **unused_argv)
     if (*var_smtp_dns_re_filter)
 	dns_rr_filter_compile(VAR_LMTP_SMTP(DNS_RE_FILTER),
 			      var_smtp_dns_re_filter);
+
+    /*
+     * REQUIRETLS enforcement uses a match list. No MATCH_FLAG_RETURN after
+     * table lookup error, because fail-open is not a good option. We would
+     * have to defer all delivery requests anyway. Disable /file/name magic
+     * for LMTP, because that would break the handling of UNIX-domain socket
+     * pathnames.
+     */
+    if (var_requiretls_enable && *var_smtp_enforce_requiretls) {
+	int     flags = smtp_mode ? 0 : MATCH_FLAG_NOFILE;
+	const char *param_name = VAR_LMTP_SMTP(ENFORCE_REQUIRETLS);
+
+	smtp_enforce_requiretls =
+	    domain_list_init(param_name,
+			     match_parent_style(param_name) | flags,
+			     var_smtp_enforce_requiretls);
+    }
 }
 
 /* pre_accept - see if tables have changed */

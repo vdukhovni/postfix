@@ -19620,11 +19620,201 @@ no enforcement of TLS policy. This disables TLS policy lookup, and
 limits the Postfix SMTP client
 TLS security level to "may", that is, do not verify remote SMTP
 server certificates, and fall back to plaintext if TLS is unavailable.
-If a message contains a "TLS-Required: no" header, then Postfix
-will add that header to a delivery status notification for that
+If a message contains a "TLS-Required: no" header, then Postfix 
+will add that header to a delivery status notification for that 
 message. </p>
 
+<p> Note: REQUIRETLS overrides "TLS-Required: no". </p>
+
 <p> This feature is available in Postfix &ge; 3.10. </p>
+
+%PARAM requiretls_enable yes
+
+<p> Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
+FROM" command. As defined in RFC 8689, when a message specifies
+REQUIRETLS: </p>
+
+<ul>
+
+<li> <p> deliveries with SMTP or LMTP must use a TLS connection, </p>
+
+<li> <p> using a securely looked up MX server (DNSSEC or MTA-STS), </p>
+
+<li> <p> with a matched server certificate (Postfix SMTP or LMTP
+client TLS security levels "secure", "verify", "fingerprint",
+dane-only, or opportunistic "dane"), </p>
+
+<li> <p> and the server must announce "REQUIRETLS" support after
+the STARTTLS handshake. </p>
+
+</ul>
+
+<p> When delivering a message that specifies REQUIRETLS, the Postfix
+SMTP client will try one or more servers, controlled with the
+smtp_mx_address_limit and smtp_mx_session_limit parameters, until it
+finds an MX server that satisfies the above requirements. Otherwise,
+the Postfix SMTP client returns the message as undeliverable. </p>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> With the Postfix SMTP or LMTP clients, REQUIRETLS enforcement
+is controlled with smtp_requiretls_policy or lmtp_requiretls_policy. It
+is typically not enforced for deliveries to local servers, including
+LMTP message stores and local content filters. </p>
+
+<li> <p> REQUIRETLS overrides the "TLS-Required: no" message header. </p>
+
+</ul>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM smtp_requiretls_policy inline:{{.$mydomain = ignore}}, best-effort
+
+<p> The policy for how the Postfix SMTP and LMTP client will enforce
+REQUIRETLS for messages received with the REQUIRETLS option. LMTP
+examples are at the end.
+
+<ul>
+
+<li> <p> Specify a list of items, separated with whitespace or
+comma; continue a long line by starting the next line with whitespace.
+</p>
+
+<li> <p> Each item must be an action (see below), or a type:table
+lookup table that must return an action (not a type:table). </p>
+
+<li> A type:table lookup table is searched with the next-hop
+destination, without any <i>[ ]</i>, <i>:service</i>, or <i>:port</i>.
+</p>
+
+<li> <p> The next-hop destination for TCP connections is the recipient
+domain, but this can be overruled with transport_maps, relayhost,
+content_filter, or other routing features. The next-hop destination
+for UNIX-domain connections is always the value of myhostname. </p>
+
+</ul>
+
+<p> Supported actions: </p>
+
+<dl>
+
+<dt> <b> enforce </b> </dt> <dd>  <p> Require that at least one
+remote SMTP or LMTP server offers a matching TLS server certificate,
+and that the server announces REQUIRETLS support. If no such server
+is found, return the message to the sender and log a "REQUIRETLS
+failure" event. </p> </dd>
+
+<dt> <b> best-effort </b> </dt> <dd> <p> When REQUIRETLS cannot be
+enforced, deliver the message as if it was received without the
+REQUIRETLS option, and log a "REQUIRETLS Debug" event. This action
+allows a mail sending operator to discover when REQUIRETLS can be
+enforced, without disrupting email deliveries. </p> </dd>
+
+<dt> <b> ignore </b> </dt> <dd> <p> Turn off REQUIRETLS enforcement.
+This can be appropriate for an inbound perimeter MTA, when forwarding
+messages from the Internet to internal servers. The internal servers
+may not support REQUIRETLS, and their connections may be authenticated
+with means other than DANE or STS. </p> </dd>
+
+</dl>
+
+<p> Notes: </p>
+
+<ul> 
+
+<li> <p> Postfix appends an implicit <b>best-effort</b> action after
+the end of each policy. </p>
+
+<li> <p> To match any name below the domain "example.com" specify
+a table entry with the storage key ".example.com" in type:table
+lookup tables that need an exact match. This is appropriate, for
+example, with hash:, btree: or lmdb:. </p>
+
+<li> <p> Do not specify a match pattern for ".domain" with regexp:,
+pcre:, socketmap:, or tcp:, as smtp_requiretls_policy will
+not query those tables with that form. </p>
+
+</ul>
+
+<p> SMTP examples: </p>
+
+<ul>
+
+<li> <p> The default policy for SMTP as of Postfix 3.11: disable
+REQUIRETLS for internal servers, use best effort REQUIRETLS for
+external servers. </p>
+
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_security_level = may
+    smtp_tls_policy_maps = ...dane/sts plugin...
+    smtp_requiretls_policy =
+	inline:{ {.$mydomain = ignore} }
+	best-effort
+</pre>
+
+<li> <p> As above, with external destinations listed in a separate
+file for easier maintenance. </p>
+
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_security_level = may
+    smtp_tls_policy_maps = ...dane/sts plugin...
+    smtp_requiretls_policy =
+	inline:{ {.$mydomain = ignore} }
+	hash:/etc/postfix/requiretls-per-site
+	best-effort
+</pre>
+<pre>
+/etc/postfix/requiretls-per-site:
+    one.example 	enforce
+    two.example 	enforce
+    three.example	ignore
+    ...
+</pre>
+
+<li> <p> Distant future: enforce REQUIRETLS for all external
+destinations. </p>
+
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_secure_cert_match = nexthop, dot-nexthop
+    smtp_tls_security_level = secure
+    smtp_tls_policy_maps = ...dane/sts plugin...
+    smtp_requiretls_policy =
+	inline:{ {.$mydomain = ignore} }
+	enforce
+</pre>
+
+</ul>
+
+<p>
+LMTP examples:
+</p>
+
+<ul>
+
+<li> <p> The default policy for LMTP. Note: with deliveries over a
+UNIX-domain socket, the next-hop destination for lmtp_requiretls_policy
+lookups will be the myhostname parameter value. </p>
+
+<pre>
+/etc/postfix/main.cf:
+    lmtp_requiretls_policy = ignore
+</pre>
+
+</ul>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM lmtp_requiretls_policy ignore
+
+<p> The LMTP-specific version of the smtp_requiretls_policy
+configuration parameter. See there for details. </p>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
 
 %PARAM smtpd_hide_client_session no
 

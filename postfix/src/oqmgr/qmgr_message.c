@@ -799,6 +799,15 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     }
 
     /*
+     * If the sender requested REQUIRETLS, don't bounce full messages. This
+     * is better enforced here than in delivery agents and bounce service
+     * daemons.
+     */
+    if (var_requiretls_enable
+	&& (message->sendopts & SOPT_REQUIRETLS_ESMTP))
+	message->dsn_ret = DSN_RET_HDRS;
+
+    /*
      * After sending a "delayed" warning, request sender notification when
      * message delivery is completed. While "mail delayed" notifications are
      * bad enough because they multiply the amount of email traffic, "delay

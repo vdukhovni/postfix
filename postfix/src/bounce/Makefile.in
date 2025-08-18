@@ -199,6 +199,7 @@ bounce.o: ../../include/mymalloc.h
 bounce.o: ../../include/nvtable.h
 bounce.o: ../../include/rcpt_buf.h
 bounce.o: ../../include/recipient_list.h
+bounce.o: ../../include/sendopts.h
 bounce.o: ../../include/stringops.h
 bounce.o: ../../include/sys_defs.h
 bounce.o: ../../include/vbuf.h

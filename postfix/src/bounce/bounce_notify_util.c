@@ -534,7 +534,8 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     }
 
     /*
-     * Trade confidentiality against availability.
+     * In bounce context, REQUIRETLS does not take precedence over
+     * "TLS-Required: no".
      */
     if (var_tls_required_enable
 	&& (bounce_info->sendopts & SOPT_REQUIRETLS_HEADER) != 0)

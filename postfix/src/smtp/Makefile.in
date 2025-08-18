@@ -2,16 +2,19 @@ SHELL	= /bin/sh
 SRCS	= smtp.c smtp_connect.c smtp_proto.c smtp_chat.c smtp_session.c \
 	smtp_addr.c smtp_trouble.c smtp_state.c smtp_rcpt.c smtp_tls_policy.c \
 	smtp_sasl_proto.c smtp_sasl_glue.c smtp_reuse.c smtp_map11.c \
-	smtp_sasl_auth_cache.c smtp_key.c smtp_misc.c smtp_tlsrpt.c
+	smtp_sasl_auth_cache.c smtp_key.c smtp_misc.c smtp_tlsrpt.c \
+	smtp_reqtls_policy.c
 OBJS	= smtp.o smtp_connect.o smtp_proto.o smtp_chat.o smtp_session.o \
 	smtp_addr.o smtp_trouble.o smtp_state.o smtp_rcpt.o smtp_tls_policy.o \
 	smtp_sasl_proto.o smtp_sasl_glue.o smtp_reuse.o smtp_map11.o \
-	smtp_sasl_auth_cache.o smtp_key.o smtp_misc.o smtp_tlsrpt.o
-HDRS	= smtp.h smtp_sasl.h smtp_addr.h smtp_reuse.h smtp_sasl_auth_cache.h
+	smtp_sasl_auth_cache.o smtp_key.o smtp_misc.o smtp_tlsrpt.o \
+	smtp_reqtls_policy.o
+HDRS	= smtp.h smtp_sasl.h smtp_addr.h smtp_reuse.h smtp_sasl_auth_cache.h \
+	smtp_reqtls_policy.h
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
-TESTPROG= smtp_unalias smtp_map11
+TESTPROG= smtp_unalias smtp_map11 smtp_reqtls_policy_test
 PROG	= smtp
 INC_DIR	= ../../include
 LIBS	= ../../lib/lib$(LIB_PREFIX)master$(LIB_SUFFIX) \
@@ -33,7 +36,7 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests: smtp_map11_test
+tests: smtp_map11_test test_smtp_reqtls_policy
 
 root_tests:
 
@@ -64,6 +67,12 @@ smtp_map11_test: smtp_map11 smtp_map11.ref
 	diff smtp_map11.ref smtp_map11.tmp
 	rm -f smtp_map11.tmp
 
+smtp_reqtls_policy_test: smtp_reqtls_policy_test.c smtp_reqtls_policy.o
+	$(CC) $(CFLAGS) -o $@ $@.c smtp_reqtls_policy.o $(LIBS) $(SYSLIBS)
+
+test_smtp_reqtls_policy: smtp_reqtls_policy_test
+	$(SHLIB_ENV) $(VALGRIND) ./smtp_reqtls_policy_test
+
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
 	set -e; for i in [a-z][a-z0-9]*.c; do \
@@ -84,6 +93,7 @@ smtp.o: ../../include/deliver_request.h
 smtp.o: ../../include/delivered_hdr.h
 smtp.o: ../../include/dict.h
 smtp.o: ../../include/dns.h
+smtp.o: ../../include/domain_list.h
 smtp.o: ../../include/dsn.h
 smtp.o: ../../include/dsn_buf.h
 smtp.o: ../../include/ext_prop.h
@@ -101,6 +111,7 @@ smtp.o: ../../include/mail_server.h
 smtp.o: ../../include/mail_version.h
 smtp.o: ../../include/maps.h
 smtp.o: ../../include/match_list.h
+smtp.o: ../../include/match_parent_style.h
 smtp.o: ../../include/mime_state.h
 smtp.o: ../../include/msg.h
 smtp.o: ../../include/msg_stats.h
@@ -135,6 +146,7 @@ smtp_addr.o: ../../include/check_arg.h
 smtp_addr.o: ../../include/deliver_request.h
 smtp_addr.o: ../../include/dict.h
 smtp_addr.o: ../../include/dns.h
+smtp_addr.o: ../../include/domain_list.h
 smtp_addr.o: ../../include/dsn.h
 smtp_addr.o: ../../include/dsn_buf.h
 smtp_addr.o: ../../include/header_body_checks.h
@@ -180,6 +192,7 @@ smtp_chat.o: ../../include/cleanup_user.h
 smtp_chat.o: ../../include/deliver_request.h
 smtp_chat.o: ../../include/dict.h
 smtp_chat.o: ../../include/dns.h
+smtp_chat.o: ../../include/domain_list.h
 smtp_chat.o: ../../include/dsn.h
 smtp_chat.o: ../../include/dsn_buf.h
 smtp_chat.o: ../../include/dsn_util.h
@@ -231,6 +244,7 @@ smtp_connect.o: ../../include/deliver_pass.h
 smtp_connect.o: ../../include/deliver_request.h
 smtp_connect.o: ../../include/dict.h
 smtp_connect.o: ../../include/dns.h
+smtp_connect.o: ../../include/domain_list.h
 smtp_connect.o: ../../include/dsn.h
 smtp_connect.o: ../../include/dsn_buf.h
 smtp_connect.o: ../../include/header_body_checks.h
@@ -286,6 +300,7 @@ smtp_key.o: ../../include/check_arg.h
 smtp_key.o: ../../include/deliver_request.h
 smtp_key.o: ../../include/dict.h
 smtp_key.o: ../../include/dns.h
+smtp_key.o: ../../include/domain_list.h
 smtp_key.o: ../../include/dsn.h
 smtp_key.o: ../../include/dsn_buf.h
 smtp_key.o: ../../include/header_body_checks.h
@@ -324,6 +339,7 @@ smtp_map11.o: ../../include/check_arg.h
 smtp_map11.o: ../../include/deliver_request.h
 smtp_map11.o: ../../include/dict.h
 smtp_map11.o: ../../include/dns.h
+smtp_map11.o: ../../include/domain_list.h
 smtp_map11.o: ../../include/dsn.h
 smtp_map11.o: ../../include/dsn_buf.h
 smtp_map11.o: ../../include/header_body_checks.h
@@ -365,6 +381,7 @@ smtp_misc.o: ../../include/check_arg.h
 smtp_misc.o: ../../include/deliver_request.h
 smtp_misc.o: ../../include/dict.h
 smtp_misc.o: ../../include/dns.h
+smtp_misc.o: ../../include/domain_list.h
 smtp_misc.o: ../../include/dsn.h
 smtp_misc.o: ../../include/dsn_buf.h
 smtp_misc.o: ../../include/ext_prop.h
@@ -409,6 +426,7 @@ smtp_proto.o: ../../include/defer.h
 smtp_proto.o: ../../include/deliver_request.h
 smtp_proto.o: ../../include/dict.h
 smtp_proto.o: ../../include/dns.h
+smtp_proto.o: ../../include/domain_list.h
 smtp_proto.o: ../../include/dsn.h
 smtp_proto.o: ../../include/dsn_buf.h
 smtp_proto.o: ../../include/dsn_mask.h
@@ -475,6 +493,7 @@ smtp_rcpt.o: ../../include/deliver_completed.h
 smtp_rcpt.o: ../../include/deliver_request.h
 smtp_rcpt.o: ../../include/dict.h
 smtp_rcpt.o: ../../include/dns.h
+smtp_rcpt.o: ../../include/domain_list.h
 smtp_rcpt.o: ../../include/dsn.h
 smtp_rcpt.o: ../../include/dsn_buf.h
 smtp_rcpt.o: ../../include/dsn_mask.h
@@ -516,6 +535,7 @@ smtp_reuse.o: ../../include/check_arg.h
 smtp_reuse.o: ../../include/deliver_request.h
 smtp_reuse.o: ../../include/dict.h
 smtp_reuse.o: ../../include/dns.h
+smtp_reuse.o: ../../include/domain_list.h
 smtp_reuse.o: ../../include/dsn.h
 smtp_reuse.o: ../../include/dsn_buf.h
 smtp_reuse.o: ../../include/header_body_checks.h
@@ -550,6 +570,33 @@ smtp_reuse.o: ../../include/vstring.h
 smtp_reuse.o: smtp.h
 smtp_reuse.o: smtp_reuse.c
 smtp_reuse.o: smtp_reuse.h
+smtp_reqtls_policy.o: ../../include/argv.h
+smtp_reqtls_policy.o: ../../include/check_arg.h
+smtp_reqtls_policy.o: ../../include/dict.h
+smtp_reqtls_policy.o: ../../include/mail_params.h
+smtp_reqtls_policy.o: ../../include/match_list.h
+smtp_reqtls_policy.o: ../../include/match_parent_style.h
+smtp_reqtls_policy.o: ../../include/msg.h
+smtp_reqtls_policy.o: ../../include/myflock.h
+smtp_reqtls_policy.o: ../../include/mymalloc.h
+smtp_reqtls_policy.o: ../../include/stringops.h
+smtp_reqtls_policy.o: ../../include/sys_defs.h
+smtp_reqtls_policy.o: ../../include/vbuf.h
+smtp_reqtls_policy.o: ../../include/vstream.h
+smtp_reqtls_policy.o: ../../include/vstring.h
+smtp_reqtls_policy.o: smtp_reqtls_policy.c
+smtp_reqtls_policy.o: smtp_reqtls_policy.h
+smtp_reqtls_policy_test.o: ../../include/argv.h
+smtp_reqtls_policy_test.o: ../../include/check_arg.h
+smtp_reqtls_policy_test.o: ../../include/msg.h
+smtp_reqtls_policy_test.o: ../../include/msg_vstream.h
+smtp_reqtls_policy_test.o: ../../include/stringops.h
+smtp_reqtls_policy_test.o: ../../include/sys_defs.h
+smtp_reqtls_policy_test.o: ../../include/vbuf.h
+smtp_reqtls_policy_test.o: ../../include/vstream.h
+smtp_reqtls_policy_test.o: ../../include/vstring.h
+smtp_reqtls_policy_test.o: smtp_reqtls_policy.h
+smtp_reqtls_policy_test.o: smtp_reqtls_policy_test.c
 smtp_sasl_auth_cache.o: ../../include/argv.h
 smtp_sasl_auth_cache.o: ../../include/attr.h
 smtp_sasl_auth_cache.o: ../../include/base64_code.h
@@ -558,6 +605,7 @@ smtp_sasl_auth_cache.o: ../../include/deliver_request.h
 smtp_sasl_auth_cache.o: ../../include/dict.h
 smtp_sasl_auth_cache.o: ../../include/dict_proxy.h
 smtp_sasl_auth_cache.o: ../../include/dns.h
+smtp_sasl_auth_cache.o: ../../include/domain_list.h
 smtp_sasl_auth_cache.o: ../../include/dsn.h
 smtp_sasl_auth_cache.o: ../../include/dsn_buf.h
 smtp_sasl_auth_cache.o: ../../include/dsn_util.h
@@ -599,6 +647,7 @@ smtp_sasl_glue.o: ../../include/check_arg.h
 smtp_sasl_glue.o: ../../include/deliver_request.h
 smtp_sasl_glue.o: ../../include/dict.h
 smtp_sasl_glue.o: ../../include/dns.h
+smtp_sasl_glue.o: ../../include/domain_list.h
 smtp_sasl_glue.o: ../../include/dsn.h
 smtp_sasl_glue.o: ../../include/dsn_buf.h
 smtp_sasl_glue.o: ../../include/header_body_checks.h
@@ -645,6 +694,7 @@ smtp_sasl_proto.o: ../../include/check_arg.h
 smtp_sasl_proto.o: ../../include/deliver_request.h
 smtp_sasl_proto.o: ../../include/dict.h
 smtp_sasl_proto.o: ../../include/dns.h
+smtp_sasl_proto.o: ../../include/domain_list.h
 smtp_sasl_proto.o: ../../include/dsn.h
 smtp_sasl_proto.o: ../../include/dsn_buf.h
 smtp_sasl_proto.o: ../../include/header_body_checks.h
@@ -687,6 +737,7 @@ smtp_session.o: ../../include/debug_peer.h
 smtp_session.o: ../../include/deliver_request.h
 smtp_session.o: ../../include/dict.h
 smtp_session.o: ../../include/dns.h
+smtp_session.o: ../../include/domain_list.h
 smtp_session.o: ../../include/dsn.h
 smtp_session.o: ../../include/dsn_buf.h
 smtp_session.o: ../../include/header_body_checks.h
@@ -728,6 +779,7 @@ smtp_state.o: ../../include/debug_peer.h
 smtp_state.o: ../../include/deliver_request.h
 smtp_state.o: ../../include/dict.h
 smtp_state.o: ../../include/dns.h
+smtp_state.o: ../../include/domain_list.h
 smtp_state.o: ../../include/dsn.h
 smtp_state.o: ../../include/dsn_buf.h
 smtp_state.o: ../../include/header_body_checks.h
@@ -769,6 +821,7 @@ smtp_tls_policy.o: ../../include/ctable.h
 smtp_tls_policy.o: ../../include/deliver_request.h
 smtp_tls_policy.o: ../../include/dict.h
 smtp_tls_policy.o: ../../include/dns.h
+smtp_tls_policy.o: ../../include/domain_list.h
 smtp_tls_policy.o: ../../include/dsn.h
 smtp_tls_policy.o: ../../include/dsn_buf.h
 smtp_tls_policy.o: ../../include/header_body_checks.h
@@ -812,6 +865,7 @@ smtp_tlsrpt.o: ../../include/check_arg.h
 smtp_tlsrpt.o: ../../include/deliver_request.h
 smtp_tlsrpt.o: ../../include/dict.h
 smtp_tlsrpt.o: ../../include/dns.h
+smtp_tlsrpt.o: ../../include/domain_list.h
 smtp_tlsrpt.o: ../../include/dsn.h
 smtp_tlsrpt.o: ../../include/dsn_buf.h
 smtp_tlsrpt.o: ../../include/header_body_checks.h
@@ -857,6 +911,7 @@ smtp_trouble.o: ../../include/deliver_completed.h
 smtp_trouble.o: ../../include/deliver_request.h
 smtp_trouble.o: ../../include/dict.h
 smtp_trouble.o: ../../include/dns.h
+smtp_trouble.o: ../../include/domain_list.h
 smtp_trouble.o: ../../include/dsn.h
 smtp_trouble.o: ../../include/dsn_buf.h
 smtp_trouble.o: ../../include/header_body_checks.h
@@ -899,6 +954,7 @@ smtp_unalias.o: ../../include/check_arg.h
 smtp_unalias.o: ../../include/deliver_request.h
 smtp_unalias.o: ../../include/dict.h
 smtp_unalias.o: ../../include/dns.h
+smtp_unalias.o: ../../include/domain_list.h
 smtp_unalias.o: ../../include/dsn.h
 smtp_unalias.o: ../../include/dsn_buf.h
 smtp_unalias.o: ../../include/header_body_checks.h
