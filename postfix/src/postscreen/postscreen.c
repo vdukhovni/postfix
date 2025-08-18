@@ -992,7 +992,7 @@ static void pre_accept(char *unused_name, char **unused_argv)
     if (new_event_time >= last_event_time + 1
 	&& (name = dict_changed_name()) != 0) {
 	msg_info("table %s has changed - finishing in the background", name);
-	event_server_drain();
+	psc_drain(unused_name, unused_argv);
     } else {
 	last_event_time = new_event_time;
     }
