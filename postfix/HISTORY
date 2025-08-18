@@ -29568,3 +29568,10 @@ Apologies for any names omitted.
 	documentation. This will be back-ported to Postfix 3.10.
 	Files: Makefile.in, smtp/smtp.h smtp/smtp_connect.c,
 	smtp/smtp_tls_policy.c, proto/postconf.proto.
+
+20250816
+
+	Bugfix (defect introduced: Postfix 3.0, date 20140731): the
+	smtpd 'disconnect' command counts did not count malformed
+	commands with "bad syntax" and "bad UTF-8 syntax" errors.
+	File: smtpd/smtpd.c.
