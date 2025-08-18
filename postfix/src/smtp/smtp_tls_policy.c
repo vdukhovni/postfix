@@ -647,11 +647,18 @@ static void *policy_create(const char *unused_key, void *context)
      * Compute the per-site TLS enforcement level. For compatibility with the
      * original TLS patch, this algorithm is gives equal precedence to host
      * and next-hop policies.
+     * 
+     * When "TLS-Required: no" is in effect, skip TLS policy lookup and limit
+     * the security level to "may". Do not reset the security level after
+     * policy lookup, as that would result in errors. For example, when TLSA
+     * records are looked up for security level "dane", and then the security
+     * level is reset to "may", the activation of those TLSA records will
+     * fail.
      */
     tls->level = global_tls_level();
     site_level = TLS_LEV_NOTFOUND;
 
-    if (iter->tlsreqno) {
+    if (STATE_TLS_NOT_REQUIRED(iter->parent)) {
 	if (msg_verbose)
 	    msg_info("%s: no tls policy lookup", __func__);
 	if (tls->level > TLS_LEV_MAY)

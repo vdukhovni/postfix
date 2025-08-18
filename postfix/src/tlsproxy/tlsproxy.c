@@ -1267,6 +1267,12 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
     init_buf = vstring_alloc(100);
     init_key = tls_proxy_client_init_serialize(attr_print_plain, init_buf,
 					       init_props);
+#define TLSP_CLIENT_INIT_RETURN(retval) do { \
+	vstring_free(init_buf); \
+	vstring_free(param_buf); \
+	return (retval); \
+    } while (0)
+
     if (tlsp_pre_jail_done == 0) {
 	if (tlsp_pre_jail_client_param_key == 0
 	    || tlsp_pre_jail_client_init_key == 0) {
@@ -1284,9 +1290,12 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
      * TLS_APPL_STATE instance; this makes a mismatch of TLS_CLIENT_PARAMS
      * settings problematic.
      */
-    if (tlsp_pre_jail_done
-	&& !been_here_fixed(tlsp_params_mismatch_filter, param_key)
-	&& strcmp(tlsp_pre_jail_client_param_key, param_key) != 0) {
+    else if (tlsp_pre_jail_client_param_key == 0
+	     || tlsp_pre_jail_client_init_key == 0) {
+	msg_warn("TLS client role is disabled by configuration");
+	TLSP_CLIENT_INIT_RETURN(0);
+    } else if (!been_here_fixed(tlsp_params_mismatch_filter, param_key)
+	       && strcmp(tlsp_pre_jail_client_param_key, param_key) != 0) {
 	msg_warn("request from tlsproxy client with unexpected settings");
 	tlsp_log_config_diff(tlsp_pre_jail_client_param_key, param_key);
 	log_hints = 1;
@@ -1361,9 +1370,7 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
 			 SSL_MODE_ENABLE_PARTIAL_WRITE
 			 | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
     }
-    vstring_free(init_buf);
-    vstring_free(param_buf);
-    return (appl_state);
+    TLSP_CLIENT_INIT_RETURN(appl_state);
 }
 
 /* tlsp_close_event - pre-handshake plaintext-client close event */
@@ -1497,6 +1504,7 @@ static void tlsp_get_request_event(int event, void *context)
 				TLSP_INIT_TIMEOUT, (void *) state);
 	return;
     } else {
+	state->flags |= TLSP_FLAG_DO_HANDSHAKE;
 	tlsp_request_read_event(plaintext_fd, tlsp_get_fd_event,
 				TLSP_INIT_TIMEOUT, (void *) state);
 	return;

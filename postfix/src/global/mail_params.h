@@ -4171,7 +4171,9 @@ extern bool var_tlsp_clnt_enforce_tls;
 /* Migrate an incorrect name. */
 #define OBS_TLSP_CLNT_LEVEL		"tlsproxy_client_level"
 #define VAR_TLSP_CLNT_LEVEL		"tlsproxy_client_security_level"
-#define DEF_TLSP_CLNT_LEVEL		"${" OBS_TLSP_CLNT_LEVEL ":$" VAR_SMTP_TLS_LEVEL "}"
+#define DEF_TLSP_CLNT_LEVEL		"${" OBS_TLSP_CLNT_LEVEL "?{$" \
+					OBS_TLSP_CLNT_LEVEL "}:{$" \
+					VAR_SMTP_TLS_LEVEL "}}"
 extern char *var_tlsp_clnt_level;
 
 #define VAR_TLSP_CLNT_PER_SITE		"tlsproxy_client_per_site"
@@ -4181,7 +4183,9 @@ extern char *var_tlsp_clnt_per_site;
 /* Migrate an incorrect name. */
 #define OBS_TLSP_CLNT_POLICY		"tlsproxy_client_policy"
 #define VAR_TLSP_CLNT_POLICY		"tlsproxy_client_policy_maps"
-#define DEF_TLSP_CLNT_POLICY		"${" OBS_TLSP_CLNT_POLICY ":$" VAR_SMTP_TLS_POLICY "}"
+#define DEF_TLSP_CLNT_POLICY		"${" OBS_TLSP_CLNT_POLICY "?{$" \
+					OBS_TLSP_CLNT_POLICY "}:{$" \
+					VAR_SMTP_TLS_POLICY "}}"
 extern char *var_tlsp_clnt_policy;
 
  /*

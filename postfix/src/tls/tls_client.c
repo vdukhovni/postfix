@@ -313,6 +313,7 @@ static void uncache_session(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
 static void verify_x509(TLS_SESS_STATE *TLScontext, X509 *peercert,
 			        const TLS_CLIENT_START_PROPS *props)
 {
+    int     x509_err = SSL_get_verify_result(TLScontext->con);
 
     /*
      * On exit both peer_CN and issuer_CN should be set.
@@ -324,7 +325,7 @@ static void verify_x509(TLS_SESS_STATE *TLScontext, X509 *peercert,
      * Is the certificate trust chain trusted and matched?  Any required name
      * checks are now performed internally in OpenSSL.
      */
-    if (SSL_get_verify_result(TLScontext->con) == X509_V_OK) {
+    if (x509_err == X509_V_OK) {
 	TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
 	if (TLScontext->must_fail) {
 	    msg_panic("%s: cert valid despite trust init failure",
@@ -356,6 +357,13 @@ static void verify_x509(TLS_SESS_STATE *TLScontext, X509 *peercert,
 		tls_dane_log(TLScontext);
 	    }
 	}
+    } else if (TLS_MUST_MATCH(TLScontext->level) &&
+	       x509_err == X509_V_ERR_HOSTNAME_MISMATCH) {
+	/*
+	 * If the only error is a hostname mismatch, the certificate must have
+	 * been trusted.
+	 */
+	TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
     }
 
     /*

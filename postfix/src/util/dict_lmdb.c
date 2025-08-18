@@ -653,7 +653,8 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
 	msg_fatal("dict_lmdb_open: fstat: %m");
     dict_lmdb->dict.lock_fd = dict_lmdb->dict.stat_fd = db_fd;
     dict_lmdb->dict.lock_type = MYFLOCK_STYLE_FCNTL;
-    dict_lmdb->dict.mtime = st.st_mtime;
+    if (open_flags == O_RDONLY)
+	dict_lmdb->dict.mtime = st.st_mtime;
     dict_lmdb->dict.owner.uid = st.st_uid;
     dict_lmdb->dict.owner.status = (st.st_uid != 0);
 
