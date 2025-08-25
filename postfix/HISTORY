@@ -29575,3 +29575,21 @@ Apologies for any names omitted.
 	smtpd 'disconnect' command counts did not count malformed
 	commands with "bad syntax" and "bad UTF-8 syntax" errors.
 	File: smtpd/smtpd.c.
+
+20250819
+
+	Bugfix: the 20250717 workaround broke DBM library support
+	which is still needed on Solaris. File: util/dict_dbm.c.
+
+20250823
+
+	Bugfix (defect introduced: Postfix 3.9, date 20230517):
+	posttls-finger logged a zero port number. Viktor Dukhovni.
+	File: posttls-finger/posttls-finger.c.
+
+20250825
+
+	Bugfix (defect introduced: 20250626): panic() in dict_register()
+	when dict_open() was called recursively, after dict_proxy_open()
+	changed the name of a dictionary on-the-fly by skipping a
+	proxy: prefix). File: util/dict_open.c.
