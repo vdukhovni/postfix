@@ -83,6 +83,7 @@ pipe.o: ../../include/pipe_command.h
 pipe.o: ../../include/quote_822_local.h
 pipe.o: ../../include/quote_flags.h
 pipe.o: ../../include/recipient_list.h
+pipe.o: ../../include/sendopts.h
 pipe.o: ../../include/sent.h
 pipe.o: ../../include/set_eugid.h
 pipe.o: ../../include/split_addr.h

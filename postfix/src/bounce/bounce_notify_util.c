@@ -534,7 +534,8 @@ int     bounce_header(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     }
 
     /*
-     * Trade confidentiality against availability.
+     * Trade confidentiality against availability. See also up-stream code in
+     * edit_notification_properties().
      */
     if (var_tls_required_enable
 	&& (bounce_info->sendopts & SOPT_REQUIRETLS_HEADER) != 0)

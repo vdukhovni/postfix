@@ -55,6 +55,7 @@ typedef struct {
 #define HDR_MIME_VERSION		30
 #define HDR_DISP_NOTIFICATION		31
 #define HDR_TLS_REQUIRED		32	/* RFC 8689 */
+#define HDR_ESMTP_VERBS			33	/* non-standard */
 
  /*
   * Header flags.

@@ -515,19 +515,38 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
     }
 
     /*
-     * If the sender requires verified TLS, the TLS level must enforce a
-     * server certificate match.
+     * If REQUIRETLS is enforced, the TLS level must enforce a server
+     * certificate match. With opportunistic REQUIRETLS we connect to a
+     * server first.
      */
-#if 0
-    else if ((state->request->sendopts & SOPT_REQUIRETLS_ESMTP)) {
-	if (TLS_MUST_MATCH(tls->level) == 0) {
-	    dsb_simple(why, "5.7.10", "Sender requires verified TLS, "
-		       " but my configured TLS security level is '%s %s'",
-		       var_mail_name, str_tls_level(tls->level));
+    if (TLS_MUST_MATCH(tls->level) == 0) {
+	switch (state->enforce_requiretls) {
+	case SMTP_REQTLS_POLICY_ACT_ENFORCE:
+	    dsb_simple(why, "5.7.10", "REQUIRETLS Failure: sender "
+		       "requested REQUIRETLS, but the configured "
+		       "TLS security level '%s' does not support "
+		       "certificate matching. The last attempted "
+		       "server was %s", str_tls_level(tls->level),
+		       STR(iter->host));
+	    return (0);
+	case SMTP_REQTLS_POLICY_ACT_OPP_TLS:
+	    msg_info("%s: REQUIRETLS Debug: sender requested "
+		     "REQUIRETLS, but the configured TLS security "
+		     "level '%s' does not support certificate matching. "
+		     "The last attempted server was %s",
+		     state->request->queue_id,
+		     str_tls_level(tls->level), STR(iter->host));
+	    break;
+	case SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC:
+	case SMTP_REQTLS_POLICY_ACT_DISABLE:
+	    break;
+	default:
+	    dsb_simple(why, "4.7.10", "REQUIRETLS Failure: policy "
+		       "configuration error. The last attempted "
+		       "server was %s", STR(iter->host));
 	    return (0);
 	}
     }
-#endif
 
     /*
      * Success.
@@ -563,6 +582,19 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
     smtp_cache_policy(state, path);
     if (state->misc_flags & SMTP_MISC_FLAG_CONN_CACHE_MASK)
 	SET_SCACHE_REQUEST_NEXTHOP(state, path);
+
+    /*
+     * REQUIRETLS policy selection is based on the same TLS net-hop name as
+     * with certificate matching.
+     */
+#ifdef USE_TLS
+    if (smtp_reqtls_policy
+	&& STATE_REQTLS_IS_REQUESTED(var_requiretls_enable, state))
+	state->enforce_requiretls =
+	    smtp_reqtls_policy_eval(smtp_reqtls_policy, var_myhostname);
+    else
+	state->enforce_requiretls = SMTP_REQTLS_POLICY_ACT_DISABLE;
+#endif
 
     /*
      * Here we ensure that the iter->addr member refers to a copy of the
@@ -973,6 +1005,19 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	else
 	    state->tlsrpt = 0;
 #endif						/* USE_TLSRPT */
+
+	/*
+	 * REQUIRETLS policy selection is based on the same next-hop domain
+	 * name without service or port, as with certificate matching.
+	 */
+#ifdef USE_TLS
+	if (smtp_reqtls_policy
+	    && STATE_REQTLS_IS_REQUESTED(var_requiretls_enable, state))
+	    state->enforce_requiretls =
+		smtp_reqtls_policy_eval(smtp_reqtls_policy, domain);
+	else
+	    state->enforce_requiretls = SMTP_REQTLS_POLICY_ACT_DISABLE;
+#endif
 
 	/*
 	 * Resolve an SMTP or LMTP server. Skip MX or SRV lookups when a

@@ -83,6 +83,9 @@ SMTP_STATE *smtp_state_alloc(void)
 #ifdef USE_TLSRPT
     state->tlsrpt = 0;
 #endif
+#ifdef USE_TLS
+    state->enforce_requiretls = SMTP_REQTLS_POLICY_ACT_DISABLE;
+#endif
     if (var_smtp_cache_conn) {
 	state->dest_label = vstring_alloc(10);
 	state->dest_prop = vstring_alloc(10);

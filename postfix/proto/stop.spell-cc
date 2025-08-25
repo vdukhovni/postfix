@@ -1865,6 +1865,10 @@ DIGEST
 OSSL
 ossl
 deduplicates
+crosstalk
 intmax
 lflag
 REPLYCODE
+REQTLS
+reqtls
+Esmtp

@@ -158,10 +158,31 @@ Delivery status notification control. Specify either a
 comma\-separated list with one or more of \fBfailure\fR (send
 notification when delivery fails), \fBdelay\fR (send
 notification when delivery is delayed), or \fBsuccess\fR
-(send notification when the message is delivered); or specify
+(send notification after the message is delivered); or specify
 \fBnever\fR (don't send any notifications at all).
 
 This feature is available in Postfix 2.3 and later.
+.IP "\fB\-O noop"
+Does nothing. This may be used to simplify the conditional
+generation of other \-O options.
+.IP "\fB\-O requiretls"
+When delivering a message to an SMTP or LMTP server, the
+connection must use TLS with a verified server certificate,
+and the server must support REQUIRETLS. Try multiple servers if
+possible, and return the message as undeliverable when these
+requirements were not satisfied with any of the servers that
+were tried. The "requiretls" option value is case\-insensitive.
+
+This feature is available in Postfix 3.11 and later.
+.IP "\fB\-O smtputf8"
+When delivering a message to an SMTP or LMTP server, the server
+must support SMTPUTF8. Try multiple servers if possible, and
+return the message as undeliverable when a message contains an
+UTF8 envelope address or message header, but SMTPUTF8 was not
+supported by any of the servers that were tried. The "smtputf8"
+option value is case\-insensitive.
+
+This feature is available in Postfix 3.11 and later.
 .IP "\fB\-n\fR (ignored)"
 Backwards compatibility.
 .IP "\fB\-oA\fIalias_database\fR"
@@ -462,6 +483,11 @@ these directories belong to additional Postfix instances that share
 the Postfix executable files and documentation with the default
 Postfix instance, and that are started, stopped, etc., together
 with the default Postfix instance.
+.PP
+Postfix 3.11 and later:
+.IP "\fBrequiretls_enable (yes)\fR"
+Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
+FROM" command.
 .SH "FILES"
 .na
 .nf

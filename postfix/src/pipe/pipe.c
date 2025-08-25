@@ -284,6 +284,14 @@
 /* .sp
 /*	This information is modified by the \fBhqu\fR flags for quoting
 /*	and case folding.
+/* .IP \fB${requiretls}\fR
+/*	This feature may be used with content filters that pass
+/*	filtered mail to the Postfix sendmail(1) command. The macro
+/*	expands to the sendmail(1) command-line option \fB-Orequiretls\fR
+/*	if the sender requested REQUIRETLS, otherwise it expands to
+/*	\fB-Onoop\fR.
+/* .sp
+/*	This feature is available as of Postfix 3.11.
 /* .IP \fB${sasl_method}\fR
 /*	This macro expands to the name of the SASL authentication
 /*	mechanism in the AUTH command when the Postfix SMTP server
@@ -440,6 +448,11 @@
 /* .IP "\fBinfo_log_address_format (external)\fR"
 /*	The email address form that will be used in non-debug logging
 /*	(info, warning, etc.).
+/* .PP
+/*	Available in Postfix 3.11 and later:
+/* .IP "\fBrequiretls_enable (yes)\fR"
+/*	Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
+/*	FROM" command.
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports
@@ -519,6 +532,7 @@
 #include <delivered_hdr.h>
 #include <fold_addr.h>
 #include <mail_parm_split.h>
+#include <sendopts.h>
 
 /* Single server skeleton. */
 
@@ -553,6 +567,7 @@
 #define PIPE_DICT_SASL_SENDER	"sasl_sender"	/* key */
 #define PIPE_DICT_QUEUE_ID	"queue_id"	/* key */
 #define PIPE_DICT_ENVID		"envid"	/* key */
+#define PIPE_DICT_REQUIRETLS	"requiretls"	/* key */
 
  /*
   * Flags used to pass back the type of special parameter found by
@@ -659,6 +674,7 @@ static int parse_callback(int type, VSTRING *buf, void *context)
 	PIPE_DICT_SASL_SENDER, 0,
 	PIPE_DICT_QUEUE_ID, 0,
 	PIPE_DICT_ENVID, 0,
+	PIPE_DICT_REQUIRETLS, 0,
 	0, 0,
     };
     struct cmd_flags *p;
@@ -1290,6 +1306,9 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 		request->queue_id);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_ENVID,
 		request->dsn_envid);
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_REQUIRETLS,
+		(request->sendopts & SOPT_REQUIRETLS_ESMTP)
+		&& var_requiretls_enable ? "-Orequiretls" : "-Onoop");
     vstring_free(buf);
 
     if ((expanded_argv = expand_argv(service, attr.command,
