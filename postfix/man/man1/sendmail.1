@@ -162,33 +162,33 @@ notification when delivery is delayed), or \fBsuccess\fR
 \fBnever\fR (don't send any notifications at all).
 
 This feature is available in Postfix 2.3 and later.
-.IP "\fB\-O noop"
-Does nothing. This may be used to simplify the conditional
-generation of other \-O options.
-.IP "\fB\-O requiretls"
+.IP "\fB\-n\fR (ignored)"
+Backwards compatibility.
+.IP "\fB\-O requiretls=yes\fR"
+.IP "\fB\-O requiretls=no\fR"
 When delivering a message to an SMTP or LMTP server, the
 connection must use TLS with a verified server certificate,
-and the server must support REQUIRETLS. Try multiple servers if
-possible, and return the message as undeliverable when these
-requirements were not satisfied with any of the servers that
-were tried. The "requiretls" option value is case\-insensitive.
+and that server must support REQUIRETLS. Try multiple servers
+if possible, and return the message as undeliverable when
+these requirements were not satisfied with any of the servers
+that were tried. The "requiretls" name and option value are
+case\-insensitive.
 
 This feature is available in Postfix 3.11 and later.
-.IP "\fB\-O smtputf8"
-When delivering a message to an SMTP or LMTP server, the server
+.IP "\fB\-O smtputf8=yes\fR"
+.IP "\fB\-O smtputf8=no\fR"
+When delivering a message to an SMTP or LMTP server, and an
+envelope address or message header contains UTF8 text, that server
 must support SMTPUTF8. Try multiple servers if possible, and
 return the message as undeliverable when a message contains an
 UTF8 envelope address or message header, but SMTPUTF8 was not
 supported by any of the servers that were tried. The "smtputf8"
-option value is case\-insensitive.
+option name and value are case\-insensitive.
 
 This feature is available in Postfix 3.11 and later.
-.IP "\fB\-n\fR (ignored)"
-Backwards compatibility.
 .IP "\fB\-oA\fIalias_database\fR"
 Non\-default alias database. Specify \fIpathname\fR or
-\fItype\fR:\fIpathname\fR. See \fBpostalias\fR(1) for
-details.
+\fItype\fR:\fIpathname\fR. See \fBpostalias\fR(1) for details.
 .IP "\fB\-O \fIoption=value\fR (ignored)"
 Set the named \fIoption\fR to \fIvalue\fR. Use the equivalent
 configuration parameter in \fBmain.cf\fR instead.

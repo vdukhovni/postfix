@@ -1708,10 +1708,11 @@ static void pre_init(char *unused_name, char **unused_argv)
 			      var_smtp_dns_re_filter);
 
     /*
-     * REQUIRETLS enforcement policy. The parser appends a default action:
-     * DO NOT skip the code below if the policy string is empty.
+     * REQUIRETLS enforcement policy. The parser appends a default action: DO
+     * NOT skip the code below if the policy string is empty. When
+     * var_reqtls_enable != 0, smtp_reqtls_policy must also be != 0.
      */
-    if (var_requiretls_enable)
+    if (var_reqtls_enable)
 	smtp_reqtls_policy =
 	    smtp_reqtls_policy_parse(VAR_LMTP_SMTP(REQTLS_POLICY),
 				     var_smtp_reqtls_policy);

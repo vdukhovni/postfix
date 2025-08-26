@@ -156,33 +156,33 @@
 /*	\fBnever\fR (don't send any notifications at all).
 /*
 /*	This feature is available in Postfix 2.3 and later.
-/* .IP "\fB-O noop"
-/*	Does nothing. This may be used to simplify the conditional
-/*	generation of other -O options.
-/* .IP "\fB-O requiretls"
+/* .IP "\fB-n\fR (ignored)"
+/*	Backwards compatibility.
+/* .IP "\fB-O requiretls=yes\fR"
+/* .IP "\fB-O requiretls=no\fR"
 /*	When delivering a message to an SMTP or LMTP server, the
 /*	connection must use TLS with a verified server certificate,
-/*	and the server must support REQUIRETLS. Try multiple servers if
-/*	possible, and return the message as undeliverable when these
-/*	requirements were not satisfied with any of the servers that
-/*	were tried. The "requiretls" option value is case-insensitive.
+/*	and that server must support REQUIRETLS. Try multiple servers
+/*	if possible, and return the message as undeliverable when
+/*	these requirements were not satisfied with any of the servers
+/*	that were tried. The "requiretls" name and option value are
+/*	case-insensitive.
 /*
 /*	This feature is available in Postfix 3.11 and later.
-/* .IP "\fB-O smtputf8"
-/*	When delivering a message to an SMTP or LMTP server, the server
+/* .IP "\fB-O smtputf8=yes\fR"
+/* .IP "\fB-O smtputf8=no\fR"
+/*	When delivering a message to an SMTP or LMTP server, and an
+/*	envelope address or message header contains UTF8 text, that server
 /*	must support SMTPUTF8. Try multiple servers if possible, and
 /*	return the message as undeliverable when a message contains an
 /*	UTF8 envelope address or message header, but SMTPUTF8 was not
 /*	supported by any of the servers that were tried. The "smtputf8"
-/*	option value is case-insensitive.
+/*	option name and value are case-insensitive.
 /*
 /*	This feature is available in Postfix 3.11 and later.
-/* .IP "\fB-n\fR (ignored)"
-/*	Backwards compatibility.
 /* .IP "\fB-oA\fIalias_database\fR"
 /*	Non-default alias database. Specify \fIpathname\fR or
-/*	\fItype\fR:\fIpathname\fR. See \fBpostalias\fR(1) for
-/*	details.
+/*	\fItype\fR:\fIpathname\fR. See \fBpostalias\fR(1) for details.
 /* .IP "\fB-O \fIoption=value\fR (ignored)"
 /*	Set the named \fIoption\fR to \fIvalue\fR. Use the equivalent
 /*	configuration parameter in \fBmain.cf\fR instead.
@@ -1094,6 +1094,7 @@ int     main(int argc, char **argv)
     int     saved_optind;
     ARGV   *import_env;
     char   *alias_map_from_args = 0;
+    const char *oval;
 
     /*
      * Fingerprint executables and core dumps.
@@ -1294,24 +1295,36 @@ int     main(int argc, char **argv)
 		msg_warn("bad -N option value: '%s' -- ignored", optarg);
 	    break;
 	case 'O':
-	    /* NOOP is used to implement ${requiretls} in pipe(8). */
-	    if (strcasecmp(optarg, "REQUIRETLS") == 0) {
-		if (var_requiretls_enable)
-		    sm_sendopts |= SOPT_REQUIRETLS_ESMTP;
-		else
-		    msg_warn("'-O %s' was requested, but the "
+	    if ((oval = optarg + strcspn(optarg, "="))[0] != 0)
+		oval += 1;
+	    if (strncasecmp(optarg, "REQUIRETLS=", oval - optarg) == 0) {
+		if (var_reqtls_enable == 0) {
+		    msg_warn("Ignoring option '-O %s, because the "
 			     "configuration is '%s = %s'", optarg,
-			     VAR_REQUIRETLS_ENABLE, CONFIG_BOOL_NO);
-	    } else if (strcasecmp(optarg, "SMTPUTF8") == 0) {
-		if (var_smtputf8_enable)
-		    sm_sendopts |= SOPT_SMTPUTF8_REQUESTED;
-		else
+			     VAR_REQTLS_ENABLE, CONFIG_BOOL_NO);
+		    continue;
+		} else if (strcasecmp(oval, CONFIG_BOOL_YES) == 0) {
+		    sm_sendopts |= SOPT_REQUIRETLS_ESMTP;
+		    continue;
+		} else if (strcasecmp(oval, CONFIG_BOOL_NO) == 0) {
+		    sm_sendopts &= ~SOPT_REQUIRETLS_ESMTP;
+		    continue;
+		}
+	    } else if (strncasecmp(optarg, "SMTPUTF8=", oval - optarg) == 0) {
+		if (var_smtputf8_enable == 0) {
 		    msg_warn("'-O %s' was requested, but the "
 			     "configuration is '%s = %s'", optarg,
 			     VAR_SMTPUTF8_ENABLE, CONFIG_BOOL_NO);
-	    } else if (strcasecmp(optarg, "NOOP") != 0) {
-		msg_warn("bad -O option value: '%s' -- ignored", optarg);
+		    continue;
+		} else if (strcasecmp(oval, CONFIG_BOOL_YES) == 0) {
+		    sm_sendopts |= SOPT_SMTPUTF8_REQUESTED;
+		    continue;
+		} else if (strcasecmp(oval, CONFIG_BOOL_NO) == 0) {
+		    sm_sendopts &= ~SOPT_SMTPUTF8_REQUESTED;
+		    continue;
+		}
 	    }
+	    msg_warn("bad -O option: '%s' -- ignored", optarg);
 	    break;
 	case 'R':
 	    if ((dsn_ret = dsn_ret_code(optarg)) == 0)

@@ -29,7 +29,7 @@
 #define EHLO_MASK_DSN		(1<<11)
 #define EHLO_MASK_SMTPUTF8	(1<<12)
 #define EHLO_MASK_CHUNKING	(1<<13)
-#define EHLO_MASK_REQUIRETLS	(1<<14)
+#define EHLO_MASK_REQTLS	(1<<14)
 #define EHLO_MASK_SILENT	(1<<15)	/* in-band signaling */
 
  /*
@@ -49,7 +49,7 @@
 #define EHLO_VERB_DSN 		"DSN"
 #define EHLO_VERB_SMTPUTF8 	"SMTPUTF8"
 #define EHLO_VERB_CHUNKING 	"CHUNKING"
-#define EHLO_VERB_REQUIRETLS 	"REQUIRETLS"
+#define EHLO_VERB_REQTLS 	"REQUIRETLS"
 #define EHLO_VERB_SILENT 	"SILENT-DISCARD"	/* in-band signaling */
 
  /*

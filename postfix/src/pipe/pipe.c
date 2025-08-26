@@ -285,11 +285,11 @@
 /*	This information is modified by the \fBhqu\fR flags for quoting
 /*	and case folding.
 /* .IP \fB${requiretls}\fR
-/*	This feature may be used with content filters that pass
-/*	filtered mail to the Postfix sendmail(1) command. The macro
-/*	expands to the sendmail(1) command-line option \fB-Orequiretls\fR
+/*	This feature is intended for content filters that pass filtered
+/*	mail to the Postfix sendmail(1) command. The macro expands to
+/*	the Postfix sendmail(1) command-line option \fB-Orequiretls=yes\fR
 /*	if the sender requested REQUIRETLS, otherwise it expands to
-/*	\fB-Onoop\fR.
+/*	\fB-Orequiretls=no\fR.
 /* .sp
 /*	This feature is available as of Postfix 3.11.
 /* .IP \fB${sasl_method}\fR
@@ -567,7 +567,7 @@
 #define PIPE_DICT_SASL_SENDER	"sasl_sender"	/* key */
 #define PIPE_DICT_QUEUE_ID	"queue_id"	/* key */
 #define PIPE_DICT_ENVID		"envid"	/* key */
-#define PIPE_DICT_REQUIRETLS	"requiretls"	/* key */
+#define PIPE_DICT_REQTLS	"requiretls"	/* key */
 
  /*
   * Flags used to pass back the type of special parameter found by
@@ -674,7 +674,7 @@ static int parse_callback(int type, VSTRING *buf, void *context)
 	PIPE_DICT_SASL_SENDER, 0,
 	PIPE_DICT_QUEUE_ID, 0,
 	PIPE_DICT_ENVID, 0,
-	PIPE_DICT_REQUIRETLS, 0,
+	PIPE_DICT_REQTLS, 0,
 	0, 0,
     };
     struct cmd_flags *p;
@@ -1306,9 +1306,10 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 		request->queue_id);
     dict_update(PIPE_DICT_TABLE, PIPE_DICT_ENVID,
 		request->dsn_envid);
-    dict_update(PIPE_DICT_TABLE, PIPE_DICT_REQUIRETLS,
+    dict_update(PIPE_DICT_TABLE, PIPE_DICT_REQTLS,
 		(request->sendopts & SOPT_REQUIRETLS_ESMTP)
-		&& var_requiretls_enable ? "-Orequiretls" : "-Onoop");
+		&& var_reqtls_enable ? "-Orequiretls=yes" :
+		"-Orequiretls=no");
     vstring_free(buf);
 
     if ((expanded_argv = expand_argv(service, attr.command,

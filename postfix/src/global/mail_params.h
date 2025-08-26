@@ -4409,9 +4409,9 @@ extern int var_idna2003_compat;
 #define DEF_TLSREQUIRED_ENABLE		"yes"
 extern int var_tls_required_enable;
 
-#define VAR_REQUIRETLS_ENABLE		"requiretls_enable"
-#define DEF_REQUIRETLS_ENABLE		"yes"
-extern int var_requiretls_enable;
+#define VAR_REQTLS_ENABLE		"requiretls_enable"
+#define DEF_REQTLS_ENABLE		"yes"
+extern int var_reqtls_enable;
 
 #define VAR_SMTP_REQTLS_POLICY		"smtp_requiretls_policy"
 #define DEF_SMTP_REQTLS_POLICY		"inline{{.$mydomain=opportunistic}, {localhost=opportunistic}}, opportunistic+starttls"

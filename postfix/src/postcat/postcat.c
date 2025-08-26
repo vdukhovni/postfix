@@ -352,8 +352,11 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 	    if (data_size >= 0 || data_offset >= 0) {
 		msg_warn("file contains multiple size records");
 	    } else {
+		/* Maildrop files may contain a preliminary SIZE record. */
 		if (sscanf(STR(buffer), "%ld %ld", &data_size, &data_offset) != 2
-		    || data_offset <= 0 || data_size <= 0)
+		    || (strncmp(VSTREAM_PATH(fp), MAIL_QUEUE_MAILDROP "/",
+				sizeof(MAIL_QUEUE_MAILDROP)) != 0
+			&& (data_offset <= 0 || data_size <= 0)))
 		    msg_warn("invalid size record: %.100s", STR(buffer));
 		/* Optimization: skip to the message header. */
 		if ((flags & PC_FLAG_PRINT_ENV) == 0) {

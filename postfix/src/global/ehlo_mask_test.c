@@ -104,8 +104,8 @@ static const TEST_CASE test_cases[] = {
 	"CHUNKING"
     },
     {"REQUIRETLS",
-	EHLO_VERB_REQUIRETLS,
-	EHLO_MASK_REQUIRETLS,
+	EHLO_VERB_REQTLS,
+	EHLO_MASK_REQTLS,
 	"REQUIRETLS"
     },
     {"SILENT",

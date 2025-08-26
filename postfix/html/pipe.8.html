@@ -310,11 +310,11 @@ PIPE(8)                                                                PIPE(8)
                      and case folding.
 
               <b>${requiretls}</b>
-                     This  feature  may be used with content filters that pass
+                     This  feature  is  intended for content filters that pass
                      filtered mail to the  Postfix  <a href="sendmail.1.html">sendmail(1)</a>  command.  The
-                     macro  expands  to  the  <a href="sendmail.1.html">sendmail(1)</a>  command-line option
-                     <b>-Orequiretls</b> if the sender requested  REQUIRETLS,  other-
-                     wise it expands to <b>-Onoop</b>.
+                     macro  expands  to  the  Postfix <a href="sendmail.1.html">sendmail(1)</a> command-line
+                     option   <b>-Orequiretls=yes</b>   if   the   sender   requested
+                     REQUIRETLS, otherwise it expands to <b>-Orequiretls=no</b>.
 
                      This feature is available as of Postfix 3.11.
 

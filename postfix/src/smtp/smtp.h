@@ -206,7 +206,7 @@ typedef struct SMTP_STATE {
 #ifdef USE_TLSRPT
     struct TLSRPT_WRAPPER *tlsrpt;
 #endif
-    int     enforce_requiretls;		/* from smtp_reqtls_policy */
+    int     enforce_reqtls;		/* from smtp_reqtls_policy */
 #endif
 
     /*
@@ -248,7 +248,7 @@ typedef struct SMTP_STATE {
 #ifdef USE_TLS
 #define STATE_TLS_NOT_REQUIRED(state) \
 	(var_tls_required_enable \
-	    && (var_requiretls_enable == 0 \
+	    && (var_reqtls_enable == 0 \
 		|| ((state)->request->sendopts & SOPT_REQUIRETLS_ESMTP) == 0) \
 	    && ((state)->request->sendopts & SOPT_REQUIRETLS_HEADER))
 #endif
@@ -301,7 +301,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_XFORWARD_IDENT	(1<<20)
 #define SMTP_FEATURE_SMTPUTF8		(1<<21)	/* RFC 6531 */
 #define SMTP_FEATURE_FROM_PROXY		(1<<22)	/* proxied connection */
-#define SMTP_FEATURE_REQUIRETLS		(1<<23)	/* RFC 8689 */
+#define SMTP_FEATURE_REQTLS		(1<<23)	/* RFC 8689 */
 
  /*
   * Features that passivate under the endpoint.

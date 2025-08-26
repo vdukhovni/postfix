@@ -20,7 +20,7 @@
 /*	#define EHLO_MASK_DSN		(1<<11)
 /*	#define EHLO_MASK_SMTPUTF8	(1<<12)
 /*	#define EHLO_MASK_CHUNKING	(1<<13)
-/*	#define EHLO_MASK_REQUIRETLS	(1<<14)
+/*	#define EHLO_MASK_REQTLS	(1<<14)
 /*	#define EHLO_MASK_SILENT	(1<<15)
 /*
 /*	int	ehlo_mask(keyword_list)
@@ -85,7 +85,7 @@ static const NAME_MASK ehlo_mask_table[] = {
     EHLO_VERB_DSN, EHLO_MASK_DSN,
     EHLO_VERB_SMTPUTF8, EHLO_MASK_SMTPUTF8,
     EHLO_VERB_CHUNKING, EHLO_MASK_CHUNKING,
-    EHLO_VERB_REQUIRETLS, EHLO_MASK_REQUIRETLS,
+    EHLO_VERB_REQTLS, EHLO_MASK_REQTLS,
     EHLO_VERB_SILENT, EHLO_MASK_SILENT,
     0,
 };

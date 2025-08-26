@@ -2119,7 +2119,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if ((discard_mask & EHLO_MASK_CHUNKING) == 0)
 	EHLO_APPEND(state, "CHUNKING");
 #ifdef USE_TLS
-    if (var_requiretls_enable && (discard_mask & EHLO_MASK_REQUIRETLS) == 0
+    if (var_reqtls_enable && (discard_mask & EHLO_MASK_REQTLS) == 0
 	&& state->tls_context != 0)
 	EHLO_APPEND(state, "REQUIRETLS");
 #endif
@@ -2237,8 +2237,8 @@ static int mail_open_stream(SMTPD_STATE *state)
 	    cleanup_flags |= CLEANUP_FLAG_SMTPUTF8;
 	else
 	    cleanup_flags |= smtputf8_autodetect(MAIL_SRC_MASK_SMTPD);
-	if (state->flags & SMTPD_FLAG_REQUIRETLS)
-	    cleanup_flags |= CLEANUP_FLAG_REQUIRETLS;
+	if (state->flags & SMTPD_FLAG_REQTLS)
+	    cleanup_flags |= CLEANUP_FLAG_REQTLS;
 	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,
 					  var_cleanup_service);
 	if (state->dest == 0
@@ -2699,11 +2699,11 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		   && strcasecmp(arg, "SMTPUTF8") == 0) {	/* RFC 6531 */
 	     /* Already processed early. */ ;
 #ifdef USE_TLS
-	} else if (var_requiretls_enable
+	} else if (var_reqtls_enable
 		   && state->tls_context != 0
-		   && (state->ehlo_discard_mask & EHLO_MASK_REQUIRETLS) == 0
+		   && (state->ehlo_discard_mask & EHLO_MASK_REQTLS) == 0
 		   && strcasecmp(arg, "REQUIRETLS") == 0) {	/* RFC 8689 */
-	    state->flags |= SMTPD_FLAG_REQUIRETLS;
+	    state->flags |= SMTPD_FLAG_REQTLS;
 #endif
 #ifdef USE_SASL_AUTH
 	} else if (strncasecmp(arg, "AUTH=", 5) == 0) {

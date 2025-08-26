@@ -604,9 +604,9 @@ int     smtp_helo(SMTP_STATE *state)
 		    if ((discard_mask & EHLO_MASK_STARTTLS) == 0)
 			session->features |= SMTP_FEATURE_STARTTLS;
 		} else if (strcasecmp(word, "REQUIRETLS") == 0) {
-		    if ((discard_mask & EHLO_MASK_REQUIRETLS) == 0
+		    if ((discard_mask & EHLO_MASK_REQTLS) == 0
 			&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS))
-			session->features |= SMTP_FEATURE_REQUIRETLS;
+			session->features |= SMTP_FEATURE_REQTLS;
 #endif
 #ifdef USE_SASL_AUTH
 		} else if (var_smtp_sasl_enable
@@ -692,10 +692,10 @@ int     smtp_helo(SMTP_STATE *state)
      * more alternative MX hosts.
      */
 #ifdef USE_TLS
-    if (TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_requiretls)
+    if (TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_reqtls)
 	&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) != 0
-	&& (session->features & SMTP_FEATURE_REQUIRETLS) == 0) {
-	switch (state->enforce_requiretls) {
+	&& (session->features & SMTP_FEATURE_REQTLS) == 0) {
+	switch (state->enforce_reqtls) {
 	case SMTP_REQTLS_POLICY_ACT_ENFORCE:
 	    return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
 				   DSN_BY_LOCAL_MTA,
@@ -848,7 +848,7 @@ int     smtp_helo(SMTP_STATE *state)
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
 	    if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->tls->level)
-	      || TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_requiretls)) {
+		|| TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_reqtls)) {
 #ifdef USE_TLSRPT
 		if (state->tlsrpt)
 		    trw_report_failure(state->tlsrpt,
@@ -872,7 +872,7 @@ int     smtp_helo(SMTP_STATE *state)
 	 * plain-text mode.
 	 */
 	if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->tls->level)
-	    || TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_requiretls)) {
+	    || TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_reqtls)) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
 #ifdef USE_TLSRPT
 		if (state->tlsrpt)
@@ -1239,8 +1239,8 @@ static int smtp_start_tls(SMTP_STATE *state)
 	     * REQUIRETLS. Return the message as undeliverable only when
 	     * there are no more alternative MX hosts.
 	     */
-	    if (TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_requiretls)) {
-		switch (state->enforce_requiretls) {
+	    if (TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_reqtls)) {
+		switch (state->enforce_reqtls) {
 		case SMTP_REQTLS_POLICY_ACT_ENFORCE:
 		    return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
 					   DSN_BY_LOCAL_MTA,
@@ -1835,8 +1835,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		    xtext_quote_append(next_command, request->dsn_envid, "+=");
 		}
 		/* Fix 20250825: limit content exposure in bounce. */
-		if (state->enforce_requiretls > SMTP_REQTLS_POLICY_ACT_DISABLE
-		    && (session->features & SMTP_FEATURE_REQUIRETLS) == 0)
+		if (state->enforce_reqtls > SMTP_REQTLS_POLICY_ACT_DISABLE
+		    && (session->features & SMTP_FEATURE_REQTLS) == 0)
 		    vstring_sprintf_append(next_command, " RET=%s",
 					   dsn_ret_str(DSN_RET_HDRS));
 		else if (request->dsn_ret)
@@ -1862,10 +1862,10 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     * REQUIRETLS and the sender requested REQUIRETLS.
 	     */
 #ifdef USE_TLS
-	    if (state->enforce_requiretls > SMTP_REQTLS_POLICY_ACT_DISABLE) {
-		if ((session->features & SMTP_FEATURE_REQUIRETLS) != 0)
+	    if (state->enforce_reqtls > SMTP_REQTLS_POLICY_ACT_DISABLE) {
+		if ((session->features & SMTP_FEATURE_REQTLS) != 0)
 		    vstring_strcat(next_command, " REQUIRETLS");
-		else if (state->enforce_requiretls == SMTP_REQTLS_POLICY_ACT_ENFORCE)
+		else if (state->enforce_reqtls == SMTP_REQTLS_POLICY_ACT_ENFORCE)
 		    msg_panic("Can't happen: must enforce REQUIRETLS, but "
 			      "host %s did not announce REQUIRETLS support",
 			      session->namaddr);

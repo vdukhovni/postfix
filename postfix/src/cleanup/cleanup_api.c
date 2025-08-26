@@ -80,7 +80,7 @@
 /* .IP CLEANUP_FLAG_AUTOUTF8
 /*	Autodetection: request SMTPUTF8 support if the message
 /*	contains an UTF8 message header, sender, or recipient.
-/* .IP CLEANUP_FLAG_REQUIRETLS
+/* .IP CLEANUP_FLAG_REQTLS
 /*	The sender requested REQUIRETLS (RFC 8689) enforcement.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8)
@@ -217,7 +217,7 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
      */
     if (state->flags & CLEANUP_FLAG_SMTPUTF8)
 	state->sendopts |= SMTPUTF8_FLAG_REQUESTED;
-    if (state->flags & CLEANUP_FLAG_REQUIRETLS)
+    if (state->flags & CLEANUP_FLAG_REQTLS)
 	state->sendopts |= SOPT_REQUIRETLS_ESMTP;
     if (msg_verbose)
 	msg_info("server flags = %s", cleanup_strflags(state->flags));

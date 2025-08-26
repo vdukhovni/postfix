@@ -143,7 +143,7 @@
 /*	Available in Postfix 3.11 and later:
 /* .IP "\fBrequiretls_redact_dsn (yes)\fR"
 /*	When sending a delivery status notification for an original
-/*	message received with the REQUIRETLS option, remove the original
+/*	message received with the REQUIRETLS option, do not send the original
 /*	message body (as if that message was received with "RET=HDRS") and
 /*	do not enforce REQUIRETLS (as if that message was received without
 /*	REQUIRETLS).
@@ -403,7 +403,7 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
     /*
      * Handle REQUIRETLS etc. matters.
      */
-    if (var_requiretls_enable && (sendopts & SOPT_REQUIRETLS_ALL))
+    if (var_reqtls_enable && (sendopts & SOPT_REQUIRETLS_ALL))
 	edit_notification_properties(&sendopts, &dsn_ret);
 
     /*
@@ -477,8 +477,8 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
     /*
      * Handle REQUIRETLS etc. matters.
      */
-    if (var_requiretls_enable && (sendopts & SOPT_REQUIRETLS_ALL))
-        edit_notification_properties(&sendopts, &dsn_ret);
+    if (var_reqtls_enable && (sendopts & SOPT_REQUIRETLS_ALL))
+	edit_notification_properties(&sendopts, &dsn_ret);
 
     /*
      * Execute the request. Fall back to traditional notification if a bounce
@@ -575,8 +575,8 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
     /*
      * Handle REQUIRETLS etc. matters.
      */
-    if (var_requiretls_enable && (sendopts & SOPT_REQUIRETLS_ALL))
-        edit_notification_properties(&sendopts, &dsn_ret);
+    if (var_reqtls_enable && (sendopts & SOPT_REQUIRETLS_ALL))
+	edit_notification_properties(&sendopts, &dsn_ret);
 
     /*
      * Execute the request.

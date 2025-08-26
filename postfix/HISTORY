@@ -29683,7 +29683,7 @@ NONPROD CODE
 	with SMTPUTF8, bit a remote server does not support it,
 	try an alternate server. File: smtp/smtp_proto.c.
 
-	Completed 20250824: better handling of line breaks in  
+	Completed 20250824: better handling of line breaks in
 	indented paragraphs in the postconf(5) conversion
 	from HTML to 'man' format. File: mantools/postconf2man.
 
@@ -29712,6 +29712,16 @@ NONPROD CODE
 	and the Postfix SMTP or LMTP client does not enforce
 	REQUIRETLS, send "MAIL FROM ... RET=HDRS" to limit exposure.
 	file: smtp/smtp_proto.c.
+
+	Completed 20250826: renamed all the new identifiers introduced
+	for REQUIRETLS support to ...REQTLS... and ...reqtls... and
+	re-indented the code. minimize differences with pre-existing code.
+
+	Completed 20250826: support to request REQUIRETLS and
+	SMTPUTF8 on the Postfix sendmail(1) command line, plus
+	corresponding support in other programs to handle that
+	information. Files: sendmail/sendmail.c, pickup/pickup.c,
+	postcat/postcat.c., showq/showq.c.
 
 TODO
 
