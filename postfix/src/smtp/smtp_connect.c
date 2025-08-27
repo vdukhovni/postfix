@@ -515,37 +515,50 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
     }
 
     /*
-     * If REQUIRETLS is enforced, the TLS level must enforce a server
-     * certificate match. With opportunistic REQUIRETLS we connect to a
-     * server first.
+     * Skip this destination if its TLS policy cannot satisfy the REQUIRETLS
+     * policy for this destination (REQUIRETLS Failure).
+     * 
+     * Otherwise, log what would fail if REQUIRETLS was fully enforced
+     * (REQUIRETLS Debug).
+     * 
+     * Finally, skip this destination if its REQUIRETLS policy is bad.
      */
-    if (TLS_MUST_MATCH(tls->level) == 0) {
-	switch (state->enforce_reqtls) {
-	case SMTP_REQTLS_POLICY_ACT_ENFORCE:
+    switch (state->enforce_reqtls) {
+    case SMTP_REQTLS_POLICY_ACT_ENFORCE:
+	if (TLS_MUST_MATCH(tls->level) == 0) {
 	    dsb_simple(why, "5.7.10", "REQUIRETLS Failure: sender "
-		       "requested REQUIRETLS, but the configured "
-		       "TLS security level '%s' does not support "
-		       "certificate matching. The last attempted "
-		       "server was %s", str_tls_level(tls->level),
-		       STR(iter->host));
+		       "requested REQUIRETLS, but my configured TLS "
+		       "security level '%s' disables certificate "
+		       "matching. The last attempted server was %s",
+		       str_tls_level(tls->level), STR(iter->host));
 	    return (0);
-	case SMTP_REQTLS_POLICY_ACT_OPP_TLS:
+	}
+	break;
+    case SMTP_REQTLS_POLICY_ACT_OPP_TLS:
+	if (tls->level == TLS_LEV_NONE) {
+	    dsb_simple(why, "5.7.10", "REQUIRETLS Failure: sender "
+		       "requested REQUIRETLS, but my configured TLS "
+		       "security level '%s' disables encryption. The "
+		       "last attempted server was %s",
+		       str_tls_level(tls->level), STR(iter->host));
+	    return (0);
+	} else if (TLS_MUST_MATCH(tls->level) == 0) {
 	    msg_info("%s: REQUIRETLS Debug: sender requested "
-		     "REQUIRETLS, but the configured TLS security "
-		     "level '%s' does not support certificate matching. "
+		     "REQUIRETLS, but my configured TLS security "
+		     "level '%s' disables certificate matching. "
 		     "The last attempted server was %s",
 		     state->request->queue_id,
 		     str_tls_level(tls->level), STR(iter->host));
-	    break;
-	case SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC:
-	case SMTP_REQTLS_POLICY_ACT_DISABLE:
-	    break;
-	default:
-	    dsb_simple(why, "4.7.10", "REQUIRETLS Failure: policy "
-		       "configuration error. The last attempted "
-		       "server was %s", STR(iter->host));
-	    return (0);
 	}
+	break;
+    case SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC:
+    case SMTP_REQTLS_POLICY_ACT_DISABLE:
+	break;
+    default:
+	dsb_simple(why, "4.7.10", "REQUIRETLS Failure: policy "
+		   "configuration error. The last attempted "
+		   "server was %s", STR(iter->host));
+	return (0);
     }
 
     /*

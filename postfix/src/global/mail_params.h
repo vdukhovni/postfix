@@ -4414,7 +4414,7 @@ extern int var_tls_required_enable;
 extern int var_reqtls_enable;
 
 #define VAR_SMTP_REQTLS_POLICY		"smtp_requiretls_policy"
-#define DEF_SMTP_REQTLS_POLICY		"inline{{.$mydomain=opportunistic}, {localhost=opportunistic}}, opportunistic+starttls"
+#define DEF_SMTP_REQTLS_POLICY		"inline:{{.$mydomain=opportunistic}, {localhost=opportunistic}}, opportunistic+starttls"
 extern char *var_smtp_reqtls_policy;
 
 #define VAR_LMTP_REQTLS_POLICY		"lmtp_requiretls_policy"

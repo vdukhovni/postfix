@@ -206,3 +206,5 @@ proto  proto COMPATIBILITY_README html
  global mail_params h bounce bounce c 
  smtp lmtp_params c smtp smtp c smtp smtp_connect c 
  smtp smtp h smtp smtp_params c smtp smtp_proto c 
+ information Files sendmail sendmail c pickup pickup c 
+ postcat postcat c showq showq c 

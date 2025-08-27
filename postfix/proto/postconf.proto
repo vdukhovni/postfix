@@ -19728,10 +19728,14 @@ Failure" event. </p> </dd>
 
 <dt> <b> opportunistic+starttls </b> </dt> <dd> <p> Skip servers
 that don't announce STARTTLS support. Return the message as
-undeliverable if no suitable server is found. </p> <p> Request
-REQUIRETLS if a server supports REQUIRETLS, otherwise simply deliver
-the message and log "REQUIRETLS Debug" events when a connection
-would not meet all RFC 8689 section 4.2 requirements. </p> </dd>
+undeliverable if no suitable server is found, and log a "REQUIRETLS
+Failure" event. </p> <p> Request REQUIRETLS if a server supports
+REQUIRETLS, otherwise simply deliver the message and log "REQUIRETLS
+Debug" events when a connection would not meet all RFC 8689 section
+4.2 requirements. </p> <p> This can be appropriate for an outbound
+perimeter MTA, when forwarding messages from internal systems to
+the Internet, at a time that many domains do not publish DANE or
+MTA-STS policies. </p> </dd>
 
 <dt> <b> opportunistic </b> </dt> <dd> <p> Request REQUIRETLS if
 the server supports REQUIRETLS, otherwise simply deliver the message.
@@ -19769,9 +19773,9 @@ not query those tables with that form. </p>
 
 <ul>
 
-<li> <p> The default SMTP client policy: when a sender requests
-REQUIRETLS, require that external servers support STARTTLS, and
-request REQUIRETLS if an internal or external server supports
+<li> <p> The default SMTP client REQUIRETLS policy: when a sender
+requests REQUIRETLS, require that external servers support STARTTLS,
+and request REQUIRETLS if an internal or external server supports
 REQUIRETLS. </p>
 <pre>
 /etc/postfix/main.cf:
@@ -19826,12 +19830,12 @@ LMTP client examples:
 
 <ul>
 
-<li> <p> The default policy for LMTP: when a sender requests
-REQUIRETLS, request REQUIRETLS if the server supports REQUIRETLS,
-otherwise deliver the message as if the sender did not request
-REQUIRETLS. Note: with deliveries over a UNIX-domain socket, the
-next-hop destination for lmtp_requiretls_policy lookups will be the
-myhostname parameter value. </p>
+<li> <p> The default LMTP client REQUIRETLS policy: when a sender
+requests REQUIRETLS, request REQUIRETLS if the server supports
+REQUIRETLS, otherwise deliver the message as if the sender did not
+request REQUIRETLS. Note: with deliveries over a UNIX-domain socket,
+the next-hop destination for lmtp_requiretls_policy lookups will
+be the myhostname parameter value. </p>
 <pre>
 /etc/postfix/main.cf:
     lmtp_requiretls_policy = opportunistic

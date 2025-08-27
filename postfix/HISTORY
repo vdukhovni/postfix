@@ -29397,6 +29397,9 @@ Apologies for any names omitted.
 
 20250714
 
+	Uploaded the wrong postfix-3.11-20250713 tarball. Files:
+	master/event_server.c, master/multi_server.c.
+
 	Deleted an <openssl/engine.h> dependency, because the feature is
 	being removed from OpenSSL, and Postfix no longer needs it. File:
 	posttls-finger/posttls-finger.c.
@@ -29722,6 +29725,11 @@ NONPROD CODE
 	corresponding support in other programs to handle that
 	information. Files: sendmail/sendmail.c, pickup/pickup.c,
 	postcat/postcat.c., showq/showq.c.
+
+	Completed 20250827: logic to skip destinations whose TLS
+	policy level cannot satisfy the REQUIRETLS policy, or to
+	log what would fail if REQUIRETLS were fully enforced.
+	File: smtp/smtp_connect.c.
 
 TODO
 
