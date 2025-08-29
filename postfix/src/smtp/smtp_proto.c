@@ -689,13 +689,14 @@ int     smtp_helo(SMTP_STATE *state)
     /*
      * Require that the server announces REQUIRETLS when the sender requested
      * REQUIRETLS. Return the message as undeliverable only when there are no
-     * more alternative MX hosts.
+     * more alternative MX hosts. With opportunistic REQUIRETLS, only log
+     * that the server does not offer REQUIRETLS.
      */
 #ifdef USE_TLS
-    if (TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_reqtls)
+    if (TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level)
 	&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) != 0
 	&& (session->features & SMTP_FEATURE_REQTLS) == 0) {
-	switch (state->enforce_reqtls) {
+	switch (state->reqtls_level) {
 	case SMTP_REQTLS_POLICY_ACT_ENFORCE:
 	    return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
 				   DSN_BY_LOCAL_MTA,
@@ -707,7 +708,7 @@ int     smtp_helo(SMTP_STATE *state)
 				   "server was %s", session->namaddr));
 	default:
 	    msg_info("%s: REQUIRETLS Debug: sender requested REQUIRETLS, "
-		     "but mail server did not announce REQUIRETLS support: "
+		     "but REQUIRETLS support was not offered by host "
 		     "%s", request->queue_id, session->namaddr);
 	}
     }
@@ -845,10 +846,14 @@ int     smtp_helo(SMTP_STATE *state)
 	    /*
 	     * Give up if we must use TLS but the server rejects STARTTLS
 	     * although support for it was announced in the EHLO response.
+	     * 
+	     * When the sender requested REQUIRETLS, and the REQUIRETLS policy
+	     * requires TLS, return the message as undeliverable only when
+	     * there are no more alternative MX hosts.
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
 	    if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->tls->level)
-		|| TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_reqtls)) {
+		|| TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level)) {
 #ifdef USE_TLSRPT
 		if (state->tlsrpt)
 		    trw_report_failure(state->tlsrpt,
@@ -856,6 +861,16 @@ int     smtp_helo(SMTP_STATE *state)
 				        /* additional_info= */ (char *) 0,
 				        /* failure_reason= */ (char *) 0);
 #endif
+		if (TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level))
+		    return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
+					   DSN_BY_LOCAL_MTA,
+					   SMTP_RESP_FAKE(&fake, "5.7.10"),
+					   "REQUIRETLS Failure: "
+					   "sender requested REQUIRETLS, "
+					   "but host %s refused to "
+					   "start TLS: %s", session->namaddr,
+					   translit(resp->str, "\n", " ")));
+		/* TLS_REQUIRED_BY_SECURITY_LEVEL */
 		return (smtp_site_fail(state, STR(iter->host), resp,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
@@ -870,9 +885,13 @@ int     smtp_helo(SMTP_STATE *state)
 	 * 200412 Be sure to provide the default clause at the bottom of this
 	 * block. When TLS is required we must never, ever, end up in
 	 * plain-text mode.
+	 * 
+	 * When the sender requested REQUIRETLS, and the REQUIRETLS policy
+	 * requires TLS, return the message as undeliverable only when there
+	 * are no more alternative MX hosts.
 	 */
 	if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->tls->level)
-	    || TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_reqtls)) {
+	    || TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level)) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
 #ifdef USE_TLSRPT
 		if (state->tlsrpt)
@@ -881,19 +900,20 @@ int     smtp_helo(SMTP_STATE *state)
 				        /* additional_info= */ (char *) 0,
 				        /* failure_reason= */ (char *) 0);
 #endif
-		if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->tls->level))
-		    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-					   SMTP_RESP_FAKE(&fake, "4.7.4"),
-			  "TLS is required, but was not offered by host %s",
+		if (TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level))
+		    return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
+					   DSN_BY_LOCAL_MTA,
+					   SMTP_RESP_FAKE(&fake, "5.7.30"),
+					   "REQUIRETLS Failure: "
+					   "sender requested REQUIRETLS, "
+					   "but TLS service was not "
+					   "offered by host %s",
 					   session->namaddr));
-		/* TLS_REQUIRED_BY_REQTLS_POLICY */
-		return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
-				       DSN_BY_LOCAL_MTA,
-				       SMTP_RESP_FAKE(&fake, "5.7.30"),
-				       "REQUIRETLS Failure: sender "
-				       "requested REQUIRETLS, but "
-				       "TLS service was not offered "
-				       "by host %s", session->namaddr));
+		/* TLS_REQUIRED_BY_SECURITY_LEVEL */
+		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+				       SMTP_RESP_FAKE(&fake, "4.7.4"),
+			  "TLS is required, but was not offered by host %s",
+				       session->namaddr));
 	    } else if (smtp_tls_ctx == 0) {
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "4.7.5"),
@@ -1215,7 +1235,7 @@ static int smtp_start_tls(SMTP_STATE *state)
      * fall back to "encrypt", updating the tls_context level accordingly, so
      * we must check that here, and not state->tls->level.
      */
-    if (TLS_MUST_MATCH(session->tls_context->level))
+    if (TLS_MUST_MATCH(session->tls_context->level)) {
 	if (!TLS_CERT_IS_MATCHED(session->tls_context)) {
 	    int     trusted = TLS_CERT_IS_TRUSTED(session->tls_context);
 
@@ -1235,40 +1255,32 @@ static int smtp_start_tls(SMTP_STATE *state)
 #endif
 
 	    /*
-	     * Require a server certificate match when the sender requested
-	     * REQUIRETLS. Return the message as undeliverable only when
-	     * there are no more alternative MX hosts.
+	     * When the sender requested REQUIRETLS, and REQUIRETLS is
+	     * enforced, return the message as undeliverable only when there
+	     * are no more alternative MX hosts.
 	     */
-	    if (TLS_REQUIRED_BY_REQTLS_POLICY(state->enforce_reqtls)) {
-		switch (state->enforce_reqtls) {
-		case SMTP_REQTLS_POLICY_ACT_ENFORCE:
-		    return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
-					   DSN_BY_LOCAL_MTA,
-					   SMTP_RESP_FAKE(&fake, "5.7.10"),
-					   "REQUIRETLS Failure: "
-					   "sender requested REQUIRETLS, "
-					   "but no %s server certificate "
-					   "was found. The last "
-					   "attempted server was "
-					   "%s", trusted ? "matching" :
-					   "trusted", session->namaddr));
-		default:
-		    msg_info("%s: REQUIRETLS Debug: sender requested "
-			     "REQUIRETLS, but no %s server certificate "
-			     "was found for server %s", request->queue_id,
-			     trusted ? "matching" : "trusted",
-			     session->namaddr);
-		    break;
-		}
-	    }
+	    if (TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level))
+		return (smtp_misc_fail(state, SMTP_MISC_FAIL_SOFT_NON_FINAL,
+				       DSN_BY_LOCAL_MTA,
+				       SMTP_RESP_FAKE(&fake, "5.7.10"),
+				       "REQUIRETLS Failure: sender "
+				       "requested REQUIRETLS, but "
+				       "no %s server certificate was "
+				       "found. The last attempted "
+				       "server was %s", trusted ?
+				       "matching" : "trusted",
+				       session->namaddr));
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not verified"));
+	} else {
+	    /* TODO(wietse) record that this attempt satisfies REQUIRETLS. */
 	}
+    }
 
     /*
      * Create a TLSRPT 'success' event only if the TLS engine has not created
-     * TLSRPT event. For example, The TLS engine will create a TLSRPT
+     * a TLSRPT event. For example, The TLS engine will create a TLSRPT
      * 'failure' event when the TLS handshake was be successful, but the
      * security level was downgraded from opportunistic "dane" to
      * unauthenticated "encrypt".
@@ -1835,7 +1847,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		    xtext_quote_append(next_command, request->dsn_envid, "+=");
 		}
 		/* Fix 20250825: limit content exposure in bounce. */
-		if (state->enforce_reqtls > SMTP_REQTLS_POLICY_ACT_DISABLE
+		if (state->reqtls_level > SMTP_REQTLS_POLICY_ACT_DISABLE
 		    && (session->features & SMTP_FEATURE_REQTLS) == 0)
 		    vstring_sprintf_append(next_command, " RET=%s",
 					   dsn_ret_str(DSN_RET_HDRS));
@@ -1862,13 +1874,16 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     * REQUIRETLS and the sender requested REQUIRETLS.
 	     */
 #ifdef USE_TLS
-	    if (state->enforce_reqtls > SMTP_REQTLS_POLICY_ACT_DISABLE) {
-		if ((session->features & SMTP_FEATURE_REQTLS) != 0)
+	    if (state->reqtls_level > SMTP_REQTLS_POLICY_ACT_DISABLE) {
+		if ((session->features & SMTP_FEATURE_REQTLS) != 0) {
 		    vstring_strcat(next_command, " REQUIRETLS");
-		else if (state->enforce_reqtls == SMTP_REQTLS_POLICY_ACT_ENFORCE)
+		    /* TODO(wietse) record that REQUIRETLS is active. */
+		} else if (state->reqtls_level
+			   == SMTP_REQTLS_POLICY_ACT_ENFORCE) {
 		    msg_panic("Can't happen: must enforce REQUIRETLS, but "
 			      "host %s did not announce REQUIRETLS support",
 			      session->namaddr);
+		}
 	    }
 #endif
 

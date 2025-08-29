@@ -206,7 +206,7 @@ typedef struct SMTP_STATE {
 #ifdef USE_TLSRPT
     struct TLSRPT_WRAPPER *tlsrpt;
 #endif
-    int     enforce_reqtls;		/* from smtp_reqtls_policy */
+    int     reqtls_level;		/* from smtp_reqtls_policy */
 #endif
 
     /*
@@ -557,6 +557,7 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 #define PLAINTEXT_FALLBACK_OK_AFTER_STARTTLS_FAILURE \
 	(session->tls_context == 0 \
 	    && state->tls->level == TLS_LEV_MAY \
+	    && !TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level) \
 	    && (TRACE_REQ_ONLY || PREACTIVE_DELAY >= var_min_backoff_time) \
 	    && !HAVE_SASL_CREDENTIALS)
 
@@ -564,6 +565,7 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 	(session->tls_context != 0 \
 	    && SMTP_RCPT_LEFT(state) > SMTP_RCPT_MARK_COUNT(state) \
 	    && state->tls->level == TLS_LEV_MAY \
+	    && !TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level) \
 	    && (TRACE_REQ_ONLY || PREACTIVE_DELAY >= var_min_backoff_time) \
 	    && !HAVE_SASL_CREDENTIALS)
 

@@ -185,8 +185,7 @@ int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
 		    && bounce_header_dsn(bounce, bounce_info) == 0
 		    && bounce_diagnostic_dsn(bounce, bounce_info,
 					     DSN_NOTIFY_OVERRIDE) > 0) {
-		    bounce_original(bounce, bounce_info, dsn_ret ?
-				    dsn_ret : DSN_RET_FULL);
+		    bounce_original(bounce, bounce_info, DSN_RET_FULL);
 		    bounce_status = post_mail_fclose(bounce);
 		    if (bounce_status == 0)
 			msg_info("%s: postmaster delay notification: %s",

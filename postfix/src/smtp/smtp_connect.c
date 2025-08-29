@@ -523,7 +523,7 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
      * 
      * Finally, skip this destination if its REQUIRETLS policy is bad.
      */
-    switch (state->enforce_reqtls) {
+    switch (state->reqtls_level) {
     case SMTP_REQTLS_POLICY_ACT_ENFORCE:
 	if (TLS_MUST_MATCH(tls->level) == 0) {
 	    dsb_simple(why, "5.7.10", "REQUIRETLS Failure: sender "
@@ -603,10 +603,10 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
      */
 #ifdef USE_TLS
     if (STATE_REQTLS_IS_REQUESTED(var_reqtls_enable, state))
-	state->enforce_reqtls =
+	state->reqtls_level =
 	    smtp_reqtls_policy_eval(smtp_reqtls_policy, var_myhostname);
     else
-	state->enforce_reqtls = SMTP_REQTLS_POLICY_ACT_DISABLE;
+	state->reqtls_level = SMTP_REQTLS_POLICY_ACT_DISABLE;
 #endif
 
     /*
@@ -1026,10 +1026,10 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	 */
 #ifdef USE_TLS
 	if (STATE_REQTLS_IS_REQUESTED(var_reqtls_enable, state))
-	    state->enforce_reqtls =
+	    state->reqtls_level =
 		smtp_reqtls_policy_eval(smtp_reqtls_policy, domain);
 	else
-	    state->enforce_reqtls = SMTP_REQTLS_POLICY_ACT_DISABLE;
+	    state->reqtls_level = SMTP_REQTLS_POLICY_ACT_DISABLE;
 #endif
 
 	/*

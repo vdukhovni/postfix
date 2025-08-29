@@ -43,8 +43,8 @@ extern int smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *, const char *);
 #define SENDOPTS_REQTLS_IS_REQUESTED(var, sendopts) \
 	((var) && (sendopts) & SOPT_REQUIRETLS_ESMTP)
 
-#define TLS_REQUIRED_BY_REQTLS_POLICY(enforce_reqtls) \
-	((enforce_reqtls) >= SMTP_REQTLS_POLICY_ACT_OPP_TLS)
+#define TLS_REQUIRED_BY_REQTLS_POLICY(reqtls_level) \
+	((reqtls_level) >= SMTP_REQTLS_POLICY_ACT_OPP_TLS)
 
 /* LICENSE
 /* .ad

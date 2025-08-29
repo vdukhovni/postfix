@@ -29731,7 +29731,43 @@ NONPROD CODE
 	log what would fail if REQUIRETLS were fully enforced.
 	File: smtp/smtp_connect.c.
 
+	Completed 20250829: removed code that was not used; backed
+	out gratuitous changes; minimized the diffs against the
+	production release; renamed enforce_reqtls to the more
+	meaningful reqtls_level.
+
 TODO
+
+	Make it easy to find out by domain what the REQUIRETLS
+	success rates are, and what the failure modes are.
+
+	Add optional statistics logging for "REQUIRETLS sent" and
+	for "all REQUIRETLS requirements pass". But these say
+	nothing about connections that failed to establish an
+	acceptable TLS session.
+
+	Other logging: RFC 8689 prescribes enhanced status codes:
+
+	- REQUIRETLS not supported by server: 5.7.30 REQUIRETLS
+	  support required
+
+	- Unable to establish TLS-protected SMTP session: 5.7.10
+	  Encryption needed
+
+	These will show up in logging.
+
+	Known failure modes
+	misc problems at DNS, TCP, or SMTP level
+	misc errors with TLS policy or REQUIRETLS policy
+	smtp_connect.c:
+	    TLS policy disables certificate matching
+	    TLS policy disables encryption (opportunistic only)
+	smtp_proto.c.
+	    STARTTLS rejected (sender requested REQUIRETLS...)
+	    STARTTLS not offered (sender requested REQUIRETLS...)
+	    (TLS is required, but our TLS engine is unavailable)
+	    (TLS is required, but unavailable)
+	    CERT not trusted|matched (sender requested REQUIRETLS...)
 
     	Revert $requiretls in pipe daemon?
 

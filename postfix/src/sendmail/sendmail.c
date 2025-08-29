@@ -162,30 +162,26 @@
 /* .IP "\fB-O requiretls=no\fR"
 /*	When delivering a message to an SMTP or LMTP server, the
 /*	connection must use TLS with a verified server certificate,
-/*	and that server must support REQUIRETLS. Try multiple servers
-/*	if possible, and return the message as undeliverable when
-/*	these requirements were not satisfied with any of the servers
-/*	that were tried. The "requiretls" name and option value are
-/*	case-insensitive.
+/*	and that server must support REQUIRETLS. The "requiretls" name
+/*	and option value are case-insensitive. REQUIRETLS enforcement
+/*	is controlled with the configuration parameters requiretls_enable,
+/*	smtp_requiretls_policy, and lmtp_requiretls_policy.
 /*
 /*	This feature is available in Postfix 3.11 and later.
 /* .IP "\fB-O smtputf8=yes\fR"
 /* .IP "\fB-O smtputf8=no\fR"
 /*	When delivering a message to an SMTP or LMTP server, and an
 /*	envelope address or message header contains UTF8 text, that server
-/*	must support SMTPUTF8. Try multiple servers if possible, and
-/*	return the message as undeliverable when a message contains an
-/*	UTF8 envelope address or message header, but SMTPUTF8 was not
-/*	supported by any of the servers that were tried. The "smtputf8"
-/*	option name and value are case-insensitive.
+/*	must support SMTPUTF8. The "smtputf8" option name and value
+/*	are case-insensitive.
 /*
 /*	This feature is available in Postfix 3.11 and later.
-/* .IP "\fB-oA\fIalias_database\fR"
-/*	Non-default alias database. Specify \fIpathname\fR or
-/*	\fItype\fR:\fIpathname\fR. See \fBpostalias\fR(1) for details.
 /* .IP "\fB-O \fIoption=value\fR (ignored)"
 /*	Set the named \fIoption\fR to \fIvalue\fR. Use the equivalent
 /*	configuration parameter in \fBmain.cf\fR instead.
+/* .IP "\fB-oA\fIalias_database\fR"
+/*	Non-default alias database. Specify \fIpathname\fR or
+/*	\fItype\fR:\fIpathname\fR. See \fBpostalias\fR(1) for details.
 /* .IP "\fB-o7\fR (ignored)"
 /* .IP "\fB-o8\fR (ignored)"
 /*	To send 8-bit or binary content, use an appropriate MIME encapsulation
@@ -1310,6 +1306,7 @@ int     main(int argc, char **argv)
 		    sm_sendopts &= ~SOPT_REQUIRETLS_ESMTP;
 		    continue;
 		}
+		msg_warn("bad -O option: '%s' -- ignored", optarg);
 	    } else if (strncasecmp(optarg, "SMTPUTF8=", oval - optarg) == 0) {
 		if (var_smtputf8_enable == 0) {
 		    msg_warn("'-O %s' was requested, but the "
@@ -1323,8 +1320,8 @@ int     main(int argc, char **argv)
 		    sm_sendopts &= ~SOPT_SMTPUTF8_REQUESTED;
 		    continue;
 		}
+		msg_warn("bad -O option: '%s' -- ignored", optarg);
 	    }
-	    msg_warn("bad -O option: '%s' -- ignored", optarg);
 	    break;
 	case 'R':
 	    if ((dsn_ret = dsn_ret_code(optarg)) == 0)
