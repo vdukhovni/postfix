@@ -1868,3 +1868,5 @@ deduplicates
 intmax
 lflag
 REPLYCODE
+PTEST
+finalizer

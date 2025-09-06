@@ -3499,6 +3499,10 @@ The LMTP\-specific version of the smtp_tls_enforce_peername
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_enforce_sts_mx_patterns (default: yes)
+See smtp_tls_enforce_sts_mx_patterns.
+.PP
+This feature is available in Postfix >= 3.10.5.
 .SH lmtp_tls_exclude_ciphers (default: empty)
 The LMTP\-specific version of the smtp_tls_exclude_ciphers
 configuration parameter.  See there for details.
@@ -8697,6 +8701,12 @@ CommonName of this attacker will be logged).
 .PP
 This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use smtp_tls_security_level instead.
+.SH smtp_tls_enforce_sts_mx_patterns (default: yes)
+Transform the TLS policy from an STS policy plugin: connect to
+an MX host only if its name matches the STS policy MX host pattern,
+and match the server certificate against the MX hostname.
+.PP
+This feature is available in Postfix >= 3.10.5.
 .SH smtp_tls_exclude_ciphers (default: empty)
 List of ciphers or cipher types to exclude from the Postfix
 SMTP client cipher

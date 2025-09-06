@@ -17,6 +17,10 @@
 /*	SMTP_TLS_POLICY *tls;
 /*
 /*	void	smtp_tls_policy_cache_flush()
+/*
+/*	int	smtp_tls_authorize_mx_hostname(tls, qname)
+/*	SMTP_TLS_POLICY *tls;
+/*	const char *qname;
 /* DESCRIPTION
 /*	smtp_tls_list_init() initializes lookup tables used by the TLS
 /*	policy engine.
@@ -37,6 +41,11 @@
 /*
 /*	smtp_tls_policy_cache_flush() destroys the TLS policy cache
 /*	and contents.
+/*
+/*	smtp_tls_authorize_mx_hostname() authorizes an MX host if the
+/*	name used for host lookup satisfies a TLS policy MX name
+/*	constraint (for example, an STS policy MX pattern), or if the
+/*	TLS policy has no name constraint.
 /*
 /*	Arguments:
 /* .IP why
@@ -107,6 +116,7 @@
 #include <valid_hostname.h>
 #include <valid_utf8_hostname.h>
 #include <ctable.h>
+#include <midna_domain.h>
 
 /* Global library. */
 
@@ -135,6 +145,51 @@ static void dane_init(SMTP_TLS_POLICY *, SMTP_ITERATOR *);
 
 static MAPS *tls_policy;		/* lookup table(s) */
 static MAPS *tls_per_site;		/* lookup table(s) */
+
+/* match_sts_mx_host_pattern -  match hostname against STS policy MX pattern */
+
+static int match_sts_mx_host_pattern(const char *pattern, const char *qname)
+{
+    const char *first_dot_in_qname;
+
+    /* Caller guarantees that inputs are in ASCII form. */
+    return (strcasecmp(qname, pattern) == 0
+	    || (pattern[0] == '*' && pattern[1] == '.' && pattern[2] != 0
+		&& (first_dot_in_qname = strchr(qname, '.')) != 0
+		&& first_dot_in_qname > qname
+		&& strcasecmp(first_dot_in_qname + 1, pattern + 2) == 0));
+}
+
+/* smtp_tls_authorize_mx_hostname - enforce applicable MX hostname policy */
+
+int     smtp_tls_authorize_mx_hostname(SMTP_TLS_POLICY *tls, const char *name)
+{
+
+#define SAFE_FOR_SMTP_TLS_ENF_STS_MX_PAT(tls) (var_smtp_tls_enf_sts_mx_pat \
+	    && (tls)->ext_policy_type != 0 \
+	    && strcasecmp((tls)->ext_policy_type, "sts") == 0 \
+	    && (tls)->matchargv != 0 && (tls)->ext_mx_host_patterns != 0)
+
+    /* Enforce STS policy MX patterns. */
+    if (SAFE_FOR_SMTP_TLS_ENF_STS_MX_PAT(tls)) {
+	const char *aname;
+	char  **pattp;
+
+#ifndef NO_EAI
+	if (!allascii(name) && (aname = midna_domain_to_ascii(name)) != 0) {
+	    if (msg_verbose)
+		msg_info("%s asciified to %s", name, aname);
+	} else
+#endif
+	    aname = name;
+	for (pattp = tls->ext_mx_host_patterns->argv; *pattp; pattp++)
+	    if (match_sts_mx_host_pattern(*pattp, aname))
+		return (1);
+	return (0);
+    }
+    /* No applicable policy name patterns. */
+    return (1);
+}
 
 /* smtp_tls_list_init - initialize per-site policy lists */
 
@@ -516,6 +571,10 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 		     "mx_host_pattern or policy_failure", WHERE);
 	    INVALID_RETURN(tls->why, site_level);
 	}
+    }
+    if (SAFE_FOR_SMTP_TLS_ENF_STS_MX_PAT(tls)) {
+	argv_truncate(tls->matchargv, 0);
+	argv_add(tls->matchargv, "hostname", (char *) 0);
     }
     FREE_RETURN;
 }

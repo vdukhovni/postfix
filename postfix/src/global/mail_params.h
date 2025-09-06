@@ -4514,6 +4514,12 @@ extern char *var_smtp_tlsrpt_sockname;
 #define DEF_LMTP_TLSRPT_SKIP_REUSED_HS	DEF_SMTP_TLSRPT_SKIP_REUSED_HS
 extern int var_smtp_tlsrpt_skip_reused_hs;
 
+#define VAR_SMTP_TLS_ENF_STS_MX_PAT	"smtp_tls_enforce_sts_mx_patterns"
+#define DEF_SMTP_TLS_ENF_STS_MX_PAT	"yes"
+#define VAR_LMTP_TLS_ENF_STS_MX_PAT	"lmtp_tls_enforce_sts_mx_patterns"
+#define DEF_LMTP_TLS_ENF_STS_MX_PAT	"yes"
+extern bool var_smtp_tls_enf_sts_mx_pat;
+
  /*
   * RFC 2047 encoding of full name info.
   */

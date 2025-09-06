@@ -5789,6 +5789,16 @@ configuration parameter.  See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_tls_enforce_sts_mx_patterns">lmtp_tls_enforce_sts_mx_patterns</a>
+(default: yes)</b></DT><DD>
+
+<p> See <a href="postconf.5.html#smtp_tls_enforce_sts_mx_patterns">smtp_tls_enforce_sts_mx_patterns</a>. </p>
+
+<p> This feature is available in Postfix &ge; 3.10.5. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_tls_exclude_ciphers">lmtp_tls_exclude_ciphers</a>
 (default: empty)</b></DT><DD>
 
@@ -13537,6 +13547,18 @@ CommonName of this attacker will be logged). </p>
 
 <p> This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> instead. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tls_enforce_sts_mx_patterns">smtp_tls_enforce_sts_mx_patterns</a>
+(default: yes)</b></DT><DD>
+
+<p> Transform the TLS policy from an STS policy plugin: connect to
+an MX host only if its name matches the STS policy MX host pattern,
+and match the server certificate against the MX hostname. </p>
+
+<p> This feature is available in Postfix &ge; 3.10.5. </p>
 
 
 </DD>

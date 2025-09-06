@@ -19566,6 +19566,20 @@ second etc. TLS handshake to report. </p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
 
+%PARAM lmtp_tls_enforce_sts_mx_patterns yes
+
+<p> See smtp_tls_enforce_sts_mx_patterns. </p>
+
+<p> This feature is available in Postfix &ge; 3.10.5. </p>
+
+%PARAM smtp_tls_enforce_sts_mx_patterns yes
+
+<p> Transform the TLS policy from an STS policy plugin: connect to
+an MX host only if its name matches the STS policy MX host pattern,
+and match the server certificate against the MX hostname. </p>
+
+<p> This feature is available in Postfix &ge; 3.10.5. </p>
+
 %PARAM full_name_encoding_charset utf-8
 
 <p> The character set name (also called "charset") that Postfix

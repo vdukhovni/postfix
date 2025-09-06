@@ -650,6 +650,14 @@
 /* .IP "\fBsmtp_tlsrpt_skip_reused_handshakes (Postfix >= 3.11: no, Postfix 3.10: yes)\fR"
 /*	When set to "yes", report the TLSRPT status only for "new" TLS
 /*	sessions.
+/* .PP
+/*	Available in Postfix version 3.10.5 and later:
+/* .IP "\fBsmtp_tls_enforce_sts_mx_patterns (yes)\fR"
+/*	Transform the TLS policy from an STS policy plugin: connect to
+/*	an MX host only if its name matches the STS policy MX host pattern,
+/*	and match the server certificate against the MX hostname.
+/* .PP
+/*	Available in Postfix version 3.11 and later:
 /* .IP "\fBtls_required_enable (yes)\fR"
 /*	Enable support for the "TLS-Required: no" message header, defined
 /*	in RFC 8689.
@@ -1132,6 +1140,7 @@ bool    var_smtp_tls_blk_early_mail_reply;
 bool    var_smtp_tls_force_tlsa;
 char   *var_smtp_tls_insecure_mx_policy;
 bool    var_smtp_tls_enable_rpk;
+bool    var_smtp_tls_enf_sts_mx_pat;
 
 #endif
 

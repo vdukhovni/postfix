@@ -137,6 +137,7 @@ typedef struct SMTP_TLS_POLICY {
 extern void smtp_tls_list_init(void);
 extern int smtp_tls_policy_cache_query(DSN_BUF *, SMTP_TLS_POLICY *, SMTP_ITERATOR *);
 extern void smtp_tls_policy_cache_flush(void);
+extern int  smtp_tls_authorize_mx_hostname(SMTP_TLS_POLICY *, const char *);
 
  /*
   * Macros must use distinct names for local temporary variables, otherwise

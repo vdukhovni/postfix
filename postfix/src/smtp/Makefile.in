@@ -8,10 +8,10 @@ OBJS	= smtp.o smtp_connect.o smtp_proto.o smtp_chat.o smtp_session.o \
 	smtp_sasl_proto.o smtp_sasl_glue.o smtp_reuse.o smtp_map11.o \
 	smtp_sasl_auth_cache.o smtp_key.o smtp_misc.o smtp_tlsrpt.o
 HDRS	= smtp.h smtp_sasl.h smtp_addr.h smtp_reuse.h smtp_sasl_auth_cache.h
-TESTSRC	= 
+TESTSRC	= smtp_policy_test.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
-TESTPROG= smtp_unalias smtp_map11
+TESTPROG= smtp_unalias smtp_map11 smtp_tls_policy_test
 PROG	= smtp
 INC_DIR	= ../../include
 LIBS	= ../../lib/lib$(LIB_PREFIX)master$(LIB_SUFFIX) \
@@ -33,7 +33,7 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests: smtp_map11_test
+tests: smtp_map11_test test_smtp_tls_policy
 
 root_tests:
 
@@ -63,6 +63,14 @@ smtp_map11_test: smtp_map11 smtp_map11.ref
 	$(SHLIB_ENV) $(VALGRIND) ./smtp_map11 <smtp_map11.in >smtp_map11.tmp 2>&1
 	diff smtp_map11.ref smtp_map11.tmp
 	rm -f smtp_map11.tmp
+
+SMTP_POLICY_TEST_OBJ = smtp_tls_policy_test.o smtp_tls_policy.o smtp_state.o smtp_key.o
+
+smtp_tls_policy_test: $(SMTP_POLICY_TEST_OBJ) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $(SMTP_POLICY_TEST_OBJ) $(LIBS) $(SYSLIBS)
+
+test_smtp_tls_policy: smtp_tls_policy_test
+	$(SHLIB_ENV) $(VALGRIND) ./smtp_tls_policy_test
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -777,6 +785,7 @@ smtp_tls_policy.o: ../../include/htable.h
 smtp_tls_policy.o: ../../include/mail_params.h
 smtp_tls_policy.o: ../../include/maps.h
 smtp_tls_policy.o: ../../include/match_list.h
+smtp_tls_policy.o: ../../include/midna_domain.h
 smtp_tls_policy.o: ../../include/mime_state.h
 smtp_tls_policy.o: ../../include/msg.h
 smtp_tls_policy.o: ../../include/msg_stats.h
@@ -806,6 +815,46 @@ smtp_tls_policy.o: ../../include/vstream.h
 smtp_tls_policy.o: ../../include/vstring.h
 smtp_tls_policy.o: smtp.h
 smtp_tls_policy.o: smtp_tls_policy.c
+smtp_tls_policy_test.o: ../../include/argv.h
+smtp_tls_policy_test.o: ../../include/attr.h
+smtp_tls_policy_test.o: ../../include/check_arg.h
+smtp_tls_policy_test.o: ../../include/deliver_request.h
+smtp_tls_policy_test.o: ../../include/dict.h
+smtp_tls_policy_test.o: ../../include/dns.h
+smtp_tls_policy_test.o: ../../include/dsn.h
+smtp_tls_policy_test.o: ../../include/dsn_buf.h
+smtp_tls_policy_test.o: ../../include/header_body_checks.h
+smtp_tls_policy_test.o: ../../include/header_opts.h
+smtp_tls_policy_test.o: ../../include/htable.h
+smtp_tls_policy_test.o: ../../include/mail_params.h
+smtp_tls_policy_test.o: ../../include/maps.h
+smtp_tls_policy_test.o: ../../include/match_list.h
+smtp_tls_policy_test.o: ../../include/mime_state.h
+smtp_tls_policy_test.o: ../../include/msg.h
+smtp_tls_policy_test.o: ../../include/msg_stats.h
+smtp_tls_policy_test.o: ../../include/msg_vstream.h
+smtp_tls_policy_test.o: ../../include/myaddrinfo.h
+smtp_tls_policy_test.o: ../../include/myflock.h
+smtp_tls_policy_test.o: ../../include/mymalloc.h
+smtp_tls_policy_test.o: ../../include/name_code.h
+smtp_tls_policy_test.o: ../../include/name_mask.h
+smtp_tls_policy_test.o: ../../include/nvtable.h
+smtp_tls_policy_test.o: ../../include/recipient_list.h
+smtp_tls_policy_test.o: ../../include/resolve_clnt.h
+smtp_tls_policy_test.o: ../../include/scache.h
+smtp_tls_policy_test.o: ../../include/sendopts.h
+smtp_tls_policy_test.o: ../../include/sock_addr.h
+smtp_tls_policy_test.o: ../../include/string_list.h
+smtp_tls_policy_test.o: ../../include/stringops.h
+smtp_tls_policy_test.o: ../../include/sys_defs.h
+smtp_tls_policy_test.o: ../../include/tls.h
+smtp_tls_policy_test.o: ../../include/tls_proxy.h
+smtp_tls_policy_test.o: ../../include/tok822.h
+smtp_tls_policy_test.o: ../../include/vbuf.h
+smtp_tls_policy_test.o: ../../include/vstream.h
+smtp_tls_policy_test.o: ../../include/vstring.h
+smtp_tls_policy_test.o: smtp.h
+smtp_tls_policy_test.o: smtp_tls_policy_test.c
 smtp_tlsrpt.o: ../../include/argv.h
 smtp_tlsrpt.o: ../../include/attr.h
 smtp_tlsrpt.o: ../../include/check_arg.h
