@@ -57,6 +57,7 @@
 /*	RFC 6531 (Internationalized SMTP)
 /*	RFC 6533 (Internationalized Delivery Status Notifications)
 /*	RFC 7505 ("Null MX" No Service Resource Record)
+/*	RFC 8689 (SMTP REQUIRETLS extension)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8)
 /*	or \fBpostlogd\fR(8).
@@ -370,7 +371,7 @@
 /* .IP "\fBsmtpd_sasl_mechanism_filter (!external, static:rest)\fR"
 /*	If non-empty, a filter for the SASL mechanism names that the
 /*	Postfix SMTP server will announce in the EHLO response.
-/* STARTTLS SUPPORT CONTROLS
+/* TLS SUPPORT CONTROLS
 /* .ad
 /* .fi
 /*	Detailed information about STARTTLS configuration may be
@@ -544,7 +545,12 @@
 /*	Request that remote SMTP clients send an RFC7250 raw public key
 /*	instead of an X.509 certificate, when asking for or requiring client
 /*	authentication.
-/* OBSOLETE STARTTLS CONTROLS
+/* .PP
+/*	Available in Postfix version 3.10 and later:
+/* .IP "\fBrequiretls_enable (yes)\fR"
+/*	Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
+/*	FROM" command.
+/* OBSOLETE TLS CONTROLS
 /* .ad
 /* .fi
 /*	The following configuration parameters exist for compatibility
@@ -2112,6 +2118,11 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	EHLO_APPEND(state, "SMTPUTF8");
     if ((discard_mask & EHLO_MASK_CHUNKING) == 0)
 	EHLO_APPEND(state, "CHUNKING");
+#ifdef USE_TLS
+    if (var_reqtls_enable && (discard_mask & EHLO_MASK_REQTLS) == 0
+	&& state->tls_context != 0)
+	EHLO_APPEND(state, "REQUIRETLS");
+#endif
 
     /*
      * Send the reply.
@@ -2226,7 +2237,8 @@ static int mail_open_stream(SMTPD_STATE *state)
 	    cleanup_flags |= CLEANUP_FLAG_SMTPUTF8;
 	else
 	    cleanup_flags |= smtputf8_autodetect(MAIL_SRC_MASK_SMTPD);
-	/* TODO(wietse) REQUIRETLS. */
+	if (state->flags & SMTPD_FLAG_REQTLS)
+	    cleanup_flags |= CLEANUP_FLAG_REQTLS;
 	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,
 					  var_cleanup_service);
 	if (state->dest == 0
@@ -2686,6 +2698,13 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		   && (state->ehlo_discard_mask & EHLO_MASK_SMTPUTF8) == 0
 		   && strcasecmp(arg, "SMTPUTF8") == 0) {	/* RFC 6531 */
 	     /* Already processed early. */ ;
+#ifdef USE_TLS
+	} else if (var_reqtls_enable
+		   && state->tls_context != 0
+		   && (state->ehlo_discard_mask & EHLO_MASK_REQTLS) == 0
+		   && strcasecmp(arg, "REQUIRETLS") == 0) {	/* RFC 8689 */
+	    state->flags |= SMTPD_FLAG_REQTLS;
+#endif
 #ifdef USE_SASL_AUTH
 	} else if (strncasecmp(arg, "AUTH=", 5) == 0) {
 	    if ((err = smtpd_sasl_mail_opt(state, arg + 5)) != 0) {

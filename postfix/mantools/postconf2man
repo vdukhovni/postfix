@@ -55,6 +55,7 @@ while(<>) {
     $block =~ s/<i>/\\fI/g;
     $block =~ s/<\/b>/\\fR/g;
     $block =~ s/<\/i>/\\fR/g;
+    $block =~ s/\s*<\/p(re)?>\s*<p(re)?>\s*/\n.sp\n/g;
     $block =~ s/^(<p(re)?>)/.PP\n\1/ if ($wantpp);
     $block =~ s/<p> */\n/g;
     $block =~ s/ *<\/p>/\n/g;

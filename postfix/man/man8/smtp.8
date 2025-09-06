@@ -190,7 +190,7 @@ RFC 5321 (SMTP protocol)
 RFC 6531 (Internationalized SMTP)
 RFC 6533 (Internationalized Delivery Status Notifications)
 RFC 7672 (SMTP security via opportunistic DANE TLS)
-RFC 8689 (TLS\-Required message header)
+RFC 8689 (SMTP REQUIRETLS extension, TLS\-Required header)
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -485,7 +485,7 @@ Available in Postfix version 3.9 and later:
 .IP "\fBsmtp_sasl_password_result_delimiter (:)\fR"
 The delimiter between username and password in sasl_passwd_maps lookup
 results.
-.SH "STARTTLS SUPPORT CONTROLS"
+.SH "TLS SUPPORT CONTROLS"
 .na
 .nf
 .ad
@@ -695,7 +695,13 @@ Available in Postfix version 3.11 and later:
 .IP "\fBtls_required_enable (yes)\fR"
 Enable support for the "TLS\-Required: no" message header, defined
 in RFC 8689.
-.SH "OBSOLETE STARTTLS CONTROLS"
+.IP "\fBrequiretls_enable (yes)\fR"
+Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
+FROM" command.
+.IP "\fBsmtp_requiretls_policy (see 'postconf -d smtp_requiretls_policy' output)\fR"
+How the Postfix SMTP and LMTP client will enforce REQUIRETLS
+for messages received with the REQUIRETLS option.
+.SH "OBSOLETE TLS CONTROLS"
 .na
 .nf
 .ad

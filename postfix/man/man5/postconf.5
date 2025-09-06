@@ -3302,6 +3302,11 @@ The LMTP\-specific version of the smtp_reply_filter
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.7 and later.
+.SH lmtp_requiretls_policy (default: opportunistic)
+The LMTP\-specific version of the smtp_requiretls_policy
+configuration parameter. See there for details.
+.PP
+This feature is available in Postfix >= 3.11.
 .SH lmtp_rset_timeout (default: 20s)
 The Postfix LMTP client time limit for sending the RSET command,
 and for receiving the remote LMTP server response. The LMTP client
@@ -6607,6 +6612,55 @@ Require that a \fBlocal\fR(8) recipient's home directory exists
 before mail delivery is attempted. By default this test is disabled.
 It can be useful for environments that import home directories to
 the mail server (IMPORTING HOME DIRECTORIES IS NOT RECOMMENDED).
+.SH requiretls_enable (default: yes)
+Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
+FROM" command. As defined in RFC 8689, when a message specifies
+REQUIRETLS:
+.IP \(bu
+deliveries with SMTP or LMTP must use a TLS connection,
+.IP \(bu
+to a securely looked up MX server (e.g., DNSSEC or MTA\-STS),
+.IP \(bu
+with a matched server certificate (Postfix SMTP or LMTP
+client TLS security levels "secure", "verify", "fingerprint",
+dane\-only, or opportunistic "dane"),
+.IP \(bu
+and the server must announce "REQUIRETLS" support after
+the STARTTLS handshake.
+.br
+.PP
+When delivering a message that specifies REQUIRETLS, the Postfix
+SMTP client will try one or more servers, limited by the
+smtp_mx_address_limit and smtp_mx_session_limit parameters, until
+it finds an MX server that satisfies the above requirements. If
+such a server is not found, the Postfix SMTP or LMTP client returns
+the message as undeliverable.
+.PP
+Notes:
+.IP \(bu
+With the Postfix SMTP or LMTP clients, REQUIRETLS enforcement
+is controlled with smtp_requiretls_policy or lmtp_requiretls_policy. It
+is initially not enforced for deliveries to local servers, including
+LMTP message stores and local content filters.
+.IP \(bu
+The ESMTP REQUIRETLS option overrides the "TLS\-Required:
+no" message header.
+.br
+.PP
+This feature is available in Postfix >= 3.11.
+.SH requiretls_redact_dsn (default: yes)
+When sending a delivery status notification for an original
+message received with the REQUIRETLS option, do not send the original
+message body (as if that message was received with "RET=HDRS") and
+do not enforce REQUIRETLS (as if that message was received without
+REQUIRETLS). For a detailed discussion see RFC 8689 section 5.
+.PP
+Note: the 'reverse' path for sending a delivery status notification
+may differ from the 'forward' path for receiving the original message.
+Not every hop in the reverse path may support REQUIRETLS, even
+though every hop in the forward path supported it. The setting
+"requiretls_redact_dsn = no" may therefore result in the loss of a
+delivery status notification.
 .SH reset_owner_alias (default: no)
 Reset the \fBlocal\fR(8) delivery agent's idea of the owner\-alias
 attribute, when delivering mail to a child alias that does not have
@@ -7917,6 +7971,153 @@ Examples:
 .ad
 .PP
 This feature is available in Postfix 2.7.
+.SH smtp_requiretls_policy (default: see 'postconf \-d smtp_requiretls_policy' output)
+How the Postfix SMTP and LMTP client will enforce REQUIRETLS
+for messages received with the REQUIRETLS option. Policy examples
+for SMTP and LMTP are at the end.
+.IP \(bu
+Specify a list of items, separated with whitespace or
+comma; continue a long line by starting the next line with whitespace.
+.IP \(bu
+Each item must be an action (see below), or a type:table
+lookup table that must return an action (not a type:table).
+.IP \(bu
+A type:table lookup table is searched with the next\-hop
+destination, without any \fI[ ]\fR, \fI:service\fR, or \fI:port\fR.
+.IP \(bu
+The next\-hop destination for TCP connections is the recipient
+domain, but this can be overruled with transport_maps, relayhost,
+content_filter, or other routing features. The next\-hop destination
+for LMTP over UNIX\-domain connections is always the value of
+myhostname.
+.br
+.PP
+Supported actions:
+.IP "\fB enforce \fR"
+Skip connections that do not
+meet RFC 8689 section 4.2 requirements, and skip servers that don't
+announce REQUIRETLS support. Return the message as undeliverable if no
+suitable connection and server are found, and log a "REQUIRETLS
+Failure" event.
+.br
+.IP "\fB opportunistic+starttls \fR"
+Skip servers
+that don't announce STARTTLS support. Return the message as
+undeliverable if no suitable server is found, and log a "REQUIRETLS
+Failure" event.
+.sp
+Request REQUIRETLS if a server supports
+REQUIRETLS, otherwise simply deliver the message and log "REQUIRETLS
+Debug" events when a connection would not meet all RFC 8689 section
+4.2 requirements.
+.sp
+This can be appropriate for an outbound
+perimeter MTA, when forwarding messages from internal systems to
+the Internet, at a time that many domains do not publish DANE or
+MTA\-STS policies.
+.br
+.IP "\fB opportunistic \fR"
+Request REQUIRETLS if
+the server supports REQUIRETLS, otherwise simply deliver the message.
+.sp
+This can be appropriate for an inbound perimeter MTA, when
+forwarding messages from the Internet to internal servers or content
+filters. Internal servers or content filters may not support
+REQUIRETLS, and internal connections may be secured with means other
+than DANE or STS.
+.br
+.IP "\fB disable \fR"
+Disable REQUIRETLS support.
+This may be used as a last\-resort workaround when a server announces
+REQUIRETLS support, but the support is inoperable.
+.br
+.br
+.PP
+Notes:
+.IP \(bu
+Postfix appends an implicit \fBopportunistic+starttls\fR
+action after the end of each policy.
+.IP \(bu
+To match any name below the domain "example.com" specify
+a table entry with the storage key ".example.com" in type:table
+lookup tables that need an exact match. This is appropriate, for
+example, with hash:, btree: or lmdb:.
+.IP \(bu
+Do not specify a match pattern for ".domain" with regexp:,
+pcre:, socketmap:, or tcp:, as smtp_requiretls_policy will
+not query those tables with that form.
+.br
+.PP
+SMTP client examples:
+.IP \(bu
+The default SMTP client REQUIRETLS policy: when a sender
+requests REQUIRETLS, require that external servers support STARTTLS,
+and request REQUIRETLS if an internal or external server supports
+REQUIRETLS.
+.sp
+/etc/postfix/main.cf:
+    smtp_tls_security_level = may
+    smtp_tls_policy_maps = ...dane/sts plugin...
+    smtp_requiretls_policy =
+        inline:{
+            {.$mydomain = opportunistic}
+            {localhost = opportunistic} }
+        opportunistic+starttls
+.fi
+.ad
+.IP \(bu
+As above, with external destinations listed in a separate
+file for easier maintenance.
+.sp
+/etc/postfix/main.cf:
+    smtp_tls_security_level = may
+    smtp_tls_policy_maps = ...dane/sts plugin...
+    smtp_requiretls_policy =
+        inline:{
+            {.$mydomain = opportunistic}
+            {localhost = opportunistic} }
+        hash:/etc/postfix/requiretls\-per\-site
+        opportunistic+starttls
+.sp
+/etc/postfix/requiretls\-per\-site:
+    one.example         enforce
+    two.example         enforce
+    three.example       opportunistic
+    ...
+.fi
+.ad
+.IP \(bu
+Distant future: when a sender requests REQUIRETLS, enforce
+all REQUIRETLS requirements for all external destinations.
+.sp
+/etc/postfix/main.cf:
+    smtp_tls_secure_cert_match = nexthop, dot\-nexthop
+    smtp_tls_policy_maps = ...dane/sts plugin...
+    smtp_requiretls_policy =
+        inline:{
+            {.$mydomain = opportunistic}
+            {localhost = opportunistic} }
+        enforce
+.fi
+.ad
+.br
+.PP
+LMTP client examples:
+.IP \(bu
+The default LMTP client REQUIRETLS policy: when a sender
+requests REQUIRETLS, request REQUIRETLS if the server supports
+REQUIRETLS, otherwise deliver the message as if the sender did not
+request REQUIRETLS. Note: with deliveries over a UNIX\-domain socket,
+the next\-hop destination for lmtp_requiretls_policy lookups will
+be the myhostname parameter value.
+.sp
+/etc/postfix/main.cf:
+    lmtp_requiretls_policy = opportunistic
+.fi
+.ad
+.br
+.PP
+This feature is available in Postfix >= 3.11.
 .SH smtp_rset_timeout (default: 20s)
 The Postfix SMTP client time limit for sending the RSET command,
 and for receiving the remote SMTP server response. The SMTP client
@@ -9107,8 +9308,7 @@ See the documentation of the smtp_tls_policy_maps parameter and
 TLS_README for more information about security levels.
 .PP
 Example:
-.nf
-.na
+.sp
 # Preferred syntax with Postfix >= 3.6:
 smtp_tls_mandatory_protocols = >=TLSv1.2, <=TLSv1.3
 # Legacy syntax:
@@ -9499,8 +9699,7 @@ this protocol via "!TLSv1.3" is supported since Postfix 3.4 (or patch
 releases >= 3.0.14, 3.1.10, 3.2.7 and 3.3.2).
 .PP
 Example:
-.nf
-.na
+.sp
 # Preferred syntax with Postfix >= 3.6:
 smtp_tls_protocols = >=TLSv1, <=TLSv1.3
 # Legacy syntax:
@@ -13312,10 +13511,7 @@ Example: client\-certificate access table, with sha256 fingerprints:
     smtpd_client_restrictions =
         check_ccert_access hash:/etc/postfix/access,
         reject
-.fi
-.ad
-.nf
-.na
+.sp
 /etc/postfix/access:
     # Action folded to next line...
     AF:88:7C:AD:51:95:6F:36:96:...:01:FB:2E:48:CD:AB:49:25:A2:3B
@@ -13579,8 +13775,7 @@ this protocol via "!TLSv1.3" is supported since Postfix 3.4 (or patch
 releases >= 3.0.14, 3.1.10, 3.2.7 and 3.3.2).
 .PP
 Example:
-.nf
-.na
+.sp
 # Preferred syntax with Postfix >= 3.6:
 smtpd_tls_protocols = >=TLSv1, <=TLSv1.3
 # Legacy syntax:
@@ -14598,6 +14793,9 @@ server certificates, and fall back to plaintext if TLS is unavailable.
 If a message contains a "TLS\-Required: no" header, then Postfix
 will add that header to a delivery status notification for that
 message.
+.PP
+Note: the ESMTP REQUIRETLS option overrides the "TLS\-Required:
+no" message header.
 .PP
 This feature is available in Postfix >= 3.10.
 .SH tls_server_sni_maps (default: empty)

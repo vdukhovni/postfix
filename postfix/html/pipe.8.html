@@ -309,6 +309,15 @@ PIPE(8)                                                                PIPE(8)
                      This information is modified by the <b>hqu</b> flags for quoting
                      and case folding.
 
+              <b>${requiretls}</b>
+                     This  feature  is  intended for content filters that pass
+                     filtered mail to the  Postfix  <a href="sendmail.1.html">sendmail(1)</a>  command.  The
+                     macro  expands  to  the  Postfix <a href="sendmail.1.html">sendmail(1)</a> command-line
+                     option   <b>-Orequiretls=yes</b>   if   the   sender   requested
+                     REQUIRETLS, otherwise it expands to <b>-Orequiretls=no</b>.
+
+                     This feature is available as of Postfix 3.11.
+
               <b>${sasl_method}</b>
                      This macro expands to the name of the SASL authentication
                      mechanism in the  AUTH  command  when  the  Postfix  SMTP
@@ -487,6 +496,12 @@ PIPE(8)                                                                PIPE(8)
        <b><a href="postconf.5.html#info_log_address_format">info_log_address_format</a> (external)</b>
               The  email  address  form that will be used in non-debug logging
               (info, warning, etc.).
+
+       Available in Postfix 3.11 and later:
+
+       <b><a href="postconf.5.html#requiretls_enable">requiretls_enable</a> (yes)</b>
+              Enable support for the ESMTP  verb  "REQUIRETLS"  in  the  "MAIL
+              FROM" command.
 
 <b><a name="see_also">SEE ALSO</a></b>
        <a href="qmgr.8.html">qmgr(8)</a>, queue manager

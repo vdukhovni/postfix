@@ -1664,6 +1664,9 @@ REQUIRETLS
 RequireTLS
 requiretls
 sendopts
+TODO
+Onoop
+Orequiretls
 tz
 GID
 SIGKILL
@@ -1685,3 +1688,4 @@ PRELOAD
 rhansen
 XDG
 crosstalk
+HDRS

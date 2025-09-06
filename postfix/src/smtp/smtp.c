@@ -172,7 +172,7 @@
 /*	RFC 6531 (Internationalized SMTP)
 /*	RFC 6533 (Internationalized Delivery Status Notifications)
 /*	RFC 7672 (SMTP security via opportunistic DANE TLS)
-/*	RFC 8689 (TLS-Required message header)
+/*	RFC 8689 (SMTP REQUIRETLS extension, TLS-Required header)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8)
 /*	or \fBpostlogd\fR(8).
@@ -453,7 +453,7 @@
 /* .IP "\fBsmtp_sasl_password_result_delimiter (:)\fR"
 /*	The delimiter between username and password in sasl_passwd_maps lookup
 /*	results.
-/* STARTTLS SUPPORT CONTROLS
+/* TLS SUPPORT CONTROLS
 /* .ad
 /* .fi
 /*	Detailed information about STARTTLS configuration may be found
@@ -661,7 +661,13 @@
 /* .IP "\fBtls_required_enable (yes)\fR"
 /*	Enable support for the "TLS-Required: no" message header, defined
 /*	in RFC 8689.
-/* OBSOLETE STARTTLS CONTROLS
+/* .IP "\fBrequiretls_enable (yes)\fR"
+/*	Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
+/*	FROM" command.
+/* .IP "\fBsmtp_requiretls_policy (see 'postconf -d smtp_requiretls_policy' output)\fR"
+/*	How the Postfix SMTP and LMTP client will enforce REQUIRETLS
+/*	for messages received with the REQUIRETLS option.
+/* OBSOLETE TLS CONTROLS
 /* .ad
 /* .fi
 /*	The following configuration parameters exist for compatibility
@@ -1173,6 +1179,7 @@ bool    var_allow_srv_fallback;
 bool    var_smtp_tlsrpt_enable;
 char   *var_smtp_tlsrpt_sockname;
 bool    var_smtp_tlsrpt_skip_reused_hs;
+char   *var_smtp_reqtls_policy;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -1200,6 +1207,7 @@ HBC_CHECKS *smtp_body_checks;		/* limited body checks */
 SMTP_CLI_ATTR smtp_cli_attr;		/* parsed command-line */
 int     smtp_hfrom_format;		/* postmaster notifications */
 STRING_LIST *smtp_use_srv_lookup;
+SMTP_REQTLS_POLICY *smtp_reqtls_policy;
 
 #ifdef USE_TLS
 
@@ -1707,6 +1715,16 @@ static void pre_init(char *unused_name, char **unused_argv)
     if (*var_smtp_dns_re_filter)
 	dns_rr_filter_compile(VAR_LMTP_SMTP(DNS_RE_FILTER),
 			      var_smtp_dns_re_filter);
+
+    /*
+     * REQUIRETLS enforcement policy. The parser appends a default action: DO
+     * NOT skip the code below if the policy string is empty. When
+     * var_reqtls_enable != 0, smtp_reqtls_policy must also be != 0.
+     */
+    if (var_reqtls_enable)
+	smtp_reqtls_policy =
+	    smtp_reqtls_policy_parse(VAR_LMTP_SMTP(REQTLS_POLICY),
+				     var_smtp_reqtls_policy);
 }
 
 /* pre_accept - see if tables have changed */
