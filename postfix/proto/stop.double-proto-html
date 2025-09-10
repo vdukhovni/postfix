@@ -366,3 +366,4 @@ Postfix  Postfix legacy TLS Support
  The recommended socket location is still to be determined A good socket location would be under the Postfix queue directory for example smtp_tlsrpt_socket_name run tlsrpt tlsrpt sock The advantage of using a relative name is that it
 enhanced status code and text format 45 number number text 
 opportunistic  opportunistic starttls
+ li The general format is tls feature feature 

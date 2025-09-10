@@ -208,3 +208,8 @@ proto  proto COMPATIBILITY_README html
  smtp smtp h smtp smtp_params c smtp smtp_proto c 
  information Files sendmail sendmail c pickup pickup c 
  postcat postcat c showq showq c 
+ discard discard c error error c global Makefile in 
+ global verify c global verify h local local h 
+ pipe pipe c qmgr qmgr_bounce c qmgr qmgr_defer c 
+ qmgr qmgr_message c smtp smtp h smtp smtp_connect c 
+ smtp smtp_trouble c virtual virtual h 

@@ -4425,6 +4425,15 @@ extern char *var_smtp_reqtls_policy;
 extern int var_reqtls_redact_dsn;
 
  /*
+  * TS per-feature policy status.
+  */
+#define VAR_SMTP_LOG_TLS_FEATURE_STATUS	"smtp_log_tls_feature_status"
+#define DEF_SMTP_LOG_TLS_FEATURE_STATUS	"yes"
+#define VAR_LMTP_LOG_TLS_FEATURE_STATUS	"lmtp_log_tls_feature_status"
+#define DEF_LMTP_LOG_TLS_FEATURE_STATUS	"yes"
+extern bool var_log_tls_feature_status;
+
+ /*
   * Workaround for future incompatibility. Our implementation of RFC 2308
   * negative reply caching relies on the promise that res_query() and
   * res_search() invoke res_send(), which returns the server response in an

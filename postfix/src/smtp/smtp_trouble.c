@@ -285,7 +285,8 @@ static int smtp_bulk_fail(SMTP_STATE *state, int flags)
 	    status = (soft_error ? defer_append : bounce_append)
 		(DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
 		 &request->msg_stats, rcpt,
-		 session ? session->namaddrport : "none", &why->dsn);
+		 session ? session->namaddrport : "none", state->tls_stats,
+		 &why->dsn);
 	    if (status == 0)
 		deliver_completed(state->src, rcpt->offset);
 	    SMTP_RCPT_DROP(state, rcpt);
@@ -433,7 +434,8 @@ void    smtp_rcpt_fail(SMTP_STATE *state, RECIPIENT *rcpt, const char *mta_name,
 	status = (soft_error ? defer_append : bounce_append)
 	    (DEL_REQ_TRACE_FLAGS(request->flags), request->queue_id,
 	     &request->msg_stats, rcpt,
-	     session ? session->namaddrport : "none", &why->dsn);
+	     session ? session->namaddrport : "none", state->tls_stats,
+	     &why->dsn);
 	if (status == 0)
 	    deliver_completed(state->src, rcpt->offset);
 	SMTP_RCPT_DROP(state, rcpt);

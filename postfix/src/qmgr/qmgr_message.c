@@ -1192,7 +1192,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		&& !var_double_bounce_sender[len]) {
 		status = sent(message->tflags, message->queue_id,
 			      QMGR_MSG_STATS(&stats, message), recipient,
-			      "none", DSN_SIMPLE(&dsn, "2.0.0",
+			      "none", NO_TLS_STATS, DSN_SIMPLE(&dsn, "2.0.0",
 			"undeliverable postmaster notification discarded"));
 		if (status == 0) {
 		    deliver_completed(message->fp, recipient->offset);

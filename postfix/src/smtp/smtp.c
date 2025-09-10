@@ -667,6 +667,9 @@
 /* .IP "\fBsmtp_requiretls_policy (see 'postconf -d smtp_requiretls_policy' output)\fR"
 /*	How the Postfix SMTP and LMTP client will enforce REQUIRETLS
 /*	for messages received with the REQUIRETLS option.
+/* .IP "\fBsmtp_log_tls_feature_status (yes)\fR"
+/*	Enable logging of TLS feature information in delivery status
+/*	logging.
 /* OBSOLETE TLS CONTROLS
 /* .ad
 /* .fi
@@ -1180,6 +1183,7 @@ bool    var_smtp_tlsrpt_enable;
 char   *var_smtp_tlsrpt_sockname;
 bool    var_smtp_tlsrpt_skip_reused_hs;
 char   *var_smtp_reqtls_policy;
+bool	var_log_tls_feature_status;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;

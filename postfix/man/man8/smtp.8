@@ -701,6 +701,9 @@ FROM" command.
 .IP "\fBsmtp_requiretls_policy (see 'postconf -d smtp_requiretls_policy' output)\fR"
 How the Postfix SMTP and LMTP client will enforce REQUIRETLS
 for messages received with the REQUIRETLS option.
+.IP "\fBsmtp_log_tls_feature_status (yes)\fR"
+Enable logging of TLS feature information in delivery status
+logging.
 .SH "OBSOLETE TLS CONTROLS"
 .na
 .nf

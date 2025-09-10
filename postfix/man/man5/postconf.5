@@ -7721,6 +7721,71 @@ The Postfix limit of 998 characters not including <CR><LF>
 is consistent with the SMTP limit of 1000 characters including
 <CR><LF>.  The Postfix limit was 990 with Postfix 2.8
 and earlier.
+.SH smtp_log_tls_feature_status (default: yes)
+Enable logging of TLS feature information in delivery status
+logging. This summarizes how features such as TLS and REQUIRETLS
+were used.
+.IP \(bu
+The logging is inserted between the "delays=a/b/c/d" and the
+"status=" information.
+.IP \(bu
+The general format is "tls=feature/feature/...". See below for
+examples.
+.IP \(bu
+The first feature name is the TLS security level: 'none',
+\&'may',' encrypt', ..., 'dane'. Other features are omitted if not
+activated. The REQUIRETLS extension's feature name will be 'requiretls'.
+.IP \(bu
+When 'disabled:' is prepended to a feature name, the remote server
+did not support this feature.
+.IP \(bu
+When the above is enclosed in "(" and ")", the feature was used
+successfully, but policy enforcement was relaxed.
+.IP \(bu
+When "!" is prepended to the above, the policy for that feature
+was not satisfied and the feature was not used..
+.IP \(bu
+When "?" is appended to the above, the policy for that feature
+is undecided, usually due to a lost connection.
+.br
+.PP
+Examples:
+.IP "tls=none"
+A connection that does not use TLS.
+.br
+.IP "tls=may"
+Opportunistic TLS after a successful
+handshake.
+.br
+.IP "tls=(disabled:may)"
+Opportunistic TLS after fallback
+to plaintext, because the server did not announce STARTTLS support
+or the server rejected the STARTTLS command.
+.br
+.IP "tls=dane"
+DANE policy compliant, no downgrade.
+.br
+.IP "tls=(dane)"
+Relaxed DANE after allowing MX records
+without DNSSEC signature, or after falling back to the TLS security
+level 'encrypt'.
+.br
+.IP "tls=dane/requiretls"
+DANE and REQUIRETLS policies were
+fully enforced, non\-error case.
+.br
+.IP "tls=dane?/requiretls?"
+DANE and REQUIRETLS policies
+were undecided, because the connection failed before or in the TLS
+handshake.
+.br
+.IP "tls=may/(disabled:requiretls)"
+Opportunistic TLS +
+opportunistic REQUIRETLS, server did not announce REQUIRETLS support.
+.br
+.br
+.PP
+This feature is available in Postfix 3.11 and later.
 .SH smtp_mail_timeout (default: 300s)
 The Postfix SMTP client time limit for sending the MAIL FROM command,
 and for receiving the remote SMTP server response.

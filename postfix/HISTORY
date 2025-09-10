@@ -29747,63 +29747,30 @@ NONPROD CODE
 	production release; renamed enforce_reqtls to the more
 	meaningful reqtls_level.
 
+	Completed 20250910: TLS feature policy status logging in
+	delivery status logging. This shows the TLS security level
+	enforcement status and, if a message requests REQUIRETLS,
+	the REQUIRETLS policy enforcement status. Files: .indent.pro,
+	cleanup/cleanup_bounce.c, cleanup/cleanup_out_recipient.c,
+	discard/discard.c, error/error.c, global/Makefile.in,
+	global/bounce.c, global/bounce.h, global/defer.c, global/defer.h,
+	global/deliver_pass.c, global/log_adhoc.c, global/log_adhoc.h,
+	global/mail_version.h, global/reject_deliver_request.c,
+	global/sent.c, global/sent.h, global/tls_stats.c,
+	global/tls_stats.h, global/trace.c, global/trace.h,
+	global/verify.c, global/verify.h, local/local.h,
+	oqmgr/qmgr_bounce.c, oqmgr/qmgr_defer.c, oqmgr/qmgr_message.c,
+	pipe/pipe.c, qmgr/qmgr_bounce.c, qmgr/qmgr_defer.c,
+	qmgr/qmgr_message.c, smtp/smtp.h, smtp/smtp_connect.c,
+	smtp/smtp_proto.c, smtp/smtp_rcpt.c, smtp/smtp_state.c,
+	smtp/smtp_trouble.c, virtual/virtual.h.
+
 TODO
-
-	Make it easy to find out by domain what the REQUIRETLS
-	success rates are, and what the failure modes are.
-
-	Add optional statistics logging for "REQUIRETLS sent" and
-	for "all REQUIRETLS requirements pass". But these say
-	nothing about connections that failed to establish an
-	acceptable TLS session.
-
-	Other logging: RFC 8689 prescribes enhanced status codes:
-
-	- REQUIRETLS not supported by server: 5.7.30 REQUIRETLS
-	  support required
-
-	- Unable to establish TLS-protected SMTP session: 5.7.10
-	  Encryption needed
-
-	These will show up in logging.
-
-	Known failure modes
-	misc problems at DNS, TCP, or SMTP level
-	misc errors with TLS policy or REQUIRETLS policy
-	smtp_connect.c:
-	    TLS policy disables certificate matching
-	    TLS policy disables encryption (opportunistic only)
-	smtp_proto.c.
-	    STARTTLS rejected (sender requested REQUIRETLS...)
-	    STARTTLS not offered (sender requested REQUIRETLS...)
-	    (TLS is required, but our TLS engine is unavailable)
-	    (TLS is required, but unavailable)
-	    CERT not trusted|matched (sender requested REQUIRETLS...)
-
-    	Revert $requiretls in pipe daemon?
-
-	Which enforcement levels can we implement?
-
-	    enforce: require that the server supports REQUIRETLS,
-	    and that the connection satisfies RFC XXX requirements.
-
-	    no-plaintext: skip servers that don't announce STARTTLS;
-	    request REQUIRETLS if the server supports REQUIRETLS,
-	    otherwise deliver the message as if the sender did not
-	    request REQUIRETLS.
-
-	    ????/ignore/disable/none: request REQUIRETLS if the
-	    server supports REQUIRETLS, otherwise deliver the message
-	    as if the sender did not request REQUIRETLS.
 
 	Maybe log "server announces REQUIRETLS" if we're not
 	enforcing REQUIRETLS.
 
-	Delete $requiretls from pipe daemon?
-
-	Verify that SMTPUTF8 and REQUIRETLS flags propagate from
-	sendmail(1) and smtpd(8) through cleanup(8) and qmgr(8) to
-	delivery agents and bounce services.
+	Remove $requiretls from pipe daemon?
 
 	Add support to propagate REQUIRETLS (Not: TLS-Required:)
 	header through cleanup to queue files.
