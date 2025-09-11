@@ -627,45 +627,23 @@ int     smtp_helo(SMTP_STATE *state)
 		 session->features, (double) session->size_limit);
 
     /*
-     * Decide if this delivery requires SMTPUTF8 server support.
-     * 
-     * For now, we require that the remote SMTP server supports SMTPUTF8 when
-     * the sender requested SMTPUTF8 support.
-     * 
-     * XXX EAI Refine this to: the sender requested SMTPUTF8 support AND the
-     * delivery request involves at least one UTF-8 envelope address or
-     * header value.
-     * 
-     * If the sender requested SMTPUTF8 support but the delivery request
-     * involves no UTF-8 envelope address or header value, then we could
-     * still deliver such mail to a non-SMTPUTF8 server, except that we must
-     * either uxtext-encode ORCPT parameters or not send them. We cannot
-     * encode the ORCPT in xtext, because legacy SMTP requires that the
-     * unencoded address consist entirely of printable (graphic and white
-     * space) characters from the US-ASCII repertoire (RFC 3461 section 4). A
-     * correct uxtext encoder will produce a result that an xtext decoder
-     * will pass through unchanged.
-     * 
-     * XXX Should we try to encode headers with RFC 2047 when delivering to a
-     * non-SMTPUTF8 server? That could make life easier for mailing lists.
-     */
-#define DELIVERY_REQUIRES_SMTPUTF8 \
-	((request->sendopts & SMTPUTF8_FLAG_REQUESTED) \
-	&& (request->sendopts & SMTPUTF8_FLAG_DERIVED))
-
-    /*
      * Require that the server supports SMTPUTF8 when delivery requires
      * SMTPUTF8.
      * 
      * Fix 20140706: moved this before negotiating TLS, AUTH, and so on.
+     * 
+     * Fix 20250911: do not cache this session because it does not satisfy the
+     * requirement expressed in the cache storage key.
      */
     if ((session->features & SMTP_FEATURE_SMTPUTF8) == 0
-	&& DELIVERY_REQUIRES_SMTPUTF8)
+	&& DELIVERY_REQUIRES_SMTPUTF8(request)) {
+	DONT_CACHE_THIS_SESSION;
 	return (smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "5.6.7"),
 			       "SMTPUTF8 is required, "
 			       "but was not offered by host %s",
 			       session->namaddr));
+    }
 
     /*
      * Fix 20140706: don't do silly things when the remote server announces

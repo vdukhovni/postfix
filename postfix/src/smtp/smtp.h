@@ -137,7 +137,7 @@ typedef struct SMTP_TLS_POLICY {
 extern void smtp_tls_list_init(void);
 extern int smtp_tls_policy_cache_query(DSN_BUF *, SMTP_TLS_POLICY *, SMTP_ITERATOR *);
 extern void smtp_tls_policy_cache_flush(void);
-extern int  smtp_tls_authorize_mx_hostname(SMTP_TLS_POLICY *, const char *);
+extern int smtp_tls_authorize_mx_hostname(SMTP_TLS_POLICY *, const char *);
 
  /*
   * Macros must use distinct names for local temporary variables, otherwise
@@ -692,12 +692,14 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 #define SMTP_KEY_FLAG_ADDR		(1<<5)	/* remote address */
 #define SMTP_KEY_FLAG_PORT		(1<<6)	/* remote port */
 #define SMTP_KEY_FLAG_TLS_LEVEL		(1<<7)	/* requested TLS level */
+#define SMTP_KEY_FLAG_REQ_SMTPUTF8	(1<<8)	/* SMTPUTF8 is required */
 
 #define SMTP_KEY_MASK_ALL \
 	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER | \
 	SMTP_KEY_FLAG_REQ_NEXTHOP | \
 	SMTP_KEY_FLAG_CUR_NEXTHOP | SMTP_KEY_FLAG_HOSTNAME | \
-	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL)
+	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL | \
+	SMTP_KEY_FLAG_REQ_SMTPUTF8)
 
  /*
   * Conditional lookup-key flags for cached connections that may be
@@ -733,10 +735,15 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
   * (REQ_NEXTHOP) prevents false sharing of TLS identities (the destination
   * key links only to appropriate endpoint lookup keys). The SERVICE
   * attribute is a proxy for all request-independent configuration details.
+  * 
+  * Be sure to include all features that are preserved in
+  * SMTP_FEATURE_ENDPOINT_MASK, otherwise a reused connection may be stored
+  * under the wrong key.
   */
 #define SMTP_KEY_MASK_SCACHE_DEST_LABEL \
 	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
-	| SMTP_KEY_FLAG_REQ_NEXTHOP | SMTP_KEY_FLAG_TLS_LEVEL)
+	| SMTP_KEY_FLAG_REQ_NEXTHOP | SMTP_KEY_FLAG_TLS_LEVEL \
+	| SMTP_KEY_FLAG_REQ_SMTPUTF8)
 
  /*
   * Connection-cache endpoint lookup key. The SENDER, CUR_NEXTHOP, HOSTNAME,
@@ -745,13 +752,18 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
   * when different SASL credentials or TLS identities may be required for
   * different deliveries to the same IP address and port. The SERVICE
   * attribute is a proxy for all request-independent configuration details.
+  * 
+  * Be sure to include all features that are preserved in
+  * SMTP_FEATURE_ENDPOINT_MASK, otherwise a reused connection may be stored
+  * under the wrong key.
   */
 #define SMTP_KEY_MASK_SCACHE_ENDP_LABEL \
 	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
 	| COND_SASL_SMTP_KEY_FLAG_CUR_NEXTHOP \
 	| COND_SASL_SMTP_KEY_FLAG_HOSTNAME \
-	| COND_TLS_SMTP_KEY_FLAG_CUR_NEXTHOP | SMTP_KEY_FLAG_ADDR | \
-	SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL)
+	| COND_TLS_SMTP_KEY_FLAG_CUR_NEXTHOP | SMTP_KEY_FLAG_ADDR \
+	| SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL \
+	| SMTP_KEY_FLAG_REQ_SMTPUTF8)
 
  /*
   * Silly little macros.
@@ -807,6 +819,24 @@ extern void smtp_tlsrpt_set_tcp_connection(SMTP_STATE *state);
 extern void smtp_tlsrpt_set_ehlo_resp(SMTP_STATE *, const char *ehlo_resp);
 
 #endif					/* USE_TLSRPT && USE_TLS */
+
+ /*
+  * This delivery requires SMTPUTF8 server support if the sender requested
+  * SMTPUTF8 support AND the delivery request involves at least one UTF-8
+  * envelope address or header value.
+  * 
+  * If the sender requested SMTPUTF8 support but the delivery request involves
+  * no UTF-8 envelope address or header value, then we could still deliver
+  * such mail to a non-SMTPUTF8 server, except that we must either
+  * uxtext-encode ORCPT parameters or not send them. We cannot encode the
+  * ORCPT in xtext, because legacy SMTP requires that the unencoded address
+  * consist entirely of printable (graphic and white space) characters from
+  * the US-ASCII repertoire (RFC 3461 section 4). A correct uxtext encoder
+  * will produce a result that an xtext decoder will pass through unchanged.
+  */
+#define DELIVERY_REQUIRES_SMTPUTF8(request) \
+	(((request)->sendopts & SMTPUTF8_FLAG_REQUESTED) \
+	&& ((request)->sendopts & SMTPUTF8_FLAG_DERIVED))
 
 /* LICENSE
 /* .ad
