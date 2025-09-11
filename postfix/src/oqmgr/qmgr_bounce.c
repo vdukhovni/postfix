@@ -62,7 +62,7 @@ void    qmgr_bounce_recipient(QMGR_MESSAGE *message, RECIPIENT *recipient,
 
     status = bounce_append(message->tflags, message->queue_id,
 			   QMGR_MSG_STATS(&stats, message), recipient,
-			   "none", dsn);
+			   "none", NO_TLS_STATS, dsn);
 
     if (status == 0)
 	deliver_completed(message->fp, recipient->offset);

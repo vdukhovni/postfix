@@ -75,7 +75,7 @@ static void cleanup_bounce_append(CLEANUP_STATE *state, RECIPIENT *rcpt,
      */
     if (bounce_append(BOUNCE_FLAG_CLEAN, state->queue_id,
 		      CLEANUP_MSG_STATS(&stats, state),
-		      rcpt, "none", dsn) != 0) {
+		      rcpt, "none", NO_TLS_STATS, dsn) != 0) {
 	state->errs |= CLEANUP_STAT_WRITE;
     }
 }

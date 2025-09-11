@@ -148,7 +148,7 @@
 
 static int deliver_message(DELIVER_REQUEST *request, const char *def_dsn,
 	         int (*append) (int, const char *, MSG_STATS *, RECIPIENT *,
-				        const char *, DSN *))
+					const char *, const TLS_STATS *, DSN *))
 {
     const char *myname = "deliver_message";
     VSTREAM *src;
@@ -194,7 +194,8 @@ static int deliver_message(DELIVER_REQUEST *request, const char *def_dsn,
     for (nrcpt = 0; nrcpt < request->rcpt_list.len; nrcpt++) {
 	rcpt = request->rcpt_list.info + nrcpt;
 	status = append(BOUNCE_FLAGS(request), request->queue_id,
-			&request->msg_stats, rcpt, "none", &dsn);
+			&request->msg_stats, rcpt, "none", NO_TLS_STATS,
+			&dsn);
 	if (status == 0)
 	    deliver_completed(src, rcpt->offset);
 	result |= status;

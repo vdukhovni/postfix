@@ -4409,6 +4409,30 @@ extern int var_idna2003_compat;
 #define DEF_TLSREQUIRED_ENABLE		"yes"
 extern int var_tls_required_enable;
 
+#define VAR_REQTLS_ENABLE		"requiretls_enable"
+#define DEF_REQTLS_ENABLE		"yes"
+extern int var_reqtls_enable;
+
+#define VAR_SMTP_REQTLS_POLICY		"smtp_requiretls_policy"
+#define DEF_SMTP_REQTLS_POLICY		"inline:{{.$mydomain=opportunistic}, {localhost=opportunistic}}, opportunistic+starttls"
+extern char *var_smtp_reqtls_policy;
+
+#define VAR_LMTP_REQTLS_POLICY		"lmtp_requiretls_policy"
+#define DEF_LMTP_REQTLS_POLICY		"opportunistic"
+
+#define VAR_REQTLS_REDACT_DSN		"requiretls_redact_dsn"
+#define DEF_REQTLS_REDACT_DSN		"yes"
+extern int var_reqtls_redact_dsn;
+
+ /*
+  * TS per-feature policy status.
+  */
+#define VAR_SMTP_LOG_TLS_FEATURE_STATUS	"smtp_log_tls_feature_status"
+#define DEF_SMTP_LOG_TLS_FEATURE_STATUS	"yes"
+#define VAR_LMTP_LOG_TLS_FEATURE_STATUS	"lmtp_log_tls_feature_status"
+#define DEF_LMTP_LOG_TLS_FEATURE_STATUS	"yes"
+extern bool var_log_tls_feature_status;
+
  /*
   * Workaround for future incompatibility. Our implementation of RFC 2308
   * negative reply caching relies on the promise that res_query() and

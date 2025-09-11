@@ -6,12 +6,13 @@
 /* SYNOPSIS
 /*	#include <bounce.h>
 /*
-/*	int	bounce_append(flags, id, stats, recipient, relay, dsn)
+/*	int	bounce_append(flags, id, stats, recipient, relay, tstats, dsn)
 /*	int	flags;
 /*	const char *id;
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
+/*	const TLS_STATS *tstats;
 /*	DSN	*dsn;
 /*
 /*	int	bounce_flush(flags, queue, id, encoding, sendopts, sender,
@@ -38,7 +39,8 @@
 /*	const char *verp_delims;
 /*
 /*	int	bounce_one(flags, queue, id, encoding, sendopts, sender,
-/*				dsn_envid, ret, stats, recipient, relay, dsn)
+/*				dsn_envid, ret, stats, recipient, relay,
+/*				tstats, dsn)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
@@ -50,6 +52,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
+/*	const TLS_STATS *tstats;
 /*	DSN	*dsn;
 /*
 /*	void	bounce_client_init(title, maps)
@@ -58,15 +61,17 @@
 /* INTERNAL API
 /*	DSN_FILTER *delivery_status_filter;
 /*
-/*	int	bounce_append_intern(flags, id, stats, recipient, relay, dsn)
+/*	int	bounce_append_intern(flags, id, stats, recipient, relay, tstats, dsn)
 /*	int	flags;
 /*	const char *id;
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
+/*	const TLS_STATS *tstats;
+/*	DSN	*dsn;
 /*
 /*	int	bounce_one_intern(flags, queue, id, encoding, sendopts, sender,
-/*				dsn_envid, ret, stats, recipient, relay, dsn)
+/*			dsn_envid, ret, stats, recipient, relay, tstats, dsn)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
@@ -78,6 +83,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
+/*	const TLS_STATS *tstats;
 /*	DSN	*dsn;
 /* DESCRIPTION
 /*	This module implements the client interface to the message
@@ -155,6 +161,8 @@
 /*	Sender-requested SMTPUTF8 or RequireTLS support.
 /* .IP sender
 /*	The sender envelope address.
+/* .IP tstats
+/*	TLS per-feature status.
 /* .IP dsn_envid
 /*	Optional DSN envelope ID.
 /* .IP dsn_ret
@@ -229,7 +237,7 @@ DSN_FILTER *delivery_status_filter;
 
 int     bounce_append(int flags, const char *id, MSG_STATS *stats,
 		              RECIPIENT *rcpt, const char *relay,
-		              DSN *dsn)
+		              const TLS_STATS *tstats, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     DSN    *dsn_res;
@@ -249,17 +257,19 @@ int     bounce_append(int flags, const char *id, MSG_STATS *stats,
     if (delivery_status_filter != 0
     && (dsn_res = dsn_filter_lookup(delivery_status_filter, &my_dsn)) != 0) {
 	if (dsn_res->status[0] == '4')
-	    return (defer_append_intern(flags, id, stats, rcpt, relay, dsn_res));
+	    return (defer_append_intern(flags, id, stats, rcpt, relay, tstats,
+					dsn_res));
 	my_dsn = *dsn_res;
     }
-    return (bounce_append_intern(flags, id, stats, rcpt, relay, &my_dsn));
+    return (bounce_append_intern(flags, id, stats, rcpt, relay, tstats,
+				 &my_dsn));
 }
 
 /* bounce_append_intern - append delivery status to per-message bounce log */
 
 int     bounce_append_intern(int flags, const char *id, MSG_STATS *stats,
 			             RECIPIENT *rcpt, const char *relay,
-			             DSN *dsn)
+			             const TLS_STATS *tstats, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     int     status;
@@ -270,7 +280,7 @@ int     bounce_append_intern(int flags, const char *id, MSG_STATS *stats,
      */
     if (flags & DEL_REQ_FLAG_MTA_VRFY) {
 	my_dsn.action = "undeliverable";
-	status = verify_append(id, stats, rcpt, relay, &my_dsn,
+	status = verify_append(id, stats, rcpt, relay, tstats, &my_dsn,
 			       DEL_RCPT_STAT_BOUNCE);
 	return (status);
     }
@@ -281,7 +291,7 @@ int     bounce_append_intern(int flags, const char *id, MSG_STATS *stats,
      */
     if (flags & DEL_REQ_FLAG_USR_VRFY) {
 	my_dsn.action = "undeliverable";
-	status = trace_append(flags, id, stats, rcpt, relay, &my_dsn);
+	status = trace_append(flags, id, stats, rcpt, relay, tstats, &my_dsn);
 	return (status);
     }
 
@@ -326,9 +336,9 @@ int     bounce_append_intern(int flags, const char *id, MSG_STATS *stats,
 			  SEND_ATTR_FUNC(dsn_print, (const void *) &my_dsn),
 				ATTR_TYPE_END) == 0
 	    && ((flags & DEL_REQ_FLAG_RECORD) == 0
-		|| trace_append(flags, id, stats, rcpt, relay,
+		|| trace_append(flags, id, stats, rcpt, relay, tstats,
 				&my_dsn) == 0)) {
-	    log_adhoc(id, stats, rcpt, relay, &my_dsn, log_status);
+	    log_adhoc(id, stats, rcpt, relay, tstats, &my_dsn, log_status);
 	    status = (var_soft_bounce ? -1 : 0);
 	} else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
 	    VSTRING *junk = vstring_alloc(100);
@@ -337,7 +347,8 @@ int     bounce_append_intern(int flags, const char *id, MSG_STATS *stats,
 	    vstring_sprintf(junk, "%s or %s service failure",
 			    var_bounce_service, var_trace_service);
 	    my_dsn.reason = vstring_str(junk);
-	    status = defer_append_intern(flags, id, stats, rcpt, relay, &my_dsn);
+	    status = defer_append_intern(flags, id, stats, rcpt, relay, tstats,
+					 &my_dsn);
 	    vstring_free(junk);
 	} else {
 	    status = -1;
@@ -424,7 +435,7 @@ int     bounce_one(int flags, const char *queue, const char *id,
 		           const char *encoding, int sendopts,
 		           const char *sender, const char *dsn_envid,
 		           int dsn_ret, MSG_STATS *stats, RECIPIENT *rcpt,
-		           const char *relay, DSN *dsn)
+	               const char *relay, const TLS_STATS *tstats, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     DSN    *dsn_res;
@@ -443,11 +454,13 @@ int     bounce_one(int flags, const char *queue, const char *id,
     if (delivery_status_filter != 0
     && (dsn_res = dsn_filter_lookup(delivery_status_filter, &my_dsn)) != 0) {
 	if (dsn_res->status[0] == '4')
-	    return (defer_append_intern(flags, id, stats, rcpt, relay, dsn_res));
+	    return (defer_append_intern(flags, id, stats, rcpt, relay, tstats,
+					dsn_res));
 	my_dsn = *dsn_res;
     }
     return (bounce_one_intern(flags, queue, id, encoding, sendopts, sender,
-			  dsn_envid, dsn_ret, stats, rcpt, relay, &my_dsn));
+			      dsn_envid, dsn_ret, stats, rcpt, relay, tstats,
+			      &my_dsn));
 }
 
 /* bounce_one_intern - send notice for one recipient */
@@ -457,7 +470,7 @@ int     bounce_one_intern(int flags, const char *queue, const char *id,
 			          const char *sender, const char *dsn_envid,
 			          int dsn_ret, MSG_STATS *stats,
 			          RECIPIENT *rcpt, const char *relay,
-			          DSN *dsn)
+			          const TLS_STATS *tstats, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     int     status;
@@ -468,7 +481,7 @@ int     bounce_one_intern(int flags, const char *queue, const char *id,
      */
     if (flags & DEL_REQ_FLAG_MTA_VRFY) {
 	my_dsn.action = "undeliverable";
-	status = verify_append(id, stats, rcpt, relay, &my_dsn,
+	status = verify_append(id, stats, rcpt, relay, tstats, &my_dsn,
 			       DEL_RCPT_STAT_BOUNCE);
 	return (status);
     }
@@ -479,7 +492,7 @@ int     bounce_one_intern(int flags, const char *queue, const char *id,
      */
     if (flags & DEL_REQ_FLAG_USR_VRFY) {
 	my_dsn.action = "undeliverable";
-	status = trace_append(flags, id, stats, rcpt, relay, &my_dsn);
+	status = trace_append(flags, id, stats, rcpt, relay, tstats, &my_dsn);
 	return (status);
     }
 
@@ -488,7 +501,8 @@ int     bounce_one_intern(int flags, const char *queue, const char *id,
      * based procedure.
      */
     else if (var_soft_bounce) {
-	return (bounce_append_intern(flags, id, stats, rcpt, relay, &my_dsn));
+	return (bounce_append_intern(flags, id, stats, rcpt, relay, tstats,
+				     &my_dsn));
     }
 
     /*
@@ -519,9 +533,9 @@ int     bounce_one_intern(int flags, const char *queue, const char *id,
 			  SEND_ATTR_FUNC(dsn_print, (const void *) &my_dsn),
 				ATTR_TYPE_END) == 0
 	    && ((flags & DEL_REQ_FLAG_RECORD) == 0
-		|| trace_append(flags, id, stats, rcpt, relay,
+		|| trace_append(flags, id, stats, rcpt, relay, tstats,
 				&my_dsn) == 0)) {
-	    log_adhoc(id, stats, rcpt, relay, &my_dsn, "bounced");
+	    log_adhoc(id, stats, rcpt, relay, tstats, &my_dsn, "bounced");
 	    status = 0;
 	} else if ((flags & BOUNCE_FLAG_CLEAN) == 0) {
 	    VSTRING *junk = vstring_alloc(100);
@@ -530,7 +544,8 @@ int     bounce_one_intern(int flags, const char *queue, const char *id,
 	    vstring_sprintf(junk, "%s or %s service failure",
 			    var_bounce_service, var_trace_service);
 	    my_dsn.reason = vstring_str(junk);
-	    status = defer_append_intern(flags, id, stats, rcpt, relay, &my_dsn);
+	    status = defer_append_intern(flags, id, stats, rcpt, relay, tstats,
+					 &my_dsn);
 	    vstring_free(junk);
 	} else {
 	    status = -1;

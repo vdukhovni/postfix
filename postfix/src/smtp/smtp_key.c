@@ -69,6 +69,8 @@
 /*	The requested TLS security level.
 /* .IP SMTP_KEY_FLAG_REQ_SMTPUTF8
 /*	Whether SMTPUTF8 support is required.
+/* .IP SMTP_KEY_FLAG_REQTLS_LEVEL
+/*	The REQUIRETLS enforcement level.
 /* .RE
 /* DIAGNOSTICS
 /*	Panic: undefined flag or zero flags. Fatal: out of memory.
@@ -210,6 +212,18 @@ char   *smtp_key_prefix(VSTRING *buffer, const char *delim_na,
     if (flags & SMTP_KEY_FLAG_TLS_LEVEL)
 #ifdef USE_TLS
 	smtp_key_append_uint(buffer, state->tls->level, delim_na);
+#else
+	smtp_key_append_na(buffer, delim_na);
+#endif
+
+    /*
+     * REQUIRETLS enforcement level, if applicable. TODO(tlsproxy) should the
+     * lookup engine also try the requested TLS level and 'stronger', in case
+     * a server hosts multiple domains with different TLS requirements?
+     */
+    if (flags & SMTP_KEY_FLAG_REQTLS_LEVEL)
+#ifdef USE_TLS
+	smtp_key_append_uint(buffer, state->reqtls_level, delim_na);
 #else
 	smtp_key_append_na(buffer, delim_na);
 #endif

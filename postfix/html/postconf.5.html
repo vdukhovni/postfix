@@ -5375,6 +5375,17 @@ configuration parameter.  See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_requiretls_policy">lmtp_requiretls_policy</a>
+(default: opportunistic)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a>
+configuration parameter. See there for details. </p>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_rset_timeout">lmtp_rset_timeout</a>
 (default: 20s)</b></DT><DD>
 
@@ -10613,6 +10624,74 @@ the mail server (IMPORTING HOME DIRECTORIES IS NOT RECOMMENDED).
 
 </DD>
 
+<DT><b><a name="requiretls_enable">requiretls_enable</a>
+(default: yes)</b></DT><DD>
+
+<p> Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
+FROM" command. As defined in <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a>, when a message specifies
+REQUIRETLS: </p>
+
+<ul>
+
+<li> <p> deliveries with SMTP or LMTP must use a TLS connection, </p>
+
+<li> <p> to a securely looked up MX server (e.g., DNSSEC or MTA-STS),
+</p>
+
+<li> <p> with a matched server certificate (Postfix SMTP or LMTP
+client TLS security levels "secure", "verify", "fingerprint",
+dane-only, or opportunistic "dane"), </p>
+
+<li> <p> and the server must announce "REQUIRETLS" support after
+the STARTTLS handshake. </p>
+
+</ul>
+
+<p> When delivering a message that specifies REQUIRETLS, the Postfix
+SMTP client will try one or more servers, limited by the
+<a href="postconf.5.html#smtp_mx_address_limit">smtp_mx_address_limit</a> and <a href="postconf.5.html#smtp_mx_session_limit">smtp_mx_session_limit</a> parameters, until
+it finds an MX server that satisfies the above requirements. If
+such a server is not found, the Postfix SMTP or LMTP client returns
+the message as undeliverable. </p>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> With the Postfix SMTP or LMTP clients, REQUIRETLS enforcement
+is controlled with <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> or <a href="postconf.5.html#lmtp_requiretls_policy">lmtp_requiretls_policy</a>. It
+is initially not enforced for deliveries to local servers, including
+LMTP message stores and local content filters. </p>
+
+<li> <p> The ESMTP REQUIRETLS option overrides the "TLS-Required:
+no" message header. </p>
+
+</ul>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+
+</DD>
+
+<DT><b><a name="requiretls_redact_dsn">requiretls_redact_dsn</a>
+(default: yes)</b></DT><DD>
+
+<p> When sending a delivery status notification for an original
+message received with the REQUIRETLS option, do not send the original
+message body (as if that message was received with "RET=HDRS") and
+do not enforce REQUIRETLS (as if that message was received without
+REQUIRETLS). For a detailed discussion see <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a> section 5. </p>
+
+<p> Note: the 'reverse' path for sending a delivery status notification
+may differ from the 'forward' path for receiving the original message.
+Not every hop in the reverse path may support REQUIRETLS, even
+though every hop in the forward path supported it. The setting
+"<a href="postconf.5.html#requiretls_redact_dsn">requiretls_redact_dsn</a> = no" may therefore result in the loss of a
+delivery status notification. </p>
+
+
+</DD>
+
 <DT><b><a name="reset_owner_alias">reset_owner_alias</a>
 (default: no)</b></DT><DD>
 
@@ -12146,6 +12225,79 @@ and earlier.
 
 </DD>
 
+<DT><b><a name="smtp_log_tls_feature_status">smtp_log_tls_feature_status</a>
+(default: yes)</b></DT><DD>
+
+<p> Enable logging of TLS feature information in delivery status
+logging. This summarizes how features such as TLS and REQUIRETLS
+were used. </p>
+
+<ul>
+
+<li> The logging is inserted between the "<tt>delays=a/b/c/d</tt>"
+and the "<tt>dsn=</tt>" information.
+
+<li> The general format is "<tt>tls=feature/feature/...</tt>". See
+below for examples.
+
+<li> The first feature name is the TLS security level: '<tt>none</tt>',
+'<tt>may</tt>', '<tt>encrypt</tt>', ..., '<tt>dane</tt>'. Other
+features are omitted if not activated. The REQUIRETLS extension's
+feature name is '<tt>requiretls</tt>'.
+
+<li> When '<tt>disabled:</tt>' is prepended to a feature name, the
+remote server did not support this feature, and the connection was
+used with relaxed security.
+
+<li> When the above is enclosed in "<tt>(</tt>" and "<tt>)</tt>",
+the feature was used successfully, but policy enforcement was
+relaxed.
+
+<li> When "<tt>!</tt>" is prepended to the above, the policy for
+that feature was not satisfied and the connection was not used.
+
+<li> When "?" is appended to the above, the policy for that feature
+is undecided, usually due to a lost connection.
+
+</ul>
+
+<p> Examples: </p>
+
+<dl>
+
+<dt> tls=none </dt> <dd> A connection that does not use TLS. </dd>
+
+<dt> tls=may </dt> <dd> Opportunistic TLS after a successful
+handshake. </dd>
+
+<dt> tls=(disabled:may) </dt> <dd> Opportunistic TLS after fallback
+to plaintext, because the server did not announce STARTTLS support
+or the server rejected the STARTTLS command. </dd>
+
+<dt> tls=dane </dt> <dd> DANE policy compliant, no downgrade. </dd>
+
+<dt> tls=(dane) </dt> <dd> Relaxed DANE after allowing MX records
+without DNSSEC signature, or after falling back to the TLS security
+level 'encrypt'. </dd>
+
+<dt> tls=dane/requiretls </dt> <dd> DANE and REQUIRETLS policies were
+fully enforced, non-error case. </dd>
+
+<dt> tls=dane?/requiretls? </dt> <dd> DANE and REQUIRETLS policies
+were undecided, because the connection failed before or in the TLS
+handshake. </dd>
+
+<dt> tls=may/(disabled:requiretls) </dt> <dd> Opportunistic TLS +
+opportunistic REQUIRETLS, server did not announce REQUIRETLS support.
+</dd>
+
+</dl>
+
+<p> This feature is available in Postfix 3.11 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_mail_timeout">smtp_mail_timeout</a>
 (default: 300s)</b></DT><DD>
 
@@ -12527,6 +12679,166 @@ line. </p>
 </pre>
 
 <p> This feature is available in Postfix 2.7. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_requiretls_policy">smtp_requiretls_policy</a>
+(default: see 'postconf -d <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a>' output)</b></DT><DD>
+
+<p> How the Postfix SMTP and LMTP client will enforce REQUIRETLS
+for messages received with the REQUIRETLS option. Policy examples
+for SMTP and LMTP are at the end. </p>
+
+<ul>
+
+<li> <p> Specify a list of items, separated with whitespace or
+comma; continue a long line by starting the next line with whitespace.
+</p>
+
+<li> <p> Each item must be an action (see below), or a <a href="DATABASE_README.html">type:table</a>
+lookup table that must return an action (not a <a href="DATABASE_README.html">type:table</a>). </p>
+
+<li> A <a href="DATABASE_README.html">type:table</a> lookup table is searched with the next-hop
+destination, without any <i>[ ]</i>, <i>:service</i>, or <i>:port</i>.
+</p>
+
+<li> <p> The next-hop destination for TCP connections is the recipient
+domain, but this can be overruled with <a href="postconf.5.html#transport_maps">transport_maps</a>, <a href="postconf.5.html#relayhost">relayhost</a>,
+<a href="postconf.5.html#content_filter">content_filter</a>, or other routing features. The next-hop destination
+for LMTP over UNIX-domain connections is always the value of
+<a href="postconf.5.html#myhostname">myhostname</a>. </p>
+
+</ul>
+
+<p> Supported actions: </p>
+
+<dl>
+
+<dt> <b> enforce </b> </dt> <dd>  <p> Skip connections that do not
+meet <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a> section 4.2 requirements, and skip servers that don't
+announce REQUIRETLS support. Return the message as undeliverable if no
+suitable connection and server are found, and log a "REQUIRETLS
+Failure" event. </p> </dd>
+
+<dt> <b> opportunistic+starttls </b> </dt> <dd> <p> Skip servers
+that don't announce STARTTLS support. Return the message as
+undeliverable if no suitable server is found, and log a "REQUIRETLS
+Failure" event. </p> <p> Request REQUIRETLS if a server supports
+REQUIRETLS, otherwise simply deliver the message and log "REQUIRETLS
+Debug" events when a connection would not meet all <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a> section
+4.2 requirements. </p> <p> This can be appropriate for an outbound
+perimeter MTA, when forwarding messages from internal systems to
+the Internet, at a time that many domains do not publish DANE or
+MTA-STS policies. </p> </dd>
+
+<dt> <b> opportunistic </b> </dt> <dd> <p> Request REQUIRETLS if
+the server supports REQUIRETLS, otherwise simply deliver the message.
+</p> <p> This can be appropriate for an inbound perimeter MTA, when
+forwarding messages from the Internet to internal servers or content
+filters. Internal servers or content filters may not support
+REQUIRETLS, and internal connections may be secured with means other
+than DANE or STS. </p> </dd>
+
+<dt> <b> disable </b> </dt> <dd> <p> Disable REQUIRETLS support.
+This may be used as a last-resort workaround when a server announces
+REQUIRETLS support, but the support is inoperable. </p></dd>
+
+</dl>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Postfix appends an implicit <b>opportunistic+starttls</b>
+action after the end of each policy. </p>
+
+<li> <p> To match any name below the domain "example.com" specify
+a table entry with the storage key ".example.com" in <a href="DATABASE_README.html">type:table</a>
+lookup tables that need an exact match. This is appropriate, for
+example, with <a href="DATABASE_README.html#types">hash</a>:, <a href="DATABASE_README.html#types">btree</a>: or <a href="lmdb_table.5.html">lmdb</a>:. </p>
+
+<li> <p> Do not specify a match pattern for ".domain" with <a href="regexp_table.5.html">regexp</a>:,
+<a href="pcre_table.5.html">pcre</a>:, <a href="socketmap_table.html">socketmap</a>:, or <a href="tcp_table.5.html">tcp</a>:, as <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> will
+not query those tables with that form. </p>
+
+</ul>
+
+<p> SMTP client examples: </p>
+
+<ul>
+
+<li> <p> The default SMTP client REQUIRETLS policy: when a sender
+requests REQUIRETLS, require that external servers support STARTTLS,
+and request REQUIRETLS if an internal or external server supports
+REQUIRETLS. </p>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = ...dane/sts plugin...
+    <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
+        <a href="DATABASE_README.html#types">inline</a>:{
+            {.$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
+            {localhost = opportunistic} }
+        opportunistic+starttls
+</pre>
+
+<li> <p> As above, with external destinations listed in a separate
+file for easier maintenance. </p>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = ...dane/sts plugin...
+    <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
+        <a href="DATABASE_README.html#types">inline</a>:{
+            {.$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
+            {localhost = opportunistic} }
+        <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/requiretls-per-site
+        opportunistic+starttls
+</pre>
+<pre>
+/etc/postfix/requiretls-per-site:
+    one.example         enforce
+    two.example         enforce
+    three.example       opportunistic
+    ...
+</pre>
+
+<li> <p> Distant future: when a sender requests REQUIRETLS, enforce
+all REQUIRETLS requirements for all external destinations. </p>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtp_tls_secure_cert_match">smtp_tls_secure_cert_match</a> = nexthop, dot-nexthop
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = ...dane/sts plugin...
+    <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
+        <a href="DATABASE_README.html#types">inline</a>:{
+            {.$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
+            {localhost = opportunistic} }
+        enforce
+</pre>
+
+</ul>
+
+<p>
+LMTP client examples:
+</p>
+
+<ul>
+
+<li> <p> The default LMTP client REQUIRETLS policy: when a sender
+requests REQUIRETLS, request REQUIRETLS if the server supports
+REQUIRETLS, otherwise deliver the message as if the sender did not
+request REQUIRETLS. Note: with deliveries over a UNIX-domain socket,
+the next-hop destination for <a href="postconf.5.html#lmtp_requiretls_policy">lmtp_requiretls_policy</a> lookups will
+be the <a href="postconf.5.html#myhostname">myhostname</a> parameter value. </p>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#lmtp_requiretls_policy">lmtp_requiretls_policy</a> = opportunistic
+</pre>
+
+</ul>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
 
 
 </DD>
@@ -20875,6 +21187,9 @@ server certificates, and fall back to plaintext if TLS is unavailable.
 If a message contains a "TLS-Required: no" header, then Postfix
 will add that header to a delivery status notification for that
 message. </p>
+
+<p> Note: the ESMTP REQUIRETLS option overrides the "TLS-Required:
+no" message header.  </p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
 

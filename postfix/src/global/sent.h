@@ -29,7 +29,7 @@
 #define SENT_FLAG_NONE	(0)
 
 extern int sent(int, const char *, MSG_STATS *, RECIPIENT *, const char *,
-		        DSN *);
+		        const TLS_STATS *, DSN *);
 
 /* LICENSE
 /* .ad
@@ -40,6 +40,9 @@ extern int sent(int, const char *, MSG_STATS *, RECIPIENT *, const char *,
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 #endif
