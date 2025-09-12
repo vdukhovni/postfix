@@ -15,15 +15,14 @@
 /*	void	tls_stat_activate(
 /*	TLS_STATS *tstats,
 /*	int	idx,
-/*	const char *name,
+/*	const char *target_name,
 /*	bool	enforce)
 /*
 /*	void	tls_stat_decide(
 /*	TLS_STATS *tstats,
 /*	int	idx,
-/*	const char *name,
-/*	int	status,
-/*	bool	enforce)
+/*	const char *final_name,
+/*	int	status)
 /*
 /*	const TLS_STAT *tls_stats_access(
 /*	TLS_STATS *tstats,
@@ -35,6 +34,11 @@
 /*	the current outbound SMTP connection satisfies the policy
 /*	requirements for that feature. For example, whether a server
 /*	certificate matches DANE or STS requirements.
+/*
+/*	Each feature has a target-level name, and a final-level name
+/*	that corresponds to the security level that was actually achieved.
+/*	If the two names differ, then this code assumes that enforcement
+/*	was relaxed.
 /*
 /*	tls_stats_create() creates one TLS_STATS instance with all status
 /*	information set to TLS_STAT_INACTIVE.
@@ -52,16 +56,20 @@
 /*
 /*	tls_stat_activate() changes the status in tstats at index idx
 /*	from TLS_STAT_INACTIVE to TLS_STAT_UNDECIDED, and updates the
-/*	name (pointer copy) and 'enforce' level. Calls with an invalid
-/*	index result in a panic(), and calls with an already active
-/*	index result in a warning.
+/*	feature's target name (pointer copy) and 'enforce' level. TLS
+/*	levels like 'may' and 'dane' should be activated as if they have
+/*	TLS_STAT_ENF_FULL enforcement. Calls with an invalid index result
+/*	in a panic(), and calls with an already active index result in
+/*	a warning.
 /*
 /*	tls_stat_decide() updates the status in tstats at index idx from
-/*	TLS_STAT_UNDECIDED to TLS_STAT_COMPLIANT, TLS_STAT_VIOLATION,
-/*	or TLS_STAT_DISABLED, and updates its name and enforcement
-/*	level. Calls with an invalid index or an unexpected decision
-/*	status result in a panic(), and calls with an inactive or
-/*	already decided index status result in a warning.
+/*	TLS_STAT_UNDECIDED to TLS_STAT_COMPLIANT or TLS_STAT_VIOLATION,
+/*	and updates its final name and enforcement level. The final
+/*	enforcement level is reduced to TLS_STAT_ENF_RELAXED when
+/*	the target name and final name differ (indicating that enforcement
+/*	was relaxed). Calls with an invalid index or an unexpected
+/*	decision status result in a panic(), and calls with an inactive
+/*	or already decided index status result in a warning.
 /*
 /*	tls_stats_access() returns a const pointer to the status
 /*	information in tstats at index idx.
@@ -83,6 +91,7 @@
   * System library.
   */
 #include <sys_defs.h>
+#include <string.h>
 
  /*
   * Utility library.
@@ -103,7 +112,8 @@ TLS_STATS *tls_stats_create(void)
     TLS_STAT *tp;
 
 #define TLS_STAT_INIT(tp) do { \
-	(tp)->name = 0; \
+	(tp)->target_name = 0; \
+	(tp)->final_name = 0; \
 	(tp)->status = TLS_STAT_INACTIVE; \
 	(tp)->enforce = 0; \
     } while (0);
@@ -136,8 +146,8 @@ void    tls_stats_free(TLS_STATS *tstats)
 
 /* tls_stat_activate - activate status at index */
 
-void    tls_stat_activate(TLS_STATS *tstats, int idx, const char *name,
-			          bool enforce)
+void    tls_stat_activate(TLS_STATS *tstats, int idx, const char *target_name,
+			          int enforce)
 {
     TLS_STAT *tls_stat;
 
@@ -146,7 +156,8 @@ void    tls_stat_activate(TLS_STATS *tstats, int idx, const char *name,
     tls_stat = tstats->st + idx;
     if (tls_stat->status != TLS_STAT_INACTIVE)
 	msg_warn("%s: already active TLS_STAT at index %d", __func__, idx);
-    tls_stat->name = name;
+    tls_stat->target_name = target_name;
+    tls_stat->final_name = 0;
     tls_stat->status = TLS_STAT_UNDECIDED;
     tls_stat->enforce = enforce;
     tstats->used += 1;
@@ -154,13 +165,12 @@ void    tls_stat_activate(TLS_STATS *tstats, int idx, const char *name,
 
 /* tls_stat_decide - update undecided status at index */
 
-extern void tls_stat_decide(TLS_STATS *tstats, int idx, const char *name,
-			            int status, bool enforce)
+extern void tls_stat_decide(TLS_STATS *tstats, int idx, const char *final_name,
+			            bool status)
 {
     TLS_STAT *tls_stat;
 
-    if (status != TLS_STAT_VIOLATION && status != TLS_STAT_COMPLIANT
-	&& status != TLS_STAT_DISABLED)
+    if (status != TLS_STAT_VIOLATION && status != TLS_STAT_COMPLIANT)
 	msg_panic("%s: bad new status: %d", __func__, status);
     if (idx < 0 || idx >= TLS_STATS_SIZE)
 	msg_panic("%s: bad index: %d", __func__, idx);
@@ -168,9 +178,11 @@ extern void tls_stat_decide(TLS_STATS *tstats, int idx, const char *name,
     if (tls_stat->status != TLS_STAT_UNDECIDED)
 	msg_warn("%s: unexpected status %d at index %d",
 		 __func__, tls_stat->status, idx);
-    tls_stat->name = name;
+    tls_stat->final_name = final_name;
     tls_stat->status = status;
-    tls_stat->enforce = enforce;
+    /* REQUIRETLS can be relaxed without a target:final name change. */
+    tls_stat->enforce = tls_stat->enforce
+	&& (strcmp(tls_stat->target_name, final_name) == 0);
 }
 
 /* tls_stat_access - peek at specific TLS_STAT instance. */

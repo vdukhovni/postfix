@@ -29787,6 +29787,14 @@ NONPROD CODE
 	connection requirements. Files: smtp/smtp.h, smtp/smtp_key.c,
 	smtp_proto.c, smtp/smtp_trouble.c.
 
+	Completed 20250912: smtp_log_tls_feature_status logging now
+	shows the initial and final security levels for a relaxed
+	feature, for example dane:encrypt when opportunistic 'dane'
+	is downgraded to 'encrypt' after all TLSA records were found
+	to be unusable. Files: proto/postconf.proto, global/log_adhoc.c,
+	global/tls_stats.c, global/tls_stats.h, smtp/smtp.h,
+	smtp/smtp_connect.c, smtp/smtp_proto.c.
+
 TODO
 
 	Maybe log "server announces REQUIRETLS" if we're not

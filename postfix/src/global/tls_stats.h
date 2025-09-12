@@ -20,7 +20,8 @@
   * External interface.
   */
 typedef struct TLS_STAT {
-    const char *name;			/* Human-readable feature name */
+    const char *target_name;		/* Human-readable feature name */
+    const char *final_name;		/* Human-readable feature name */
     int     status;			/* See below */
     bool    enforce;			/* See below */
 } TLS_STAT;
@@ -29,7 +30,6 @@ typedef struct TLS_STAT {
 #define TLS_STAT_UNDECIDED	1	/* Pending decision */
 #define TLS_STAT_VIOLATION	2	/* Definitely did not meet policy */
 #define TLS_STAT_COMPLIANT	3	/* Definitely did meet policy */
-#define TLS_STAT_DISABLED	4	/* Definitely disabled */
 #define TLS_STAT_ENF_FULL	1	/* Full enforcement */
 #define TLS_STAT_ENF_RELAXED	0	/* Relaxed enforcement */
 
@@ -51,7 +51,7 @@ extern void tls_stats_free(TLS_STATS *);
 
 #define tls_stats_used(t) ((t)->used)
 extern void tls_stat_activate(TLS_STATS *, int, const char *, bool);
-extern void tls_stat_decide(TLS_STATS *, int, const char *, int, bool);
+extern void tls_stat_decide(TLS_STATS *, int, const char *, int);
 extern const TLS_STAT *tls_stat_access(const TLS_STATS *, int);
 
 #define NO_TLS_STATS	((TLS_STATS *) 0)

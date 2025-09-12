@@ -19716,17 +19716,18 @@ comma; continue a long line by starting the next line with whitespace.
 </p>
 
 <li> <p> Each item must be an action (see below), or a type:table
-lookup table that must return an action (not a type:table). </p>
+lookup table that must return an action (it must not return a
+type:table). </p>
 
-<li> A type:table lookup table is searched with the next-hop
-destination, without any <i>[ ]</i>, <i>:service</i>, or <i>:port</i>.
+<li> A type:table lookup table is searched with the TLS next-hop
+destination, without any [ ], <i>:service</i>, or <i>:port</i>.
 </p>
 
-<li> <p> The next-hop destination for TCP connections is the recipient
-domain, but this can be overruled with transport_maps, relayhost,
-content_filter, or other routing features. The next-hop destination
-for LMTP over UNIX-domain connections is always the value of
-myhostname. </p>
+<li> <p> The TLS next-hop destination for TCP connections is the
+recipient domain, but this can be overruled with transport_maps,
+relayhost, content_filter, or other routing features. The next-hop
+destination for LMTP over UNIX-domain connections is always the
+value of myhostname. </p>
 
 </ul>
 
@@ -19874,30 +19875,33 @@ were used. </p>
 
 <ul>
 
-<li> The logging is inserted between the "<tt>delays=a/b/c/d</tt>"
-and the "<tt>dsn=</tt>" information.
+<li> <p> The logging is inserted between the "<tt>delays=a/b/c/d</tt>"
+and the "<tt>dsn=</tt>" information. </p>
 
-<li> The general format is "<tt>tls=feature/feature/...</tt>". See
-below for examples.
+<li> <p> The general format is "<tt>tls=feature/feature/...</tt>".
+See below for examples. </p>
 
-<li> The first feature name is the TLS security level: '<tt>none</tt>',
-'<tt>may</tt>', '<tt>encrypt</tt>', ..., '<tt>dane</tt>'. Other
-features are omitted if not activated. The REQUIRETLS extension's
-feature name is '<tt>requiretls</tt>'.
+<li> <p> The first feature name is the TLS security level:
+'<tt>none</tt>', '<tt>may</tt>', '<tt>encrypt</tt>', etc.  Other
+features are shown only if activated. The REQUIRETLS extension's
+feature name is '<tt>requiretls</tt>'. </p>
 
-<li> When '<tt>disabled:</tt>' is prepended to a feature name, the
-remote server did not support this feature, and the connection was
-used with relaxed security.
+<li> <p> When '<tt>:<i>fallback-level</i></tt>' is appended to a
+feature name, the enforcement of the feature was relaxed to the
+indicated level (for example, with opportunistic TLS, or opportunistic
+REQUIRETLS). A fallback-level <tt><i>none</i></tt> indicates that
+the server did not support the feature. </p>
 
-<li> When the above is enclosed in "<tt>(</tt>" and "<tt>)</tt>",
-the feature was used successfully, but policy enforcement was
-relaxed.
+<li> <p> When the feature is enclosed in "<tt>(</tt>" and "<tt>)</tt>",
+policy enforcement was relaxed for that feature. </p>
 
-<li> When "<tt>!</tt>" is prepended to the above, the policy for
-that feature was not satisfied and the connection was not used.
+<li> <p> When "<tt>!</tt>" is prepended to the feature, the policy
+for that feature was not satisfied and the connection was not used.
+</p>
 
-<li> When "?" is appended to the above, the policy for that feature 
-is undecided, usually due to a lost connection.
+<li> <p> When "?" is appended to the feature, the policy for that
+feature is undecided. This typically caused by a lost connection.
+</p>
 
 </ul>
 
@@ -19905,35 +19909,50 @@ is undecided, usually due to a lost connection.
 
 <dl>
 
-<dt> tls=none </dt> <dd> A connection that does not use TLS. </dd>
+<dt> tls=none </dt> <dd> A connection that did not use TLS. </dd>
 
-<dt> tls=may </dt> <dd> Opportunistic TLS after a successful
-handshake. </dd>
+<dt> tls=may </dt> <dd> Opportunistic TLS. The connection was used
+after a successful TLS handshake. </dd>
 
-<dt> tls=(disabled:may) </dt> <dd> Opportunistic TLS after fallback
-to plaintext, because the server did not announce STARTTLS support
-or the server rejected the STARTTLS command. </dd>
+<dt> tls=may? </dt> <dd> Opportunistic TLS. The status was undecided
+because no server could be reached. </dd>
+
+<dt> tls=(may:none) </dt> <dd> The remote server did not support
+STARTTLS, and the connection was used in plaintext as permitted by
+an opportunistic TLS policy. </dd>
+
+<dt> tls=may/(requiretls:none) </dt> <dd> Opportunistic TLS +
+opportunistic REQUIRETLS. After a successful TLS handshake, the
+server did not announce REQUIRETLS support, and the connection was
+used without REQUIRETLS as permitted by the opportunistic REQUIRETLS
+policy. </dd>
 
 <dt> tls=dane </dt> <dd> DANE policy compliant, no downgrade. </dd>
 
-<dt> tls=(dane) </dt> <dd> Relaxed DANE after allowing MX records
-without DNSSEC signature, or after falling back to the TLS security
-level 'encrypt'. </dd>
+<dt> tls=(dane:encrypt) </dt> <dd> Opportunistic DANE. The connection
+security was downgraded to '<tt>encrypt</tt>' because none of the TLSA
+records were usable. </dd>
 
-<dt> tls=dane/requiretls </dt> <dd> DANE and REQUIRETLS policies were
-fully enforced, non-error case. </dd>
+<dt> tls=dane/requiretls </dt> <dd> DANE and REQUIRETLS policies
+were fully enforced, non-error case. </dd>
+
+<dt> tls=dane/!requiretls </dt> <dd> DANE and REQUIRETLS policies were
+fully enforced. The connection was not used because the server did not
+support REQUIRETLS and enforcement of REQUIRETLS was not relaxed. </dd>
+
+<dt> tls=dane/(requiretls:none) </dt> <dd> DANE was fully enforced.
+The remote server did not support REQUIRETLS, and the connection
+was used without REQUIRETLS as permitted by an opportunistic
+REQUIRETLS policy. </dd>
 
 <dt> tls=dane?/requiretls? </dt> <dd> DANE and REQUIRETLS policies
 were undecided, because the connection failed before or in the TLS
 handshake. </dd>
 
-<dt> tls=may/(disabled:requiretls) </dt> <dd> Opportunistic TLS +
-opportunistic REQUIRETLS, server did not announce REQUIRETLS support.
-</dd>
-
 </dl>
 
-<p> This feature is available in Postfix 3.11 and later. </p>
+<p> This feature is available in Postfix 3.11 and later. </p> 
+
 %PARAM smtpd_hide_client_session no
 
 <p> Do not include SMTP client session information in the Postfix

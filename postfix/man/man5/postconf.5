@@ -7729,62 +7729,81 @@ were used.
 The logging is inserted between the "delays=a/b/c/d"
 and the "dsn=" information.
 .IP \(bu
-The general format is "tls=feature/feature/...". See
-below for examples.
+The general format is "tls=feature/feature/...".
+See below for examples.
 .IP \(bu
-The first feature name is the TLS security level: 'none',
-\&'may', 'encrypt', ..., 'dane'. Other
-features are omitted if not activated. The REQUIRETLS extension's
+The first feature name is the TLS security level:
+\&'none', 'may', 'encrypt', etc.  Other
+features are shown only if activated. The REQUIRETLS extension's
 feature name is 'requiretls'.
 .IP \(bu
-When 'disabled:' is prepended to a feature name, the
-remote server did not support this feature, and the connection was
-used with relaxed security.
+When ':\fIfallback\-level\fR' is appended to a
+feature name, the enforcement of the feature was relaxed to the
+indicated level (for example, with opportunistic TLS, or opportunistic
+REQUIRETLS). A fallback\-level \fInone\fR indicates that
+the server did not support the feature.
 .IP \(bu
-When the above is enclosed in "(" and ")",
-the feature was used successfully, but policy enforcement was
-relaxed.
+When the feature is enclosed in "(" and ")",
+policy enforcement was relaxed for that feature.
 .IP \(bu
-When "!" is prepended to the above, the policy for
-that feature was not satisfied and the connection was not used.
+When "!" is prepended to the feature, the policy
+for that feature was not satisfied and the connection was not used.
 .IP \(bu
-When "?" is appended to the above, the policy for that feature
-is undecided, usually due to a lost connection.
+When "?" is appended to the feature, the policy for that
+feature is undecided. This typically caused by a lost connection.
 .br
 .PP
 Examples:
 .IP "tls=none"
-A connection that does not use TLS.
+A connection that did not use TLS.
 .br
 .IP "tls=may"
-Opportunistic TLS after a successful
-handshake.
+Opportunistic TLS. The connection was used
+after a successful TLS handshake.
 .br
-.IP "tls=(disabled:may)"
-Opportunistic TLS after fallback
-to plaintext, because the server did not announce STARTTLS support
-or the server rejected the STARTTLS command.
+.IP "tls=may?"
+Opportunistic TLS. The status was undecided
+because no server could be reached.
+.br
+.IP "tls=(may:none)"
+The remote server did not support
+STARTTLS, and the connection was used in plaintext as permitted by
+an opportunistic TLS policy.
+.br
+.IP "tls=may/(requiretls:none)"
+Opportunistic TLS +
+opportunistic REQUIRETLS. After a successful TLS handshake, the
+server did not announce REQUIRETLS support, and the connection was
+used without REQUIRETLS as permitted by the opportunistic REQUIRETLS
+policy.
 .br
 .IP "tls=dane"
 DANE policy compliant, no downgrade.
 .br
-.IP "tls=(dane)"
-Relaxed DANE after allowing MX records
-without DNSSEC signature, or after falling back to the TLS security
-level 'encrypt'.
+.IP "tls=(dane:encrypt)"
+Opportunistic DANE. The connection
+security was downgraded to 'encrypt' because none of the TLSA
+records were usable.
 .br
 .IP "tls=dane/requiretls"
+DANE and REQUIRETLS policies
+were fully enforced, non\-error case.
+.br
+.IP "tls=dane/!requiretls"
 DANE and REQUIRETLS policies were
-fully enforced, non\-error case.
+fully enforced. The connection was not used because the server did not
+support REQUIRETLS and enforcement of REQUIRETLS was not relaxed.
+.br
+.IP "tls=dane/(requiretls:none)"
+DANE was fully enforced.
+The remote server did not support REQUIRETLS, and the connection
+was used without REQUIRETLS as permitted by an opportunistic
+REQUIRETLS policy.
 .br
 .IP "tls=dane?/requiretls?"
 DANE and REQUIRETLS policies
 were undecided, because the connection failed before or in the TLS
 handshake.
-.br
-.IP "tls=may/(disabled:requiretls)"
-Opportunistic TLS +
-opportunistic REQUIRETLS, server did not announce REQUIRETLS support.
 .br
 .br
 .PP
@@ -8048,16 +8067,17 @@ Specify a list of items, separated with whitespace or
 comma; continue a long line by starting the next line with whitespace.
 .IP \(bu
 Each item must be an action (see below), or a type:table
-lookup table that must return an action (not a type:table).
+lookup table that must return an action (it must not return a
+type:table).
 .IP \(bu
-A type:table lookup table is searched with the next\-hop
-destination, without any \fI[ ]\fR, \fI:service\fR, or \fI:port\fR.
+A type:table lookup table is searched with the TLS next\-hop
+destination, without any [ ], \fI:service\fR, or \fI:port\fR.
 .IP \(bu
-The next\-hop destination for TCP connections is the recipient
-domain, but this can be overruled with transport_maps, relayhost,
-content_filter, or other routing features. The next\-hop destination
-for LMTP over UNIX\-domain connections is always the value of
-myhostname.
+The TLS next\-hop destination for TCP connections is the
+recipient domain, but this can be overruled with transport_maps,
+relayhost, content_filter, or other routing features. The next\-hop
+destination for LMTP over UNIX\-domain connections is always the
+value of myhostname.
 .br
 .PP
 Supported actions:

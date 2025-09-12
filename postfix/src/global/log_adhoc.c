@@ -226,10 +226,6 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 	int     idx;
 	const TLS_STAT *tstat;
 	int     field_count = 0;
-	const char *if_disabled[2] = {"", "disabled:"};
-
-#define RELAXED(tstat) ((tstat)->enforce == TLS_STAT_ENF_RELAXED)
-#define DISABLED(tstat) ((tstat)->status == TLS_STAT_DISABLED)
 
 	vstring_sprintf_append(buf, ", tls=");
 	for (idx = 0; idx < TLS_STATS_SIZE; idx++) {
@@ -240,11 +236,14 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
 		vstring_strcat(buf, "/");
 	    if (tstat->status == TLS_STAT_VIOLATION)
 		vstring_strcat(buf, "!");
-	    vstring_sprintf_append(buf, "%s%s%s%s",
-				   "(" + !RELAXED(tstat),
-				   if_disabled[DISABLED(tstat)],
-				   tstat->name,
-				   ")" + !RELAXED(tstat));
+	    if (tstat->enforce == TLS_STAT_ENF_RELAXED)
+		vstring_strcat(buf, "(");
+	    vstring_strcat(buf, tstat->target_name);
+	    if (tstat->final_name != 0 
+                && strcmp(tstat->target_name, tstat->final_name) != 0)
+		vstring_sprintf_append(buf, ":%s", (tstat)->final_name);
+	    if (tstat->enforce == TLS_STAT_ENF_RELAXED)
+		vstring_strcat(buf, ")");
 	    if (tstat->status == TLS_STAT_UNDECIDED)
 		vstring_strcat(buf, "?");
 	    field_count += 1;

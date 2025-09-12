@@ -253,22 +253,23 @@ typedef struct SMTP_STATE {
 
 /* Use the TLS policy name for the TLS security level status feature. */
 #define SMTP_TLS_STAT_NAME_REQTLS	"requiretls"
+#define SMTP_TLS_STAT_NAME_NONE		"none"
 
 #define smtp_tls_stat_activate_sec_level(tstats, level, enforce) \
 	tls_stat_activate((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \
 	    str_tls_level(level), (enforce))
 
-#define smtp_tls_stat_decide_sec_level(tstats, level, status, enforce) \
+#define smtp_tls_stat_decide_sec_level(tstats, level, status) \
 	tls_stat_decide((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \
-	    str_tls_level(level), (status), (enforce))
+	    str_tls_level(level), (status))
 
-#define smtp_tls_stat_activate_reqtls(tstats, enforce) \
+#define smtp_tls_stat_activate_reqtls(tstats, name, enforce) \
 	tls_stat_activate((tstats), SMTP_TLS_STAT_IDX_REQTLS, \
-	SMTP_TLS_STAT_NAME_REQTLS, (enforce))
+	(name), (enforce))
 
-#define smtp_tls_stat_decide_reqtls(tstats, status, enforce) \
+#define smtp_tls_stat_decide_reqtls(tstats, name, status) \
 	tls_stat_decide((tstats), SMTP_TLS_STAT_IDX_REQTLS, \
-	    SMTP_TLS_STAT_NAME_REQTLS, (status), (enforce))
+	(name), (status))
 
 #ifdef USE_TLS
 #define STATE_TLS_NOT_REQUIRED(state) \

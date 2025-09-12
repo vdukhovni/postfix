@@ -528,8 +528,8 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
 	if (TLS_MUST_MATCH(tls->level) == 0) {
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_reqtls(state->tls_stats,
-					    TLS_STAT_VIOLATION,
-					    TLS_STAT_ENF_FULL);
+					    SMTP_TLS_STAT_NAME_REQTLS,
+					    TLS_STAT_VIOLATION);
 	    dsb_simple(why, "5.7.10", "REQUIRETLS Failure: sender "
 		       "requested REQUIRETLS, but my configured TLS "
 		       "security level '%s' disables certificate "
@@ -542,8 +542,8 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
 	if (tls->level == TLS_LEV_NONE) {
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_reqtls(state->tls_stats,
-					    TLS_STAT_VIOLATION,
-					    TLS_STAT_ENF_RELAXED);
+					    SMTP_TLS_STAT_NAME_REQTLS,
+					    TLS_STAT_VIOLATION);
 	    dsb_simple(why, "5.7.10", "REQUIRETLS Failure: sender "
 		       "requested REQUIRETLS, but my configured TLS "
 		       "security level '%s' disables encryption. The "
@@ -1199,9 +1199,10 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		tls_stats_revert(state->tls_stats);
 		smtp_tls_stat_activate_sec_level(state->tls_stats,
 						 state->tls->level,
-					  state->tls->level != TLS_LEV_MAY);
+						 TLS_STAT_ENF_FULL);
 		if (state->reqtls_level > SMTP_REQTLS_POLICY_ACT_DISABLE)
 		    smtp_tls_stat_activate_reqtls(state->tls_stats,
+						  SMTP_TLS_STAT_NAME_REQTLS,
 		     state->reqtls_level == SMTP_REQTLS_POLICY_ACT_ENFORCE);
 	    }
 	    /* Disable TLS when retrying after a handshake failure */
