@@ -33,7 +33,7 @@
 #include <dsn_buf.h>
 #include <header_body_checks.h>
 #include <sendopts.h>
-#include <tls_stats.h>
+#include <pol_stats.h>
 
  /*
   * Postfix TLS library.
@@ -209,7 +209,7 @@ typedef struct SMTP_STATE {
     struct TLSRPT_WRAPPER *tlsrpt;
 #endif
     int     reqtls_level;		/* from smtp_reqtls_policy */
-    TLS_STATS *tls_stats;		/* policy compliance status */
+    POL_STATS *tls_stats;		/* TLS feature policy compliance */
 #endif
 
     /*
@@ -255,20 +255,20 @@ typedef struct SMTP_STATE {
 #define SMTP_TLS_STAT_NAME_REQTLS	"requiretls"
 #define SMTP_TLS_STAT_NAME_NONE		"none"
 
-#define smtp_tls_stat_activate_sec_level(tstats, level, enforce) \
-	tls_stat_activate((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \
-	    str_tls_level(level), (enforce))
+#define smtp_tls_stat_activate_sec_level(tstats, level) \
+	pol_stat_activate((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \
+	    str_tls_level(level), POL_STAT_ENF_FULL)
 
 #define smtp_tls_stat_decide_sec_level(tstats, level, status) \
-	tls_stat_decide((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \
+	pol_stat_decide((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \
 	    str_tls_level(level), (status))
 
 #define smtp_tls_stat_activate_reqtls(tstats, name, enforce) \
-	tls_stat_activate((tstats), SMTP_TLS_STAT_IDX_REQTLS, \
+	pol_stat_activate((tstats), SMTP_TLS_STAT_IDX_REQTLS, \
 	(name), (enforce))
 
 #define smtp_tls_stat_decide_reqtls(tstats, name, status) \
-	tls_stat_decide((tstats), SMTP_TLS_STAT_IDX_REQTLS, \
+	pol_stat_decide((tstats), SMTP_TLS_STAT_IDX_REQTLS, \
 	(name), (status))
 
 #ifdef USE_TLS

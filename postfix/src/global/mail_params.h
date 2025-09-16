@@ -4424,6 +4424,10 @@ extern char *var_smtp_reqtls_policy;
 #define DEF_REQTLS_REDACT_DSN		"yes"
 extern int var_reqtls_redact_dsn;
 
+#define VAR_REQTLS_ESMTP_HDR		"requiretls_esmtp_header"
+#define DEF_REQTLS_ESMTP_HDR		"yes"
+extern bool var_reqtls_esmtp_hdr;
+
  /*
   * TS per-feature policy status.
   */

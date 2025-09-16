@@ -21,13 +21,13 @@
   */
 #include <deliver_request.h>
 #include <dsn_buf.h>
-#include <tls_stats.h>
+#include <pol_stats.h>
 
  /*
   * Client interface.
   */
 extern int bounce_append(int, const char *, MSG_STATS *, RECIPIENT *,
-			         const char *, const TLS_STATS *, DSN *);
+			         const char *, const POL_STATS *, DSN *);
 extern int bounce_flush(int, const char *, const char *, const char *, int,
 			        const char *, const char *, int);
 extern int bounce_flush_verp(int, const char *, const char *, const char *, int,
@@ -35,7 +35,7 @@ extern int bounce_flush_verp(int, const char *, const char *, const char *, int,
 extern int bounce_one(int, const char *, const char *, const char *, int,
 		              const char *, const char *,
 		              int, MSG_STATS *, RECIPIENT *,
-		              const char *, const TLS_STATS *, DSN *);
+		              const char *, const POL_STATS *, DSN *);
 extern void bounce_client_init(const char *, const char *);
 
  /*
@@ -78,11 +78,11 @@ extern void bounce_client_init(const char *, const char *);
 extern DSN_FILTER *delivery_status_filter;
 
 extern int bounce_append_intern(int, const char *, MSG_STATS *, RECIPIENT *,
-			            const char *, const TLS_STATS *, DSN *);
+			            const char *, const POL_STATS *, DSN *);
 extern int bounce_one_intern(int, const char *, const char *, const char *,
 			             int, const char *, const char *,
 			             int, MSG_STATS *, RECIPIENT *,
-			             const char *, const TLS_STATS *, DSN *);
+			             const char *, const POL_STATS *, DSN *);
 
 #endif
 

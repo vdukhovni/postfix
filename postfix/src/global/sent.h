@@ -29,7 +29,7 @@
 #define SENT_FLAG_NONE	(0)
 
 extern int sent(int, const char *, MSG_STATS *, RECIPIENT *, const char *,
-		        const TLS_STATS *, DSN *);
+		        const POL_STATS *, DSN *);
 
 /* LICENSE
 /* .ad

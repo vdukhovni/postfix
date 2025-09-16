@@ -133,6 +133,7 @@ typedef struct CLEANUP_STATE {
      * Internationalization, RequireTLS, etc.
      */
     int     sendopts;			/* what support is desired */
+    int     valid_reqtls_esmtp_hdr;	/* valid Require-TLS-ESMTP header */
 } CLEANUP_STATE;
 
  /*
@@ -226,6 +227,7 @@ extern void cleanup_pre_jail(char *, char **);
 extern void cleanup_post_jail(char *, char **);
 extern const CONFIG_INT_TABLE cleanup_int_table[];
 extern const CONFIG_BOOL_TABLE cleanup_bool_table[];
+extern const CONFIG_NBOOL_TABLE cleanup_nbool_table[];
 extern const CONFIG_STR_TABLE cleanup_str_table[];
 extern const CONFIG_TIME_TABLE cleanup_time_table[];
 

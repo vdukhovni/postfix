@@ -12,7 +12,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
-/*	const TLS_STATS *tstats;
+/*	const POL_STATS *tstats;
 /*	DSN	*dsn;
 /*
 /*	int	bounce_flush(flags, queue, id, encoding, sendopts, sender,
@@ -52,7 +52,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
-/*	const TLS_STATS *tstats;
+/*	const POL_STATS *tstats;
 /*	DSN	*dsn;
 /*
 /*	void	bounce_client_init(title, maps)
@@ -67,7 +67,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
-/*	const TLS_STATS *tstats;
+/*	const POL_STATS *tstats;
 /*	DSN	*dsn;
 /*
 /*	int	bounce_one_intern(flags, queue, id, encoding, sendopts, sender,
@@ -83,7 +83,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
-/*	const TLS_STATS *tstats;
+/*	const POL_STATS *tstats;
 /*	DSN	*dsn;
 /* DESCRIPTION
 /*	This module implements the client interface to the message
@@ -237,7 +237,7 @@ DSN_FILTER *delivery_status_filter;
 
 int     bounce_append(int flags, const char *id, MSG_STATS *stats,
 		              RECIPIENT *rcpt, const char *relay,
-		              const TLS_STATS *tstats, DSN *dsn)
+		              const POL_STATS *tstats, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     DSN    *dsn_res;
@@ -269,7 +269,7 @@ int     bounce_append(int flags, const char *id, MSG_STATS *stats,
 
 int     bounce_append_intern(int flags, const char *id, MSG_STATS *stats,
 			             RECIPIENT *rcpt, const char *relay,
-			             const TLS_STATS *tstats, DSN *dsn)
+			             const POL_STATS *tstats, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     int     status;
@@ -435,7 +435,7 @@ int     bounce_one(int flags, const char *queue, const char *id,
 		           const char *encoding, int sendopts,
 		           const char *sender, const char *dsn_envid,
 		           int dsn_ret, MSG_STATS *stats, RECIPIENT *rcpt,
-	               const char *relay, const TLS_STATS *tstats, DSN *dsn)
+	               const char *relay, const POL_STATS *tstats, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     DSN    *dsn_res;
@@ -470,7 +470,7 @@ int     bounce_one_intern(int flags, const char *queue, const char *id,
 			          const char *sender, const char *dsn_envid,
 			          int dsn_ret, MSG_STATS *stats,
 			          RECIPIENT *rcpt, const char *relay,
-			          const TLS_STATS *tstats, DSN *dsn)
+			          const POL_STATS *tstats, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     int     status;

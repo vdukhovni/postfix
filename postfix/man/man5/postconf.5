@@ -3208,6 +3208,11 @@ The LMTP\-specific version of the smtp_line_length_limit
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_log_tls_feature_status (default: yes)
+The LMTP\-specific version of the smtp_log_tls_feature_status
+configuration parameter. See there for details.
+.PP
+This feature is available in Postfix >= 3.11.
 .SH lmtp_mail_timeout (default: 300s)
 The Postfix LMTP client time limit for sending the MAIL FROM command,
 and for receiving the remote LMTP server response.
@@ -6648,6 +6653,19 @@ no" message header.
 .br
 .PP
 This feature is available in Postfix >= 3.11.
+.SH requiretls_esmtp_header (default: yes)
+Record the ESMTP REQUIRETLS request in a "Require\-TLS\-ESMTP:
+yes" message header. This is needed to propagate the REQUIRETLS
+request through an external content filter that is configured with
+smtp_proxy_filter, with content_filter, or with a FILTER action in
+an SMTPD \fBaccess\fR(5) table, \fBheader_checks\fR(5) or \fBbody_checks\fR(5). The
+header is not needed with Milter\-based content filters.
+.PP
+This header will be visible to remote and local recipients.  It
+can safely be disabled if a configuration does not use any of the
+above content filters that need the header.
+.PP
+This feature is available in Postfix 3.11 and later.
 .SH requiretls_redact_dsn (default: yes)
 When sending a delivery status notification for an original
 message received with the REQUIRETLS option, do not send the original
@@ -7724,7 +7742,7 @@ and earlier.
 .SH smtp_log_tls_feature_status (default: yes)
 Enable logging of TLS feature information in delivery status
 logging. This summarizes how features such as TLS and REQUIRETLS
-were used.
+were used. A list of examples is at the end of this text.
 .IP \(bu
 The logging is inserted between the "delays=a/b/c/d"
 and the "dsn=" information.
@@ -7737,20 +7755,20 @@ The first feature name is the TLS security level:
 features are shown only if activated. The REQUIRETLS extension's
 feature name is 'requiretls'.
 .IP \(bu
-When ':\fIfallback\-level\fR' is appended to a
+When a ':\fIfallback\-level\fR' is appended to a
 feature name, the enforcement of the feature was relaxed to the
 indicated level (for example, with opportunistic TLS, or opportunistic
 REQUIRETLS). A fallback\-level \fInone\fR indicates that
-the server did not support the feature.
+the connection did not use the feature.
 .IP \(bu
-When the feature is enclosed in "(" and ")",
+When a feature is enclosed in "(" and ")",
 policy enforcement was relaxed for that feature.
 .IP \(bu
-When "!" is prepended to the feature, the policy
-for that feature was not satisfied and the connection was not used.
+When "!" is prepended to a feature, the policy
+for that feature was violated and the connection was not used.
 .IP \(bu
-When "?" is appended to the feature, the policy for that
-feature is undecided. This typically caused by a lost connection.
+When "?" is appended to a feature, the policy for that
+feature was undecided. This is typically caused by a lost connection.
 .br
 .PP
 Examples:
@@ -7784,6 +7802,11 @@ DANE policy compliant, no downgrade.
 Opportunistic DANE. The connection
 security was downgraded to 'encrypt' because none of the TLSA
 records were usable.
+.br
+.IP "tls=(dane:may)"
+Opportunistic DANE. The connection
+security was downgraded to 'may' because no TLSA records
+were available (according to a DNSSEC\-signed response).
 .br
 .IP "tls=dane/requiretls"
 DANE and REQUIRETLS policies
@@ -8080,39 +8103,63 @@ destination for LMTP over UNIX\-domain connections is always the
 value of myhostname.
 .br
 .PP
-Supported actions:
+Supported actions, assuming that TCP feature status logging is
+enabled with "smtp_log_tls_feature_status = yes" (the default):
 .IP "\fB enforce \fR"
 Skip connections that do not
-meet RFC 8689 section 4.2 requirements, and skip servers that don't
-announce REQUIRETLS support. Return the message as undeliverable if no
-suitable connection and server are found, and log a "REQUIRETLS
-Failure" event.
+meet RFC 8689 section 4.2 requirements for authenticated TLS
+connections, and skip servers that don't announce REQUIRETLS support.
+.sp
+If a suitable server is found, request REQUIRETLS, deliver
+the message, and log "tls=\fIlevel\fR/requiretls" in
+delivery status logging, where \fIlevel\fR is the current
+SMTP client TLS security level.
+.sp
+If no suitable server is
+found, return the message as undeliverable and log
+"tls=\fIlevel\fR/!requiretls" to indicate a violation of
+this REQUIRETLS policy.
 .br
 .IP "\fB opportunistic+starttls \fR"
 Skip servers
-that don't announce STARTTLS support. Return the message as
-undeliverable if no suitable server is found, and log a "REQUIRETLS
-Failure" event.
+that don't announce STARTTLS support, but do not require a server
+certificate match or REQUIRETLS support.
 .sp
-Request REQUIRETLS if a server supports
-REQUIRETLS, otherwise simply deliver the message and log "REQUIRETLS
-Debug" events when a connection would not meet all RFC 8689 section
-4.2 requirements.
+If a suitable
+server is found, request REQUIRETLS if that server supports REQUIRETLS
+and log "tls=\fIlevel\fR/(requiretls)" in delivery status
+logging or simply deliver the message without requesting REQUIRETLS
+and log "tls=\fIlevel\fR/(requiretls:none), where
+\fIlevel\fR is the current SMTP client TLS security level.
 .sp
-This can be appropriate for an outbound
-perimeter MTA, when forwarding messages from internal systems to
-the Internet, at a time that many domains do not publish DANE or
-MTA\-STS policies.
+If no suitable server is found, return the message as
+undeliverable and log "tls=\fIlevel\fR/!(requiretls)" to
+indicate a violation of this REQUIRETLS policy.
+.sp
+This relaxed
+policy can be appropriate for an outbound perimeter MTA, when
+forwarding messages from internal systems to the Internet, at a
+time that many domains support TLS but have no DANE or MTA\-STS
+policies.
 .br
 .IP "\fB opportunistic \fR"
 Request REQUIRETLS if
-the server supports REQUIRETLS, otherwise simply deliver the message.
+the server supports both STARTTLS and REQUIRETLS and log
+"tls=\fIlevel\fR/(requiretls)" in delivery status logging,
+otherwise simply deliver the message without requesting REQUIRETLS
+and log "tls=\fIlevel\fR/(requiretls:none), where
+\fIlevel\fR is the current SMTP client TLS security level.
 .sp
-This can be appropriate for an inbound perimeter MTA, when
-forwarding messages from the Internet to internal servers or content
-filters. Internal servers or content filters may not support
-REQUIRETLS, and internal connections may be secured with means other
-than DANE or STS.
+This REQUIRETLS policy is non\-intrusive, because there are no
+conditions that can result in a REQUIRETLS policy violation.
+.sp
+This weak policy can be appropriate for an inbound perimeter
+MTA, when forwarding messages from the Internet to internal servers
+or content filters that may not support REQUIRETLS, over internal
+connections that may be secured with means other than DANE or STS.
+This setting may also be useful for an outbound MTA to discover
+what destinations support some form of REQUIRETLS without risking
+mail delivery problems.
 .br
 .IP "\fB disable \fR"
 Disable REQUIRETLS support.

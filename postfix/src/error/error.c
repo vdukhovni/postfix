@@ -148,7 +148,7 @@
 
 static int deliver_message(DELIVER_REQUEST *request, const char *def_dsn,
 	         int (*append) (int, const char *, MSG_STATS *, RECIPIENT *,
-					const char *, const TLS_STATS *, DSN *))
+			            const char *, const POL_STATS *, DSN *))
 {
     const char *myname = "deliver_message";
     VSTREAM *src;

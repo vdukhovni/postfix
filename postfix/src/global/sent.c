@@ -12,7 +12,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *recipient;
 /*	const char *relay;
-/*	const TLS_STATS *tstats;
+/*	const POL_STATS *tstats;
 /*	DSN *dsn;
 /* DESCRIPTION
 /*	sent() logs that a message was successfully delivered,
@@ -105,7 +105,7 @@
 
 int     sent(int flags, const char *id, MSG_STATS *stats,
 	             RECIPIENT *recipient, const char *relay,
-	             const TLS_STATS *tstats, DSN *dsn)
+	             const POL_STATS *tstats, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     DSN    *dsn_res;

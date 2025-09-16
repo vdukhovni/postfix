@@ -367,3 +367,7 @@ Postfix  Postfix legacy TLS Support
 enhanced status code and text format 45 number number text 
 opportunistic  opportunistic starttls
  li The general format is tls feature feature 
+ li p The general format is tt tls feature feature tt 
+ li p When a feature is enclosed in tt tt and tt tt 
+ li p When tt tt is prepended to a feature the policy
+ tt none tt tt may tt tt encrypt tt etc Other

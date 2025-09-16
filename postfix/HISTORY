@@ -29787,27 +29787,37 @@ NONPROD CODE
 	connection requirements. Files: smtp/smtp.h, smtp/smtp_key.c,
 	smtp_proto.c, smtp/smtp_trouble.c.
 
-	Completed 20250912: smtp_log_tls_feature_status logging now
+	Completed 20250914: smtp_log_tls_feature_status logging now
 	shows the initial and final security levels for a relaxed
 	feature, for example dane:encrypt when opportunistic 'dane'
 	is downgraded to 'encrypt' after all TLSA records were found
 	to be unusable. Files: proto/postconf.proto, global/log_adhoc.c,
-	global/tls_stats.c, global/tls_stats.h, smtp/smtp.h,
-	smtp/smtp_connect.c, smtp/smtp_proto.c.
+	global/pol_stats.c, global/pol_stats.h, global/pol_stats_test.c,
+	smtp/smtp.h, smtp/smtp_connect.c, smtp/smtp_proto.c.
+
+	Completed 20250916: support for a "Require-TLS-ESMTP: yes"
+	header to propagate an ESMTP REQUIRETLS request through a
+	FILTER_README or SMTPD_PROXY_README style content filter.
+	This feature is enabled by default with "requiretls_esmtp_header
+	= yes". The Require-TLS-ESMTP header will be visible to
+	local and remote recipients. This feature can safely be
+	disabled when a configuration does not use REQUIRETLS, or
+	does not use FILTER_README or SMTPD_PROXY_README style
+	content filters.
+
+	Completed 20250916: reverted sendmail/pipe support to
+	receive/emit '-Orequiretls=yes' on the command line, and
+	to propagate that information from sendmail in a preliminary
+	SIZE queue file record. Files: global/rec_type.h,
+	sendmail/sendmail.c, pipe/pipe.c, postcat/postcat.c,
+	showq/showq.c.
 
 TODO
 
+	Make 'Require-TLS-ESMTP' work with smtpd_proxy_filter.
+
 	Maybe log "server announces REQUIRETLS" if we're not
 	enforcing REQUIRETLS.
-
-	Remove $requiretls from pipe daemon?
-
-	Add support to propagate REQUIRETLS (Not: TLS-Required:)
-	header through cleanup to queue files.
-
-	Encapsulate the sendopts-to-cleanup-flags mapping.
-
-	Postfix sendmail -O TlsRequired option?
 
 	What REQUIRETLS expectations can we enforce when delivering
 	over a UNIX-domain channel? The SMTP/LMTP client currently

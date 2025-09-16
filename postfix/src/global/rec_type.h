@@ -110,7 +110,7 @@
  /*
   * The subset of inputs that the postdrop command allows.
   */
-#define REC_TYPE_POST_ENVELOPE	"MCFSRVAin"
+#define REC_TYPE_POST_ENVELOPE	"MFSRVAin"
 #define REC_TYPE_POST_CONTENT	"XLN"
 #define REC_TYPE_POST_EXTRACT	"EAR"
 

@@ -12,7 +12,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *recipient;
 /*	const char *relay;
-/*	const TLS_STATS *tstats;
+/*	const POL_STATS *tstats;
 /*	DSN	*dsn;
 /*	int	verify_status;
 /* DESCRIPTION
@@ -97,7 +97,7 @@
 
 int     verify_append(const char *queue_id, MSG_STATS *stats,
 		              RECIPIENT *recipient, const char *relay,
-		              const TLS_STATS *tstats, DSN *dsn,
+		              const POL_STATS *tstats, DSN *dsn,
 		              int vrfy_stat)
 {
     int     req_stat;

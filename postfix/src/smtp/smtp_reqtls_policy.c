@@ -141,7 +141,6 @@ SMTP_REQTLS_POLICY *smtp_reqtls_policy_parse(const char *origin,
 int     smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *intern_policy,
 				        const char *nexthop_name)
 {
-    const char *myname = "smtp_reqtls_policy_eval";
     char  **cpp;
     DICT   *dict;
     SMTP_REQTLS_POLICY *argv;
@@ -166,7 +165,7 @@ int     smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *intern_policy,
 	    return (SMTP_REQTLS_POLICY_ACT_DISABLE);
 	} else if (strchr(item, ':') != 0) {
 	    if ((dict = dict_handle(item)) == 0)
-		msg_panic("%s: unexpected dictionary: %s", myname, item);
+		msg_panic("%s: unexpected dictionary: %s", __func__, item);
 	    for (name = nexthop_name; name != 0; name = next) {
 		if ((dict_val = dict_get(dict, name)) != 0) {
 		    /* Simple atom. Avoid four malloc() and free() calls. */
@@ -204,4 +203,22 @@ int     smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *intern_policy,
     if (msg_verbose)
 	msg_info("origin=%s name=%s - no match", origin, nexthop_name);
     return (SMTP_REQTLS_POLICY_ACT_OPP_TLS);
+}
+
+/* smtp_reqtls_policy_free - release storage for policy and lookup tables */
+
+void    smtp_reqtls_policy_free(SMTP_REQTLS_POLICY *intern_policy)
+{
+    char  **cpp;
+    DICT   *dict;
+    const char *item;
+
+    for (cpp = intern_policy->argv + 1; (item = *cpp) != 0; cpp++) {
+	if (strchr(item, ':') != 0) {
+	    if ((dict = dict_handle(item)) == 0)
+		msg_panic("%s: unexpected dictionary: %s", __func__, item);
+	    dict_unregister(item);
+	}
+    }
+    argv_free(intern_policy);
 }

@@ -20,7 +20,7 @@
   * External interface.
   */
 extern int trace_append(int, const char *, MSG_STATS *, RECIPIENT *,
-			        const char *, const TLS_STATS *, DSN *);
+			        const char *, const POL_STATS *, DSN *);
 extern int trace_flush(int, const char *, const char *, const char *,
 		               const char *, const char *, int);
 

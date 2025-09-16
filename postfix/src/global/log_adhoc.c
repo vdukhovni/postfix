@@ -11,7 +11,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *recipient;
 /*	const char *relay;
-/*	const TLS_STATS *tstats;
+/*	const POL_STATS *tstats;
 /*	DSN *dsn;
 /*	const char *status;
 /* DESCRIPTION
@@ -77,7 +77,7 @@
 #include <log_adhoc.h>
 #include <mail_params.h>
 #include <info_log_addr_form.h>
-#include <tls_stats.h>
+#include <pol_stats.h>
 
  /*
   * Don't use "struct timeval" for time differences; use explicit signed
@@ -92,7 +92,7 @@ typedef struct {
 /* log_adhoc - ad-hoc logging */
 
 void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
-		          const char *relay, const TLS_STATS *tstats,
+		          const char *relay, const POL_STATS *tstats,
 		          DSN *dsn, const char *status)
 {
     static VSTRING *buf;
@@ -218,36 +218,12 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
     PRETTY_FORMAT(buf, "/", xdelay);
 
     /*
-     * Optional: TLS per-feature status summary. TODO(wietse) move this to
-     * tls_stats.c.
+     * Optional: TLS per-feature status summary.
      */
 #ifdef USE_TLS
-    if (tstats && tls_stats_used(tstats)) {
-	int     idx;
-	const TLS_STAT *tstat;
-	int     field_count = 0;
-
+    if (tstats && pol_stats_used(tstats)) {
 	vstring_sprintf_append(buf, ", tls=");
-	for (idx = 0; idx < TLS_STATS_SIZE; idx++) {
-	    tstat = tls_stat_access(tstats, idx);
-	    if (tstat->status == TLS_STAT_INACTIVE)
-		continue;
-	    if (field_count > 0)
-		vstring_strcat(buf, "/");
-	    if (tstat->status == TLS_STAT_VIOLATION)
-		vstring_strcat(buf, "!");
-	    if (tstat->enforce == TLS_STAT_ENF_RELAXED)
-		vstring_strcat(buf, "(");
-	    vstring_strcat(buf, tstat->target_name);
-	    if (tstat->final_name != 0 
-                && strcmp(tstat->target_name, tstat->final_name) != 0)
-		vstring_sprintf_append(buf, ":%s", (tstat)->final_name);
-	    if (tstat->enforce == TLS_STAT_ENF_RELAXED)
-		vstring_strcat(buf, ")");
-	    if (tstat->status == TLS_STAT_UNDECIDED)
-		vstring_strcat(buf, "?");
-	    field_count += 1;
-	}
+	pol_stats_format(buf, tstats);
     }
 #endif
 

@@ -529,12 +529,12 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_reqtls(state->tls_stats,
 					    SMTP_TLS_STAT_NAME_REQTLS,
-					    TLS_STAT_VIOLATION);
-	    dsb_simple(why, "5.7.10", "REQUIRETLS Failure: sender "
-		       "requested REQUIRETLS, but my configured TLS "
-		       "security level '%s' disables certificate "
-		       "matching. The last attempted server was %s",
-		       str_tls_level(tls->level), STR(iter->host));
+					    POL_STAT_VIOLATION);
+	    dsb_simple(why, "5.7.10", "Sender requested REQUIRETLS, "
+		       "but my configured TLS security level '%s' "
+		       "disables certificate matching. The last "
+		       "attempted server was %s", str_tls_level(tls->level),
+		       STR(iter->host));
 	    return (0);
 	}
 	break;
@@ -543,12 +543,12 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_reqtls(state->tls_stats,
 					    SMTP_TLS_STAT_NAME_REQTLS,
-					    TLS_STAT_VIOLATION);
-	    dsb_simple(why, "5.7.10", "REQUIRETLS Failure: sender "
-		       "requested REQUIRETLS, but my configured TLS "
-		       "security level '%s' disables encryption. The "
-		       "last attempted server was %s",
-		       str_tls_level(tls->level), STR(iter->host));
+					    POL_STAT_VIOLATION);
+	    dsb_simple(why, "5.7.10", "Sender requested REQUIRETLS, "
+		       "but my configured TLS security level '%s' "
+		       "disables encryption. The last attempted "
+		       "server was %s", str_tls_level(tls->level),
+		       STR(iter->host));
 	    return (0);
 	} else if (TLS_MUST_MATCH(tls->level) == 0) {
 	    msg_info("%s: REQUIRETLS Debug: sender requested "
@@ -563,9 +563,9 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
     case SMTP_REQTLS_POLICY_ACT_DISABLE:
 	break;
     default:
-	dsb_simple(why, "4.7.10", "REQUIRETLS Failure: policy "
-		   "configuration error. The last attempted "
-		   "server was %s", STR(iter->host));
+	dsb_simple(why, "4.7.10", "REQUIRETLS policy configuration "
+		   "error. The last attempted server was %s",
+		   STR(iter->host));
 	return (0);
     }
 
@@ -1196,16 +1196,24 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		/* XXX Assume there is no code at the end of this loop. */
 	    }
 	    if (state->tls_stats) {
-		tls_stats_revert(state->tls_stats);
+		pol_stats_revert(state->tls_stats);
 		smtp_tls_stat_activate_sec_level(state->tls_stats,
-						 state->tls->level,
-						 TLS_STAT_ENF_FULL);
+						 state->tls->level);
 		if (state->reqtls_level > SMTP_REQTLS_POLICY_ACT_DISABLE)
 		    smtp_tls_stat_activate_reqtls(state->tls_stats,
 						  SMTP_TLS_STAT_NAME_REQTLS,
 		     state->reqtls_level == SMTP_REQTLS_POLICY_ACT_ENFORCE);
 	    }
-	    /* Disable TLS when retrying after a handshake failure */
+
+	    /*
+	     * Disable TLS when retrying after a handshake failure. This must
+	     * never happen when TLS is required. See PLAINTEXT_FALLBACK_OK
+	     * macros.
+	     * 
+	     * By dropping the TLS level after smtp_get_effective_tls_level()
+	     * and smtp_tls_stat_activate_*(), we will properly record the
+	     * fallback for the TLS level etc. in TLS status logging.
+	     */
 	    if (retry_plain) {
 		state->tls->level = TLS_LEV_NONE;
 		retry_plain = 0;

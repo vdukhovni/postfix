@@ -21,9 +21,9 @@
   */
 typedef ARGV SMTP_REQTLS_POLICY;
 
-#define smtp_reqtls_policy_free argv_free
 extern SMTP_REQTLS_POLICY *smtp_reqtls_policy_parse(const char *, const char *);
 extern int smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *, const char *);
+extern void smtp_reqtls_policy_free(SMTP_REQTLS_POLICY *);
 
 #define SMTP_REQTLS_POLICY_NAME_ENFORCE		"enforce"
 #define SMTP_REQTLS_POLICY_NAME_OPP_TLS		"opportunistic+starttls"

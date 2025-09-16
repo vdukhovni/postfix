@@ -22,13 +22,13 @@
 #include <recipient_list.h>
 #include <dsn.h>
 #include <msg_stats.h>
-#include <tls_stats.h>
+#include <pol_stats.h>
 
  /*
   * Client interface.
   */
 extern void log_adhoc(const char *, MSG_STATS *, RECIPIENT *, const char *,
-		              const TLS_STATS *, DSN *, const char *);
+		              const POL_STATS *, DSN *, const char *);
 
 /* LICENSE
 /* .ad

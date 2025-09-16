@@ -38,7 +38,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	info_log_addr_form.c sasl_mech_filter.c login_sender_match.c \
 	test_main.c compat_level.c config_known_tcp_ports.c \
 	hfrom_format.c rfc2047_code.c ascii_header_text.c sendopts.c \
-	tls_stats.c
+	pol_stats.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -78,7 +78,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	info_log_addr_form.o sasl_mech_filter.o login_sender_match.o \
 	test_main.o compat_level.o config_known_tcp_ports.o \
 	hfrom_format.o rfc2047_code.o ascii_header_text.o sendopts.o \
-	tls_stats.o
+	pol_stats.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -116,8 +116,9 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	info_log_addr_form.h sasl_mech_filter.h login_sender_match.h \
 	test_main.h compat_level.h config_known_tcp_ports.h \
 	hfrom_format.h rfc2047_code.h ascii_header_text.h sendopts.h \
-	tls_stats.h
-TESTSRC	= rec2stream.c stream2rec.c recdump.c
+	pol_stats.h
+TESTSRC	= rec2stream.c stream2rec.c recdump.c dict_sqlite_test.c \
+	ehlo_mask_test.c haproxy_srvr_test.c sendopts_test.c pol_stats_test.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 INCL	=
@@ -134,7 +135,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	fold_addr smtp_reply_footer mail_addr_map normalize_mailhost_addr \
 	haproxy_srvr_test map_search delivered_hdr login_sender_match \
 	compat_level config_known_tcp_ports hfrom_format rfc2047_code \
-	ascii_header_text sendopts_test dict_sqlite_test esmtp_verb_test
+	ascii_header_text sendopts_test dict_sqlite_test pol_stats_test
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
@@ -415,6 +416,10 @@ dict_sqlite_test: dict_sqlite_test.c dict_sqlite.o $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c dict_sqlite.o $(LIB) $(LIBS) \
 	    $(SYSLIBS) $(AUXLIBS_SQLITE)
 
+pol_stats_test: pol_stats_test.c pol_stats.o $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c pol_stats.o $(LIB) $(LIBS) \
+	    $(SYSLIBS)
+
 config_known_tcp_ports: config_known_tcp_ports.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
@@ -428,7 +433,7 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	normalize_mailhost_addr_test test_haproxy_srvr map_search_test \
 	delivered_hdr_test login_sender_match_test compat_level_test \
 	config_known_tcp_ports_test hfrom_format_test rfc2047_code_test \
-	ascii_header_text_test test_sendopts test_dict_sqlite
+	ascii_header_text_test test_sendopts test_dict_sqlite test_pol_stats
 
 mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3 mime_garb4
@@ -802,6 +807,9 @@ test_sendopts: update sendopts_test
 test_dict_sqlite: update dict_sqlite_test
 	$(SHLIB_ENV) $(VALGRIND) ./dict_sqlite_test
 
+test_pol_stats: update pol_stats_test
+	$(SHLIB_ENV) $(VALGRIND) ./pol_stats_test
+
 clean:
 	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAPS)
 
@@ -838,8 +846,8 @@ abounce.o: dsn_buf.h
 abounce.o: mail_params.h
 abounce.o: mail_proto.h
 abounce.o: msg_stats.h
+abounce.o: pol_stats.h
 abounce.o: recipient_list.h
-abounce.o: tls_stats.h
 addr_match_list.o: ../../include/argv.h
 addr_match_list.o: ../../include/check_arg.h
 addr_match_list.o: ../../include/match_list.h
@@ -921,9 +929,9 @@ bounce.o: log_adhoc.h
 bounce.o: mail_params.h
 bounce.o: mail_proto.h
 bounce.o: msg_stats.h
+bounce.o: pol_stats.h
 bounce.o: rcpt_print.h
 bounce.o: recipient_list.h
-bounce.o: tls_stats.h
 bounce.o: trace.h
 bounce.o: verify.h
 bounce_log.o: ../../include/attr.h
@@ -1112,9 +1120,9 @@ defer.o: mail_params.h
 defer.o: mail_proto.h
 defer.o: mail_queue.h
 defer.o: msg_stats.h
+defer.o: pol_stats.h
 defer.o: rcpt_print.h
 defer.o: recipient_list.h
-defer.o: tls_stats.h
 defer.o: trace.h
 defer.o: verify.h
 deliver_completed.o: ../../include/check_arg.h
@@ -1160,9 +1168,9 @@ deliver_pass.o: info_log_addr_form.h
 deliver_pass.o: mail_params.h
 deliver_pass.o: mail_proto.h
 deliver_pass.o: msg_stats.h
+deliver_pass.o: pol_stats.h
 deliver_pass.o: rcpt_print.h
 deliver_pass.o: recipient_list.h
-deliver_pass.o: tls_stats.h
 deliver_request.o: ../../include/attr.h
 deliver_request.o: ../../include/check_arg.h
 deliver_request.o: ../../include/htable.h
@@ -1674,8 +1682,8 @@ log_adhoc.o: log_adhoc.c
 log_adhoc.o: log_adhoc.h
 log_adhoc.o: mail_params.h
 log_adhoc.o: msg_stats.h
+log_adhoc.o: pol_stats.h
 log_adhoc.o: recipient_list.h
-log_adhoc.o: tls_stats.h
 login_sender_match.o: ../../include/argv.h
 login_sender_match.o: ../../include/check_arg.h
 login_sender_match.o: ../../include/dict.h
@@ -2433,6 +2441,26 @@ pipe_command.o: mail_params.h
 pipe_command.o: pipe_command.c
 pipe_command.o: pipe_command.h
 pipe_command.o: sys_exits.h
+pol_stats.o: ../../include/check_arg.h
+pol_stats.o: ../../include/msg.h
+pol_stats.o: ../../include/mymalloc.h
+pol_stats.o: ../../include/sys_defs.h
+pol_stats.o: ../../include/vbuf.h
+pol_stats.o: ../../include/vstring.h
+pol_stats.o: mail_params.h
+pol_stats.o: pol_stats.c
+pol_stats.o: pol_stats.h
+pol_stats_test.o: ../../include/check_arg.h
+pol_stats_test.o: ../../include/msg.h
+pol_stats_test.o: ../../include/msg_vstream.h
+pol_stats_test.o: ../../include/stringops.h
+pol_stats_test.o: ../../include/sys_defs.h
+pol_stats_test.o: ../../include/vbuf.h
+pol_stats_test.o: ../../include/vstream.h
+pol_stats_test.o: ../../include/vstring.h
+pol_stats_test.o: mail_params.h
+pol_stats_test.o: pol_stats.h
+pol_stats_test.o: pol_stats_test.c
 post_mail.o: ../../include/attr.h
 post_mail.o: ../../include/check_arg.h
 post_mail.o: ../../include/events.h
@@ -2584,9 +2612,9 @@ reject_deliver_request.o: dsn.h
 reject_deliver_request.o: dsn_buf.h
 reject_deliver_request.o: mail_params.h
 reject_deliver_request.o: msg_stats.h
+reject_deliver_request.o: pol_stats.h
 reject_deliver_request.o: recipient_list.h
 reject_deliver_request.o: reject_deliver_request.c
-reject_deliver_request.o: tls_stats.h
 remove.o: ../../include/check_arg.h
 remove.o: ../../include/sys_defs.h
 remove.o: ../../include/vbuf.h
@@ -2769,10 +2797,10 @@ sent.o: dsn_util.h
 sent.o: log_adhoc.h
 sent.o: mail_params.h
 sent.o: msg_stats.h
+sent.o: pol_stats.h
 sent.o: recipient_list.h
 sent.o: sent.c
 sent.o: sent.h
-sent.o: tls_stats.h
 sent.o: trace.h
 sent.o: verify.h
 server_acl.o: ../../include/argv.h
@@ -2898,12 +2926,6 @@ timed_ipc.o: ../../include/vstream.h
 timed_ipc.o: mail_params.h
 timed_ipc.o: timed_ipc.c
 timed_ipc.o: timed_ipc.h
-tls_stats.o: ../../include/msg.h
-tls_stats.o: ../../include/mymalloc.h
-tls_stats.o: ../../include/sys_defs.h
-tls_stats.o: mail_params.h
-tls_stats.o: tls_stats.c
-tls_stats.o: tls_stats.h
 tok822_find.o: ../../include/check_arg.h
 tok822_find.o: ../../include/sys_defs.h
 tok822_find.o: ../../include/vbuf.h
@@ -2983,9 +3005,9 @@ trace.o: log_adhoc.h
 trace.o: mail_params.h
 trace.o: mail_proto.h
 trace.o: msg_stats.h
+trace.o: pol_stats.h
 trace.o: rcpt_print.h
 trace.o: recipient_list.h
-trace.o: tls_stats.h
 trace.o: trace.c
 trace.o: trace.h
 user_acl.o: ../../include/argv.h
@@ -3033,8 +3055,8 @@ verify.o: log_adhoc.h
 verify.o: mail_params.h
 verify.o: mail_proto.h
 verify.o: msg_stats.h
+verify.o: pol_stats.h
 verify.o: recipient_list.h
-verify.o: tls_stats.h
 verify.o: verify.c
 verify.o: verify.h
 verify.o: verify_clnt.h

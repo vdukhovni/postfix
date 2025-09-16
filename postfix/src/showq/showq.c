@@ -213,8 +213,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 		arrival_time = atol(start);
 	    break;
 	case REC_TYPE_SIZE:
-	    /* Maildrop files may have a preliminary SIZE record. */
-	    if (msg_size_ok == 0 && strcmp(queue, MAIL_QUEUE_MAILDROP) != 0) {
+	    if (msg_size_ok == 0) {
 		msg_size_ok = (start[strspn(start, "0123456789 ")] == 0
 			       && (msg_size = atol(start)) >= 0);
 		if (msg_size_ok == 0) {

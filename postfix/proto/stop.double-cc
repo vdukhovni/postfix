@@ -347,3 +347,5 @@ ossl_digest_new  ossl_digest_new returns NULL after error ossl_digest_data
  Richard Hansen rhansen rhansen org 
  long long or long integer 
 void  void tls_stats_revert TLS_STATS tstats 
+void  void pol_stats_revert POL_STATS pstats 
+ feature feature etc 

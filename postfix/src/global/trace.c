@@ -12,7 +12,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
-/*	const TLS_STATS *tstats;
+/*	const POL_STATS *tstats;
 /*	DSN	*dsn;
 /*
 /*	int     trace_flush(flags, queue, id, encoding, sender,
@@ -116,7 +116,7 @@
 
 int     trace_append(int flags, const char *id, MSG_STATS *stats,
 		             RECIPIENT *rcpt, const char *relay,
-		             const TLS_STATS *tstats, DSN *dsn)
+		             const POL_STATS *tstats, DSN *dsn)
 {
     VSTRING *why = vstring_alloc(100);
     DSN     my_dsn = *dsn;

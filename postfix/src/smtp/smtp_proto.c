@@ -676,29 +676,29 @@ int     smtp_helo(SMTP_STATE *state)
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_reqtls(state->tls_stats,
 					    SMTP_TLS_STAT_NAME_REQTLS,
-					    TLS_STAT_COMPLIANT);
+					    POL_STAT_COMPLIANT);
 	} else if (state->reqtls_level == SMTP_REQTLS_POLICY_ACT_ENFORCE) {
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_reqtls(state->tls_stats,
 					    SMTP_TLS_STAT_NAME_REQTLS,
-					    TLS_STAT_VIOLATION);
+					    POL_STAT_VIOLATION);
 	    return (smtp_misc_fail(state, SMTP_MISC_FAIL_DONT_CACHE
 				   | SMTP_MISC_FAIL_SOFT_NON_FINAL,
 				   DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "5.7.30"),
-				   "REQUIRETLS Failure: sender "
-				   "requested REQUIRETLS, but no "
-				   "server was found that supports "
-				   "REQUIRETLS. The last attempted "
-				   "server was %s", session->namaddr));
+				   "Sender requested REQUIRETLS, "
+				   "but no server was found that "
+				   "supports REQUIRETLS. The last "
+				   "attempted server was %s",
+				   session->namaddr));
 	} else {
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_reqtls(state->tls_stats,
 					    SMTP_TLS_STAT_NAME_NONE,
-					    TLS_STAT_COMPLIANT);
-	    msg_info("%s: REQUIRETLS Debug: sender requested REQUIRETLS, "
-		     "but REQUIRETLS support was not offered by host "
-		     "%s", request->queue_id, session->namaddr);
+					    POL_STAT_COMPLIANT);
+	    msg_info("%s: Sender requested REQUIRETLS, but REQUIRETLS "
+		     "support was not offered by host %s",
+		     request->queue_id, session->namaddr);
 	}
     }
 
@@ -860,13 +860,13 @@ int     smtp_helo(SMTP_STATE *state)
 		    if (state->tls_stats)
 			smtp_tls_stat_decide_reqtls(state->tls_stats,
 						  SMTP_TLS_STAT_NAME_REQTLS,
-						    TLS_STAT_VIOLATION);
+						    POL_STAT_VIOLATION);
 		}
 		if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->tls->level)) {
 		    if (state->tls_stats)
 			smtp_tls_stat_decide_sec_level(state->tls_stats,
 						       state->tls->level,
-						       TLS_STAT_VIOLATION);
+						       POL_STAT_VIOLATION);
 		}
 		/* Then, REQUIRETLS failure must take precedence over other. */
 		if (TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level)) {
@@ -874,8 +874,7 @@ int     smtp_helo(SMTP_STATE *state)
 					   | SMTP_MISC_FAIL_SOFT_NON_FINAL,
 					   DSN_BY_LOCAL_MTA,
 					   SMTP_RESP_FAKE(&fake, "5.7.10"),
-					   "REQUIRETLS Failure: "
-					   "sender requested REQUIRETLS, "
+					   "Sender requested REQUIRETLS, "
 					   "but host %s refused to "
 					   "start TLS: %s", session->namaddr,
 					   translit(resp->str, "\n", " ")));
@@ -915,21 +914,20 @@ int     smtp_helo(SMTP_STATE *state)
 		    if (state->tls_stats)
 			smtp_tls_stat_decide_reqtls(state->tls_stats,
 						  SMTP_TLS_STAT_NAME_REQTLS,
-						    TLS_STAT_VIOLATION);
+						    POL_STAT_VIOLATION);
 		}
 		if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->tls->level))
 		    if (state->tls_stats)
 			smtp_tls_stat_decide_sec_level(state->tls_stats,
 						       state->tls->level,
-						       TLS_STAT_VIOLATION);
+						       POL_STAT_VIOLATION);
 		/* Then, REQUIRETLS failure must take precedence over other. */
 		if (TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level))
 		    return (smtp_misc_fail(state, SMTP_MISC_FAIL_DONT_CACHE
 					   | SMTP_MISC_FAIL_SOFT_NON_FINAL,
 					   DSN_BY_LOCAL_MTA,
 					   SMTP_RESP_FAKE(&fake, "5.7.30"),
-					   "REQUIRETLS Failure: "
-					   "sender requested REQUIRETLS, "
+					   "Sender requested REQUIRETLS, "
 					   "but TLS service was not "
 					   "offered by host %s",
 					   session->namaddr));
@@ -953,7 +951,11 @@ int     smtp_helo(SMTP_STATE *state)
 	/* Continue in plain-text mode. */
 	if (state->tls_stats) {
 	    smtp_tls_stat_decide_sec_level(state->tls_stats, TLS_LEV_NONE,
-					   TLS_STAT_COMPLIANT);
+					   POL_STAT_COMPLIANT);
+	    if (state->reqtls_level > SMTP_REQTLS_POLICY_ACT_DISABLE)
+		smtp_tls_stat_decide_reqtls(state->tls_stats,
+					    SMTP_TLS_STAT_NAME_NONE,
+					    POL_STAT_COMPLIANT);
 	}
     }
 #endif
@@ -1286,7 +1288,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_sec_level(state->tls_stats,
 					       session->tls_context->level,
-					       TLS_STAT_VIOLATION);
+					       POL_STAT_VIOLATION);
 
 	    /*
 	     * When the sender requested REQUIRETLS, and REQUIRETLS is
@@ -1297,15 +1299,14 @@ static int smtp_start_tls(SMTP_STATE *state)
 		if (state->tls_stats)
 		    smtp_tls_stat_decide_reqtls(state->tls_stats,
 						SMTP_TLS_STAT_NAME_REQTLS,
-						TLS_STAT_VIOLATION);
+						POL_STAT_VIOLATION);
 		return (smtp_misc_fail(state, SMTP_MISC_FAIL_DONT_CACHE
 				       | SMTP_MISC_FAIL_SOFT_NON_FINAL,
 				       DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "5.7.10"),
-				       "REQUIRETLS Failure: sender "
-				       "requested REQUIRETLS, but "
-				       "no %s server certificate was "
-				       "found. The last attempted "
+				       "Sender requested REQUIRETLS, "
+				       "but no %s server certificate "
+				       "was found. The last attempted "
 				       "server was %s", trusted ?
 				       "matching" : "trusted",
 				       session->namaddr));
@@ -1313,7 +1314,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 		if (state->tls_stats)
 		    smtp_tls_stat_decide_reqtls(state->tls_stats,
 						SMTP_TLS_STAT_NAME_REQTLS,
-						TLS_STAT_COMPLIANT);
+						POL_STAT_COMPLIANT);
 	    }
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
@@ -1339,7 +1340,7 @@ static int smtp_start_tls(SMTP_STATE *state)
     if (state->tls_stats)
 	smtp_tls_stat_decide_sec_level(state->tls_stats,
 				       session->tls_context->level,
-				       TLS_STAT_COMPLIANT);
+				       POL_STAT_COMPLIANT);
 
     /*
      * At this point we have to re-negotiate the "EHLO" to reget the

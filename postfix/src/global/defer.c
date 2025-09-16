@@ -12,7 +12,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
-/*	const TLS_STATS *tstats;
+/*	const POL_STATS *tstats;
 /*	DSN	*dsn;
 /*
 /*	int	defer_flush(flags, queue, id, encoding, sendopts, sender,
@@ -51,7 +51,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
-/*	const TLS_STATS *tstats;
+/*	const POL_STATS *tstats;
 /*	DSN	*dsn;
 /* INTERNAL API
 /*	int	defer_append_intern(flags, id, stats, rcpt, relay, tstats, dsn)
@@ -60,7 +60,7 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
-/*	const TLS_STATS *tstats;
+/*	const POL_STATS *tstats;
 /*	DSN	*dsn;
 /* DESCRIPTION
 /*	This module implements a client interface to the defer service,
@@ -201,7 +201,7 @@
 
 int     defer_append(int flags, const char *id, MSG_STATS *stats,
 		             RECIPIENT *rcpt, const char *relay,
-		             const TLS_STATS *tstats, DSN *dsn)
+		             const POL_STATS *tstats, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     DSN    *dsn_res;
@@ -232,7 +232,7 @@ int     defer_append(int flags, const char *id, MSG_STATS *stats,
 
 int     defer_append_intern(int flags, const char *id, MSG_STATS *stats,
 			            RECIPIENT *rcpt, const char *relay,
-			            const TLS_STATS *tstats, DSN *dsn)
+			            const POL_STATS *tstats, DSN *dsn)
 {
     const char *rcpt_domain;
     DSN     my_dsn = *dsn;
@@ -368,7 +368,7 @@ int     defer_one(int flags, const char *queue, const char *id,
 		          const char *encoding, int sendopts,
 		          const char *sender, const char *dsn_envid,
 		          int dsn_ret, MSG_STATS *stats, RECIPIENT *rcpt,
-	               const char *relay, const TLS_STATS *tstats, DSN *dsn)
+	               const char *relay, const POL_STATS *tstats, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     DSN    *dsn_res;

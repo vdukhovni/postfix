@@ -20,13 +20,13 @@
   * Global library.
   */
 #include <deliver_request.h>
-#include <tls_stats.h>
+#include <pol_stats.h>
 
  /*
   * External interface.
   */
 extern int verify_append(const char *, MSG_STATS *, RECIPIENT *,
-			         const char *, const TLS_STATS *,
+			         const char *, const POL_STATS *,
 			         DSN *, int);
 
 /* LICENSE
