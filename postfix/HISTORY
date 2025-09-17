@@ -29798,12 +29798,14 @@ NONPROD CODE
 	Completed 20250916: support for a "Require-TLS-ESMTP: yes"
 	header to propagate an ESMTP REQUIRETLS request through a
 	FILTER_README or SMTPD_PROXY_README style content filter.
+	This header is detected or added by the cleanup daemon.
 	This feature is enabled by default with "requiretls_esmtp_header
 	= yes". The Require-TLS-ESMTP header will be visible to
 	local and remote recipients. This feature can safely be
 	disabled when a configuration does not use REQUIRETLS, or
 	does not use FILTER_README or SMTPD_PROXY_README style
-	content filters.
+	content filters. Files: cleanup/cleanup.c,
+	cleanup/cleanup_message.c, global/header_opts.[hc].
 
 	Completed 20250916: reverted sendmail/pipe support to
 	receive/emit '-Orequiretls=yes' on the command line, and
@@ -29812,69 +29814,30 @@ NONPROD CODE
 	sendmail/sendmail.c, pipe/pipe.c, postcat/postcat.c,
 	showq/showq.c.
 
+	Completed 20250917: SMTP server support to add a
+	"Require-TLS-ESMTP: yes" header to messages received with
+	REQUIRETLS when they are sent through an SMTPD_PROXY_README
+	style content filter. Files: smtpd/smtpd.c, smtp/smtpd_proto.c.
+
 TODO
 
-	Make 'Require-TLS-ESMTP' work with smtpd_proxy_filter.
+	Maybe log "server announces REQUIRETLS" if we're not enforcing
+	REQUIRETLS.
 
-	Maybe log "server announces REQUIRETLS" if we're not
-	enforcing REQUIRETLS.
+	Maybe add back -Orequiretls=yes|no, and support for preliminary
+	SIZE records in showq and postcat
 
-	What REQUIRETLS expectations can we enforce when delivering
-	over a UNIX-domain channel? The SMTP/LMTP client currently
-	implements the same behavior as for TCP, except that
-	opportunistic TLS is converted into 'none'.
+	Maybe change the default smtp_requiretls_policy to
+	'opportunistic' as it is the risk-free option, if not
+	religiously correct.
 
-	Document how REQUIRETLS works (or does not) with external
-	content filters.
+	Decide whether or how to enable REQUIRETLS for non-SMTP
+	inputs: qmqpd.c ot pickup (sendmail). The smtputf8 auto-detect
+	strategy is not applicable because REQUIRETLS trumps
+	"TLS-Required: no". It should be easy for sendmail submissions
+	to choose whether TLS shall be required or optional.
 
-	- REQUIRETLS will not affect Milter-based content filters,
-	  assuming that they don't expose message content via some
-	  side channel.
+	Add more cross-links to REQUIRETLS features in the postconf(5)
+	manpage.
 
-	- REQUIRETLS can work with smtpd_proxy_filter as long as
-	  - the Postfix SMTP server passes the entire Postfix SMTP
-	    client's MAIL FROM command line through the filter to
-	    the Postfix SMTP server after the proxy filter,
-	  - the post-filter Postfix SMTP server allows REQUIRETLS
-	    in a plaintext session.
-	  The Postfix proxy filter client does not need to require
-	  REQUIRETLS (or SMTPUTF8) announcements in the filter's
-	  EHLO response.
-
-	- REQUIRETLS can work with a local SMTP-based after-queue
-	  content filters as long as
-	  - the filter announces REQUIRETLS in the EHLO response
-	    (this could be 'always', or copied from the after-filter
-	    Postfix SMTP server's EHLO response),
-	  - the filter passes the entire MAIL FROM command from the
-	    before-filter Postfix SMTP client to the after-filter
-	    Postfix SMTP server,
-	  - the post-filter Postfix SMTP server allows MAIL FROM
-	    with REQUIRETLS in a plaintext session.
-	  Apart from that, the content filter does not need to
-	  'know' that REQUIRETLS is active (assuming that it does
-	  not leak message content through some side channel.
-
-	- REQUIRETLS can work with pipe(8)-filter-sendmail(1)
-	  after-queue content filters, by specifying a pipe(8) macro
-	  ${requiretls} which expands to a suitable sendmail(1)
-	  command-line option. Maybe we can also make this work
-	  with a REQUIRETLS environment variable (requires change
-	  to the (Postfix sendmail) import_environment list.
-
-	- The Postfix LMTP client when run with the -X option will
-	  not require that the LMTP server announces REQUIRETLS
-	  support.
-
-	- Perimeter MTA configuration: disable REQUIRETLS (or
-	  REQUIRETLS enforcement) on the inbound relay transport
-	  when internal infrastructure may not be suitable for
-	  REQUIRETLS enforcement.
-
-	If a message contains "TLS-Required: no", should a bounce
-	message also contain this header?
-
-	Ditto for "tls_required_enable = no" and "TLS-Required:
-	no". The header is provided by the sender, and enforcement
-	is up the Postfix SMTP client.
-
+	Complete REQIRETLS_README.

@@ -672,7 +672,7 @@ static void cleanup_header_callback(void *context, int header_class,
 		cp++;
 	    if (strcasecmp(cp, "yes") == 0) {
 		state->sendopts |= SOPT_REQUIRETLS_ESMTP;
-		state->valid_reqtls_esmtp_hdr += 1;
+		state->reqtls_esmtp_hdr_seen += 1;
 	    }
 	}
 	if (CLEANUP_OUT_OK(state)) {
@@ -914,7 +914,7 @@ static void cleanup_header_done_callback(void *context)
      */
     if (var_reqtls_enable && var_reqtls_esmtp_hdr
 	&& (state->sendopts & SOPT_REQUIRETLS_ESMTP)
-	&& state->valid_reqtls_esmtp_hdr == 0)
+	&& state->reqtls_esmtp_hdr_seen == 0)
 	cleanup_out_format(state, REC_TYPE_NORM, "Require-TLS-ESMTP: yes");
 
     /*

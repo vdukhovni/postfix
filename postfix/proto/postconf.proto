@@ -19988,7 +19988,7 @@ handshake. </dd>
 <p> Record the ESMTP REQUIRETLS request in a "Require-TLS-ESMTP:
 yes" message header. This is needed to propagate the REQUIRETLS
 request through an external content filter that is configured with
-smtp_proxy_filter, with content_filter, or with a FILTER action in
+smtpd_proxy_filter, with content_filter, or with a FILTER action in
 an SMTPD access(5) table, header_checks(5) or body_checks(5). The
 header is not needed with Milter-based content filters. </p>
 

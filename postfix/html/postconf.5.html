@@ -10690,7 +10690,7 @@ no" message header. </p>
 <p> Record the ESMTP REQUIRETLS request in a "Require-TLS-ESMTP:
 yes" message header. This is needed to propagate the REQUIRETLS
 request through an external content filter that is configured with
-smtp_proxy_filter, with <a href="postconf.5.html#content_filter">content_filter</a>, or with a FILTER action in
+<a href="postconf.5.html#smtpd_proxy_filter">smtpd_proxy_filter</a>, with <a href="postconf.5.html#content_filter">content_filter</a>, or with a FILTER action in
 an SMTPD <a href="access.5.html">access(5)</a> table, <a href="header_checks.5.html">header_checks(5)</a> or <a href="header_checks.5.html">body_checks(5)</a>. The
 header is not needed with Milter-based content filters. </p>
 

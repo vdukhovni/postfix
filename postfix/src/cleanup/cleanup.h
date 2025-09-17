@@ -133,7 +133,7 @@ typedef struct CLEANUP_STATE {
      * Internationalization, RequireTLS, etc.
      */
     int     sendopts;			/* what support is desired */
-    int     valid_reqtls_esmtp_hdr;	/* valid Require-TLS-ESMTP header */
+    int     reqtls_esmtp_hdr_seen;	/* valid Require-TLS-ESMTP header */
 } CLEANUP_STATE;
 
  /*

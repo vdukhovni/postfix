@@ -580,10 +580,13 @@ Request that remote SMTP clients send an RFC7250 raw public key
 instead of an X.509 certificate, when asking for or requiring client
 authentication.
 .PP
-Available in Postfix version 3.10 and later:
+Available in Postfix version 3.11 and later:
 .IP "\fBrequiretls_enable (yes)\fR"
 Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
 FROM" command.
+.IP "\fBrequiretls_esmtp_header (yes)\fR"
+Record the ESMTP REQUIRETLS request in a "Require\-TLS\-ESMTP:
+yes" message header.
 .SH "OBSOLETE TLS CONTROLS"
 .na
 .nf
