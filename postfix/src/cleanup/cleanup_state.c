@@ -141,6 +141,7 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->milter_dsn_buf = 0;
     state->free_regions = state->body_regions = state->curr_body_region = 0;
     state->sendopts = 0;
+    state->reqtls_esmtp_hdr_seen = 0;
     return (state);
 }
 

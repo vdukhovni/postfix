@@ -827,6 +827,7 @@ cleanup_api.o: ../../include/msg_stats.h
 cleanup_api.o: ../../include/myflock.h
 cleanup_api.o: ../../include/mymalloc.h
 cleanup_api.o: ../../include/nvtable.h
+cleanup_api.o: ../../include/pol_stats.h
 cleanup_api.o: ../../include/rec_type.h
 cleanup_api.o: ../../include/recipient_list.h
 cleanup_api.o: ../../include/resolve_clnt.h
@@ -901,6 +902,7 @@ cleanup_bounce.o: ../../include/msg_stats.h
 cleanup_bounce.o: ../../include/myflock.h
 cleanup_bounce.o: ../../include/mymalloc.h
 cleanup_bounce.o: ../../include/nvtable.h
+cleanup_bounce.o: ../../include/pol_stats.h
 cleanup_bounce.o: ../../include/rec_attr_map.h
 cleanup_bounce.o: ../../include/rec_type.h
 cleanup_bounce.o: ../../include/recipient_list.h
@@ -1366,6 +1368,7 @@ cleanup_out_recipient.o: ../../include/msg_stats.h
 cleanup_out_recipient.o: ../../include/myflock.h
 cleanup_out_recipient.o: ../../include/mymalloc.h
 cleanup_out_recipient.o: ../../include/nvtable.h
+cleanup_out_recipient.o: ../../include/pol_stats.h
 cleanup_out_recipient.o: ../../include/rec_type.h
 cleanup_out_recipient.o: ../../include/recipient_list.h
 cleanup_out_recipient.o: ../../include/resolve_clnt.h

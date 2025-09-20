@@ -22,12 +22,13 @@
 #include <recipient_list.h>
 #include <dsn.h>
 #include <msg_stats.h>
+#include <pol_stats.h>
 
  /*
   * Client interface.
   */
 extern void log_adhoc(const char *, MSG_STATS *, RECIPIENT *, const char *,
-		              DSN *, const char *);
+		              const POL_STATS *, DSN *, const char *);
 
 /* LICENSE
 /* .ad
@@ -38,6 +39,9 @@ extern void log_adhoc(const char *, MSG_STATS *, RECIPIENT *, const char *,
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 #endif

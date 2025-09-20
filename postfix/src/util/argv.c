@@ -65,6 +65,10 @@
 /*	void	ARGV_FAKE_BEGIN(argv, arg)
 /*	const char *arg;
 /*
+/*	void	ARGV_FAKE2_BEGIN(argv, arg1, arg2)
+/*	const char *arg1;
+/*	const char *arg2;
+/*
 /*	void	ARGV_FAKE_END
 /* DESCRIPTION
 /*	The functions in this module manipulate arrays of string
@@ -134,6 +138,9 @@
 /*	implementation allocates no heap memory and creates no copy
 /*	of the second argument.  ARGV_FAKE_END closes the statement
 /*	block and thereby releases storage.
+/*
+/*	ARGV_FAKE2_BEGIN/END provide the same functionality for a pair
+/*	of strings.
 /* SEE ALSO
 /*	msg(3) diagnostics interface
 /* DIAGNOSTICS

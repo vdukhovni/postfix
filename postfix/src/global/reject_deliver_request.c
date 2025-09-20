@@ -38,6 +38,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
  /*
@@ -95,7 +98,7 @@ int     reject_deliver_request(const char *service, DELIVER_REQUEST *request,
 	    (DEL_REQ_TRACE_FLAGS(request->flags),
 	     request->queue_id,
 	     &request->msg_stats, rcpt,
-	     service, &why->dsn);
+	     service, NO_TLS_STATS, &why->dsn);
 	if (status == 0)
 	    deliver_completed(request->fp, rcpt->offset);
 	result |= status;

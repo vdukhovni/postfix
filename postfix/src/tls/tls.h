@@ -50,7 +50,8 @@
 #define TLS_LEV_VERIFY		7	/* certificate verified */
 #define TLS_LEV_SECURE		8	/* "secure" verification */
 
-#define TLS_REQUIRED(l)		((l) > TLS_LEV_MAY)
+#define TLS_REQUIRED_BY_SECURITY_LEVEL(l) \
+				((l) > TLS_LEV_MAY)
 #define TLS_MUST_MATCH(l)	((l) > TLS_LEV_ENCRYPT)
 #define TLS_MUST_PKIX(l)	((l) >= TLS_LEV_VERIFY)
 #define TLS_OPPORTUNISTIC(l)	((l) == TLS_LEV_MAY || (l) == TLS_LEV_DANE)

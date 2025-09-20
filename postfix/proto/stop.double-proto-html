@@ -365,3 +365,9 @@ Postfix  Postfix legacy TLS Support
  TLSv1 2 with cipher ECDHE RSA AES256 GCM SHA384 256 256 bits 
  The recommended socket location is still to be determined A good socket location would be under the Postfix queue directory for example smtp_tlsrpt_socket_name run tlsrpt tlsrpt sock The advantage of using a relative name is that it
 enhanced status code and text format 45 number number text 
+opportunistic  opportunistic starttls
+ li The general format is tls feature feature 
+ li p The general format is tt tls feature feature tt 
+ li p When a feature is enclosed in tt tt and tt tt 
+ li p When tt tt is prepended to a feature the policy
+ tt none tt tt may tt tt encrypt tt etc Other

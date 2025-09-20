@@ -158,13 +158,12 @@
 /*	This feature is available in Postfix 2.3 and later.
 /* .IP "\fB-n\fR (ignored)"
 /*	Backwards compatibility.
-/* .IP "\fB-oA\fIalias_database\fR"
-/*	Non-default alias database. Specify \fIpathname\fR or
-/*	\fItype\fR:\fIpathname\fR. See \fBpostalias\fR(1) for
-/*	details.
 /* .IP "\fB-O \fIoption=value\fR (ignored)"
 /*	Set the named \fIoption\fR to \fIvalue\fR. Use the equivalent
 /*	configuration parameter in \fBmain.cf\fR instead.
+/* .IP "\fB-oA\fIalias_database\fR"
+/*	Non-default alias database. Specify \fIpathname\fR or
+/*	\fItype\fR:\fIpathname\fR. See \fBpostalias\fR(1) for details.
 /* .IP "\fB-o7\fR (ignored)"
 /* .IP "\fB-o8\fR (ignored)"
 /*	To send 8-bit or binary content, use an appropriate MIME encapsulation

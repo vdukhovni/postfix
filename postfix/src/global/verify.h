@@ -20,12 +20,14 @@
   * Global library.
   */
 #include <deliver_request.h>
+#include <pol_stats.h>
 
  /*
   * External interface.
   */
 extern int verify_append(const char *, MSG_STATS *, RECIPIENT *,
-			         const char *, DSN *, int);
+			         const char *, const POL_STATS *,
+			         DSN *, int);
 
 /* LICENSE
 /* .ad
@@ -36,6 +38,9 @@ extern int verify_append(const char *, MSG_STATS *, RECIPIENT *,
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 #endif
