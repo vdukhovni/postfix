@@ -682,4 +682,13 @@ sample_directory =
 # readme_directory: The location of the Postfix README files.
 #
 readme_directory =
+
+# shlib_directory: The location of the Postfix *.so library files and
+# database plugins.
+shlib_directory =
+
+# meta_directory: The location of non-executable files that are shared
+# between multiple Postfix instances.
+meta_directory = /etc/postfix
+
 inet_protocols = ipv4

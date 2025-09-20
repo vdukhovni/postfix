@@ -296,7 +296,9 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_FROM_PROXY		(1<<22)	/* proxied connection */
 
  /*
-  * Features that passivate under the endpoint.
+  * Features that passivate under the endpoint. Be sure to passivate all
+  * features that are needed in SMTP_KEY_MASK_SCACHE_DEST_LABEL, otherwise a
+  * reused connection may be stored under the wrong key.
   */
 #define SMTP_FEATURE_ENDPOINT_MASK \
 	(~(SMTP_FEATURE_BEST_MX | SMTP_FEATURE_RSET_REJECTED \

@@ -654,11 +654,7 @@ static void cleanup_header_callback(void *context, int header_class,
 		argv_add(state->auto_hdrs, vstring_str(header_buf), ARGV_END);
 	}
 	if (hdr_opts->type == HDR_TLS_REQUIRED && var_tls_required_enable) {
-	    char   *cp = vstring_str(header_buf) + strlen(hdr_opts->name) + 1;
-
-	    while (ISSPACE(*cp))
-		cp++;
-	    if (strcasecmp(cp, "no") == 0)
+	    if (strcasecmp(hdrval, "no") == 0)
 		state->sendopts |= SOPT_REQUIRETLS_HEADER;
 	    else
 		msg_warn("ignoring malformed header: '%.100s'",

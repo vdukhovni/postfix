@@ -29618,3 +29618,22 @@ Apologies for any names omitted.
 	Finally, do not cache a connection when SMTPUTF8 is
 	required but the server does not support that feature.
 	Files: smtp/smtp.h, smtp/smtp_key.c, smtp/smtp_proto.c.
+
+20250919
+
+	Cleanup: unnecessary header parsing code. Viktor Dukhovni.
+	File: cleanup/cleanup_message.c.
+
+	Bugfix (defect introduced: Postfix 3.8, date 20220128): the
+	'postconf -e' output order for new main.cf entries was no
+	longer deterministic. Problem reported by Oleksandr Natalenko,
+	diagnosis by Eray Aslan. File: postconf/postconf_edit.c.
+
+	Add missing meta_directory and shlib_directory settings to
+	the stock main.cf file. Problem diagnosed by Eray Aslan.
+	File: conf/main.cf.
+
+20250920
+
+	Added back a hunk of patch 20250911 that had somehow gone
+	missing. File: smtp/smtp.h.
