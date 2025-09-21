@@ -675,12 +675,14 @@ int     smtp_helo(SMTP_STATE *state)
 	if ((session->features & SMTP_FEATURE_REQTLS) != 0) {
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_reqtls(state->tls_stats,
-					    SMTP_TLS_STAT_NAME_REQTLS,
+				 TLS_CERT_IS_MATCHED(session->tls_context) ?
+					    SMTP_TLS_STAT_NAME_REQTLS :
+					    SMTP_TLS_STAT_NAME_NOCMATCH,
 					    POL_STAT_COMPLIANT);
 	} else if (state->reqtls_level == SMTP_REQTLS_POLICY_ACT_ENFORCE) {
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_reqtls(state->tls_stats,
-					    SMTP_TLS_STAT_NAME_REQTLS,
+					    SMTP_TLS_STAT_NAME_NONE,
 					    POL_STAT_VIOLATION);
 	    return (smtp_misc_fail(state, SMTP_MISC_FAIL_DONT_CACHE
 				   | SMTP_MISC_FAIL_SOFT_NON_FINAL,
@@ -859,7 +861,7 @@ int     smtp_helo(SMTP_STATE *state)
 		if (TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level)) {
 		    if (state->tls_stats)
 			smtp_tls_stat_decide_reqtls(state->tls_stats,
-						  SMTP_TLS_STAT_NAME_REQTLS,
+						 SMTP_TLS_STAT_NAME_NOSTTLS,
 						    POL_STAT_VIOLATION);
 		}
 		if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->tls->level)) {
@@ -913,7 +915,7 @@ int     smtp_helo(SMTP_STATE *state)
 		if (TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level)) {
 		    if (state->tls_stats)
 			smtp_tls_stat_decide_reqtls(state->tls_stats,
-						  SMTP_TLS_STAT_NAME_REQTLS,
+						 SMTP_TLS_STAT_NAME_NOSTTLS,
 						    POL_STAT_VIOLATION);
 		}
 		if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->tls->level))
@@ -1298,7 +1300,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 	    if (state->reqtls_level == SMTP_REQTLS_POLICY_ACT_ENFORCE) {
 		if (state->tls_stats)
 		    smtp_tls_stat_decide_reqtls(state->tls_stats,
-						SMTP_TLS_STAT_NAME_REQTLS,
+						SMTP_TLS_STAT_NAME_NOCMATCH,
 						POL_STAT_VIOLATION);
 		return (smtp_misc_fail(state, SMTP_MISC_FAIL_DONT_CACHE
 				       | SMTP_MISC_FAIL_SOFT_NON_FINAL,
@@ -1313,7 +1315,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 	    } else if (state->reqtls_level > SMTP_REQTLS_POLICY_ACT_DISABLE) {
 		if (state->tls_stats)
 		    smtp_tls_stat_decide_reqtls(state->tls_stats,
-						SMTP_TLS_STAT_NAME_REQTLS,
+						SMTP_TLS_STAT_NAME_NOCMATCH,
 						POL_STAT_COMPLIANT);
 	    }
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,

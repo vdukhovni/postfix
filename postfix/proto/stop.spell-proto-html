@@ -400,3 +400,7 @@ collectd
 Snawoot
 Zuplu
 tlspol
+nocertmatch
+noencryption
+nomatch
+nostarttls

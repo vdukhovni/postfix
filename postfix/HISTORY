@@ -29833,6 +29833,16 @@ NONPROD CODE
 	REQUIRETLS when they are sent through an SMTPD_PROXY_README
 	style content filter. Files: smtpd/smtpd.c, smtp/smtpd_proto.c.
 
+	Completed 2025921: with TLS policy status logging,always
+	log the actual REQUIRETLS state. For example, when the TLS
+	security level "encrypt" disables certificate matches, then
+	that is a policy violation for strict REQUIRETLS enforcement
+	(logged as "!requiretls:nocertmatch"), while that is permitted
+	with opportunistic REQUIRETLS (logged as "requiretls:nocertmatch").
+	Files: proto/postconf.proto, global/pol_stats.c,
+	global/pol_stats_test.c, smtp/smtp.h, smtp/smtp_connect.c,
+	smtp/smtp_proto.c.
+
 TODO
 
 	Maybe log "server announces REQUIRETLS" if we're not enforcing

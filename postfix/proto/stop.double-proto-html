@@ -371,3 +371,5 @@ opportunistic  opportunistic starttls
  li p When a feature is enclosed in tt tt and tt tt 
  li p When tt tt is prepended to a feature the policy
  tt none tt tt may tt tt encrypt tt etc Other
+ tt tls i level i requiretls tt where tt tt 
+where tt tt indicates the kind of policy violation described

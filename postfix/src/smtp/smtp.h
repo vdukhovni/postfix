@@ -253,11 +253,19 @@ typedef struct SMTP_STATE {
 
 /* Use the TLS policy name for the TLS security level status feature. */
 #define SMTP_TLS_STAT_NAME_REQTLS	"requiretls"
+#define SMTP_TLS_STAT_NAME_NOCMATCH	"nocertmatch"
+#define SMTP_TLS_STAT_NAME_NOSTTLS	"nostarttls"
+#define SMTP_TLS_STAT_NAME_NOTLS	"noencryption"
 #define SMTP_TLS_STAT_NAME_NONE		"none"
+#define SMTP_TLS_STAT_NAME_UNKNOWN	"unknown"
 
 #define smtp_tls_stat_activate_sec_level(tstats, level) \
 	pol_stat_activate((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \
 	    str_tls_level(level), POL_STAT_ENF_FULL)
+
+#define smtp_tls_stat_activate_sec_unknown(tstats) \
+	pol_stat_activate((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \
+	    SMTP_TLS_STAT_NAME_UNKNOWN, POL_STAT_ENF_FULL)
 
 #define smtp_tls_stat_decide_sec_level(tstats, level, status) \
 	pol_stat_decide((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \

@@ -7755,23 +7755,21 @@ The first feature name is the TLS security level:
 features are shown only if activated. The REQUIRETLS extension's
 feature name is 'requiretls'.
 .IP \(bu
-When a ':\fIfallback\-level\fR' is appended to a
-feature name, the enforcement of the feature was relaxed to the
-indicated level (for example, with opportunistic TLS, or opportunistic
-REQUIRETLS). A fallback\-level \fInone\fR indicates that
-the connection did not use the feature.
-.IP \(bu
-When a feature is enclosed in "(" and ")",
-policy enforcement was relaxed for that feature.
+When a ':\fIdowngrade\-level\fR' is appended to
+a feature name, the feature was downgraded to the indicated level.
+A downgrade\-level \fInone\fR indicates that the connection
+could not use the feature. The result of a downgrade may violate
+a strict policy, but may be compliant with a permissive policy.
 .IP \(bu
 When "!" is prepended to a feature, the policy
 for that feature was violated and the connection was not used.
 .IP \(bu
-When "?" is appended to a feature, the policy for that
-feature was undecided. This is typically caused by a lost connection.
+When "?" is appended to a feature, the policy for that feature
+was undecided. This is typically the result of a lost connection
+or an incorrect configuration.
 .br
 .PP
-Examples:
+Examples for TLS security levels:
 .IP "tls=none"
 A connection that did not use TLS.
 .br
@@ -7783,50 +7781,72 @@ after a successful TLS handshake.
 Opportunistic TLS. The status was undecided
 because no server could be reached.
 .br
-.IP "tls=(may:none)"
-The remote server did not support
-STARTTLS, and the connection was used in plaintext as permitted by
-an opportunistic TLS policy.
+.IP "tls=may:none"
+The client was willing to use TLS, but
+the remote server did not support STARTTLS, and the connection was
+used in plaintext as permitted by the opportunistic TLS policy.
 .br
 .IP "tls=dane"
 DANE policy compliant, no downgrade.
 .br
-.IP "tls=(dane:encrypt)"
+.IP "tls=dane:encrypt"
 Opportunistic DANE. The connection
 security was downgraded to 'encrypt' because none of the TLSA
 records were usable.
 .br
-.IP "tls=(dane:may)"
-Opportunistic DANE. The connection
-security was downgraded to 'may' because no TLSA records
-were available (according to a DNSSEC\-signed response).
+.IP "tls=dane?"
+DANE policy status was undecided, because the
+connection failed before or in the TLS handshake.
 .br
-.IP "tls=may/(requiretls:none)"
-Opportunistic TLS +
-opportunistic REQUIRETLS. After a successful TLS handshake without
-server certificate checks, the server announced REQUIRETLS support,
-and the connection was used with REQUIRETLS as permitted by an
-opportunistic REQUIRETLS policy.
 .br
-.IP "tls=dane/requiretls"
-DANE and REQUIRETLS policies
-were fully enforced, non\-error case.
+.PP
+Examples for REQUIRETLS policies (set with smtp_requiretls_policy),
+where "\fIxxx\fR" is a TLS security level:
+.IP "tls=xxx/requiretls"
+'Enforce' policy compliant.
+After a successful TLS handshake that required a certificate match,
+the server announced REQUIRETLS support, and the client sent
+REQUIRETLS.
+.IP "tls=xxx/!requiretls:nocertmatch"
+'Enforce' policy
+violation. The connection was not used because the TLS policy
+disabled server certificate matching.
 .br
-.IP "tls=dane/!requiretls"
-DANE and REQUIRETLS policies were
-fully enforced. The connection was not used because the server did not
-support REQUIRETLS and enforcement of REQUIRETLS was not relaxed.
+.IP "tls=xxx/requiretls:nocertmatch"
+'Opportunistic+starttls'
+or 'opportunistic' policy compliant. After a successful TLS handshake
+that did not require a server certificate match, the server announced
+REQUIRETLS support, and the client sent REQUIRETLS.
 .br
-.IP "tls=dane/(requiretls:none)"
-DANE was fully enforced.
-The remote server did not support REQUIRETLS, and the connection
-was used without REQUIRETLS as permitted by an opportunistic
-REQUIRETLS policy.
+.IP "tls=xxx/!requiretls:nostarttls"
+'Enforce' or
+\&'opportunistic+starttls' policy violation. The connection was not
+used because the server did not support STARTTLS.
 .br
-.IP "tls=dane?/requiretls?"
-DANE and REQUIRETLS policies
-were undecided, because the connection failed before or in the TLS
-handshake.
+.IP "tls=xxx/!requiretls:noencryption"
+'Enforce' or
+\&'opportunistic+starttls' policy violation. The connection was not
+used because the TLS policy disabled encryption.
+.br
+.IP "tls=xxx/!requiretls:none"
+'Enforce' policy violation.
+After a successful TLS handshake, the connection was not used because
+the server did not support REQUIRETLS.
+.br
+.IP "tls=xxx/requiretls:none"
+'Opportunistic+starttls'
+policy compliant. After a successful TLS handshake, the server did
+not support REQUIRETLS, and the connection was used without sending
+REQUIRETLS.
+.br
+.IP "tls=xxx/requiretls:none"
+'Opportunistic' policy
+compliant. The server did not support STARTTLS or REQUIRETLS, and
+the connection was used without sending REQUIRETLS.
+.br
+.IP "tls=xxx/requiretls?"
+Policy status was undecided,
+because the connection failed before or in the TLS handshake.
 .br
 .br
 .PP
@@ -8117,8 +8137,9 @@ client TLS security level.
 .sp
 If no suitable server is found,
 return the message as undeliverable and log
-"tls=\fIlevel\fR/!requiretls" to indicate a violation of
-this strict REQUIRETLS policy.
+"tls=\fIlevel\fR/!requiretls..." where "..."
+indicates the kind of policy violation, described under
+smtp_log_tls_feature_status.
 .br
 .IP "\fB opportunistic+starttls \fR"
 Skip servers
@@ -8127,37 +8148,40 @@ certificate match or remote REQUIRETLS support.
 .sp
 If a
 suitable server is found, request REQUIRETLS if that server supports
-REQUIRETLS and log "tls=\fIlevel\fR/(requiretls)" in
-delivery status logging or simply deliver the message without
-requesting REQUIRETLS and log "tls=\fIlevel\fR/(requiretls:none),
-where \fIlevel\fR shows the current SMTP client TLS
-security level.
+REQUIRETLS and log "tls=\fIlevel\fR/requiretls" or
+"tls=\fIlevel\fR/requiretls:nomatch" in delivery status
+logging, or simply deliver the message without requesting REQUIRETLS
+and log "tls=\fIlevel\fR/requiretls:none, where
+\fIlevel\fR shows the current SMTP client TLS security
+level.
 .sp
-If no suitable server is found, return the
-message as undeliverable and log "tls=\fIlevel\fR/!(requiretls)"
-to indicate a violation of this relaxed REQUIRETLS policy.
+If no suitable server is found, return the message
+as undeliverable and log "tls=\fIlevel\fR/!requiretls..."
+where "..." indicates the kind of policy violation, described
+under smtp_log_tls_feature_status.
 .sp
-This relaxed policy can be appropriate for an outbound perimeter
-MTA, when forwarding messages from internal systems to the Internet,
-at a time that many domains support TLS but have no DANE or MTA\-STS
-policies.
+This relaxed policy can
+be appropriate for an outbound perimeter MTA, when forwarding
+messages from internal systems to the Internet, at a time that many
+domains support TLS but have no DANE or MTA\-STS policies.
 .br
 .IP "\fB opportunistic \fR"
 Do not require STARTTLS,
 a server certificate match, or remote REQUIRETLS support.
 .sp
 Request REQUIRETLS if the server supports both STARTTLS and REQUIRETLS
-and log "tls=\fIlevel\fR/(requiretls)" in delivery status
+and log "tls=\fIlevel\fR/requiretls" or
+"tls=\fIlevel\fR/requiretls:nomatch" in delivery status
 logging, otherwise simply deliver the message without requesting
-REQUIRETLS and log "tls=\fIlevel\fR/(requiretls:none),
-where \fIlevel\fR shows the current SMTP client TLS
-security level.
+REQUIRETLS and log "tls=\fIlevel\fR/requiretls:none, where
+\fIlevel\fR shows the current SMTP client TLS security
+level.
 .sp
-This REQUIRETLS policy is non\-intrusive,
-because there can be no REQUIRETLS policy violation.
+This REQUIRETLS policy is non\-intrusive, because
+there can be no REQUIRETLS policy violation.
 .sp
-This
-weak policy can be appropriate for an inbound perimeter MTA, when
+This weak
+policy can be appropriate for an inbound perimeter MTA, when
 forwarding messages from the Internet to internal servers or content
 filters that may not support STARTTLS or REQUIRETLS, using internal
 connections instead of the public Internet. This setting may also

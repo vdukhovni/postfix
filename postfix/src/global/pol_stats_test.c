@@ -115,7 +115,7 @@ static int test_pol_stats(const TEST_CASE *tp)
 }
 
 static TEST_CASE test_cases[] = {
-    /* Level-based policy status tests. */
+    /* Tests for names that explicitly indicate status. */
     {"high_full_compliant", "high", test_pol_stats,
 	{"high", "high", POL_STAT_COMPLIANT}, {},
     },
@@ -125,23 +125,23 @@ static TEST_CASE test_cases[] = {
     {"high_full_violation", "!high", test_pol_stats,
 	{"high", "high", POL_STAT_VIOLATION}, {},
     },
-    {"high_may_relaxed_compliant", "(high:none)", test_pol_stats,
+    {"high_may_explicit_relaxed_compliant", "high:none", test_pol_stats,
 	{"high", "none", POL_STAT_COMPLIANT}, {},
     },
-    /* Non-level-based policy status tests. */
+    /* Tests for names that need () to indicate relaxation. */
     {"misc_full_compliant", "misc", test_pol_stats,
 	{}, {"misc", "misc", POL_STAT_ENF_FULL, POL_STAT_COMPLIANT},
     },
-    {"misc_relaxed_compliant", "(misc)", test_pol_stats,
+    {"misc_explicit_relaxed_compliant", "(misc)", test_pol_stats,
 	{}, {"misc", "misc", POL_STAT_ENF_RELAXED, POL_STAT_COMPLIANT},
     },
-    {"misc_relaxed_violation", "!(misc)", test_pol_stats,
+    {"misc_explicit_relaxed_violation", "!(misc)", test_pol_stats,
 	{}, {"misc", "misc", POL_STAT_ENF_RELAXED, POL_STAT_VIOLATION},
     },
-    {"misc_relaxed_undecided", "(misc)?", test_pol_stats,
+    {"misc_explicit_relaxed_undecided", "(misc)?", test_pol_stats,
 	{}, {"misc", 0, POL_STAT_ENF_RELAXED, POL_STAT_VIOLATION},
     },
-    {"misc_none_relaxed_compliant", "(misc:none)", test_pol_stats,
+    {"misc_none_explicit_relaxed_compliant", "(misc:none)", test_pol_stats,
 	{}, {"misc", "none", POL_STAT_ENF_RELAXED, POL_STAT_COMPLIANT},
     },
     /* Combined policy status tests. */

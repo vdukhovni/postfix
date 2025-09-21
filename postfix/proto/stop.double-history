@@ -221,3 +221,4 @@ proto  proto COMPATIBILITY_README html
  showq showq c 
  content filters Files cleanup cleanup c 
  style content filter Files smtpd smtpd c smtp smtpd_proto c 
+ global pol_stats_test c smtp smtp h smtp smtp_connect c 

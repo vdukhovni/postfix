@@ -528,7 +528,7 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
 	if (TLS_MUST_MATCH(tls->level) == 0) {
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_reqtls(state->tls_stats,
-					    SMTP_TLS_STAT_NAME_REQTLS,
+					    SMTP_TLS_STAT_NAME_NOCMATCH,
 					    POL_STAT_VIOLATION);
 	    dsb_simple(why, "5.7.10", "Sender requested REQUIRETLS, "
 		       "but my configured TLS security level '%s' "
@@ -542,7 +542,7 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
 	if (tls->level == TLS_LEV_NONE) {
 	    if (state->tls_stats)
 		smtp_tls_stat_decide_reqtls(state->tls_stats,
-					    SMTP_TLS_STAT_NAME_REQTLS,
+					    SMTP_TLS_STAT_NAME_NOTLS,
 					    POL_STAT_VIOLATION);
 	    dsb_simple(why, "5.7.10", "Sender requested REQUIRETLS, "
 		       "but my configured TLS security level '%s' "
@@ -648,7 +648,18 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
     if (!smtp_get_effective_tls_level(why, state)) {
 	msg_warn("TLS policy lookup error for %s/%s: %s",
 		 STR(iter->host), STR(iter->addr), STR(why->reason));
+	pol_stats_revert(state->tls_stats);
+	smtp_tls_stat_activate_sec_unknown(state->tls_stats);
 	return;
+    }
+    if (state->tls_stats) {
+	pol_stats_revert(state->tls_stats);
+	smtp_tls_stat_activate_sec_level(state->tls_stats,
+					 state->tls->level);
+	if (state->reqtls_level > SMTP_REQTLS_POLICY_ACT_DISABLE)
+	    smtp_tls_stat_activate_reqtls(state->tls_stats,
+					  SMTP_TLS_STAT_NAME_REQTLS,
+					  POL_STAT_ENF_FULL);
     }
 #endif
     if ((state->misc_flags & SMTP_MISC_FLAG_CONN_LOAD) == 0
@@ -1180,6 +1191,8 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    if (!smtp_get_effective_tls_level(why, state)) {
 		msg_warn("TLS policy lookup for %s/%s: %s",
 			 STR(iter->dest), STR(iter->host), STR(why->reason));
+		pol_stats_revert(state->tls_stats);
+		smtp_tls_stat_activate_sec_unknown(state->tls_stats);
 		continue;
 		/* XXX Assume there is no code at the end of this loop. */
 	    }
@@ -1202,7 +1215,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		if (state->reqtls_level > SMTP_REQTLS_POLICY_ACT_DISABLE)
 		    smtp_tls_stat_activate_reqtls(state->tls_stats,
 						  SMTP_TLS_STAT_NAME_REQTLS,
-		     state->reqtls_level == SMTP_REQTLS_POLICY_ACT_ENFORCE);
+						  POL_STAT_ENF_FULL);
 	    }
 
 	    /*

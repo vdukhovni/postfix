@@ -68,12 +68,9 @@
 /*	pol_stat_decide() updates the status in pstats at index
 /*	idx from POL_STAT_UNDECIDED to POL_STAT_COMPLIANT or
 /*	POL_STAT_VIOLATION, and records its final name (pointer copy)
-/*	and enforcement level. The final enforcement level is reduced to
-/*	POL_STAT_ENF_RELAXED when the target name and final name differ
-/*	(indicating that enforcement was relaxed). Calls with an invalid
-/*	index or an unexpected decision status result in a panic(), and
-/*	calls with an inactive or already decided index status result
-/*	in a warning.
+/*	and enforcement level. Calls with an invalid index or an
+/*	unexpected decision status result in a panic(), and calls with
+/*	an inactive or already decided index status result in a warning.
 /*
 /*	pol_stats_used() returns the number of activated categories for
 /*	its argument.
@@ -84,9 +81,10 @@
 /*	The feature name is the initial name in given to
 /*	pol_stat_activate().
 /* .IP \(bu
-/*	When ':final-name' is appended to a feature name, the enforcement
-/*	of the feature was relaxed to the final name given to
-/*	pol_stats_decide().
+/*	When ':final-name' is appended to a feature name, the feature
+/*	was reduced to the final name given to pol_stats_decide().
+/*	This does not necessarily indicate policy compliance,
+/*	non-compliance, or policy relaxation.
 /* .IP \(bu
 /*	When the feature is enclosed in "(" and ")", policy enforcement
 /*	was relaxed for that feature. A feature may be relaxed without
@@ -201,9 +199,6 @@ extern void pol_stat_decide(POL_STATS *pstats, int idx, const char *final_name,
 		 __func__, pol_stat->status, idx);
     pol_stat->final_name = final_name;
     pol_stat->status = status;
-    /* REQUIRETLS can be relaxed without a target:final name change. */
-    pol_stat->enforce = pol_stat->enforce
-	&& (strcmp(pol_stat->init_name, final_name) == 0);
 }
 
 /* pol_stat_access - peek at specific POL_STAT instance. */
