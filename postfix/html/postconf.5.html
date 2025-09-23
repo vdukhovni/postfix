@@ -12285,9 +12285,9 @@ a strict policy, but may be compliant with a permissive policy. </p>
 for that feature was violated and the connection was not used.
 </p>
 
-<li> <p> When "?" is appended to a feature, the policy for that feature
-was undecided. This is typically the result of a lost connection
-or an incorrect configuration. </p>
+<li> <p> When "?" is appended to a feature, the policy for that
+feature was undecided. This is typically the result of a lost
+connection or an incorrect configuration. </p>
 
 </ul>
 
@@ -12301,7 +12301,7 @@ or an incorrect configuration. </p>
 after a successful TLS handshake. </dd>
 
 <dt> tls=may? </dt> <dd> Opportunistic TLS. The status was undecided
-because no server could be reached. </dd>
+because no connection was made, or no server could be reached. </dd>
 
 <dt> tls=may:none </dt> <dd> The client was willing to use TLS, but
 the remote server did not support STARTTLS, and the connection was
@@ -12325,41 +12325,45 @@ where "<tt><i>xxx</i></tt>" is a TLS security level: </p>
 
 <dt> tls=xxx/requiretls </dt> <dd> 'Enforce' policy compliant.
 After a successful TLS handshake that required a certificate match,
-the server announced REQUIRETLS support, and the client sent
+the remote server announced REQUIRETLS support, and the client sent
 REQUIRETLS.
 
 <dt> tls=xxx/!requiretls:nocertmatch </dt> <dd> 'Enforce' policy
-violation. The connection was not used because the TLS policy
-disabled server certificate matching. </dd>
+violation. The connection was not used because the remote server
+certificate did not match as required by the TLS security policy,
+or no connection was made because the TLS security policy disabled
+server certificate matching. </dd>
 
 <dt> tls=xxx/requiretls:nocertmatch </dt> <dd> 'Opportunistic+starttls'
 or 'opportunistic' policy compliant. After a successful TLS handshake
-that did not require a server certificate match, the server announced
-REQUIRETLS support, and the client sent REQUIRETLS.  </dd>
+that did not require a server certificate match, the remote server
+announced REQUIRETLS support, and the client sent REQUIRETLS. </dd>
 
 <dt> tls=xxx/!requiretls:nostarttls </dt> <dd> 'Enforce' or
 'opportunistic+starttls' policy violation. The connection was not
-used because the server did not support STARTTLS. </dd>
+used because the remote server did not support STARTTLS. </dd>
 
 <dt> tls=xxx/!requiretls:noencryption </dt> <dd> 'Enforce' or
-'opportunistic+starttls' policy violation. The connection was not
-used because the TLS policy disabled encryption. </dd>
+'opportunistic+starttls' policy violation. No connection was made
+used because the TLS security policy disabled encryption. </dd>
 
 <dt> tls=xxx/!requiretls:none </dt> <dd> 'Enforce' policy violation.
 After a successful TLS handshake, the connection was not used because
-the server did not support REQUIRETLS. </dd>
+the remote server did not support REQUIRETLS. </dd>
 
 <dt> tls=xxx/requiretls:none </dt> <dd> 'Opportunistic+starttls'
-policy compliant. After a successful TLS handshake, the server did
-not support REQUIRETLS, and the connection was used without sending
-REQUIRETLS. </dd>
+policy compliant. After a successful TLS handshake, the remote
+server did not announce REQUIRETLS support, and the connection was
+used without sending REQUIRETLS. </dd>
 
 <dt> tls=xxx/requiretls:none </dt> <dd> 'Opportunistic' policy
-compliant. The server did not support STARTTLS or REQUIRETLS, and
-the connection was used without sending REQUIRETLS. </dd>
+compliant. The remote server did not announce support for STARTTLS
+or REQUIRETLS, and the connection was used without sending REQUIRETLS.
+</dd>
 
 <dt> tls=xxx/requiretls? </dt> <dd> Policy status was undecided,
-because the connection failed before or in the TLS handshake. </dd>
+because the connection failed before or in the TLS handshake, or
+no connection was made due to a policy configuration error. </dd>
 
 </dl>
 
@@ -12794,23 +12798,25 @@ If a suitable server is found, request REQUIRETLS, deliver the
 message, and log "<tt>tls=<i>level</i>/requiretls</tt>" in delivery
 status logging, where <tt><i>level</i></tt> shows the current SMTP
 client TLS security level. </p> <p> If no suitable server is found,
-return the message as undeliverable and log
-"<tt>tls=<i>level</i>/!requiretls...</tt>" where "<tt>...</tt>"
-indicates the kind of policy violation, described under
-<a href="postconf.5.html#smtp_log_tls_feature_status">smtp_log_tls_feature_status</a>. </p> </dd>
+return the message as undeliverable and log a policy violation
+"<tt>tls=<i>level</i>/!requiretls:nocertmatch</tt>",
+"<tt>tls=<i>level</i>/!requiretls:noencryption</tt>", or
+"<tt>tls=<i>level</i>/!requiretls:nostarttls</tt>", as described
+under <a href="postconf.5.html#smtp_log_tls_feature_status">smtp_log_tls_feature_status</a>. </p> </dd>
 
 <dt> <b> opportunistic+starttls </b> </dt> <dd> <p> Skip servers
 that don't announce STARTTLS support, but do not require a server
 certificate match or remote REQUIRETLS support. </p> <p> If a
-suitable server is found, request REQUIRETLS if that server supports
+suitable server is found, send REQUIRETLS if that server supports
 REQUIRETLS and log "<tt>tls=<i>level</i>/requiretls</tt>" or
 "<tt>tls=<i>level</i>/requiretls:nomatch</tt>" in delivery status
 logging, or simply deliver the message without requesting REQUIRETLS
 and log "<tt>tls=<i>level</i>/requiretls:none</tt>, where
 <tt><i>level</i></tt> shows the current SMTP client TLS security
 level. </p> <p> If no suitable server is found, return the message
-as undeliverable and log "<tt>tls=<i>level</i>/!requiretls...</tt>"
-where "<tt>...</tt>" indicates the kind of policy violation, described
+as undeliverable and log a policy violation
+"<tt>tls=<i>level</i>/!requiretls:noencryption</tt>" or
+"<tt>tls=<i>level</i>/!requiretls:nostarttls</tt>" as described
 under <a href="postconf.5.html#smtp_log_tls_feature_status">smtp_log_tls_feature_status</a>. </p> <p> This relaxed policy can
 be appropriate for an outbound perimeter MTA, when forwarding
 messages from internal systems to the Internet, at a time that many

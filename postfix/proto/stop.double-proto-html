@@ -373,3 +373,4 @@ opportunistic  opportunistic starttls
  tt none tt tt may tt tt encrypt tt etc Other
  tt tls i level i requiretls tt where tt tt 
 where tt tt indicates the kind of policy violation described
+tt  tt tls i level i requiretls noencryption tt or

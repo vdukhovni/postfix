@@ -2203,18 +2203,23 @@ static int mail_open_stream(SMTPD_STATE *state)
     /*
      * Connect to the before-queue filter when one is configured. The MAIL
      * FROM and RCPT TO commands are forwarded as received (including DSN
-     * attributes), with the following exceptions: no forwarding of the
-     * REQUIRETLS VERB in MAIL FROM; the before-filter smtpd process handles
-     * all authentication, encryption, access control and relay control; and
-     * the before-filter smtpd process does not forward blocked commands. If
-     * the after-filter smtp server does not support some of Postfix's ESMTP
+     * attributes), with the following exceptions:
+     * 
+     * - No forwarding of the REQUIRETLS VERB in MAIL FROM.
+     * 
+     * - The before-filter smtpd process handles all authentication, encryption,
+     * access control and relay control.
+     * 
+     * - The before-filter smtpd process does not forward blocked commands.
+     * 
+     * If the after-filter smtp server does not support some of Postfix's ESMTP
      * features, then they must be turned off in the before-filter smtpd
      * process with the smtpd_discard_ehlo_keywords feature.
      */
     if (state->proxy_mail) {
 	int     message_proxy_opts = smtpd_proxy_opts;
 
-	if (state->flags & SMTPD_FLAG_REQTLS)
+	if ((state->flags & SMTPD_FLAG_REQTLS) && var_reqtls_esmtp_hdr)
 	    message_proxy_opts |= SMTPD_PROXY_FLAG_REQTLS_HDR;
 	if (smtpd_proxy_create(state, message_proxy_opts, var_smtpd_proxy_filt,
 			       var_smtpd_proxy_tmout, var_smtpd_proxy_ehlo,
@@ -6715,14 +6720,9 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * support so that the entire message is received before we contact a
      * before-queue content filter?
      */
-    if (*var_smtpd_proxy_filt) {
+    if (*var_smtpd_proxy_filt)
 	smtpd_proxy_opts =
 	    smtpd_proxy_parse_opts(VAR_SMTPD_PROXY_OPTS, var_smtpd_proxy_opts);
-
-	if (var_reqtls_enable && !var_reqtls_esmtp_hdr)
-	    msg_fatal("%s configuration problem: set '%s=yes', or set '%s=no'",
-	     VAR_SMTPD_PROXY_FILT, VAR_REQTLS_ESMTP_HDR, VAR_REQTLS_ENABLE);
-    }
 
     /*
      * Sanity checks. The queue_minfree value should be at least as large as

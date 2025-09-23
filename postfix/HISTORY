@@ -29843,6 +29843,15 @@ NONPROD CODE
 	global/pol_stats_test.c, smtp/smtp.h, smtp/smtp_connect.c,
 	smtp/smtp_proto.c.
 
+	Completed 2025922: more testing and quality control, resulting
+	in various code and documentation fixes for TLS feature status
+	logging. Files: smtp/smtp_connect.c, proto/postconf.proto.
+
+	Completed 20250923: REQUIRETLS_README document that describes
+	how the Postfix default settings make REQUIRETLS work out
+	of the box. Files: conf/postfix-files, proto/Makefile.in,
+	proto/REQUIRETLS_README.html.
+
 TODO
 
 	Maybe log "server announces REQUIRETLS" if we're not enforcing

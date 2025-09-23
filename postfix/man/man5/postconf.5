@@ -7764,9 +7764,9 @@ a strict policy, but may be compliant with a permissive policy.
 When "!" is prepended to a feature, the policy
 for that feature was violated and the connection was not used.
 .IP \(bu
-When "?" is appended to a feature, the policy for that feature
-was undecided. This is typically the result of a lost connection
-or an incorrect configuration.
+When "?" is appended to a feature, the policy for that
+feature was undecided. This is typically the result of a lost
+connection or an incorrect configuration.
 .br
 .PP
 Examples for TLS security levels:
@@ -7779,7 +7779,7 @@ after a successful TLS handshake.
 .br
 .IP "tls=may?"
 Opportunistic TLS. The status was undecided
-because no server could be reached.
+because no connection was made, or no server could be reached.
 .br
 .IP "tls=may:none"
 The client was willing to use TLS, but
@@ -7805,48 +7805,51 @@ where "\fIxxx\fR" is a TLS security level:
 .IP "tls=xxx/requiretls"
 'Enforce' policy compliant.
 After a successful TLS handshake that required a certificate match,
-the server announced REQUIRETLS support, and the client sent
+the remote server announced REQUIRETLS support, and the client sent
 REQUIRETLS.
 .IP "tls=xxx/!requiretls:nocertmatch"
 'Enforce' policy
-violation. The connection was not used because the TLS policy
-disabled server certificate matching.
+violation. The connection was not used because the remote server
+certificate did not match as required by the TLS security policy,
+or no connection was made because the TLS security policy disabled
+server certificate matching.
 .br
 .IP "tls=xxx/requiretls:nocertmatch"
 'Opportunistic+starttls'
 or 'opportunistic' policy compliant. After a successful TLS handshake
-that did not require a server certificate match, the server announced
-REQUIRETLS support, and the client sent REQUIRETLS.
+that did not require a server certificate match, the remote server
+announced REQUIRETLS support, and the client sent REQUIRETLS.
 .br
 .IP "tls=xxx/!requiretls:nostarttls"
 'Enforce' or
 \&'opportunistic+starttls' policy violation. The connection was not
-used because the server did not support STARTTLS.
+used because the remote server did not support STARTTLS.
 .br
 .IP "tls=xxx/!requiretls:noencryption"
 'Enforce' or
-\&'opportunistic+starttls' policy violation. The connection was not
-used because the TLS policy disabled encryption.
+\&'opportunistic+starttls' policy violation. No connection was made
+used because the TLS security policy disabled encryption.
 .br
 .IP "tls=xxx/!requiretls:none"
 'Enforce' policy violation.
 After a successful TLS handshake, the connection was not used because
-the server did not support REQUIRETLS.
+the remote server did not support REQUIRETLS.
 .br
 .IP "tls=xxx/requiretls:none"
 'Opportunistic+starttls'
-policy compliant. After a successful TLS handshake, the server did
-not support REQUIRETLS, and the connection was used without sending
-REQUIRETLS.
+policy compliant. After a successful TLS handshake, the remote
+server did not announce REQUIRETLS support, and the connection was
+used without sending REQUIRETLS.
 .br
 .IP "tls=xxx/requiretls:none"
 'Opportunistic' policy
-compliant. The server did not support STARTTLS or REQUIRETLS, and
-the connection was used without sending REQUIRETLS.
+compliant. The remote server did not announce support for STARTTLS
+or REQUIRETLS, and the connection was used without sending REQUIRETLS.
 .br
 .IP "tls=xxx/requiretls?"
 Policy status was undecided,
-because the connection failed before or in the TLS handshake.
+because the connection failed before or in the TLS handshake, or
+no connection was made due to a policy configuration error.
 .br
 .br
 .PP
@@ -8136,10 +8139,11 @@ status logging, where \fIlevel\fR shows the current SMTP
 client TLS security level.
 .sp
 If no suitable server is found,
-return the message as undeliverable and log
-"tls=\fIlevel\fR/!requiretls..." where "..."
-indicates the kind of policy violation, described under
-smtp_log_tls_feature_status.
+return the message as undeliverable and log a policy violation
+"tls=\fIlevel\fR/!requiretls:nocertmatch",
+"tls=\fIlevel\fR/!requiretls:noencryption", or
+"tls=\fIlevel\fR/!requiretls:nostarttls", as described
+under smtp_log_tls_feature_status.
 .br
 .IP "\fB opportunistic+starttls \fR"
 Skip servers
@@ -8147,7 +8151,7 @@ that don't announce STARTTLS support, but do not require a server
 certificate match or remote REQUIRETLS support.
 .sp
 If a
-suitable server is found, request REQUIRETLS if that server supports
+suitable server is found, send REQUIRETLS if that server supports
 REQUIRETLS and log "tls=\fIlevel\fR/requiretls" or
 "tls=\fIlevel\fR/requiretls:nomatch" in delivery status
 logging, or simply deliver the message without requesting REQUIRETLS
@@ -8156,8 +8160,9 @@ and log "tls=\fIlevel\fR/requiretls:none, where
 level.
 .sp
 If no suitable server is found, return the message
-as undeliverable and log "tls=\fIlevel\fR/!requiretls..."
-where "..." indicates the kind of policy violation, described
+as undeliverable and log a policy violation
+"tls=\fIlevel\fR/!requiretls:noencryption" or
+"tls=\fIlevel\fR/!requiretls:nostarttls" as described
 under smtp_log_tls_feature_status.
 .sp
 This relaxed policy can
