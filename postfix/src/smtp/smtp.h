@@ -33,6 +33,7 @@
 #include <dsn_buf.h>
 #include <header_body_checks.h>
 #include <sendopts.h>
+#include <pol_stats.h>
 
  /*
   * Postfix TLS library.
@@ -43,6 +44,11 @@
   * tlsproxy client.
   */
 #include <tls_proxy.h>
+
+ /*
+  * This application.
+  */
+#include <smtp_reqtls_policy.h>
 
  /*
   * Global iterator support. This is updated by the connection-management
@@ -195,13 +201,15 @@ typedef struct SMTP_STATE {
     SMTP_ITERATOR iterator[1];		/* Usage: state->iterator->member */
 
     /*
-     * Global iterator.
+     * TLS policy related.
      */
 #ifdef USE_TLS
     SMTP_TLS_POLICY tls[1];		/* Usage: state->tls->member */
 #ifdef USE_TLSRPT
     struct TLSRPT_WRAPPER *tlsrpt;
 #endif
+    int     reqtls_level;		/* from smtp_reqtls_policy */
+    POL_STATS *tls_stats;		/* TLS feature policy compliance */
 #endif
 
     /*
@@ -240,10 +248,43 @@ typedef struct SMTP_STATE {
     unsigned logged_line_length_limit:1;
 } SMTP_STATE;
 
+#define SMTP_TLS_STAT_IDX_SEC_LEVEL	0
+#define SMTP_TLS_STAT_IDX_REQTLS	1
+
+/* Use the TLS policy name for the TLS security level status feature. */
+#define SMTP_TLS_STAT_NAME_REQTLS	"requiretls"
+#define SMTP_TLS_STAT_NAME_NOCMATCH	"nocertmatch"
+#define SMTP_TLS_STAT_NAME_NOSTTLS	"nostarttls"
+#define SMTP_TLS_STAT_NAME_NOTLS	"noencryption"
+#define SMTP_TLS_STAT_NAME_NONE		"none"
+#define SMTP_TLS_STAT_NAME_UNKNOWN	"unknown"
+
+#define smtp_tls_stat_activate_sec_level(tstats, level) \
+	pol_stat_activate((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \
+	    str_tls_level(level))
+
+#define smtp_tls_stat_activate_sec_unknown(tstats) \
+	pol_stat_activate((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \
+	    SMTP_TLS_STAT_NAME_UNKNOWN)
+
+#define smtp_tls_stat_decide_sec_level(tstats, level, status) \
+	pol_stat_decide((tstats), SMTP_TLS_STAT_IDX_SEC_LEVEL, \
+	    str_tls_level(level), (status))
+
+#define smtp_tls_stat_activate_reqtls(tstats, name) \
+	pol_stat_activate((tstats), SMTP_TLS_STAT_IDX_REQTLS, \
+	(name))
+
+#define smtp_tls_stat_decide_reqtls(tstats, name, status) \
+	pol_stat_decide((tstats), SMTP_TLS_STAT_IDX_REQTLS, \
+	(name), (status))
+
 #ifdef USE_TLS
 #define STATE_TLS_NOT_REQUIRED(state) \
-	(var_tls_required_enable && \
-	    ((state)->request->sendopts & SOPT_REQUIRETLS_HEADER))
+	(var_tls_required_enable \
+	    && (var_reqtls_enable == 0 \
+		|| ((state)->request->sendopts & SOPT_REQUIRETLS_ESMTP) == 0) \
+	    && ((state)->request->sendopts & SOPT_REQUIRETLS_HEADER))
 #endif
 
  /*
@@ -294,6 +335,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_XFORWARD_IDENT	(1<<20)
 #define SMTP_FEATURE_SMTPUTF8		(1<<21)	/* RFC 6531 */
 #define SMTP_FEATURE_FROM_PROXY		(1<<22)	/* proxied connection */
+#define SMTP_FEATURE_REQTLS		(1<<23)	/* RFC 8689 */
 
  /*
   * Features that passivate under the endpoint. Be sure to passivate all
@@ -368,6 +410,7 @@ extern STRING_LIST *smtp_use_srv_lookup;/* services with SRV record lookup */
 
 extern TLS_APPL_STATE *smtp_tls_ctx;	/* client-side TLS engine */
 extern int smtp_tls_insecure_mx_policy;	/* DANE post insecure MX? */
+extern SMTP_REQTLS_POLICY *smtp_reqtls_policy;	/* parsed list */
 
 #endif
 
@@ -550,6 +593,7 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 #define PLAINTEXT_FALLBACK_OK_AFTER_STARTTLS_FAILURE \
 	(session->tls_context == 0 \
 	    && state->tls->level == TLS_LEV_MAY \
+	    && !TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level) \
 	    && (TRACE_REQ_ONLY || PREACTIVE_DELAY >= var_min_backoff_time) \
 	    && !HAVE_SASL_CREDENTIALS)
 
@@ -557,6 +601,7 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 	(session->tls_context != 0 \
 	    && SMTP_RCPT_LEFT(state) > SMTP_RCPT_MARK_COUNT(state) \
 	    && state->tls->level == TLS_LEV_MAY \
+	    && !TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level) \
 	    && (TRACE_REQ_ONLY || PREACTIVE_DELAY >= var_min_backoff_time) \
 	    && !HAVE_SASL_CREDENTIALS)
 
@@ -647,8 +692,10 @@ extern void smtp_rcpt_done(SMTP_STATE *, SMTP_RESP *, RECIPIENT *);
  /*
   * smtp_trouble.c
   */
-#define SMTP_THROTTLE	1
-#define SMTP_NOTHROTTLE	0
+#define SMTP_MISC_FAIL_NONE		0
+#define SMTP_MISC_FAIL_THROTTLE		(1<<0)
+#define SMTP_MISC_FAIL_SOFT_NON_FINAL	(1<<1)
+#define SMTP_MISC_FAIL_DONT_CACHE	(1<<2)
 extern int smtp_sess_fail(SMTP_STATE *);
 extern int PRINTFLIKE(5, 6) smtp_misc_fail(SMTP_STATE *, int, const char *,
 				             SMTP_RESP *, const char *,...);
@@ -658,9 +705,9 @@ extern void PRINTFLIKE(5, 6) smtp_rcpt_fail(SMTP_STATE *, RECIPIENT *,
 extern int smtp_stream_except(SMTP_STATE *, int, const char *);
 
 #define smtp_site_fail(state, mta, resp, ...) \
-	smtp_misc_fail((state), SMTP_THROTTLE, (mta), (resp), __VA_ARGS__)
+    smtp_misc_fail((state), SMTP_MISC_FAIL_THROTTLE, (mta), (resp), __VA_ARGS__)
 #define smtp_mesg_fail(state, mta, resp, ...) \
-	smtp_misc_fail((state), SMTP_NOTHROTTLE, (mta), (resp), __VA_ARGS__)
+    smtp_misc_fail((state), SMTP_MISC_FAIL_NONE, (mta), (resp), __VA_ARGS__)
 
  /*
   * smtp_unalias.c
@@ -695,13 +742,14 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 #define SMTP_KEY_FLAG_PORT		(1<<6)	/* remote port */
 #define SMTP_KEY_FLAG_TLS_LEVEL		(1<<7)	/* requested TLS level */
 #define SMTP_KEY_FLAG_REQ_SMTPUTF8	(1<<8)	/* SMTPUTF8 is required */
+#define SMTP_KEY_FLAG_REQTLS_LEVEL	(1<<9)	/* REQUIRETLS enforcement */
 
 #define SMTP_KEY_MASK_ALL \
 	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER | \
 	SMTP_KEY_FLAG_REQ_NEXTHOP | \
 	SMTP_KEY_FLAG_CUR_NEXTHOP | SMTP_KEY_FLAG_HOSTNAME | \
 	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL | \
-	SMTP_KEY_FLAG_REQ_SMTPUTF8)
+	SMTP_KEY_FLAG_REQ_SMTPUTF8 | SMTP_KEY_FLAG_REQTLS_LEVEL)
 
  /*
   * Conditional lookup-key flags for cached connections that may be
@@ -745,7 +793,7 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 #define SMTP_KEY_MASK_SCACHE_DEST_LABEL \
 	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
 	| SMTP_KEY_FLAG_REQ_NEXTHOP | SMTP_KEY_FLAG_TLS_LEVEL \
-	| SMTP_KEY_FLAG_REQ_SMTPUTF8)
+	| SMTP_KEY_FLAG_REQ_SMTPUTF8 | SMTP_KEY_FLAG_REQTLS_LEVEL)
 
  /*
   * Connection-cache endpoint lookup key. The SENDER, CUR_NEXTHOP, HOSTNAME,
@@ -765,7 +813,7 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 	| COND_SASL_SMTP_KEY_FLAG_HOSTNAME \
 	| COND_TLS_SMTP_KEY_FLAG_CUR_NEXTHOP | SMTP_KEY_FLAG_ADDR \
 	| SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL \
-	| SMTP_KEY_FLAG_REQ_SMTPUTF8)
+	| SMTP_KEY_FLAG_REQ_SMTPUTF8 | SMTP_KEY_FLAG_REQTLS_LEVEL)
 
  /*
   * Silly little macros.

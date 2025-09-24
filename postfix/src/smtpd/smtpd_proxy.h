@@ -37,9 +37,11 @@ typedef struct SMTPD_PROXY {
     int     timeout;
     const char *ehlo_name;
     const char *mail_from;
+    int     reqtls_esmtp_hdr_seen;
 } SMTPD_PROXY;
 
 #define SMTPD_PROXY_FLAG_SPEED_ADJUST	(1<<0)
+#define SMTPD_PROXY_FLAG_REQTLS_HDR	(1<<1)
 
 #define SMTPD_PROXY_NAME_SPEED_ADJUST	"speed_adjust"
 
@@ -63,4 +65,7 @@ extern int smtpd_proxy_parse_opts(const char *, const char *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/

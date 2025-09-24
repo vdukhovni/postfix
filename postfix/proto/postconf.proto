@@ -19634,11 +19634,418 @@ no enforcement of TLS policy. This disables TLS policy lookup, and
 limits the Postfix SMTP client
 TLS security level to "may", that is, do not verify remote SMTP
 server certificates, and fall back to plaintext if TLS is unavailable.
-If a message contains a "TLS-Required: no" header, then Postfix
-will add that header to a delivery status notification for that
+If a message contains a "TLS-Required: no" header, then Postfix 
+will add that header to a delivery status notification for that 
 message. </p>
 
+<p> Note: the ESMTP REQUIRETLS option overrides the "TLS-Required:
+no" message header.  </p>
+
 <p> This feature is available in Postfix &ge; 3.10. </p>
+
+%PARAM requiretls_enable yes
+
+<p> Enable support for the ESMTP verb "REQUIRETLS" in the "MAIL
+FROM" command. As defined in RFC 8689, when a message specifies
+REQUIRETLS: </p>
+
+<ul>
+
+<li> <p> deliveries with SMTP or LMTP must use a TLS connection, </p>
+
+<li> <p> to a securely looked up MX server (e.g., DNSSEC or MTA-STS),
+</p>
+
+<li> <p> with a matched server certificate (Postfix SMTP or LMTP
+client TLS security levels "secure", "verify", "fingerprint",
+dane-only, or opportunistic "dane"), </p>
+
+<li> <p> and the server must announce "REQUIRETLS" support after
+the STARTTLS handshake. </p>
+
+</ul>
+
+<p> When delivering a message that specifies REQUIRETLS, the Postfix
+SMTP client will try one or more servers, limited by the
+smtp_mx_address_limit and smtp_mx_session_limit parameters, until
+it finds an MX server that satisfies the above requirements. If
+such a server is not found, the Postfix SMTP or LMTP client returns
+the message as undeliverable. </p>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> With the Postfix SMTP or LMTP clients, REQUIRETLS enforcement
+is controlled with smtp_requiretls_policy or lmtp_requiretls_policy. It
+is initially not enforced for deliveries to local servers, including
+LMTP message stores and local content filters. </p>
+
+<li> <p> The ESMTP REQUIRETLS option overrides the "TLS-Required:
+no" message header. </p>
+
+</ul>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM requiretls_redact_dsn yes
+
+<p> When sending a delivery status notification for an original
+message received with the REQUIRETLS option, do not send the original
+message body (as if that message was received with "RET=HDRS") and
+do not enforce REQUIRETLS (as if that message was received without
+REQUIRETLS). For a detailed discussion see RFC 8689 section 5. </p>
+
+<p> Note: the 'reverse' path for sending a delivery status notification
+may differ from the 'forward' path for receiving the original message. 
+Not every hop in the reverse path may support REQUIRETLS, even
+though every hop in the forward path supported it. The setting
+"requiretls_redact_dsn = no" may therefore result in the loss of a
+delivery status notification. </p>
+
+%PARAM smtp_requiretls_policy see 'postconf -d smtp_requiretls_policy' output
+
+<p> How the Postfix SMTP and LMTP client will enforce REQUIRETLS
+for messages received with the REQUIRETLS option. Policy examples
+for SMTP and LMTP are at the end. </p>
+
+<ul>
+
+<li> <p> Specify a list of items, separated with whitespace or
+comma; continue a long line by starting the next line with whitespace.
+</p>
+
+<li> <p> Each item must be an action (see below), or a type:table
+lookup table that must return an action (it must not return a
+type:table). </p>
+
+<li> A type:table lookup table is searched with the TLS next-hop
+destination, without any [ ], <i>:service</i>, or <i>:port</i>.
+</p>
+
+<li> <p> The TLS next-hop destination for TCP connections is the
+recipient domain, but this can be overruled with transport_maps,
+relayhost, content_filter, or other routing features. The next-hop
+destination for LMTP over UNIX-domain connections is always the
+value of myhostname. </p>
+
+</ul>
+
+<p> Supported actions, assuming that TLS feature status logging is
+enabled with "smtp_log_tls_feature_status = yes" (the default): </p>
+
+<dl>
+
+<dt> <b> enforce </b> </dt> <dd> <p> Skip servers that do not support
+STARTTLS, skip connections without a server certificate match, and
+skip servers that don't support REQUIRETLS after STARTTLS. </p> <p>
+If a suitable server is found, request REQUIRETLS, deliver the
+message, and log "<tt>tls=<i>level</i>/requiretls</tt>" in delivery
+status logging, where <tt><i>level</i></tt> shows the current SMTP
+client TLS security level. </p> <p> If no suitable server is found,
+return the message as undeliverable and log a policy violation
+"<tt>tls=<i>level</i>/!requiretls:nocertmatch</tt>",
+"<tt>tls=<i>level</i>/!requiretls:noencryption</tt>", or
+"<tt>tls=<i>level</i>/!requiretls:nostarttls</tt>", as described
+under smtp_log_tls_feature_status. </p> </dd>
+
+<dt> <b> opportunistic+starttls </b> </dt> <dd> <p> Skip servers
+that don't announce STARTTLS support, but do not require a server
+certificate match or remote REQUIRETLS support. </p> <p> If a
+suitable server is found, send REQUIRETLS if that server supports
+REQUIRETLS and log "<tt>tls=<i>level</i>/requiretls</tt>" or
+"<tt>tls=<i>level</i>/requiretls:nomatch</tt>" in delivery status
+logging, or simply deliver the message without requesting REQUIRETLS
+and log "<tt>tls=<i>level</i>/requiretls:none</tt>, where
+<tt><i>level</i></tt> shows the current SMTP client TLS security
+level. </p> <p> If no suitable server is found, return the message
+as undeliverable and log a policy violation
+"<tt>tls=<i>level</i>/!requiretls:noencryption</tt>" or
+"<tt>tls=<i>level</i>/!requiretls:nostarttls</tt>" as described
+under smtp_log_tls_feature_status. </p> <p> This relaxed policy can
+be appropriate for an outbound perimeter MTA, when forwarding
+messages from internal systems to the Internet, at a time that many
+domains support TLS but have no DANE or MTA-STS policies. </p> </dd>
+
+<dt> <b> opportunistic </b> </dt> <dd> <p> Do not require STARTTLS,
+a server certificate match, or remote REQUIRETLS support. </p> <p>
+Request REQUIRETLS if the server supports both STARTTLS and REQUIRETLS
+and log "<tt>tls=<i>level</i>/requiretls</tt>" or
+"<tt>tls=<i>level</i>/requiretls:nomatch</tt>" in delivery status
+logging, otherwise simply deliver the message without requesting
+REQUIRETLS and log "<tt>tls=<i>level</i>/requiretls:none</tt>, where
+<tt><i>level</i></tt> shows the current SMTP client TLS security
+level. </p> <p> This REQUIRETLS policy is non-intrusive, because
+there can be no REQUIRETLS policy violation. </p> <p> This weak
+policy can be appropriate for an inbound perimeter MTA, when
+forwarding messages from the Internet to internal servers or content
+filters that may not support STARTTLS or REQUIRETLS, using internal
+connections instead of the public Internet. This setting may also
+be useful for an outbound MTA to discover what destinations support
+some form of REQUIRETLS without risking mail delivery problems.
+</p> </dd>
+
+<dt> <b> disable </b> </dt> <dd> <p> Disable REQUIRETLS support.
+This may be used as a last-resort workaround when a server announces
+REQUIRETLS support, but the support is inoperable. </p></dd>
+
+</dl>
+
+<p> Notes: </p>
+
+<ul> 
+
+<li> <p> Postfix appends an implicit <b>opportunistic+starttls</b>
+action after the end of each policy. </p>
+
+<li> <p> To match any name below the domain "example.com" specify
+a table entry with the storage key ".example.com" in type:table
+lookup tables that need an exact match. This is appropriate, for
+example, with hash:, btree: or lmdb:. </p>
+
+<li> <p> Do not specify a match pattern for ".domain" with regexp:,
+pcre:, socketmap:, or tcp:, as smtp_requiretls_policy will
+not query those tables with that form. </p>
+
+</ul>
+
+<p> SMTP client examples: </p>
+
+<ul>
+
+<li> <p> The simplest policy: request REQUIRETLS if an external or
+internal server supports both STARTTLS and REQUIRETLS, but enforce
+a TLS certificate match only if the receiver publishes a DANE or
+STS policy. Otherwise, simply deliver the message without requesting
+REQUIRETLS. </p>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_security_level = may
+    smtp_tls_policy_maps = ...dane/sts plugin...
+    smtp_requiretls_policy = opportunistic
+</pre>
+
+<li> <p> The default SMTP client REQUIRETLS policy: when a sender
+requests REQUIRETLS, require that external servers support STARTTLS,
+but enforce a TLS certificate match only if the receiver publishes
+a DANE or STS policy; request REQUIRETLS if an internal or external
+server supports REQUIRETLS. </p>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_security_level = may
+    smtp_tls_policy_maps = ...dane/sts plugin...
+    smtp_requiretls_policy =
+        inline:{
+            {$mydomain = opportunistic}
+            {.$mydomain = opportunistic}
+            {localhost = opportunistic}
+            {127.0.0.1 = opportunistic} }
+	opportunistic+starttls
+</pre>
+
+<li> <p> As above, with external destinations listed in a separate
+file for easier maintenance. </p>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_security_level = may
+    smtp_tls_policy_maps = ...dane/sts plugin...
+    smtp_requiretls_policy =
+        inline:{
+            {$mydomain = opportunistic}
+            {.$mydomain = opportunistic}
+            {localhost = opportunistic}
+            {127.0.0.1 = opportunistic} }
+	hash:/etc/postfix/requiretls-per-site
+	opportunistic+starttls
+</pre>
+<pre>
+/etc/postfix/requiretls-per-site:
+    one.example 	enforce
+    two.example 	enforce
+    three.example	opportunistic
+    ...
+</pre>
+
+<li> <p> Distant future: when a sender requests REQUIRETLS, enforce
+all REQUIRETLS requirements, including a server certificate match,
+for all external destinations. </p>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_secure_cert_match = nexthop, dot-nexthop
+    smtp_tls_policy_maps = ...dane/sts plugin...
+    smtp_requiretls_policy =
+        inline:{
+            {$mydomain = opportunistic}
+            {.$mydomain = opportunistic}
+            {localhost = opportunistic}
+            {127.0.0.1 = opportunistic} }
+        enforce
+</pre>
+
+</ul>
+
+<p>
+LMTP client examples:
+</p>
+
+<ul>
+
+<li> <p> The default LMTP client REQUIRETLS policy: when a sender
+requests REQUIRETLS, request REQUIRETLS if the server supports
+REQUIRETLS, otherwise deliver the message as if the sender did not
+request REQUIRETLS. Note: with deliveries over a UNIX-domain socket,
+the next-hop destination for lmtp_requiretls_policy lookups will
+be the myhostname parameter value. </p>
+<pre>
+/etc/postfix/main.cf:
+    lmtp_requiretls_policy = opportunistic
+</pre>
+
+</ul>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM lmtp_requiretls_policy opportunistic
+
+<p> The LMTP-specific version of the smtp_requiretls_policy
+configuration parameter. See there for details. </p>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM lmtp_log_tls_feature_status yes
+
+<p> The LMTP-specific version of the smtp_log_tls_feature_status
+configuration parameter. See there for details. </p>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM smtp_log_tls_feature_status yes
+
+<p> Enable logging of TLS feature information in delivery status
+logging. This summarizes how features such as TLS and REQUIRETLS
+were used. A list of examples is at the end of this text. </p>
+
+<ul>
+
+<li> <p> The logging is inserted between the "<tt>delays=a/b/c/d</tt>"
+and the "<tt>dsn=x.y.z, status=...</tt>" information. </p>
+
+<li> <p> The general format is "<tt>tls=feature/feature/...</tt>".
+See below for examples. </p>
+
+<li> <p> The first feature name is the TLS security level:
+'<tt>none</tt>', '<tt>may</tt>', '<tt>encrypt</tt>', etc.  Other
+features are shown only if activated. The REQUIRETLS extension's
+feature name is '<tt>requiretls</tt>'. </p>
+
+<li> <p> When a '<tt>:<i>downgrade-level</i></tt>' is appended to
+a feature name, the feature was downgraded to the indicated level.
+A downgrade-level <tt><i>none</i></tt> indicates that the connection
+could not use the feature. The result of a downgrade may violate
+a strict policy, but may be compliant with a permissive policy. </p>
+
+<li> <p> When "<tt>!</tt>" is prepended to a feature, the policy
+for that feature was violated and the connection was not used.
+</p>
+
+<li> <p> When "?" is appended to a feature, the policy for that
+feature was undecided. This is typically the result of a lost
+connection or an incorrect configuration. </p>
+
+</ul>
+
+<p> Examples for TLS security levels: </p>
+
+<dl>
+
+<dt> tls=none </dt> <dd> A connection that did not use TLS. </dd>
+
+<dt> tls=may </dt> <dd> Opportunistic TLS. The connection was used
+after a successful TLS handshake. </dd>
+
+<dt> tls=may? </dt> <dd> Opportunistic TLS. The status was undecided
+because no connection was made, or no server could be reached. </dd>
+
+<dt> tls=may:none </dt> <dd> The client was willing to use TLS, but
+the remote server did not support STARTTLS, and the connection was
+used in plaintext as permitted by the opportunistic TLS policy. </dd>
+
+<dt> tls=dane </dt> <dd> DANE policy compliant, no downgrade. </dd>
+
+<dt> tls=dane:encrypt </dt> <dd> Opportunistic DANE. The connection
+security was downgraded to '<tt>encrypt</tt>' because none of the TLSA
+records were usable. </dd>
+
+<dt> tls=dane? </dt> <dd> DANE policy status was undecided, because the
+connection failed before or in the TLS handshake. </dd>
+
+</dl>
+
+<p> Examples for REQUIRETLS policies (set with smtp_requiretls_policy),
+where "<tt><i>xxx</i></tt>" is a TLS security level: </p>
+
+<dl>
+
+<dt> tls=xxx/requiretls </dt> <dd> 'Enforce' policy compliant.
+After a successful TLS handshake that required a certificate match,
+the remote server announced REQUIRETLS support, and the client sent
+REQUIRETLS.
+
+<dt> tls=xxx/!requiretls:nocertmatch </dt> <dd> 'Enforce' policy
+violation. The connection was not used because the remote server
+certificate did not match as required by the TLS security policy,
+or no connection was made because the TLS security policy disabled
+server certificate matching. </dd>
+
+<dt> tls=xxx/requiretls:nocertmatch </dt> <dd> 'Opportunistic+starttls'
+or 'opportunistic' policy compliant. After a successful TLS handshake
+that did not require a server certificate match, the remote server
+announced REQUIRETLS support, and the client sent REQUIRETLS. </dd>
+
+<dt> tls=xxx/!requiretls:nostarttls </dt> <dd> 'Enforce' or
+'opportunistic+starttls' policy violation. The connection was not
+used because the remote server did not support STARTTLS. </dd>
+
+<dt> tls=xxx/!requiretls:noencryption </dt> <dd> 'Enforce' or
+'opportunistic+starttls' policy violation. No connection was made
+used because the TLS security policy disabled encryption. </dd>
+
+<dt> tls=xxx/!requiretls:none </dt> <dd> 'Enforce' policy violation.
+After a successful TLS handshake, the connection was not used because
+the remote server did not support REQUIRETLS. </dd>
+
+<dt> tls=xxx/requiretls:none </dt> <dd> 'Opportunistic+starttls'
+policy compliant. After a successful TLS handshake, the remote
+server did not announce REQUIRETLS support, and the connection was
+used without sending REQUIRETLS. </dd>
+
+<dt> tls=xxx/requiretls:none </dt> <dd> 'Opportunistic' policy
+compliant. The remote server did not announce support for STARTTLS
+or REQUIRETLS, and the connection was used without sending REQUIRETLS.
+</dd>
+
+<dt> tls=xxx/requiretls? </dt> <dd> Policy status was undecided,
+because the connection failed before or in the TLS handshake, or
+no connection was made due to a policy configuration error. </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 3.11 and later. </p> 
+
+%PARAM requiretls_esmtp_header yes
+
+<p> Record the ESMTP REQUIRETLS request in a "Require-TLS-ESMTP:
+yes" message header. This is needed to propagate the REQUIRETLS
+request through an external content filter that is configured with
+smtpd_proxy_filter, with content_filter, or with a FILTER action in
+an SMTPD access(5) table, header_checks(5) or body_checks(5). The
+header is not needed with Milter-based content filters. </p>
+
+<p> This header will be visible to remote and local recipients.  It
+can safely be disabled if a configuration does not use any of the
+above content filters that need the header. </p>
+
+<p> This feature is available in Postfix 3.11 and later. </p>
 
 %PARAM smtpd_hide_client_session no
 

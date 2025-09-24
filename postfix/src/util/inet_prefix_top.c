@@ -106,6 +106,7 @@ char   *inet_prefix_top(int af, const void *src, int prefix_len)
 #include <stdlib.h>
 #include <msg_vstream.h>
 #include <name_code.h>
+#include <mymalloc.h>
 
  /*
   * TODO: add test cases for fatal and panic errors, intercept msg_fatal()

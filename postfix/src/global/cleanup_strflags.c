@@ -55,6 +55,7 @@ static struct cleanup_flag_map cleanup_flag_map[] = {
     CLEANUP_FLAG_SMTP_REPLY, "enable_smtp_reply",
     CLEANUP_FLAG_SMTPUTF8, "smtputf8_requested",
     CLEANUP_FLAG_AUTOUTF8, "smtputf8_autodetect",
+    CLEANUP_FLAG_REQTLS, "requiretls_requested",
 };
 
 /* cleanup_strflags - map flags code to printable string */

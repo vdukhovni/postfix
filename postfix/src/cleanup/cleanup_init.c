@@ -10,6 +10,8 @@
 /*
 /*	CONFIG_BOOL_TABLE cleanup_bool_table[];
 /*
+/*	CONFIG_NBOOL_TABLE cleanup_nbool_table[];
+/*
 /*	CONFIG_STR_TABLE cleanup_str_table[];
 /*
 /*	CONFIG_TIME_TABLE cleanup_time_table[];
@@ -177,6 +179,7 @@ char   *var_hfrom_format;		/* header_from_format */
 char   *var_full_name_encoding_charset;	/* in =?charset?encoding?gibberish=? */
 int     var_force_mime_iconv;		/* force mime downgrade on input */
 int     var_cleanup_mask_stray_cr_lf;	/* replace stray CR or LF with space */
+bool    var_reqtls_esmtp_hdr;
 
 const CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -195,6 +198,11 @@ const CONFIG_BOOL_TABLE cleanup_bool_table[] = {
     VAR_ALWAYS_ADD_HDRS, DEF_ALWAYS_ADD_HDRS, &var_always_add_hdrs,
     VAR_FORCE_MIME_ICONV, DEF_FORCE_MIME_ICONV, &var_force_mime_iconv,
     VAR_CLEANUP_MASK_STRAY_CR_LF, DEF_CLEANUP_MASK_STRAY_CR_LF, &var_cleanup_mask_stray_cr_lf,
+    0,
+};
+
+const CONFIG_NBOOL_TABLE cleanup_nbool_table[] = {
+    VAR_REQTLS_ESMTP_HDR, DEF_REQTLS_ESMTP_HDR, &var_reqtls_esmtp_hdr,
     0,
 };
 

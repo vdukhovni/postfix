@@ -1,0 +1,393 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "https://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+<head>
+
+<title>Postfix REQUIRETLS Support</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel='stylesheet' type='text/css' href='postfix-doc.css'>
+
+</head>
+
+<body>
+
+<h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">Postfix REQUIRETLS Support</h1>
+
+<hr>
+
+<h2> Table of Contents </h2>
+<ul>
+
+<li> <a href="#intro"> Introduction </a> </li>
+<li> <a href="#perimeter"> REQUIRETLS for a perimeter MTA </a>
+<ul>
+<li> <a href="#inbound"> Receiving inbound messages with REQUIRETLS requests </a>
+<li> <a href="#lmtp-smtp"> LMTP and SMTP-based message stores and content filters content filters </a>
+<li> <a href="#non-smtp"> Non-SMTP or -LMTP content filters </a>
+<li> <a href="#external"> Communication with external servers </a>
+</ul>
+<li> <a href="#census"> An experiment: testing REQUIRETLS support </a>
+<li> <a href="#requesting"> Requesting REQUIRETLS without SMTP </a>
+<li> <a href="#ndrs"> Non-delivery notifications </a> </li>
+<li> <a href="#summary"> REQUIRETLS quick summary </a> </li>
+<li> <a href="#credits"> Credits </a> </li>
+
+</ul>
+
+<h2> <a name="intro"> Introduction </a> </h2>
+
+<p> (For background information, see below for a <a href="#summary">
+REQUIRETLS quick summary </a>.) </p>
+
+<p> This document covers the Postfix default settings for using the
+REQUIRETLS extension. The purpose of these defaults is to make REQUIRETLS
+support usable in an existing environment, with a path towards the
+future. </p>
+
+<p> The main issues with deploying REQUIRETLS are a lack of support in
+existing infrastructure:  </p>
+
+<ul>
+
+<li> <p> REQUIRETLS requires that server certificates are authenticated.
+When email is sent across the Internet, this involves a DANE or MTA-STS
+policy that is published by a mail receiving domain, using DNSSEC or
+HTTPS. At this time, many domains do not publish such a policy. </p>
+
+<li> <p> REQUIRETLS is historically not supported by existing local
+infrastructure such as internal message stores or Postfix content
+filters, and may be over-kill for connections that happen behind a
+perimeter MTA within a trusted internal network. </p>
+
+</ul>
+
+<h2> <a name="perimeter"> REQUIRETLS for a perimeter MTA </a> </h2>
+
+<p> In this text, a perimeter MTA is a mail system that operates
+on the boundary of an administrative domain. It receives email
+messages for the domain, and/or delivers email messages on behalf
+of the domain. </p>
+
+<h3> <a name="inbound"> Receiving inbound messages with REQUIRETLS requests </a> </h3>
+
+<p> Postfix has one global parameter setting that controls REQUIRETLS
+support in all Postfix processes. The default setting is:
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    requiretls_enable = yes
+</pre>
+</blockquote>
+
+<p> With this, the Postfix SMTP server will announce REQUIRETLS
+support, and more importantly, will receive messages from senders
+that for some reason request REQUIRETLS support -- messages that
+you would otherwise not receive.
+</p>
+
+<p> Read the next sections if you also want to send or forward
+messages with REQUIRETLS and want to use a content filter based on
+FILTER_README or SMTPD_PROXY_README. </p>
+
+<p> If, on the other hand, all you want is receiving messages with
+REQUIRETLS, without ever sending or forwarding messages with
+REQUIRETLS, then you can stop reading this document after adding
+the additional settings below. </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    # Don't detect or add a "Require-TLS-ESMTP: yes" header.
+    requiretls_esmtp_header = no
+    # Don't enforce REQUIRETLS when delivering mail with SMTP or LMTP.
+    smtp_requiretls_policy = disable
+    lmtp_requiretls_policy = disable
+</pre>
+</blockquote>
+
+<p> The requiretls_esmtp_header feature enables support for a message
+header "Require-TLS-ESMTP: yes" that allows Postfix to propagate
+the sender's REQUIRETLS request through a content filter. This
+feature can safely be disabled if there is no need for content
+inspection based on SMTPD_PROXY_README or FILTER_README. </p>
+
+<h3> <a name="lmtp-smtp"> LMTP and SMTP-based message stores and content filters </a> </h3>
+
+<p> REQUIRETLS is historically not supported by message stores such
+as Dovecot, and by content filters based on FILTER_README or
+SMTPD_PROXY_README. The settings below allow for that reality, while
+also preparing for future REQUIRETLS support. <p>
+
+<p> The Postfix SMTP (LMTP) client supports a permissive REQUIRETLS
+policy that is suitable for communication with internal message stores
+and content filters based on FILTER_README or SMTPD_PROXY_README. </p>
+
+<ul> 
+
+<li> <p> <b>opportunistic</b>: STARTTLS and REQUIRETLS support are
+optional. When the sender requests REQUIRETLS, and an SMTP or LMTP
+server supports STARTTLS and REQUIRETLS, then send REQUIRETLS,
+otherwise simply deliver the message without REQUIRETLS. </p>
+
+</ul>
+
+<p> For REQUIRETLS, the relevant Postfix 3.11 configuration default
+settings are: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_security_level = may
+    requiretls_esmtp_header = yes
+    lmtp_requiretls_policy = opportunistic
+    smtp_requiretls_policy =
+        inline:{
+            {$mydomain = opportunistic}
+            {.$mydomain = opportunistic}
+            {localhost = opportunistic}
+            {127.0.0.1 = opportunistic} }
+	...to be continued later...
+</pre>
+</blockquote>
+
+<p> The requiretls_esmtp_header setting enables support for a message
+header "Require-TLS-ESMTP: yes" that allows Postfix to propagate the
+sender's REQUIRETLS request through a content filter. This feature can
+safely be disabled if there is no need for content inspection based on
+SMTPD_PROXY_README or FILTER_README. </p>
+
+<h3> <a name="non-smtp"> Non-SMTP or -LMTP content filters </a> </h3>
+
+<p> The Postfix FILTER_README describes content inspection based
+on a pipe-to-command approach. For REQUIRETLS, the relevant Postfix
+3.11 default setting is: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    requiretls_esmtp_header = yes
+</pre>
+</blockquote>
+
+<p> The requiretls_esmtp_header feature enables support for a message
+header "Require-TLS-ESMTP: yes" that allows Postfix to propagate the
+sender's REQUIRETLS request through a content filter. This feature can
+safely be disabled if there is no need for content inspection based on
+SMTPD_PROXY_README or FILTER_README. </p>
+
+<h3> <a name="external"> Communication with external servers </a> </h3>
+
+<p> For communication with external servers, the Postfix SMTP client supports
+multiple levels of enforcement: </p>
+
+<ul>
+
+<li> <p> <b>enforce</b>: When the sender requests REQUIRETLS, require
+secure lookup of MX hosts (for example, using DNSSEC or SMTPS),
+require a server certificate match (for example, based on a published
+DANE or STS policy), and require that the remote server supports
+REQUIRETLS. Otherwise return the message as undeliverable. </p>
+
+<li> <p> <b>opportunistic+starttls</b>: When the sender requests
+REQUIRETLS, require that the server supports STARTTLS. Send REQUIRETLS
+if the server supports REQUIRETLS, otherwise simply deliver the
+message without REQUIRETLS. </p>
+
+<li> <p> <b>opportunistic</b>: STARTTLS and REQUIRETLS support are
+optional. When the sender requests REQUIRETLS, and an SMTP or LMTP
+server supports STARTTLS and REQUIRETLS, then send REQUIRETLS,
+otherwise simply deliver the message without REQUIRETLS. </p>
+
+</ul>
+
+<p> For sending mail with REQUIRETLS, the relevant Postfix 3.11
+default settings are (with one suggested comment): </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_security_level = may
+    # smtp_tls_policy_maps = dane/sts plugin
+    requiretls_esmtp_header = yes
+    smtp_requiretls_policy =
+        inline:{
+            {$mydomain = opportunistic}
+            {.$mydomain = opportunistic}
+            {localhost = opportunistic}
+            {127.0.0.1 = opportunistic} }
+	opportunistic+starttls
+</pre>
+</blockquote>
+
+<p> This default reflects the reality that many domains do not
+publish a DANE or STS policy, that many MTAs support STARTTLS but
+not REQUIRETLS, and that only one network hop needs to be secured:
+from a sender's perimeter MTA to a receiver's perimeter MTA. The
+network connections between user agents and their respective
+perimeters are assumed to be already secure. </p>
+
+<blockquote> <b>Question</b>: does <b>opportunistic+starttls</b>
+hit a "sweet spot", or do we need a level like <b>enforce-certmatch</b>
+that enforces everything except the secure server lookup and
+certificate match requirement? It's a slippery target...</blockquote>
+
+<h2> <a name="census"> An experiment: testing REQUIRETLS support </a> </h2>
+
+<p> The 'opportunistic' enforcement level may be useful to discover
+REQUIRETLS support globally. The idea is to turn on REQUIRETLS for
+all outbound mail, and watch in Postfix TLS status logging how often
+delivery is logged as "requiretls" (all requirements satisfied),
+"requiretls:nocertmatch" (no DANE or STS policy, or certificate not
+trusted or not matched), "requiretls:none" (no REQUIRETLS support),
+or "requiretls:nostarttls". For more details on this logging format,
+see smtp_log_tls_feature_status.</p>
+
+<h2> <a name="requesting"> Requesting REQUIRETLS without SMTP </a> </h2>
+
+<p> There are two options: </p>
+
+<ul>
+
+<li> <p> Specify the Postfix-specific "<b>sendmail -Orequiretls=yes</b>"
+command-line option. This option is always available, but may not
+be convenient to use. <p>
+
+<li> <p> Add a Postfix-specific "<b>Require-TLS-ESMTP: yes</b>"
+message header. This is easier to use, but requires the setting
+"requiretls_esmtp_header = yes" which is not recommended for systems
+without content filters based on SMTPD_PROXY_README or FILTER_README.
+</p>
+
+</ul>
+
+<blockquote> <b>Question</b>: perhaps there needs to be a parameter
+setting to request REQUIRETLS for specific email sources or contexts?
+</blockquote>
+
+<h2> <a name="ndrs"> Non-delivery notifications </a> </h2>
+
+<p> By default, Postfix redacts an undeliverable REQUIRETLS message as
+described in RFC 8689,  before returning it to the sender: </p>
+
+<ul>
+
+<li> <p> Return only the message header, as if the message was received
+with the RFC 3461 DSN option "<tt>RET=HDRS</tt>". </p>
+
+<li> <p> Remove the label "this message needs REQUIRETLS". </p>
+
+</ul>
+
+<p> The relevant default setting is: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    requiretls_redact_dsn = yes
+</pre>
+</blockquote>
+
+<p> When a message was received with a "<tt>TLS-Required: no</tt>"
+header, and REQUIRETLS was not requested, then the "T<tt>LS-Required:
+no</tt>" header is copied to the delivery status notification. </p>
+
+<h2> <a name="summary"> REQUIRETLS quick summary </a> </h2>
+
+<p> The REQUIRETLS extension in ESMTP allows a sender to request
+that a message will be sent over connections that are protected
+with TLS. RFC 8689 defines two SMTP features: </p>
+
+<ul>
+
+<li> <p> A message header "TLS-Required: no" that disables TLS
+enforcement: do not require a server certificate match, and allow
+falling back to plaintext if TLS is unavailable. This may be useful
+to report a TLS problem, as described in TLSRPT_README. This feature
+has lower precedence than REQUIRETLS, and is not discussed further
+in this document. </p>
+
+<li> <p> An ESMTP protocol extension named "REQUIRETLS" that an SMTP
+server may list in its EHLO response, and that an SMTP client may request
+in a MAIL FROM command. This extension can be used only in an encrypted
+session, as illustrated with the fragment below: </p>
+
+<pre>
+. . .
+C: STARTTLS
+S: 220 Ready to start TLS
+C: EHLO client.example.org
+S: 250-mail.example.com 
+   . . .
+   250 REQUIRETLS
+C: MAIL FROM:&lt;sender@example.org&gt; REQUIRETLS
+S: 250 OK
+. . .
+</pre>
+
+<li> <p> RFC 8689 applies equally to message relay [RFC 5321], submission
+[RFC 6409], and the LMTP Local Mail Transfer Protocol [RFC 2033]. </p>
+
+<li> <p> REQUIRETLS is an <i>end-to-end</i> feature, unlike SMTP
+which is <i>hop-by-hop</i>. When a sender requests REQUIRETLS, each
+MTA in the forward path must support REQUIRETLS. </p>
+
+<li> <p> Each connection in the forward path must be made to an MX
+server that has been looked up securely (for example, with DNSSEC
+or HTTPS).
+
+<li> <p> Each server certificate must be verified. To match a server
+certificate, the Postfix SMTP client needs to use an appropriate policy
+type: </p>
+
+<ul>
+
+<li> <p> A TLS policy type 'secure' or 'verify', with certificate name
+matching info. For example, a policy returned by an MTA-STS plugin that
+looks up certificate matching info using HTTPS;
+
+<li> <p> A TLS policy type 'dane-only", which looks up certificate or
+public-key matching info using DNSSEC. For example, a policy that is
+returned by a DANE+STS plugin; </p>
+
+<li> <p> A TLS policy type 'fingerprint', with digital fingerprints.
+This is a non-scalable solution for special deployments, mentioned
+here only for completeness. </p>
+
+</ul>
+
+<li> <p> A message that requires REQUIRETLS must be returned to the
+sender if any of the above requirements is not satisfied (no STARTTLS
+support, no secure lookup of MX servers, no trusted or no matching
+server certificate, or no server that announces REQUIRETLS support).
+</p>
+
+<li> <p> Returning an undeliverable message that requires REQUIRETLS
+comes with its own challenges: the return path may differ from the
+forward path, and the return path may not support REQUIRETLS all
+the way back to the sender, even if the forward path supported
+REQUIRETLS. </p>
+
+</ul>
+
+<h2> <a name="credits"> Credits </a> </h2>
+
+<ul>
+
+<li> In Postfix 3.10, Wietse Venema refactored SMTPUTF8 support and
+extended it to propagate REQUIRETLS and "TLS-Required: no" information.
+
+<li> In Postfix 3.11, Wietse added REQUIRETLS support to the Postfix
+SMTP client; added a "<tt>tls=...</tt>" status field to the Postfix delivery
+status logging; added support for the "Require-TLS-ESMTP: yes" header to
+propagate REQUIRETLS through non-Postfix programs, specifically content
+filters. </li>
+
+</ul>
+
+</body>
+
+</html>

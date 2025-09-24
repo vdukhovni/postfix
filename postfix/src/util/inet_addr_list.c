@@ -167,9 +167,8 @@ static void inet_addr_list_print(INET_ADDR_LIST *list)
 int     main(int argc, char **argv)
 {
     INET_ADDR_LIST list;
-    INET_PROTO_INFO *proto_info;
 
-    proto_info = inet_proto_init(argv[0], INET_PROTO_NAME_ALL);
+    inet_proto_init(argv[0], INET_PROTO_NAME_ALL);
     inet_addr_list_init(&list);
     while (--argc && *++argv)
 	if (inet_addr_host(&list, *argv) == 0)
