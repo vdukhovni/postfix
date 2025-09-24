@@ -29633,7 +29633,10 @@ Apologies for any names omitted.
 	the stock main.cf file. Problem diagnosed by Eray Aslan.
 	File: conf/main.cf.
 
-20250920
+20240924
 
-	Added back a hunk of patch 20250911 that had somehow gone
-	missing. File: smtp/smtp.h.
+	TLSRPT Workaround: when policies[*].policy.policy-type is
+	"no-policy-found", report the TLSRPT policy domain name as
+	the policies[*].policy.policy-domain value. This ignores
+	that TLSA policies must be reported with different policy-domain
+	values than STS policies. File: tls/tlsrpt_wrapper.c.
