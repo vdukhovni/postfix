@@ -159,5 +159,5 @@ void    qmgr_defer_recipient(QMGR_MESSAGE *message, RECIPIENT *recipient,
      */
     message->flags |= defer_append(message->tflags, message->queue_id,
 				 QMGR_MSG_STATS(&stats, message), recipient,
-				   "none", dsn);
+				   "none", NO_TLS_STATS, dsn);
 }

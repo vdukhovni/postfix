@@ -398,6 +398,9 @@
 /* .IP "\fBtls_required_enable (yes)\fR"
 /*	Enable support for the "TLS-Required: no" message header, defined
 /*	in RFC 8689.
+/* .IP "\fBrequiretls_esmtp_header (yes)\fR"
+/*	Record the ESMTP REQUIRETLS request in a "Require-TLS-ESMTP:
+/*	yes" message header.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -677,6 +680,7 @@ int     main(int argc, char **argv)
     single_server_main(argc, argv, cleanup_service,
 		       CA_MAIL_SERVER_INT_TABLE(cleanup_int_table),
 		       CA_MAIL_SERVER_BOOL_TABLE(cleanup_bool_table),
+		       CA_MAIL_SERVER_NBOOL_TABLE(cleanup_nbool_table),
 		       CA_MAIL_SERVER_STR_TABLE(cleanup_str_table),
 		       CA_MAIL_SERVER_TIME_TABLE(cleanup_time_table),
 		       CA_MAIL_SERVER_PRE_INIT(cleanup_pre_jail),

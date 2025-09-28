@@ -128,6 +128,7 @@
 /*	int	var_smtputf8_enable;
 /*	int	var_strict_smtputf8;
 /*	char	*var_smtputf8_autoclass;
+/*	int	var_reqtls_enable;
 /*	int	var_tls_required_enable;
 /*	int     var_idna2003_compat;
 /*	char	*var_compatibility_level;
@@ -370,6 +371,7 @@ char   *var_dsn_filter;
 int     var_smtputf8_enable;
 int     var_strict_smtputf8;
 char   *var_smtputf8_autoclass;
+int     var_reqtls_enable;
 int     var_tls_required_enable;
 int     var_idna2003_compat;
 char   *var_compatibility_level;
@@ -793,6 +795,7 @@ void    mail_params_init()
 	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
 	VAR_IDNA2003_COMPAT, DEF_IDNA2003_COMPAT, &var_idna2003_compat,
 	VAR_RESPECTFUL_LOGGING, DEF_RESPECTFUL_LOGGING, &var_respectful_logging,
+	VAR_REQTLS_ENABLE, DEF_REQTLS_ENABLE, &var_reqtls_enable,
 	VAR_TLSREQUIRED_ENABLE, DEF_TLSREQUIRED_ENABLE, &var_tls_required_enable,
 	0,
     };

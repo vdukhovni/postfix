@@ -6,11 +6,12 @@
 /* SYNOPSIS
 /*	#include <log_adhoc.h>
 /*
-/*	void	log_adhoc(id, stats, recipient, relay, dsn, status)
+/*	void	log_adhoc(id, stats, recipient, relay, tstats, dsn, status)
 /*	const char *id;
 /*	MSG_STATS *stats;
 /*	RECIPIENT *recipient;
 /*	const char *relay;
+/*	const POL_STATS *tstats;
 /*	DSN *dsn;
 /*	const char *status;
 /* DESCRIPTION
@@ -33,6 +34,8 @@
 /*	Host we could (not) talk to.
 /* .IP status
 /*	bounced, deferred, sent, and so on.
+/* .IP tstats
+/*	TLS per-feature status.
 /* .IP dsn
 /*	Delivery status information. See dsn(3).
 /* BUGS
@@ -52,6 +55,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -71,6 +77,7 @@
 #include <log_adhoc.h>
 #include <mail_params.h>
 #include <info_log_addr_form.h>
+#include <pol_stats.h>
 
  /*
   * Don't use "struct timeval" for time differences; use explicit signed
@@ -85,8 +92,8 @@ typedef struct {
 /* log_adhoc - ad-hoc logging */
 
 void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
-		          const char *relay, DSN *dsn,
-		          const char *status)
+		          const char *relay, const POL_STATS *tstats,
+		          DSN *dsn, const char *status)
 {
     static VSTRING *buf;
     DELTA_TIME delay;			/* end-to-end delay */
@@ -140,6 +147,8 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
      * 
      * XXX Apparently, Solaris gettimeofday() can return out-of-range
      * microsecond values.
+     * 
+     * TODO(wietse) move this to msg_stats.c
      */
 #define DELTA(x, y, z) \
     do { \
@@ -207,6 +216,16 @@ void    log_adhoc(const char *id, MSG_STATS *stats, RECIPIENT *recipient,
     PRETTY_FORMAT(buf, "/", adelay);
     PRETTY_FORMAT(buf, "/", sdelay);
     PRETTY_FORMAT(buf, "/", xdelay);
+
+    /*
+     * Optional: TLS per-feature status summary.
+     */
+#ifdef USE_TLS
+    if (tstats && pol_stats_used(tstats)) {
+	vstring_sprintf_append(buf, ", tls=");
+	pol_stats_format(buf, tstats);
+    }
+#endif
 
     /*
      * Finally, the delivery status.

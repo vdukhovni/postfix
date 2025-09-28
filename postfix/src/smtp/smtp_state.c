@@ -83,6 +83,13 @@ SMTP_STATE *smtp_state_alloc(void)
 #ifdef USE_TLSRPT
     state->tlsrpt = 0;
 #endif
+#ifdef USE_TLS
+    state->reqtls_level = SMTP_REQTLS_POLICY_ACT_DISABLE;
+    if (var_log_tls_feature_status)
+	state->tls_stats = pol_stats_create();
+    else
+	state->tls_stats = 0;
+#endif
     if (var_smtp_cache_conn) {
 	state->dest_label = vstring_alloc(10);
 	state->dest_prop = vstring_alloc(10);
@@ -109,6 +116,8 @@ void    smtp_state_free(SMTP_STATE *state)
 #ifdef USE_TLS
     /* The TLS policy cache lifetime is one delivery. */
     smtp_tls_policy_cache_flush();
+    if (state->tls_stats)
+	pol_stats_free(state->tls_stats);
 #endif
     vstring_free(state->iterator->request_nexthop);
     vstring_free(state->iterator->dest);

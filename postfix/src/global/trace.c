@@ -6,12 +6,13 @@
 /* SYNOPSIS
 /*	#include <trace.h>
 /*
-/*	int	trace_append(flags, id, stats, rcpt, relay, dsn)
+/*	int	trace_append(flags, id, stats, rcpt, relay, tstats, dsn)
 /*	int	flags;
 /*	const char *id;
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
+/*	const POL_STATS *tstats;
 /*	DSN	*dsn;
 /*
 /*	int     trace_flush(flags, queue, id, encoding, sender,
@@ -61,6 +62,8 @@
 /*	Recipient information. See recipient_list(3).
 /* .IP relay
 /*	The host we sent the mail to.
+/* .IP tstats
+/*	TLS per-feature status.
 /* .IP dsn
 /*	Delivery status information. See dsn(3).
 /* DIAGNOSTICS
@@ -84,6 +87,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -110,7 +116,7 @@
 
 int     trace_append(int flags, const char *id, MSG_STATS *stats,
 		             RECIPIENT *rcpt, const char *relay,
-		             DSN *dsn)
+		             const POL_STATS *tstats, DSN *dsn)
 {
     VSTRING *why = vstring_alloc(100);
     DSN     my_dsn = *dsn;
@@ -137,7 +143,7 @@ int     trace_append(int flags, const char *id, MSG_STATS *stats,
 	req_stat = -1;
     } else {
 	if (flags & DEL_REQ_FLAG_USR_VRFY)
-	    log_adhoc(id, stats, rcpt, relay, dsn, my_dsn.action);
+	    log_adhoc(id, stats, rcpt, relay, tstats, dsn, my_dsn.action);
 	req_stat = 0;
     }
     vstring_free(why);

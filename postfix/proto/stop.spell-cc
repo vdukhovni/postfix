@@ -1865,9 +1865,15 @@ DIGEST
 OSSL
 ossl
 deduplicates
+crosstalk
 intmax
 lflag
 REPLYCODE
 PTEST
 finalizer
-enf
+REQTLS
+reqtls
+Esmtp
+ENF
+tstats
+pstats

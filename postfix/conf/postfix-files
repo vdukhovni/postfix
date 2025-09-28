@@ -320,6 +320,7 @@ $readme_directory/QMQP_README:f:root:-:644:o
 $readme_directory/QSHAPE_README:f:root:-:644
 $readme_directory/RELEASE_NOTES:f:root:-:644
 $readme_directory/RESTRICTION_CLASS_README:f:root:-:644
+$readme_directory/REQUIRETLS_README:f:root:-:644
 $readme_directory/SASL_README:f:root:-:644
 $readme_directory/SCHEDULER_README:f:root:-:644
 $readme_directory/SMTPD_ACCESS_README:f:root:-:644
@@ -383,6 +384,7 @@ $html_directory/POSTSCREEN_README.html:f:root:-:644
 $html_directory/QMQP_README.html:f:root:-:644:o
 $html_directory/QSHAPE_README.html:f:root:-:644
 $html_directory/RESTRICTION_CLASS_README.html:f:root:-:644
+$html_directory/REQUIRETLS_README.html:f:root:-:644
 $html_directory/SASL_README.html:f:root:-:644
 $html_directory/SCHEDULER_README.html:f:root:-:644
 $html_directory/SMTPD_ACCESS_README.html:f:root:-:644

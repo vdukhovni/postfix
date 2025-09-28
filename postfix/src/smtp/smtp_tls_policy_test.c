@@ -84,6 +84,7 @@ char   *var_smtp_tls_vfy_cmatch;
 bool    var_smtp_use_tls;
 char   *var_smtp_tls_excl_ciph;
 bool    var_smtp_tls_enf_sts_mx_pat;
+bool    var_log_tls_feature_status;
 
  /*
   * Other globals.
@@ -125,6 +126,7 @@ static void test_setup(void)
     var_smtp_use_tls = DEF_SMTP_USE_TLS;
     var_smtp_tls_excl_ciph = DEF_SMTP_TLS_EXCL_CIPH;
     var_smtp_tls_enf_sts_mx_pat = 1;
+    var_log_tls_feature_status = 1;
 
     smtp_mode = 1;
 
