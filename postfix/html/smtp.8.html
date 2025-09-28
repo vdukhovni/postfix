@@ -762,18 +762,16 @@ SMTP(8)                                                                SMTP(8)
               When set to "yes", report the TLSRPT status only for  "new"  TLS
               sessions.
 
-       Available in Postfix version 3.10.5 and later:
-
-       <b><a href="postconf.5.html#smtp_tls_enforce_sts_mx_patterns">smtp_tls_enforce_sts_mx_patterns</a> (yes)</b>
-              Transform  the  TLS policy from an STS policy plugin: connect to
-              an MX host only if its name matches the STS policy MX host  pat-
-              tern,  and match the server certificate against the MX hostname.
-
-       Available in Postfix version 3.11 and later:
-
        <b><a href="postconf.5.html#tls_required_enable">tls_required_enable</a> (yes)</b>
               Enable  support  for  the  "TLS-Required:  no"  message  header,
               defined in <a href="https://tools.ietf.org/html/rfc8689">RFC 8689</a>.
+
+       Available in Postfix version 3.10.5 and later:
+
+       <b><a href="postconf.5.html#smtp_tls_enforce_sts_mx_patterns">smtp_tls_enforce_sts_mx_patterns</a> (yes)</b>
+              Transform the TLS policy from an STS policy plugin:  connect  to
+              an  MX host only if its name matches any STS policy MX host pat-
+              tern, and match the server certificate against the MX  hostname.
 
 <b><a name="obsolete_starttls_controls">OBSOLETE STARTTLS CONTROLS</a></b>
        The  following  configuration  parameters  exist for compatibility with

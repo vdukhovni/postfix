@@ -35,6 +35,11 @@
 /*	When any required table or DNS lookups fail, the TLS level
 /*	is set to TLS_LEV_INVALID, the "why" argument is updated
 /*	with the error reason and the result value is zero (false).
+/*	When var_smtp_tls_enf_sts_mx_pat is not null, and a policy plugin
+/*	specifies a policy_type "sts" plus one or more mx_host_pattern
+/*	instances, transform the policy as follows: allow only MX hosts
+/*	that match an mx_host_pattern instance, and match a server
+/*	certificate against the server hostname.
 /*
 /*	smtp_tls_policy_dummy() initializes a trivial, non-cached,
 /*	policy with TLS disabled.

@@ -1125,7 +1125,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		/* XXX Assume there is no code at the end of this loop. */
 	    }
 	    /* Skip MX hosts that lack authorization. */
-	    if (!smtp_tls_authorize_mx_hostname(state->tls, addr->qname)) {
+	    if (!smtp_tls_authorize_mx_hostname(state->tls, SMTP_HNAME(addr))) {
 		continue;
 		/* XXX Assume there is no code at the end of this loop. */
 	    }
