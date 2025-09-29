@@ -116,8 +116,8 @@ For REQUIRETLS, the relevant Postfix 3.11 configuration default settings are:
      4     lmtp_requiretls_policy = opportunistic
      5     smtp_requiretls_policy =
      6         inline:{
-     7             {$mydomain = opportunistic}
-     8             {.$mydomain = opportunistic}
+     7             {$mydomain_a = opportunistic}
+     8             {.$mydomain_a = opportunistic}
      9             {localhost = opportunistic} }
     10         cidr:{
     11             {0.0.0.0/0 opportunistic}
@@ -134,6 +134,10 @@ For REQUIRETLS, the relevant Postfix 3.11 configuration default settings are:
   * Lines 5-12: These make REQUIRETLS support optional for "internal"
     destinations that are specified as a symbolic name (lines 6-9) or as a
     numerical IP address (lines 10-12).
+
+  * Lines 7 and 8 use $mydomain_a, not $mydomain, The mydomain_a default value
+    contains Punycode (A-label form) when the mydomain value contains non-ASCII
+    characters, otherwise both values will be identical.
 
 NNoonn--SSMMTTPP aanndd nnoonn--LLMMTTPP ccoonntteenntt ffiilltteerrss
 
@@ -191,13 +195,17 @@ FILTER_README.
      4     requiretls_esmtp_header = yes
      5     smtp_requiretls_policy =
      6         inline:{
-     7             {$mydomain = opportunistic}
-     8             {.$mydomain = opportunistic}
+     7             {$mydomain_a = opportunistic}
+     8             {.$mydomain_a = opportunistic}
      9             {localhost = opportunistic} }
     10         cidr:{
     11             {0.0.0.0/0 opportunistic}
     12             {::/0 opportunistic} }
     13         enforce
+
+(Again, lines 7 and 8 use $mydomain_a, not $mydomain, The mydomain_a default
+value contains Punycode (A-label form) when the mydomain value contains non-
+ASCII characters, otherwise both values will be identical.)
 
 The 'enforce' policy for external destinations is technically correct, but is
 likely to suffer from delivery failures because many domains do not publish a
@@ -219,8 +227,8 @@ STS policy. The configuration below makes that change by replacing the default
      4     requiretls_esmtp_header = yes
      5     smtp_requiretls_policy =
      6         inline:{
-     7             {$mydomain = opportunistic}
-     8             {.$mydomain = opportunistic}
+     7             {$mydomain_a = opportunistic}
+     8             {.$mydomain_a = opportunistic}
      9             {localhost = opportunistic} }
     10         cidr:{
     11             {0.0.0.0/0 opportunistic}

@@ -4810,6 +4810,12 @@ Example:
 mydomain = domain.tld
 .fi
 .ad
+.SH mydomain_a (default: see "postconf \-d" output)
+When mydomain contains non\-ASCII characters (U\-label form),
+mydomain_a will contain Punycode (A\-label form). Otherwise, the two
+values will be identical.
+.PP
+This feature is available in Postfix >= 3.11.
 .SH myhostname (default: see "postconf \-d" output)
 The internet hostname of this mail system. The default is to use
 the fully\-qualified domain name (FQDN) from gethostname(), or to
@@ -4824,6 +4830,12 @@ Example:
 myhostname = host.example.com
 .fi
 .ad
+.SH myhostname_a (default: see "postconf \-d" output)
+When myhostname contains non\-ASCII characters (U\-label form),
+myhostname_a will contain Punycode (A\-label form). Otherwise, the
+two values will be identical.
+.PP
+This feature is available in Postfix >= 3.11.
 .SH mynetworks (default: see "postconf \-d" output)
 The list of "trusted" remote SMTP clients that have more privileges than
 "strangers".
@@ -8242,7 +8254,9 @@ supports STARTTLS and REQUIRETLS, and require that its server
 certificate matches a DANE or STS policy (lines 3, 12); make
 server\-side REQUIRETLS support optional for internal destinations
 specified as a symbolic name (lines 5\-8) or as a numeric address
-(lines 9\-11).
+(lines 9\-11). This uses $mydomain_a which by default contains
+Punycode (A\-label form) when $mydomain contains non\-ASCII (U\-label
+form). Otherwise the two values will be identical (lines 6,7).
 .sp
 .nf
 .na
@@ -8251,8 +8265,8 @@ specified as a symbolic name (lines 5\-8) or as a numeric address
  3     smtp_tls_policy_maps = ...dane/sts plugin...
  4     smtp_requiretls_policy =
  5         inline:{
- 6             {$mydomain = opportunistic}
- 7             {.$mydomain = opportunistic}
+ 6             {$mydomain_a  = opportunistic}
+ 7             {.$mydomain_a  = opportunistic}
  8             {localhost = opportunistic} }
  9         cidr:{
 10             {0.0.0.0/0 opportunistic},
@@ -8267,7 +8281,9 @@ require that an external server supports STARTTLS but enforce a TLS
 certificate match only if the receiver publishes a DANE or STS
 policy (line 3), and do not require that an external server supports
 REQUIRETLS. There is no policy change for internal deliveries
-(lines 5\-11).
+(lines 5\-11). Again, this uses $mydomain_a which by default contains
+Punycode (A\-label form) when $mydomain contains non\-ASCII (U\-label
+form). Otherwise the two forms will be identical (lines 6,7).
 .sp
 .nf
 .na
@@ -8276,8 +8292,8 @@ REQUIRETLS. There is no policy change for internal deliveries
  3     smtp_tls_policy_maps = ...dane/sts plugin...
  4     smtp_requiretls_policy =
  5         inline:{
- 6             {$mydomain = opportunistic}
- 7             {.$mydomain = opportunistic}
+ 6             {$mydomain_a  = opportunistic}
+ 7             {.$mydomain_a  = opportunistic}
  8             {localhost = opportunistic} }
  9         cidr:{
 10             {0.0.0.0/0 opportunistic},
@@ -8296,8 +8312,8 @@ file for easier maintenance.
     smtp_tls_policy_maps = ...dane/sts plugin...
     smtp_requiretls_policy =
         inline:{
-            {$mydomain = opportunistic}
-            {.$mydomain = opportunistic}
+            {$mydomain_a  = opportunistic}
+            {.$mydomain_a  = opportunistic}
             {localhost = opportunistic} }
         cidr:{
             {0.0.0.0/0 opportunistic},

@@ -125,7 +125,6 @@ qmgr_bounce.o: ../../include/deliver_request.h
 qmgr_bounce.o: ../../include/dsn.h
 qmgr_bounce.o: ../../include/dsn_buf.h
 qmgr_bounce.o: ../../include/htable.h
-qmgr_bounce.o: ../../include/mail_params.h
 qmgr_bounce.o: ../../include/msg_stats.h
 qmgr_bounce.o: ../../include/mymalloc.h
 qmgr_bounce.o: ../../include/nvtable.h
@@ -147,7 +146,6 @@ qmgr_defer.o: ../../include/dsn.h
 qmgr_defer.o: ../../include/dsn_buf.h
 qmgr_defer.o: ../../include/htable.h
 qmgr_defer.o: ../../include/iostuff.h
-qmgr_defer.o: ../../include/mail_params.h
 qmgr_defer.o: ../../include/mail_proto.h
 qmgr_defer.o: ../../include/msg.h
 qmgr_defer.o: ../../include/msg_stats.h

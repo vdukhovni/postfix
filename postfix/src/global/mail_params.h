@@ -180,6 +180,12 @@ extern char *var_myhostname;
 #define DEF_MYDOMAIN		"localdomain"
 extern char *var_mydomain;
 
+#define VAR_MYHOSTNAME_A	"myhostname_a"	/* my hostname, A-label */
+extern char *var_myhostname_a;
+
+#define VAR_MYDOMAIN_A		"mydomain_a"	/* my domain name, A-label */
+extern char *var_mydomain_a;
+
  /*
   * The default local delivery transport.
   */
@@ -4414,7 +4420,7 @@ extern int var_tls_required_enable;
 extern int var_reqtls_enable;
 
 #define VAR_SMTP_REQTLS_POLICY		"smtp_requiretls_policy"
-#define DEF_SMTP_REQTLS_POLICY		"inline:{{$mydomain=opportunistic}, {.$mydomain=opportunistic}, {localhost=opportunistic}}, cidr:{{0.0.0.0/0 opportunistic}, {::/0 opportunistic}}, enforce"
+#define DEF_SMTP_REQTLS_POLICY		"inline:{{$mydomain_a=opportunistic}, {.$mydomain_a=opportunistic}, {localhost=opportunistic}}, cidr:{{0.0.0.0/0 opportunistic}, {::/0 opportunistic}}, enforce"
 extern char *var_smtp_reqtls_policy;
 
 #define VAR_LMTP_REQTLS_POLICY		"lmtp_requiretls_policy"

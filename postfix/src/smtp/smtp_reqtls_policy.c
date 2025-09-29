@@ -30,9 +30,9 @@
 /*	table that wants and exact match, specify an explicit '.' before
 /*	the parent domain name.
 /*
-/*	smtp_reqtls_policy_eval() evaluates an internal-form
-/*	policy for the specified next-hop destination. The
-/*	result is SMTP_REQTLS_POLICY_ACT_ENFORCE (enforce),
+/*	smtp_reqtls_policy_eval() evaluates an internal-form policy for
+/*	the specified next-hop destination which is converted to A-label
+/*	form. The result is SMTP_REQTLS_POLICY_ACT_ENFORCE (enforce),
 /*	SMTP_REQTLS_POLICY_ACT_OPP_TLS (opportunistic+starttls),
 /*	SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC (opportunistic),
 /*	SMTP_REQTLS_POLICY_ACT_DISABLE, or SMTP_REQTLS_POLICY_ACT_ERROR
@@ -75,6 +75,7 @@
   * Utility library.
   */
 #include <msg.h>
+#include <midna_domain.h>
 #include <mymalloc.h>
 #include <stringops.h>
 #include <dict.h>
@@ -150,11 +151,21 @@ int     smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *intern_policy,
     const char *name;
     const char *next;
     const char *origin;
+    const char *aname;
+
+#ifndef NO_EAI
+    if (!allascii(nexthop_name)
+	&& (aname = midna_domain_to_ascii(nexthop_name)) != 0) {
+	if (msg_verbose)
+	    msg_info("%s: %s asciified to %s", __func__, nexthop_name, aname);
+    } else
+#endif
+	aname = nexthop_name;
 
     origin = intern_policy->argv[0];
     for (cpp = intern_policy->argv + 1; (item = *cpp) != 0; cpp++) {
 	if (msg_verbose)
-	    msg_info("origin=%s name=%s item=%s", origin, nexthop_name, item);
+	    msg_info("origin=%s name=%s item=%s", origin, aname, item);
 	if (STREQ(item, SMTP_REQTLS_POLICY_NAME_OPP_TLS)) {
 	    return (SMTP_REQTLS_POLICY_ACT_OPP_TLS);
 	} else if (STREQ(item, SMTP_REQTLS_POLICY_NAME_ENFORCE)) {
@@ -166,7 +177,7 @@ int     smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *intern_policy,
 	} else if (strchr(item, ':') != 0) {
 	    if ((dict = dict_handle(item)) == 0)
 		msg_panic("%s: unexpected dictionary: %s", __func__, item);
-	    for (name = nexthop_name; name != 0; name = next) {
+	    for (name = aname; name != 0; name = next) {
 		if ((dict_val = dict_get(dict, name)) != 0) {
 		    /* Simple atom. Avoid four malloc() and free() calls. */
 		    if (dict_val[strcspn(dict_val, ":" CHARS_COMMA_SP)] == 0) {
@@ -201,7 +212,7 @@ int     smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *intern_policy,
 	}
     }
     if (msg_verbose)
-	msg_info("origin=%s name=%s - no match", origin, nexthop_name);
+	msg_info("origin=%s name=%s - no match", origin, aname);
     return (SMTP_REQTLS_POLICY_ACT_ENFORCE);
 }
 

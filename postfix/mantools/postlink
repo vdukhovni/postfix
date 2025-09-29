@@ -366,7 +366,9 @@ while (<>) {
     s;\bmulti_recip[-</bB>]*\n* *[<bB>]*ient_bounce_reject_code\b;<a href="postconf.5.html#multi_recipient_bounce_reject_code">$&</a>;g;
     s;\bmydes[-</bB>]*\n*[ <bB>]*ti[-</bB>]*\n*[ <bB>]*na[-</bB>]*\n*[ <bB>]*tion\b;<a href="postconf.5.html#mydestination">$&</a>;g;
     s;\bmydo[-</bB>]*\n* *[<bB>]*main\b;<a href="postconf.5.html#mydomain">$&</a>;g;
+    s;\bmydo[-</bB>]*\n* *[<bB>]*main_a\b;<a href="postconf.5.html#mydomain_a">$&</a>;g;
     s;\bmyhostname\b;<a href="postconf.5.html#myhostname">$&</a>;g;
+    s;\bmyhostname_a\b;<a href="postconf.5.html#myhostname_a">$&</a>;g;
     s;\bmynet[-</bB>]*\n* *[<bB>]*works\b;<a href="postconf.5.html#mynetworks">$&</a>;g;
     s;\bmynetworks_style\b;<a href="postconf.5.html#mynetworks_style">$&</a>;g;
     s;\bmyo[-</bB>]*\n*[ <bB>]*rigin\b;<a href="postconf.5.html#myorigin">$&</a>;g;

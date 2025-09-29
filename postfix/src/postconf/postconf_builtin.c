@@ -54,6 +54,7 @@
 #include <vstring.h>
 #include <get_hostname.h>
 #include <stringops.h>
+#include <midna_domain.h>
 
 /* Global library. */
 
@@ -162,7 +163,9 @@ static const CONFIG_STR_TABLE pcf_legacy_str_table[] = {
   * effects, then those side effects must happen only once.
   */
 static const char *pcf_check_myhostname(void);
+static const char *pcf_check_myhostname_a(void);
 static const char *pcf_check_mydomainname(void);
+static const char *pcf_check_mydomainname_a(void);
 static const char *pcf_mynetworks(void);
 
 #include "str_fn_vars.h"
@@ -203,6 +206,8 @@ static const char *pcf_check_myhostname(void)
     /*
      * If the local machine name is not in FQDN form, try to append the
      * contents of $mydomain.
+     * 
+     * TODO(wietse) handle alternative 'dot' in U-label form.
      */
     name = get_hostname();
     if ((dot = strchr(name, '.')) == 0) {
@@ -224,6 +229,37 @@ static void pcf_get_myhostname(void)
     var_myhostname = mystrdup(name);
 }
 
+/* pcf_check_myhostname_a - A-label form */
+
+static const char *pcf_check_myhostname_a(void)
+{
+    static const char *aname;
+    const char *name;
+
+    /*
+     * Use cached result.
+     */
+    if (aname)
+	return (aname);
+
+    /*
+     * Convert to A-label form.
+     */
+    if (var_myhostname == 0)
+	pcf_get_myhostname();
+    name = var_myhostname;
+#ifndef NO_EAI
+    if (!allascii(name)) {
+        if ((aname = midna_domain_to_ascii(name)) == 0)  
+            msg_fatal("%s: invalid myhostname setting: '%s'", __func__, name);
+        if (msg_verbose)
+            msg_info("%s: %s asciified to %s", __func__, name, aname);
+    } else
+#endif
+	aname = name;
+    return (aname = mystrdup(aname));
+}
+
 /* pcf_check_mydomainname - lookup domain name and validate */
 
 static const char *pcf_check_mydomainname(void)
@@ -239,12 +275,44 @@ static const char *pcf_check_mydomainname(void)
 
     /*
      * Use a default domain when the hostname is not a FQDN ("foo").
+     * 
+     * TODO(wietse) handle alternative 'dot' in U-label form.
      */
     if (var_myhostname == 0)
 	pcf_get_myhostname();
     if ((dot = strchr(var_myhostname, '.')) == 0)
 	return (domain = DEF_MYDOMAIN);
     return (domain = mystrdup(dot + 1));
+}
+
+/* pcf_check_mydomainname_a - lookup A-label domain name and validate */
+
+static const char *pcf_check_mydomainname_a(void)
+{
+    static const char *aname;
+    const char *name;
+
+    /*
+     * Use cached result.
+     */
+    if (aname)
+	return (aname);
+
+    /*
+     * Convert to A-label form.
+     */
+    if ((name = mail_conf_lookup_eval(VAR_MYDOMAIN)) == 0)
+	name = pcf_check_mydomainname();
+#ifndef NO_EAI
+    if (!allascii(name)) {
+	if ((aname = midna_domain_to_ascii(name)) == 0)
+	    msg_fatal("%s: invalid mydomain setting: '%s'", __func__, name);
+	if (msg_verbose)
+	    msg_info("%s: %s asciified to %s", __func__, name, aname);
+    } else
+#endif
+	aname = name;
+    return (aname = mystrdup(aname));
 }
 
 /* pcf_mynetworks - lookup network address list */

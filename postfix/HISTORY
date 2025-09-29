@@ -29900,6 +29900,18 @@ NON-PROD changes
 	proto/REQUIRETLS_README.html, smtp/smtp_reqtls_policy.c,
 	smtp/smtp_reqtls_policy_test.c.
 
+	Completed 20250929: Make the smtp_requiretls_policy searches
+	deterministic by converting the next-hop search string to
+	Punycode form. In the default policy, replace $mydomain
+	with the new parameter $mydomain_a, which contains Punycode
+	when $mydomain contains non-ASCII, otherwise $mydomain and
+	$mydomain_a contain the same value. For completeness there
+	is also a new parameter $myhostname_a that may be useful
+	elsewhere. Files: mantools/postlink, proto/postconf.proto,
+	proto/REQUIRETLS_README.html, global/mail_params.c,
+	global/mail_params.h, postconf/postconf_builtin.c,
+	smtp/smtp_reqtls_policy.c.
+
 TODO
 
 	Maybe log "server announces REQUIRETLS" if we're not enforcing

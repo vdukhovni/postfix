@@ -7875,6 +7875,18 @@ Example:
 
 </DD>
 
+<DT><b><a name="mydomain_a">mydomain_a</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> When <a href="postconf.5.html#mydomain">mydomain</a> contains non-ASCII characters (U-label form),
+<a href="postconf.5.html#mydomain_a">mydomain_a</a> will contain Punycode (A-label form). Otherwise, the two
+values will be identical. </p>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+
+</DD>
+
 <DT><b><a name="myhostname">myhostname</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
@@ -7892,6 +7904,18 @@ Example:
 <pre>
 <a href="postconf.5.html#myhostname">myhostname</a> = host.example.com
 </pre>
+
+
+</DD>
+
+<DT><b><a name="myhostname_a">myhostname_a</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> When <a href="postconf.5.html#myhostname">myhostname</a> contains non-ASCII characters (U-label form),
+<a href="postconf.5.html#myhostname_a">myhostname_a</a> will contain Punycode (A-label form). Otherwise, the
+two values will be identical. </p>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
 
 
 </DD>
@@ -12888,15 +12912,17 @@ supports STARTTLS and REQUIRETLS, and require that its server
 certificate matches a DANE or STS policy (lines 3, 12); make
 server-side REQUIRETLS support optional for internal destinations
 specified as a symbolic name (lines 5-8) or as a numeric address
-(lines 9-11). </p>
+(lines 9-11). This uses $<a href="postconf.5.html#mydomain_a">mydomain_a</a> which by default contains
+Punycode (A-label form) when $<a href="postconf.5.html#mydomain">mydomain</a> contains non-ASCII (U-label
+form). Otherwise the two values will be identical (lines 6,7). </p>
 <pre>
  1 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
  2     <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
  3     <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = ...dane/sts plugin...
  4     <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
  5         <a href="DATABASE_README.html#types">inline</a>:{
- 6             {$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
- 7             {.$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
+ 6             {$<a href="postconf.5.html#mydomain_a">mydomain_a</a>  = opportunistic}
+ 7             {.$<a href="postconf.5.html#mydomain_a">mydomain_a</a>  = opportunistic}
  8             {localhost = opportunistic} }
  9         <a href="cidr_table.5.html">cidr</a>:{
 10             {0.0.0.0/0 opportunistic},
@@ -12910,15 +12936,17 @@ require that an external server supports STARTTLS but enforce a TLS
 certificate match only if the receiver publishes a DANE or STS
 policy (line 3), and do not require that an external server supports
 REQUIRETLS. There is no policy change for internal deliveries
-(lines 5-11). </p>
+(lines 5-11). Again, this uses $<a href="postconf.5.html#mydomain_a">mydomain_a</a> which by default contains
+Punycode (A-label form) when $<a href="postconf.5.html#mydomain">mydomain</a> contains non-ASCII (U-label
+form). Otherwise the two forms will be identical (lines 6,7). </p>
 <pre>
  1 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
  2     <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
  3     <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = ...dane/sts plugin...
  4     <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
  5         <a href="DATABASE_README.html#types">inline</a>:{
- 6             {$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
- 7             {.$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
+ 6             {$<a href="postconf.5.html#mydomain_a">mydomain_a</a>  = opportunistic}
+ 7             {.$<a href="postconf.5.html#mydomain_a">mydomain_a</a>  = opportunistic}
  8             {localhost = opportunistic} }
  9         <a href="cidr_table.5.html">cidr</a>:{
 10             {0.0.0.0/0 opportunistic},
@@ -12934,8 +12962,8 @@ file for easier maintenance. </p>
     <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = ...dane/sts plugin...
     <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
         <a href="DATABASE_README.html#types">inline</a>:{
-            {$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
-            {.$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
+            {$<a href="postconf.5.html#mydomain_a">mydomain_a</a>  = opportunistic}
+            {.$<a href="postconf.5.html#mydomain_a">mydomain_a</a>  = opportunistic}
             {localhost = opportunistic} }
         <a href="cidr_table.5.html">cidr</a>:{
             {0.0.0.0/0 opportunistic},

@@ -165,8 +165,8 @@ settings are: </p>
  4     lmtp_requiretls_policy = opportunistic
  5     smtp_requiretls_policy =
  6         inline:{
- 7             {$mydomain = opportunistic}
- 8             {.$mydomain = opportunistic}
+ 7             {$mydomain_a = opportunistic}
+ 8             {.$mydomain_a = opportunistic}
  9             {localhost = opportunistic} }
 10         cidr:{
 11             {0.0.0.0/0 opportunistic}
@@ -185,8 +185,13 @@ content inspection based on SMTPD_PROXY_README or FILTER_README.
 </p>
 
 <li> <p> Lines 5-12: These make REQUIRETLS support optional for
-"internal" destinations that are specified as a symbolic name
-(lines 6-9) or as a numerical IP address (lines 10-12). </p>
+"internal" destinations that are specified as a symbolic name (lines
+6-9) or as a numerical IP address (lines 10-12). </p>
+
+<li> <p> Lines 7 and 8 use $mydomain_a, not $mydomain, The mydomain_a
+default value contains Punycode (A-label form) when the mydomain
+value contains non-ASCII characters, otherwise both values will be
+identical. </p>
 
 </ul>
 
@@ -259,8 +264,8 @@ FILTER_README. </p>
  4     requiretls_esmtp_header = yes
  5     smtp_requiretls_policy =
  6         inline:{
- 7             {$mydomain = opportunistic}
- 8             {.$mydomain = opportunistic}
+ 7             {$mydomain_a = opportunistic}
+ 8             {.$mydomain_a = opportunistic}
  9             {localhost = opportunistic} }
 10         cidr:{
 11             {0.0.0.0/0 opportunistic}
@@ -268,6 +273,11 @@ FILTER_README. </p>
 13         enforce
 </pre>
 </blockquote>
+
+<p> (Again, lines 7 and 8 use $mydomain_a, not $mydomain, The
+mydomain_a default value contains Punycode (A-label form) when the
+mydomain value contains non-ASCII characters, otherwise both values
+will be identical.) </p>
 
 <p> The 'enforce' policy for external destinations is technically
 correct, but is likely to suffer from delivery failures because
@@ -293,8 +303,8 @@ below makes that change by replacing the default 'enforce' with
  4     requiretls_esmtp_header = yes
  5     smtp_requiretls_policy =
  6         inline:{
- 7             {$mydomain = opportunistic}
- 8             {.$mydomain = opportunistic}
+ 7             {$mydomain_a = opportunistic}
+ 8             {.$mydomain_a = opportunistic}
  9             {localhost = opportunistic} }
 10         cidr:{
 11             {0.0.0.0/0 opportunistic}

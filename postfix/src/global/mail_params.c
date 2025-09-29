@@ -7,7 +7,9 @@
 /*	#include <mail_params.h>
 /*
 /*	char	*var_myhostname;
+/*	char	*var_myhostname_a;
 /*	char	*var_mydomain;
+/*	char	*var_mydomain_a;
 /*	char	*var_myorigin;
 /*	char	*var_mydest;
 /*	char	*var_relayhost;
@@ -248,7 +250,9 @@
   * Special configuration variables.
   */
 char   *var_myhostname;
+char   *var_myhostname_a;
 char   *var_mydomain;
+char   *var_mydomain_a;
 char   *var_myorigin;
 char   *var_mydest;
 char   *var_relayhost;
@@ -464,6 +468,32 @@ static const char *check_myhostname(void)
     return (name);
 }
 
+/* check_myhostname_a - A-label form */
+
+static const char *check_myhostname_a(void)
+{
+    static const char *aname;
+    const char *name;
+
+    /*
+     * Use cached result.
+     */
+    if (aname)
+	return (aname);
+
+    name = var_myhostname;
+#ifndef NO_EAI
+    if (!allascii(name)) {
+	if ((aname = midna_domain_to_ascii(name)) == 0)
+	    msg_fatal("%s: malformed myhostname setting: '%s'", __func__, name);
+	if (msg_verbose)
+	    msg_info("%s: %s asciified to %s", __func__, name, aname);
+    } else
+#endif
+	aname = name;
+    return (aname = mystrdup(aname));
+}
+
 /* check_mydomainname - lookup domain name and validate */
 
 static const char *check_mydomainname(void)
@@ -482,7 +512,37 @@ static const char *check_mydomainname(void)
 	/* DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - EDIT MAIN.CF */
 	return (DEF_MYDOMAIN);
     /* DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - EDIT MAIN.CF */
+    /* TODO(wietse) handle Unicode variants for 'dot'. */
     return (dot + 1);
+}
+
+/* check_mydomainname_a - convert mydomain to A-label form */
+
+static const char *check_mydomainname_a(void)
+{
+    static const char *aname;
+    const char *name;
+
+    /*
+     * Use cached result.
+     */
+    if (aname)
+	return (aname);
+
+    /*
+     * Convert mydomain value to A-label form.
+     */
+    name = var_mydomain;
+#ifndef NO_EAI
+    if (!allascii(name)) {
+	if ((aname = midna_domain_to_ascii(name)) == 0)
+	    msg_fatal("%s: malformed mydomain setting: '%s'", __func__, name);
+	if (msg_verbose)
+	    msg_info("%s: %s asciified to %s", __func__, name, aname);
+    } else
+#endif
+	aname = name;
+    return (aname = mystrdup(aname));
 }
 
 /* check_default_privs - lookup default user attributes and validate */
@@ -801,7 +861,9 @@ void    mail_params_init()
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults[] = {
 	VAR_MYHOSTNAME, check_myhostname, &var_myhostname, 1, 0,
+	VAR_MYHOSTNAME_A, check_myhostname_a, &var_myhostname_a, 1, 0,
 	VAR_MYDOMAIN, check_mydomainname, &var_mydomain, 1, 0,
+	VAR_MYDOMAIN_A, check_mydomainname_a, &var_mydomain_a, 1, 0,
 	0,
     };
     static const CONFIG_STR_TABLE other_str_defaults[] = {

@@ -165,8 +165,8 @@ settings are: </p>
  4     <a href="postconf.5.html#lmtp_requiretls_policy">lmtp_requiretls_policy</a> = opportunistic
  5     <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
  6         <a href="DATABASE_README.html#types">inline</a>:{
- 7             {$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
- 8             {.$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
+ 7             {$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
+ 8             {.$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
  9             {localhost = opportunistic} }
 10         <a href="cidr_table.5.html">cidr</a>:{
 11             {0.0.0.0/0 opportunistic}
@@ -185,8 +185,13 @@ content inspection based on <a href="SMTPD_PROXY_README.html">SMTPD_PROXY_README
 </p>
 
 <li> <p> Lines 5-12: These make REQUIRETLS support optional for
-"internal" destinations that are specified as a symbolic name
-(lines 6-9) or as a numerical IP address (lines 10-12). </p>
+"internal" destinations that are specified as a symbolic name (lines
+6-9) or as a numerical IP address (lines 10-12). </p>
+
+<li> <p> Lines 7 and 8 use $<a href="postconf.5.html#mydomain_a">mydomain_a</a>, not $<a href="postconf.5.html#mydomain">mydomain</a>, The <a href="postconf.5.html#mydomain_a">mydomain_a</a>
+default value contains Punycode (A-label form) when the <a href="postconf.5.html#mydomain">mydomain</a>
+value contains non-ASCII characters, otherwise both values will be
+identical. </p>
 
 </ul>
 
@@ -259,8 +264,8 @@ does not use content inspection based on <a href="SMTPD_PROXY_README.html">SMTPD
  4     <a href="postconf.5.html#requiretls_esmtp_header">requiretls_esmtp_header</a> = yes
  5     <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
  6         <a href="DATABASE_README.html#types">inline</a>:{
- 7             {$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
- 8             {.$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
+ 7             {$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
+ 8             {.$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
  9             {localhost = opportunistic} }
 10         <a href="cidr_table.5.html">cidr</a>:{
 11             {0.0.0.0/0 opportunistic}
@@ -268,6 +273,11 @@ does not use content inspection based on <a href="SMTPD_PROXY_README.html">SMTPD
 13         enforce
 </pre>
 </blockquote>
+
+<p> (Again, lines 7 and 8 use $<a href="postconf.5.html#mydomain_a">mydomain_a</a>, not $<a href="postconf.5.html#mydomain">mydomain</a>, The
+<a href="postconf.5.html#mydomain_a">mydomain_a</a> default value contains Punycode (A-label form) when the
+<a href="postconf.5.html#mydomain">mydomain</a> value contains non-ASCII characters, otherwise both values
+will be identical.) </p>
 
 <p> The 'enforce' policy for external destinations is technically
 correct, but is likely to suffer from delivery failures because
@@ -293,8 +303,8 @@ below makes that change by replacing the default 'enforce' with
  4     <a href="postconf.5.html#requiretls_esmtp_header">requiretls_esmtp_header</a> = yes
  5     <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
  6         <a href="DATABASE_README.html#types">inline</a>:{
- 7             {$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
- 8             {.$<a href="postconf.5.html#mydomain">mydomain</a> = opportunistic}
+ 7             {$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
+ 8             {.$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
  9             {localhost = opportunistic} }
 10         <a href="cidr_table.5.html">cidr</a>:{
 11             {0.0.0.0/0 opportunistic}

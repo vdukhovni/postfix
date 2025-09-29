@@ -19842,15 +19842,17 @@ supports STARTTLS and REQUIRETLS, and require that its server
 certificate matches a DANE or STS policy (lines 3, 12); make
 server-side REQUIRETLS support optional for internal destinations
 specified as a symbolic name (lines 5-8) or as a numeric address
-(lines 9-11). </p>
+(lines 9-11). This uses $mydomain_a which by default contains
+Punycode (A-label form) when $mydomain contains non-ASCII (U-label
+form). Otherwise the two values will be identical (lines 6,7). </p>
 <pre>
  1 /etc/postfix/main.cf:
  2     smtp_tls_security_level = may
  3     smtp_tls_policy_maps = ...dane/sts plugin...
  4     smtp_requiretls_policy =
  5         inline:{
- 6             {$mydomain = opportunistic}
- 7             {.$mydomain = opportunistic}
+ 6             {$mydomain_a  = opportunistic}
+ 7             {.$mydomain_a  = opportunistic}
  8             {localhost = opportunistic} }
  9         cidr:{
 10             {0.0.0.0/0 opportunistic},
@@ -19864,15 +19866,17 @@ require that an external server supports STARTTLS but enforce a TLS
 certificate match only if the receiver publishes a DANE or STS
 policy (line 3), and do not require that an external server supports
 REQUIRETLS. There is no policy change for internal deliveries
-(lines 5-11). </p>
+(lines 5-11). Again, this uses $mydomain_a which by default contains
+Punycode (A-label form) when $mydomain contains non-ASCII (U-label
+form). Otherwise the two forms will be identical (lines 6,7). </p>
 <pre>
  1 /etc/postfix/main.cf:
  2     smtp_tls_security_level = may
  3     smtp_tls_policy_maps = ...dane/sts plugin...
  4     smtp_requiretls_policy =
  5         inline:{
- 6             {$mydomain = opportunistic}
- 7             {.$mydomain = opportunistic}
+ 6             {$mydomain_a  = opportunistic}
+ 7             {.$mydomain_a  = opportunistic}
  8             {localhost = opportunistic} }
  9         cidr:{
 10             {0.0.0.0/0 opportunistic},
@@ -19888,8 +19892,8 @@ file for easier maintenance. </p>
     smtp_tls_policy_maps = ...dane/sts plugin...
     smtp_requiretls_policy =
         inline:{
-            {$mydomain = opportunistic}
-            {.$mydomain = opportunistic}
+            {$mydomain_a  = opportunistic}
+            {.$mydomain_a  = opportunistic}
             {localhost = opportunistic} }
         cidr:{
             {0.0.0.0/0 opportunistic},
@@ -20153,5 +20157,21 @@ filter out").
     NOQUEUE: reject filter in: 451 4.6.0 Alias expansion error
     NOQUEUE: reject filter out: 550 5.6.0 Alias expansion error
 </pre>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM myhostname_a see "postconf -d" output
+
+<p> When myhostname contains non-ASCII characters (U-label form),
+myhostname_a will contain Punycode (A-label form). Otherwise, the
+two values will be identical. </p>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM mydomain_a see "postconf -d" output
+
+<p> When mydomain contains non-ASCII characters (U-label form),
+mydomain_a will contain Punycode (A-label form). Otherwise, the two
+values will be identical. </p>
 
 <p> This feature is available in Postfix &ge; 3.11. </p>
