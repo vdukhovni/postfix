@@ -1627,7 +1627,7 @@ static void connect_remote(STATE *state, char *dest)
 	if (level == TLS_LEV_INVALID
 	    || (state->stream = connect_addr(state, addr)) == 0) {
 	    msg_info("Failed to establish session to %s via %s:%u: %s",
-		     dest, HNAME(addr), addr->port,
+		     dest, HNAME(addr), ntohs(state->port),
 		     vstring_str(state->why->reason));
 	    continue;
 	}
