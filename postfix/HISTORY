@@ -29661,3 +29661,18 @@ Apologies for any names omitted.
 	Cleanup: make STS mx hostname pattern enforcement consistent
 	with the smtp_cname_overrides_servername setting. File:
 	smtp/smtp_connect.c.
+
+20251001
+
+	Cleanup: missing stdlib.h include. Viktor Dukhovni. File:
+	postconf/postconf_edit.c.
+
+	Cleanup: missing USE_TLS include guard. Viktor Dukhovni.
+	Files: smtp/lmtp_params.c, smtp/lmtp_params.c. in
+
+20251021
+
+	Cleanup: the change at 20250717 could result in warnings
+	with "database X is older than source file Y". Files:
+	util/dict.c, util/dict_db.c, util/dict_dbm.c, util/dict_lmdb.c,
+	util/dict_sdbm.c.
