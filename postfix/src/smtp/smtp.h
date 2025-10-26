@@ -655,12 +655,14 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 #define SMTP_KEY_FLAG_ADDR		(1<<5)	/* remote address */
 #define SMTP_KEY_FLAG_PORT		(1<<6)	/* remote port */
 #define SMTP_KEY_FLAG_TLS_LEVEL		(1<<7)	/* requested TLS level */
+#define SMTP_KEY_FLAG_REQ_SMTPUTF8	(1<<8)	/* SMTPUTF8 is required */
 
 #define SMTP_KEY_MASK_ALL \
 	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER | \
 	SMTP_KEY_FLAG_REQ_NEXTHOP | \
 	SMTP_KEY_FLAG_CUR_NEXTHOP | SMTP_KEY_FLAG_HOSTNAME | \
-	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL)
+	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL | \
+	SMTP_KEY_FLAG_REQ_SMTPUTF8)
 
  /*
   * Conditional lookup-key flags for cached connections that may be
@@ -699,7 +701,8 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
   */
 #define SMTP_KEY_MASK_SCACHE_DEST_LABEL \
 	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
-	| SMTP_KEY_FLAG_REQ_NEXTHOP)
+	| SMTP_KEY_FLAG_REQ_NEXTHOP | SMTP_KEY_FLAG_TLS_LEVEL \
+	| SMTP_KEY_FLAG_REQ_SMTPUTF8)
 
  /*
   * Connection-cache endpoint lookup key. The SENDER, CUR_NEXTHOP, HOSTNAME,
@@ -714,7 +717,8 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 	| COND_SASL_SMTP_KEY_FLAG_CUR_NEXTHOP \
 	| COND_SASL_SMTP_KEY_FLAG_HOSTNAME \
 	| COND_TLS_SMTP_KEY_FLAG_CUR_NEXTHOP | SMTP_KEY_FLAG_ADDR | \
-	SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL)
+	SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL \
+	| SMTP_KEY_FLAG_REQ_SMTPUTF8)
 
  /*
   * Silly little macros.

@@ -683,3 +683,5 @@ sample_directory =
 #
 readme_directory =
 inet_protocols = ipv4
+shlib_directory = /usr/lib/postfix/${mail_version}
+meta_directory = /etc/postfix
