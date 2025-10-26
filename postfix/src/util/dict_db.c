@@ -799,6 +799,7 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
      * the source file changed only seconds ago.
      */
     if ((dict_flags & DICT_FLAG_LOCK) != 0
+	&& open_flags == O_RDONLY
 	&& stat(path, &st) == 0
 	&& st.st_mtime > dict_db->dict.mtime
 	&& st.st_mtime < time((time_t *) 0) - 100)

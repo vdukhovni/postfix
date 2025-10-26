@@ -66,6 +66,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -146,6 +147,16 @@ static void pcf_gobble_cf_line(VSTRING *full_entry_buf, VSTRING *line_buf,
 	if (pcf_find_cf_info(line_buf, dst))
 	    vstring_strcat(full_entry_buf, STR(line_buf));
     }
+}
+
+/* pcf_cmp_ht_key - qsort helper for ht_info pointer array */
+
+static int pcf_cmp_ht_key(const void *a, const void *b)
+{
+    HTABLE_INFO **ap = (HTABLE_INFO **) a;
+    HTABLE_INFO **bp = (HTABLE_INFO **) b;
+
+    return (strcmp(ap[0]->key, bp[0]->key));
 }
 
 /* pcf_edit_main - edit main.cf file */
@@ -263,7 +274,9 @@ void    pcf_edit_main(int mode, int argc, char **argv)
      * Generate new entries for parameters that were not found.
      */
     if (mode & PCF_EDIT_CONF) {
-	for (ht_info = ht = htable_list(table); *ht; ht++) {
+	ht_info = htable_list(table);
+	qsort((void *) ht_info, table->used, sizeof(*ht_info), pcf_cmp_ht_key);
+	for (ht = ht_info; *ht; ht++) {
 	    cvalue = (struct cvalue *) ht[0]->value;
 	    if (cvalue->found == 0)
 		vstream_fprintf(dst, "%s = %s\n", ht[0]->key, cvalue->value);
