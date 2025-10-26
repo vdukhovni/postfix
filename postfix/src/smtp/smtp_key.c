@@ -65,6 +65,10 @@
 /*	The current iterator's remote address.
 /* .IP SMTP_KEY_FLAG_PORT
 /*	The current iterator's remote port.
+/* .IP SMTP_KEY_FLAG_TLS_LEVEL
+/*	The requested TLS security level.
+/* .IP SMTP_KEY_FLAG_REQ_SMTPUTF8
+/*	Whether SMTPUTF8 support is required.
 /* .RE
 /* DIAGNOSTICS
 /*	Panic: undefined flag or zero flags. Fatal: out of memory.
@@ -103,11 +107,17 @@
   * Global library.
   */
 #include <mail_params.h>
+#include <smtputf8.h>
 
  /*
   * Application-specific.
   */
 #include <smtp.h>
+
+ /* Duplicated to minimze patch footprint. */
+#define DELIVERY_REQUIRES_SMTPUTF8(request) \
+	(((request)->sendopts & SMTPUTF8_FLAG_REQUESTED) \
+	&& ((request)->sendopts & SMTPUTF8_FLAG_DERIVED))
 
  /*
   * We use a configurable field terminator and optional place holder for data
@@ -208,6 +218,20 @@ char   *smtp_key_prefix(VSTRING *buffer, const char *delim_na,
 #else
 	smtp_key_append_na(buffer, delim_na);
 #endif
+
+    /*
+     * Require SMTPUTF8 support, if applicable. TODO(wietse) if a delivery
+     * request does not need SMTPUTF8, should we also search the connection
+     * cache for a connection that is known to support it? No, because the
+     * connection would be saved back under a key that does not require
+     * SMTPUTF8 support.
+     */
+    if (flags & SMTP_KEY_FLAG_REQ_SMTPUTF8)
+	smtp_key_append_uint(buffer,
+			     DELIVERY_REQUIRES_SMTPUTF8(state->request),
+			     delim_na);
+    else
+	smtp_key_append_na(buffer, delim_na);
 
     VSTRING_TERMINATE(buffer);
 

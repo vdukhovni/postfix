@@ -5632,6 +5632,13 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     {0,},
 };
 
+ /*
+  * In addition to counting unknown commands, the last table element also
+  * counts malformed commands (which aren't looked up in the command table).
+  */
+#define LAST_TABLE_PTR(table) ((table) + sizeof(table)/sizeof(*(table)) - 1)
+static SMTPD_CMD *smtpd_cmdp_unknown = LAST_TABLE_PTR(smtpd_cmd_table);
+
 static STRING_LIST *smtpd_noop_cmds;
 static STRING_LIST *smtpd_forbid_cmds;
 
@@ -6000,6 +6007,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state, "500 5.5.2 Error: bad UTF-8 syntax");
 		state->error_count++;
+		state->where = SMTPD_CMD_UNKNOWN;
+		smtpd_cmdp_unknown->total_count += 1;
 		continue;
 	    }
 	    /* Move into smtpd_chat_query() and update session transcript. */
@@ -6021,6 +6030,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state, "500 5.5.2 Error: bad syntax");
 		state->error_count++;
+		state->where = SMTPD_CMD_UNKNOWN;
+		smtpd_cmdp_unknown->total_count += 1;
 		continue;
 	    }
 	    /* Ignore smtpd_noop_cmds lookup errors. Non-critical feature. */
@@ -6029,6 +6040,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 		smtpd_chat_reply(state, "250 2.0.0 Ok");
 		if (state->junk_cmds++ > var_smtpd_junk_cmd_limit)
 		    state->error_count++;
+		/* XXX We can't count these. */
 		continue;
 	    }
 	    for (cmdp = smtpd_cmd_table; cmdp->name != 0; cmdp++)

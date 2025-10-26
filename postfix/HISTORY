@@ -29122,3 +29122,89 @@ Apologies for any names omitted.
 	messages that contain a "TLS-Required: no" header. This
 	can prevent TLSRPT notifications for TLSRPT notifications.
 	Files: smtp/smtp_connect.c, smtp_tls_policy.c.
+
+20250816
+
+	Bugfix (defect introduced: Postfix 3.0, date 20140731): the
+	smtpd 'disconnect' command counts did not count malformed
+	commands with "bad syntax" and "bad UTF-8 syntax" errors.
+	File: smtpd/smtpd.c.
+
+20250819
+
+	Bugfix: the 20250717 workaround broke DBM library support
+	which is still needed on Solaris. File: util/dict_dbm.c.
+
+20250823
+
+	Bugfix (defect introduced: Postfix 3.9, date 20230517):
+	posttls-finger logged a zero port number. Viktor Dukhovni.
+	File: posttls-finger/posttls-finger.c.
+
+20250829
+
+	Postfix 3.11 forward compatibility: allow a partial 'size'
+	record in maildrop queue files created with Postfix 3.11
+	or later, instead of logging an ugly warning. Files:
+	showq/showq.c, postcat/postcat.c.
+
+20250906
+
+	Workaround for an interface mis-match between the Postfix
+	SMTP client and MTA-STS policy plugins. This introduces a
+	new parameter "smtp_tls_enforce_sts_mx_patterns" (default:
+	"yes"). The MTA-STS plugin configuration needs to enable
+	TLSRPT support, so that it forwards STS policy attributes
+	to Postfix. This works even if Postfix TLSRPT support is
+	disabled at build time or at runtime.
+
+	With the above two configurations, the Postfix SMTP client
+	will connect to an MX host only if its name matches any STS
+	policy MX host pattern, and will match a server certificate
+	against the MX hostname. Otherwise, the old behavior stays
+	in effect: connect to any MX host listed in DNS, and match
+	a server certificate against any STS policy MX host pattern.
+	Files: mantools/postlink, proto/postconf.proto,
+	global/mail_params.h, smtp/lmtp_params.c, smtp/smtp.c,
+	smtp/smtp.h, smtp/smtp_connect.c, smtp/smtp_params.c,
+	smtp/smtp_tls_policy.c.
+
+20250911
+
+	Bugfix (defect introduced: Postfix 3.0): the Postfix SMTP
+	client's connection reuse logic did not distinguish between
+	sessions that require SMTPUTF8 support, and sessions that
+	do not. The solution is to store sessions with different
+	SMTPUTF8 requirements under distinct connection cache storage
+	keys, and to preserve the availability of SMTPUTF8 support
+	in the connection cache, so that a reused connection will
+	be stored under the same keys as it was looked up with.
+	Finally, do not cache a connection when SMTPUTF8 is
+	required but the server does not support that feature.
+	Files: smtp/smtp.h, smtp/smtp_key.c, smtp/smtp_proto.c.
+
+20250919
+
+	Bugfix (defect introduced: Postfix 3.8, date 20220128): the
+	'postconf -e' output order for new main.cf entries was no
+	longer deterministic. Problem reported by Oleksandr Natalenko,
+	diagnosis by Eray Aslan. File: postconf/postconf_edit.c.
+
+	Add missing meta_directory and shlib_directory settings to
+	the stock main.cf file. Problem diagnosed by Eray Aslan.
+	File: conf/main.cf.
+
+20240924
+
+	TLSRPT Workaround: when policies[*].policy.policy-type is
+	"no-policy-found", report the TLSRPT policy domain name as
+	the policies[*].policy.policy-domain value. This ignores
+	that TLSA policies must be reported with different policy-domain
+	values than STS policies. File: tls/tlsrpt_wrapper.c.
+
+20251021
+
+	Cleanup: the change at 20250717 could result in warnings
+	with "database X is older than source file Y". Files:
+	util/dict.c, util/dict_db.c, util/dict_dbm.c, util/dict_lmdb.c,
+	util/dict_sdbm.c.

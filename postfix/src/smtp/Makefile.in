@@ -307,6 +307,7 @@ smtp_key.o: ../../include/recipient_list.h
 smtp_key.o: ../../include/resolve_clnt.h
 smtp_key.o: ../../include/scache.h
 smtp_key.o: ../../include/sendopts.h
+smtp_key.o: ../../include/smtputf8.h
 smtp_key.o: ../../include/sock_addr.h
 smtp_key.o: ../../include/string_list.h
 smtp_key.o: ../../include/sys_defs.h
@@ -777,6 +778,7 @@ smtp_tls_policy.o: ../../include/htable.h
 smtp_tls_policy.o: ../../include/mail_params.h
 smtp_tls_policy.o: ../../include/maps.h
 smtp_tls_policy.o: ../../include/match_list.h
+smtp_tls_policy.o: ../../include/midna_domain.h
 smtp_tls_policy.o: ../../include/mime_state.h
 smtp_tls_policy.o: ../../include/msg.h
 smtp_tls_policy.o: ../../include/msg_stats.h

@@ -13502,6 +13502,27 @@ Postfix 2.3 and later use <a href="postconf.5.html#smtp_tls_security_level">smtp
 
 </DD>
 
+<DT><b><a name="smtp_tls_enforce_sts_mx_patterns">smtp_tls_enforce_sts_mx_patterns</a>
+(default: yes)</b></DT><DD>
+
+<p> Transform the TLS policy from an STS policy plugin: connect to
+an MX host only if its name matches any STS policy MX host pattern,
+and match the server certificate against the MX hostname. This
+setting takes effect only when an STS policy plugin has TLSRPT
+support enabled, so that it forwards STS policy attributes to
+Postfix. This works even if Postfix TLSRPT support is disabled at
+build time or at runtime. </p>
+
+<p> Without the above configuration settings for Postfix and STS
+plugins, the old behavior stays in effect: connect to any MX host
+listed in DNS, and match a server certificate against any STS policy
+MX host pattern. </p>
+
+<p> This feature is available in Postfix &ge; 3.10.5. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a>
 (default: empty)</b></DT><DD>
 

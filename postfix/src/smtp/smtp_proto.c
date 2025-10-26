@@ -658,14 +658,19 @@ int     smtp_helo(SMTP_STATE *state)
      * SMTPUTF8.
      * 
      * Fix 20140706: moved this before negotiating TLS, AUTH, and so on.
+     * 
+     * Fix 20250911: do not cache this session because it does not satisfy the
+     * requirement expressed in the cache storage key.
      */
     if ((session->features & SMTP_FEATURE_SMTPUTF8) == 0
-	&& DELIVERY_REQUIRES_SMTPUTF8)
+	&& DELIVERY_REQUIRES_SMTPUTF8) {
+	DONT_CACHE_THIS_SESSION;
 	return (smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "5.6.7"),
 			       "SMTPUTF8 is required, "
 			       "but was not offered by host %s",
 			       session->namaddr));
+    }
 
     /*
      * Fix 20140706: don't do silly things when the remote server announces

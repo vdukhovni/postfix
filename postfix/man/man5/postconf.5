@@ -8664,6 +8664,21 @@ CommonName of this attacker will be logged).
 .PP
 This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use smtp_tls_security_level instead.
+.SH smtp_tls_enforce_sts_mx_patterns (default: yes)
+Transform the TLS policy from an STS policy plugin: connect to
+an MX host only if its name matches any STS policy MX host pattern,
+and match the server certificate against the MX hostname. This
+setting takes effect only when an STS policy plugin has TLSRPT
+support enabled, so that it forwards STS policy attributes to
+Postfix. This works even if Postfix TLSRPT support is disabled at
+build time or at runtime.
+.PP
+Without the above configuration settings for Postfix and STS
+plugins, the old behavior stays in effect: connect to any MX host
+listed in DNS, and match a server certificate against any STS policy
+MX host pattern.
+.PP
+This feature is available in Postfix >= 3.10.5.
 .SH smtp_tls_exclude_ciphers (default: empty)
 List of ciphers or cipher types to exclude from the Postfix
 SMTP client cipher
