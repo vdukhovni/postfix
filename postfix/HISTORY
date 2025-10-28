@@ -29670,9 +29670,72 @@ Apologies for any names omitted.
 	Cleanup: missing USE_TLS include guard. Viktor Dukhovni.
 	Files: smtp/lmtp_params.c, smtp/lmtp_params.c. in
 
+	Configuration: with OpenSSL 3.5 and later, recommend that
+	tls_eecdh_auto_curves and tls_ffdhe_auto_groups be left
+	empty (the new default) in anticipation of the removal of
+	these parameters. Instead, configuration should be done
+	with OpenSSL. Viktor Dukhovni. Files: global/mail_params.h,
+	proto/postconf.proto.
+
 20251021
 
 	Cleanup: the change at 20250717 could result in warnings
 	with "database X is older than source file Y". Files:
 	util/dict.c, util/dict_db.c, util/dict_dbm.c, util/dict_lmdb.c,
 	util/dict_sdbm.c.
+
+20251024
+
+	Logging: with "smtp_tls_enforce_sts_mx_patterns=yes" and
+	TLSRPT support enabled in a TLS policy plugin, the Postfix
+	SMTP client logs a warning when an MX hostname does not
+	match STS policy MX patterns; it logs a successful match
+	when verbose logging is enabled. File: smtp/smtp_tls_policy.c.
+
+20251025
+
+	Feature: original recipient address in "postqueue -j" output,
+	Christophe Kalt. Files: postqueue/postqueue.c,
+	postqueue/showq_compat.c, postqueue/showq_json.c, showq/showq.c.
+
+20251026
+
+	Cleanup: defer tlsproxy daemon warnings that the TLS server
+	role is disabled by configuration, until a request for that
+	role is received. File: tlsproxy/tlsproxy.c.
+
+20251027
+
+	Cleanup: add 12 more deprecation warnings for parameters
+	that have been renamed in the past, and that still provide
+	a backwards-compatible default value for their replacement.
+	The parameters deprecated by this change are:
+	authorized_verp_clients, fallback_relay, lmtp_per_request_deadline,
+	postscreen_blacklist_action, postscreen_dnsbl_ttl,
+	postscreen_dnsbl_whitelist_threshold,
+	postscreen_whitelist_interfaces,
+	smtpd_client_connection_limit_exceptions,
+	smtp_per_request_deadline, tlsproxy_client_level,
+	tlsproxy_client_policy, virtual_maps. Files: mantools/postlink,
+	proto/DEPRECATION_README.html, postconf/postconf_unused.c.
+
+	Cleanup: SMTP client null pointer crash when an STS policy
+	plugin sends no policy_string or no mx_pattern attributes.
+	This can happen only during tests with a fake STS plugin.
+	File: smtp/smtp_tlsrpt.c.
+
+20251028
+
+	The postconf command logs deprecation warnings for the
+	tls_eecdh_auto_curves and tls_ffdhe_auto_groups parameters
+	when Postfix is built with OpenSSL 3.5. Files:
+	proto/DEPRECATION_README.html, postconf/postconf_unused.c.
+
+	The postconf command logs a pointer to the on-line
+	DEPRECATION_README.html for further guidance.
+
+	Deprecate the smtp_cname_overrides_servername and
+	lmtp_cname_overrides_servername parameters, and delete
+	documentation that has been obsolete since Postfix 2.11.
+	Files: proto/postconf.proto, proto/DEPRECATION_README.html,
+	postconf/postconf_unused.c.

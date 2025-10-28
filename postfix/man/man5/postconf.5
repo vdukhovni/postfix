@@ -7165,11 +7165,8 @@ false hostname information in DNS CNAME records, and makes SASL
 password file lookups more predictable. This is the default setting
 as of Postfix 2.3.
 .PP
-When DNS CNAME records are validated with secure DNS lookups
-(smtp_dns_support_level = dnssec), they are always allowed to
-override the above servername (Postfix 2.11 and later).
-.PP
-This feature is available in Postfix 2.2.9 and later.
+This feature is available in Postfix 2.2.9 and later, deprecated
+as of Postfix 3.11.
 .SH smtp_connect_timeout (default: 30s)
 The Postfix SMTP client time limit for completing a TCP connection, or
 zero (use the operating system built\-in time limit).
@@ -10132,6 +10129,8 @@ WARNING: The purpose of this feature is to limit abuse. It must
 not be used to regulate legitimate mail traffic.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtpd_client_connection_limit_exceptions (default: $mynetworks)
+Renamed to smtpd_client_event_limit_exceptions in Postfix 2.2.
 .SH smtpd_client_connection_rate_limit (default: 0)
 The maximal number of connection attempts any client is allowed to
 make to this service per time unit.  The time unit is specified
@@ -14106,6 +14105,11 @@ Example: Custom OpenSSL group settings.
 main.cf:
     tls_config_file = ${config_directory}/openssl.cnf
     tls_config_name = postfix
+    # Clear Postfix curve/group settings to let OpenSSL settings take
+    # effect.
+    # Uncomment only with Postfix < 3.11 or OpenSSL < 3.5.
+    # tls_eecdh_auto_curves =
+    # tls_ffdhe_auto_groups =
 .fi
 .ad
 .PP
@@ -14337,7 +14341,9 @@ configuration syntax that Postfix will not attempt to imitate.
 Instead, with Postfix 3.6.17, 3.7.13, 3.8.8, 3.9.2, and later, set
 both tls_eecdh_auto_curves and if available tls_ffdhe_auto_groups
 to the empty value, to enable algorithm selection through OpenSSL
-configuration. See tls_config_file for a configuration example.
+configuration.  The empty value is the default setting for both as
+of Postfix 3.11, when compiled with OpenSSL 3.5 or later.  See
+tls_config_file for a configuration example.
 .PP
 This feature is available in Postfix 3.2 and later, when it is
 compiled and linked with OpenSSL 1.0.2 or later on platforms where
@@ -14457,7 +14463,9 @@ configuration syntax that Postfix will not attempt to imitate.
 Instead, with Postfix 3.6.17, 3.7.13, 3.8.8, 3.9.2, and later, set
 both tls_eecdh_auto_curves and tls_ffdhe_auto_groups to the empty
 value, to enable algorithm selection through OpenSSL configuration.
-See tls_config_file for a configuration example.
+The empty value is the default setting for both as of Postfix 3.11,
+when compiled with OpenSSL 3.5 or later.  See tls_config_file for a
+configuration example.
 .PP
 All the default groups and EC curves should be sufficiently strong to make
 "pruning" the defaults unwise.  At a minimum, "x25519" and "prime256v1" (the

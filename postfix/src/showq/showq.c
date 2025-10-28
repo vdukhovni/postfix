@@ -171,10 +171,12 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
     long    msg_size = size;
     BOUNCE_LOG *logfile;
     HTABLE *dup_filter = 0;
+    VSTRING *orcpt_buf = vstring_alloc(100);
     RCPT_BUF *rcpt_buf = 0;
     DSN_BUF *dsn_buf = 0;
     int     sender_seen = 0;
     int     msg_size_ok = 0;
+    const char *have_orcpt = 0;
 
     /*
      * Let the optimizer worry about eliminating duplicate code.
@@ -184,6 +186,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	    attr_print(client, ATTR_FLAG_NONE, ATTR_TYPE_END); \
 	vstring_free(buf); \
 	vstring_free(printable_quoted_addr); \
+	vstring_free(orcpt_buf); \
 	if (rcpt_buf) \
 	    rcpb_free(rcpt_buf); \
 	if (dsn_buf) \
@@ -248,6 +251,17 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 				     STR(printable_quoted_addr)),
 		       ATTR_TYPE_END);
 	    break;
+	case REC_TYPE_ORCP:
+	    if (sender_seen == 0) {
+		msg_warn("%s: missing sender address: %s "
+			 "-- skipping remainder of this file",
+			 id, STR(printable_quoted_addr));
+		SHOWQ_CLEANUP_AND_RETURN;
+	    }
+	    quote_822_local(orcpt_buf, start);
+	    /* For consistency with REC_TYPE_RCPT below. */
+	    have_orcpt = printable(STR(orcpt_buf), '?');
+	    break;
 	case REC_TYPE_RCPT:
 	    if (sender_seen == 0) {
 		msg_warn("%s: missing sender address: %s "
@@ -255,18 +269,24 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 			 id, STR(printable_quoted_addr));
 		SHOWQ_CLEANUP_AND_RETURN;
 	    }
-	    if (*start == 0)			/* can't happen? */
+	    if (*start == 0)			/* non-smtpd case */
 		start = var_empty_addr;
 	    quote_822_local(printable_quoted_addr, start);
 	    /* For consistency with recipients in bounce logfile. */
 	    printable(STR(printable_quoted_addr), '?');
+	    /* For consistency with cleanup server and maildrop messages. */
+	    if (have_orcpt == 0)
+		have_orcpt = STR(vstring_strcpy(orcpt_buf,
+						STR(printable_quoted_addr)));
 	    if (dup_filter == 0
 	      || htable_locate(dup_filter, STR(printable_quoted_addr)) == 0)
 		attr_print(client, ATTR_FLAG_MORE,
+			   SEND_ATTR_STR(MAIL_ATTR_ORCPT, have_orcpt),
 			   SEND_ATTR_STR(MAIL_ATTR_RECIP,
 					 STR(printable_quoted_addr)),
 			   SEND_ATTR_STR(MAIL_ATTR_WHY, ""),
 			   ATTR_TYPE_END);
+	    have_orcpt = 0;
 	    break;
 	case REC_TYPE_MESG:
 	    if (msg_size_ok && vstream_fseek(qfile, msg_size, SEEK_CUR) < 0)
@@ -325,6 +345,7 @@ static void showq_reasons(VSTREAM *client, BOUNCE_LOG *bp, RCPT_BUF *rcpt_buf,
 		htable_enter(dup_filter, rcpt->address, (void *) 0);
 
 	attr_print(client, ATTR_FLAG_MORE,
+		   SEND_ATTR_STR(MAIL_ATTR_ORCPT, rcpt->orig_addr),
 		   SEND_ATTR_STR(MAIL_ATTR_RECIP, rcpt->address),
 		   SEND_ATTR_STR(MAIL_ATTR_WHY, dsn->reason),
 		   ATTR_TYPE_END);

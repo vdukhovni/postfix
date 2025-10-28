@@ -63,6 +63,7 @@ sender_based_routing
 smtp_per_record_deadline
 smtp_skip_4xx_greeting
 smtp_tls_cipherlist
+smtpd_client_connection_limit_exceptions
 smtpd_per_record_deadline
 smtpd_sasl_application_name
 smtpd_tls_cipherlist

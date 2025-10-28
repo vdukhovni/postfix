@@ -304,6 +304,7 @@ extern void PRINTFLIKE(3, 4) pcf_print_line(VSTREAM *, int, const char *,...);
   */
 extern void pcf_flag_unused_main_parameters(void);
 extern void pcf_flag_unused_master_parameters(void);
+extern int pcf_found_deprecated;
 
  /*
   * postconf_other.c.

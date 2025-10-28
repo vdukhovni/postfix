@@ -546,6 +546,7 @@ static bool tlsp_pre_jail_done;
 static int ask_client_cert;
 static char *tlsp_pre_jail_client_param_key;	/* pre-jail global params */
 static char *tlsp_pre_jail_client_init_key;	/* pre-jail init props */
+static const char *server_role_disabled;
 
  /*
   * TLS per-client status.
@@ -1481,6 +1482,8 @@ static void tlsp_get_request_event(int event, void *context)
     case TLS_PROXY_FLAG_ROLE_SERVER:
 	state->is_server_role = 1;
 	ready = (tlsp_server_ctx != 0);
+	if (server_role_disabled)
+	    msg_warn("%s", server_role_disabled);
 	break;
     default:
 	state->is_server_role = 0;
@@ -1593,8 +1596,7 @@ static void pre_jail_init_server(void)
     }
     var_tlsp_use_tls = var_tlsp_use_tls || var_tlsp_enforce_tls;
     if (!var_tlsp_use_tls) {
-	msg_warn("TLS server role is disabled with %s or %s",
-		 VAR_TLSP_TLS_LEVEL, VAR_TLSP_USE_TLS);
+	server_role_disabled = "TLS server role is disabled by configuration";
 	return;
     }
 

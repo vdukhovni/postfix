@@ -131,6 +131,8 @@
 /* .RS
 /* .IP \fBaddress\fR
 /*	One recipient address.
+/* .IP \fBorig_address\fR
+/*	One original recipient address.
 /* .IP \fBdelay_reason\fR
 /*	If present, the reason for delayed delivery.  Delayed
 /*	recipients may have no delay reason, for example, while

@@ -6,6 +6,8 @@
 /* SYNOPSIS
 /*	#include <postconf.h>
 /*
+/*	int	pcf_found_deprecated;
+/*
 /*	void    pcf_flag_unused_main_parameters()
 /*
 /*	void    pcf_flag_unused_master_parameters()
@@ -20,6 +22,9 @@
 /*
 /*	pcf_flag_unused_master_parameters() reports unused or
 /*	deprecated "-o name=value" entries in master.cf.
+/*
+/*	pcf_found_deprecated is non-zero if deprecated parameters were
+/*	reported.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
 /* LICENSE
@@ -98,12 +103,35 @@ static const PCF_DEPR_PARAM_INFO pcf_depr_param_info[] = {
     /*
      * Deprecated as of Postfix 3.11.
      */
+    "authorized_verp_clients", "specify \"smtpd_authorized_verp_clients\"",
+    "fallback_relay", "specify \"smtp_fallback_relay\"",
+    "lmtp_per_request_deadline", "specify \"lmtp_per_request_deadline\"",
     "lmtp_tls_enforce_peername", "specify \"lmtp_tls_security_level\"",
+    "postscreen_blacklist_action", "specify \"postscreen_denylist_action\"",
+    "postscreen_dnsbl_ttl", "specify \"postscreen_dnsbl_max_ttl\"",
+    "postscreen_dnsbl_whitelist_threshold", "specify \"postscreen_dnsbl_allowlist_threshold\"",
+    "postscreen_whitelist_interfaces", "specify \"postscreen_allowlist_interfaces\"",
+    "smtpd_client_connection_limit_exceptions", "specify \"smtpd_client_event_limit_exceptions\"",
+    "smtp_per_request_deadline", "specify \"smtp_per_request_deadline\"",
     "smtp_tls_enforce_peername", "specify \"smtp_tls_security_level\"",
+    "tlsproxy_client_level", "specify \"tlsproxy_client_security_level\"",
+    "tlsproxy_client_policy", "specify \"tlsproxy_client_policy_maps\"",
+    "virtual_maps", "specify \"virtual_alias_maps\"",
+#if OPENSSL_VERSION_PREREQ(3,5)
+    "tls_eecdh_auto_curves", "do not specify with OpenSSL 3.5 or later",
+    "tls_ffdhe_auto_groups", "do not specify with OpenSSL 3.5 or later",
+#endif
+    "lmtp_cname_overrides_servername", "do not specify",
+    "smtp_cname_overrides_servername", "do not specify",
+
+    /*
+     * Terminator.
+     */
     0,
 };
 
 static HTABLE *pcf_depr_param_table;
+int     pcf_found_deprecated;
 
 /* pcf_init_depr_params - initialize lookup table */
 
@@ -164,6 +192,7 @@ static void pcf_flag_unused_parameters(DICT *dict, const char *conf_name,
 		msg_warn("%s/%s: support for parameter %s has been removed;"
 			 " instead, %s", var_config_dir, conf_name,
 			 param_name, dp->alternative);
+		pcf_found_deprecated = 1;
 	    } else {
 		msg_warn("%s/%s: unused parameter: %s=%s",
 			 var_config_dir, conf_name, param_name, param_value);
@@ -181,6 +210,7 @@ static void pcf_flag_unused_parameters(DICT *dict, const char *conf_name,
 	    msg_warn("%s/%s: support for parameter \"%s\" will be removed;"
 		     " instead, %s", var_config_dir, conf_name,
 		     param_name, dp->alternative);
+	    pcf_found_deprecated = 1;
 	}
     }
 }

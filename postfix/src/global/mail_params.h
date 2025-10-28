@@ -23,6 +23,9 @@ typedef int bool;
 #error "OpenSSL releases prior to 1.1.1 are no longer supported"
 #endif
 #endif
+#ifndef OPENSSL_VERSION_PREREQ
+#define OPENSSL_VERSION_PREREQ(m,n) 0
+#endif
 
  /*
   * Name used when this mail system announces itself.
@@ -3416,6 +3419,10 @@ extern char *var_tls_export_ignored;
 #define DEF_TLS_NULL_CLIST	"eNULL" TLS_EXCL_REST ":!aNULL"
 extern char *var_tls_null_clist;
 
+#define VAR_TLS_EECDH_AUTO	"tls_eecdh_auto_curves"
+#if OPENSSL_VERSION_PREREQ(3,5)
+#define DEF_TLS_EECDH_AUTO      ""
+#else
 #if defined(SN_X25519) && defined(NID_X25519)
 #define DEF_TLS_EECDH_AUTO_1 SN_X25519 " "
 #else
@@ -3446,12 +3453,12 @@ extern char *var_tls_null_clist;
 #define DEF_TLS_EECDH_AUTO_5 ""
 #endif
 
-#define VAR_TLS_EECDH_AUTO	"tls_eecdh_auto_curves"
 #define DEF_TLS_EECDH_AUTO      DEF_TLS_EECDH_AUTO_1 \
                                 DEF_TLS_EECDH_AUTO_2 \
                                 DEF_TLS_EECDH_AUTO_3 \
                                 DEF_TLS_EECDH_AUTO_4 \
                                 DEF_TLS_EECDH_AUTO_5
+#endif
 extern char *var_tls_eecdh_auto;
 
 #define VAR_TLS_EECDH_STRONG	"tls_eecdh_strong_curve"
@@ -3462,6 +3469,10 @@ extern char *var_tls_eecdh_strong;
 #define DEF_TLS_EECDH_ULTRA	"secp384r1"
 extern char *var_tls_eecdh_ultra;
 
+#define VAR_TLS_FFDHE_AUTO	"tls_ffdhe_auto_groups"
+#if OPENSSL_VERSION_PREREQ(3,5)
+#define DEF_TLS_FFDHE_AUTO      ""
+#else
 #if defined(SN_ffdhe2048) && defined(NID_ffdhe2048)
 #define DEF_TLS_FFDHE_AUTO_1 SN_ffdhe2048 " "
 #else
@@ -3473,9 +3484,9 @@ extern char *var_tls_eecdh_ultra;
 #define DEF_TLS_FFDHE_AUTO_2 ""
 #endif
 
-#define VAR_TLS_FFDHE_AUTO	"tls_ffdhe_auto_groups"
 #define DEF_TLS_FFDHE_AUTO      DEF_TLS_FFDHE_AUTO_1 \
                                 DEF_TLS_FFDHE_AUTO_2
+#endif
 extern char *var_tls_ffdhe_auto;
 
 #define VAR_TLS_PREEMPT_CLIST	"tls_preempt_cipherlist"

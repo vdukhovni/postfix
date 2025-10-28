@@ -1135,5 +1135,9 @@ int     main(int argc, char **argv)
 	}
     }
     vstream_fflush(VSTREAM_OUT);
+
+    if ((pcf_cmd_mode & PCF_WARN_UNUSED_DEPRECATED) && pcf_found_deprecated)
+	msg_warn("See https://www.postfix.org/DEPRECATION_README.html "
+		 "for details");
     exit(0);
 }
