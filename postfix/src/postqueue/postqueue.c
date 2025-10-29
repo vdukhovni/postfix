@@ -119,11 +119,9 @@
 /*	number does not include message envelope information. It
 /*	is approximately equal to the number of bytes that would
 /*	be transmitted via SMTP including the <CR><LF> line endings.
-/* .IP \fBforced_expire\fR
+/* .IP "\fBforced_expire\fR (Postfix >= 3.5)
 /*	The message is forced to expire (\fBtrue\fR or \fBfalse\fR).
 /*	See the \fBpostsuper\fR(1) options \fB-e\fR or \fB-f\fR.
-/* .sp
-/*	This feature is available in Postfix 3.5 and later.
 /* .IP \fBsender\fR
 /*	The envelope sender address.
 /* .IP \fBrecipients\fR
@@ -131,7 +129,7 @@
 /* .RS
 /* .IP \fBaddress\fR
 /*	One recipient address.
-/* .IP \fBorig_address\fR
+/* .IP "\fBorig_address\fR (Postfix >= 3.11)
 /*	One original recipient address.
 /* .IP \fBdelay_reason\fR
 /*	If present, the reason for delayed delivery.  Delayed

@@ -117,7 +117,7 @@ static const PCF_DEPR_PARAM_INFO pcf_depr_param_info[] = {
     "tlsproxy_client_level", "specify \"tlsproxy_client_security_level\"",
     "tlsproxy_client_policy", "specify \"tlsproxy_client_policy_maps\"",
     "virtual_maps", "specify \"virtual_alias_maps\"",
-#if OPENSSL_VERSION_PREREQ(3,5)
+#if 0 && OPENSSL_VERSION_PREREQ(3,5)
     "tls_eecdh_auto_curves", "do not specify with OpenSSL 3.5 or later",
     "tls_ffdhe_auto_groups", "do not specify with OpenSSL 3.5 or later",
 #endif

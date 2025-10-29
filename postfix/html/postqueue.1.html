@@ -130,11 +130,9 @@ POSTQUEUE(1)                                                      POSTQUEUE(1)
               mately equal to the number of bytes that  would  be  transmitted
               via SMTP including the &lt;CR&gt;&lt;LF&gt; line endings.
 
-       <b>forced_expire</b>
+       <b>forced_expire</b> (Postfix &gt;= 3.5)
               The  message is forced to expire (<b>true</b> or <b>false</b>).  See the <a href="postsuper.1.html"><b>post-</b></a>
               <a href="postsuper.1.html"><b>super</b>(1)</a> options <b>-e</b> or <b>-f</b>.
-
-              This feature is available in Postfix 3.5 and later.
 
        <b>sender</b> The envelope sender address.
 
@@ -144,7 +142,7 @@ POSTQUEUE(1)                                                      POSTQUEUE(1)
               <b>address</b>
                      One recipient address.
 
-              <b>orig_address</b>
+              <b>orig_address</b> (Postfix &gt;= 3.11)
                      One original recipient address.
 
               <b>delay_reason</b>

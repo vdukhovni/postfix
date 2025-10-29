@@ -14107,9 +14107,8 @@ main.cf:
     tls_config_name = postfix
     # Clear Postfix curve/group settings to let OpenSSL settings take
     # effect.
-    # Uncomment only with Postfix < 3.11 or OpenSSL < 3.5.
-    # tls_eecdh_auto_curves =
-    # tls_ffdhe_auto_groups =
+    tls_eecdh_auto_curves =
+    tls_ffdhe_auto_groups =
 .fi
 .ad
 .PP

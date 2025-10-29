@@ -82,12 +82,6 @@ the "obsolete feature" name for a more detailed description.
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |virtual_maps                            |  3.11 |    -  |virtual_alias_maps                  |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |tls_eecdh_auto_curves                   |  3.11 |    -  |do not specify with OpenSSL 3.5 or  |
-    |                                        |       |       |later                               |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |tls_ffdhe_auto_groups                   |  3.11 |    -  |do not specify with OpenSSL 3.5 or  |
-    |                                        |       |       |later                               |
-    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |smtp_cname_overrides_servername         |  3.11 |    -  |do not specify (leave at default)   |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |lmtp_cname_overrides_servername         |  3.11 |    -  |do not specify (leave at default)   |
@@ -153,19 +147,6 @@ clutter and confusion
 
 To silence these warning messages, edit main.cf or master.cf, and replace each
 obsolete parameter name with its replacement.
-
-OObbssoolleettee aauuttoo ggrroouupp//ccuurrvvee ccoonnffiigguurraattiioonn
-
-The postconf(1) command logs one of the following:
-
-  * support for parameter "tls_eecdh_auto_curves" will be removed; instead, do
-    not specify with OpenSSL 3.5 or later
-  * support for parameter "tls_ffdhe_auto_groups" will be removed; instead, do
-    not specify with OpenSSL 3.5 or later
-
-The empty value is the default setting for both as of Postfix 3.11, when
-compiled with OpenSSL 3.5 or later. See tls_config_file for a configuration
-example
 
 OObbssoolleettee CCNNAAMMEE oovveerrrriiddee ffoorr ppeeeerr nnaammee ccoonnffiigguurraattiioonn
 

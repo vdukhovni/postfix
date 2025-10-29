@@ -206,3 +206,4 @@ proto  proto COMPATIBILITY_README html
  postqueue showq_compat c postqueue showq_json c showq showq c 
  role is received File tlsproxy tlsproxy c 
  Files proto postconf proto proto DEPRECATION_README html 
+ features File postqueue postqueue c 

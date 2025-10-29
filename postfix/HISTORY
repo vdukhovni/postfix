@@ -29739,3 +29739,14 @@ Apologies for any names omitted.
 	documentation that has been obsolete since Postfix 2.11.
 	Files: proto/postconf.proto, proto/DEPRECATION_README.html,
 	postconf/postconf_unused.c.
+
+	Cleanup: Postfix version info for postqueue JSON output
+	features. File: postqueue/postqueue.c.
+
+	Cleanup: add missing unit tests for newly deprecated parameters.
+	Files: postconf/Makefile.in, postconf/test79.ref
+
+	Postpone the deprecation of the tls_eecdh_auto_curves and
+	tls_ffdhe_auto_groups parameters because doing this now
+	would make migration noisy. Files: proto/DEPRECATION_README.html,
+	proto/postconf.proto, postconf/postconf_unused.c.
