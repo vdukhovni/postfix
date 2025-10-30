@@ -112,7 +112,7 @@ smtpd_authorized_verp_clients </td> </tr>
 align="center"> 3.11 </td> <td align="center"> - </td> <td>
 smtp_fallback_relay </td> </tr>
 
-<tr> <td> <a href="#renamed"> lmtp_per_request_deadline </a> </td>
+<tr> <td> <a href="#renamed"> lmtp_per_record_deadline </a> </td>
 <td align="center"> 3.11 </td> <td align="center"> - </td> <td>
 lmtp_per_request_deadline </td> </tr>
 
@@ -138,7 +138,11 @@ postscreen_dnsbl_allowlist_threshold </td> </tr>
 </td> <td>
 smtpd_client_event_limit_exceptions </td> </tr>
 
-<tr> <td> <a href="#renamed"> smtp_per_request_deadline </a> </td>
+<tr> <td> <a href="#renamed"> smtpd_per_record_deadline </a> </td>
+<td align="center"> 3.11 </td> <td align="center"> - </td> <td>
+smtpd_per_request_deadline </td> </tr>
+
+<tr> <td> <a href="#renamed"> smtp_per_record_deadline </a> </td>
 <td align="center"> 3.11 </td> <td align="center"> - </td> <td>
 smtp_per_request_deadline </td> </tr>
 
@@ -241,7 +245,7 @@ instead, specify "smtpd_authorized_verp_clients" </li>
 <li> support for parameter "fallback_relay" will be removed; instead,
 specify "smtp_fallback_relay" </li>
 
-<li> support for parameter "lmtp_per_request_deadline" will be
+<li> support for parameter "lmtp_per_record_deadline" will be
 removed; instead, specify "lmtp_per_request_deadline" </li>
 
 <li> support for parameter "postscreen_blacklist_action" will be
@@ -261,7 +265,7 @@ be removed; instead, specify "postscreen_allowlist_interfaces" </li>
 will be removed; instead, specify "smtpd_client_event_limit_exceptions"
 </li>
 
-<li> support for parameter "smtp_per_request_deadline" will be
+<li> support for parameter "smtp_per_record_deadline" will be
 removed; instead, specify "smtp_per_request_deadline" </li>
 
 <li> support for parameter "tlsproxy_client_level" will be removed;

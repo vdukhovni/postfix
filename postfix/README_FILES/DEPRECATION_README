@@ -62,7 +62,7 @@ the "obsolete feature" name for a more detailed description.
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |fallback_relay                          |  3.11 |    -  |smtp_fallback_relay                 |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |lmtp_per_request_deadline               |  3.11 |    -  |lmtp_per_request_deadline           |
+    |lmtp_per_record_deadline                |  3.11 |    -  |lmtp_per_request_deadline           |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |postscreen_blacklist_action             |  3.11 |    -  |postscreen_denylist_action          |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
@@ -74,7 +74,9 @@ the "obsolete feature" name for a more detailed description.
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |smtpd_client_connection_limit_exceptions|  3.11 |    -  |smtpd_client_event_limit_exceptions |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |smtp_per_request_deadline               |  3.11 |    -  |smtp_per_request_deadline           |
+    |smtpd_per_record_deadline               |  3.11 |    -  |smtpd_per_request_deadline          |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |smtp_per_record_deadline                |  3.11 |    -  |smtp_per_request_deadline           |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |tlsproxy_client_level                   |  3.11 |    -  |tlsproxy_client_security_level      |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
@@ -119,7 +121,7 @@ The postconf(1) command logs one or more of the following:
     specify "smtpd_authorized_verp_clients"
   * support for parameter "fallback_relay" will be removed; instead, specify
     "smtp_fallback_relay"
-  * support for parameter "lmtp_per_request_deadline" will be removed; instead,
+  * support for parameter "lmtp_per_record_deadline" will be removed; instead,
     specify "lmtp_per_request_deadline"
   * support for parameter "postscreen_blacklist_action" will be removed;
     instead, specify "postscreen_denylist_action"
@@ -131,7 +133,7 @@ The postconf(1) command logs one or more of the following:
     instead, specify "postscreen_allowlist_interfaces"
   * support for parameter "smtpd_client_connection_limit_exceptions" will be
     removed; instead, specify "smtpd_client_event_limit_exceptions"
-  * support for parameter "smtp_per_request_deadline" will be removed; instead,
+  * support for parameter "smtp_per_record_deadline" will be removed; instead,
     specify "smtp_per_request_deadline"
   * support for parameter "tlsproxy_client_level" will be removed; instead,
     specify "tlsproxy_client_security_level"

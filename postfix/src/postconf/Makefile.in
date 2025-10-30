@@ -1102,13 +1102,14 @@ test79:	$(PROG) test79.ref
 	    config_directory=. \
 	    authorized_verp_clients=x \
 	    fallback_relay=x \
-	    lmtp_per_request_deadline=x \
+	    lmtp_per_record_deadline=x \
 	    postscreen_blacklist_action=x \
 	    postscreen_dnsbl_ttl=x \
 	    postscreen_dnsbl_whitelist_threshold=x \
 	    postscreen_whitelist_interfaces=x \
 	    smtpd_client_connection_limit_exceptions=x \
-	    smtp_per_request_deadline=x \
+	    smtpd_per_record_deadline=x \
+	    smtp_per_record_deadline=x \
 	    tlsproxy_client_level=x \
 	    tlsproxy_client_policy=x \
 	    virtual_maps=x \
@@ -1432,6 +1433,7 @@ postconf_unused.o: ../../include/mail_conf.h
 postconf_unused.o: ../../include/mail_params.h
 postconf_unused.o: ../../include/msg.h
 postconf_unused.o: ../../include/myflock.h
+postconf_unused.o: ../../include/mymalloc.h
 postconf_unused.o: ../../include/name_code.h
 postconf_unused.o: ../../include/sys_defs.h
 postconf_unused.o: ../../include/vbuf.h

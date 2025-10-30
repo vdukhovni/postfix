@@ -45,10 +45,12 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <string.h>
 
 /* Utility library. */
 
 #include <msg.h>
+#include <mymalloc.h>
 #include <dict.h>
 #include <vstream.h>
 
@@ -105,14 +107,15 @@ static const PCF_DEPR_PARAM_INFO pcf_depr_param_info[] = {
      */
     "authorized_verp_clients", "specify \"smtpd_authorized_verp_clients\"",
     "fallback_relay", "specify \"smtp_fallback_relay\"",
-    "lmtp_per_request_deadline", "specify \"lmtp_per_request_deadline\"",
+    "lmtp_per_record_deadline", "specify \"lmtp_per_request_deadline\"",
     "lmtp_tls_enforce_peername", "specify \"lmtp_tls_security_level\"",
     "postscreen_blacklist_action", "specify \"postscreen_denylist_action\"",
     "postscreen_dnsbl_ttl", "specify \"postscreen_dnsbl_max_ttl\"",
     "postscreen_dnsbl_whitelist_threshold", "specify \"postscreen_dnsbl_allowlist_threshold\"",
     "postscreen_whitelist_interfaces", "specify \"postscreen_allowlist_interfaces\"",
     "smtpd_client_connection_limit_exceptions", "specify \"smtpd_client_event_limit_exceptions\"",
-    "smtp_per_request_deadline", "specify \"smtp_per_request_deadline\"",
+    "smtpd_per_record_deadline", "specify \"smtpd_per_request_deadline\"",
+    "smtp_per_record_deadline", "specify \"smtp_per_request_deadline\"",
     "smtp_tls_enforce_peername", "specify \"smtp_tls_security_level\"",
     "tlsproxy_client_level", "specify \"tlsproxy_client_security_level\"",
     "tlsproxy_client_policy", "specify \"tlsproxy_client_policy_maps\"",
@@ -133,6 +136,8 @@ static const PCF_DEPR_PARAM_INFO pcf_depr_param_info[] = {
 static HTABLE *pcf_depr_param_table;
 int     pcf_found_deprecated;
 
+#define STR(x)	vstring_str(x)
+
 /* pcf_init_depr_params - initialize lookup table */
 
 static void pcf_init_depr_params(void)
@@ -142,6 +147,16 @@ static void pcf_init_depr_params(void)
     pcf_depr_param_table = htable_create(30);
     for (dp = pcf_depr_param_info; dp->name; dp++)
 	(void) htable_enter(pcf_depr_param_table, dp->name, (void *) dp);
+}
+
+/* pcf_cmp_ht_key - qsort helper for ht_info pointer array */
+
+static int pcf_cmp_ht_key(const void *a, const void *b)
+{
+    HTABLE_INFO **ap = (HTABLE_INFO **) a;
+    HTABLE_INFO **bp = (HTABLE_INFO **) b;
+
+    return (strcmp(ap[0]->key, bp[0]->key));
 }
 
 /* pcf_flag_unused_parameters - warn about unused parameters */
@@ -154,6 +169,8 @@ static void pcf_flag_unused_parameters(DICT *dict, const char *conf_name,
     const char *param_name;
     const char *param_value;
     int     how;
+    HTABLE *flagged;
+    VSTRING *buf;
 
     /*
      * Sanity checks.
@@ -175,6 +192,8 @@ static void pcf_flag_unused_parameters(DICT *dict, const char *conf_name,
      * anywhere, or that are deprecated. Show the warning message(s) after
      * the end of the stdout output.
      */
+    flagged = htable_create(1);
+    buf = vstring_alloc(100);
     for (how = DICT_SEQ_FUN_FIRST;
 	 dict->sequence(dict, how, &param_name, &param_value) == 0;
 	 how = DICT_SEQ_FUN_NEXT) {
@@ -186,17 +205,18 @@ static void pcf_flag_unused_parameters(DICT *dict, const char *conf_name,
 	if (PCF_PARAM_TABLE_LOCATE(pcf_param_table, param_name) == 0
 	    && (local_scope == 0
 		|| PCF_PARAM_TABLE_LOCATE(local_scope->valid_names, param_name) == 0)) {
-	    vstream_fflush(VSTREAM_OUT);
 	    if ((dp = (const PCF_DEPR_PARAM_INFO *)
 		 htable_find(pcf_depr_param_table, param_name)) != 0) {
-		msg_warn("%s/%s: support for parameter %s has been removed;"
-			 " instead, %s", var_config_dir, conf_name,
-			 param_name, dp->alternative);
+		vstring_sprintf(buf, "%s/%s: support for parameter %s"
+				" has been removed; instead, %s",
+				var_config_dir, conf_name,
+				param_name, dp->alternative);
 		pcf_found_deprecated = 1;
 	    } else {
-		msg_warn("%s/%s: unused parameter: %s=%s",
-			 var_config_dir, conf_name, param_name, param_value);
+		vstring_sprintf(buf, "%s/%s: unused parameter: %s=%s",
+			var_config_dir, conf_name, param_name, param_value);
 	    }
+	    (void) htable_enter(flagged, param_name, mystrdup(STR(buf)));
 	}
 
 	/*
@@ -206,13 +226,32 @@ static void pcf_flag_unused_parameters(DICT *dict, const char *conf_name,
 	 */
 	else if ((dp = (const PCF_DEPR_PARAM_INFO *)
 		  htable_find(pcf_depr_param_table, param_name)) != 0) {
-	    vstream_fflush(VSTREAM_OUT);
-	    msg_warn("%s/%s: support for parameter \"%s\" will be removed;"
-		     " instead, %s", var_config_dir, conf_name,
-		     param_name, dp->alternative);
+	    vstring_sprintf(buf, "%s/%s: support for parameter \"%s\""
+			    " will be removed; instead, %s",
+			    var_config_dir, conf_name,
+			    param_name, dp->alternative);
 	    pcf_found_deprecated = 1;
+	    (void) htable_enter(flagged, param_name, mystrdup(STR(buf)));
 	}
     }
+
+    /*
+     * Log flagged parameters in sorted order, for predictable results.
+     */
+    if (flagged->used > 0) {
+	HTABLE_INFO **ht_info;
+	HTABLE_INFO **ht;
+
+	vstream_fflush(VSTREAM_OUT);
+	ht_info = htable_list(flagged);
+	qsort((void *) ht_info, flagged->used, sizeof(*ht_info),
+	      pcf_cmp_ht_key);
+	for (ht = ht_info; *ht; ht++)
+	    msg_warn("%s", (char *) ht[0]->value);
+	myfree(ht_info);
+    }
+    htable_free(flagged, myfree);
+    vstring_free(buf);
 }
 
 /* pcf_flag_unused_main_parameters - warn about unused parameters */

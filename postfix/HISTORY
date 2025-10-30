@@ -29710,12 +29710,12 @@ Apologies for any names omitted.
 	that have been renamed in the past, and that still provide
 	a backwards-compatible default value for their replacement.
 	The parameters deprecated by this change are:
-	authorized_verp_clients, fallback_relay, lmtp_per_request_deadline,
+	authorized_verp_clients, fallback_relay, lmtp_per_record_deadline,
 	postscreen_blacklist_action, postscreen_dnsbl_ttl,
 	postscreen_dnsbl_whitelist_threshold,
 	postscreen_whitelist_interfaces,
 	smtpd_client_connection_limit_exceptions,
-	smtp_per_request_deadline, tlsproxy_client_level,
+	smtp_per_record_deadline, tlsproxy_client_level,
 	tlsproxy_client_policy, virtual_maps. Files: mantools/postlink,
 	proto/DEPRECATION_README.html, postconf/postconf_unused.c.
 
@@ -29750,3 +29750,18 @@ Apologies for any names omitted.
 	tls_ffdhe_auto_groups parameters because doing this now
 	would make migration noisy. Files: proto/DEPRECATION_README.html,
 	proto/postconf.proto, postconf/postconf_unused.c.
+
+20251029
+
+	Cleanup: postconf(1) logged a few wrong deprecated parameter
+	names (Viktor Dukhovni). Sort the order of unused and
+	deprecated warnings to make test results predictable.
+	Files: proto/DEPRECATION_README.html, postconf/Makefile.in,
+	postconf/postconf_unused.c, postconf/test28.ref,
+	postconf/test29.ref, postconf/test2.ref, postconf/test57.ref,
+	postconf/test59.ref, postconf/test67.ref, postconf/test76.ref,
+	postconf/test77.ref, postconf/test78.ref, postconf/test79.ref.
+
+	Debugging: depending on OpenSSL build options, "posttls-finger
+	-L ssl-debug" will decode TLS handshake messages. Viktor
+	Dukhovni. File: posttls-finger/posttls-finger.c
