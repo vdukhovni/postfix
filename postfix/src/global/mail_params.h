@@ -3421,7 +3421,7 @@ extern char *var_tls_null_clist;
 
 #define VAR_TLS_EECDH_AUTO	"tls_eecdh_auto_curves"
 #if OPENSSL_VERSION_PREREQ(3,5)
-#define DEF_TLS_EECDH_AUTO      ""
+#define DEF_TLS_EECDH_AUTO      "?X25519MLKEM768:DEFAULT"
 #else
 #if defined(SN_X25519) && defined(NID_X25519)
 #define DEF_TLS_EECDH_AUTO_1 SN_X25519 " "

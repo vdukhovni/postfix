@@ -84,6 +84,7 @@ char   *var_smtp_tls_vfy_cmatch;
 bool    var_smtp_use_tls;
 char   *var_smtp_tls_excl_ciph;
 bool    var_smtp_tls_enf_sts_mx_pat;
+bool    var_smtp_tls_wrappermode;
 
  /*
   * Other globals.
@@ -125,6 +126,8 @@ static void test_setup(void)
     var_smtp_use_tls = DEF_SMTP_USE_TLS;
     var_smtp_tls_excl_ciph = DEF_SMTP_TLS_EXCL_CIPH;
     var_smtp_tls_enf_sts_mx_pat = 1;
+    var_smtp_tls_wrappermode = 0;
+    var_tls_required_enable = 0;
 
     smtp_mode = 1;
 
@@ -462,10 +465,121 @@ static int test_hostname_authorization(const struct TEST_CASE *tp)
     return (match ? PASS : FAIL);
 }
 
+static int test_tls_reqd_no_sans_header(const struct TEST_CASE *tp)
+{
+    SMTP_STATE *state = smtp_state_alloc();
+    const char *domain = "example.com";
+    const char *host = "mail.example.com";
+    const char *addr = "10.0.1.1";
+    int     port = 25;
+    int     want_level;
+    int     ret = FAIL;
+
+    var_smtp_tls_level = "secure";
+    var_smtp_tls_policy = "static:none";
+
+    /* Test-dependent. */
+    state->request = &(DELIVER_REQUEST) {.sendopts = 0};
+    var_smtp_tls_wrappermode = 1;
+    var_tls_required_enable = 1;
+    want_level = TLS_LEV_NONE;
+
+    smtp_tls_list_init();
+    SMTP_ITER_INIT(state->iterator, domain, host, addr, port, state);
+    if (smtp_tls_policy_cache_query(state->why, state->tls,
+				    state->iterator) == 0) {
+	msg_warn("smtp_tls_policy_cache_query failed: %s",
+		 STR(state->why->reason));
+    } else if (state->tls->level != want_level) {
+	msg_warn("got TLS level '%s', want '%s'",
+	       str_tls_level(state->tls->level), str_tls_level(want_level));
+    } else {
+	ret = PASS;
+    }
+    smtp_tls_policy_cache_flush();
+    smtp_state_free(state);
+    return (ret);
+}
+
+static int test_tls_reqd_no_with_wrappermode(const struct TEST_CASE *tp)
+{
+    SMTP_STATE *state = smtp_state_alloc();
+    const char *domain = "example.com";
+    const char *host = "mail.example.com";
+    const char *addr = "10.0.1.1";
+    int     port = 25;
+    int     want_level;
+    int     ret = FAIL;
+
+    var_smtp_tls_level = "secure";
+    var_smtp_tls_policy = "static:none";
+
+    /* Test-dependent. */
+    state->request = &(DELIVER_REQUEST) {.sendopts = SOPT_REQUIRETLS_HEADER};
+    var_smtp_tls_wrappermode = 1;
+    var_tls_required_enable = 1;
+    want_level = TLS_LEV_ENCRYPT;
+
+    smtp_tls_list_init();
+    SMTP_ITER_INIT(state->iterator, domain, host, addr, port, state);
+    if (smtp_tls_policy_cache_query(state->why, state->tls,
+				    state->iterator) == 0) {
+	msg_warn("smtp_tls_policy_cache_query failed: %s",
+		 STR(state->why->reason));
+    } else if (state->tls->level != want_level) {
+	msg_warn("got TLS level '%s', want '%s'",
+	       str_tls_level(state->tls->level), str_tls_level(want_level));
+    } else {
+	ret = PASS;
+    }
+    smtp_tls_policy_cache_flush();
+    smtp_state_free(state);
+    return (ret);
+}
+
+static int test_tls_reqd_no_sans_wrappermode(const struct TEST_CASE *tp)
+{
+    SMTP_STATE *state = smtp_state_alloc();
+    const char *domain = "example.com";
+    const char *host = "mail.example.com";
+    const char *addr = "10.0.1.1";
+    int     port = 25;
+    int     want_level;
+    int     ret = FAIL;
+
+    var_smtp_tls_level = "secure";
+    var_smtp_tls_policy = "static:none";
+
+    /* Test-dependent. */
+    state->request = &(DELIVER_REQUEST) {.sendopts = SOPT_REQUIRETLS_HEADER};
+    var_smtp_tls_wrappermode = 0;
+    var_tls_required_enable = 1;
+    want_level = TLS_LEV_MAY;
+
+    smtp_tls_list_init();
+    SMTP_ITER_INIT(state->iterator, domain, host, addr, port, state);
+    if (smtp_tls_policy_cache_query(state->why, state->tls,
+				    state->iterator) == 0) {
+	msg_warn("smtp_tls_policy_cache_query failed: %s",
+		 STR(state->why->reason));
+    } else if (state->tls->level != want_level) {
+	msg_warn("got TLS level '%s', want '%s'",
+	       str_tls_level(state->tls->level), str_tls_level(want_level));
+    } else {
+	ret = PASS;
+    }
+    smtp_tls_policy_cache_flush();
+    smtp_state_free(state);
+    return (ret);
+}
+
 static const struct TEST_CASE test_cases[] = {
     {"sts_policy_smoke_test", sts_policy_smoke_test,},
     {"obs_sts_policy_smoke_test", obs_sts_policy_smoke_test,},
     {"test_hostname_authorization", test_hostname_authorization},
+    {"test_tls_reqd_no_sans_header", test_tls_reqd_no_sans_header},
+    {"test_tls_reqd_no_with_wrappermode", test_tls_reqd_no_with_wrappermode},
+    {"test_tls_reqd_no_sans_wrappermode", test_tls_reqd_no_sans_wrappermode},
     {0},
 };
 

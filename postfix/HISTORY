@@ -29765,3 +29765,23 @@ Apologies for any names omitted.
 	Debugging: depending on OpenSSL build options, "posttls-finger
 	-L ssl-debug" will decode TLS handshake messages. Viktor
 	Dukhovni. File: posttls-finger/posttls-finger.c
+
+20241031
+
+	Bugfix (defect introduced: Postfix 3.10, date 20250117):
+	support for "TLS-Required: no" broke client-side TLS wrappermode
+	support, by downgrading a connection to TLS security level 'may'.
+	The solution is to change the downgrade level for wrappermode
+	connections to 'encrypt'. Rationale: by design, TLS can be
+	optional only for connections that use STARTTLS. The downgrade
+	to unauthenticated 'encrypt' allows a sender to avoid an email
+	delivery problem. Problem reported by Joshua Tyler Cochran.
+	Files: smtp/smtp_tls_policy.c, smtp/smtp_tls_policy_test.c.
+
+20251102
+
+	Post-quantum cryptography support (with OpenSSL 3.5 and
+	later): change the tls_eecdh_auto_curves default value to
+	avoid problems with infrastructure that mis-handles TLS
+	hello messages larger than one (Ethernet) TCP segment.
+	Viktor Dukhovni. Files: global/mail_params.h, proto/postconf.proto.
