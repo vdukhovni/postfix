@@ -4913,6 +4913,38 @@ This feature is available in Postfix 2.0 and later.
 Sendmail compatibility feature that specifies the location of the
 \fBnewaliases\fR(1) command. This command can be used to rebuild the
 \fBlocal\fR(8) \fBaliases\fR(5) database.
+.SH non_empty_end_of_header_action (default: fix_quietly)
+How the \fBcleanup\fR(8) daemon will process a message when the primary
+message header is terminated with a non\-empty line.
+.IP "\fB fix_quietly \fR"
+Default behavior: insert
+an empty line before the erroneous text. This behavior is backwards
+compatible with Postfix <= 3.10.
+.br
+.IP "\fB add_header \fR"
+Insert a MIME\-Error:
+header and an empty line before the erroneous text.
+Example:
+.nf
+.na
+MIME\-Error: message header was not terminated by empty line
+.fi
+.ad
+.br
+.IP "\fB reject \fR"
+Log the erroneous text and
+reject the message content.
+Example:
+.nf
+.na
+\fIqueueid\fR reject: mime\-error message header was terminated
+with non\-empty line: \fIerroneous text\fR; from=<\fIsender\fR>
+to=<\fIrecipient\fR>
+.fi
+.ad
+.br
+.PP
+This feature is available in Postfix >= 3.11.
 .SH non_fqdn_reject_code (default: 504)
 The numerical Postfix SMTP server reply code when a client request
 is rejected by the reject_non_fqdn_helo_hostname, reject_non_fqdn_sender

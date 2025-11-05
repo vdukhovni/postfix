@@ -19746,3 +19746,35 @@ filter out").
 </pre>
 
 <p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM non_empty_end_of_header_action fix_quietly
+
+<p> How the cleanup(8) daemon will process a message when the primary
+message header is terminated with a non-empty line. </p>
+
+<dl>
+
+<dt> <b> fix_quietly </b> </dt> <dd> <p> Default behavior: insert
+an empty line before the erroneous text. This behavior is backwards
+compatible with Postfix &le; 3.10. </p> </dd>
+
+<dt> <b> add_header </b> </dt><dd> <p> Insert a MIME-Error: 
+header and an empty line before the erroneous text. </p>
+<p> Example: </p>
+<pre>
+MIME-Error: message header was not terminated by empty line
+</pre> </dd>
+
+<dt> <b> reject </b> </dt>  <dd> <p> Log the erroneous text and
+reject the message content. </p>
+<p> Example: </p>
+<pre> 
+<i>queueid</i> reject: mime-error message header was terminated
+with non-empty line: <i>erroneous text</i>; from=&lt;<i>sender</i>&gt;
+to=&lt;<i>recipient</i>&gt;
+</pre>
+</dd>
+
+<dl>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>

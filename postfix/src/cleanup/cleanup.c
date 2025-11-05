@@ -128,6 +128,9 @@
 /*	The character set name (also called "charset") that Postfix
 /*	will output when it automatically generates an RFC 2047 encoded
 /*	full name.
+/* .IP "\fBnon_empty_end_of_header_action (fix_quietly)\fR"
+/*	How the \fBcleanup\fR(8) daemon will process a message when the primary
+/*	message header is terminated with a non-empty line.
 /* BUILT-IN CONTENT FILTERING CONTROLS
 /* .ad
 /* .fi

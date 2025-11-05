@@ -722,6 +722,7 @@ static void cleanup_header_done_callback(void *context)
     char    time_stamp[1024];		/* XXX locale dependent? */
     struct tm *tp;
     time_t  tv;
+    int     mime_errs;
 
     /*
      * XXX Workaround: when we reach the end of headers, mime_state_update()
@@ -906,6 +907,15 @@ static void cleanup_header_done_callback(void *context)
 	    msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
 	state->body_offset = state->append_hdr_pt_target;
     }
+
+    /*
+     * Get the current error state before mime_state_update() can return it.
+     */
+    mime_errs = mime_state_status(state->mime_state);
+    if ((mime_errs && MIME_ERR_NON_EMPTY_EOH)
+	&& cleanup_non_empty_eoh_action == NON_EMPTY_EOH_CODE_ADD_HDR)
+	cleanup_out_string(state, REC_TYPE_NORM,
+	     "MIME-Error: message header was not terminated by empty line");
 }
 
 /* cleanup_body_callback - output one body record */
@@ -1047,6 +1057,8 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
 	    cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT, 0L);
 	/* Ignore header truncation after primary message headers. */
 	state->mime_errs &= ~MIME_ERR_TRUNC_HEADER;
+	if (cleanup_non_empty_eoh_action != NON_EMPTY_EOH_CODE_REJECT)
+	    state->mime_errs &= ~MIME_ERR_NON_EMPTY_EOH;
 	if (state->mime_errs && state->reason == 0) {
 	    state->errs |= CLEANUP_STAT_CONT;
 	    detail = mime_state_detail(state->mime_errs);
@@ -1081,16 +1093,22 @@ static void cleanup_mime_error_callback(void *context, int err_code,
      * Message header too large errors are handled after the end of the
      * primary message headers.
      */
-    if ((err_code & ~MIME_ERR_TRUNC_HEADER) != 0) {
-	if ((origin = nvtable_find(state->attr, MAIL_ATTR_LOG_ORIGIN)) == 0)
-	    origin = MAIL_ATTR_ORG_NONE;
-#define TEXT_LEN (len < 100 ? (int) len : 100)
-	msg_info("%s: reject: mime-error %s: %.*s from %s; from=<%s> to=<%s>",
-		 state->queue_id, mime_state_error(err_code), TEXT_LEN, text,
-		 origin, info_log_addr_form_sender(state->sender),
-		 info_log_addr_form_recipient(state->recip ?
-					      state->recip : "unknown"));
+    switch (err_code) {
+    case MIME_ERR_TRUNC_HEADER:
+	/* TODO(wietse) Unconditional? */
+	return;
+    case MIME_ERR_NON_EMPTY_EOH:
+	if (cleanup_non_empty_eoh_action != NON_EMPTY_EOH_CODE_REJECT)
+	    return;
     }
+    if ((origin = nvtable_find(state->attr, MAIL_ATTR_LOG_ORIGIN)) == 0)
+	origin = MAIL_ATTR_ORG_NONE;
+#define TEXT_LEN (len < 100 ? (int) len : 100)
+    msg_info("%s: reject: mime-error %s: %.*s from %s; from=<%s> to=<%s>",
+	     state->queue_id, mime_state_error(err_code), TEXT_LEN, text,
+	     origin, info_log_addr_form_sender(state->sender),
+	     info_log_addr_form_recipient(state->recip ?
+					  state->recip : "unknown"));
 }
 
 /* cleanup_message - initialize message content segment */
@@ -1127,6 +1145,8 @@ void    cleanup_message(CLEANUP_STATE *state, int type, const char *buf, ssize_t
 		mime_options |= MIME_OPT_REPORT_8BIT_IN_7BIT_BODY;
 	    if (var_strict_encoding)
 		mime_options |= MIME_OPT_REPORT_ENCODING_DOMAIN;
+	    if (cleanup_non_empty_eoh_action != NON_EMPTY_EOH_CODE_FIX_QUIETLY)
+		mime_options |= MIME_OPT_REPORT_NON_EMPTY_EOH;
 	    if (var_strict_8bitmime || var_strict_7bit_hdrs
 		|| var_strict_8bit_body || var_strict_encoding
 		|| *var_header_checks || *var_mimehdr_checks

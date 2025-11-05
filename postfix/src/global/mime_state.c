@@ -27,6 +27,9 @@
 /*	const char *buf;
 /*	ssize_t	len;
 /*
+/*	int	mime_state_status(state)
+/*	MIME_STATE *state;
+/*
 /*	MIME_STATE *mime_state_free(state)
 /*	MIME_STATE *state;
 /*
@@ -73,7 +76,12 @@
 /*	content transfer encoding domain, or specifies a transformation
 /*	(quoted-printable, base64) instead of a domain (7bit, 8bit,
 /*	or binary).
+/* .IP MIME_ERR_NON_EMPTY_EOH
+/*	The primary message header was terminated with a non-empty line.
 /* .PP
+/*	mime_state_status() reports the same result as
+/*	mime_state_update(), but without changing state.
+/*
 /*	mime_state_free() releases storage for a MIME state machine,
 /*	and conveniently returns a null pointer.
 /*
@@ -129,6 +137,9 @@
 /* .IP MIME_OPT_REPORT_NESTING
 /*	Report errors that set the MIME_ERR_NESTING error flag
 /*	(see above).
+/* .IP MIME_OPT_REPORT_NON_EMPTY_EOH
+/*	Report errors that terminate the primary message header with a
+/*	non-empty line.
 /* .IP MIME_OPT_DOWNGRADE
 /*	Transform content that claims to be 8-bit into quoted-printable.
 /*	Where appropriate, update Content-Transfer-Encoding: message
@@ -915,8 +926,13 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	 * This input terminates a block of message headers. Call the
 	 * optional header end routine at the end of the first header block.
 	 */
-	if (state->curr_state == MIME_STATE_PRIMARY && state->head_end)
-	    state->head_end(state->app_context);
+	if (state->curr_state == MIME_STATE_PRIMARY) {
+	    if (len > 0
+		&& (state->static_flags & MIME_OPT_REPORT_NON_EMPTY_EOH))
+		REPORT_ERROR_LEN(state, MIME_ERR_NON_EMPTY_EOH, text, len);
+	    if (state->head_end)
+		state->head_end(state->app_context);
+	}
 
 	/*
 	 * This is the right place to check if the sender specified an
@@ -1130,6 +1146,13 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
     }
 }
 
+/* mime_state_status - return mime_state_update() like result */
+
+int     mime_state_status(MIME_STATE *state)
+{
+    return (state->err_flags);
+}
+
  /*
   * Mime error to (DSN, text) mapping. Order matters; more serious errors
   * must precede less serious errors, because the error-to-text conversion
@@ -1141,6 +1164,7 @@ static const MIME_STATE_DETAIL mime_err_detail[] = {
     MIME_ERR_8BIT_IN_HEADER, "5.6.0", "improper use of 8-bit data in message header",
     MIME_ERR_8BIT_IN_7BIT_BODY, "5.6.0", "improper use of 8-bit data in message body",
     MIME_ERR_ENCODING_DOMAIN, "5.6.0", "invalid message/* or multipart/* encoding domain",
+    MIME_ERR_NON_EMPTY_EOH, "5.6.0", "primary header was terminated with non-empty line",
     0,
 };
 
@@ -1254,6 +1278,7 @@ int     main(int unused_argc, char **argv)
 	    | MIME_OPT_REPORT_ENCODING_DOMAIN \
 	    | MIME_OPT_REPORT_TRUNC_HEADER \
 	    | MIME_OPT_REPORT_NESTING \
+	    | MIME_OPT_REPORT_NON_EMPTY_EOH \
 	    | MIME_OPT_DOWNGRADE)
 
     msg_vstream_init(basename(argv[0]), VSTREAM_OUT);
@@ -1288,6 +1313,8 @@ int     main(int unused_argc, char **argv)
 	msg_warn("improper use of 8-bit data in message body");
     if (err & MIME_ERR_ENCODING_DOMAIN)
 	msg_warn("improper message/* or multipart/* encoding domain");
+    if (err & MIME_ERR_NON_EMPTY_EOH)
+	msg_warn("non-empty end-of-header");
 
     /*
      * Cleanup.

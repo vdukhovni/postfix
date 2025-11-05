@@ -29785,3 +29785,25 @@ Apologies for any names omitted.
 	avoid problems with infrastructure that mis-handles TLS
 	hello messages larger than one (Ethernet) TCP segment.
 	Viktor Dukhovni. Files: global/mail_params.h, proto/postconf.proto.
+
+20251103
+
+	Testing: fix bitrot in TLS DANE tests. Viktor Dukhovni.
+	Files: tls/tls_dane.c, tls/tls_dane.sh.
+
+20251104
+
+	Feature: non_empty_end_of_header_action specifies the
+	cleanup(8) server action when a primary message header is
+	terminated with a non-empty line: 1) insert an empty line
+	before the offending text (the backwards-compatible default),
+	2) insert a MIME-Error: header before inserting an empty
+	line, or 3) log an error and reject the message. Files:
+	global/mime-state.[hc], global/mime_garb3.ref,
+	global/mail_params.h, cleanup/cleanup_message.c.
+
+20251104
+
+	Documentation: in OVERVIEW_README, added a missing link
+	between smtpd(8) and trivial-rewrite(8). File:
+	proto/OVERVIEW_README.html.

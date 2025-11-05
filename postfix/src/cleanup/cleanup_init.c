@@ -77,6 +77,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -177,6 +180,7 @@ char   *var_hfrom_format;		/* header_from_format */
 char   *var_full_name_encoding_charset;	/* in =?charset?encoding?gibberish=? */
 int     var_force_mime_iconv;		/* force mime downgrade on input */
 int     var_cleanup_mask_stray_cr_lf;	/* replace stray CR or LF with space */
+char   *var_non_empty_eoh_action;	/* handle non-empty header terminator */
 
 const CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -247,6 +251,7 @@ const CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_MILT_MACRO_DEFLTS, DEF_MILT_MACRO_DEFLTS, &var_milt_macro_deflts, 0, 0,
     VAR_HFROM_FORMAT, DEF_HFROM_FORMAT, &var_hfrom_format, 1, 0,
     VAR_FULL_NAME_ENCODING_CHARSET, DEF_FULL_NAME_ENCODING_CHARSET, &var_full_name_encoding_charset, 1, 0,
+    VAR_NON_EMPTY_EOH_ACTION, DEF_NON_EMPTY_EOH_ACTION, &var_non_empty_eoh_action, 1, 0,
     0,
 };
 
@@ -290,6 +295,11 @@ MILTERS *cleanup_milters;
   * From: header format.
   */
 int     cleanup_hfrom_format;
+
+ /*
+  * Garbage after message header.
+  */
+int     cleanup_non_empty_eoh_action;
 
 /* cleanup_all - callback for the runtime error handler */
 
@@ -443,6 +453,12 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 
 void    cleanup_post_jail(char *unused_name, char **unused_argv)
 {
+    static NAME_CODE non_empty_eoh_actions[] = {
+	{NON_EMPTY_EOH_NAME_FIX_QUIETLY, NON_EMPTY_EOH_CODE_FIX_QUIETLY},
+	{NON_EMPTY_EOH_NAME_ADD_HDR, NON_EMPTY_EOH_CODE_ADD_HDR},
+	{NON_EMPTY_EOH_NAME_REJECT, NON_EMPTY_EOH_CODE_REJECT},
+	{0, NON_EMPTY_EOH_CODE_ERROR},
+    };
 
     /*
      * Optionally set the file size resource limit. XXX This limits the
@@ -477,4 +493,13 @@ void    cleanup_post_jail(char *unused_name, char **unused_argv)
      * From: header formatting.
      */
     cleanup_hfrom_format = hfrom_format_parse(VAR_HFROM_FORMAT, var_hfrom_format);
+
+    /*
+     * Garbage after message header.
+     */
+    if ((cleanup_non_empty_eoh_action =
+	 name_code(non_empty_eoh_actions, NAME_CODE_FLAG_NONE,
+		   var_non_empty_eoh_action)) == NON_EMPTY_EOH_CODE_ERROR)
+	msg_fatal("bad %s value: '%s'", VAR_NON_EMPTY_EOH_ACTION,
+		  var_non_empty_eoh_action);
 }

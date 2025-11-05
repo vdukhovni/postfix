@@ -441,6 +441,17 @@ extern char *var_drop_hdrs;
 extern char *var_hfrom_format;
 
  /*
+  * How to handle malformed header ending.
+  */
+#define NON_EMPTY_EOH_NAME_FIX_QUIETLY	"fix_quietly"
+#define NON_EMPTY_EOH_NAME_ADD_HDR	"add_header"
+#define NON_EMPTY_EOH_NAME_REJECT	"reject"
+
+#define VAR_NON_EMPTY_EOH_ACTION	"non_empty_end_of_header_action"
+#define DEF_NON_EMPTY_EOH_ACTION	NON_EMPTY_EOH_NAME_FIX_QUIETLY
+extern char *var_non_empty_eoh_action;
+
+ /*
   * Standards violation: allow/permit RFC 822-style addresses in SMTP
   * commands.
   */
