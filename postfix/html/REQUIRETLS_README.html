@@ -41,7 +41,7 @@
 <h2> <a name="intro"> Introduction </a> </h2>
 
 <p> (For background information, see below for a <a href="#summary">
-REQUIRETLS quick summary </a>.) </p>
+REQUIRETLS quick summary</a>.) </p>
 
 <p> This document covers the Postfix default settings for using the
 REQUIRETLS extension. The purpose of these defaults is to make REQUIRETLS
@@ -95,8 +95,8 @@ you do not insist on enforcing REQUIRETLS when sending or forwarding
 messages, then you can stop reading this document after adding the
 additional settings below. </p>
 
-<blockquote> <p> NOTE: Such a configuration may be suitable for a
-personal domain, where the owner can decide what happens with all
+<blockquote> <p> NOTE: The configuration below may be suitable for
+a personal domain, where the owner can decide what happens with all
 messages. For domains that receive messages for other people, a
 less radical approach may be better, as described in the sections
 that follow.  </p> </blockquote>
@@ -165,8 +165,8 @@ settings are: </p>
  4     <a href="postconf.5.html#lmtp_requiretls_policy">lmtp_requiretls_policy</a> = opportunistic
  5     <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
  6         <a href="DATABASE_README.html#types">inline</a>:{
- 7             {$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
- 8             {.$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
+ 7             {${<a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{$<a href="postconf.5.html#mydomain">mydomain</a>}} = opportunistic}
+ 8             {.${<a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{$<a href="postconf.5.html#mydomain">mydomain</a>}} = opportunistic}
  9             {localhost = opportunistic} }
 10         <a href="cidr_table.5.html">cidr</a>:{
 11             {0.0.0.0/0 opportunistic}
@@ -185,13 +185,22 @@ content inspection based on <a href="SMTPD_PROXY_README.html">SMTPD_PROXY_README
 </p>
 
 <li> <p> Lines 5-12: These make REQUIRETLS support optional for
-"internal" destinations that are specified as a symbolic name (lines
-6-9) or as a numerical IP address (lines 10-12). </p>
+internal destinations and content filters that are specified as a
+symbolic name (lines 6-9) or as a numerical IP address (lines 10-12).
+</p>
 
-<li> <p> Lines 7 and 8 use $<a href="postconf.5.html#mydomain_a">mydomain_a</a>, not $<a href="postconf.5.html#mydomain">mydomain</a>, The <a href="postconf.5.html#mydomain_a">mydomain_a</a>
-default value contains Punycode (A-label form) when the <a href="postconf.5.html#mydomain">mydomain</a>
-value contains non-ASCII characters, otherwise both values will be
-identical. </p>
+<li> <p> Lines 7 and 8 use ${<a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{$<a href="postconf.5.html#mydomain">mydomain</a>}} instead
+of $<a href="postconf.5.html#mydomain">mydomain</a>. The function <a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{} returns $<a href="postconf.5.html#mydomain">mydomain</a> if
+that contains only (7-bit) ASCII. If the <a href="postconf.5.html#mydomain">mydomain</a> value contains
+non-ASCII characters, then <a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{} returns the
+<tt>xn--mumble-mumble</tt> Punycode (A-label) form that Postfix
+needs. This works around a limitation that may be eliminated in a
+future Postfix version. </p>
+
+<li> <p>  Note: if you specify a domain list outside <a href="postconf.5.html">main.cf</a>, then
+the automatic $<i>name</i> expansions and Punycode conversions will
+not happen; you will need to enter real domain names and will need
+to convert non-ASCII domains to Punycode. </p>
 
 </ul>
 
@@ -264,8 +273,8 @@ does not use content inspection based on <a href="SMTPD_PROXY_README.html">SMTPD
  4     <a href="postconf.5.html#requiretls_esmtp_header">requiretls_esmtp_header</a> = yes
  5     <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
  6         <a href="DATABASE_README.html#types">inline</a>:{
- 7             {$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
- 8             {.$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
+ 7             {${<a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{$<a href="postconf.5.html#mydomain">mydomain</a>}} = opportunistic}
+ 8             {.${<a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{$<a href="postconf.5.html#mydomain">mydomain</a>}} = opportunistic}
  9             {localhost = opportunistic} }
 10         <a href="cidr_table.5.html">cidr</a>:{
 11             {0.0.0.0/0 opportunistic}
@@ -274,17 +283,41 @@ does not use content inspection based on <a href="SMTPD_PROXY_README.html">SMTPD
 </pre>
 </blockquote>
 
-<p> (Again, lines 7 and 8 use $<a href="postconf.5.html#mydomain_a">mydomain_a</a>, not $<a href="postconf.5.html#mydomain">mydomain</a>, The
-<a href="postconf.5.html#mydomain_a">mydomain_a</a> default value contains Punycode (A-label form) when the
-<a href="postconf.5.html#mydomain">mydomain</a> value contains non-ASCII characters, otherwise both values
-will be identical.) </p>
+<ul>
 
-<p> The 'enforce' policy for external destinations is technically
-correct, but is likely to suffer from delivery failures because
-many domains do not publish a DANE or STS policy, and many MTAs
-support STARTTLS but not REQUIRETLS. The only benefit is that
-mail is returned as undeliverable, instead of being sent as plaintext.
-</p>
+<li> <p> New at line 13: The 'enforce' policy for external
+destinations is technically correct, but is likely to suffer from
+delivery failures because many domains do not publish a DANE or STS
+policy, and many MTAs support STARTTLS but not REQUIRETLS. A perhaps
+more practical policy may be found in the section <a href="#relax">
+Relaxing REQUIRETLS for external deliveries</a>. </p>
+
+<li> <p> (Same as before) Line 3: The <a href="postconf.5.html#requiretls_esmtp_header">requiretls_esmtp_header</a> setting
+enables support for a message header "Require-TLS-ESMTP: yes" that
+allows Postfix to propagate the sender's REQUIRETLS request through
+a content filter. This feature can safely be disabled if there is
+no need for content inspection based on <a href="SMTPD_PROXY_README.html">SMTPD_PROXY_README</a> or
+<a href="FILTER_README.html">FILTER_README</a>.  </p>
+
+<li> <p> (Same as before) Lines 5-12: These make REQUIRETLS support
+optional for internal destinations and content filters that are
+specified as a symbolic name (lines 6-9) or as a numerical IP address
+(lines 10-12).
+
+<li> <p> (Same as before) Lines 7 and 8 use ${<a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{$<a href="postconf.5.html#mydomain">mydomain</a>}}
+instead of $<a href="postconf.5.html#mydomain">mydomain</a>. The function <a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{} returns $<a href="postconf.5.html#mydomain">mydomain</a>
+if that contains only (7-bit) ASCII. If the <a href="postconf.5.html#mydomain">mydomain</a> value contains
+non-ASCII characters, then <a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{} returns the
+<tt>xn--mumble-mumble</tt> Punycode (A-label) form that Postfix
+needs. This works around a limitation that may be eliminated in a
+future Postfix version. </p>
+
+<li> <p> (Same as before) Note: if you specify a domain list outside
+<a href="postconf.5.html">main.cf</a>, then the automatic $<i>name</i> expansions and Punycode
+conversions will not happen; you will need to enter real domain
+names and will need to convert non-ASCII domains to Punycode.) </p>
+
+</ul>
 
 <h3> <a name="relax"> Relaxing REQUIRETLS for external deliveries </a> </h3>
 
@@ -303,8 +336,8 @@ below makes that change by replacing the default 'enforce' with
  4     <a href="postconf.5.html#requiretls_esmtp_header">requiretls_esmtp_header</a> = yes
  5     <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a> =
  6         <a href="DATABASE_README.html#types">inline</a>:{
- 7             {$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
- 8             {.$<a href="postconf.5.html#mydomain_a">mydomain_a</a> = opportunistic}
+ 7             {${<a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{$<a href="postconf.5.html#mydomain">mydomain</a>}} = opportunistic}
+ 8             {.${<a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{$<a href="postconf.5.html#mydomain">mydomain</a>}} = opportunistic}
  9             {localhost = opportunistic} }
 10         <a href="cidr_table.5.html">cidr</a>:{
 11             {0.0.0.0/0 opportunistic}
@@ -313,11 +346,41 @@ below makes that change by replacing the default 'enforce' with
 </pre>
 </blockquote>
 
-<p> This relaxes the requirement that every MTA in the forward path
-of a message supports REQUIRETLS, but in practice only one network
-hop needs to be secured: from a sender's perimeter MTA to a receiver's
-perimeter MTA. The network connections between user agents and their
-respective perimeters are assumed to be already secure. </p>
+<ul>
+
+<li> <p> New at line 13: the 'opportunistic+starttls' policy relaxes
+the requirement that every MTA in the forward path of a message
+supports REQUIRETLS, but in practice only one network hop needs to
+be secured: from a sender's perimeter MTA to a receiver's perimeter
+MTA. The network connections between user agents and their respective
+perimeters are assumed to be already secure. </p>
+
+<li> <p> (Same as before) Line 3: The <a href="postconf.5.html#requiretls_esmtp_header">requiretls_esmtp_header</a> setting
+enables support for a message header "Require-TLS-ESMTP: yes" that
+allows Postfix to propagate the sender's REQUIRETLS request through
+a content filter. This feature can safely be disabled if there is
+no need for content inspection based on <a href="SMTPD_PROXY_README.html">SMTPD_PROXY_README</a> or
+<a href="FILTER_README.html">FILTER_README</a>.  </p>
+
+<li> <p> (Same as before) Lines 5-12: These make REQUIRETLS support
+optional for internal destinations and content filters that are
+specified as a symbolic name (lines 6-9) or as a numerical IP address
+(lines 10-12).
+
+<li> <p> (Same as before) Lines 7 and 8 use ${<a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{$<a href="postconf.5.html#mydomain">mydomain</a>}}
+instead of $<a href="postconf.5.html#mydomain">mydomain</a>. The function <a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{} returns $<a href="postconf.5.html#mydomain">mydomain</a>
+if that contains only (7-bit) ASCII. If the <a href="postconf.5.html#mydomain">mydomain</a> value contains
+non-ASCII characters, then <a href="postconf.5.html#domain_to_ascii">domain_to_ascii</a>{} returns the
+<tt>xn--mumble-mumble</tt> Punycode (A-label) form that Postfix
+needs. This works around a limitation that may be eliminated in a
+future Postfix version. </p>
+
+<li> <p> (Same as before) Note: if you specify a domain list outside
+<a href="postconf.5.html">main.cf</a>, then the automatic $<i>name</i> expansions and Punycode
+conversions will not happen; you will need to enter real domain
+names and will need to convert non-ASCII domains to Punycode.) </p>
+
+</ul>
 
 <h2> <a name="census"> An experiment: testing REQUIRETLS support </a> </h2>
 
@@ -381,7 +444,7 @@ in plaintext. </p>
 </blockquote>
 
 <p> When a message was received with a "<tt>TLS-Required: no</tt>"
-header, and REQUIRETLS was not requested, then the "T<tt>LS-Required:
+header, and REQUIRETLS was not requested, the "T<tt>LS-Required:
 no</tt>" header is copied to the delivery status notification. </p>
 
 <h2> <a name="summary"> REQUIRETLS quick summary </a> </h2>
@@ -402,7 +465,8 @@ in this document. </p>
 <li> <p> An ESMTP protocol extension named "REQUIRETLS" that an SMTP
 server may list in its EHLO response, and that an SMTP client may request
 in a MAIL FROM command. This extension can be used only in an encrypted
-session, as illustrated with the fragment below: </p>
+session, as illustrated with the fragment below, where <tt>C</tt>=client
+and <tt>S</tt>=server. </p>
 
 <pre>
 . . .
@@ -476,10 +540,11 @@ REQUIRETLS. </p>
 extended it to propagate REQUIRETLS and "TLS-Required: no" information.
 
 <li> In Postfix 3.11, Wietse added REQUIRETLS support to the Postfix
-SMTP client; added a "<tt>tls=...</tt>" status field to the Postfix delivery
-status logging; added support for the "Require-TLS-ESMTP: yes" header to
-propagate REQUIRETLS through non-Postfix programs, specifically content
-filters. </li>
+SMTP client; added a "<tt>tls=<i>status</i>/requiretls=<i>status</i></tt>"
+field to the Postfix delivery status logging; added <a href="postconf.5.html#smtp_requiretls_policy">smtp_requiretls_policy</a>
+support; added support for the "Require-TLS-ESMTP: yes" header to
+propagate REQUIRETLS through non-Postfix programs, specifically
+content filters. </li>
 
 </ul>
 

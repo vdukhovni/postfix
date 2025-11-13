@@ -363,6 +363,16 @@ extern void cleanup_body_edit_free(CLEANUP_STATE *);
   */
 extern int cleanup_hfrom_format;
 
+ /*
+  * How to handle garbage at end of the primary message header.
+  */
+#define NON_EMPTY_EOH_CODE_ERROR	-1	/* sentinel */
+#define NON_EMPTY_EOH_CODE_FIX_QUIETLY	0
+#define NON_EMPTY_EOH_CODE_ADD_HDR	1
+#define NON_EMPTY_EOH_CODE_REJECT	2
+
+extern int cleanup_non_empty_eoh_action;
+
 /* LICENSE
 /* .ad
 /* .fi

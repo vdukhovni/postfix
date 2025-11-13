@@ -1692,3 +1692,7 @@ HDRS
 deliverability
 certmatch
 Punycode
+unnormalized
+xa
+ascii
+halfdane

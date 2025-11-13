@@ -54,6 +54,7 @@ extern VSTRING *unescape(VSTRING *, const char *);
 extern VSTRING *escape(VSTRING *, const char *, ssize_t);
 extern int alldig(const char *);
 extern int allalnum(const char *);
+extern int allalnumus(const char *);
 extern int allprint(const char *);
 extern int allspace(const char *);
 extern int allascii_len(const char *, ssize_t);
@@ -115,6 +116,9 @@ extern char *normalize_ws(char *);
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 #endif

@@ -29615,9 +29615,202 @@ Apologies for any names omitted.
 	smtp/smtp.h, smtp/smtp_connect.c, smtp/smtp_params.c,
 	smtp/smtp_tls_policy.c, smtp/smtp_tls_policy_test.c.
 
-	Baseline is postfix-3.11-20250906
+20250911
 
-NONPROD CODE
+	Bugfix (defect introduced: Postfix 3.0): the Postfix SMTP
+	client's connection reuse logic did not distinguish between
+	sessions that require SMTPUTF8 support, and sessions that
+	do not. The solution is to store sessions with different
+	SMTPUTF8 requirements under distinct connection cache storage
+	keys, and to preserve the availability of SMTPUTF8 support
+	in the connection cache, so that a reused connection will
+	be stored under the same keys as it was looked up with.
+	Finally, do not cache a connection when SMTPUTF8 is
+	required but the server does not support that feature.
+	Files: smtp/smtp.h, smtp/smtp_key.c, smtp/smtp_proto.c.
+
+20250919
+
+	Cleanup: unnecessary header parsing code. Viktor Dukhovni.
+	File: cleanup/cleanup_message.c.
+
+	Bugfix (defect introduced: Postfix 3.8, date 20220128): the
+	'postconf -e' output order for new main.cf entries was no
+	longer deterministic. Problem reported by Oleksandr Natalenko,
+	diagnosis by Eray Aslan. File: postconf/postconf_edit.c.
+
+	Add missing meta_directory and shlib_directory settings to
+	the stock main.cf file. Problem diagnosed by Eray Aslan.
+	File: conf/main.cf.
+
+20240924
+ 
+	TLSRPT Workaround: when policies[*].policy.policy-type is
+	"no-policy-found", report the TLSRPT policy domain name as
+	the policies[*].policy.policy-domain value. This ignores
+	that TLSA policies must be reported with different policy-domain
+	values than STS policies. File: tls/tlsrpt_wrapper.c.
+
+20250927
+
+	Updated documentation for smtp_tls_enforce_sts_mx_patterns.
+	Files: proto/postconf.proto, smtp_tls_policy.c.
+
+20250928
+
+	Cleanup: make STS mx hostname pattern enforcement consistent
+	with the smtp_cname_overrides_servername setting. File:
+	smtp/smtp_connect.c.
+
+20251001
+
+	Cleanup: missing stdlib.h include. Viktor Dukhovni. File:
+	postconf/postconf_edit.c.
+
+	Cleanup: missing USE_TLS include guard. Viktor Dukhovni.
+	Files: smtp/lmtp_params.c, smtp/lmtp_params.c. in
+
+	Configuration: with OpenSSL 3.5 and later, recommend that
+	tls_eecdh_auto_curves and tls_ffdhe_auto_groups be left
+	empty (the new default) in anticipation of the removal of
+	these parameters. Instead, configuration should be done
+	with OpenSSL. Viktor Dukhovni. Files: global/mail_params.h,
+	proto/postconf.proto.
+
+20251021
+
+	Cleanup: the change at 20250717 could result in warnings
+	with "database X is older than source file Y". Files:
+	util/dict.c, util/dict_db.c, util/dict_dbm.c, util/dict_lmdb.c,
+	util/dict_sdbm.c.
+
+20251024
+
+	Logging: with "smtp_tls_enforce_sts_mx_patterns=yes" and
+	TLSRPT support enabled in a TLS policy plugin, the Postfix
+	SMTP client logs a warning when an MX hostname does not
+	match STS policy MX patterns; it logs a successful match
+	when verbose logging is enabled. File: smtp/smtp_tls_policy.c.
+
+20251025
+
+	Feature: original recipient address in "postqueue -j" output,
+	Christophe Kalt. Files: postqueue/postqueue.c,
+	postqueue/showq_compat.c, postqueue/showq_json.c, showq/showq.c.
+
+20251026
+
+	Cleanup: defer tlsproxy daemon warnings that the TLS server
+	role is disabled by configuration, until a request for that
+	role is received. File: tlsproxy/tlsproxy.c.
+
+20251027
+
+	Cleanup: add 12 more deprecation warnings for parameters
+	that have been renamed in the past, and that still provide
+	a backwards-compatible default value for their replacement.
+	The parameters deprecated by this change are:
+	authorized_verp_clients, fallback_relay, lmtp_per_record_deadline,
+	postscreen_blacklist_action, postscreen_dnsbl_ttl,
+	postscreen_dnsbl_whitelist_threshold,
+	postscreen_whitelist_interfaces,
+	smtpd_client_connection_limit_exceptions,
+	smtp_per_record_deadline, tlsproxy_client_level,
+	tlsproxy_client_policy, virtual_maps. Files: mantools/postlink,
+	proto/DEPRECATION_README.html, postconf/postconf_unused.c.
+
+	Cleanup: SMTP client null pointer crash when an STS policy
+	plugin sends no policy_string or no mx_pattern attributes.
+	This can happen only during tests with a fake STS plugin.
+	File: smtp/smtp_tlsrpt.c.
+
+20251028
+
+	The postconf command logs deprecation warnings for the
+	tls_eecdh_auto_curves and tls_ffdhe_auto_groups parameters
+	when Postfix is built with OpenSSL 3.5. Files:
+	proto/DEPRECATION_README.html, postconf/postconf_unused.c.
+
+	The postconf command logs a pointer to the on-line
+	DEPRECATION_README.html for further guidance.
+
+	Deprecate the smtp_cname_overrides_servername and
+	lmtp_cname_overrides_servername parameters, and delete
+	documentation that has been obsolete since Postfix 2.11.
+	Files: proto/postconf.proto, proto/DEPRECATION_README.html,
+	postconf/postconf_unused.c.
+
+	Cleanup: Postfix version info for postqueue JSON output
+	features. File: postqueue/postqueue.c.
+
+	Cleanup: add missing unit tests for newly deprecated parameters.
+	Files: postconf/Makefile.in, postconf/test79.ref
+
+	Postpone the deprecation of the tls_eecdh_auto_curves and
+	tls_ffdhe_auto_groups parameters because doing this now
+	would make migration noisy. Files: proto/DEPRECATION_README.html,
+	proto/postconf.proto, postconf/postconf_unused.c.
+
+20251029
+
+	Cleanup: postconf(1) logged a few wrong deprecated parameter
+	names (Viktor Dukhovni). Sort the order of unused and
+	deprecated warnings to make test results predictable.
+	Files: proto/DEPRECATION_README.html, postconf/Makefile.in,
+	postconf/postconf_unused.c, postconf/test28.ref,
+	postconf/test29.ref, postconf/test2.ref, postconf/test57.ref,
+	postconf/test59.ref, postconf/test67.ref, postconf/test76.ref,
+	postconf/test77.ref, postconf/test78.ref, postconf/test79.ref.
+
+	Debugging: depending on OpenSSL build options, "posttls-finger
+	-L ssl-debug" will decode TLS handshake messages. Viktor
+	Dukhovni. File: posttls-finger/posttls-finger.c
+
+20241031
+
+	Bugfix (defect introduced: Postfix 3.10, date 20250117):
+	support for "TLS-Required: no" broke client-side TLS wrappermode
+	support, by downgrading a connection to TLS security level 'may'.
+	The solution is to change the downgrade level for wrappermode
+	connections to 'encrypt'. Rationale: by design, TLS can be
+	optional only for connections that use STARTTLS. The downgrade
+	to unauthenticated 'encrypt' allows a sender to avoid an email
+	delivery problem. Problem reported by Joshua Tyler Cochran.
+	Files: smtp/smtp_tls_policy.c, smtp/smtp_tls_policy_test.c.
+
+20251102
+
+	Post-quantum cryptography support (with OpenSSL 3.5 and
+	later): change the tls_eecdh_auto_curves default value to
+	avoid problems with infrastructure that mis-handles TLS
+	hello messages larger than one (Ethernet) TCP segment.
+	Viktor Dukhovni. Files: global/mail_params.h, proto/postconf.proto.
+
+20251103
+
+	Testing: fix bitrot in TLS DANE tests. Viktor Dukhovni.
+	Files: tls/tls_dane.c, tls/tls_dane.sh.
+
+20251104
+
+	Feature: non_empty_end_of_header_action specifies the
+	cleanup(8) server action when a primary message header is
+	terminated with a non-empty line: 1) insert an empty line
+	before the offending text (the backwards-compatible default),
+	2) insert a MIME-Error: header before inserting an empty
+	line, or 3) log an error and reject the message. Files:
+	global/mime-state.[hc], global/mime_garb3.ref,
+	global/mail_params.h, cleanup/cleanup_message.c.
+
+20251104
+
+	Documentation: in OVERVIEW_README, added a missing link
+	between smtpd(8) and trivial-rewrite(8). File:
+	proto/OVERVIEW_README.html.
+
+	Baseline is postfix-3.11-20251105
+
+NON-PROD changes
 
 	Feature: support for the REQUIRETLS verb in SMTP. According
 	to RFC 8689, this requires TLS server certificate matching.
@@ -29775,57 +29968,6 @@ NONPROD CODE
 	smtp/smtp_proto.c, smtp/smtp_rcpt.c, smtp/smtp_state.c,
 	smtp/smtp_trouble.c, virtual/virtual.h.
 
-20250911
-
-	Bugfix (defect introduced: Postfix 3.0): the Postfix SMTP
-	client's connection reuse logic did not distinguish between
-	sessions that require SMTPUTF8 support, and sessions that
-	do not. The solution is to store sessions with different
-	SMTPUTF8 requirements under distinct connection cache storage
-	keys, and to preserve the availability of SMTPUTF8 support
-	in the connection cache, so that a reused connection will
-	be stored under the same keys as it was looked up with.
-	Finally, do not cache a connection when SMTPUTF8 is
-	required but the server does not support that feature.
-	Files: smtp/smtp.h, smtp/smtp_key.c, smtp/smtp_proto.c.
-
-20250919
-
-	Cleanup: unnecessary header parsing code. Viktor Dukhovni.
-	File: cleanup/cleanup_message.c.
-
-	Bugfix (defect introduced: Postfix 3.8, date 20220128): the
-	'postconf -e' output order for new main.cf entries was no
-	longer deterministic. Problem reported by Oleksandr Natalenko,
-	diagnosis by Eray Aslan. File: postconf/postconf_edit.c.
-
-	Add missing meta_directory and shlib_directory settings to
-	the stock main.cf file. Problem diagnosed by Eray Aslan.
-	File: conf/main.cf.
-
-20240924
- 
-	TLSRPT Workaround: when policies[*].policy.policy-type is
-	"no-policy-found", report the TLSRPT policy domain name as
-	the policies[*].policy.policy-domain value. This ignores
-	that TLSA policies must be reported with different policy-domain
-	values than STS policies. File: tls/tlsrpt_wrapper.c.
-
-20250927
-
-	Updated documentation for smtp_tls_enforce_sts_mx_patterns.
-	Files: proto/postconf.proto, smtp_tls_policy.c.
-
-20250928
-
-	Cleanup: make STS mx hostname pattern enforcement consistent
-	with the smtp_cname_overrides_servername setting. File:
-	smtp/smtp_connect.c.
-
-	Baseline is postfix-3.11-20250928
-
-NON-PROD changes
-
 	Completed 20250911: Include the REQUIRETLS enforcement level
 	in the SMTP connection cache storage key and cached connection
 	properties, and don't cache connections that don't satisfy
@@ -29900,37 +30042,24 @@ NON-PROD changes
 	proto/REQUIRETLS_README.html, smtp/smtp_reqtls_policy.c,
 	smtp/smtp_reqtls_policy_test.c.
 
-	Completed 20250929: Make the smtp_requiretls_policy searches
-	deterministic by converting the next-hop search string to
-	Punycode form. In the default policy, replace $mydomain
-	with the new parameter $mydomain_a, which contains Punycode
-	when $mydomain contains non-ASCII, otherwise $mydomain and
-	$mydomain_a contain the same value. For completeness there
-	is also a new parameter $myhostname_a that may be useful
-	elsewhere. Files: mantools/postlink, proto/postconf.proto,
-	proto/REQUIRETLS_README.html, global/mail_params.c,
-	global/mail_params.h, postconf/postconf_builtin.c,
-	smtp/smtp_reqtls_policy.c.
+	Completed 20251103: Make the smtp_requiretls_policy searches
+	deterministic by converting an internationalized next-hop
+	domain to ASCII form before querying the policy. In the
+	default policy, specify ${domain_to_ascii{$mydomain}} which
+	returns Punycode when $mydomain contains non-ASCII, and
+	which otherwise returns $mydomain. Files: mantools/postlink,
+	proto/postconf.proto, proto/REQUIRETLS_README.html,
+	global/mail_params.[hc], util/mac_midna.[hc], util/mac_expand.[hc],
+	util/mac_expand.in, util/mac_expand.ref, proto/postconf.*.proto,
+	proto/Makefile.in.
 
+	Completed 20250921: added 'halfdane' to the TLS status
+	logging documentation. File: proto/postconf.proto.
+ 
 TODO
-
-	Maybe log "server announces REQUIRETLS" if we're not enforcing
-	REQUIRETLS.
-
-	Maybe add back -Orequiretls=yes|no, and support for preliminary
-	SIZE records in showq and postcat
-
-	Maybe change the default smtp_requiretls_policy to
-	'opportunistic' as it is the risk-free option, if not
-	religiously correct.
 
 	Decide whether or how to enable REQUIRETLS for non-SMTP
 	inputs: qmqpd.c ot pickup (sendmail). The smtputf8 auto-detect
 	strategy is not applicable because REQUIRETLS trumps
 	"TLS-Required: no". It should be easy for sendmail submissions
 	to choose whether TLS shall be required or optional.
-
-	Add more cross-links to REQUIRETLS features in the postconf(5)
-	manpage.
-
-	Complete REQUIRETLS_README.

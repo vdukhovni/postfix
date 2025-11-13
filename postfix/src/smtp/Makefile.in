@@ -555,12 +555,12 @@ smtp_reqtls_policy.o: ../../include/myflock.h
 smtp_reqtls_policy.o: ../../include/mymalloc.h
 smtp_reqtls_policy.o: ../../include/stringops.h
 smtp_reqtls_policy.o: ../../include/sys_defs.h
+smtp_reqtls_policy.o: ../../include/valid_hostname.h
 smtp_reqtls_policy.o: ../../include/vbuf.h
 smtp_reqtls_policy.o: ../../include/vstream.h
 smtp_reqtls_policy.o: ../../include/vstring.h
 smtp_reqtls_policy.o: smtp_reqtls_policy.c
 smtp_reqtls_policy.o: smtp_reqtls_policy.h
-smtp_reqtls_policy_test.o: ../../include/argv.h
 smtp_reqtls_policy_test.o: ../../include/check_arg.h
 smtp_reqtls_policy_test.o: ../../include/msg.h
 smtp_reqtls_policy_test.o: ../../include/msg_vstream.h

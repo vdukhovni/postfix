@@ -187,9 +187,16 @@ int     smtp_tls_authorize_mx_hostname(SMTP_TLS_POLICY *tls, const char *name)
 	} else
 #endif
 	    aname = name;
-	for (pattp = tls->ext_mx_host_patterns->argv; *pattp; pattp++)
-	    if (match_sts_mx_host_pattern(*pattp, aname))
+	for (pattp = tls->ext_mx_host_patterns->argv; *pattp; pattp++) {
+	    if (match_sts_mx_host_pattern(*pattp, aname)) {
+		if (msg_verbose)
+		    msg_info("MX name '%s' matches STS MX pattern for '%s'",
+			     aname, tls->ext_policy_domain ? tls->ext_policy_domain : "");
 		return (1);
+	    }
+	}
+	msg_warn("MX name '%s' does not match STS MX pattern for '%s'",
+	       aname, tls->ext_policy_domain ? tls->ext_policy_domain : "");
 	return (0);
     }
     /* No applicable policy name patterns. */
@@ -725,8 +732,13 @@ static void *policy_create(const char *unused_key, void *context)
     if (STATE_TLS_NOT_REQUIRED(iter->parent)) {
 	if (msg_verbose)
 	    msg_info("%s: no tls policy lookup", __func__);
-	if (tls->level > TLS_LEV_MAY)
-	    tls->level = TLS_LEV_MAY;
+	if (var_smtp_tls_wrappermode) {
+	    if (tls->level > TLS_LEV_ENCRYPT)
+		tls->level = TLS_LEV_ENCRYPT;
+	} else {
+	    if (tls->level > TLS_LEV_MAY)
+		tls->level = TLS_LEV_MAY;
+	}
     } else if (tls_policy) {
 	tls_policy_lookup(tls, &site_level, dest, "next-hop destination");
     } else if (tls_per_site) {

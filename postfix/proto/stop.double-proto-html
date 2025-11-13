@@ -374,3 +374,10 @@ opportunistic  opportunistic starttls
  tt tls i level i requiretls tt where tt tt 
 where tt tt indicates the kind of policy violation described
 tt  tt tls i level i requiretls noencryption tt or
+ xn mumble mumble Punycode A label form that Postfix needs 
+ xn mumble mumble Punycode A label form that Postfix needs Note if you specify the domain list outside main cf then the automatic name expansions and Punycode conversions will not happen you will need to enter real domain names and will
+ pre pre 
+ contains the xn mumble mumble Punycode A label form that Postfix needs 
+ domain_to_ascii returns the xn mumble mumble Punycode A label form that Postfix needs This works around a limitation that may be eliminated in a future Postfix version 
+smtp_requiretls_policy smtp_requiretls_policy inline 
+ xn mumble mumble Punycode A label form that Postfix needs This works around a limitation that may be eliminated in a future Postfix version 

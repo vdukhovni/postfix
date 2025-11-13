@@ -559,9 +559,9 @@ clobber:
 ../html/postconf.5.html: postconf.html.prolog postconf.proto \
 	postconf.html.epilog ../mantools/xpostconf ../mantools/postconf2html \
 	../mantools/postlink
-	(cat postconf.html.prolog; ../mantools/xpostconf postconf.proto | \
-	    ../mantools/postconf2html | ../mantools/postlink; \
-	    cat postconf.html.epilog ) | $(DETAB) > $@
+	(cat postconf.html.prolog; \
+	    ../mantools/xpostconf postconf.proto | ../mantools/postconf2html; \
+	    cat postconf.html.epilog ) | ../mantools/postlink | $(DETAB) > $@
 
 ../INSTALL: ../README_FILES/INSTALL
 	rm -f $@

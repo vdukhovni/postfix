@@ -12,14 +12,9 @@
 /* .nf
 
  /*
-  * Utility library.
-  */
-#include <argv.h>
-
- /*
   * External interface.
   */
-typedef ARGV SMTP_REQTLS_POLICY;
+typedef struct SMTP_REQTLS_POLICY SMTP_REQTLS_POLICY;
 
 extern SMTP_REQTLS_POLICY *smtp_reqtls_policy_parse(const char *, const char *);
 extern int smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *, const char *);
@@ -31,11 +26,15 @@ extern void smtp_reqtls_policy_free(SMTP_REQTLS_POLICY *);
 #define SMTP_REQTLS_POLICY_NAME_DISABLE		"disable"
 #define SMTP_REQTLS_POLICY_NAME_ERROR		"error"
 
+#define SMTP_REQTLS_POLICY_NAME_DEFAULT		SMTP_REQTLS_POLICY_NAME_ENFORCE
+
 #define SMTP_REQTLS_POLICY_ACT_ENFORCE		3
 #define SMTP_REQTLS_POLICY_ACT_OPP_TLS		2
 #define SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC	1
 #define SMTP_REQTLS_POLICY_ACT_DISABLE		0
 #define SMTP_REQTLS_POLICY_ACT_ERROR		(-1)
+
+#define SMTP_REQTLS_POLICY_ACT_DEFAULT		SMTP_REQTLS_POLICY_ACT_ENFORCE
 
 #define STATE_REQTLS_IS_REQUESTED(var, state) \
 	SENDOPTS_REQTLS_IS_REQUESTED((var), (state)->request->sendopts)

@@ -56,7 +56,7 @@ tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test42 test43 test44 test45 test46 test47 test48 test49 test50 test51 \
 	test52 test53 test54 test55 test56 test57 test58 test59 test60 test61 \
 	test62 test63 test64 test65 test66 test67 test68 test69 test70 test71 \
-	test72 test73 test74 test75 test76 test78
+	test72 test73 test74 test75 test76 test78 test79
 
 root_tests:
 
@@ -1094,6 +1094,39 @@ test78:	$(PROG) test78.ref
 	diff /dev/null test78.tmp
 	rm -f main.cf master.cf test78.tmp
 
+# Warn about unused, deprecated, or deleted parameters.
+test79:	$(PROG) test79.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -c. \
+	    config_directory=. \
+	    authorized_verp_clients=x \
+	    fallback_relay=x \
+	    lmtp_per_record_deadline=x \
+	    postscreen_blacklist_action=x \
+	    postscreen_dnsbl_ttl=x \
+	    postscreen_dnsbl_whitelist_threshold=x \
+	    postscreen_whitelist_interfaces=x \
+	    smtpd_client_connection_limit_exceptions=x \
+	    smtpd_per_record_deadline=x \
+	    smtp_per_record_deadline=x \
+	    tlsproxy_client_level=x \
+	    tlsproxy_client_policy=x \
+	    virtual_maps=x \
+	    lmtp_cname_overrides_servername=x \
+	    smtp_cname_overrides_servername=x \
+	    >test79.tmp 2>&1
+	touch -t 197601010000 main.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o lmtp_tls_enforce_peername=no' >> master.cf
+	echo ' -o smtp_tls_enforce_peername=no' >> master.cf
+	touch -t 197601010000 master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc. >>test79.tmp 2>&1
+	diff test79.ref test79.tmp
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -qnc. >/dev/null 2>test79.tmp
+	diff /dev/null test79.tmp
+	rm -f main.cf master.cf test79.tmp
+
 clean:
 	rm -f *.o *core $(PROG) $(TESTPROG) junk $(MAKES) $(AUTOS) $(DUMMIES) \
 	$(TEST_TMP) $(DB_MAKES)
@@ -1115,6 +1148,7 @@ postconf.o: ../../include/check_arg.h
 postconf.o: ../../include/compat_level.h
 postconf.o: ../../include/dict.h
 postconf.o: ../../include/htable.h
+postconf.o: ../../include/mac_midna.h
 postconf.o: ../../include/mail_conf.h
 postconf.o: ../../include/mail_dict.h
 postconf.o: ../../include/mail_params.h
@@ -1401,6 +1435,7 @@ postconf_unused.o: ../../include/mail_conf.h
 postconf_unused.o: ../../include/mail_params.h
 postconf_unused.o: ../../include/msg.h
 postconf_unused.o: ../../include/myflock.h
+postconf_unused.o: ../../include/mymalloc.h
 postconf_unused.o: ../../include/name_code.h
 postconf_unused.o: ../../include/sys_defs.h
 postconf_unused.o: ../../include/vbuf.h

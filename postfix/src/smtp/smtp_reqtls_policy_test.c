@@ -203,7 +203,7 @@ static int default_is_enforce(const TEST_CASE *tp)
     return (errors == 0);
 }
 
-static int disallow_nested_table(const TEST_CASE *tp)
+static int disallows_nested_table(const TEST_CASE *tp)
 {
     const char *ext_policy = "inline:{{foo.example = hash:/no/where}}";
     const struct QUERY_REPLY qr[] = {
@@ -229,6 +229,90 @@ static int disallow_nested_table(const TEST_CASE *tp)
     return (errors == 0);
 }
 
+static int disallows_composite_lookup(const TEST_CASE *tp)
+{
+    const char *ext_policy = "inline:{{foo.example = foo bar}}";
+    const struct QUERY_REPLY qr[] = {
+	{"foo.example", SMTP_REQTLS_POLICY_ACT_ERROR},
+	{"x.foo.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+	{"example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+	{0},
+    };
+    SMTP_REQTLS_POLICY *int_policy;
+    const struct QUERY_REPLY *qp;
+    const char test_origin[] = "test";
+    int     got;
+    int     errors = 0;
+
+    int_policy = smtp_reqtls_policy_parse(test_origin, ext_policy);
+    for (qp = qr; qp->query; qp++) {
+	got = smtp_reqtls_policy_eval(int_policy, qp->query);
+	if (got != qp->reply) {
+	    msg_warn("got result '%d', want: '%d'", got, qp->reply);
+	    errors++;
+	}
+    }
+    smtp_reqtls_policy_free(int_policy);
+    return (errors == 0);
+}
+
+static int converts_good_u_label_query(const TEST_CASE *tp)
+{
+    const char *ext_policy = "inline:{{foo.xn--1xa.example = opportunistic}} enforce";
+    const struct QUERY_REPLY qr[] = {
+        {"foo.xn--1xa.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
+        {"foo.π.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
+        {"x.foo.xn--1xa.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+        {"x.foo.π.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+        {"example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+        {0},
+    };
+    SMTP_REQTLS_POLICY *int_policy;
+    const struct QUERY_REPLY *qp;
+    const char test_origin[] = "test";
+    int     got;
+    int     errors = 0;
+
+    int_policy = smtp_reqtls_policy_parse(test_origin, ext_policy);
+    for (qp = qr; qp->query; qp++) {
+        got = smtp_reqtls_policy_eval(int_policy, qp->query);
+        if (got != qp->reply) {
+            msg_warn("got result '%d', want: '%d'", got, qp->reply);
+            errors++;
+        }
+    }
+    smtp_reqtls_policy_free(int_policy);
+    return (errors == 0);
+}
+
+static int fails_bad_u_label_query(const TEST_CASE *tp)
+{
+    const char *ext_policy = "inline:{{foo.xn--1xa.example = opportunistic}} disable";
+    const struct QUERY_REPLY qr[] = {
+        {"foo.π.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
+        {"foo.-π.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+        {"example", SMTP_REQTLS_POLICY_ACT_DISABLE},
+        {0},
+    };
+    SMTP_REQTLS_POLICY *int_policy;
+    const struct QUERY_REPLY *qp;
+    const char test_origin[] = "test";
+    int     got;
+    int     errors = 0;
+
+    int_policy = smtp_reqtls_policy_parse(test_origin, ext_policy);
+    for (qp = qr; qp->query; qp++) {
+        got = smtp_reqtls_policy_eval(int_policy, qp->query);
+        if (got != qp->reply) {
+            msg_warn("got result '%d', want: '%d'", got, qp->reply);
+            errors++;
+        }
+    }
+    smtp_reqtls_policy_free(int_policy);
+    return (errors == 0);
+}
+
+
 static TEST_CASE test_cases[] = {
     "non_regexp_policy_no_error", non_regexp_policy_no_error,
     "non_regexp_policy_error_at_end", non_regexp_policy_error_at_end,
@@ -236,7 +320,10 @@ static TEST_CASE test_cases[] = {
     "policy_table_lookup_error", policy_table_lookup_error,
     "regexp_table_no_error", regexp_table_no_error,
     "default_is_enforce", default_is_enforce,
-    "disallow_nested_table", disallow_nested_table,
+    "disallows_nested_table", disallows_nested_table,
+    "disallows_composite_lookup", disallows_composite_lookup,
+    "converts_good_u_label_query", converts_good_u_label_query,
+    "fails_bad_u_label_query", fails_bad_u_label_query,
     0,
 };
 
@@ -247,6 +334,7 @@ int     main(int argc, char **argv)
     int     fail = 0;
 
     msg_vstream_init(sane_basename((VSTRING *) 0, argv[0]), VSTREAM_ERR);
+    util_utf8_enable = 1;
 
     for (tp = test_cases; tp->label != 0; tp++) {
 	msg_info("RUN  %s", tp->label);

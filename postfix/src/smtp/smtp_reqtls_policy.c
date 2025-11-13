@@ -22,17 +22,20 @@
 /*
 /*	smtp_reqtls_policy_parse() converts a policy from human-readable
 /*	form to internal form. It should be called as part of
-/*	before-chroot initialization. A policy is a list of elements
-/*	that will be matched in the specified order. A policy element must
-/*	be an atom ("enforce", "opportunistic+starttls", "opportunistic",
-/*	"error") or a type:table. A table lookup result must be an
-/*	atom, not a type:table. To match a parent domain name with a
-/*	table that wants and exact match, specify an explicit '.' before
-/*	the parent domain name.
+/*	before-chroot initialization. A policy is a list of elements that
+/*	will be matched in the specified order. A policy element must be
+/*	an atom ("enforce", "opportunistic+starttls", "opportunistic",
+/*	"disable", "error") or a type:table. A table lookup result must
+/*	be an atom, not a type:table. To match a parent domain name
+/*	with a table that wants and exact match, specify an explicit
+/*	ASCII '.' before the parent domain name. In a policy lookup
+/*	table, an internationalized domain name must be specified in
+/*	A-label form.
 /*
-/*	smtp_reqtls_policy_eval() evaluates an internal-form policy for
-/*	the specified next-hop destination which is converted to A-label
-/*	form. The result is SMTP_REQTLS_POLICY_ACT_ENFORCE (enforce),
+/*	smtp_reqtls_policy_eval() evaluates an internal-form
+/*	policy for the specified next-hop destination. An
+/*	internationalized next-hop name is converted to A-label form.
+/*	The result is SMTP_REQTLS_POLICY_ACT_ENFORCE (enforce),
 /*	SMTP_REQTLS_POLICY_ACT_OPP_TLS (opportunistic+starttls),
 /*	SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC (opportunistic),
 /*	SMTP_REQTLS_POLICY_ACT_DISABLE, or SMTP_REQTLS_POLICY_ACT_ERROR
@@ -79,6 +82,7 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <dict.h>
+#include <valid_hostname.h>
 
  /*
   * Global library.
@@ -90,45 +94,34 @@
   */
 #include <smtp_reqtls_policy.h>
 
+struct SMTP_REQTLS_POLICY {
+    char   *origin;			/* parameter name or lookup table */
+    ARGV   *items;			/* parsed policy */
+};
+
 /* smtp_reqtls_policy_parse - parse policy */
 
 SMTP_REQTLS_POLICY *smtp_reqtls_policy_parse(const char *origin,
 					          const char *extern_policy)
 {
     char   *saved_policy = mystrdup(extern_policy);
-    SMTP_REQTLS_POLICY *intern_policy = argv_alloc(1);
+    SMTP_REQTLS_POLICY *intern_policy;
     char   *bp = saved_policy;
     char   *item;
 
-#define STREQ(x,y) (strcasecmp((x), (y)) == 0)
+    intern_policy = (SMTP_REQTLS_POLICY *) mymalloc(sizeof(*intern_policy));
+    intern_policy->origin = mystrdup(origin);
+    intern_policy->items = argv_alloc(1);
 
-    /*
-     * Keep it simple, and prepend the origin to the actual policy.
-     */
-    argv_add(intern_policy, origin, (char *) 0);
-
-    /*
-     * Nested tables are not allowed. Tables are opened before entering the
-     * chroot jail, while policies are evaluated after entering the chroot
-     * jail.
-     */
     while ((item = mystrtokq(&bp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
 	if (strchr(item, ':') != 0) {
-	    if (strchr(origin, ':') != 0) {
-		msg_warn("table %s: nested lookup result \"%s\" is not allowed"
-			 " -- ignoring remainder of policy",
-			 origin, item);
-		argv_add(intern_policy, SMTP_REQTLS_POLICY_NAME_ERROR, (char *) 0);
-		break;
-	    } else {
-		item = dict_open(item, O_RDONLY, DICT_FLAG_LOCK
-				 | DICT_FLAG_FOLD_FIX
-				 | DICT_FLAG_UTF8_REQUEST)->reg_name;
-	    }
+	    item = dict_open(item, O_RDONLY, DICT_FLAG_LOCK
+			     | DICT_FLAG_FOLD_FIX
+			     | DICT_FLAG_UTF8_REQUEST)->reg_name;
 	}
-	argv_add(intern_policy, item, (char *) 0);
+	argv_add(intern_policy->items, item, (char *) 0);
     }
-    argv_terminate(intern_policy);
+    argv_terminate(intern_policy->items);
 
     /*
      * Cleanup.
@@ -144,8 +137,7 @@ int     smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *intern_policy,
 {
     char  **cpp;
     DICT   *dict;
-    SMTP_REQTLS_POLICY *argv;
-    const char *item;
+    char   *item;
     const char *dict_val;
     int     ret;
     const char *name;
@@ -153,19 +145,12 @@ int     smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *intern_policy,
     const char *origin;
     const char *aname;
 
-#ifndef NO_EAI
-    if (!allascii(nexthop_name)
-	&& (aname = midna_domain_to_ascii(nexthop_name)) != 0) {
-	if (msg_verbose)
-	    msg_info("%s: %s asciified to %s", __func__, nexthop_name, aname);
-    } else
-#endif
-	aname = nexthop_name;
+#define STREQ(x,y) (strcasecmp((x), (y)) == 0)
 
-    origin = intern_policy->argv[0];
-    for (cpp = intern_policy->argv + 1; (item = *cpp) != 0; cpp++) {
+    origin = intern_policy->origin;
+    for (cpp = intern_policy->items->argv; (item = *cpp) != 0; cpp++) {
 	if (msg_verbose)
-	    msg_info("origin=%s name=%s item=%s", origin, aname, item);
+	    msg_info("origin=%s name=%s item=%s", origin, nexthop_name, item);
 	if (STREQ(item, SMTP_REQTLS_POLICY_NAME_OPP_TLS)) {
 	    return (SMTP_REQTLS_POLICY_ACT_OPP_TLS);
 	} else if (STREQ(item, SMTP_REQTLS_POLICY_NAME_ENFORCE)) {
@@ -175,31 +160,69 @@ int     smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *intern_policy,
 	} else if (STREQ(item, SMTP_REQTLS_POLICY_NAME_DISABLE)) {
 	    return (SMTP_REQTLS_POLICY_ACT_DISABLE);
 	} else if (strchr(item, ':') != 0) {
+
+	    /*
+	     * To avoid ambiguity (insecurity!) with unnormalized U-label
+	     * forms and unnormalized label separators, the policy contains
+	     * A-label forms, and the evaluator converts queries from U-label
+	     * form to A-label form. Determine the conversion result once, so
+	     * that it can be reused when a policy contains more than one
+	     * lookup table. The alternative requires additional logic that
+	     * normalizes domain names before updating or matching a policy.
+	     * For consistency across Postfix, such logic would also be
+	     * needed for all other configuration and policy mechanisms.
+	     */
+#ifndef NO_EAI
+	    if (!valid_hostaddr(nexthop_name, DONT_GRIPE)
+		&& !allascii(nexthop_name)) {
+		if ((aname = midna_domain_to_ascii(nexthop_name)) == 0) {
+		    msg_warn("%s: malformed next-hop destination: '%s' -- "
+			     "using default policy '%s'",
+			     VAR_SMTP_REQTLS_POLICY, nexthop_name,
+			     SMTP_REQTLS_POLICY_NAME_DEFAULT);
+		    return (SMTP_REQTLS_POLICY_ACT_DEFAULT);
+		}
+	    } else
+#endif
+		aname = nexthop_name;
 	    if ((dict = dict_handle(item)) == 0)
 		msg_panic("%s: unexpected dictionary: %s", __func__, item);
-	    for (name = aname; name != 0; name = next) {
+	    for (name = aname; name != 0 && name[0] != 0; name = next) {
 		if ((dict_val = dict_get(dict, name)) != 0) {
-		    /* Simple atom. Avoid four malloc() and free() calls. */
-		    if (dict_val[strcspn(dict_val, ":" CHARS_COMMA_SP)] == 0) {
-			ARGV_FAKE2_BEGIN(fake_argv, item, dict_val);
-			ret = smtp_reqtls_policy_eval(&fake_argv, name);
-			ARGV_FAKE_END;
+		    /* Disallow nested table. */
+		    if (dict_val[strcspn(dict_val, ":")]) {
+			msg_warn("table %s: nested lookup result \"%s\" "
+			   "is not allowed -- ignoring remainder of policy",
+				 item, dict_val);
+			return (SMTP_REQTLS_POLICY_ACT_ERROR);
 		    }
-		    /* Composite or dictionary. */
+		    /* Disallow composite lookup result. */
+		    else if (dict_val[strcspn(dict_val, CHARS_COMMA_SP)]) {
+			msg_warn("table %s: composite lookup result \"%s\" "
+			   "is not allowed -- ignoring remainder of policy",
+				 item, dict_val);
+			return (SMTP_REQTLS_POLICY_ACT_ERROR);
+		    }
+		    /* Simple atom. Avoid six malloc() and free() calls. */
 		    else {
-			argv = smtp_reqtls_policy_parse(item, dict_val);
-			ret = smtp_reqtls_policy_eval(argv, name);
-			argv_free(argv);
+			SMTP_REQTLS_POLICY fake_policy;
+
+			fake_policy.origin = item;
+			ARGV_FAKE_BEGIN(fake_argv, dict_val);
+			fake_policy.items = &fake_argv;
+			ret = smtp_reqtls_policy_eval(&fake_policy, name);
+			ARGV_FAKE_END;
+			return (ret);
 		    }
-		    return (ret);
 		} else if (dict->error != 0) {
-		    msg_warn("%s: %s:%s: table lookup error -- ignoring the "
-			     "remainder of this policy", origin, dict->type,
-			     dict->name);
+		    msg_warn("%s: %s:%s: table lookup error -- ignoring "
+			     "the remainder of this policy", origin,
+			     dict->type, dict->name);
 		    return (SMTP_REQTLS_POLICY_ACT_ERROR);
 		}
 		/* Look up .parent if the table wants an exact match. */
-		if ((dict->flags & DICT_FLAG_FIXED) == 0)
+		if ((dict->flags & DICT_FLAG_FIXED) == 0
+		    || valid_hostaddr(name, DONT_GRIPE))
 		    break;
 		next = strchr(name + 1, '.');
 	    }
@@ -212,7 +235,7 @@ int     smtp_reqtls_policy_eval(SMTP_REQTLS_POLICY *intern_policy,
 	}
     }
     if (msg_verbose)
-	msg_info("origin=%s name=%s - no match", origin, aname);
+	msg_info("origin=%s name=%s - no match", origin, nexthop_name);
     return (SMTP_REQTLS_POLICY_ACT_ENFORCE);
 }
 
@@ -224,12 +247,14 @@ void    smtp_reqtls_policy_free(SMTP_REQTLS_POLICY *intern_policy)
     DICT   *dict;
     const char *item;
 
-    for (cpp = intern_policy->argv + 1; (item = *cpp) != 0; cpp++) {
+    myfree(intern_policy->origin);
+    for (cpp = intern_policy->items->argv; (item = *cpp) != 0; cpp++) {
 	if (strchr(item, ':') != 0) {
 	    if ((dict = dict_handle(item)) == 0)
 		msg_panic("%s: unexpected dictionary: %s", __func__, item);
 	    dict_unregister(item);
 	}
     }
-    argv_free(intern_policy);
+    argv_free(intern_policy->items);
+    myfree((void *) intern_policy);
 }

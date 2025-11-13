@@ -5104,6 +5104,10 @@ not be used to regulate legitimate mail traffic.
 This feature is available in Postfix 2.2 and later.
 </p>
 
+%PARAM smtpd_client_connection_limit_exceptions $mynetworks
+
+<p> Renamed to smtpd_client_event_limit_exceptions in Postfix 2.2. </p>
+
 %PARAM smtpd_client_event_limit_exceptions $mynetworks
 
 <p>
@@ -11458,11 +11462,8 @@ false hostname information in DNS CNAME records, and makes SASL
 password file lookups more predictable. This is the default setting
 as of Postfix 2.3. </p>
 
-<p> When DNS CNAME records are validated with secure DNS lookups
-(smtp_dns_support_level = dnssec), they are always allowed to
-override the above servername (Postfix 2.11 and later). </p>
-
-<p> This feature is available in Postfix 2.2.9 and later. </p>
+<p> This feature is available in Postfix 2.2.9 and later, deprecated
+as of Postfix 3.11. </p>
 
 %PARAM lmtp_cname_overrides_servername yes
 
@@ -13438,12 +13439,20 @@ is introduced with Postfix 3.8, when built against OpenSSL 3.0 or later.
 </p>
 
 <p> Post-quantum cryptography support: OpenSSL 3.5 introduces new
-configuration syntax that Postfix will not attempt to imitate.
-Instead, with Postfix 3.6.17, 3.7.13, 3.8.8, 3.9.2, and later, set
-both tls_eecdh_auto_curves and if available tls_ffdhe_auto_groups
-to the empty value, to enable algorithm selection through OpenSSL
-configuration. See tls_config_file for a configuration example.
-</p>
+configuration syntax that Postfix will not attempt to emulate.  That
+said, when compiled against OpenSSL 3.5 or later, the Postfix default
+setting is a minor adjustment of the OpenSSL compiled-in default
+setting, it just delays generation of the hybrid post-quantum
+<b>X25519MLKEM768</b> key-share until it is explicitly requested by the
+server.  This avoids interoperability issues with some SMTP servers that
+are unable to handle the resulting large TLS Client Hello. </p>
+
+<p> If, despite the strongly recommended defaults, you need fine-grained
+control over the supported groups, with Postfix 3.6.17, 3.7.13, 3.8.8,
+3.9.2, and later, set both tls_eecdh_auto_curves and if available
+tls_ffdhe_auto_groups to the empty value, to enable algorithm selection
+through OpenSSL configuration.  See tls_config_file for a configuration
+example.  </p>
 
 <p> This feature is available in Postfix 3.2 and later, when it is
 compiled and linked with OpenSSL 1.0.2 or later on platforms where
@@ -13469,26 +13478,24 @@ are largely a backup, in case some peer does not support EC key
 exchange, or EC key exchange needs to be disabled for some pressing
 reason. </p>
 
-<p> Setting this parameter empty disables FFDHE support in TLS 1.3.
+<p> Setting this parameter empty disables FFDHE support in TLS 1.3,
+unless FFDHE groups are included in the "tls_eecdh_auto_curves" setting,
+perhaps indirectly, as with the "DEFAULT" keyword available with OpenSSL
+3.5 or later.  In that case, prefixing each group name with a "-" has
+the effect of removing it from the list.
 Whether FFDHE key agreement is enabled in TLS 1.2 and earlier depends
 on whether any of the "kDHE" ciphers are included in the cipherlist.
 </p>
 
 <p> Conversely, setting "tls_eecdh_auto_curves" empty disables TLS 1.3
 EC key agreement in OpenSSL 3.0 and later. If both are set empty,
-Postfix will fall back to OpenSSL preferences as described next. </p>
+Postfix will fall back to OpenSSL preferences as described in the
+documentation of "tls_eecdh_auto_curves".
 
-<p> Post-quantum cryptography support: OpenSSL 3.5 introduces new
-configuration syntax that Postfix will not attempt to imitate.
-Instead, with Postfix 3.6.17, 3.7.13, 3.8.8, 3.9.2, and later, set
-both tls_eecdh_auto_curves and tls_ffdhe_auto_groups to the empty
-value, to enable algorithm selection through OpenSSL configuration.
-See tls_config_file for a configuration example. </p>
-
-<p> All the default groups and EC curves should be sufficiently strong to make
-"pruning" the defaults unwise.  At a minimum, "x25519" and "prime256v1" (the
-OpenSSL name for "secp256r1", a.k.a. "P-256") should be among the enabled EC
-curves, while "dhe2048" and "dhe3072" should be among the FFDHE groups. </p>
+<p> The default list includes "ffdhe2048" and "ffdhe3072".  While
+it should not be necessary in most cases, you can add "ffdhe4096"
+to the list if you run into an exotic server that does not support
+ECDHE and insists on much stronger than sensible DHE parameters.  </p>
 
 <p> This feature is available in Postfix 3.8 and later, when it is
 compiled and linked with OpenSSL 3.0 or later. </p>
@@ -19290,6 +19297,11 @@ MinProtocol = TLSv1
 main.cf:
     tls_config_file = ${config_directory}/openssl.cnf
     tls_config_name = postfix
+    # Clear Postfix curve/group settings to let custom OpenSSL
+    # configuration settings take effect.  For most users, the
+    # default Postfix settings are strongly recommended.
+    tls_eecdh_auto_curves =
+    tls_ffdhe_auto_groups =
 </pre>
 
 <pre>
@@ -19314,14 +19326,14 @@ openssl.cnf:
     #
     # Groups = X25519:X448:prime256v1:secp384r1:secp521r1:ffdhe2048:ffdhe3072
     #
-    Groups = *X25519MLKEM768 / *X25519:X448 / P-256:P-384
+    Groups = ?X25519MLKEM768 / ?*X25519:?secp256r1 / ?X448:?secp384r1:?secp521r1 / ?ffdhe2048:?ffdhe3072
 </pre>
 
-<p> Caution: It is typically best to just use the default OpenSSL
-group settings, by setting "tls_config_file = none". Overly strict
-system-wide TLS settings will conflict with Postfix's opportunistic
-TLS, where being less restrictive is better than downgrading to
-cleartext SMTP. </p>
+<p> Caution: It is typically best to just use the compiled-in default
+OpenSSL group settings, by setting "tls_config_file = none". Overly
+strict system-wide TLS settings will conflict with Postfix's
+opportunistic TLS, where being less restrictive is better than
+downgrading to cleartext SMTP. </p>
 
 <p> This feature is available in Postfix &ge; 3.9, 3.8.1, 3.7.6,
 3.6.10, and 3.5.20. </p>
@@ -19728,15 +19740,24 @@ comma; continue a long line by starting the next line with whitespace.
 lookup table that must return an action (it must not return a
 type:table). </p>
 
-<li> A type:table lookup table is searched with the TLS next-hop
-destination, without any [ ], <i>:service</i>, or <i>:port</i>.
-</p>
-
-<li> <p> The TLS next-hop destination for TCP connections is the
-recipient domain, but this can be overruled with transport_maps,
+<li> <p> In the text that follows, the TLS next-hop destination for
+TCP connections is the recipient domain by default, but this can
+be overruled with destinations specified with transport_maps,
 relayhost, content_filter, or other routing features. The next-hop
 destination for LMTP over UNIX-domain connections is always the
 value of myhostname. </p>
+
+<li> <p> A type:table lookup table is searched with the TLS next-hop
+destination (without any [ ], <i>:service</i>, or <i>:port</i>).
+A non-ASCII next-hop destination is converted into ASCII form
+(Punycode) before making a policy query; lookup tables must answer
+ASCII-form queries. </p>
+
+<li> <p> A fixed-string table (such as hash:, btree:, or lmdb:) is
+also searched with the next-hop ".parent" domains (in a table key,
+prepend a '.' to a parent domain name). These ".parent" domain
+queries are not made with pattern-based lookup tables such as regexp:
+or pcre: or with socketmap: or tcp: tables.  </p>
 
 </ul>
 
@@ -19796,6 +19817,7 @@ some form of REQUIRETLS without risking mail delivery problems.
 </p> </dd>
 
 <dt> <b> disable </b> </dt> <dd> <p> Disable REQUIRETLS support.
+Deliver all messages as if the sender did not request REQUIRETLS.
 This may be used as a last-resort workaround when a server announces
 REQUIRETLS support, but the support is inoperable. </p></dd>
 
@@ -19840,23 +19862,29 @@ simply deliver the message as if the sender did not request REQUIRETLS
 when a sender requests REQUIRETLS, require that an external server
 supports STARTTLS and REQUIRETLS, and require that its server
 certificate matches a DANE or STS policy (lines 3, 12); make
-server-side REQUIRETLS support optional for internal destinations
-specified as a symbolic name (lines 5-8) or as a numeric address
-(lines 9-11). This uses $mydomain_a which by default contains
-Punycode (A-label form) when $mydomain contains non-ASCII (U-label
-form). Otherwise the two values will be identical (lines 6,7). </p>
+REQUIRETLS support optional for delivery to internal destinations
+or content filters specified as a symbolic name (lines 5-8) or as
+a numeric address (lines 9-11). An internationalized domain name
+must be specified in ASCII form (lines 6-7); the default policy
+below uses ${domain_to_ascii{$mydomain}} which returns $mydomain
+when the domain name contains only ASCII characters, and which
+returns Punycode (<tt>xn--mumble</tt>) when $mydomain contains
+non-ASCII. Note: if you specify a domain list outside main.cf, then
+the automatic $<i>name</i> expansions and Punycode conversions will
+not happen, and you will need to enter explicit ASCII domain
+names.</p>
 <pre>
  1 /etc/postfix/main.cf:
  2     smtp_tls_security_level = may
  3     smtp_tls_policy_maps = ...dane/sts plugin...
  4     smtp_requiretls_policy =
  5         inline:{
- 6             {$mydomain_a  = opportunistic}
- 7             {.$mydomain_a  = opportunistic}
+ 6             {${domain_to_ascii{$mydomain}} = opportunistic}
+ 7             {.${domain_to_ascii{$mydomain}} = opportunistic}
  8             {localhost = opportunistic} }
  9         cidr:{
 10             {0.0.0.0/0 opportunistic},
-11             {::/0 opportunistic}},
+11             {::/0 opportunistic} },
 12         enforce
 </pre>
 
@@ -19865,22 +19893,27 @@ external destinations (line 12): when a sender requests REQUIRETLS,
 require that an external server supports STARTTLS but enforce a TLS
 certificate match only if the receiver publishes a DANE or STS
 policy (line 3), and do not require that an external server supports
-REQUIRETLS. There is no policy change for internal deliveries
-(lines 5-11). Again, this uses $mydomain_a which by default contains
-Punycode (A-label form) when $mydomain contains non-ASCII (U-label
-form). Otherwise the two forms will be identical (lines 6,7). </p>
+REQUIRETLS. Copy the above policy for internal destinations or
+content filters (lines 5-11). Again, an internationalized domain
+name must be specified in ASCII form (lines 6-7); the policy uses
+${domain_to_ascii{$mydomain}} which returns $mydomain when the
+domain name contains only ASCII characters, and which returns
+Punycode (<tt>xn--mumble</tt>) when $mydomain contains non-ASCII.
+Note: if you specify a domain list outside main.cf, then the automatic
+$<i>name</i> expansions and Punycode conversions will not happen,
+and you will need to enter explicit ASCII domain names.</p>
 <pre>
  1 /etc/postfix/main.cf:
  2     smtp_tls_security_level = may
  3     smtp_tls_policy_maps = ...dane/sts plugin...
  4     smtp_requiretls_policy =
  5         inline:{
- 6             {$mydomain_a  = opportunistic}
- 7             {.$mydomain_a  = opportunistic}
+ 6             {${domain_to_ascii{$mydomain}} = opportunistic}
+ 7             {.${domain_to_ascii{$mydomain}} = opportunistic}
  8             {localhost = opportunistic} }
  9         cidr:{
 10             {0.0.0.0/0 opportunistic},
-11             {::/0 opportunistic}},
+11             {::/0 opportunistic} },
 12         opportunistic+starttls
 </pre>
 
@@ -19892,12 +19925,12 @@ file for easier maintenance. </p>
     smtp_tls_policy_maps = ...dane/sts plugin...
     smtp_requiretls_policy =
         inline:{
-            {$mydomain_a  = opportunistic}
-            {.$mydomain_a  = opportunistic}
+            {${domain_to_ascii{$mydomain}} = opportunistic}
+            {.${domain_to_ascii{$mydomain}} = opportunistic}
             {localhost = opportunistic} }
         cidr:{
             {0.0.0.0/0 opportunistic},
-            {::/0 opportunistic}},
+            {::/0 opportunistic} },
 	hash:/etc/postfix/requiretls-per-site
 	opportunistic+starttls
 </pre>
@@ -19998,6 +20031,10 @@ the remote server did not support STARTTLS, and the connection was
 used in plaintext as permitted by the opportunistic TLS policy. </dd>
 
 <dt> tls=dane </dt> <dd> DANE policy compliant, no downgrade. </dd>
+
+<dt> tls=(dane:halfdane) </dt> <dd> Opportunistic DANE. The connection
+security was downgraded to '<tt>halfdane</tt>' to indicate that
+mail server records were not DNSSEC-signed. </dd>
 
 <dt> tls=dane:encrypt </dt> <dd> Opportunistic DANE. The connection
 security was downgraded to '<tt>encrypt</tt>' because none of the TLSA
@@ -20160,18 +20197,81 @@ filter out").
 
 <p> This feature is available in Postfix &ge; 3.11. </p>
 
-%PARAM myhostname_a see "postconf -d" output
+%PARAM domain_to_ascii no default
 
-<p> When myhostname contains non-ASCII characters (U-label form),
-myhostname_a will contain Punycode (A-label form). Otherwise, the
-two values will be identical. </p>
+<p> A function that returns the ASCII representation of its domain
+name argument. If the argument contains only (7-bit) ASCII characters
+(A-label form), then domain_to_ascii{} will return the same value.
+If the argument contains a valid non-ASCII domain name (U-label
+form), then domain_to_ascii{} will return the corresponding Punycode
+(A-label form). Other argument values may result in a program
+start-up error. </p>
+
+<p> Examples: </p>
+
+<ul>
+
+<li> <p> The examples below assume that smtp_requiretls_policy
+contains the default setting: </p>
+<pre>
+smtp_requiretls_policy = inline:{
+    {${domain_to_ascii{$mydomain}} = opportunistic },
+    {.${domain_to_ascii{$mydomain}} = opportunistic },
+     ... }
+</pre>
+
+<li> <p> Example 1: when mydomain contains only ASCII characters,
+domain_to_ascii{} returns the same value. </p>
+<pre>
+# postconf -o 'mydomain=foo.example' -x smtp_requiretls_policy
+smtp_requiretls_policy = inline:{
+    {foo.example = opportunistic},
+    {.foo.example = opportunistic}, 
+     ... }
+</pre>
+
+<li> <p> Example 2: when mydomain contains non-ASCII characters,
+domain_to_ascii{} returns the Punycode representation. </p>
+<pre>
+# postconf -o 'mydomain=π.example' -x smtp_requiretls_policy
+smtp_requiretls_policy = inline:{
+    {xn--1xa.example = opportunistic},
+    {.xn--1xa.example = opportunistic},
+    ... }
+</pre>
+
+</ul>
 
 <p> This feature is available in Postfix &ge; 3.11. </p>
 
-%PARAM mydomain_a see "postconf -d" output
+%PARAM non_empty_end_of_header_action fix_quietly
 
-<p> When mydomain contains non-ASCII characters (U-label form),
-mydomain_a will contain Punycode (A-label form). Otherwise, the two
-values will be identical. </p>
+<p> How the cleanup(8) daemon will process a message when the primary
+message header is terminated with a non-empty line. </p>
+
+<dl>
+
+<dt> <b> fix_quietly </b> </dt> <dd> <p> Default behavior: insert
+an empty line before the erroneous text. This behavior is backwards
+compatible with Postfix &le; 3.10. </p> </dd>
+
+<dt> <b> add_header </b> </dt><dd> <p> Insert a MIME-Error: 
+header and an empty line before the erroneous text. </p>
+<p> Example: </p>
+<pre>
+MIME-Error: message header was not terminated by empty line
+</pre> </dd>
+
+<dt> <b> reject </b> </dt>  <dd> <p> Log the erroneous text and
+reject the message content. </p>
+<p> Example: </p>
+<pre> 
+<i>queueid</i> reject: mime-error message header was terminated
+with non-empty line: <i>erroneous text</i>; from=&lt;<i>sender</i>&gt;
+to=&lt;<i>recipient</i>&gt;
+</pre>
+</dd>
+
+<dl>
 
 <p> This feature is available in Postfix &ge; 3.11. </p>

@@ -366,9 +366,8 @@ while (<>) {
     s;\bmulti_recip[-</bB>]*\n* *[<bB>]*ient_bounce_reject_code\b;<a href="postconf.5.html#multi_recipient_bounce_reject_code">$&</a>;g;
     s;\bmydes[-</bB>]*\n*[ <bB>]*ti[-</bB>]*\n*[ <bB>]*na[-</bB>]*\n*[ <bB>]*tion\b;<a href="postconf.5.html#mydestination">$&</a>;g;
     s;\bmydo[-</bB>]*\n* *[<bB>]*main\b;<a href="postconf.5.html#mydomain">$&</a>;g;
-    s;\bmydo[-</bB>]*\n* *[<bB>]*main_a\b;<a href="postconf.5.html#mydomain_a">$&</a>;g;
     s;\bmyhostname\b;<a href="postconf.5.html#myhostname">$&</a>;g;
-    s;\bmyhostname_a\b;<a href="postconf.5.html#myhostname_a">$&</a>;g;
+    s;\bdomain_to_ascii\b;<a href="postconf.5.html#domain_to_ascii">$&</a>;g;
     s;\bmynet[-</bB>]*\n* *[<bB>]*works\b;<a href="postconf.5.html#mynetworks">$&</a>;g;
     s;\bmynetworks_style\b;<a href="postconf.5.html#mynetworks_style">$&</a>;g;
     s;\bmyo[-</bB>]*\n*[ <bB>]*rigin\b;<a href="postconf.5.html#myorigin">$&</a>;g;
@@ -428,6 +427,7 @@ while (<>) {
     s;\breadme_directory\b;<a href="postconf.5.html#readme_directory">$&</a>;g;
     s;\breceive_override_options\b;<a href="postconf.5.html#receive_override_options">$&</a>;g;
     s;\bremote_header_re[-</bB>]*\n* *[<bB>]*write_domain\b;<a href="postconf.5.html#remote_header_rewrite_domain">$&</a>;g;
+    s;\bnon_empty_end_of_header_action\b;<a href="postconf.5.html#non_empty_end_of_header_action">$&</a>;g;
     s;\bno_unknown_recip[-</bB>]*\n* *[<bB>]*ient_checks\b;<a href="postconf.5.html#no_unknown_recipient_checks">$&</a>;g;
     s;\bno_address_mappings\b;<a href="postconf.5.html#no_address_mappings">$&</a>;g;
     s;\bno_header_body_checks\b;<a href="postconf.5.html#no_header_body_checks">$&</a>;g;
@@ -546,6 +546,7 @@ while (<>) {
     s;\bsmtpd_client_auth_rate_limit\b;<a href="postconf.5.html#smtpd_client_auth_rate_limit">$&</a>;g;
     s;\bsmtpd_client_connec[-</bB>]*\n*[ <bB>]*tion_count_limit\b;<a href="postconf.5.html#smtpd_client_connection_count_limit">$&</a>;g;
     s;\bsmtpd_client_event_limit_exceptions\b;<a href="postconf.5.html#smtpd_client_event_limit_exceptions">$&</a>;g;
+    s;\bsmtpd_client_connection_limit_exceptions\b;<a href="postconf.5.html#smtpd_client_connection_limit_exceptions">$&</a>;g;
     s;\bsmtpd_client_connec[-</bB>]*\n*[ <bB>]*tion_rate_limit\b;<a href="postconf.5.html#smtpd_client_connection_rate_limit">$&</a>;g;
     s;\bsmtpd_client_message_rate_limit\b;<a href="postconf.5.html#smtpd_client_message_rate_limit">$&</a>;g;
     s;\bsmtpd_client_port_logging\b;<a href="postconf.5.html#smtpd_client_port_logging">$&</a>;g;

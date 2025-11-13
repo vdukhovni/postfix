@@ -145,6 +145,9 @@
 	VAR_SMTP_REQ_DEADLINE, DEF_SMTP_REQ_DEADLINE, &var_smtp_req_deadline,
 	VAR_SMTP_TLSRPT_ENABLE, DEF_SMTP_TLSRPT_ENABLE, &var_smtp_tlsrpt_enable,
 	VAR_SMTP_TLSRPT_SKIP_REUSED_HS, DEF_SMTP_TLSRPT_SKIP_REUSED_HS, &var_smtp_tlsrpt_skip_reused_hs,
+#ifdef USE_TLS
+	VAR_SMTP_TLS_ENF_STS_MX_PAT, DEF_SMTP_TLS_ENF_STS_MX_PAT, &var_smtp_tls_enf_sts_mx_pat,
+#endif
 	VAR_SMTP_TLS_ENF_STS_MX_PAT, DEF_SMTP_TLS_ENF_STS_MX_PAT, &var_smtp_tls_enf_sts_mx_pat,
 	VAR_SMTP_LOG_TLS_FEATURE_STATUS, DEF_SMTP_LOG_TLS_FEATURE_STATUS, &var_log_tls_feature_status,
 	0,

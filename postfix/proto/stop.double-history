@@ -222,3 +222,18 @@ proto  proto COMPATIBILITY_README html
  content filters Files cleanup cleanup c 
  style content filter Files smtpd smtpd c smtp smtpd_proto c 
  global pol_stats_test c smtp smtp h smtp smtp_connect c 
+ global mail_params h smtp lmtp_params c smtp smtp c 
+proto  proto REQUIRETLS_README html 
+proto  proto REQUIRETLS_README html global mail_params c 
+proto  proto REQUIRETLS_README html smtp smtp_reqtls_policy c 
+ sendmail sendmail c global rec_types h postcat postcat c 
+ smtp smtp h smtp smtp_connect c smtp smtp_params c 
+ the policies policy policy domain value This ignores
+ TLSRPT Workaround when policies policy policy type is
+ proto postconf proto proto REQUIRETLS_README html 
+ Christophe Kalt Files postqueue postqueue c 
+ postqueue showq_compat c postqueue showq_json c showq showq c 
+ role is received File tlsproxy tlsproxy c 
+ Files proto postconf proto proto DEPRECATION_README html 
+ features File postqueue postqueue c 
+proto  proto Makefile in 

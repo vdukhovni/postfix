@@ -23,6 +23,9 @@ typedef int bool;
 #error "OpenSSL releases prior to 1.1.1 are no longer supported"
 #endif
 #endif
+#ifndef OPENSSL_VERSION_PREREQ
+#define OPENSSL_VERSION_PREREQ(m,n) 0
+#endif
 
  /*
   * Name used when this mail system announces itself.
@@ -179,12 +182,6 @@ extern char *var_myhostname;
 #define VAR_MYDOMAIN		"mydomain"	/* my domain name */
 #define DEF_MYDOMAIN		"localdomain"
 extern char *var_mydomain;
-
-#define VAR_MYHOSTNAME_A	"myhostname_a"	/* my hostname, A-label */
-extern char *var_myhostname_a;
-
-#define VAR_MYDOMAIN_A		"mydomain_a"	/* my domain name, A-label */
-extern char *var_mydomain_a;
 
  /*
   * The default local delivery transport.
@@ -442,6 +439,17 @@ extern char *var_drop_hdrs;
 #define VAR_HFROM_FORMAT	"header_from_format"
 #define DEF_HFROM_FORMAT	HFROM_FORMAT_NAME_STD
 extern char *var_hfrom_format;
+
+ /*
+  * How to handle malformed header ending.
+  */
+#define NON_EMPTY_EOH_NAME_FIX_QUIETLY	"fix_quietly"
+#define NON_EMPTY_EOH_NAME_ADD_HDR	"add_header"
+#define NON_EMPTY_EOH_NAME_REJECT	"reject"
+
+#define VAR_NON_EMPTY_EOH_ACTION	"non_empty_end_of_header_action"
+#define DEF_NON_EMPTY_EOH_ACTION	NON_EMPTY_EOH_NAME_FIX_QUIETLY
+extern char *var_non_empty_eoh_action;
 
  /*
   * Standards violation: allow/permit RFC 822-style addresses in SMTP
@@ -3422,6 +3430,10 @@ extern char *var_tls_export_ignored;
 #define DEF_TLS_NULL_CLIST	"eNULL" TLS_EXCL_REST ":!aNULL"
 extern char *var_tls_null_clist;
 
+#define VAR_TLS_EECDH_AUTO	"tls_eecdh_auto_curves"
+#if OPENSSL_VERSION_PREREQ(3,5)
+#define DEF_TLS_EECDH_AUTO      "?X25519MLKEM768:DEFAULT"
+#else
 #if defined(SN_X25519) && defined(NID_X25519)
 #define DEF_TLS_EECDH_AUTO_1 SN_X25519 " "
 #else
@@ -3452,12 +3464,12 @@ extern char *var_tls_null_clist;
 #define DEF_TLS_EECDH_AUTO_5 ""
 #endif
 
-#define VAR_TLS_EECDH_AUTO	"tls_eecdh_auto_curves"
 #define DEF_TLS_EECDH_AUTO      DEF_TLS_EECDH_AUTO_1 \
                                 DEF_TLS_EECDH_AUTO_2 \
                                 DEF_TLS_EECDH_AUTO_3 \
                                 DEF_TLS_EECDH_AUTO_4 \
                                 DEF_TLS_EECDH_AUTO_5
+#endif
 extern char *var_tls_eecdh_auto;
 
 #define VAR_TLS_EECDH_STRONG	"tls_eecdh_strong_curve"
@@ -3468,6 +3480,10 @@ extern char *var_tls_eecdh_strong;
 #define DEF_TLS_EECDH_ULTRA	"secp384r1"
 extern char *var_tls_eecdh_ultra;
 
+#define VAR_TLS_FFDHE_AUTO	"tls_ffdhe_auto_groups"
+#if OPENSSL_VERSION_PREREQ(3,5)
+#define DEF_TLS_FFDHE_AUTO      ""
+#else
 #if defined(SN_ffdhe2048) && defined(NID_ffdhe2048)
 #define DEF_TLS_FFDHE_AUTO_1 SN_ffdhe2048 " "
 #else
@@ -3479,9 +3495,9 @@ extern char *var_tls_eecdh_ultra;
 #define DEF_TLS_FFDHE_AUTO_2 ""
 #endif
 
-#define VAR_TLS_FFDHE_AUTO	"tls_ffdhe_auto_groups"
 #define DEF_TLS_FFDHE_AUTO      DEF_TLS_FFDHE_AUTO_1 \
                                 DEF_TLS_FFDHE_AUTO_2
+#endif
 extern char *var_tls_ffdhe_auto;
 
 #define VAR_TLS_PREEMPT_CLIST	"tls_preempt_cipherlist"
@@ -4420,7 +4436,7 @@ extern int var_tls_required_enable;
 extern int var_reqtls_enable;
 
 #define VAR_SMTP_REQTLS_POLICY		"smtp_requiretls_policy"
-#define DEF_SMTP_REQTLS_POLICY		"inline:{{$mydomain_a=opportunistic}, {.$mydomain_a=opportunistic}, {localhost=opportunistic}}, cidr:{{0.0.0.0/0 opportunistic}, {::/0 opportunistic}}, enforce"
+#define DEF_SMTP_REQTLS_POLICY		"inline:{{${domain_to_ascii{$mydomain}}=opportunistic}, {.${domain_to_ascii{$mydomain}}=opportunistic}, {localhost=opportunistic}}, cidr:{{0.0.0.0/0 opportunistic}, {::/0 opportunistic}}, enforce"
 extern char *var_smtp_reqtls_policy;
 
 #define VAR_LMTP_REQTLS_POLICY		"lmtp_requiretls_policy"

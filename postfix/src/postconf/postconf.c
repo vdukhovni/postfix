@@ -615,6 +615,7 @@
 
 /* Utility library. */
 
+#include <mac_midna.h>
 #include <msg.h>
 #include <msg_vstream.h>
 #include <dict.h>
@@ -968,6 +969,7 @@ int     main(int argc, char **argv)
      * For consistency with mail_params_init().
      */
     compat_level_relop_register();
+    mac_midna_register();
 
     /*
      * We don't enforce import_environment consistency in this program.
@@ -1135,5 +1137,9 @@ int     main(int argc, char **argv)
 	}
     }
     vstream_fflush(VSTREAM_OUT);
+
+    if ((pcf_cmd_mode & PCF_WARN_UNUSED_DEPRECATED) && pcf_found_deprecated)
+	msg_warn("See https://www.postfix.org/DEPRECATION_README.html "
+		 "for details");
     exit(0);
 }
