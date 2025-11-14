@@ -660,6 +660,13 @@ static void cleanup_header_callback(void *context, int header_class,
 		msg_warn("ignoring malformed header: '%.100s'",
 			 vstring_str(header_buf));
 	}
+	if (hdr_opts->type == HDR_REQTLS_ESMTP && var_reqtls_esmtp_hdr
+	    && var_reqtls_enable) {
+	    if (strcasecmp(hdrval, "yes") == 0) {
+		state->sendopts |= SOPT_REQUIRETLS_ESMTP;
+		state->reqtls_esmtp_hdr_seen += 1;
+	    }
+	}
 	if (CLEANUP_OUT_OK(state)) {
 	    if (hdr_opts->flags & HDR_OPT_RR)
 		state->resent = "Resent-";
@@ -893,6 +900,15 @@ static void cleanup_header_done_callback(void *context)
 	    cleanup_out_format(state, REC_TYPE_NORM, "%s", var_rcpt_witheld);
 	}
     }
+
+    /*
+     * Add a "Require-TLS-ESMTP: yes" header to help propagate the REQUIRETLS
+     * ESMTP extension through a post-queue content filter.
+     */
+    if (var_reqtls_enable && var_reqtls_esmtp_hdr
+	&& (state->sendopts & SOPT_REQUIRETLS_ESMTP)
+	&& state->reqtls_esmtp_hdr_seen == 0)
+	cleanup_out_format(state, REC_TYPE_NORM, "Require-TLS-ESMTP: yes");
 
     /*
      * Place a dummy PTR record right after the last header so that we can

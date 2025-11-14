@@ -35,6 +35,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -54,6 +57,7 @@
 #include <vstring.h>
 #include <get_hostname.h>
 #include <stringops.h>
+#include <midna_domain.h>
 
 /* Global library. */
 
@@ -203,6 +207,8 @@ static const char *pcf_check_myhostname(void)
     /*
      * If the local machine name is not in FQDN form, try to append the
      * contents of $mydomain.
+     * 
+     * TODO(wietse) handle alternative 'dot' in U-label form.
      */
     name = get_hostname();
     if ((dot = strchr(name, '.')) == 0) {
@@ -239,6 +245,8 @@ static const char *pcf_check_mydomainname(void)
 
     /*
      * Use a default domain when the hostname is not a FQDN ("foo").
+     * 
+     * TODO(wietse) handle alternative 'dot' in U-label form.
      */
     if (var_myhostname == 0)
 	pcf_get_myhostname();

@@ -1373,7 +1373,7 @@ int     main(int argc, char *argv[])
 	    peername = argv[7];
 	msg_info("Verified %s", peername);
     } else {
-	int r = SSL_get_verify_result(tctx->con);
+	int     r = SSL_get_verify_result(tctx->con);
 
 	msg_info("certificate verification failed for %s:%s: num=%d:%s",
 		 argv[6], argv[7], r, X509_verify_cert_error_string(r));

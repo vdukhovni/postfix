@@ -85,6 +85,7 @@ bool    var_smtp_use_tls;
 char   *var_smtp_tls_excl_ciph;
 bool    var_smtp_tls_enf_sts_mx_pat;
 bool    var_smtp_tls_wrappermode;
+bool    var_log_tls_feature_status;
 
  /*
   * Other globals.
@@ -128,6 +129,7 @@ static void test_setup(void)
     var_smtp_tls_enf_sts_mx_pat = 1;
     var_smtp_tls_wrappermode = 0;
     var_tls_required_enable = 0;
+    var_log_tls_feature_status = 1;
 
     smtp_mode = 1;
 
@@ -479,7 +481,9 @@ static int test_tls_reqd_no_sans_header(const struct TEST_CASE *tp)
     var_smtp_tls_policy = "static:none";
 
     /* Test-dependent. */
-    state->request = &(DELIVER_REQUEST) {.sendopts = 0};
+    state->request = &(DELIVER_REQUEST) {
+	.sendopts = 0
+    };
     var_smtp_tls_wrappermode = 1;
     var_tls_required_enable = 1;
     want_level = TLS_LEV_NONE;
@@ -515,7 +519,9 @@ static int test_tls_reqd_no_with_wrappermode(const struct TEST_CASE *tp)
     var_smtp_tls_policy = "static:none";
 
     /* Test-dependent. */
-    state->request = &(DELIVER_REQUEST) {.sendopts = SOPT_REQUIRETLS_HEADER};
+    state->request = &(DELIVER_REQUEST) {
+	.sendopts = SOPT_REQUIRETLS_HEADER
+    };
     var_smtp_tls_wrappermode = 1;
     var_tls_required_enable = 1;
     want_level = TLS_LEV_ENCRYPT;
@@ -551,7 +557,9 @@ static int test_tls_reqd_no_sans_wrappermode(const struct TEST_CASE *tp)
     var_smtp_tls_policy = "static:none";
 
     /* Test-dependent. */
-    state->request = &(DELIVER_REQUEST) {.sendopts = SOPT_REQUIRETLS_HEADER};
+    state->request = &(DELIVER_REQUEST) {
+	.sendopts = SOPT_REQUIRETLS_HEADER
+    };
     var_smtp_tls_wrappermode = 0;
     var_tls_required_enable = 1;
     want_level = TLS_LEV_MAY;

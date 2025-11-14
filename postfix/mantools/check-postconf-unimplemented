@@ -75,6 +75,14 @@ tlsproxy_tls_session_cache_timeout
 virtual_maps
 EOF
 
+# Eliminate config functions. The are documented in the postconf(5)
+# manpage, but have no parameter name.
+
+cat >>stoplist.tmp <<'EOF'
+domain_to_ascii
+domain_to_utf8
+EOF
+
 # Extract parameters from the postconf(5) manpage.
 
 awk '/^%PARAM/ { print $2 }' proto/postconf.proto | 

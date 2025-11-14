@@ -128,6 +128,7 @@
 /*	int	var_smtputf8_enable;
 /*	int	var_strict_smtputf8;
 /*	char	*var_smtputf8_autoclass;
+/*	int	var_reqtls_enable;
 /*	int	var_tls_required_enable;
 /*	int     var_idna2003_compat;
 /*	char	*var_compatibility_level;
@@ -198,6 +199,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -230,6 +234,7 @@
 #include <iostuff.h>
 #include <midna_domain.h>
 #include <logwriter.h>
+#include <mac_midna.h>
 
 /* Global library. */
 
@@ -370,6 +375,7 @@ char   *var_dsn_filter;
 int     var_smtputf8_enable;
 int     var_strict_smtputf8;
 char   *var_smtputf8_autoclass;
+int     var_reqtls_enable;
 int     var_tls_required_enable;
 int     var_idna2003_compat;
 char   *var_compatibility_level;
@@ -480,6 +486,7 @@ static const char *check_mydomainname(void)
 	/* DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - EDIT MAIN.CF */
 	return (DEF_MYDOMAIN);
     /* DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - EDIT MAIN.CF */
+    /* TODO(wietse) handle Unicode variants for 'dot'. */
     return (dot + 1);
 }
 
@@ -793,6 +800,7 @@ void    mail_params_init()
 	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
 	VAR_IDNA2003_COMPAT, DEF_IDNA2003_COMPAT, &var_idna2003_compat,
 	VAR_RESPECTFUL_LOGGING, DEF_RESPECTFUL_LOGGING, &var_respectful_logging,
+	VAR_REQTLS_ENABLE, DEF_REQTLS_ENABLE, &var_reqtls_enable,
 	VAR_TLSREQUIRED_ENABLE, DEF_TLSREQUIRED_ENABLE, &var_tls_required_enable,
 	0,
     };
@@ -922,6 +930,15 @@ void    mail_params_init()
 	0,
     };
     const char *cp;
+    static int first = 1;
+
+    /*
+     * Register named functions.
+     */
+    if (first) {
+	mac_midna_register();
+	first = 0;
+    }
 
     /*
      * Extract compatibility level first, so that we can determine what

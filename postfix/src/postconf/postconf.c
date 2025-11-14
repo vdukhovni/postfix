@@ -615,6 +615,7 @@
 
 /* Utility library. */
 
+#include <mac_midna.h>
 #include <msg.h>
 #include <msg_vstream.h>
 #include <dict.h>
@@ -968,6 +969,7 @@ int     main(int argc, char **argv)
      * For consistency with mail_params_init().
      */
     compat_level_relop_register();
+    mac_midna_register();
 
     /*
      * We don't enforce import_environment consistency in this program.

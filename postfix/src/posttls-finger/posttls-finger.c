@@ -785,7 +785,7 @@ static int starttls(STATE *state)
 
     cipher_exclusions = vstring_alloc(10);
     ADD_EXCLUDE(cipher_exclusions, DEF_SMTP_TLS_EXCL_CIPH);
-    if (TLS_REQUIRED(state->level))
+    if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->level))
 	ADD_EXCLUDE(cipher_exclusions, DEF_SMTP_TLS_MAND_EXCL);
 
     /*

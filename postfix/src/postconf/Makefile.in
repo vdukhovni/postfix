@@ -1148,6 +1148,7 @@ postconf.o: ../../include/check_arg.h
 postconf.o: ../../include/compat_level.h
 postconf.o: ../../include/dict.h
 postconf.o: ../../include/htable.h
+postconf.o: ../../include/mac_midna.h
 postconf.o: ../../include/mail_conf.h
 postconf.o: ../../include/mail_dict.h
 postconf.o: ../../include/mail_params.h
@@ -1180,6 +1181,7 @@ postconf_builtin.o: ../../include/mail_conf.h
 postconf_builtin.o: ../../include/mail_params.h
 postconf_builtin.o: ../../include/mail_proto.h
 postconf_builtin.o: ../../include/mail_version.h
+postconf_builtin.o: ../../include/midna_domain.h
 postconf_builtin.o: ../../include/msg.h
 postconf_builtin.o: ../../include/myflock.h
 postconf_builtin.o: ../../include/mymalloc.h

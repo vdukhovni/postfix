@@ -69,6 +69,7 @@
 	VAR_HFROM_FORMAT, DEF_HFROM_FORMAT, &var_hfrom_format, 1, 0,
 	VAR_USE_SRV_LOOKUP, DEF_USE_SRV_LOOKUP, &var_use_srv_lookup, 0, 0,
 	VAR_SMTP_TLSRPT_SOCKNAME, DEF_SMTP_TLSRPT_SOCKNAME, &var_smtp_tlsrpt_sockname, 0, 0,
+	VAR_SMTP_REQTLS_POLICY, DEF_SMTP_REQTLS_POLICY, &var_smtp_reqtls_policy, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE smtp_time_table[] = {
@@ -147,5 +148,7 @@
 #ifdef USE_TLS
 	VAR_SMTP_TLS_ENF_STS_MX_PAT, DEF_SMTP_TLS_ENF_STS_MX_PAT, &var_smtp_tls_enf_sts_mx_pat,
 #endif
+	VAR_SMTP_TLS_ENF_STS_MX_PAT, DEF_SMTP_TLS_ENF_STS_MX_PAT, &var_smtp_tls_enf_sts_mx_pat,
+	VAR_SMTP_LOG_TLS_FEATURE_STATUS, DEF_SMTP_LOG_TLS_FEATURE_STATUS, &var_log_tls_feature_status,
 	0,
     };

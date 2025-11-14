@@ -91,6 +91,7 @@ static HEADER_OPTS header_opts[] = {
     "Sender", HDR_SENDER, HDR_OPT_SENDER,
     "To", HDR_TO, HDR_OPT_XRECIP,
     "TLS-Required", HDR_TLS_REQUIRED, 0,
+    "Require-TLS-ESMTP", HDR_REQTLS_ESMTP, 0,
 };
 
 #define HEADER_OPTS_SIZE (sizeof(header_opts) / sizeof(header_opts[0]))

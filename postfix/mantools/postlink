@@ -367,6 +367,7 @@ while (<>) {
     s;\bmydes[-</bB>]*\n*[ <bB>]*ti[-</bB>]*\n*[ <bB>]*na[-</bB>]*\n*[ <bB>]*tion\b;<a href="postconf.5.html#mydestination">$&</a>;g;
     s;\bmydo[-</bB>]*\n* *[<bB>]*main\b;<a href="postconf.5.html#mydomain">$&</a>;g;
     s;\bmyhostname\b;<a href="postconf.5.html#myhostname">$&</a>;g;
+    s;\bdomain_to_ascii\b;<a href="postconf.5.html#domain_to_ascii">$&</a>;g;
     s;\bmynet[-</bB>]*\n* *[<bB>]*works\b;<a href="postconf.5.html#mynetworks">$&</a>;g;
     s;\bmynetworks_style\b;<a href="postconf.5.html#mynetworks_style">$&</a>;g;
     s;\bmyo[-</bB>]*\n*[ <bB>]*rigin\b;<a href="postconf.5.html#myorigin">$&</a>;g;
@@ -733,6 +734,8 @@ while (<>) {
     s;\blmtp_tlsrpt_skip_reused_handshakes\b;<a href="postconf.5.html#lmtp_tlsrpt_skip_reused_handshakes">$&</a>;g;
     s;\blmtp_tls_enforce_sts_mx_patterns\b;<a href="postconf.5.html#lmtp_tls_enforce_sts_mx_patterns">$&</a>;g;
     s;\bsmtp_tls_enforce_sts_mx_patterns\b;<a href="postconf.5.html#smtp_tls_enforce_sts_mx_patterns">$&</a>;g;
+    s;\blmtp_log_tls_feature_status\b;<a href="postconf.5.html#lmtp_log_tls_feature_status">$&</a>;g;
+    s;\bsmtp_log_tls_feature_status\b;<a href="postconf.5.html#smtp_log_tls_feature_status">$&</a>;g;
     s;\bsmtpd_enforce_tls\b;<a href="postconf.5.html#smtpd_enforce_tls">$&</a>;g;
     s;\bsmtpd_sasl_tls_security_options\b;<a href="postconf.5.html#smtpd_sasl_tls_security_options">$&</a>;g;
     s;\bsmtpd_sasl_type\b;<a href="postconf.5.html#smtpd_sasl_type">$&</a>;g;
@@ -1193,6 +1196,11 @@ while (<>) {
     s;\bignore_srv_lookup_error\b;<a href="postconf.5.html#ignore_srv_lookup_error">$&</a>;g;
 
     s;\btls_required_enable\b;<a href="postconf.5.html#tls_required_enable">$&</a>;g;
+    s;\brequiretls_enable\b;<a href="postconf.5.html#requiretls_enable">$&</a>;g;
+    s;\brequiretls_esmtp_header\b;<a href="postconf.5.html#requiretls_esmtp_header">$&</a>;g;
+    s;\bsmtp_requiretls_policy\b;<a href="postconf.5.html#smtp_requiretls_policy">$&</a>;g;
+    s;\blmtp_requiretls_policy\b;<a href="postconf.5.html#lmtp_requiretls_policy">$&</a>;g;
+    s;\brequiretls_redact_dsn\b;<a href="postconf.5.html#requiretls_redact_dsn">$&</a>;g;
     s;\bfull_name_encoding_charset\b;<a href="postconf.5.html#full_name_encoding_charset">$&</a>;g;
     s;\bsmtpd_hide_client_session\b;<a href="postconf.5.html#smtpd_hide_client_session">$&</a>;g;
 

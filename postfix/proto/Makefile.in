@@ -40,7 +40,9 @@ HTML	= ../html/ADDRESS_CLASS_README.html \
 	../html/POSTSCREEN_3_5_README.html \
 	../html/POSTSCREEN_README.html \
 	../html/QSHAPE_README.html \
-	../html/RESTRICTION_CLASS_README.html ../html/SASL_README.html \
+	../html/RESTRICTION_CLASS_README.html \
+	../html/REQUIRETLS_README.html \
+	../html/SASL_README.html \
 	../html/SCHEDULER_README.html ../html/SMTPD_ACCESS_README.html \
 	../html/SMTPD_POLICY_README.html \
 	../html/SMTPD_PROXY_README.html \
@@ -92,6 +94,7 @@ README	= ../README_FILES/ADDRESS_CLASS_README \
 	../README_FILES/POSTSCREEN_README \
 	../README_FILES/QSHAPE_README \
 	../README_FILES/RESTRICTION_CLASS_README \
+	../README_FILES/REQUIRETLS_README \
 	../README_FILES/SASL_README ../README_FILES/SCHEDULER_README \
 	../README_FILES/SMTPD_ACCESS_README \
 	../README_FILES/SMTPD_POLICY_README ../README_FILES/SMTPD_PROXY_README \
@@ -288,6 +291,9 @@ clobber:
 ../html/RESTRICTION_CLASS_README.html: RESTRICTION_CLASS_README.html
 	$(DETAB) $? | $(POSTLINK) >$@
 
+../html/REQUIRETLS_README.html: REQUIRETLS_README.html
+	$(DETAB) $? | $(POSTLINK) >$@
+
 ../html/SASL_README.html: SASL_README.html
 	$(DETAB) $? | $(POSTLINK) >$@
 
@@ -477,6 +483,9 @@ clobber:
 ../README_FILES/RESTRICTION_CLASS_README: RESTRICTION_CLASS_README.html
 	$(DETAB) $? | $(HT2READ) >$@
 
+../README_FILES/REQUIRETLS_README: REQUIRETLS_README.html
+	$(DETAB) $? | $(HT2READ) >$@
+
 ../README_FILES/SASL_README: SASL_README.html
 	$(DETAB) $? | $(HT2READ) >$@
 
@@ -550,9 +559,9 @@ clobber:
 ../html/postconf.5.html: postconf.html.prolog postconf.proto \
 	postconf.html.epilog ../mantools/xpostconf ../mantools/postconf2html \
 	../mantools/postlink
-	(cat postconf.html.prolog; ../mantools/xpostconf postconf.proto | \
-	    ../mantools/postconf2html | ../mantools/postlink; \
-	    cat postconf.html.epilog ) | $(DETAB) > $@
+	(cat postconf.html.prolog; \
+	    ../mantools/xpostconf postconf.proto | ../mantools/postconf2html; \
+	    cat postconf.html.epilog ) | ../mantools/postlink | $(DETAB) > $@
 
 ../INSTALL: ../README_FILES/INSTALL
 	rm -f $@

@@ -47,3 +47,4 @@ Inbound SMTP smuggling don t strip extra CR in CR LF CR CR LF
  pattern number number number text 
 to  to the lookup result With Postfix 3 11 and later specify
  has moved to to a table lookup result and the format for a
+after stripping whitespace betwen the the value and the 

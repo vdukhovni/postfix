@@ -28491,6 +28491,13 @@ Apologies for any names omitted.
 	non-URI target and "dbname" was not set. Instead, it should
 	return a surrogate dictionary. File: global/dict_pgsql.c.
 
+	Non-production REQUIRETLS branch: support for the REQUIRETLS
+	verb in SMTP.  According to RFC 8689, this requires TLS
+	server certificate matching. Files: cleanup/cleanup_api.c,
+	global/cleanup_strflags.c, global/post_mail.c, global/post_mail.c,
+	global/ehlo_mask.[hc], global/ehlo_mask_test.c, local/forward.c,
+	smtpd/smtpd.c, smtp/smtp_connect.c, smtp/smtp_proto.c.
+
 20241112
 
 	Logging: the cleanup server now logs "queueid: removed
@@ -28879,6 +28886,37 @@ Apologies for any names omitted.
 	Cleanup: memory leaks in test code. Files: util/hex_code.c,
 	util/argv.c.
 
+20250119
+
+	Non-production REQUIRETLS branch: configuration parameter
+	"requiretls_enable" (default: yes). Files: cleanup/cleanup_api.c,
+	global/cleanup_strflags.c, global/post_mail.c, global/post_mail.c,
+	global/ehlo_mask.[hc], global/ehlo_mask_test.c, local/forward.c,
+	smtpd/smtpd.c, smtp/smtp_connect.c, smtp/smtp_proto.c.
+
+20250120
+
+	Non-production REQUIRETLS branch: After a certificate check
+	fails, or a remote SMTP server does not announce REQUIRETLS
+	support, the Postfix SMTP client will override the RFC 8689
+	5.x.x.  status and treat it as a soft error, until there
+	are no more alternate MX servers to try. Files: smtp/smtp.h,
+	smtp/smtp_proto.c, smtp/smtp_trouble.c.
+
+20250122
+
+	Non-production REQUIRETLS branch: new Postfix sendmail
+	command option "-O requiretls" to request that deliveries
+	over SMTP use the REQUIRETLS extension. The string "requiretls"
+	is case-insensitive.  Files: sendmail/sendmail.c,
+	global/rec_types.h, pickup/pickup.c.
+
+	Non-production REQUIRETLS branch: new Postfix sendmail
+	command option "-O smtputf8" to request that deliveries
+	over SMTP use the SMTPUTF8 extension. This reuses logic
+	that was introduced for REQUIRETLS. The string "smtputf8"
+	is case-insensitive.  Files: sendmail/sendmail.c.
+
 20250127
 
 	Cleanup: broken non-TLS builds because of a missing #ifdef
@@ -28932,7 +28970,7 @@ Apologies for any names omitted.
 	Documentation: updated TLSRPT_README, added postfix-tlspol
 	policy plugin, deprecated the policy_ttl attribute. File:
 	proto/TLSRPT_README.html.
-
+ 
 20250207
 
 	Performance: when a mysql: or pgsql: configuration specifies
@@ -29576,6 +29614,14 @@ Apologies for any names omitted.
 	commands with "bad syntax" and "bad UTF-8 syntax" errors.
 	File: smtpd/smtpd.c.
 
+20250818
+
+	Non-production REQUIRETLS branch: infrastructure that will
+	use message headers to propagate REQUIRETLS through non-Milter
+	content filters. Files: global/x_esmtp_verb.[hc],
+	global/x_esmtp_verb_test.c. This was later renamed  to
+	requiretls_esmtp_header (no smtputf8 support).
+
 20250819
 
 	Bugfix: the 20250717 workaround broke DBM library support
@@ -29587,12 +29633,53 @@ Apologies for any names omitted.
 	posttls-finger logged a zero port number. Viktor Dukhovni.
 	File: posttls-finger/posttls-finger.c.
 
+20250824
+
+	Non-production REQUIRETLS branch: when a message needs to
+	be delivered with SMTPUTF8, but a remote server does not
+	support it, try an alternate server. File: smtp/smtp_proto.c.
+
+	Non-production REQUIRETLS branch: better handling of line
+	breaks in indented paragraphs in the postconf(5) conversion
+	from HTML to 'man' format. File: mantools/postconf2man.
+
+	Non-production REQUIRETLS branch: requiretls_redact_dsn
+	(default: yes) as described in RFC 8689 section 5, to produce
+	bounce messages that don't need REQUIRETLS support on every
+	hop in the return path. Files: proto/postconf.proto,
+	global/mail_params.h, bounce/bounce.c.
+
+	Non-production REQUIRETLS branch: smtp_requiretls_policy
+	and lmtp_requiretls_policy for responsible REQUIRETLS policy
+	enforcement. Files: proto/postconf.proto, global/mail_params.h,
+	smtp/lmtp_params.c, smtp/smtp.c, smtp/smtp_connect.c,
+	smtp/smtp.h, smtp/smtp_params.c, smtp/smtp_proto.c,
+	smtp/smtp_reqtls_policy.c, smtp/smtp_reqtls_policy.h,
+	smtp/smtp_reqtls_policy_test.c, smtp/smtp_state.c.
+
+	Non-production REQUIRETLS branch: cleaned up some test code.
+	Files: util/inet_prefix_top.c, util/inet_addr_list.c.
+
 20250825
 
 	Bugfix (defect introduced: 20250626): panic() in dict_register()
 	when dict_open() was called recursively, after dict_proxy_open()
 	changed the name of a dictionary on-the-fly by skipping a
 	proxy: prefix). File: util/dict_open.c.
+
+20250826
+
+	Non-production REQUIRETLS branch: renamed all the new
+	identifiers introduced for REQUIRETLS support to ...REQTLS... and
+	...reqtls... and re-indented the code. minimize differences with
+	the production release.
+
+20250827
+
+	Non-production REQUIRETLS branch: logic to skip destinations
+	whose TLS policy level cannot satisfy the REQUIRETLS policy,
+	or to log what would fail if REQUIRETLS were fully enforced.
+	File: smtp/smtp_connect.c.
 
 20250906
 
@@ -29615,6 +29702,26 @@ Apologies for any names omitted.
 	smtp/smtp.h, smtp/smtp_connect.c, smtp/smtp_params.c,
 	smtp/smtp_tls_policy.c, smtp/smtp_tls_policy_test.c.
 
+20250910
+
+	Non-production REQUIRETLS branch: TLS feature policy
+	status logging in delivery status logging. This shows the
+	TLS security level enforcement status and, if a message
+	requests REQUIRETLS, the REQUIRETLS policy enforcement
+	status. Files: .indent.pro, cleanup/cleanup_bounce.c,
+	cleanup/cleanup_out_recipient.c, discard/discard.c, error/error.c,
+	global/Makefile.in, global/bounce.c, global/bounce.h,
+	global/defer.c, global/defer.h, global/deliver_pass.c,
+	global/log_adhoc.c, global/log_adhoc.h, global/mail_version.h,
+	global/reject_deliver_request.c, global/sent.c, global/sent.h,
+	global/tls_stats.c, global/tls_stats.h, global/trace.c,
+	global/trace.h, global/verify.c, global/verify.h, local/local.h,
+	oqmgr/qmgr_bounce.c, oqmgr/qmgr_defer.c, oqmgr/qmgr_message.c,
+	pipe/pipe.c, qmgr/qmgr_bounce.c, qmgr/qmgr_defer.c,
+	qmgr/qmgr_message.c, smtp/smtp.h, smtp/smtp_connect.c,
+	smtp/smtp_proto.c, smtp/smtp_rcpt.c, smtp/smtp_state.c,
+	smtp/smtp_trouble.c, virtual/virtual.h.
+
 20250911
 
 	Bugfix (defect introduced: Postfix 3.0): the Postfix SMTP
@@ -29628,6 +29735,44 @@ Apologies for any names omitted.
 	Finally, do not cache a connection when SMTPUTF8 is
 	required but the server does not support that feature.
 	Files: smtp/smtp.h, smtp/smtp_key.c, smtp/smtp_proto.c.
+
+	Non-production REQUIRETLS branch: Include the REQUIRETLS
+	enforcement level in the SMTP connection cache storage key and
+	cached connection properties, and don't cache connections that
+	don't satisfy connection requirements. Files: smtp/smtp.h,
+	smtp/smtp_key.c, smtp_proto.c, smtp/smtp_trouble.c.
+
+20250914
+
+	Non-production REQUIRETLS branch: smtp_log_tls_feature_status
+	logging now shows the initial and final security levels for a
+	relaxed feature, for example dane:encrypt when opportunistic
+	'dane' is downgraded to 'encrypt' after all TLSA records
+	were found to be unusable. Files: proto/postconf.proto,
+	global/log_adhoc.c, global/pol_stats.c, global/pol_stats.h,
+	global/pol_stats_test.c, smtp/smtp.h, smtp/smtp_connect.c,
+	smtp/smtp_proto.c.
+
+20250916
+
+	Non-production REQUIRETLS branch: support for a
+	"Require-TLS-ESMTP: yes" header to propagate an ESMTP REQUIRETLS
+	request through a FILTER_README or SMTPD_PROXY_README style
+	content filter.  This header is detected or added by the
+	cleanup daemon.  This feature is enabled by default with
+	"requiretls_esmtp_header = yes". The Require-TLS-ESMTP header
+	will be visible to local and remote recipients. This feature can
+	safely be disabled when a configuration does not use REQUIRETLS,
+	or does not use FILTER_README or SMTPD_PROXY_README style content
+	filters. Files: cleanup/cleanup.c, cleanup/cleanup_message.c,
+	global/header_opts.[hc].
+
+20250917
+
+	Non-production REQUIRETLS branch: SMTP server support to add
+	a "Require-TLS-ESMTP: yes" header to messages received with
+	REQUIRETLS when they are sent through an SMTPD_PROXY_README
+	style content filter. Files: smtpd/smtpd.c, smtp/smtpd_proto.c.
 
 20250919
 
@@ -29643,13 +29788,42 @@ Apologies for any names omitted.
 	the stock main.cf file. Problem diagnosed by Eray Aslan.
 	File: conf/main.cf.
 
-20240924
+2025921
 
+	Non-production REQUIRETLS branch: with TLS policy status
+	logging, always log the actual REQUIRETLS state. For example,
+	when the TLS security level "encrypt" disables certificate
+	matches, then that is a policy violation for strict REQUIRETLS
+	enforcement (logged as "!requiretls:nocertmatch"), while
+	that is permitted with opportunistic REQUIRETLS (logged as
+	"requiretls:nocertmatch").  Files: proto/postconf.proto,
+	global/pol_stats.c, global/pol_stats_test.c, smtp/smtp.h,
+	smtp/smtp_connect.c, smtp/smtp_proto.c.
+
+2025922
+
+	Non-production REQUIRETLS branch: more testing and quality
+	control, resulting in various code and documentation fixes
+	for TLS feature status logging. Files: smtp/smtp_connect.c,
+	proto/postconf.proto.
+
+20240924
+ 
 	TLSRPT Workaround: when policies[*].policy.policy-type is
 	"no-policy-found", report the TLSRPT policy domain name as
 	the policies[*].policy.policy-domain value. This ignores
 	that TLSA policies must be reported with different policy-domain
 	values than STS policies. File: tls/tlsrpt_wrapper.c.
+
+	Non-production REQUIRETLS branch: restore deleted support for the
+	"sendmail -O requiretls=yes|no command-line option", and support
+	for preliminary SIZE records in showq and postcat. Files:
+	sendmail/sendmail.c, global/rec_types.h, postcat/postcat.c,
+	showq/showq.c. Ditto for "sendmail -O smtputf8=yes|no".
+
+	Non-production REQUIRETLS branch: simplified the policy
+	status management API and removed unused code. Files:
+	global/pol_stats.[hc], global/pol_stats_test.c.
 
 20250927
 
@@ -29661,6 +29835,13 @@ Apologies for any names omitted.
 	Cleanup: make STS mx hostname pattern enforcement consistent
 	with the smtp_cname_overrides_servername setting. File:
 	smtp/smtp_connect.c.
+
+	Non-production REQUIRETLS branch: by default enforce REQUIRETLS
+	fully for remote destinations; better default patterns to
+	exclude local destinations from REQUIRETLS enforcement. Files:
+	global/mail_params.h. mantools/postconf2man, proto/postconf.proto,
+	proto/REQUIRETLS_README.html, smtp/smtp_reqtls_policy.c,
+	smtp/smtp_reqtls_policy_test.c.
 
 20251001
 
@@ -29791,6 +29972,16 @@ Apologies for any names omitted.
 	Testing: fix bitrot in TLS DANE tests. Viktor Dukhovni.
 	Files: tls/tls_dane.c, tls/tls_dane.sh.
 
+	Non-production REQUIRETLS branch: Make the smtp_requiretls_policy
+	searches deterministic by converting an internationalized next-hop
+	domain to ASCII form before querying the policy. In the default
+	policy, specify ${domain_to_ascii{$mydomain}} which returns
+	Punycode when $mydomain contains non-ASCII, and which otherwise
+	returns $mydomain. Files: mantools/postlink, proto/postconf.proto,
+	proto/REQUIRETLS_README.html, global/mail_params.[hc],
+	util/mac_midna.[hc], util/mac_expand.[hc], util/mac_expand.in,
+	util/mac_expand.ref, proto/postconf.*.proto, proto/Makefile.in.
+
 20251104
 
 	Feature: non_empty_end_of_header_action specifies the
@@ -29807,3 +29998,28 @@ Apologies for any names omitted.
 	Documentation: in OVERVIEW_README, added a missing link
 	between smtpd(8) and trivial-rewrite(8). File:
 	proto/OVERVIEW_README.html.
+
+20251114
+
+	Documentation: added 'halfdane' to the TLS status logging
+	documentation. File: proto/postconf.proto.
+
+	Bugfix (defect introduced: Postfix 2.8, date: 20110107):
+	the postscreen_reject_footer parameter did not support the
+	form ${smtpd_reject_footer}. Problem reported by pgnd. The
+	postscreen_expansion_filter parameter had the same problem.
+	File: postscreen/postscreen.c.
+
+	Cleanup: strip whitespace around the value in ${ function
+	{ value } }. Files: util/mac_expand.c, util/mac_expand.in,
+	util/mac_expand.ref.
+ 
+	Merged the non-production REQUIRETLS branch.
+
+TODO
+
+	Decide whether or how to enable REQUIRETLS for non-SMTP
+	inputs: qmqpd.c ot pickup (sendmail). The smtputf8 auto-detect
+	strategy is not applicable because REQUIRETLS trumps
+	"TLS-Required: no". It should be easy for sendmail submissions
+	to choose whether TLS shall be required or optional.
