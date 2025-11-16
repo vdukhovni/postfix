@@ -143,8 +143,7 @@
 	VAR_LMTP_TLSRPT_SKIP_REUSED_HS, DEF_LMTP_TLSRPT_SKIP_REUSED_HS, &var_smtp_tlsrpt_skip_reused_hs,
 #ifdef USE_TLS
 	VAR_LMTP_TLS_ENF_STS_MX_PAT, DEF_LMTP_TLS_ENF_STS_MX_PAT, &var_smtp_tls_enf_sts_mx_pat,
-#endif
-	VAR_LMTP_TLS_ENF_STS_MX_PAT, DEF_LMTP_TLS_ENF_STS_MX_PAT, &var_smtp_tls_enf_sts_mx_pat,
 	VAR_LMTP_LOG_TLS_FEATURE_STATUS, DEF_LMTP_LOG_TLS_FEATURE_STATUS, &var_log_tls_feature_status,
+#endif
 	0,
     };

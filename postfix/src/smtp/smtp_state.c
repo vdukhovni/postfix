@@ -88,8 +88,8 @@ SMTP_STATE *smtp_state_alloc(void)
     if (var_log_tls_feature_status)
 	state->tls_stats = pol_stats_create();
     else
-	state->tls_stats = 0;
 #endif
+	state->tls_stats = 0;
     if (var_smtp_cache_conn) {
 	state->dest_label = vstring_alloc(10);
 	state->dest_prop = vstring_alloc(10);

@@ -19879,12 +19879,12 @@ names.</p>
  3     smtp_tls_policy_maps = ...dane/sts plugin...
  4     smtp_requiretls_policy =
  5         inline:{
- 6             {${domain_to_ascii{$mydomain}} = opportunistic}
- 7             {.${domain_to_ascii{$mydomain}} = opportunistic}
- 8             {localhost = opportunistic} }
+ 6             { ${domain_to_ascii{$mydomain}} = opportunistic }
+ 7             { .${domain_to_ascii{$mydomain}} = opportunistic }
+ 8             { localhost = opportunistic } }
  9         cidr:{
-10             {0.0.0.0/0 opportunistic},
-11             {::/0 opportunistic} },
+10             { 0.0.0.0/0 opportunistic },
+11             { ::/0 opportunistic } },
 12         enforce
 </pre>
 
@@ -19908,12 +19908,12 @@ and you will need to enter explicit ASCII domain names.</p>
  3     smtp_tls_policy_maps = ...dane/sts plugin...
  4     smtp_requiretls_policy =
  5         inline:{
- 6             {${domain_to_ascii{$mydomain}} = opportunistic}
- 7             {.${domain_to_ascii{$mydomain}} = opportunistic}
- 8             {localhost = opportunistic} }
+ 6             { ${domain_to_ascii{$mydomain}} = opportunistic }
+ 7             { .${domain_to_ascii{$mydomain}} = opportunistic }
+ 8             { localhost = opportunistic } }
  9         cidr:{
-10             {0.0.0.0/0 opportunistic},
-11             {::/0 opportunistic} },
+10             { 0.0.0.0/0 opportunistic },
+11             { ::/0 opportunistic } },
 12         opportunistic+starttls
 </pre>
 
@@ -19925,12 +19925,12 @@ file for easier maintenance. </p>
     smtp_tls_policy_maps = ...dane/sts plugin...
     smtp_requiretls_policy =
         inline:{
-            {${domain_to_ascii{$mydomain}} = opportunistic}
-            {.${domain_to_ascii{$mydomain}} = opportunistic}
-            {localhost = opportunistic} }
+            { ${domain_to_ascii{$mydomain}} = opportunistic }
+            { .${domain_to_ascii{$mydomain}} = opportunistic }
+            { localhost = opportunistic } }
         cidr:{
-            {0.0.0.0/0 opportunistic},
-            {::/0 opportunistic} },
+            { 0.0.0.0/0 opportunistic },
+            { ::/0 opportunistic } },
 	hash:/etc/postfix/requiretls-per-site
 	opportunistic+starttls
 </pre>
@@ -20215,9 +20215,9 @@ start-up error. </p>
 contains the default setting: </p>
 <pre>
 smtp_requiretls_policy = inline:{
-    {${domain_to_ascii{$mydomain}} = opportunistic },
-    {.${domain_to_ascii{$mydomain}} = opportunistic },
-     ... }
+    { ${domain_to_ascii{$mydomain}} = opportunistic },
+    { .${domain_to_ascii{$mydomain}} = opportunistic },
+     ...
 </pre>
 
 <li> <p> Example 1: when mydomain contains only ASCII characters,
@@ -20225,9 +20225,9 @@ domain_to_ascii{} returns the same value. </p>
 <pre>
 # postconf -o 'mydomain=foo.example' -x smtp_requiretls_policy
 smtp_requiretls_policy = inline:{
-    {foo.example = opportunistic},
-    {.foo.example = opportunistic}, 
-     ... }
+    { foo.example = opportunistic },
+    { .foo.example = opportunistic }, 
+     ...
 </pre>
 
 <li> <p> Example 2: when mydomain contains non-ASCII characters,
@@ -20235,9 +20235,9 @@ domain_to_ascii{} returns the Punycode representation. </p>
 <pre>
 # postconf -o 'mydomain=π.example' -x smtp_requiretls_policy
 smtp_requiretls_policy = inline:{
-    {xn--1xa.example = opportunistic},
-    {.xn--1xa.example = opportunistic},
-    ... }
+    { xn--1xa.example = opportunistic },
+    { .xn--1xa.example = opportunistic },
+     ...
 </pre>
 
 </ul>

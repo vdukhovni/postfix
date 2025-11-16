@@ -116,12 +116,12 @@ For REQUIRETLS, the relevant Postfix 3.11 configuration default settings are:
      4     lmtp_requiretls_policy = opportunistic
      5     smtp_requiretls_policy =
      6         inline:{
-     7             {${domain_to_ascii{$mydomain}} = opportunistic}
-     8             {.${domain_to_ascii{$mydomain}} = opportunistic}
-     9             {localhost = opportunistic} }
+     7             { ${domain_to_ascii{$mydomain}} = opportunistic }
+     8             { .${domain_to_ascii{$mydomain}} = opportunistic }
+     9             { localhost = opportunistic } }
     10         cidr:{
-    11             {0.0.0.0/0 opportunistic}
-    12             {::/0 opportunistic} }
+    11             { 0.0.0.0/0 opportunistic }
+    12             { ::/0 opportunistic } }
     13       ...to be completed in section "Communication with external
     servers"...
 
@@ -203,12 +203,12 @@ FILTER_README.
      4     requiretls_esmtp_header = yes
      5     smtp_requiretls_policy =
      6         inline:{
-     7             {${domain_to_ascii{$mydomain}} = opportunistic}
-     8             {.${domain_to_ascii{$mydomain}} = opportunistic}
-     9             {localhost = opportunistic} }
+     7             { ${domain_to_ascii{$mydomain}} = opportunistic }
+     8             { .${domain_to_ascii{$mydomain}} = opportunistic }
+     9             { localhost = opportunistic } }
     10         cidr:{
-    11             {0.0.0.0/0 opportunistic}
-    12             {::/0 opportunistic} }
+    11             { 0.0.0.0/0 opportunistic }
+    12             { ::/0 opportunistic } }
     13         enforce
 
   * New at line 13: The 'enforce' policy for external destinations is
@@ -253,12 +253,12 @@ STS policy. The configuration below makes that change by replacing the default
      4     requiretls_esmtp_header = yes
      5     smtp_requiretls_policy =
      6         inline:{
-     7             {${domain_to_ascii{$mydomain}} = opportunistic}
-     8             {.${domain_to_ascii{$mydomain}} = opportunistic}
-     9             {localhost = opportunistic} }
+     7             { ${domain_to_ascii{$mydomain}} = opportunistic }
+     8             { .${domain_to_ascii{$mydomain}} = opportunistic }
+     9             { localhost = opportunistic } }
     10         cidr:{
-    11             {0.0.0.0/0 opportunistic}
-    12             {::/0 opportunistic} }
+    11             { 0.0.0.0/0 opportunistic }
+    12             { ::/0 opportunistic } }
     13         opportunistic+starttls
 
   * New at line 13: the 'opportunistic+starttls' policy relaxes the requirement

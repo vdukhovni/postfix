@@ -1901,11 +1901,14 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		    xtext_quote_append(next_command, request->dsn_envid, "+=");
 		}
 		/* Fix 20250825: limit content exposure in bounce. */
+#ifdef USE_TLS
 		if (state->reqtls_level > SMTP_REQTLS_POLICY_ACT_DISABLE
 		    && (session->features & SMTP_FEATURE_REQTLS) == 0)
 		    vstring_sprintf_append(next_command, " RET=%s",
 					   dsn_ret_str(DSN_RET_HDRS));
-		else if (request->dsn_ret)
+		else
+#endif
+		if (request->dsn_ret)
 		    vstring_sprintf_append(next_command, " RET=%s",
 					   dsn_ret_str(request->dsn_ret));
 	    }

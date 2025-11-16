@@ -1869,7 +1869,7 @@ static void usage(void)
     exit(1);
 }
 
-
+#ifdef USE_TLS
 #ifndef OPENSSL_NO_SSL_TRACE
 static void ssl_trace(int write_p, int version, int content_type,
 		        const void *buf, size_t msglen, SSL *ssl, void *arg)
@@ -1883,7 +1883,7 @@ static void ssl_trace(int write_p, int version, int content_type,
 }
 
 #endif
-
+#endif
 
 /* tls_init - initialize application TLS library context */
 

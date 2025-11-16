@@ -133,7 +133,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
 	mail_version mail_dict server_acl uxtext mail_parm_split \
 	fold_addr smtp_reply_footer mail_addr_map normalize_mailhost_addr \
-	haproxy_srvr_test map_search delivered_hdr login_sender_match \
+	haproxy_srvr_test map_search delivered_hdr login_sender_match_test \
 	compat_level config_known_tcp_ports hfrom_format rfc2047_code \
 	ascii_header_text sendopts_test dict_sqlite_test pol_stats_test
 
@@ -394,7 +394,7 @@ map_search: map_search.c $(LIB) $(LIBS)
 delivered_hdr: delivered_hdr.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
-login_sender_match: login_sender_match.c $(LIB) $(LIBS)
+login_sender_match_test: login_sender_match_test.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
 compat_level: compat_level.c $(LIB) $(LIBS)
@@ -431,7 +431,7 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	smtp_reply_footer_test off_cvt_test mail_addr_crunch_test \
 	mail_addr_find_test mail_addr_map_test quote_822_local_test \
 	normalize_mailhost_addr_test test_haproxy_srvr map_search_test \
-	delivered_hdr_test login_sender_match_test compat_level_test \
+	delivered_hdr_test test_login_sender_match compat_level_test \
 	config_known_tcp_ports_test hfrom_format_test rfc2047_code_test \
 	ascii_header_text_test test_sendopts test_dict_sqlite test_pol_stats
 
@@ -762,10 +762,8 @@ delivered_hdr_test: update delivered_hdr delivered_hdr.ref
 	diff delivered_hdr.ref delivered_hdr.tmp
 	rm -f delivered_hdr.tmp
 
-login_sender_match_test: update login_sender_match login_sender_match.ref
-	-$(SHLIB_ENV) $(VALGRIND) ./login_sender_match >login_sender_match.tmp 2>&1
-	diff login_sender_match.ref login_sender_match.tmp
-	rm -f login_sender_match.tmp
+test_login_sender_match: update login_sender_match_test 
+	$(SHLIB_ENV) $(VALGRIND) ./login_sender_match_test
 
 compat_level_test: compat_level_expand_test compat_level_convert_test
 
@@ -1702,6 +1700,20 @@ login_sender_match.o: maps.h
 login_sender_match.o: quote_822_local.h
 login_sender_match.o: quote_flags.h
 login_sender_match.o: strip_addr.h
+login_sender_match_test.o: ../../include/argv.h
+login_sender_match_test.o: ../../include/check_arg.h
+login_sender_match_test.o: ../../include/dict.h
+login_sender_match_test.o: ../../include/msg.h
+login_sender_match_test.o: ../../include/msg_vstream.h
+login_sender_match_test.o: ../../include/myflock.h
+login_sender_match_test.o: ../../include/stringops.h
+login_sender_match_test.o: ../../include/sys_defs.h
+login_sender_match_test.o: ../../include/vbuf.h
+login_sender_match_test.o: ../../include/vstream.h
+login_sender_match_test.o: ../../include/vstring.h
+login_sender_match_test.o: login_sender_match.h
+login_sender_match_test.o: login_sender_match_test.c
+login_sender_match_test.o: mail_params.h
 mail_addr.o: ../../include/check_arg.h
 mail_addr.o: ../../include/stringops.h
 mail_addr.o: ../../include/sys_defs.h

@@ -153,7 +153,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
 	vbuf_print split_qnameval vstream msg_logger byte_mask \
-	known_tcp_ports dict_stream find_inet binhash hash_fnv argv \
+	known_tcp_ports dict_stream find_inet binhash hash_fnv_test argv \
 	clean_env inet_prefix_top printable readlline quote_for_json \
 	normalize_ws valid_uri_scheme clean_ascii_cntrl_space \
 	normalize_v4mapped_addr_test ossl_digest_test dict_pipe_test \
@@ -458,10 +458,8 @@ binhash: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-hash_fnv: $(LIB)
-	mv $@.o junk
-	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
-	mv junk $@.o
+hash_fnv_test: $(LIB) update
+	$(CC) $(CFLAGS) -o $@ $@.c $(LIB) $(SYSLIBS)
 
 unix_recv_fd:  $(LIB)
 	mv $@.o junk
@@ -662,7 +660,7 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	valid_utf8_string_test readlline_test quote_for_json_test \
 	normalize_ws_test valid_uri_scheme_test clean_ascii_cntrl_space_test \
 	test_normalize_v4mapped_addr test_ossl_digest test_dict_pipe \
-	test_dict_union
+	test_dict_union test_hash_fnv
  
 dict_tests: all dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
@@ -833,8 +831,8 @@ htable_test: htable /usr/share/dict/words
 binhash_test: binhash /usr/share/dict/words
 	$(SHLIB_ENV) ${VALGRIND} ./binhash < /usr/share/dict/words
 
-hash_fnv_test: hash_fnv
-	$(SHLIB_ENV) ${VALGRIND} ./hash_fnv
+test_hash_fnv: hash_fnv_test
+	$(SHLIB_ENV) ${VALGRIND} ./hash_fnv_test
 
 hex_code_test: hex_code
 	$(SHLIB_ENV) ${VALGRIND} ./hex_code
@@ -2096,6 +2094,16 @@ hash_fnv.o: hash_fnv.h
 hash_fnv.o: ldseed.h
 hash_fnv.o: msg.h
 hash_fnv.o: sys_defs.h
+hash_fnv_test.o: check_arg.h
+hash_fnv_test.o: hash_fnv.h
+hash_fnv_test.o: hash_fnv_test.c
+hash_fnv_test.o: msg.h
+hash_fnv_test.o: msg_vstream.h
+hash_fnv_test.o: stringops.h
+hash_fnv_test.o: sys_defs.h
+hash_fnv_test.o: vbuf.h
+hash_fnv_test.o: vstream.h
+hash_fnv_test.o: vstring.h
 hex_code.o: check_arg.h
 hex_code.o: hex_code.c
 hex_code.o: hex_code.h

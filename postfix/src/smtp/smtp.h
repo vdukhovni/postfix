@@ -209,8 +209,8 @@ typedef struct SMTP_STATE {
     struct TLSRPT_WRAPPER *tlsrpt;
 #endif
     int     reqtls_level;		/* from smtp_reqtls_policy */
-    POL_STATS *tls_stats;		/* TLS feature policy compliance */
 #endif
+    POL_STATS *tls_stats;		/* TLS feature policy compliance */
 
     /*
      * Connection cache support.

@@ -2057,9 +2057,9 @@ contains the default setting:
 .nf
 .na
 smtp_requiretls_policy = inline:{
-    {${domain_to_ascii{$mydomain}} = opportunistic },
-    {.${domain_to_ascii{$mydomain}} = opportunistic },
-     ... }
+    { ${domain_to_ascii{$mydomain}} = opportunistic },
+    { .${domain_to_ascii{$mydomain}} = opportunistic },
+     ...
 .fi
 .ad
 .IP \(bu
@@ -2070,9 +2070,9 @@ domain_to_ascii{} returns the same value.
 .na
 # postconf \-o 'mydomain=foo.example' \-x smtp_requiretls_policy
 smtp_requiretls_policy = inline:{
-    {foo.example = opportunistic},
-    {.foo.example = opportunistic},
-     ... }
+    { foo.example = opportunistic },
+    { .foo.example = opportunistic },
+     ...
 .fi
 .ad
 .IP \(bu
@@ -2083,9 +2083,9 @@ domain_to_ascii{} returns the Punycode representation.
 .na
 # postconf \-o 'mydomain=π.example' \-x smtp_requiretls_policy
 smtp_requiretls_policy = inline:{
-    {xn\-\-1xa.example = opportunistic},
-    {.xn\-\-1xa.example = opportunistic},
-    ... }
+    { xn\-\-1xa.example = opportunistic },
+    { .xn\-\-1xa.example = opportunistic },
+     ...
 .fi
 .ad
 .br
@@ -7897,46 +7897,46 @@ connection failed before or in the TLS handshake.
 Examples for REQUIRETLS policies (set with smtp_requiretls_policy),
 where "\fIxxx\fR" is a TLS security level:
 .IP "tls=xxx/requiretls"
-'Enforce' policy compliant.
+\&ddEnforce' policy compliant.
 After a successful TLS handshake that required a certificate match,
 the remote server announced REQUIRETLS support, and the client sent
 REQUIRETLS.
 .IP "tls=xxx/!requiretls:nocertmatch"
-'Enforce' policy
+\&ddEnforce' policy
 violation. The connection was not used because the remote server
 certificate did not match as required by the TLS security policy,
 or no connection was made because the TLS security policy disabled
 server certificate matching.
 .br
 .IP "tls=xxx/requiretls:nocertmatch"
-'Opportunistic+starttls'
+\&ddOpportunistic+starttls'
 or 'opportunistic' policy compliant. After a successful TLS handshake
 that did not require a server certificate match, the remote server
 announced REQUIRETLS support, and the client sent REQUIRETLS.
 .br
 .IP "tls=xxx/!requiretls:nostarttls"
-'Enforce' or
+\&ddEnforce' or
 \&'opportunistic+starttls' policy violation. The connection was not
 used because the remote server did not support STARTTLS.
 .br
 .IP "tls=xxx/!requiretls:noencryption"
-'Enforce' or
+\&ddEnforce' or
 \&'opportunistic+starttls' policy violation. No connection was made
 used because the TLS security policy disabled encryption.
 .br
 .IP "tls=xxx/!requiretls:none"
-'Enforce' policy violation.
+\&ddEnforce' policy violation.
 After a successful TLS handshake, the connection was not used because
 the remote server did not support REQUIRETLS.
 .br
 .IP "tls=xxx/requiretls:none"
-'Opportunistic+starttls'
+\&ddOpportunistic+starttls'
 policy compliant. After a successful TLS handshake, the remote
 server did not announce REQUIRETLS support, and the connection was
 used without sending REQUIRETLS.
 .br
 .IP "tls=xxx/requiretls:none"
-'Opportunistic' policy
+\&ddOpportunistic' policy
 compliant. The remote server did not announce support for STARTTLS
 or REQUIRETLS, and the connection was used without sending REQUIRETLS.
 .br
@@ -8364,12 +8364,12 @@ names.
  3     smtp_tls_policy_maps = ...dane/sts plugin...
  4     smtp_requiretls_policy =
  5         inline:{
- 6             {${domain_to_ascii{$mydomain}} = opportunistic}
- 7             {.${domain_to_ascii{$mydomain}} = opportunistic}
- 8             {localhost = opportunistic} }
+ 6             { ${domain_to_ascii{$mydomain}} = opportunistic }
+ 7             { .${domain_to_ascii{$mydomain}} = opportunistic }
+ 8             { localhost = opportunistic } }
  9         cidr:{
-10             {0.0.0.0/0 opportunistic},
-11             {::/0 opportunistic} },
+10             { 0.0.0.0/0 opportunistic },
+11             { ::/0 opportunistic } },
 12         enforce
 .fi
 .ad
@@ -8396,12 +8396,12 @@ and you will need to enter explicit ASCII domain names.
  3     smtp_tls_policy_maps = ...dane/sts plugin...
  4     smtp_requiretls_policy =
  5         inline:{
- 6             {${domain_to_ascii{$mydomain}} = opportunistic}
- 7             {.${domain_to_ascii{$mydomain}} = opportunistic}
- 8             {localhost = opportunistic} }
+ 6             { ${domain_to_ascii{$mydomain}} = opportunistic }
+ 7             { .${domain_to_ascii{$mydomain}} = opportunistic }
+ 8             { localhost = opportunistic } }
  9         cidr:{
-10             {0.0.0.0/0 opportunistic},
-11             {::/0 opportunistic} },
+10             { 0.0.0.0/0 opportunistic },
+11             { ::/0 opportunistic } },
 12         opportunistic+starttls
 .fi
 .ad
@@ -8416,12 +8416,12 @@ file for easier maintenance.
     smtp_tls_policy_maps = ...dane/sts plugin...
     smtp_requiretls_policy =
         inline:{
-            {${domain_to_ascii{$mydomain}} = opportunistic}
-            {.${domain_to_ascii{$mydomain}} = opportunistic}
-            {localhost = opportunistic} }
+            { ${domain_to_ascii{$mydomain}} = opportunistic }
+            { .${domain_to_ascii{$mydomain}} = opportunistic }
+            { localhost = opportunistic } }
         cidr:{
-            {0.0.0.0/0 opportunistic},
-            {::/0 opportunistic} },
+            { 0.0.0.0/0 opportunistic },
+            { ::/0 opportunistic } },
         hash:/etc/postfix/requiretls\-per\-site
         opportunistic+starttls
 .sp

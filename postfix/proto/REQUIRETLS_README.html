@@ -165,12 +165,12 @@ settings are: </p>
  4     lmtp_requiretls_policy = opportunistic
  5     smtp_requiretls_policy =
  6         inline:{
- 7             {${domain_to_ascii{$mydomain}} = opportunistic}
- 8             {.${domain_to_ascii{$mydomain}} = opportunistic}
- 9             {localhost = opportunistic} }
+ 7             { ${domain_to_ascii{$mydomain}} = opportunistic }
+ 8             { .${domain_to_ascii{$mydomain}} = opportunistic }
+ 9             { localhost = opportunistic } }
 10         cidr:{
-11             {0.0.0.0/0 opportunistic}
-12             {::/0 opportunistic} }
+11             { 0.0.0.0/0 opportunistic }
+12             { ::/0 opportunistic } }
 13       ...to be completed in section "<a href="#external">Communication with external servers</a>"...
 </pre>
 </blockquote>
@@ -273,12 +273,12 @@ FILTER_README. </p>
  4     requiretls_esmtp_header = yes
  5     smtp_requiretls_policy =
  6         inline:{
- 7             {${domain_to_ascii{$mydomain}} = opportunistic}
- 8             {.${domain_to_ascii{$mydomain}} = opportunistic}
- 9             {localhost = opportunistic} }
+ 7             { ${domain_to_ascii{$mydomain}} = opportunistic }
+ 8             { .${domain_to_ascii{$mydomain}} = opportunistic }
+ 9             { localhost = opportunistic } }
 10         cidr:{
-11             {0.0.0.0/0 opportunistic}
-12             {::/0 opportunistic} }
+11             { 0.0.0.0/0 opportunistic }
+12             { ::/0 opportunistic } }
 13         enforce
 </pre>
 </blockquote>
@@ -336,12 +336,12 @@ below makes that change by replacing the default 'enforce' with
  4     requiretls_esmtp_header = yes
  5     smtp_requiretls_policy =
  6         inline:{
- 7             {${domain_to_ascii{$mydomain}} = opportunistic}
- 8             {.${domain_to_ascii{$mydomain}} = opportunistic}
- 9             {localhost = opportunistic} }
+ 7             { ${domain_to_ascii{$mydomain}} = opportunistic }
+ 8             { .${domain_to_ascii{$mydomain}} = opportunistic }
+ 9             { localhost = opportunistic } }
 10         cidr:{
-11             {0.0.0.0/0 opportunistic}
-12             {::/0 opportunistic} }
+11             { 0.0.0.0/0 opportunistic }
+12             { ::/0 opportunistic } }
 13         opportunistic+starttls
 </pre>
 </blockquote>

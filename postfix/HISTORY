@@ -30016,10 +30016,28 @@ Apologies for any names omitted.
  
 	Merged the non-production REQUIRETLS branch.
 
-TODO
+20251115
 
-	Decide whether or how to enable REQUIRETLS for non-SMTP
-	inputs: qmqpd.c ot pickup (sendmail). The smtputf8 auto-detect
-	strategy is not applicable because REQUIRETLS trumps
-	"TLS-Required: no". It should be easy for sendmail submissions
-	to choose whether TLS shall be required or optional.
+	Code cleanup: migrate "#ifdef TEST" code from foo.c to
+	foo_test.c. Files: util/Makefile.in, global/login_sender_match.c,
+	global/login_sender_match_test.c, util/hash_fnv.c,
+	util/hash_fnv_test.c. There are about 143 more of these.
+
+	Cleanup: fix malformed postconf(5) nroff source. The HTML
+	to MAN converter did not escape an initial ' in text after
+	a <dd> tag. This broke some smtp_log_tls_feature_status
+	examples. File: mantools/postconf2man.
+
+20250116
+
+	Cleanup: missing #include <stdlib.h>, missing #ifdef USE_TLS.
+	postconf/postconf_unused.c, posttls-finger/posttls-finger.c,
+	smtp/lmtp_params.c, smtp/smtp.h, smtp/smtp_params.c,
+	smtp/smtp_proto.c, smtp/smtp_state.c.
+
+	Documentation: added whitespace to make smtp_requiretls_policy
+	examples easier to read. Files: proto/REQUIRETLS_README.html,
+	proto/postconf.proto.
+
+	Testing: add 'update' to global library test targets. File:
+	global/Makefile.in.
