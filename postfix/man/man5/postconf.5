@@ -7897,46 +7897,46 @@ connection failed before or in the TLS handshake.
 Examples for REQUIRETLS policies (set with smtp_requiretls_policy),
 where "\fIxxx\fR" is a TLS security level:
 .IP "tls=xxx/requiretls"
-\&ddEnforce' policy compliant.
+\&'Enforce' policy compliant.
 After a successful TLS handshake that required a certificate match,
 the remote server announced REQUIRETLS support, and the client sent
 REQUIRETLS.
 .IP "tls=xxx/!requiretls:nocertmatch"
-\&ddEnforce' policy
+\&'Enforce' policy
 violation. The connection was not used because the remote server
 certificate did not match as required by the TLS security policy,
 or no connection was made because the TLS security policy disabled
 server certificate matching.
 .br
 .IP "tls=xxx/requiretls:nocertmatch"
-\&ddOpportunistic+starttls'
+\&'Opportunistic+starttls'
 or 'opportunistic' policy compliant. After a successful TLS handshake
 that did not require a server certificate match, the remote server
 announced REQUIRETLS support, and the client sent REQUIRETLS.
 .br
 .IP "tls=xxx/!requiretls:nostarttls"
-\&ddEnforce' or
+\&'Enforce' or
 \&'opportunistic+starttls' policy violation. The connection was not
 used because the remote server did not support STARTTLS.
 .br
 .IP "tls=xxx/!requiretls:noencryption"
-\&ddEnforce' or
+\&'Enforce' or
 \&'opportunistic+starttls' policy violation. No connection was made
 used because the TLS security policy disabled encryption.
 .br
 .IP "tls=xxx/!requiretls:none"
-\&ddEnforce' policy violation.
+\&'Enforce' policy violation.
 After a successful TLS handshake, the connection was not used because
 the remote server did not support REQUIRETLS.
 .br
 .IP "tls=xxx/requiretls:none"
-\&ddOpportunistic+starttls'
+\&'Opportunistic+starttls'
 policy compliant. After a successful TLS handshake, the remote
 server did not announce REQUIRETLS support, and the connection was
 used without sending REQUIRETLS.
 .br
 .IP "tls=xxx/requiretls:none"
-\&ddOpportunistic' policy
+\&'Opportunistic' policy
 compliant. The remote server did not announce support for STARTTLS
 or REQUIRETLS, and the connection was used without sending REQUIRETLS.
 .br

@@ -30041,3 +30041,6 @@ Apologies for any names omitted.
 
 	Testing: add 'update' to global library test targets. File:
 	global/Makefile.in.
+
+	Bugfix: garbage in the postconf.5 text. Perl numbers () regexp
+	patterns in unexpected ways. File: mantools/postconf2man.
