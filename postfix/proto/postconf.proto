@@ -20032,7 +20032,7 @@ used in plaintext as permitted by the opportunistic TLS policy. </dd>
 
 <dt> tls=dane </dt> <dd> DANE policy compliant, no downgrade. </dd>
 
-<dt> tls=(dane:halfdane) </dt> <dd> Opportunistic DANE. The connection
+<dt> tls=dane:halfdane </dt> <dd> Opportunistic DANE. The connection
 security was downgraded to '<tt>halfdane</tt>' to indicate that
 mail server records were not DNSSEC-signed. </dd>
 

@@ -30044,3 +30044,11 @@ Apologies for any names omitted.
 
 	Bugfix: garbage in the postconf.5 text. Perl numbers () regexp
 	patterns in unexpected ways. File: mantools/postconf2man.
+
+20251118
+
+	Code health: unit tests for the non_empty_end_of_header_action
+	feature. File: cleanup_message_test.c.
+
+	Miscellaneous documentation fixes. Files: proto/postconf.proto,
+	mantools/postconf2html.

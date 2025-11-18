@@ -15,7 +15,8 @@ HDRS	=
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
-TESTPROG= cleanup_masquerade cleanup_milter cleanup_envelope_test
+TESTPROG= cleanup_masquerade cleanup_milter cleanup_envelope_test \
+	cleanup_message_test
 PROG	= cleanup
 INC_DIR	= ../../include
 LIBS	= ../../lib/lib$(LIB_PREFIX)master$(LIB_SUFFIX) \
@@ -62,10 +63,18 @@ CLEANUP_SIZE_TEST_OBJS = cleanup_envelope.o cleanup_state.o cleanup_out.o \
 cleanup_envelope_test: cleanup_envelope_test.o $(CLEANUP_SIZE_TEST_OBJS) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(CLEANUP_SIZE_TEST_OBJS) $(LIBS) $(SYSLIBS)
 
-tests:	cleanup_masquerade_test milter_tests test_cleanup_envelope
+CLEANUP_MESG_TEST_OBJS = cleanup_message.o cleanup_state.o cleanup_out.o
+cleanup_message_test: cleanup_message_test.o $(CLEANUP_MESG_TEST_OBJS) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(CLEANUP_MESG_TEST_OBJS) $(LIBS) $(SYSLIBS)
+
+tests:	cleanup_masquerade_test milter_tests test_cleanup_envelope \
+	test_cleanup_message
 
 test_cleanup_envelope: cleanup_envelope_test
 	$(SHLIB_ENV) $(VALGRIND) ./cleanup_envelope_test
+
+test_cleanup_message: cleanup_message_test
+	$(SHLIB_ENV) $(VALGRIND) ./cleanup_message_test
 
 milter_tests: cleanup_milter_test bug_tests \
 	cleanup_milter_test2 cleanup_milter_test3 cleanup_milter_test4 \

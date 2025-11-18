@@ -928,7 +928,7 @@ static void cleanup_header_done_callback(void *context)
      * Get the current error state before mime_state_update() can return it.
      */
     mime_errs = mime_state_status(state->mime_state);
-    if ((mime_errs && MIME_ERR_NON_EMPTY_EOH)
+    if ((mime_errs & MIME_ERR_NON_EMPTY_EOH)
 	&& cleanup_non_empty_eoh_action == NON_EMPTY_EOH_CODE_ADD_HDR)
 	cleanup_out_string(state, REC_TYPE_NORM,
 	     "MIME-Error: message header was not terminated by empty line");
