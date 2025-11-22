@@ -422,8 +422,8 @@ void    pcf_register_builtin_parameters(const char *procname, pid_t pid)
 			      pcf_conv_bool_parameter);
     for (cit = pcf_int_table; cit->name; cit++)
 	PCF_PARAM_TABLE_ENTER(pcf_param_table, cit->name,
-			      PCF_PARAM_FLAG_BUILTIN, (void *) cit,
-			      pcf_conv_int_parameter);
+			      PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_NUMBER,
+			      (void *) cit, pcf_conv_int_parameter);
     for (cst = pcf_str_table; cst->name; cst++)
 	PCF_PARAM_TABLE_ENTER(pcf_param_table, cst->name,
 			      PCF_PARAM_FLAG_BUILTIN, (void *) cst,
@@ -446,8 +446,8 @@ void    pcf_register_builtin_parameters(const char *procname, pid_t pid)
 			      pcf_conv_nbool_parameter);
     for (lst = pcf_long_table; lst->name; lst++)
 	PCF_PARAM_TABLE_ENTER(pcf_param_table, lst->name,
-			      PCF_PARAM_FLAG_BUILTIN, (void *) lst,
-			      pcf_conv_long_parameter);
+			      PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_NUMBER,
+			      (void *) lst, pcf_conv_long_parameter);
 
     /*
      * Register legacy parameters (used as a backwards-compatible migration

@@ -30052,3 +30052,24 @@ Apologies for any names omitted.
 
 	Miscellaneous documentation fixes. Files: proto/postconf.proto,
 	mantools/postconf2html.
+
+20251120
+
+	Bugfix (defect introduced: Postfix 2.9, date: 20120307):
+	segfault with duplicate parameter name in "postconf -X" or
+	"postconf -#'. File: postconf/postconf_edit.c.
+
+20251121
+
+	Feature: postconf '-j' option for JSON output. Files:
+	postconf/postconf.[hc], postconf/postconf_main.c,
+	postconf/postconf_json.c, postconf/test8[0-7].ref,
+	postconf/Makefile.in, util/quote_for_json.c,
+	util/stringops.h.
+
+20251122
+
+	Feature: basic JSON output support with "postalias -j" and
+	"postmap -j". See respective manpages for details. Files:
+	postmap/Makefile.in, postmap/postmap.c, postalias/Makefile.in,
+	postalias/postalias.c.

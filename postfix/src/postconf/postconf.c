@@ -8,7 +8,7 @@
 /* .ti -4
 /*	\fBManaging main.cf:\fR
 /*
-/*	\fBpostconf\fR [\fB-dfhHnopqvx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-dfhHjnopqvx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fB-C \fIclass,...\fR] [\fIparameter ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-epv\fR] [\fB-c \fIconfig_dir\fR]
@@ -23,7 +23,7 @@
 /* .ti -4
 /*	\fBManaging master.cf service entries:\fR
 /*
-/*	\fBpostconf\fR \fB-M\fR [\fB-foqvx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-M\fR [\fB-joqvx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIservice\fR[\fB/\fItype\fR]\fI ...\fR]
 /*
 /*	\fBpostconf\fR \fB-M\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -38,7 +38,7 @@
 /* .ti -4
 /*	\fBManaging master.cf service fields:\fR
 /*
-/*	\fBpostconf\fR \fB-F\fR [\fB-fhHoqvx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-F\fR [\fB-fhHjoqvx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIservice\fR[\fB/\fItype\fR[\fB/\fIfield\fR]]\fI ...\fR]
 /*
 /*	\fBpostconf\fR \fB-F\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -47,7 +47,7 @@
 /* .ti -4
 /*	\fBManaging master.cf service parameters:\fR
 /*
-/*	\fBpostconf\fR \fB-P\fR [\fB-fhHoqvx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-P\fR [\fB-fhHjoqvx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIservice\fR[\fB/\fItype\fR[\fB/\fIparameter\fR]]\fI ...\fR]
 /*
 /*	\fBpostconf\fR \fB-P\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -210,6 +210,11 @@
 /*	that normally follows the name.
 /*
 /*	This feature is available with Postfix 3.1 and later.
+/* .IP \fB-j\fR
+/*      JSON output. Format main.cf or master.cf settings as one
+/*      \fB{"\fIkey\fB": "\fIvalue\fB"}\fR object per line.
+/*
+/*	This feature is available with Postfix 3.11 and later.
 /* .IP \fB-l\fR
 /*	List the names of all supported mailbox locking methods.
 /*	Postfix supports the following methods:
@@ -696,14 +701,19 @@ static const int pcf_compat_options[][2] = {
     {PCF_MAIN_PARAM, (PCF_EDIT_CONF | PCF_EDIT_EXCL | PCF_COMMENT_OUT \
 		      |PCF_FOLD_LINE | PCF_HIDE_NAME | PCF_PARAM_CLASS \
 		      |PCF_SHOW_EVAL | PCF_SHOW_DEFS | PCF_SHOW_NONDEF \
-		      |PCF_MAIN_OVER | PCF_HIDE_VALUE)},
+		      |PCF_MAIN_OVER | PCF_HIDE_VALUE | PCF_SHOW_JSON)},
     {PCF_MASTER_ENTRY, (PCF_EDIT_CONF | PCF_EDIT_EXCL | PCF_COMMENT_OUT \
-			|PCF_FOLD_LINE | PCF_MAIN_OVER | PCF_SHOW_EVAL)},
+			|PCF_FOLD_LINE | PCF_MAIN_OVER | PCF_SHOW_EVAL \
+			|PCF_SHOW_JSON)},
     {PCF_MASTER_FLD, (PCF_EDIT_CONF | PCF_FOLD_LINE | PCF_HIDE_NAME \
-		      |PCF_MAIN_OVER | PCF_SHOW_EVAL | PCF_HIDE_VALUE)},
+		      |PCF_MAIN_OVER | PCF_SHOW_EVAL | PCF_HIDE_VALUE \
+		      |PCF_SHOW_JSON)},
     {PCF_MASTER_PARAM, (PCF_EDIT_CONF | PCF_EDIT_EXCL | PCF_FOLD_LINE \
 			|PCF_HIDE_NAME | PCF_MAIN_OVER | PCF_SHOW_EVAL \
-			|PCF_HIDE_VALUE)},
+			|PCF_HIDE_VALUE | PCF_SHOW_JSON)},
+    {PCF_SHOW_JSON, (PCF_MAIN_PARAM | PCF_MASTER_ENTRY | PCF_MASTER_FLD \
+		     |PCF_MASTER_PARAM | PCF_MAIN_OVER | PCF_SHOW_EVAL \
+		     |PCF_SHOW_NONDEF | PCF_SHOW_DEFS)},
     /* Modifiers. */
     {PCF_PARAM_CLASS, (PCF_MAIN_PARAM | PCF_SHOW_DEFS | PCF_SHOW_NONDEF)},
     0,
@@ -723,6 +733,7 @@ static const NAME_MASK pcf_compat_names[] = {
     "-F", PCF_MASTER_FLD,
     "-h", PCF_HIDE_NAME,
     "-H", PCF_HIDE_VALUE,
+    "-j", PCF_SHOW_JSON,
     "-l", PCF_SHOW_LOCKS,
     "-m", PCF_SHOW_MAPS,
     "-M", PCF_MASTER_ENTRY,
@@ -754,6 +765,7 @@ static void usage(const char *progname)
 	      " [-F (master.cf fields)]"
 	      " [-h (no names)]"
 	      " [-H (no values)]"
+	      " [-j (streaming JSON) ]"
 	      " [-l (lock types)]"
 	      " [-m (map types)]"
 	      " [-M (master.cf)]"
@@ -866,7 +878,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "aAbc:C:deEfFhHlmMno:pPqtT:vxX#")) > 0) {
+    while ((ch = GETOPT(argc, argv, "aAbc:C:deEfFhHjlmMno:pPqtT:vxX#")) > 0) {
 	switch (ch) {
 	case 'a':
 	    pcf_cmd_mode |= PCF_SHOW_SASL_SERV;
@@ -909,6 +921,9 @@ int     main(int argc, char **argv)
 	    break;
 	case 'H':
 	    pcf_cmd_mode |= PCF_HIDE_VALUE;
+	    break;
+	case 'j':
+	    pcf_cmd_mode |= PCF_SHOW_JSON;
 	    break;
 	case 'l':
 	    pcf_cmd_mode |= PCF_SHOW_LOCKS;

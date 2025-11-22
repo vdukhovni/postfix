@@ -198,6 +198,7 @@ static const char *pcf_valid_master_types[] = {
 static const char pcf_valid_bool_types[] = "yn-";
 
 static VSTRING *pcf_exp_buf;
+static VSTRING *pcf_json_buf;
 
 #define STR(x) vstring_str(x)
 
@@ -464,6 +465,97 @@ void    pcf_read_master(int fail_on_open_error)
     pcf_master_table[entry_count].argv = 0;
 }
 
+/* pcf_print_master_entry_as_json - JSON formatter */
+
+static void pcf_print_master_entry_as_json(VSTREAM *fp, int mode,
+					           PCF_MASTER_ENT *masterp)
+{
+    char  **argv = masterp->argv->argv;
+    const char *arg;
+    const char *aval;
+    int     field;
+    int     in_daemon_options;
+    int     need_parens;
+
+    if (pcf_exp_buf == 0 && (mode & PCF_SHOW_EVAL))
+	pcf_exp_buf = vstring_alloc(100);
+    if (pcf_json_buf == 0 && (mode & PCF_SHOW_JSON))
+	pcf_json_buf = vstring_alloc(100);
+
+    /*
+     * Output the namespace part first, so that we can reuse a buffer.
+     */
+    vstream_fprintf(fp, "{\"%s\": ",
+		    quote_for_json(pcf_json_buf, masterp->name_space, -1));
+
+    /*
+     * Show the standard fields with one-space column separation.
+     */
+#define APPEND_JSON_STR(s, l) quote_for_json_append(pcf_json_buf, (s), (l))
+#define APPEND_JSON_STR0(s) APPEND_JSON_STR((s), -1)
+#define APPEND_JSON_CHAR(s) APPEND_JSON_STR((s),  1)
+
+    VSTRING_RESET(pcf_json_buf);
+    for (field = 0; field < PCF_MASTER_MIN_FIELDS; field++) {
+	arg = argv[field];
+	if (field > 0)
+	    APPEND_JSON_CHAR(" ");
+	APPEND_JSON_STR0(arg);
+    }
+
+    /*
+     * Format the daemon command-line options and non-option arguments.
+     */
+    in_daemon_options = 1;
+    for ( /* void */ ; (arg = argv[field]) != 0; field++) {
+	aval = 0;
+	need_parens = 0;
+	if (in_daemon_options) {
+	    if (arg[0] != '-' || strcmp(arg, "--") == 0) {
+		in_daemon_options = 0;
+	    }
+
+	    /*
+	     * Special processing for options that require a value.
+	     */
+	    else if (strchr(pcf_daemon_options_expecting_value, arg[1]) != 0
+		     && (aval = argv[field + 1]) != 0) {
+
+		/*
+		 * Optionally, expand $name in parameter value.
+		 */
+		if (strcmp(arg, "-o") == 0
+		    && (mode & PCF_SHOW_EVAL) != 0)
+		    aval = pcf_expand_parameter_value(pcf_exp_buf, mode,
+						      aval, masterp);
+		need_parens = aval[strcspn(aval, PCF_MASTER_BLANKS)];
+	    }
+	} else {
+	    need_parens = arg[strcspn(arg, PCF_MASTER_BLANKS)];
+	}
+	APPEND_JSON_CHAR(" ");
+	if (in_daemon_options == 0 && need_parens)
+	    APPEND_JSON_CHAR("{");
+	APPEND_JSON_STR0(arg);
+	if (in_daemon_options == 0 && need_parens)
+	    APPEND_JSON_CHAR("}");
+	if (aval) {
+	    APPEND_JSON_CHAR(" ");
+	    if (need_parens)
+		APPEND_JSON_CHAR("{");
+	    APPEND_JSON_STR0(aval);
+	    if (need_parens)
+		APPEND_JSON_CHAR("}");
+	    field += 1;
+	}
+    }
+    VSTRING_TERMINATE(pcf_json_buf);
+    vstream_fprintf(fp, "\"%s\"}\n", STR(pcf_json_buf));
+
+    if (msg_verbose)
+	vstream_fflush(fp);
+}
+
 /* pcf_print_master_entry - print one master line */
 
 void    pcf_print_master_entry(VSTREAM *fp, int mode, PCF_MASTER_ENT *masterp)
@@ -487,6 +579,10 @@ void    pcf_print_master_entry(VSTREAM *fp, int mode, PCF_MASTER_ENT *masterp)
 	57,				/* command */
     };
 
+    if (mode & PCF_SHOW_JSON) {
+	pcf_print_master_entry_as_json(fp, mode, masterp);
+	return;
+    }
 #define ADD_TEXT(text, len) do { \
         vstream_fputs(text, fp); line_len += len; } \
     while (0)
@@ -654,6 +750,91 @@ void    pcf_show_master_entries(VSTREAM *fp, int mode, int argc, char **argv)
     }
 }
 
+/* pcf_print_master_field_as_json - scaffolding for JSON */
+
+static void pcf_print_master_field_as_json(VSTREAM *fp, int mode,
+					           PCF_MASTER_ENT *masterp,
+					           int field)
+{
+    char  **argv = masterp->argv->argv;
+    const char *arg;
+    const char *aval;
+    int     in_daemon_options;
+    int     need_parens;
+
+    if (pcf_exp_buf == 0 && (mode & PCF_SHOW_EVAL) != 0)
+	pcf_exp_buf = vstring_alloc(100);
+    if (pcf_json_buf == 0 && (mode & PCF_SHOW_JSON) != 0)
+	pcf_json_buf = vstring_alloc(100);
+
+    /*
+     * Output the name part first, so that we can reuse a buffer.
+     */
+    vstream_fprintf(fp, "{\"%s\": ",
+		    quote_for_json_var(pcf_json_buf, masterp->name_space,
+				       PCF_NAMESP_SEP_STR,
+				       pcf_str_field_pattern(field),
+				       (const char *) 0));
+
+    /*
+     * Show the field value, or the first value in the case of a multi-column
+     * field.
+     */
+    VSTRING_RESET(pcf_json_buf);
+    APPEND_JSON_STR0(argv[field]);
+
+    /*
+     * Format the daemon command-line options and non-option arguments. Here,
+     * we have no data-dependent preference for column positions, but we do
+     * have argument grouping preferences.
+     */
+    if (field == PCF_MASTER_FLD_CMD) {
+	in_daemon_options = 1;
+	for (field += 1; (arg = argv[field]) != 0; field++) {
+	    aval = 0;
+	    need_parens = 0;
+	    if (in_daemon_options) {
+		if (arg[0] != '-' || strcmp(arg, "--") == 0) {
+		    in_daemon_options = 0;
+		} else if (strchr(pcf_daemon_options_expecting_value, arg[1]) != 0
+			   && (aval = argv[field + 1]) != 0) {
+
+		    /*
+		     * Optionally, expand $name in parameter value.
+		     */
+		    if (strcmp(arg, "-o") == 0
+			&& (mode & PCF_SHOW_EVAL) != 0)
+			aval = pcf_expand_parameter_value(pcf_exp_buf, mode,
+							  aval, masterp);
+		    need_parens = aval[strcspn(aval, PCF_MASTER_BLANKS)];
+		}
+	    } else {
+		need_parens = arg[strcspn(arg, PCF_MASTER_BLANKS)];
+	    }
+	    APPEND_JSON_CHAR(" ");
+	    if (in_daemon_options == 0 && need_parens)
+		APPEND_JSON_CHAR("{");
+	    APPEND_JSON_STR0(arg);
+	    if (in_daemon_options == 0 && need_parens)
+		APPEND_JSON_CHAR("}");
+	    if (aval) {
+		APPEND_JSON_CHAR(" ");
+		if (need_parens)
+		    APPEND_JSON_CHAR("{");
+		APPEND_JSON_STR0(aval);
+		if (need_parens)
+		    APPEND_JSON_CHAR("}");
+		field += 1;
+	    }
+	}
+    }
+    VSTRING_TERMINATE(pcf_json_buf);
+    vstream_fprintf(fp, "\"%s\"}\n", STR(pcf_json_buf));
+
+    if (msg_verbose)
+	vstream_fflush(fp);
+}
+
 /* pcf_print_master_field - scaffolding */
 
 static void pcf_print_master_field(VSTREAM *fp, int mode,
@@ -668,6 +849,10 @@ static void pcf_print_master_field(VSTREAM *fp, int mode,
     int     in_daemon_options;
     int     need_parens;
 
+    if (mode & PCF_SHOW_JSON) {
+	pcf_print_master_field_as_json(fp, mode, masterp, field);
+	return;
+    }
     if (pcf_exp_buf == 0)
 	pcf_exp_buf = vstring_alloc(100);
 
@@ -882,8 +1067,10 @@ static void pcf_print_master_param(VSTREAM *fp, int mode,
 				           const char *param_name,
 				           const char *param_value)
 {
-    if (pcf_exp_buf == 0)
+    if (pcf_exp_buf == 0 && (mode & PCF_SHOW_EVAL))
 	pcf_exp_buf = vstring_alloc(100);
+    if (pcf_json_buf == 0 && (mode & PCF_SHOW_JSON))
+	pcf_json_buf = vstring_alloc(100);
 
     if (mode & PCF_HIDE_VALUE) {
 	pcf_print_line(fp, mode, "%s%c%s\n",
@@ -893,7 +1080,14 @@ static void pcf_print_master_param(VSTREAM *fp, int mode,
 	if ((mode & PCF_SHOW_EVAL) != 0)
 	    param_value = pcf_expand_parameter_value(pcf_exp_buf, mode,
 						     param_value, masterp);
-	if ((mode & PCF_HIDE_NAME) == 0) {
+	if (mode & PCF_SHOW_JSON) {
+	    vstream_fprintf(fp, "{\"%s\": ",
+		       quote_for_json_var(pcf_json_buf, masterp->name_space,
+					  PCF_NAMESP_SEP_STR, param_name,
+					  (const char *) 0));
+	    vstream_fprintf(fp, "\"%s\"}\n",
+			    quote_for_json(pcf_json_buf, param_value, -1));
+	} else if ((mode & PCF_HIDE_NAME) == 0) {
 	    pcf_print_line(fp, mode, "%s%c%s = %s\n",
 			   masterp->name_space, PCF_NAMESP_SEP_CH,
 			   param_name, param_value);

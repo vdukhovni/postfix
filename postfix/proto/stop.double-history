@@ -251,3 +251,6 @@ proto  proto REQUIRETLS_README html global mail_params hc
  smtpd smtpd c smtp smtp_connect c smtp smtp_proto c 
  util mac_expand ref proto postconf proto proto Makefile in 
  smtp lmtp_params c smtp smtp h smtp smtp_params c 
+ postmap Makefile in postmap postmap c postalias Makefile in 
+ postalias postalias c 
+ postconf postconf hc postconf postconf_main c 

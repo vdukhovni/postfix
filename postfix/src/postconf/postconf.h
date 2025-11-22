@@ -47,6 +47,7 @@
 #define PCF_HIDE_VALUE		(1<<20)	/* hide main.cf/master.cf =value */
 #define PCF_SHOW_TLS		(1<<21)	/* TLS support introspection */
 #define PCF_WARN_UNUSED_DEPRECATED (1<<22)	/* As the name says */
+#define PCF_SHOW_JSON		(1 << 23)	/* JSON output */
 
 #define PCF_DEF_MODE	(PCF_WARN_UNUSED_DEPRECATED)
 
@@ -69,6 +70,7 @@ typedef struct {
 #define PCF_PARAM_FLAG_LEGACY	(1<<4)	/* legacy parameter name */
 #define PCF_PARAM_FLAG_READONLY	(1<<5)	/* legacy parameter name */
 #define PCF_PARAM_FLAG_DBMS	(1<<6)	/* dbms-defined parameter name */
+#define PCF_PARAM_FLAG_NUMBER	(1<<7)	/* numeric value */
 
 #define PCF_PARAM_MASK_CLASS \
 	(PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_SERVICE | PCF_PARAM_FLAG_USER)
@@ -82,6 +84,7 @@ typedef struct {
 #define PCF_LEGACY_PARAMETER(node) ((node)->flags & PCF_PARAM_FLAG_LEGACY)
 #define PCF_READONLY_PARAMETER(node) ((node)->flags & PCF_PARAM_FLAG_READONLY)
 #define PCF_DBMS_PARAMETER(node) ((node)->flags & PCF_PARAM_FLAG_DBMS)
+#define PCF_NUMBER_PARAMETER(mode) ((node)->flags & PCF_PARAM_FLAG_NUMBER)
 
  /* Values for param_data. See postconf_node module for narrative text. */
 #define PCF_PARAM_NO_DATA	((char *) 0)

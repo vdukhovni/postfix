@@ -9,7 +9,7 @@ Postfix alias database maintenance
 .na
 .nf
 .fi
-\fBpostalias\fR [\fB\-Nfinoprsuvw\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostalias\fR [\fB\-Nfijnoprsuvw\fR] [\fB\-c \fIconfig_dir\fR]
 [\fB\-d \fIkey\fR] [\fB\-q \fIkey\fR]
         [\fIfile_type\fR:]\fIfile_name\fR ...
 .SH DESCRIPTION
@@ -62,6 +62,11 @@ is controlled by appending a flag to a pattern.
 Incremental mode. Read entries from standard input and do not
 truncate an existing database. By default, \fBpostalias\fR(1) creates
 a new database from the entries in \fIfile_name\fR.
+.IP \fB\-j\fR
+JSON output. Format the output from \fB\-q\fR and \fB\-s\fR
+as one \fB{"\fIkey\fB": "\fIvalue\fB"}\fR object per line.
+.sp
+This feature is available in Postfix version 3.11 and later.
 .IP \fB\-N\fR
 Include the terminating null character that terminates lookup keys
 and values. By default, \fBpostalias\fR(1) does whatever

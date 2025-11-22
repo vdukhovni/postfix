@@ -56,7 +56,9 @@ tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test42 test43 test44 test45 test46 test47 test48 test49 test50 test51 \
 	test52 test53 test54 test55 test56 test57 test58 test59 test60 test61 \
 	test62 test63 test64 test65 test66 test67 test68 test69 test70 test71 \
-	test72 test73 test74 test75 test76 test78 test79
+	test72 test73 test74 test75 test76 test78 test79 json_tests
+
+json_tests: test80 test81 test82 test83 test84 test85 test86 test87
 
 root_tests:
 
@@ -1127,9 +1129,130 @@ test79:	$(PROG) test79.ref
 	diff /dev/null test79.tmp
 	rm -f main.cf master.cf test79.tmp
 
+# JSON for main.cf parameters - no $name expansion
+test80: $(PROG) test80.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'mydestination=$$whatever' >> main.cf
+	echo whatever=example.com >> main.cf
+	touch -t 197601010000 main.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc. -j >test80.tmp 2>&1
+	diff test80.ref test80.tmp
+	rm -f main.cf master.cf test80.tmp
+
+# JSON for main.cf parameters - with $name expansion
+test81: $(PROG) test81.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'mydestination=$$whatever' >> main.cf
+	echo whatever=example.com >> main.cf
+	touch -t 197601010000 main.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -nc. -jx >test81.tmp 2>&1
+	diff test81.ref test81.tmp
+	rm -f main.cf master.cf test81.tmp
+
+# JSON for master.cf entries - no $name expansion
+test82: $(PROG) test82.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'mydestination=$$whatever' >> main.cf
+	echo whatever=example.com >> main.cf
+	touch -t 197601010000 main.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o mydestination=$$whatever' >> master.cf
+	echo ' -o whatever=example.net' >> master.cf
+	echo 12345 inet n n n - - spawn >> master.cf
+	echo ' -o { command_time_limit = 2 3 }' >> master.cf
+	echo ' user=nobody argv=/bin/sh -c { sleep 1 }' >> master.cf 
+	touch -t 197601010000 master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -c. -Mj >test82.tmp 2>&1
+	diff test82.ref test82.tmp
+	rm -f main.cf master.cf test82.tmp
+
+# JSON for master.cf entries - with $name expansion
+test83: $(PROG)	test83.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'mydestination=$$whatever' >> main.cf
+	echo whatever=example.com >> main.cf
+	touch -t 197601010000 main.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o mydestination=$$whatever' >> master.cf
+	echo ' -o whatever=example.net' >> master.cf
+	touch -t 197601010000 master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -c. -Mjx >test83.tmp 2>&1
+	diff test83.ref test83.tmp
+	rm -f main.cf master.cf test83.tmp
+
 clean:
 	rm -f *.o *core $(PROG) $(TESTPROG) junk $(MAKES) $(AUTOS) $(DUMMIES) \
 	$(TEST_TMP) $(DB_MAKES)
+
+# JSON for master.cf fields - no $name expansion
+test84: $(PROG) test84.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'mydestination=$$whatever' >> main.cf
+	echo whatever=example.com >> main.cf
+	touch -t 197601010000 main.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o mydestination=$$whatever' >> master.cf
+	echo ' -o whatever=example.net' >> master.cf
+	echo 12345 inet n n n - - spawn >> master.cf
+	echo ' -o { command_time_limit = 2 3 }' >> master.cf
+	echo ' user=nobody argv=/bin/sh -c { sleep 1 }' >> master.cf 
+	touch -t 197601010000 master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -c. -Fj >test84.tmp 2>&1
+	diff test84.ref test84.tmp
+	rm -f main.cf master.cf test84.tmp
+
+# JSON for master.cf fields - with $name expansion
+test85: $(PROG) test85.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'mydestination=$$whatever' >> main.cf
+	echo whatever=example.com >> main.cf
+	touch -t 197601010000 main.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o mydestination=$$whatever' >> master.cf
+	echo ' -o whatever=example.net' >> master.cf
+	touch -t 197601010000 master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -c. -Fjx >test85.tmp 2>&1
+	diff test85.ref test85.tmp
+	rm -f main.cf master.cf test85.tmp
+
+# JSON for master.cf parameters - no $name expansion
+test86: $(PROG) test86.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'mydestination=$$whatever' >> main.cf
+	echo whatever=example.com >> main.cf
+	touch -t 197601010000 main.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o mydestination=$$whatever' >> master.cf
+	echo ' -o whatever=example.net' >> master.cf
+	echo 12345 inet n n n - - spawn >> master.cf
+	echo ' -o { command_time_limit = 2 3 }' >> master.cf
+	echo ' user=nobody argv=/bin/sh -c { sleep 1 }' >> master.cf 
+	touch -t 197601010000 master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -c. -Pj >test86.tmp 2>&1
+	diff test86.ref test86.tmp
+	rm -f main.cf master.cf test86.tmp
+
+# JSON for master.cf parameters - with $name expansion
+test87: $(PROG) test87.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'mydestination=$$whatever' >> main.cf
+	echo whatever=example.com >> main.cf
+	touch -t 197601010000 main.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o mydestination=$$whatever' >> master.cf
+	echo ' -o whatever=example.net' >> master.cf
+	touch -t 197601010000 master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -c. -Pjx >test87.tmp 2>&1
+	diff test87.ref test87.tmp
+	rm -f main.cf master.cf test87.tmp
 
 tidy:	clean
 

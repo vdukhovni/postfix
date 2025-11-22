@@ -12,7 +12,7 @@ Postfix configuration utility
 .ti -4
 \fBManaging main.cf:\fR
 
-\fBpostconf\fR [\fB\-dfhHnopqvx\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostconf\fR [\fB\-dfhHjnopqvx\fR] [\fB\-c \fIconfig_dir\fR]
 [\fB\-C \fIclass,...\fR] [\fIparameter ...\fR]
 
 \fBpostconf\fR [\fB\-epv\fR] [\fB\-c \fIconfig_dir\fR]
@@ -27,7 +27,7 @@ Postfix configuration utility
 .ti -4
 \fBManaging master.cf service entries:\fR
 
-\fBpostconf\fR \fB\-M\fR [\fB\-foqvx\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB\-M\fR [\fB\-joqvx\fR] [\fB\-c \fIconfig_dir\fR]
 [\fIservice\fR[\fB/\fItype\fR]\fI ...\fR]
 
 \fBpostconf\fR \fB\-M\fR [\fB\-ev\fR] [\fB\-c \fIconfig_dir\fR]
@@ -42,7 +42,7 @@ Postfix configuration utility
 .ti -4
 \fBManaging master.cf service fields:\fR
 
-\fBpostconf\fR \fB\-F\fR [\fB\-fhHoqvx\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB\-F\fR [\fB\-fhHjoqvx\fR] [\fB\-c \fIconfig_dir\fR]
 [\fIservice\fR[\fB/\fItype\fR[\fB/\fIfield\fR]]\fI ...\fR]
 
 \fBpostconf\fR \fB\-F\fR [\fB\-ev\fR] [\fB\-c \fIconfig_dir\fR]
@@ -51,7 +51,7 @@ Postfix configuration utility
 .ti -4
 \fBManaging master.cf service parameters:\fR
 
-\fBpostconf\fR \fB\-P\fR [\fB\-fhHoqvx\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB\-P\fR [\fB\-fhHjoqvx\fR] [\fB\-c \fIconfig_dir\fR]
 [\fIservice\fR[\fB/\fItype\fR[\fB/\fIparameter\fR]]\fI ...\fR]
 
 \fBpostconf\fR \fB\-P\fR [\fB\-ev\fR] [\fB\-c \fIconfig_dir\fR]
@@ -216,6 +216,11 @@ Show parameter or attribute names without the " = \fIvalue\fR"
 that normally follows the name.
 
 This feature is available with Postfix 3.1 and later.
+.IP \fB\-j\fR
+JSON output. Format main.cf or master.cf settings as one
+\fB{"\fIkey\fB": "\fIvalue\fB"}\fR object per line.
+
+This feature is available with Postfix 3.11 and later.
 .IP \fB\-l\fR
 List the names of all supported mailbox locking methods.
 Postfix supports the following methods:

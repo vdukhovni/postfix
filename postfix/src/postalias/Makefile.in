@@ -24,7 +24,7 @@ Makefile: Makefile.in
 
 update: ../../bin/$(PROG)
 
-tests:	test1 test2 fail_test mode_conflict_test
+tests:	test1 test2 fail_test mode_conflict_test json_tests
 
 root_tests:
 
@@ -73,6 +73,41 @@ mode_conflict_test: $(PROG) mode_conflict_test.in mode_conflict_test.ref
 	$(SHLIB_ENV) MAIL_CONFIG=. $(NOSLEEP) sh -x mode_conflict_test.in >mode_conflict_test.tmp 2>&1
 	diff mode_conflict_test.ref mode_conflict_test.tmp
 	rm -f mode_conflict_test.tmp main.cf
+
+json_tests: json_query_test json_queries_test json_sequence_test
+
+json_query_test: $(PROG)
+	# Exercise code in postalias_query().
+	@echo ; echo RUN json_query_test
+	echo '{"postmaster": "root"}' >json_query.tmp
+	$(SHLIB_ENV) ${VALGRIND} ./$(PROG)  -jq postmaster \
+		'inline:{{postmaster = root}}' | diff json_query.tmp -
+	($(SHLIB_ENV) ${VALGRIND} ./$(PROG)  -jq other \
+		'inline:{{postmaster = root}}' || exit 0) | diff /dev/null -
+	rm -f json_query.tmp
+	@echo PASS json_query_test
+
+json_queries_test: $(PROG)
+	# Exercise json formatting in postalias_queries().
+	@echo ; echo RUN json_queries_test
+	echo '{"postmaster": "root"}' >json_queries.tmp
+	(echo postmaster; echo other) | $(SHLIB_ENV) ${VALGRIND} \
+		./$(PROG) -jq - 'inline:{{postmaster = root}}' | \
+		diff json_queries.tmp -
+	rm -f json_queries.tmp 
+	@echo PASS json_queries_test
+
+json_sequence_test: $(PROG)
+	# Exercise json formatting in postalias_seq().
+	@echo ; echo RUN json_sequence_test
+	rm -f json_sequence.tmp
+	(echo '{"postmaster": "root"}'; echo '{"root": "real-user"}') |\
+		sort >json_sequence.tmp
+	$(SHLIB_ENV) ${VALGRIND} ./$(PROG) -js \
+		'inline:{{postmaster = root} {root=real-user}}' | sort | \
+		diff json_sequence.tmp -
+	rm -f json_sequence.tmp
+	@echo PASS json_sequence_test
 
 ../../bin/$(PROG): $(PROG)
 	cp $(PROG) ../../bin
