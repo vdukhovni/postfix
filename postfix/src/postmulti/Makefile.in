@@ -1,5 +1,5 @@
 SHELL	= /bin/sh
-SRCS	= postmulti.c 
+SRCS	= postmulti.c fake_strcmp.c
 OBJS	= postmulti.o 
 HDRS	= 
 TESTSRC	= 
@@ -11,6 +11,7 @@ TESTPROG=
 PROG	= postmulti
 LIBS	= ../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
 	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
+LIB_SO	= fake_strcmp.so
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
@@ -24,7 +25,44 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:
+# Force strcmp(var_config_dir, DEF_CONFIG_DIR) to always succeeed. Outside
+# tests, postmulti MUST abort when their values differ.
+fake_strcmp.so: fake_strcmp.c
+	$(CC) $(CFLAGS) -fPIC -shared -o $@ fake_strcmp.c $(LIBS)
+
+tests: single_test json_tests
+
+# Single instance, original output format.
+single_test: $(PROG) fake_strcmp.so
+	@echo; echo RUN single_test
+	rm -f main.cf single_test.tmp
+	echo config_directory = . >>main.cf
+	echo command_directory = ../../bin >> main.cf
+	echo daemon_directory = ../../libexec >> main.cf
+	echo meta_directory = . >> main.cf
+	echo shlib_directory = ../../lib >> main.cf
+	printf "%-15s %-15s %-9s %s\n" - - y . >single_test.tmp
+	$(SHLIB_ENV) ${VALGRIND} LD_PRELOAD=./fake_strcmp.so MAIL_CONFIG=. \
+	    ./$(PROG) -l | diff single_test.tmp -
+	rm -f main.cf single_test.tmp
+	@echo PASS single_test
+
+json_tests: json_single_test
+
+# Single instance, JSON output format.
+json_single_test: $(PROG) fake_strcmp.so
+	@echo; echo RUN json_single_test
+	rm -f main.cf json_single_test.tmp
+	echo config_directory = . >>main.cf
+	echo command_directory = ../../bin >> main.cf
+	echo daemon_directory = ../../libexec >> main.cf
+	echo meta_directory = . >> main.cf
+	echo shlib_directory = ../../lib >> main.cf
+	echo "{{\"name\": \"-\"},{\"group\": \"-\"},{\"enabled\": \"y\"},{\"config_directory\": \".\"}}" >> json_single_test.tmp
+	$(SHLIB_ENV) ${VALGRIND} LD_PRELOAD=./fake_strcmp.so MAIL_CONFIG=. \
+	    ./$(PROG) -lj | diff json_single_test.tmp -
+	rm -f main.cf json_single_test.tmp
+	@echo PASS json_single_test
 
 root_tests:
 
@@ -34,7 +72,7 @@ update: ../../bin/$(PROG)
 	cp $(PROG) ../../bin
 
 clean:
-	rm -f *.o *core $(PROG) $(TESTPROG) junk
+	rm -f *.o *core $(PROG) $(TESTPROG) $(LIB_SO) junk
 
 tidy:	clean
 

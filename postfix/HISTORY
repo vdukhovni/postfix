@@ -29054,7 +29054,7 @@ Apologies for any names omitted.
 	after an I/O error on an existing connection. Reported by
 	Oleksandr Kozmenko. File: xsasl/xsasl_dovecot_server.c.
 
-20240315
+20250315
 
 	Code health: two typos canceled each other's effect. Fix
 	by Michael Tokarev. No change in compiler output. File:
@@ -29807,7 +29807,7 @@ Apologies for any names omitted.
 	for TLS feature status logging. Files: smtp/smtp_connect.c,
 	proto/postconf.proto.
 
-20240924
+20250924
  
 	TLSRPT Workaround: when policies[*].policy.policy-type is
 	"no-policy-found", report the TLSRPT policy domain name as
@@ -29947,7 +29947,7 @@ Apologies for any names omitted.
 	-L ssl-debug" will decode TLS handshake messages. Viktor
 	Dukhovni. File: posttls-finger/posttls-finger.c
 
-20241031
+20251031
 
 	Bugfix (defect introduced: Postfix 3.10, date 20250117):
 	support for "TLS-Required: no" broke client-side TLS wrappermode
@@ -30070,6 +30070,15 @@ Apologies for any names omitted.
 20251122
 
 	Feature: basic JSON output support with "postalias -j" and
-	"postmap -j". See respective manpages for details. Files:
+	"postmap -j". See respective manpages for details.  Added
+	basic tests to verify the output format. Files:
 	postmap/Makefile.in, postmap/postmap.c, postalias/Makefile.in,
 	postalias/postalias.c.
+
+20251124
+
+	Feature: basic JSON output support with "postmulti -jl".
+	The schema is documented in the updated postmulti(1) manpage.
+	Added basic tests to verify the output formats for original
+	and JSON output. Files: postmulti/postmulti.c,
+	postmulti/fake_strcmp.c, postmulti/Makefile.in.

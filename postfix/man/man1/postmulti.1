@@ -17,7 +17,7 @@ Postfix multi\-instance manager
 .ti -4
 \fBIterator mode:\fR
 
-\fBpostmulti\fR \fB\-l\fR [\fB\-aRv\fR] [\fB\-g \fIgroup\fR]
+\fBpostmulti\fR \fB\-l\fR [\fB\-ajRv\fR] [\fB\-g \fIgroup\fR]
 [\fB\-i \fIname\fR]
 
 \fBpostmulti\fR \fB\-p\fR [\fB\-av\fR] [\fB\-g \fIgroup\fR]
@@ -119,6 +119,8 @@ This option cannot be used with \fB\-p\fR.
 .nf
 .ad
 .fi
+.IP \fB\-j\fR
+Produce JSON output. See JSON OBJECT FORMAT below.
 .IP \fB\-l\fR
 List Postfix instances with their instance name, instance
 group name, enable/disable status and configuration directory.
@@ -355,6 +357,33 @@ started etc. with "postfix \-c config\-directory start".
 Enable verbose logging for debugging purposes. Multiple
 \fB\-v\fR options make the software increasingly verbose.
 .RE
+.SH "JSON OBJECT FORMAT"
+.na
+.nf
+.ad
+.fi
+The output consists of a sequence of lines. Each line contains
+one JSON object that represents settings in a corresponding
+instance's main.cf file.
+
+Object members have string values unless indicated otherwise.
+Programs should ignore members that are not listed here, as
+members may be added over time.
+.IP \fBname\fR
+The value of the corresponding \fBmulti_instance_name\fR
+parameter, or "\fB\-\fR" if no name is specified.
+.IP \fBgroup\fR
+The value of the corresponding \fBmulti_instance_group\fR
+parameter, or "\fB\-\fR" if no group is specified.
+.IP \fBenabled\fR
+Either "\fBy\fR" or "\fBn\fR", depending on whether the
+corresponding \fBmulti_instance_enable\fR parameter value is
+"\fByes\fR" or "\fBno\fR".
+.sp
+Note: this reports "\fBy\fR" for a primary instance, when
+multi\-instance support is not enabled.
+.IP \fBconfig_directory\fR
+The value of the corresponding \fBconfig_directory\fR parameter.
 .SH "ENVIRONMENT"
 .na
 .nf
