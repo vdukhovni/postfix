@@ -11172,10 +11172,6 @@ false hostname information in DNS CNAME records, and makes SASL
 password file lookups more predictable. This is the default setting
 as of Postfix 2.3. </p>
 
-<p> When DNS CNAME records are validated with secure DNS lookups
-(smtp_dns_support_level = dnssec), they are always allowed to
-override the above servername (Postfix 2.11 and later). </p>
-
 <p> This feature is available in Postfix 2.2.9 and later. </p>
 
 %PARAM lmtp_cname_overrides_servername yes

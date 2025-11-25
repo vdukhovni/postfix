@@ -27585,3 +27585,15 @@ Apologies for any names omitted.
 	with "database X is older than source file Y". Files:
 	util/dict.c, util/dict_db.c, util/dict_dbm.c, util/dict_lmdb.c,
 	util/dict_sdbm.c.
+
+20251028
+
+	Documentation: removed incorrect text from the parameter
+	description for smtp_cname_overrides_servername. File:
+	proto/postconf.proto.
+
+20251120
+
+	Bugfix (defect introduced: Postfix 2.9, date: 20120307):
+	segfault with duplicate parameter name in "postconf -X" or
+	"postconf -#'. File: postconf/postconf_edit.c.
