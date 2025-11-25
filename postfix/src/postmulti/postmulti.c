@@ -107,6 +107,8 @@
 /* .fi
 /* .IP \fB-j\fR
 /*	Produce JSON output. See JSON OBJECT FORMAT below.
+/*
+/*	This feature is available in Postfix version 3.11 and later.
 /* .IP \fB-l\fR
 /*	List Postfix instances with their instance name, instance
 /*	group name, enable/disable status and configuration directory.
@@ -1602,16 +1604,16 @@ static void list_instances(int iter_flags, INST_SELECTION *selection)
 			       ip->enabled ? "y" : "n",
 			       ip->config_dir);
 	    } else {
-		vstream_printf("{{\"name\": \"%s\"},",
+		vstream_printf("{\"name\": \"%s\",",
 			       quote_for_json(json_buf,
 					    ip->name ? ip->name : "-", -1));
-		vstream_printf("{\"group\": \"%s\"},",
+		vstream_printf("\"group\": \"%s\",",
 			       quote_for_json(json_buf,
 					   ip->gname ? ip->gname : "-", 1));
-		vstream_printf("{\"enabled\": \"%s\"},",
+		vstream_printf("\"enabled\": \"%s\",",
 			       quote_for_json(json_buf,
 					      ip->enabled ? "y" : "n", 1));
-		vstream_printf("{\"config_directory\": \"%s\"}}\n",
+		vstream_printf("\"config_directory\": \"%s\"}\n",
 			       quote_for_json(json_buf,
 					      ip->config_dir, -1));
 	    }

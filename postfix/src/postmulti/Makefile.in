@@ -58,7 +58,7 @@ json_single_test: $(PROG) fake_strcmp.so
 	echo daemon_directory = ../../libexec >> main.cf
 	echo meta_directory = . >> main.cf
 	echo shlib_directory = ../../lib >> main.cf
-	echo "{{\"name\": \"-\"},{\"group\": \"-\"},{\"enabled\": \"y\"},{\"config_directory\": \".\"}}" >> json_single_test.tmp
+	echo "{\"name\": \"-\",\"group\": \"-\",\"enabled\": \"y\",\"config_directory\": \".\"}" >> json_single_test.tmp
 	$(SHLIB_ENV) ${VALGRIND} LD_PRELOAD=./fake_strcmp.so MAIL_CONFIG=. \
 	    ./$(PROG) -lj | diff json_single_test.tmp -
 	rm -f main.cf json_single_test.tmp

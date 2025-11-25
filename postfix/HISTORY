@@ -30082,3 +30082,8 @@ Apologies for any names omitted.
 	Added basic tests to verify the output formats for original
 	and JSON output. Files: postmulti/postmulti.c,
 	postmulti/fake_strcmp.c, postmulti/Makefile.in.
+
+20251125
+
+	Cleanup: too many braces in postmulti JSON output.  Files:
+	postmulti/Makefile.in, postmulti/postmulti.c.
