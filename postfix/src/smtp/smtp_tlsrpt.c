@@ -306,13 +306,15 @@ static void smtp_tlsrpt_set_ext_policy(SMTP_STATE *state)
     if (tls->ext_policy_type == 0)
 	msg_panic("smtp_tlsrpt_set_ext_policy: no policy type");
 
+#define ARGV_OR_NULL(ap) ((ap) ? (ap)->argv : 0)
+
     switch (policy_type_val =
 	    convert_tlsrpt_policy_type(tls->ext_policy_type)) {
     case TLSRPT_POLICY_STS:
 	trw_set_tls_policy(state->tlsrpt, policy_type_val,
-			(const char *const *) tls->ext_policy_strings->argv,
+		(const char *const *) ARGV_OR_NULL(tls->ext_policy_strings),
 			   tls->ext_policy_domain,
-		     (const char *const *) tls->ext_mx_host_patterns->argv);
+	     (const char *const *) ARGV_OR_NULL(tls->ext_mx_host_patterns));
 	break;
     case TLSRPT_NO_POLICY_FOUND:
 	smtp_tlsrpt_set_no_policy(state);

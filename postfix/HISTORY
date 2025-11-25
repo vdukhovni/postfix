@@ -29208,3 +29208,43 @@ Apologies for any names omitted.
 	with "database X is older than source file Y". Files:
 	util/dict.c, util/dict_db.c, util/dict_dbm.c, util/dict_lmdb.c,
 	util/dict_sdbm.c.
+
+20251024
+
+	Logging: with "smtp_tls_enforce_sts_mx_patterns=yes" and
+	TLSRPT support enabled in a TLS policy plugin, the Postfix
+	SMTP client logs a warning when an MX hostname does not
+	match STS policy MX patterns; it logs a successful match
+	when verbose logging is enabled. File: smtp/smtp_tls_policy.c.
+
+20251027
+
+	Bugfix (defect introduced: Postfix 3.10, date: 20240902):
+	SMTP client null pointer crash when an STS policy plugin
+	sends no policy_string or no mx_pattern attributes. This
+	can happen only during tests with a fake STS plugin. File:
+	smtp/smtp_tlsrpt.c.
+
+20251028
+
+	Documentation: removed incorrect text from the parameter
+	description for smtp_cname_overrides_servername. File:
+	proto/postconf.proto.
+
+20251031
+
+	Bugfix (defect introduced: Postfix 3.10, date 20250117):
+	support for "TLS-Required: no" broke client-side TLS wrappermode
+	support, by downgrading a connection to TLS security level 'may'.
+	The solution is to change the downgrade level for wrappermode
+	connections to 'encrypt'. Rationale: by design, TLS can be
+	optional only for connections that use STARTTLS. The downgrade
+	to unauthenticated 'encrypt' allows a sender to avoid an email
+	delivery problem. Problem reported by Joshua Tyler Cochran.
+	File: smtp/smtp_tls_policy.c.
+
+20251120
+
+	Bugfix (defect introduced: Postfix 2.9, date: 20120307):
+	segfault with duplicate parameter name in "postconf -X" or
+	"postconf -#'. File: postconf/postconf_edit.c.
