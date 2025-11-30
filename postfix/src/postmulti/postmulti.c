@@ -1758,8 +1758,7 @@ int     main(int argc, char **argv)
      */
     if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
-    if (isatty(STDERR_FILENO))
-	msg_vstream_init(argv[0], VSTREAM_ERR);
+    msg_vstream_init(argv[0], VSTREAM_ERR);
     maillog_client_init(argv[0], MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 
     /*

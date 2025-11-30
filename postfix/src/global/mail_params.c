@@ -930,15 +930,11 @@ void    mail_params_init()
 	0,
     };
     const char *cp;
-    static int first = 1;
 
     /*
      * Register named functions.
      */
-    if (first) {
-	mac_midna_register();
-	first = 0;
-    }
+    mac_midna_register();
 
     /*
      * Extract compatibility level first, so that we can determine what

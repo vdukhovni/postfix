@@ -29900,10 +29900,11 @@ Apologies for any names omitted.
 	tlsproxy_client_policy, virtual_maps. Files: mantools/postlink,
 	proto/DEPRECATION_README.html, postconf/postconf_unused.c.
 
-	Cleanup: SMTP client null pointer crash when an STS policy
-	plugin sends no policy_string or no mx_pattern attributes.
-	This can happen only during tests with a fake STS plugin.
-	File: smtp/smtp_tlsrpt.c.
+	Bugfix (defect introduced: Postfix 3.10, date: 20240902):
+	SMTP client null pointer crash when an STS policy plugin
+	sends no policy_string or no mx_pattern attributes. This
+	can happen only during tests with a fake STS plugin. File:
+	smtp/smtp_tlsrpt.c.
 
 20251028
 
@@ -30085,5 +30086,24 @@ Apologies for any names omitted.
 
 20251125
 
-	Cleanup: too many braces in postmulti JSON output.  Files:
+	Cleanup: too many braces in postmulti JSON output. Files:
 	postmulti/Makefile.in, postmulti/postmulti.c.
+
+20251130
+
+	Bugfix (defect introduced: Postfix 3.11, date: 20251103):
+	postconf panic (in mac_expand_add_named_fn) because an
+	attempt was made to register a function more than once.
+	Files: util/mac_midna.c, global/mail_params.c.
+
+	Cleanup: in postmulti(1) tests link the fake_strcmp wrapper
+	statically, and speed up tests by back-dating test main.cf
+	files. Files: postmulti/Makefile.in.
+
+	Usability: enable postmulti(1) logging to STDERR even when
+	STDERR is not connected to a terminal, just like most other
+	Postfix command utilities. This makes the command easier
+	to integrate into (test) scripts. File: postmulti/postmulti.c.
+
+	Testing: test that postmulti(1) will reject a non-default
+	config_directory setting. File: postmulti/Makefile.in.

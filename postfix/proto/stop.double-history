@@ -255,3 +255,5 @@ proto  proto REQUIRETLS_README html global mail_params hc
  postalias postalias c 
  postconf postconf hc postconf postconf_main c 
  and JSON output Files postmulti postmulti c 
+ postmulti Makefile in postmulti postmulti c 
+ to integrate into test scripts File postmulti postmulti c 

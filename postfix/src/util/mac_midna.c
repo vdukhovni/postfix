@@ -83,6 +83,11 @@ static int mac_midna_to_u_label_eval(VSTRING *out, const char *name)
 /* mac_midna_register - register caller-defined function */
 void    mac_midna_register(void)
 {
-    mac_expand_add_named_fn(NAME_TO_A_LABEL, mac_midna_domain_to_ascii_eval);
-    mac_expand_add_named_fn(NAME_TO_U_LABEL, mac_midna_to_u_label_eval);
+    static int first = 1;
+
+    if (first) {
+	mac_expand_add_named_fn(NAME_TO_A_LABEL, mac_midna_domain_to_ascii_eval);
+	mac_expand_add_named_fn(NAME_TO_U_LABEL, mac_midna_to_u_label_eval);
+	first = 0;
+    }
 }
