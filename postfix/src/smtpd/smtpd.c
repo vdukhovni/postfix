@@ -1397,16 +1397,16 @@ int     var_map_reject_code;
 int     var_map_defer_code;
 char   *var_maps_rbl_domains;
 char   *var_rbl_reply_maps;
-int     var_helo_required;
+bool    var_helo_required;
 int     var_reject_code;
 int     var_defer_code;
 int     var_smtpd_err_sleep;
 int     var_non_fqdn_code;
 char   *var_bounce_rcpt;
 char   *var_error_rcpt;
-int     var_smtpd_delay_reject;
+bool    var_smtpd_delay_reject;
 char   *var_rest_classes;
-int     var_strict_rfc821_env;
+bool    var_strict_rfc821_env;
 bool    var_disable_vrfy_cmd;
 char   *var_canonical_maps;
 char   *var_send_canon_maps;
@@ -1451,7 +1451,7 @@ int     var_virt_alias_code;
 int     var_virt_mailbox_code;
 int     var_relay_rcpt_code;
 char   *var_verp_clients;
-int     var_show_unk_rcpt_table;
+bool    var_show_unk_rcpt_table;
 int     var_verify_poll_count;
 int     var_verify_poll_delay;
 char   *var_smtpd_proxy_filt;
@@ -1526,7 +1526,7 @@ char   *var_smtpd_tls_eecdh;
 char   *var_smtpd_tls_eccert_file;
 char   *var_smtpd_tls_eckey_file;
 char   *var_smtpd_tls_chain_files;
-int     var_smtpd_tls_enable_rpk;
+bool    var_smtpd_tls_enable_rpk;
 
 #endif
 

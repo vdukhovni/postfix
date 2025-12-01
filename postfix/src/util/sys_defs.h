@@ -1793,6 +1793,15 @@ typedef const char *CONST_CHAR_STAR;
   */
 extern int REMOVE(const char *);
 
+ /*
+  * Which bool?
+  */
+#ifndef NO_STDBOOL
+#include <stdbool.h>
+#else
+typedef int bool;
+#endif
+
 /* LICENSE
 /* .ad
 /* .fi

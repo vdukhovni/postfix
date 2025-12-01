@@ -110,6 +110,8 @@ appear to work.
 .IP \fB\-DNO_SNPRINTF\fR
 Use sprintf() instead of snprintf(). By default, Postfix
 uses snprintf() except on ancient systems.
+.IP \fB\-DNO_STDBOOL\fR
+Don't use <stdbool.h>. This is usually auto\-detected.
 .RE
 .IP \fBDEBUG=\fIdebug_level\fR
 Specifies a non\-default debugging level. The default is \fB\-g\fR.

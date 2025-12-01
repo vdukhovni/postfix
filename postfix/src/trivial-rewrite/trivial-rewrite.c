@@ -346,7 +346,7 @@ bool    var_percent_hack;
 char   *var_local_transport;
 char   *var_virt_transport;
 char   *var_relay_transport;
-int     var_resolve_dequoted;
+bool    var_resolve_dequoted;
 char   *var_virt_alias_maps;		/* XXX virtual_alias_domains */
 char   *var_virt_mailbox_maps;		/* XXX virtual_mailbox_domains */
 char   *var_virt_alias_doms;
@@ -356,13 +356,13 @@ bool    var_enb_relocated_pfx;
 char   *var_def_transport;
 char   *var_snd_def_xport_maps;
 char   *var_empty_addr;
-int     var_show_unk_rcpt_table;
-int     var_resolve_nulldom;
+bool    var_show_unk_rcpt_table;
+bool    var_resolve_nulldom;
 char   *var_remote_rwr_domain;
 char   *var_snd_relay_maps;
 char   *var_null_relay_maps_key;
 char   *var_null_def_xport_maps_key;
-int     var_resolve_num_dom;
+bool    var_resolve_num_dom;
 bool    var_allow_min_user;
 
  /*

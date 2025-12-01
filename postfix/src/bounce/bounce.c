@@ -228,7 +228,7 @@ char   *var_delay_rcpt;
 char   *var_bounce_tmpl;
 bool    var_threaded_bounce;
 char   *var_hfrom_format;		/* header_from_format */
-int     var_reqtls_redact_dsn;
+bool    var_reqtls_redact_dsn;
 
  /*
   * We're single threaded, so we can avoid some memory allocation overhead.

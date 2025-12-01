@@ -128,6 +128,9 @@ MAKEDEFS(1)                                                        MAKEDEFS(1)
                      Use  sprintf() instead of snprintf(). By default, Postfix
                      uses snprintf() except on ancient systems.
 
+              <b>-DNO_STDBOOL</b>
+                     Don't use &lt;stdbool.h&gt;. This is usually auto-detected.
+
        <b>DEBUG=</b><i>debug</i><b>_</b><i>level</i>
               Specifies a non-default debugging  level.  The  default  is  <b>-g</b>.
               Specify <b>DEBUG=</b> to turn off debugging.

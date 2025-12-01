@@ -434,13 +434,13 @@ int     var_qmgr_clog_warn_time;
 char   *var_conc_pos_feedback;
 char   *var_conc_neg_feedback;
 int     var_conc_cohort_limit;
-int     var_conc_feedback_debug;
+bool    var_conc_feedback_debug;
 int     var_xport_rate_delay;
 int     var_dest_rate_delay;
 char   *var_def_filter_nexthop;
 int     var_qmgr_daemon_timeout;
 int     var_qmgr_ipc_timeout;
-int     var_dsn_delay_cleared;
+bool    var_dsn_delay_cleared;
 int     var_vrfy_pend_limit;
 
 static QMGR_SCAN *qmgr_scans[2];

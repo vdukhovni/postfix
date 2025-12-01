@@ -156,7 +156,7 @@ char   *var_rcpt_bcc_maps;		/* recipient auto-bcc maps */
 char   *var_remote_rwr_domain;		/* header-only surrogate */
 char   *var_msg_reject_chars;		/* reject these characters */
 char   *var_msg_strip_chars;		/* strip these characters */
-int     var_verp_bounce_off;		/* don't verp the bounces */
+bool    var_verp_bounce_off;		/* don't verp the bounces */
 int     var_milt_conn_time;		/* milter connect/handshake timeout */
 int     var_milt_cmd_time;		/* milter command timeout */
 int     var_milt_msg_time;		/* milter content timeout */
@@ -175,13 +175,13 @@ char   *var_milt_unk_macros;		/* unknown command macros */
 char   *var_cleanup_milters;		/* non-SMTP mail */
 char   *var_milt_head_checks;		/* post-Milter header checks */
 char   *var_milt_macro_deflts;		/* default macro settings */
-int     var_auto_8bit_enc_hdr;		/* auto-detect 8bit encoding header */
-int     var_always_add_hdrs;		/* always add missing headers */
+bool    var_auto_8bit_enc_hdr;		/* auto-detect 8bit encoding header */
+bool    var_always_add_hdrs;		/* always add missing headers */
 int     var_virt_addrlen_limit;		/* stop exponential growth */
 char   *var_hfrom_format;		/* header_from_format */
 char   *var_full_name_encoding_charset;	/* in =?charset?encoding?gibberish=? */
-int     var_force_mime_iconv;		/* force mime downgrade on input */
-int     var_cleanup_mask_stray_cr_lf;	/* replace stray CR or LF with space */
+bool    var_force_mime_iconv;		/* force mime downgrade on input */
+bool    var_cleanup_mask_stray_cr_lf;	/* replace stray CR or LF with space */
 char   *var_non_empty_eoh_action;	/* handle non-empty header terminator */
 bool    var_reqtls_esmtp_hdr;
 

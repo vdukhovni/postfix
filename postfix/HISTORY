@@ -30107,3 +30107,16 @@ Apologies for any names omitted.
 
 	Testing: test that postmulti(1) will reject a non-default
 	config_directory setting. File: postmulti/Makefile.in.
+
+20241201
+
+	Bitrot: C23 unconditionally defines the bool type, breaking
+	Postfix builds. Solution: migrate from the Postfix bool
+	type (an int, typically size 4) to C23 bool (size 1). This
+	is an incompatible change in Postfix library APIs. Fortunately
+	this change does not affect the database plugin interface.
+	Files: makedefs, bounce/bounce.c, cleanup/cleanup_init.c,
+	global/mail_conf.h, global/mail_params.c, global/mail_params.h,
+	local/local.c, oqmgr/qmgr.c, postconf/extract.awk, qmgr/qmgr.c,
+	smtp/smtp.c, smtpd/smtpd.c, trivial-rewrite/trivial-rewrite.c,
+	util/sys_defs.h.

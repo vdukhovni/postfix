@@ -131,8 +131,8 @@ typedef struct {
 
 typedef struct {
     const char *name;			/* config variable name */
-    int     defval;			/* default value */
-    int    *target;			/* pointer to global variable */
+    bool    defval;			/* default value */
+    bool   *target;			/* pointer to global variable */
 } CONFIG_BOOL_TABLE;
 
 typedef struct {
@@ -154,7 +154,7 @@ typedef struct {
 typedef struct {
     const char *name;			/* config variable name */
     const char *defval;			/* default value */
-    int    *target;			/* pointer to global variable */
+    bool   *target;			/* pointer to global variable */
 } CONFIG_NBOOL_TABLE;
 
 extern void get_mail_conf_str_table(const CONFIG_STR_TABLE *);

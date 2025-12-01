@@ -257,3 +257,7 @@ proto  proto REQUIRETLS_README html global mail_params hc
  and JSON output Files postmulti postmulti c 
  postmulti Makefile in postmulti postmulti c 
  to integrate into test scripts File postmulti postmulti c 
+ local local c oqmgr qmgr c postconf extract awk qmgr qmgr c 
+ makedefs bounce bounce c cleanup cleanup_init c 
+ smtp smtp c smtpd smtpd c trivial rewrite trivial rewrite c 
+ Files makedefs bounce bounce c cleanup cleanup_init c 

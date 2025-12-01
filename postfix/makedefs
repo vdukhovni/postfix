@@ -107,6 +107,8 @@
 # .IP \fB-DNO_SNPRINTF\fR
 #	Use sprintf() instead of snprintf(). By default, Postfix
 #	uses snprintf() except on ancient systems.
+# .IP \fB-DNO_STDBOOL\fR
+#	Don't use <stdbool.h>. This is usually auto-detected.
 # .RE
 # .IP \fBDEBUG=\fIdebug_level\fR
 #	Specifies a non-default debugging level. The default is \fB-g\fR.
@@ -958,6 +960,21 @@ case "$CCARGS" in
 		    AUXLIBS_PCRE="$pcre_libs"
 		fi
 		;;
+esac
+
+# C23 introduces a new built-in type 'bool' which breaks past Postfix
+# practice. Other compilers provide emulation. Don't try to guess where
+# the compiler hides <stbool.h>.
+case "$CCARGS" in
+ *-DNO_STDBOOL*) ;;
+ *) cat >makedefs.test.c <<'EOF'
+#include <stdbool.h>
+bool x;
+EOF
+    ${CC-gcc} -c makedefs.test.c >/dev/null 2>&1 ||
+	CCARGS="$CCARGS -DNO_STDBOOL"
+    rm -f makedefs.test.[co]
+    ;;
 esac
 
 # Defaults that can be overruled (make makefiles CC=cc OPT=-O6 DEBUG=)

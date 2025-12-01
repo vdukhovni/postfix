@@ -12,10 +12,8 @@
 /* .nf
 
  /*
-  * This is to make it easier to auto-generate tables.
+  * Needed for version-dependent default settings.
   */
-typedef int bool;
-
 #ifdef USE_TLS
 #include <openssl/opensslv.h>		/* OPENSSL_VERSION_NUMBER */
 #include <openssl/objects.h>		/* SN_* and NID_* macros */
@@ -822,7 +820,7 @@ extern int var_delay_warn_time;
 
 #define VAR_DSN_DELAY_CLEARED	"confirm_delay_cleared"
 #define DEF_DSN_DELAY_CLEARED	0
-extern int var_dsn_delay_cleared;
+extern bool var_dsn_delay_cleared;
 
  /*
   * Queue manager: various in-core message and recipient limits.
@@ -1147,7 +1145,7 @@ extern int var_smtp_quit_tmout;
 #define DEF_SMTP_QUOTE_821_ENV	1
 #define VAR_LMTP_QUOTE_821_ENV	"lmtp_quote_rfc821_envelope"
 #define DEF_LMTP_QUOTE_821_ENV	1
-extern int var_smtp_quote_821_env;
+extern bool var_smtp_quote_821_env;
 
 #define VAR_SMTP_SKIP_5XX	"smtp_skip_5xx_greeting"
 #define DEF_SMTP_SKIP_5XX	1
@@ -1919,7 +1917,7 @@ extern bool var_lmtp_dummy_mail_auth;
 
 #define VAR_CYRUS_SASL_AUTHZID	"send_cyrus_sasl_authzid"
 #define DEF_CYRUS_SASL_AUTHZID	0
-extern int var_cyrus_sasl_authzid;
+extern bool var_cyrus_sasl_authzid;
 
  /*
   * Special handling of AUTH 535 failures.
@@ -2125,7 +2123,7 @@ extern int var_flock_stale;
 
 #define VAR_MAILTOOL_COMPAT	"sun_mailtool_compatibility"
 #define DEF_MAILTOOL_COMPAT	0
-extern int var_mailtool_compat;
+extern bool var_mailtool_compat;
 
  /*
   * How long a daemon command may take to receive or deliver a message etc.
@@ -2468,7 +2466,7 @@ extern char *var_maps_rbl_domains;
 
 #define VAR_SMTPD_DELAY_REJECT	"smtpd_delay_reject"
 #define DEF_SMTPD_DELAY_REJECT	1
-extern int var_smtpd_delay_reject;
+extern bool var_smtpd_delay_reject;
 
 #define REJECT_UNAUTH_PIPE	"reject_unauth_pipelining"
 
@@ -2620,7 +2618,7 @@ extern int var_pid;
   */
 #define VAR_DONT_REMOVE		"dont_remove"
 #define DEF_DONT_REMOVE		0
-extern bool var_dont_remove;
+extern int var_dont_remove;
 
  /*
   * Paranoia: defer messages instead of bouncing them.
@@ -3146,7 +3144,7 @@ extern bool var_strict_encoding;
 
 #define VAR_AUTO_8BIT_ENC_HDR		"detect_8bit_encoding_header"
 #define DEF_AUTO_8BIT_ENC_HDR		1
-extern int var_auto_8bit_enc_hdr;
+extern bool var_auto_8bit_enc_hdr;
 
  /*
   * Bizarre.
@@ -4368,7 +4366,7 @@ extern char *var_smtpd_dns_re_filter;
 
 #define VAR_CLEANUP_MASK_STRAY_CR_LF	"cleanup_replace_stray_cr_lf"
 #define DEF_CLEANUP_MASK_STRAY_CR_LF	1
-extern int var_cleanup_mask_stray_cr_lf;
+extern bool var_cleanup_mask_stray_cr_lf;
 
  /*
   * Share TLS sessions through tlsproxy(8).
@@ -4409,11 +4407,11 @@ extern char *var_meta_dir;
 #define DEF_SMTPUTF8_ENABLE		"${{$compatibility_level} <level {1} ? " \
 					"{no} : {yes}}"
 #endif
-extern int var_smtputf8_enable;
+extern bool var_smtputf8_enable;
 
 #define VAR_STRICT_SMTPUTF8		"strict_smtputf8"
 #define DEF_STRICT_SMTPUTF8		0
-extern int var_strict_smtputf8;
+extern bool var_strict_smtputf8;
 
 #define VAR_SMTPUTF8_AUTOCLASS		"smtputf8_autodetect_classes"
 #define DEF_SMTPUTF8_AUTOCLASS		MAIL_SRC_NAME_SENDMAIL ", " \
@@ -4422,18 +4420,18 @@ extern char *var_smtputf8_autoclass;
 
 #define VAR_IDNA2003_COMPAT		"enable_idna2003_compatibility"
 #define DEF_IDNA2003_COMPAT		"no"
-extern int var_idna2003_compat;
+extern bool var_idna2003_compat;
 
  /*
   * REQUIRETLS support (RFC 8689).
   */
 #define VAR_TLSREQUIRED_ENABLE		"tls_required_enable"
 #define DEF_TLSREQUIRED_ENABLE		"yes"
-extern int var_tls_required_enable;
+extern bool var_tls_required_enable;
 
 #define VAR_REQTLS_ENABLE		"requiretls_enable"
 #define DEF_REQTLS_ENABLE		"yes"
-extern int var_reqtls_enable;
+extern bool var_reqtls_enable;
 
 #define VAR_SMTP_REQTLS_POLICY		"smtp_requiretls_policy"
 #define DEF_SMTP_REQTLS_POLICY		"inline:{{${domain_to_ascii{$mydomain}}=opportunistic}, {.${domain_to_ascii{$mydomain}}=opportunistic}, {localhost=opportunistic}}, cidr:{{0.0.0.0/0 opportunistic}, {::/0 opportunistic}}, enforce"
@@ -4444,7 +4442,7 @@ extern char *var_smtp_reqtls_policy;
 
 #define VAR_REQTLS_REDACT_DSN		"requiretls_redact_dsn"
 #define DEF_REQTLS_REDACT_DSN		"yes"
-extern int var_reqtls_redact_dsn;
+extern bool var_reqtls_redact_dsn;
 
 #define VAR_REQTLS_ESMTP_HDR		"requiretls_esmtp_header"
 #define DEF_REQTLS_ESMTP_HDR		"yes"
@@ -4562,7 +4560,7 @@ extern char *var_smtp_tlsrpt_sockname;
 #define DEF_SMTP_TLSRPT_SKIP_REUSED_HS	"no"
 #define VAR_LMTP_TLSRPT_SKIP_REUSED_HS	"lmtp_tlsrpt_skip_reused_handshakes"
 #define DEF_LMTP_TLSRPT_SKIP_REUSED_HS	DEF_SMTP_TLSRPT_SKIP_REUSED_HS
-extern int var_smtp_tlsrpt_skip_reused_hs;
+extern bool var_smtp_tlsrpt_skip_reused_hs;
 
 #define VAR_SMTP_TLS_ENF_STS_MX_PAT	"smtp_tls_enforce_sts_mx_patterns"
 #define DEF_SMTP_TLS_ENF_STS_MX_PAT	"yes"
@@ -4589,7 +4587,7 @@ extern int var_sockmap_max_reply;
   */
 #define VAR_SMTPD_HIDE_CLIENT_SESSION	"smtpd_hide_client_session"
 #define DEF_SMTPD_HIDE_CLIENT_SESSION	"no"
-extern int var_smtpd_hide_client_session;
+extern bool var_smtpd_hide_client_session;
 
  /*
   * SMTP server reject response filter.
