@@ -1229,6 +1229,25 @@ ${WARN='-Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
 	-Wunused -Wno-missing-braces -fno-common'}
 
+# C23 introduces a built-in type 'bool' (size 1) which breaks past Postfix
+# practice where 'bool' is an alias for 'int' (typically, size 4).
+# Fortunately, -std=gnu17 works with both gcc and clang.
+cat >makedefs.test.c <<'EOF'
+/* This appears in mail_params.h */
+typedef int bool;
+EOF
+
+if eval ${CC} ${CCARGS} -c makedefs.test.c >/dev/null 2>&1
+then
+    : No further action needed.
+elif eval ${CC} -std=gnu17 ${CCARGS} -c makedefs.test.c >/dev/null 2>&1
+then
+    CCARGS="-std=gnu17 $CCARGS"
+else
+    error 'Please specify "CC=..." or "CCARGS=..." option to disable C23 bool'
+fi
+rm -f makedefs.test.[co]
+
 # Extract map type names from -DHAS_XXX compiler options.  We avoid
 # problems with tr(1) range syntax by using enumerations instead,
 # and we don't try to figure out which awk versions have tolower().
