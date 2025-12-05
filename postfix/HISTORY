@@ -30120,3 +30120,17 @@ Apologies for any names omitted.
 	local/local.c, oqmgr/qmgr.c, postconf/extract.awk, qmgr/qmgr.c,
 	smtp/smtp.c, smtpd/smtpd.c, trivial-rewrite/trivial-rewrite.c,
 	util/sys_defs.h.
+
+20251202
+
+	Fix recent changes that broke builds with -DNO_IPV6. Files:
+	util/myaddrinfo.h, util/normalize_v4mapped_addr.c,
+	global/haproxy_srvr.c.
+
+	Portability: makedefs, postalias/postalias.c, util/dict_debug.c,
+	util/quote_for_json.c.
+
+20251204
+
+	Bitrot: non-functional code changes to silence compiler
+	errors/warnings. File: milter/test-milter.c.

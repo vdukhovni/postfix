@@ -59,6 +59,7 @@ struct addrinfo {
   * Modern systems define this in <sys/socket.h>.
   */
 struct sockaddr_storage {
+    sa_family_t ss_family;
     struct sockaddr_in dummy;		/* alignment!! */
 };
 

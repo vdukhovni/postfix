@@ -148,10 +148,10 @@ char   *quote_for_json(VSTRING *result, const char *text, ssize_t len)
 
 char   *quote_for_json_var(VSTRING *result,...)
 {
-    VSTRING_RESET(result);
     const char *in;
     va_list ap;
 
+    VSTRING_RESET(result);
     va_start(ap, result);
     while ((in = va_arg(ap, const char *)) != 0)
 	quote_for_json_append(result, in, -1);

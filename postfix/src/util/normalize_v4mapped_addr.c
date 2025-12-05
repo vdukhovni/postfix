@@ -55,7 +55,7 @@
 
 int     normalize_v4mapped_sockaddr(struct sockaddr *sa, SOCKADDR_SIZE *sa_len)
 {
-#ifdef AF_INET6
+#ifdef HAS_IPV6
     struct sockaddr_in sin;
 
     if (sa->sa_family == AF_INET6
@@ -78,7 +78,7 @@ int     normalize_v4mapped_sockaddr(struct sockaddr *sa, SOCKADDR_SIZE *sa_len)
 
 int     normalize_v4mapped_hostaddr(MAI_HOSTADDR_STR *addr)
 {
-#ifdef AF_INET6
+#ifdef HAS_IPV6
     if (addr->buf[0] == ':'
 	&& strncasecmp("::ffff:", addr->buf, 7) == 0
 	&& strchr((char *) inet_proto_info()->sa_family_list, AF_INET) != 0) {

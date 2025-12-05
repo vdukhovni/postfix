@@ -162,7 +162,7 @@ static int haproxy_srvr_parse_proto(const char *str, int *addr_family)
 
     if (str == 0)
 	return (-1);
-#ifdef AF_INET6
+#ifdef HAS_IPV6
     if (strcasecmp(str, "TCP6") == 0) {
 	if (strchr((char *) proto_info->sa_family_list, AF_INET6) != 0) {
 	    *addr_family = AF_INET6;
@@ -199,7 +199,7 @@ static int haproxy_srvr_parse_addr(const char *str, MAI_HOSTADDR_STR *addr,
 	return (-1);
 
     switch (addr_family) {
-#ifdef AF_INET6
+#ifdef HAS_IPV6
     case AF_INET6:
 	if (!valid_ipv6_hostaddr(str, DONT_GRIPE))
 	    return (-1);
@@ -238,7 +238,7 @@ static int haproxy_srvr_parse_addr(const char *str, MAI_HOSTADDR_STR *addr,
     *sa_len = res->ai_addrlen;
     memcpy((void *) sa, res->ai_addr, res->ai_addrlen);
     freeaddrinfo(res);
-#ifdef AF_INET6
+#ifdef HAS_IPV6
     if (sa->sa_family == AF_INET6)
 	normalize_v4mapped_sockaddr(sa, sa_len);
 #endif
@@ -265,7 +265,7 @@ static int haproxy_srvr_parse_port(const char *str, MAI_SERVPORT_STR *port,
 	memcpy(port->buf, str, strlen(str) + 1);
 	if (sa != 0) {
 	    switch (sa->sa_family) {
-#ifdef AF_INET6
+#ifdef HAS_IPV6
 	    case AF_INET6:
 		SOCK_ADDR_IN6_PORT(sa) = htons(atoi(str));
 		break;
@@ -318,7 +318,7 @@ static int haproxy_srvr_parse_v2_addr_v4(uint32_t sin_addr,
     return (0);
 }
 
-#ifdef AF_INET6
+#ifdef HAS_IPV6
 
 /* haproxy_srvr_parse_v2_addr_v6 - parse IPv6 info from v2 header */
 
@@ -418,7 +418,7 @@ static const char *haproxy_srvr_parse_v2_hdr(const char *str, ssize_t *str_len,
 		break;
 	    }
 	case PP2_FAM_INET6 | PP2_TRANS_STREAM:{/* TCP6 */
-#ifdef AF_INET6
+#ifdef HAS_IPV6
 		if (strchr((char *) proto_info->sa_family_list, AF_INET6) == 0)
 		    return ("Postfix IPv6 support is disabled");
 		if (ntohs(hdr_v2->len) < PP2_ADDR_LEN_INET6)

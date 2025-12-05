@@ -139,6 +139,8 @@ static void dict_debug_close(DICT *dict)
 DICT   *dict_debug_open(const char *name, int open_flags, int dict_flags)
 {
     static const char myname[] = "dict_debug_open";
+    DICT   *real_dict;
+    DICT_DEBUG *dict_debug;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
@@ -148,9 +150,9 @@ DICT   *dict_debug_open(const char *name, int open_flags, int dict_flags)
      * prevents a config containing both debug:foo:bar and foo:bar from
      * creating two DICT objects for foo:bar.
      */
-    DICT *real_dict = dict_open(name, open_flags, dict_flags);
-    DICT_DEBUG *dict_debug = (DICT_DEBUG *) dict_alloc(DICT_TYPE_DEBUG, name,
-						       sizeof(*dict_debug));
+    real_dict = dict_open(name, open_flags, dict_flags);
+    dict_debug = (DICT_DEBUG *) dict_alloc(DICT_TYPE_DEBUG, name,
+					   sizeof(*dict_debug));
 
     dict_debug->dict.flags = real_dict->flags;	/* XXX not synchronized */
     dict_debug->dict.lookup = dict_debug_lookup;

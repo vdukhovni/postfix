@@ -20072,7 +20072,7 @@ used because the remote server did not support STARTTLS. </dd>
 
 <dt> tls=xxx/!requiretls:noencryption </dt> <dd> 'Enforce' or
 'opportunistic+starttls' policy violation. No connection was made
-used because the TLS security policy disabled encryption. </dd>
+because the TLS security policy disabled encryption. </dd>
 
 <dt> tls=xxx/!requiretls:none </dt> <dd> 'Enforce' policy violation.
 After a successful TLS handshake, the connection was not used because

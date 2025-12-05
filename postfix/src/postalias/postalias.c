@@ -254,6 +254,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <string.h>
+#include <inttypes.h>
 
 /* Utility library. */
 
