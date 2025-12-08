@@ -3558,7 +3558,7 @@ extern char *var_smtpd_milter_maps;
 extern char *var_cleanup_milters;
 
 #define VAR_MILT_DEF_ACTION		"milter_default_action"
-#define DEF_MILT_DEF_ACTION		"tempfail"
+#define DEF_MILT_DEF_ACTION		"shutdown"
 extern char *var_milt_def_action;
 
 #define VAR_MILT_CONN_MACROS		"milter_connect_macros"
@@ -3612,10 +3612,6 @@ extern int var_milt_msg_time;
 #define VAR_MILT_PROTOCOL		"milter_protocol"
 #define DEF_MILT_PROTOCOL		"6"
 extern char *var_milt_protocol;
-
-#define VAR_MILT_DEF_ACTION		"milter_default_action"
-#define DEF_MILT_DEF_ACTION		"tempfail"
-extern char *var_milt_def_action;
 
 #define VAR_MILT_DAEMON_NAME		"milter_macro_daemon_name"
 #define DEF_MILT_DAEMON_NAME		"$" VAR_MYHOSTNAME

@@ -12341,7 +12341,7 @@ will not reply for each individual message header.</dd>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM milter_default_action tempfail
+%PARAM milter_default_action Postfix &ge; 3.11: shutdown; Postfix &lt; 3.11: tempfail
 
 <p> The default action when a Milter (mail filter) response is
 unavailable (for example, bad Postfix configuration or Milter
@@ -12358,10 +12358,21 @@ with a permanent status code.</dd>
 <dt>tempfail</dt> <dd>Reject all further commands in this session
 with a temporary status code. </dd>
 
+<dt>shutdown</dt> <dd>Close the SMTP connection after sending a 421 
+SMTP reply. Available in Postfix 3.11 and later. </dd>
+
 <dt>quarantine</dt> <dd>Like "accept", but freeze the message in
 the "hold" queue. Available with Postfix 2.6 and later. </dd>
 
 </dl>
+
+<p> The default action was "tempfail" with Postfix 3.10 and earlier.
+</p>
+
+<p> The default action is "shutdown" with Postfix 3.11 and later,
+i.e. disconnect the SMTP client. With the old default, Postfix could
+tempfail all messages that the client sends over a long-lived
+connection, even if a Milter failure is only temporary. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 

@@ -30134,3 +30134,17 @@ Apologies for any names omitted.
 
 	Bitrot: non-functional code changes to silence compiler
 	errors/warnings. File: milter/test-milter.c.
+
+20251208
+
+	Improved Milter error handling for messages that arrive
+	over a long-lived SMTP connection, by changing the default
+	milter_default_action from "tempfail" to the new "shutdown"
+	action (i.e. disconnect the remote SMTP client).
+
+	The problem was that after a single Milter error, Postfix
+	could tempfail all messages that the client sends over a
+	long-lived connection, even if the Milter error was only
+	temporary. This problem was reported by Ankit Kulkarni.
+
+	Files: proto/postconf.proto global/mail_params.h milter/milter8.c.
