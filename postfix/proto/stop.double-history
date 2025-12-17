@@ -261,3 +261,4 @@ proto  proto REQUIRETLS_README html global mail_params hc
  makedefs bounce bounce c cleanup cleanup_init c 
  smtp smtp c smtpd smtpd c trivial rewrite trivial rewrite c 
  Files makedefs bounce bounce c cleanup cleanup_init c 
+ Portability makedefs postalias postalias c util dict_debug c 

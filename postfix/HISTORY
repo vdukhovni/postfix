@@ -30148,3 +30148,34 @@ Apologies for any names omitted.
 	temporary. This problem was reported by Ankit Kulkarni.
 
 	Files: proto/postconf.proto global/mail_params.h milter/milter8.c.
+
+20251216
+
+	Logging: after a delivery failure, the bounce daemon logged
+	"<old-queue-id>: sender non-delivery notification:
+	<new-queue-id>" only if the notification was queued
+	successfully. If the notification could not be queued, the
+	bounce daemon did not log why. The only hint was in the
+	form of qmgr logging with "<old-queue-id>: status=deferred
+	(bounce failed)".
+
+	Visible changes for logfile analyzers:
+
+	- The bounce daemon now logs "<old-queue-id>: sender
+	non-delivery notification: <new-queue-id>" BEFORE the cleanup
+	daemon logs activity with "<new-queue-id>". Previously, the
+	bounce daemon logged the old<=>new queue ID connection
+	later, which made logfile analysis more difficult.
+
+	- The bounce daemon now logs a logfile record "<old-queue-id>:
+	sender notification failed to <address>: <reason>" when the
+	notification was not queued. In some cases it will log
+	"<old-queue-id>: sender notification failed to <address>".
+	In those cases the failure reason was already logged by
+	lower-level code, without the queue ID.
+
+	Files: bounce/bounce_notify_service.c, bounce/bounce_notify_verp.c,
+	bounce/bounce_one_service.c, bounce/bounce_trace_service.c,
+	bounce/bounce_warn_service.c.
+
+	TODO: unit test coverage.
