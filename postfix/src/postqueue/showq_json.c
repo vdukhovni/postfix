@@ -66,6 +66,7 @@ static void format_json(VSTREAM *showq_stream)
     static VSTRING *queue_id = 0;
     static VSTRING *oaddr = 0;
     static VSTRING *addr = 0;
+    static VSTRING *log_class = 0;
     static VSTRING *why = 0;
     static VSTRING *quote_buf = 0;
     long    arrival_time;
@@ -82,6 +83,7 @@ static void format_json(VSTREAM *showq_stream)
 	queue_id = vstring_alloc(100);
 	oaddr = vstring_alloc(100);
 	addr = vstring_alloc(100);
+	log_class = vstring_alloc(100);
 	why = vstring_alloc(100);
 	quote_buf = vstring_alloc(100);
     }
@@ -130,15 +132,19 @@ static void format_json(VSTREAM *showq_stream)
 		      | ATTR_FLAG_PRINTABLE,
 		      RECV_ATTR_STR(MAIL_ATTR_ORCPT, oaddr),
 		      RECV_ATTR_STR(MAIL_ATTR_RECIP, addr),
+		      RECV_ATTR_STR(MAIL_ATTR_LOG_CLASS, log_class),
 		      RECV_ATTR_STR(MAIL_ATTR_WHY, why),
-		      ATTR_TYPE_END) != 3)
+		      ATTR_TYPE_END) != 4)
 	    msg_fatal_status(EX_SOFTWARE, "malformed showq server response");
 	vstream_printf("\"orig_address\": \"%s\", ",
 		       QUOTE_JSON(quote_buf, STR(oaddr)));
 	vstream_printf("\"address\": \"%s\"",
 		       QUOTE_JSON(quote_buf, STR(addr)));
 	if (LEN(why) > 0)
-	    vstream_printf(", \"delay_reason\": \"%s\"",
+	    vstream_printf(", \"%s\": \"%s\"",
+	    strcmp(STR(log_class), MAIL_QUEUE_DEFER) == 0 ? "delay_reason" :
+			   strcmp(STR(log_class), MAIL_QUEUE_BOUNCE) == 0 ? "bounce_reason" :
+			   "other_reason",
 			   QUOTE_JSON(quote_buf, STR(why)));
 	vstream_printf("}");
     }

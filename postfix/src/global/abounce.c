@@ -260,7 +260,7 @@ static void abounce_done(ABOUNCE_STATE *ap, int status)
 	msg_info("%s: status=deferred (%s failed)", ap->id,
 		 ap->command == BOUNCE_CMD_FLUSH ? "bounce" :
 		 ap->command == BOUNCE_CMD_WARN ? "delay warning" :
-		 ap->command == BOUNCE_CMD_VERP ? "bounce" :
+		 ap->command == BOUNCE_CMD_VERP ? "verp-bounce" :
 		 ap->command == BOUNCE_CMD_TRACE ? "trace" :
 		 "whatever");
     ap->callback(status, ap->context);

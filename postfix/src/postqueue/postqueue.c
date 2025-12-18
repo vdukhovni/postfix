@@ -62,8 +62,12 @@
 /*	Each queue entry shows the queue file ID, message
 /*	size, arrival time, sender, and the recipients that still need to
 /*	be delivered.  If mail could not be delivered upon the last attempt,
-/*	the reason for failure is shown. The queue ID string
-/*	is followed by an optional status character:
+/*	the reason for failure is shown. With Postfix >= 3.11, the output
+/*	may also show bounced recipients that are pending the creation
+/*	of a non-delivery status notification message that will be
+/*	returned to the sender.
+/*
+/*	The queue ID string is followed by an optional status character:
 /* .RS
 /* .IP \fB*\fR
 /*	The message is in the \fBactive\fR queue, i.e. the message is
@@ -129,13 +133,17 @@
 /* .RS
 /* .IP \fBaddress\fR
 /*	One recipient address.
-/* .IP "\fBorig_address\fR (Postfix >= 3.11)
+/* .IP "\fBorig_address\fR (Postfix >= 3.11)"
 /*	One original recipient address.
 /* .IP \fBdelay_reason\fR
 /*	If present, the reason for delayed delivery.  Delayed
 /*	recipients may have no delay reason, for example, while
 /*	delivery is in progress, or after the system was stopped
 /*	before it could record the reason.
+/* .IP "\fBbounce_reason\fR (Postfix >= 3.11)"
+/*	If present, the reason why this recipient was bounced. The
+/*	recipient is still pending the creation of a non-delivery status
+/*	notification message that will be returned to the sender.
 /* .RE
 /* SECURITY
 /* .ad

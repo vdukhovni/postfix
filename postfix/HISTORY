@@ -30179,3 +30179,19 @@ Apologies for any names omitted.
 	bounce/bounce_warn_service.c.
 
 	TODO: unit test coverage.
+
+20211218
+
+	Feature: the postqueue command now also lists recipients
+	in bounce logfiles (in JSON output, this uses a new object
+	member 'bounce_reason' instead of the existing 'delay_reason').
+	Such recipients have already been deleted from the message
+	queue file, but they are still pending the creation of a
+	non-delivery status notification message that will be
+	returned to the sender. Files: showq/showq.c,
+	postqueue/showq_compat.c, postqueue/showq_json.c.
+
+	Wordsmiting: after a queue manager request failure to
+	generate a verp-style delivery status notification, log
+	"verp-bounce failed" instead of "verp failed". File:
+	global/abounce.c.

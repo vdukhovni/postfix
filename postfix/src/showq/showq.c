@@ -152,8 +152,8 @@
 int     var_dup_filter_limit;
 char   *var_empty_addr;
 
-static void showq_reasons(VSTREAM *, BOUNCE_LOG *, RCPT_BUF *, DSN_BUF *,
-			          HTABLE *);
+static void showq_reasons(VSTREAM *, const char *, BOUNCE_LOG *, RCPT_BUF *,
+			          DSN_BUF *, HTABLE *);
 
 #define STR(x)	vstring_str(x)
 
@@ -306,31 +306,44 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	 * interrupted (postfix stop or reload) before all recipients have
 	 * been tried.
 	 * 
-	 * Therefore we keep a record of recipients found in the defer logfile,
-	 * and try to avoid listing those recipients again when processing
-	 * recipients from the queue file.
+	 * With Postfix 3.11 also list recipients in a bounce logfile. Such
+	 * recipients were already deleted from the message file, but they
+	 * haven't yet been persisted to a non-delivery status notification
+	 * message.
+	 * 
+	 * We remember recipients found in a defer or bounce logfile, and try to
+	 * avoid listing those recipients again when processing recipients
+	 * from the queue file.
 	 */
-	if (rec_type == REC_TYPE_FROM
-	    && (logfile = bounce_log_open(MAIL_QUEUE_DEFER, id, O_RDONLY, 0)) != 0) {
+	if (rec_type == REC_TYPE_FROM) {
+	    const char *log_names[] = {MAIL_QUEUE_DEFER, MAIL_QUEUE_BOUNCE, 0};
+	    const char **cpp;
+
 	    if (dup_filter != 0)
 		msg_panic("showq_report: attempt to reuse duplicate filter");
-	    dup_filter = htable_create(var_dup_filter_limit);
 	    if (rcpt_buf == 0)
 		rcpt_buf = rcpb_create();
 	    if (dsn_buf == 0)
 		dsn_buf = dsb_create();
-	    showq_reasons(client, logfile, rcpt_buf, dsn_buf, dup_filter);
-	    if (bounce_log_close(logfile))
-		msg_warn("close %s %s: %m", MAIL_QUEUE_DEFER, id);
+	    dup_filter = htable_create(var_dup_filter_limit);
+	    for (cpp = log_names; *cpp; cpp++) {
+		if ((logfile = bounce_log_open(*cpp, id, O_RDONLY, 0)) != 0) {
+		    showq_reasons(client, *cpp, logfile, rcpt_buf, dsn_buf,
+				  dup_filter);
+		    if (bounce_log_close(logfile))
+			msg_warn("close %s %s: %m", *cpp, id);
+		}
+	    }
 	}
     }
     SHOWQ_CLEANUP_AND_RETURN;
 }
 
-/* showq_reasons - show deferral reasons */
+/* showq_reasons - show defer or bounce reasons */
 
-static void showq_reasons(VSTREAM *client, BOUNCE_LOG *bp, RCPT_BUF *rcpt_buf,
-			          DSN_BUF *dsn_buf, HTABLE *dup_filter)
+static void showq_reasons(VSTREAM *client, const char *log_class, BOUNCE_LOG *bp,
+			          RCPT_BUF *rcpt_buf, DSN_BUF *dsn_buf,
+			          HTABLE *dup_filter)
 {
     RECIPIENT *rcpt = &rcpt_buf->rcpt;
     DSN    *dsn = &dsn_buf->dsn;
@@ -348,6 +361,7 @@ static void showq_reasons(VSTREAM *client, BOUNCE_LOG *bp, RCPT_BUF *rcpt_buf,
 	attr_print(client, ATTR_FLAG_MORE,
 		   SEND_ATTR_STR(MAIL_ATTR_ORCPT, rcpt->orig_addr),
 		   SEND_ATTR_STR(MAIL_ATTR_RECIP, rcpt->address),
+		   SEND_ATTR_STR(MAIL_ATTR_LOG_CLASS, log_class),
 		   SEND_ATTR_STR(MAIL_ATTR_WHY, dsn->reason),
 		   ATTR_TYPE_END);
     }

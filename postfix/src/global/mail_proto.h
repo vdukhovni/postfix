@@ -264,6 +264,8 @@ extern char *mail_pathname(const char *, const char *);
 
 #define MAIL_ATTR_MESSAGE_ID	"message_id"	/* Used for threaded bounce */
 
+#define MAIL_ATTR_LOG_CLASS	"log_class"	/* bounce/defer/trace */
+
  /*
   * XCLIENT/XFORWARD in SMTP.
   */
