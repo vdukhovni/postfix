@@ -262,3 +262,7 @@ proto  proto REQUIRETLS_README html global mail_params hc
  smtp smtp c smtpd smtpd c trivial rewrite trivial rewrite c 
  Files makedefs bounce bounce c cleanup cleanup_init c 
  Portability makedefs postalias postalias c util dict_debug c 
+ returned to the sender Files showq showq c 
+ Piekert diagnosed by John Fawcett File showq showq c 
+ each other Files global mail_conf c postdrop postdrop c 
+ postlog postlog c postqueue postqueue c 

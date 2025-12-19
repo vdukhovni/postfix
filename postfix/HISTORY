@@ -30180,7 +30180,7 @@ Apologies for any names omitted.
 
 	TODO: unit test coverage.
 
-20211218
+20251218
 
 	Feature: the postqueue command now also lists recipients
 	in bounce logfiles (in JSON output, this uses a new object
@@ -30191,7 +30191,20 @@ Apologies for any names omitted.
 	returned to the sender. Files: showq/showq.c,
 	postqueue/showq_compat.c, postqueue/showq_json.c.
 
-	Wordsmiting: after a queue manager request failure to
+	Wordsmithing: after a queue manager request failure to
 	generate a verp-style delivery status notification, log
 	"verp-bounce failed" instead of "verp failed". File:
 	global/abounce.c.
+
+20251219
+
+	Documentation: added multi_instance_directories to the list
+	of parameters that can authorize a non-default configuration
+	directory name, and made the descriptions consistent with
+	each other. Files: global/mail_conf.c, postdrop/postdrop.c,
+	postlog/postlog.c, postqueue/postqueue.c.
+
+	Bugfix (defect introduced: 20251218): showq/postqueue
+	protocol mismatch, caused by a missing update for a code
+	path in the showq daemon. Problem reported by Florian
+	Piekert, diagnosed by John Fawcett. File: showq/showq.c.

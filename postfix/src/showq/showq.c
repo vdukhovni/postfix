@@ -285,6 +285,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 			   SEND_ATTR_STR(MAIL_ATTR_ORCPT, have_orcpt),
 			   SEND_ATTR_STR(MAIL_ATTR_RECIP,
 					 STR(printable_quoted_addr)),
+			   SEND_ATTR_STR(MAIL_ATTR_LOG_CLASS, ""),
 			   SEND_ATTR_STR(MAIL_ATTR_WHY, ""),
 			   ATTR_TYPE_END);
 	    have_orcpt = 0;
