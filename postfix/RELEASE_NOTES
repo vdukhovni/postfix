@@ -1,19 +1,19 @@
-This is the Postfix 3.11 experimental release.
+This is the Postfix 3.12 snapshot release.
 
-The stable Postfix release is called postfix-3.10.x where 3=major
-release number, 10=minor release number, x=patchlevel. The stable
+The stable Postfix release is called postfix-3.11.x where 3=major
+release number, 11=minor release number, x=patchlevel. The stable
 release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
 
 New features are developed in snapshot releases. These are called
-postfix-3.11-yyyymmdd where yyyymmdd is the release date (yyyy=year,
+postfix-3.12-yyyymmdd where yyyymmdd is the release date (yyyy=year,
 mm=month, dd=day). Patches are never issued for snapshot releases;
 instead, a new snapshot is released.
 
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
-If you upgrade from Postfix 3.9 or earlier, please read RELEASE_NOTES-3.10
+If you upgrade from Postfix 3.10 or earlier, please read RELEASE_NOTES-3.11
 before proceeding.
 
 Dual license

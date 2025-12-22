@@ -215,7 +215,7 @@ extern void myaddrinfo_control(int,...);
   * sane_sockaddr_to_hostaddr.c
   */
 extern int WARN_UNUSED_RESULT sane_sockaddr_to_hostaddr(struct sockaddr *,
-	        SOCKADDR_SIZE *, MAI_HOSTADDR_STR *, MAI_SERVPORT_STR *, int);
+              SOCKADDR_SIZE *, MAI_HOSTADDR_STR *, MAI_SERVPORT_STR *, int);
 
 /* LICENSE
 /* .ad

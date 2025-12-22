@@ -261,9 +261,9 @@ static int converts_good_u_label_query(const TEST_CASE *tp)
     const char *ext_policy = "inline:{{foo.xn--1xa.example = opportunistic}} enforce";
     const struct QUERY_REPLY qr[] = {
         {"foo.xn--1xa.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
-        {"foo.π.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
+        {"foo.\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
         {"x.foo.xn--1xa.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
-        {"x.foo.π.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+        {"x.foo.\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
         {"example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
         {0},
     };
@@ -289,8 +289,8 @@ static int fails_bad_u_label_query(const TEST_CASE *tp)
 {
     const char *ext_policy = "inline:{{foo.xn--1xa.example = opportunistic}} disable";
     const struct QUERY_REPLY qr[] = {
-        {"foo.π.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
-        {"foo.-π.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+        {"foo.\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
+        {"foo.-\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
         {"example", SMTP_REQTLS_POLICY_ACT_DISABLE},
         {0},
     };

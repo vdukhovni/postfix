@@ -134,8 +134,8 @@ void    smtpd_chat_pre_jail_init(void)
      */
     if (*var_smtpd_reject_filter_maps)
 	smtpd_reject_filter_maps = maps_create(VAR_SMTPD_REJECT_FILTER_MAPS,
-					 var_smtpd_reject_filter_maps,
-					 DICT_FLAG_LOCK);
+					       var_smtpd_reject_filter_maps,
+					       DICT_FLAG_LOCK);
 
     /*
      * SMTP server reject footer.

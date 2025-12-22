@@ -44,7 +44,7 @@
 
 char   *normalize_ws(char *str)
 {
-    char *cp;
+    char   *cp;
 
     for (cp = str; *(cp += strcspn(cp, "\t\n\v\f\r")); *cp = ' ')
 	 /* void */ ;

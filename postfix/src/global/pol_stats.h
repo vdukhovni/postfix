@@ -50,6 +50,7 @@ extern void pol_stats_free(POL_STATS *);
 extern void pol_stat_activate(POL_STATS *, int, const char *);
 extern void pol_stat_decide(POL_STATS *, int, const char *, int);
 extern void pol_stats_format(VSTRING *, const POL_STATS *);
+
 #endif					/* USE_TLS */
 
 #define NO_TLS_STATS	((POL_STATS *) 0)

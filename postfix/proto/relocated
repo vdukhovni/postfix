@@ -54,6 +54,7 @@
 #	enhanced status code and text, for example:
 #
 # .nf
+#	     \fIpattern\fR      5.1.6 Mailbox has moved to user@example
 #	     \fIpattern\fR      5.2.0 Mailbox is unavailable
 #	     \fIpattern\fR      5.2.1 Mailbox is disabled
 # .fi

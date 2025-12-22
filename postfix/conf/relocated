@@ -55,6 +55,7 @@
 #               entries with your own RFC  3463-compliant  enhanced
 #               status code and text, for example:
 # 
+#                    pattern      5.1.6 Mailbox has moved to user@example
 #                    pattern      5.2.0 Mailbox is unavailable
 #                    pattern      5.2.1 Mailbox is disabled
 # 

@@ -342,7 +342,7 @@ static sfsistat test_eom(SMFICTX *ctx)
 		len = strcspn(buf, "\n");
 		buf[len + 0] = '\r';
 		buf[len + 1] = '\n';
-		if (smfi_replacebody(ctx,(unsigned char *) buf, len + 2) == MI_FAILURE) {
+		if (smfi_replacebody(ctx, (unsigned char *) buf, len + 2) == MI_FAILURE) {
 		    fprintf(stderr, "body replace failure\n");
 		    exit(1);
 		}

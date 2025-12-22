@@ -131,7 +131,7 @@ struct proxy_hdr_v2 {
   * End protocol v2 definitions from haproxy/include/types/connection.h.
   */
 
-#endif /* _HAPROXY_SRVR_INTERNAL_ */
+#endif					/* _HAPROXY_SRVR_INTERNAL_ */
 
 /* LICENSE
 /* .ad

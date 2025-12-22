@@ -98,9 +98,9 @@ static void reset_global_variables(void)
 
  /*
   * Basic tests that smtpd_peer_init() will update the SMTPD_STATE structure
-  * with the expected error info or endpoint info. This needs to be subclassed
-  * to support different input sources (local client, no open connection,
-  * HaProxy, postscreen, etc.).
+  * with the expected error info or endpoint info. This needs to be
+  * subclassed to support different input sources (local client, no open
+  * connection, HaProxy, postscreen, etc.).
   */
 typedef struct TEST_BASE {
     const char *label;
@@ -623,8 +623,8 @@ typedef struct PEER_FROM_HAPROXY_CASE {
 
  /*
   * We need only two tests to show that smtpd_haproxy.c propagates errors and
-  * non-error endpoint info. We don't need to duplicate each individual test in
-  * haproxy_srvr_test.c for different IP protocols, HaProxy protocol
+  * non-error endpoint info. We don't need to duplicate each individual test
+  * in haproxy_srvr_test.c for different IP protocols, HaProxy protocol
   * versions, and error modes.
   */
 static const PEER_FROM_HAPROXY_CASE peer_from_haproxy_caes[] = {

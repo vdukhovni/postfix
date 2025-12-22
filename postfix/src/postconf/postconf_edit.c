@@ -209,7 +209,7 @@ void    pcf_edit_main(int mode, int argc, char **argv)
 	    msg_panic("pcf_edit_main: unknown mode %d", mode);
 	}
 	if ((cvalue = htable_find(table, pattern)) != 0) {
-	    if (edit_value && cvalue->value 
+	    if (edit_value && cvalue->value
 		&& strcmp(edit_value, cvalue->value) != 0)
 		msg_warn("ignoring earlier request: '%s = %s'",
 			 pattern, cvalue->value);

@@ -21,7 +21,6 @@
 /*	Wietse Venema porcupine.org
 /*--*/
 
-/*	
  /*
   * System library.
   */
@@ -89,8 +88,8 @@ static void create_and_populate_db(char *dbpath, const char *commands)
 	msg_fatal("close %s: %m", dbpath);
 
     /*
-     * TODO(wietse) Open the database file, prepare and execute commands
-     * to populate the database, and close the database.
+     * TODO(wietse) Open the database file, prepare and execute commands to
+     * populate the database, and close the database.
      */
     if (commands) {
 	msg_fatal("commands are not yet supported");
@@ -100,7 +99,7 @@ static void create_and_populate_db(char *dbpath, const char *commands)
 /* create_and_populate_cf - create sqlite_table(5) configuration file */
 
 static void create_and_populate_cf(char *cfpath, const char *dbpath,
-				          const char *cftext)
+				           const char *cftext)
 {
     int     fd;
     VSTREAM *fp;

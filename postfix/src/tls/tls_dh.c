@@ -408,7 +408,7 @@ void    tls_auto_groups(SSL_CTX *ctx, const char *eecdh, const char *ffdhe)
 
     /* Use OpenSSL defaults */
     if (!*eecdh && !*ffdhe)
-        return;
+	return;
 
     /*
      * Try the user-specified list first. If that fails (empty list or no

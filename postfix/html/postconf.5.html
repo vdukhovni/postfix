@@ -7473,8 +7473,9 @@ with a permanent status code.</dd>
 <dt>tempfail</dt> <dd>Reject all further commands in this session
 with a temporary status code. </dd>
 
-<dt>shutdown</dt> <dd>Close the SMTP connection after sending a 421
-SMTP reply. Available in Postfix 3.11 and later. </dd>
+<dt>shutdown</dt> <dd>With <a href="postconf.5.html#smtpd_milters">smtpd_milters</a>, close the SMTP connection
+after sending a 421 SMTP reply; with <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a>, report a
+queue file write error. Available in Postfix 3.11 and later. </dd>
 
 <dt>quarantine</dt> <dd>Like "accept", but freeze the message in
 the "<a href="QSHAPE_README.html#hold_queue">hold" queue</a>. Available with Postfix 2.6 and later. </dd>
@@ -12395,7 +12396,7 @@ connection or an incorrect configuration. </p>
 
 <dl>
 
-<dt> tls=none </dt> <dd> A connection that did not use TLS. </dd>
+<dt> tls=none </dt> <dd> A connection with TLS disabled. </dd>
 
 <dt> tls=may </dt> <dd> Opportunistic TLS. The connection was used
 after a successful TLS handshake. </dd>
@@ -12403,9 +12404,10 @@ after a successful TLS handshake. </dd>
 <dt> tls=may? </dt> <dd> Opportunistic TLS. The status was undecided
 because no connection was made, or no server could be reached. </dd>
 
-<dt> tls=may:none </dt> <dd> The client was willing to use TLS, but
-the remote server did not support STARTTLS, and the connection was
-used in plaintext as permitted by the opportunistic TLS policy. </dd>
+<dt> tls=may:none </dt> <dd> Opportunistic TLS. The client was
+willing to use TLS, but the remote server did not support STARTTLS,
+and the connection was used in plaintext as permitted by the
+opportunistic TLS policy. </dd>
 
 <dt> tls=dane </dt> <dd> DANE policy compliant, no downgrade. </dd>
 
@@ -17268,7 +17270,7 @@ header has one of the following forms: </p>
 Received: by mail.example.com (Postfix) id postfix-queue-id
         for &lt;user@example.com&gt;; Day, dd Mon yyyy hh:mm:ss tz-offset (zone)
 <br>
-Received: by mail.example.com (Postfix) id postfix-queue-id
+Received: by mail.example.com (Postfix) id postfix-queue-id;
         Day, dd Mon yyyy hh:mm:ss tz-offset (zone)
 </pre>
 </blockquote>

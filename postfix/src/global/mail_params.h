@@ -82,7 +82,6 @@ extern int warn_compat_respectful_logging;
 
 extern int warn_compat_break_smtp_tlsrpt_skip_reused_hs;
 extern int warn_compat_break_smtp_tls_level;
-extern int warn_compat_break_lmtp_tls_level;
 extern int warn_compat_break_tlsp_clnt_level;
 
 extern long compat_level;
@@ -1491,8 +1490,7 @@ extern bool var_smtp_tls_wrappermode;
 #ifdef USE_TLS
 #define DEF_SMTP_TLS_LEVEL	"${{$compatibility_level} <level {3.11} ?" \
 				" {} : {may}}"
-#define DEF_LMTP_TLS_LEVEL	"${{$compatibility_level} <level {3.11} ?" \
-				" {} : {may}}"
+#define DEF_LMTP_TLS_LEVEL	""
 #else
 #define DEF_SMTP_TLS_LEVEL	""
 #define DEF_LMTP_TLS_LEVEL	""

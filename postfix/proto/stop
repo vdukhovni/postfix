@@ -1696,3 +1696,11 @@ unnormalized
 xa
 ascii
 halfdane
+JSON
+bool
+jl
+jq
+js
+posttls
+prepended
+sts

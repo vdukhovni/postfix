@@ -14,8 +14,8 @@
 #include <stringops.h>
 
  /*
-  * Test cases are used twice, first to test normalize_v4mapped_hostaddr(), and
-  * then  normalize_v4mapped_sockaddr().
+  * Test cases are used twice, first to test normalize_v4mapped_hostaddr(),
+  * and then  normalize_v4mapped_sockaddr().
   */
 typedef struct TEST_CASE {
     const char *label;

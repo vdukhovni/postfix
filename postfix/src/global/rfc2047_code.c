@@ -318,10 +318,10 @@ char   *rfc2047_encode(VSTRING *result, int header_context,
     }
 
     /*
-     * Choose between quoted-printable or base64 encoding. 
-     *
-     * Header strings are short, so making multiple passes over the input is
-     * not a disaster. How many bytes would the encoder produce using
+     * Choose between quoted-printable or base64 encoding.
+     * 
+     * Header strings are short, so making multiple passes over the input is not
+     * a disaster. How many bytes would the encoder produce using
      * quoted-printable? We don't optimize for the shortest encoding but for
      * compromised readability. If the input is not short, and more than 1/2
      * of the input bytes need to be encoded, then the content is mostly not

@@ -90,4 +90,3 @@ const char *sendopts_strflags(unsigned flags, int delim)
     return (str_name_mask_opt(result, "sendopts_strflags", sendopts_flag_map,
 			      flags, NAME_MASK_FATAL | dflags[cp - delims]));
 }
-

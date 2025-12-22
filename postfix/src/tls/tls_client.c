@@ -365,9 +365,10 @@ static void verify_x509(TLS_SESS_STATE *TLScontext, X509 *peercert,
 	}
     } else if (TLS_MUST_MATCH(TLScontext->level) &&
 	       x509_err == X509_V_ERR_HOSTNAME_MISMATCH) {
+
 	/*
-	 * If the only error is a hostname mismatch, the certificate must have
-	 * been trusted.
+	 * If the only error is a hostname mismatch, the certificate must
+	 * have been trusted.
 	 */
 	TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
     }

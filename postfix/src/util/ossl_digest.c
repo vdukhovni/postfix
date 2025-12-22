@@ -214,7 +214,7 @@ ARGV   *ossl_digest_get_errors(void)
 
 /* ossl_digest_log_errors - log and clear OpenSSL error stack */
 
-void	ossl_digest_log_errors(void (*logger)(const char *, ...))
+void    ossl_digest_log_errors(void (*logger) (const char *,...))
 {
     unsigned long err;
     char    buffer[1024];		/* XXX */

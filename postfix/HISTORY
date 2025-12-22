@@ -29185,6 +29185,8 @@ Apologies for any names omitted.
 	after processing the key_format feature. This prevents a
 	database access error when keys may exceed the memcache
 	server's key length limit (usually, 250 bytes). Files:
+	global/dict_memcache.c, proto/memcache_table, util/ossl_digest.c,
+	ossl_digest.h, ossl_digest_test.c.
 
 20250523
 
@@ -30208,3 +30210,61 @@ Apologies for any names omitted.
 	protocol mismatch, caused by a missing update for a code
 	path in the showq daemon. Problem reported by Florian
 	Piekert, diagnosed by John Fawcett. File: showq/showq.c.
+
+20241221
+
+	Cleanup: re-indented postfix source code to make it easier
+	to maintain. No change in compiler output. Files:
+	discard/discard.c, global/ascii_header_text.c,
+	global/ascii_header_text.h, global/dict_proxy.c,
+	global/dict_sqlite_test.c, global/haproxy_srvr.c,
+	global/haproxy_srvr.h, global/pol_stats.h, global/rfc2047_code.c,
+	global/rfc2047_code.h, global/sendopts.c, milter/milter8.c,
+	milter/test-milter.c, postconf/postconf_edit.c, smtp/smtp.c,
+	smtp/smtp_reqtls_policy_test.c, smtpd/smtpd.c, smtpd/smtpd_chat.c,
+	smtpd/smtpd_peer_test.c, tls/tls_client.c, tls/tls_dh.c,
+	util/dict_open.c, util/myaddrinfo.c, util/myaddrinfo.h,
+	util/normalize_v4mapped_addr.c,
+	util/normalize_v4mapped_addr_test.c, util/normalize_ws.c,
+	util/ossl_digest.c, util/sys_defs.h, global/ascii_header_text.c,
+	global/ascii_header_text.h, global/dict_proxy.c,
+	global/dict_sqlite_test.c, global/haproxy_srvr.c,
+	global/haproxy_srvr.h, global/pol_stats.h, global/rfc2047_code.c,
+	global/rfc2047_code.h, global/sendopts.c, milter/milter8.c,
+	milter/test-milter.c, postconf/postconf_edit.c, smtp/smtp.c,
+	smtp/smtp_reqtls_policy_test.c, smtpd/smtpd.c, smtpd/smtpd_chat.c,
+	smtpd/smtpd_peer_test.c, tls/tls_client.c, tls/tls_dh.c,
+	util/dict_open.c, util/myaddrinfo.c, util/myaddrinfo.h,
+	util/normalize_v4mapped_addr.c,
+	util/normalize_v4mapped_addr_test.c, util/normalize_ws.c,
+	util/ossl_digest.c, util/sys_defs.h.
+
+	Documentation: update the transport(5) manpage text for the
+	case that transport maps specify no transport or no nexthop.
+	In the presentation of address classes, identify the relative
+	precedence of transport_maps on next-hop destination
+	selection. File: proto/transport.
+
+	Cleanup: change a non_smtpd_milters 'shutdown' response
+	from a hard error ('message content rejected') into a soft
+	error ('queue file write error') for consistency with
+	smtpd_milters. File: cleanup/cleanup_milter.c.
+
+	Documentation: regenerated manpages, and propagated parameter
+	changes from postconf(5) to on-line parameter summaries in
+	program manpages. Files: cleanup/cleanup.c, smtpd/smtpd.c.
+
+20251222
+
+	Revert the 20250623 change to the default value for
+	lmtp_tls_security_level, back to its Postfix 3.10 empty
+	value. There is no default TLS security level that makes
+	sense for connections over UNIX-domain, loopback TCP, and
+	non-loopback TCP sockets. Files: global/mail_params.[hc],
+	smtp/smtp.c.
+
+	Documentation: added RELEASE_NOTES_3.11, added example to
+	relocated(5) manpage; updated examples for opportunistic
+	TLS status logging in postconf(5).
+
+	Opened the postfix-3.12-yyyymmdd development series.

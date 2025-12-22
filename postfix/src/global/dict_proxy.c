@@ -512,7 +512,7 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 	    || attr_print(stream, ATTR_FLAG_NONE,
 			  SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_OPEN),
 		      SEND_ATTR_STR(MAIL_ATTR_TABLE, dict_proxy->dict.name),
-		 SEND_ATTR_INT(MAIL_ATTR_INST_FLAGS, dict_proxy->inst_flags),
+		SEND_ATTR_INT(MAIL_ATTR_INST_FLAGS, dict_proxy->inst_flags),
 			  ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,

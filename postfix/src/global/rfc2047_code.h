@@ -23,9 +23,9 @@
 #define RFC2047_HEADER_CONTEXT_PHRASE	(2)
 
 extern char *rfc2047_encode(VSTRING *result, int header_context,
-			              const char *charset,
-			              const char *in, ssize_t len,
-				      const char *out_separator);
+			            const char *charset,
+			            const char *in, ssize_t len,
+			            const char *out_separator);
 
 /* LICENSE
 /* .ad

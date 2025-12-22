@@ -403,10 +403,10 @@ permanent in main.cf:
 
 UUssiinngg bbaacckkwwaarrddss--ccoommppaattiibbllee ddeeffaauulltt sseettttiinngg xxxxxx__sseeccuurriittyy__lleevveell==((eemmppttyy))
 
-Postfix version 3.11 changes the default value for client TLS security levels
-from "empty" to "may". The backwards-compatibility safety net is designed to
-prevent an unexpected change in mail sending behavior when Postfix is updated
-from an older version.
+When built with TLS support, Postfix version 3.11 changes the default SMTP
+client TLS security level from "empty" to "may". The backwards-compatibility
+safety net is designed to prevent an unexpected change in mail sending behavior
+when Postfix is updated from an older version.
 
 There is no equivalent change for Postfix server TLS security levels, because
 changing the level alone is not sufficient. Server-side TLS requires that at

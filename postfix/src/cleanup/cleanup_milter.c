@@ -2079,10 +2079,12 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
     case 'S':
 	if (state->flags & CLEANUP_STAT_CONT)
 	    return (0);
-	/* XXX Can this happen after end-of-message? */
-	state->flags |= CLEANUP_STAT_CONT;
+	/* Shutdown' may be the default action for an I/O error. */
+	CLEANUP_MILTER_SET_SMTP_REPLY(state, resp);
+	ret = state->reason;
+	state->errs |= CLEANUP_STAT_WRITE;
 	action = "milter-reject";
-	text = cleanup_strerror(CLEANUP_STAT_CONT);
+	text = resp + 4;
 	break;
 
 	/*

@@ -1183,7 +1183,7 @@ bool    var_smtp_tlsrpt_enable;
 char   *var_smtp_tlsrpt_sockname;
 bool    var_smtp_tlsrpt_skip_reused_hs;
 char   *var_smtp_reqtls_policy;
-bool	var_log_tls_feature_status;
+bool    var_log_tls_feature_status;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -1571,9 +1571,9 @@ static void pre_init(char *unused_name, char **unused_argv)
 
 #ifdef USE_TLS
     /* Postfix <= 3.10 backwards compatibility. */
-    if (WARN_COMPAT_BREAK_LMTP_SMTP(tls_level))
+    if (smtp_mode && warn_compat_break_smtp_tls_level)
 	msg_info("using backwards-compatible default setting %s=(empty)",
-		 VAR_LMTP_SMTP(TLS_LEVEL));
+		 VAR_SMTP_TLS_LEVEL);
 #endif
     if (*var_smtp_tls_level != 0)
 	switch (tls_level_lookup(var_smtp_tls_level)) {

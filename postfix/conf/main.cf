@@ -31,7 +31,7 @@
 #
 # The level below is what should be used with new (not upgrade) installs.
 #
-compatibility_level = 3.11
+compatibility_level = 3.12
 
 # SOFT BOUNCE
 #

@@ -53,4 +53,3 @@ extern char *make_ascii_header_text(VSTRING *result, int flags, const char *in);
 /*--*/
 
 #endif
-

@@ -60,7 +60,7 @@ int     normalize_v4mapped_sockaddr(struct sockaddr *sa, SOCKADDR_SIZE *sa_len)
 
     if (sa->sa_family == AF_INET6
 	&& IN6_IS_ADDR_V4MAPPED(&SOCK_ADDR_IN6_ADDR(sa))
-	&& strchr((char *) inet_proto_info()->sa_family_list, AF_INET) != 0) {
+      && strchr((char *) inet_proto_info()->sa_family_list, AF_INET) != 0) {
 	memset((void *) &sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
 	sin.sin_port = SOCK_ADDR_IN6_PORT(sa);
@@ -81,7 +81,7 @@ int     normalize_v4mapped_hostaddr(MAI_HOSTADDR_STR *addr)
 #ifdef HAS_IPV6
     if (addr->buf[0] == ':'
 	&& strncasecmp("::ffff:", addr->buf, 7) == 0
-	&& strchr((char *) inet_proto_info()->sa_family_list, AF_INET) != 0) {
+      && strchr((char *) inet_proto_info()->sa_family_list, AF_INET) != 0) {
 	memmove(addr->buf, addr->buf + 7, strlen(addr->buf) + 1 - 7);
 	return (1);
     }

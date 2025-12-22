@@ -229,7 +229,7 @@ static int haproxy_srvr_parse_addr(const char *str, MAI_HOSTADDR_STR *addr,
 	ss_len = sizeof(ss);
 	sa_len = &ss_len;
     } else {
-	if (sa_len == 0) 
+	if (sa_len == 0)
 	    msg_panic("haproxy_srvr_parse: sockaddr length not specified");
     }
     if (*sa_len < res->ai_addrlen)
@@ -302,7 +302,7 @@ static int haproxy_srvr_parse_v2_addr_v4(uint32_t sin_addr,
 	sin_len = sizeof(sin);
 	sa_len = &sin_len;
     } else {
-	if (sa_len == 0) 
+	if (sa_len == 0)
 	    msg_panic("haproxy_srvr_parse: sockaddr length not specified");
 	if (*sa_len < sizeof(sin))
 	    msg_panic("haproxy_srvr_parse: sockaddr size %d too small",

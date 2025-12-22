@@ -1347,7 +1347,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 		/* XXX This should be reported with a call-back. */
 		reply = vstring_alloc(100);
 		if (saved_size > 100)
-		    saved_size=100;
+		    saved_size = 100;
 		vstring_sprintf(reply, "H%.*s", (int) saved_size,
 				STR(milter->buf));
 		milter8_def_reply(milter, STR(reply));

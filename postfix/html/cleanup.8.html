@@ -200,7 +200,8 @@ CLEANUP(8)                                                          CLEANUP(8)
               sions  for  communication  with  a  Milter application; prior to
               Postfix 2.6 the default protocol is 2.
 
-       <b><a href="postconf.5.html#milter_default_action">milter_default_action</a> (tempfail)</b>
+       <b><a href="postconf.5.html#milter_default_action">milter_default_action</a> (Postfix</b> &gt;<b>= 3.11: shutdown; Postfix</b> &lt; <b>3.11: temp-</b>
+       <b>fail)</b>
               The default action when  a  Milter  (mail  filter)  response  is
               unavailable  (for  example,  bad Postfix configuration or Milter
               failure).

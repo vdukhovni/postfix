@@ -4585,8 +4585,9 @@ Reject all further commands in this session
 with a temporary status code.
 .br
 .IP "shutdown"
-Close the SMTP connection after sending a 421
-SMTP reply. Available in Postfix 3.11 and later.
+With smtpd_milters, close the SMTP connection
+after sending a 421 SMTP reply; with non_smtpd_milters, report a
+queue file write error. Available in Postfix 3.11 and later.
 .br
 .IP "quarantine"
 Like "accept", but freeze the message in
@@ -7871,7 +7872,7 @@ connection or an incorrect configuration.
 .PP
 Examples for TLS security levels:
 .IP "tls=none"
-A connection that did not use TLS.
+A connection with TLS disabled.
 .br
 .IP "tls=may"
 Opportunistic TLS. The connection was used
@@ -7882,9 +7883,10 @@ Opportunistic TLS. The status was undecided
 because no connection was made, or no server could be reached.
 .br
 .IP "tls=may:none"
-The client was willing to use TLS, but
-the remote server did not support STARTTLS, and the connection was
-used in plaintext as permitted by the opportunistic TLS policy.
+Opportunistic TLS. The client was
+willing to use TLS, but the remote server did not support STARTTLS,
+and the connection was used in plaintext as permitted by the
+opportunistic TLS policy.
 .br
 .IP "tls=dane"
 DANE policy compliant, no downgrade.
@@ -11858,7 +11860,7 @@ header has one of the following forms:
 Received: by mail.example.com (Postfix) id postfix\-queue\-id
         for <user@example.com>; Day, dd Mon yyyy hh:mm:ss tz\-offset (zone)
 .br
-Received: by mail.example.com (Postfix) id postfix\-queue\-id
+Received: by mail.example.com (Postfix) id postfix\-queue\-id;
         Day, dd Mon yyyy hh:mm:ss tz\-offset (zone)
 .fi
 .ad

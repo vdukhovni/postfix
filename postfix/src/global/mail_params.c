@@ -401,7 +401,6 @@ const char null_format_string[1] = "";
   */
 int     warn_compat_break_smtp_tlsrpt_skip_reused_hs;
 int     warn_compat_break_smtp_tls_level;
-int     warn_compat_break_lmtp_tls_level;
 int     warn_compat_break_tlsp_clnt_level;
 
  /*
@@ -698,8 +697,6 @@ static void check_legacy_defaults(void)
 	    warn_compat_break_smtp_tlsrpt_skip_reused_hs = 1;
 	if (mail_conf_lookup(VAR_SMTP_TLS_LEVEL) == 0)
 	    warn_compat_break_smtp_tls_level = 1;
-	if (mail_conf_lookup(VAR_LMTP_TLS_LEVEL) == 0)
-	    warn_compat_break_lmtp_tls_level = 1;
 	if (mail_conf_lookup(VAR_TLSP_CLNT_LEVEL) == 0)
 	    warn_compat_break_tlsp_clnt_level = 1;
 #endif

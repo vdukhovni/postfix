@@ -234,7 +234,7 @@
 /*	The mail filter protocol version and optional protocol extensions
 /*	for communication with a Milter application; prior to Postfix 2.6
 /*	the default protocol is 2.
-/* .IP "\fBmilter_default_action (tempfail)\fR"
+/* .IP "\fBmilter_default_action (Postfix >= 3.11: shutdown; Postfix < 3.11: tempfail)\fR"
 /*	The default action when a Milter (mail filter) response is
 /*	unavailable (for example, bad Postfix configuration or Milter
 /*	failure).
@@ -6713,7 +6713,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * recipient checks, address mapping, header_body_checks?.
      */
     smtpd_input_transp_mask =
-	input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
+    input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 
     /*
      * Initialize before-queue filter options: do we want speed-matching

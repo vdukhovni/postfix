@@ -496,7 +496,7 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
     VSTRING *reg_name = vstring_alloc(100);
     DICT   *dict;
 
-	/* Workaround for dict_proxy_open() with DICT_FLAG_NO_FILE. */
+    /* Workaround for dict_proxy_open() with DICT_FLAG_NO_FILE. */
 #define DICT_OPEN3_RETURN(d) do { \
 	DICT *_d = (d); \
 	dict_register(_d->reg_name? _d->reg_name : vstring_str(reg_name), _d); \
@@ -512,7 +512,7 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
 			       open_flags, dict_flags);
     if ((dict = dict_handle(vstring_str(reg_name))) != 0)
 	DICT_OPEN3_RETURN(dict);
- 
+
     if (*dict_type == 0 || *dict_name == 0)
 	msg_fatal("open dictionary: expecting \"type:name\" form instead of \"%s:%s\"",
 		  dict_type, dict_name);

@@ -1800,6 +1800,7 @@ extern int REMOVE(const char *);
 #include <stdbool.h>
 #else
 typedef int bool;
+
 #endif
 
 /* LICENSE

@@ -613,8 +613,9 @@ make the backwards-compatible setting "smtp_tlsrpt_skip_reused_handshakes
 <h2> <a name="xxx_tls_level"> Using backwards-compatible
 default setting <i>xxx</i>_security_level=(empty)</a> </h2>
 
-<p> Postfix version 3.11 changes the default value for client TLS
-security levels from "empty" to "may". The backwards-compatibility
+<p> When built with TLS support, Postfix version 3.11 changes the
+default SMTP client TLS
+security level from "empty" to "may". The backwards-compatibility
 safety net is designed to prevent an unexpected change in mail
 sending behavior when Postfix is updated from an older version.
 </p>
