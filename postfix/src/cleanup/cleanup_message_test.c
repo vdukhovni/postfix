@@ -52,19 +52,19 @@
  /*
   * Stubs for configuration parameter dependencies.
   */
-int     var_always_add_hdrs;
-int     var_auto_8bit_enc_hdr;
+bool    var_always_add_hdrs;
+bool    var_auto_8bit_enc_hdr;
 int     var_body_check_len;
-int     var_cleanup_mask_stray_cr_lf;
+bool    var_cleanup_mask_stray_cr_lf;
 int     var_dup_filter_limit;
-int     var_force_mime_iconv;
+bool    var_force_mime_iconv;
 char   *var_full_name_encoding_charset;
 char   *var_header_checks;
 int     var_hopcount_limit;
 char   *var_mimehdr_checks;
 char   *var_nesthdr_checks;
 char   *var_rcpt_witheld;
-int     var_reqtls_esmtp_hdr;
+bool    var_reqtls_esmtp_hdr;
 
 MAPS   *cleanup_comm_canon_maps;
 MAPS   *cleanup_send_canon_maps;

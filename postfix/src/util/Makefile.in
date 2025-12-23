@@ -686,7 +686,7 @@ mac_expand_test: mac_expand mac_expand.in mac_expand.ref
 	rm -f mac_expand.tmp
 
 unescape_test: unescape unescape.in unescape.ref
-	$(SHLIB_ENV) ${VALGRIND} ./unescape <unescape.in | od -cb >unescape.tmp
+	$(SHLIB_ENV) ${VALGRIND} ./unescape <unescape.in | LANG=C od -cb >unescape.tmp
 	diff -b unescape.ref unescape.tmp
 #	$(SHLIB_ENV) ${VALGRIND} ./unescape <unescape.in | $(SHLIB_ENV) ${VALGRIND} ./unescape -e >unescape.tmp
 #	diff unescape.in unescape.tmp

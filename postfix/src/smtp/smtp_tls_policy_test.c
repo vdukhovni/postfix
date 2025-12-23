@@ -70,7 +70,7 @@ char   *var_smtp_tls_mand_excl;
 char   *var_smtp_dns_res_opt;
 char   *var_smtp_dns_support;
 char   *var_smtp_tls_insecure_mx_policy;
-int     var_ign_mx_lookup_err;
+bool    var_ign_mx_lookup_err;
 bool    var_smtp_enforce_tls;
 bool    var_smtp_tls_enforce_peername;
 bool    var_smtp_tls_force_tlsa;

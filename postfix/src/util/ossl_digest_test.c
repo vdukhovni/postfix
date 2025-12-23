@@ -73,7 +73,7 @@ static int reports_bad_digest_name(void)
 	char   *err_string;
 
 	err_string = get_error_string();
-	if (strstr(err_string, bad_digest_name) == 0) {
+	if (*err_string && strstr(err_string, bad_digest_name) == 0) {
 	    status = FAIL;
 	    msg_warn("want: '%s', got: '%s'", bad_digest_name, err_string);
 	}

@@ -30268,3 +30268,14 @@ Apologies for any names omitted.
 	TLS status logging in postconf(5).
 
 	Opened the postfix-3.12-yyyymmdd development series.
+
+20251223
+
+	Converted tests to support the C23 built-in bool type, and
+	fixed a few portability problems. Some tests in (util, dns,
+	smtpd) still need to be made hermetic. Files:
+	cleanup/cleanup_message_test.c, smtp/smtp_tls_policy_test.c,
+	smtpd/smtpd_check.c, util/Makefile.in, util/ossl_digest_test.c,
+	util/unescape.ref.
+
+	Documentation: minor edits of Postfix 3.11.0 RELEASE_NOTES.

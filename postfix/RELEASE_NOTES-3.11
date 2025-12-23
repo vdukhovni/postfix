@@ -31,8 +31,8 @@ Major changes - database
 
 [Feature 20250321] Safety: the SQLite client now logs a warning
 when a query uses double quotes instead of the Postfix-recommended
-single quotes. The non-recommended form is not protected against
-SQL injection.
+single quotes. Only the recommended form is protected against SQL
+injection.
 
 [Feature 20250509] Support to run all memcache lookup keys through
 an OpenSSL digest function. This prevents a database access error
@@ -117,11 +117,6 @@ This avoids a worst-case scenario where after a single Milter error,
 Postfix would tempfail all messages that the client sends over a
 long-lived connection, even if the Milter error was only temporary.
 
-The bounce daemon now logs "<old-queue-id>: sender non-delivery
-notification: <new-queue-id>" *before* the cleanup daemon logs
-activity with <new-queue-id>, instead of after. This makes the
-logging easier to analyze.
-
 Major changes - mime support
 ----------------------------
 
@@ -138,8 +133,7 @@ line, or
 3) reject: Log a "mime-error" and reject the message.
 
 Note that the 'empty line' separator is not used for DKIM signature
-checks, so it does not matter that Postfix inserts one if it is
-missing.
+checks. Therefore, adding a missing separator does not break DKIM.
 
 Major changes - mta-sts
 -----------------------
@@ -238,9 +232,8 @@ This reuses logic that was introduced for REQUIRETLS.
 
 [Feature 20250824] When a message needs to be delivered with SMTPUTF8,
 but a remote server does not support it, the Postfix SMTP client
-will try alternate servers instead of returning the message
-immediately. This reuses on new code that was implemented for
-REQUIRETLS,
+may now try alternate servers instead of returning the message
+immediately. This reuses code that was implemented for REQUIRETLS.
 
 Major changes - tls support
 ---------------------------
@@ -266,7 +259,7 @@ and corresponding public-key certificate chain are configured.
 3.5 and later, change the tls_eecdh_auto_curves default value to
 avoid problems with network infrastructure that mis-handles TLS
 hello messages larger than one (Ethernet) TCP segment. This problem
-is mre generally known as "protocol ossification".
+is more generally known as "protocol ossification".
 
 Major changes - tlsrpt
 ----------------------
