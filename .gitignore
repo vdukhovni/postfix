@@ -60,6 +60,7 @@ Makefile
 /postfix/src/postkick/postkick
 /postfix/src/postlock/postlock
 /postfix/src/postlog/postlog
+/postfix/src/postlogd/postlogd
 /postfix/src/postmap/postmap
 /postfix/src/postmulti/postmulti
 /postfix/src/postqueue/postqueue
@@ -100,6 +101,7 @@ Makefile
 /postfix/src/postconf/nbool_vars.h
 /postfix/src/postconf/nint_table.h
 /postfix/src/postconf/nint_vars.h
+/postfix/src/postconf/pcf_*_suffixes.h
 /postfix/src/postconf/raw_table.h
 /postfix/src/postconf/raw_vars.h
 /postfix/src/postconf/str_fn_table.h
@@ -176,6 +178,8 @@ Makefile
 /postfix/src/util/base64_code
 /postfix/src/util/ctable
 /postfix/src/util/dict_open
+/postfix/src/util/dict_pipe_test
+/postfix/src/util/dict_union_test
 /postfix/src/util/doze
 /postfix/src/util/dup2_pass_on_exec
 /postfix/src/util/events
