@@ -29,6 +29,49 @@ IPL can continue with that license.
 Major changes - database
 ------------------------
 
+[Infrastructure 20251226] Tooling to help with the migration away
+from Berkeley DB. 
+
+The new parameter default_cache_db_type controls the default database
+type for address_verify_map and postscreen_cache_map, and can
+eliminate a few hard-coded database types in main.cf. This parameter
+defaults to 'lmdb' if the default_database_type value equals 'lmdb',
+otherwise it assumes the historical value 'btree'.
+
+Sites that build without Berkeley DB are suggested to use one of the
+following commands in their build process:
+
+1 - Make lmdb the default for both default_database_type
+    and default_cache_db_type.
+
+    make makefiles CCARGS="-NO_DB ..." default_database_type=lmdb
+
+2 - Make cdb the default for default_database_type, and make
+    lmdb the default for default_cache_db_type.
+
+    make makefiles CCARGS="-NO_DB ..." default_database_type=cdb \
+	default_cache_db_type=lmdb
+
+Postfix hash and btree files can easily be migrated when the
+source file is available. Just run
+
+    postmap lmdb:/path/to/file
+
+That does not work for address_verify_map and postscreen_cache_map
+because there is no source file. In that case, to migrate a btree
+file to lmdb, execute as root:
+
+   rm -f /path/to/file.lmdb
+   postmap -s btree:/path/to/file | postmap -i lmdb:/path/to/file
+   chown postfix /path/to/file.lmdb
+
+This should happen for every btree datbase with long-lived data that
+has no data source file: address_verify_map, postscreen_cache_map,
+and the optional smtp_sasl_auth_cache_name.
+
+Limitation: the above database migration commands work only if
+Berkeley DB btree support is still available :-(
+
 [Feature 20250321] Safety: the SQLite client now logs a warning
 when a query uses double quotes instead of the Postfix-recommended
 single quotes. Only the recommended form is protected against SQL

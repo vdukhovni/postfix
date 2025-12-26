@@ -674,6 +674,8 @@ listed below. See the postconf(5) manpage for a description
 
 <tr> <td>default_database_type</td> <td>hash</td> </tr>
 
+<tr> <td>default_cache_db_type</td> <td>(lmdb if default_database_type is lmdb, otherwise btree)</td> </tr>
+
 <tr> <td>daemon_directory</td> <td>/usr/libexec/postfix</td> </tr>
 
 <tr> <td>data_directory</td> <td>/var/lib/postfix</td> </tr>
@@ -741,6 +743,9 @@ default</th> </tr>
 
 <tr> <td>DEF_DB_TYPE</td> <td>default_database_type</td>
 <td>hash</td> </tr>
+
+<tr> <td>DEF_CACHE_DB_TYPE</td> <td>default_cache_db_type</td>
+<td>hash or lmdb, depends on platform</td> </tr>
 
 <tr> <td>DEF_DAEMON_DIR</td> <td>daemon_directory</td>
 <td>/usr/libexec/postfix</td> </tr>
@@ -813,8 +818,8 @@ off Postfix features at compile time:</td> </tr>
 <tr> <td> </td> <td> -DNO_DB </td> <td> Do not build with Berkeley
 DB support. By default, Berkeley DB support is compiled in on
 platforms that are known to support this feature. If you override
-this, then you probably should also override DEF_DB_TYPE as described
-in section 4.6.  </td> </tr>
+this, then you probably should also override default_database_type
+or DEF_DB_TYPE as described in section 4.6. </td> </tr>
 
 <tr> <td> </td> <td> -DNO_DNSSEC </td> <td> Do not build with DNSSEC
 support, even if the resolver library appears to support it. </td>

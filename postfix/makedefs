@@ -162,10 +162,10 @@
 #	supported in this context:
 #
 #	command_directory config_directory daemon_directory
-#	data_directory default_database_type html_directory
-#	mail_spool_directory mailq_path manpage_directory meta_directory
-#	newaliases_path queue_directory readme_directory sendmail_path
-#	shlib_directory openssl_path
+#	data_directory default_cache_db_type default_database_type
+#	html_directory mail_spool_directory mailq_path manpage_directory
+#	meta_directory newaliases_path queue_directory readme_directory
+#	sendmail_path shlib_directory openssl_path
 #
 #	See the postconf(5) manpage for a description of these
 #	parameters.
@@ -1124,9 +1124,10 @@ do
     esac
 done
 
+default_cache_db_type_macro=DEF_CACHE_DB_TYPE
 default_database_type_macro=DEF_DB_TYPE
 
-for parm_name in default_database_type
+for parm_name in default_cache_db_type default_database_type
 do
     eval parm_val=\"\$$parm_name\"
     eval parm_macro=\"\$${parm_name}_macro\"

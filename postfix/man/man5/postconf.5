@@ -134,7 +134,7 @@ Overrides the local_transport parameter setting for address
 verification probes.
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH address_verify_map (default: see "postconf \-d" output)
+.SH address_verify_map (default: Postfix >= 3.11: $default_cache_db_type:$data_directory/address_verify_map; Postfix < 3,11: btree:$data_directory/address_verify_map)
 Lookup table for persistent address verification status
 storage.  The table is maintained by the \fBverify\fR(8) service, and
 is opened before the process releases privileges.
@@ -1226,6 +1226,12 @@ debugger_command =
     ddd $daemon_directory/$process_name $process_id & sleep 5
 .fi
 .ad
+.SH default_cache_db_type (default: lmdb if default_database_type is lmdb, otherwise btree)
+The default database type for address_verify_map and
+postscreen_cache_map. Before Postfix 3.11 those caches used btree
+by default.
+.PP
+This feature is available in Postfix >= 3.11.
 .SH default_database_type (default: see "postconf \-d" output)
 The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
 and \fBpostmap\fR(1) commands. On many UNIX systems the default type is
@@ -5421,11 +5427,12 @@ one\-letter suffix that specifies the time unit).  Time units: s
 The default time unit is h (hours).
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_cache_map (default: btree:$data_directory/postscreen_cache)
+.SH postscreen_cache_map (default: Postfix >= 3.11: $default_cache_db_type:$data_directory/postscreen_cache_map; Postfix < 3.11: btree:$data_directory/postscreen_cache_map)
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
 .PP
 To share a \fBpostscreen\fR(8) cache between multiple \fBpostscreen\fR(8)
-instances, use "postscreen_cache_map = proxy:btree:/path/to/file".
+instances, use "postscreen_cache_map = proxy:btree:/path/to/file"
+or "proxy:lmdb:/path/to/file".
 This requires Postfix version 2.9 or later; earlier \fBproxymap\fR(8)
 implementations don't support cache cleanup. For an alternative
 approach see the \fBmemcache_table\fR(5) manpage.
@@ -8504,11 +8511,12 @@ the directory specified with the data_directory parameter.
 This feature uses cryptographic hashing to protect plain\-text
 passwords, and requires that Postfix is compiled with TLS support.
 .PP
-Example:
+Examples:
 .PP
 .nf
 .na
 smtp_sasl_auth_cache_name = proxy:btree:/var/lib/postfix/sasl_auth_cache
+smtp_sasl_auth_cache_name = proxy:lmdb:/var/lib/postfix/sasl_auth_cache
 .fi
 .ad
 .PP
@@ -10345,6 +10353,7 @@ Example:
 .nf
 .na
 smtp_tls_session_cache_database = btree:/var/lib/postfix/smtp_scache
+smtp_tls_session_cache_database = lmdb:/var/lib/postfix/smtp_scache
 .fi
 .ad
 .PP
@@ -14235,11 +14244,12 @@ generally be left empty.  TLS session tickets require an OpenSSL
 library (at least version 0.9.8h) that provides full support for
 this TLS extension.  See also smtpd_tls_session_cache_timeout.
 .PP
-Example:
+Examples:
 .PP
 .nf
 .na
 smtpd_tls_session_cache_database = btree:/var/lib/postfix/smtpd_scache
+smtpd_tls_session_cache_database = lmdb:/var/lib/postfix/smtpd_scache
 .fi
 .ad
 .PP

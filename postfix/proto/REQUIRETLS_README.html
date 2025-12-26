@@ -21,6 +21,7 @@
 <h2> Table of Contents </h2>
 <ul>
 
+<li> <a href="#purpose"> Purpose of this document </a> </li>
 <li> <a href="#intro"> Introduction </a> </li>
 <li> <a href="#perimeter"> REQUIRETLS for a perimeter MTA </a>
 <ul>
@@ -38,38 +39,55 @@
 
 </ul>
 
+<h2> <a name="purpose"> Purpose of this document </a> </h2>
+
+<p> This document covers Postfix configuration for the REQUIRETLS
+extension. The purpose of these settings is to make REQUIRETLS
+support usable in an existing environment where REQUIRETLS support
+is still uncommon, with a path towards a future with REQUIRETLS.
+</p>
+
 <h2> <a name="intro"> Introduction </a> </h2>
 
-<p> (For background information, see below for a <a href="#summary">
-REQUIRETLS quick summary</a>.) </p>
+<p> The REQUIRETLS extension in ESMTP is defined in RFC 8689. When
+a sender requests REQUIRETLS. the message must be sent only over
+strongly-authenticated SMTP or LMTP connections. </p>
 
-<p> This document covers the Postfix default settings for using the
-REQUIRETLS extension. The purpose of these defaults is to make REQUIRETLS
-support usable in an existing environment, with a path towards the
-future. </p>
-
-<p> The main issues with deploying REQUIRETLS are a lack of support in
-existing infrastructure:  </p>
+<p> Specifically: </p>
 
 <ul>
 
-<li> <p> REQUIRETLS requires that server certificates are authenticated.
-When email is sent across the Internet, this involves a DANE or MTA-STS
-policy that is published by a mail receiving domain, using DNSSEC or
-HTTPS. At this time, many domains do not publish such a policy. </p>
+<li> <p> Every server in the forward path to the final destination must
+announce REQUIRETLS support. </p>
 
-<li> <p> REQUIRETLS is historically not supported by existing local
-infrastructure such as internal message stores or Postfix content
-filters, and may be over-kill for connections that happen behind a
-perimeter MTA within a trusted internal network. </p>
+<blockquote> Challenge: as of 2025, only a few servers implement
+REQUIRETLS. </blockquote>
+
+<li> <p> Every server in the forward path must be looked up securely
+(for example, with DNSSEC or HTTPS). </p>
+
+<li> <p> Every server certificate in the forward path must be verified. In
+practice, this involves DANE (+DNSSEC) or MTA-STS; custom configuration
+would not scale. </p>
+
+<blockquote> Challenge: as of 2025, many domains do not publish a
+DANE or MTA-STS policy. </blockquote>
+
+<li> <p> A message with REQUIRETLS must be returned to the sender if
+any of the above requirements is not satisfied (no STARTTLS support,
+no secure server lookup, no trusted or no matching server certificate,
+or no server that announces REQUIRETLS support). </p>
 
 </ul>
+
+<p> For more background information, see the <a href="#summary">
+REQUIRETLS quick summary</a> below. </p>
 
 <h2> <a name="perimeter"> REQUIRETLS for a perimeter MTA </a> </h2>
 
 <p> In this text, a perimeter MTA is a mail system that operates
 on the boundary of an administrative domain. It receives email
-messages for the domain, and/or delivers email messages on behalf
+messages for the domain, and/or sends email messages on behalf
 of the domain. </p>
 
 <h3> <a name="inbound"> Receiving inbound messages with REQUIRETLS requests </a> </h3>
@@ -486,10 +504,10 @@ S: 250 OK
 
 <li> <p> REQUIRETLS is an <i>end-to-end</i> feature, unlike SMTP
 which is <i>hop-by-hop</i>. When a sender requests REQUIRETLS, each
-MTA in the forward path must support REQUIRETLS. </p>
+server in the forward path must support REQUIRETLS. </p>
 
-<li> <p> Each connection in the forward path must be made to an MX
-server that has been looked up securely (for example, with DNSSEC
+<li> <p> Each connection in the forward path must be made to a server
+that has been looked up securely (for example, with DNSSEC
 or HTTPS).
 
 <li> <p> Each server certificate must be verified. To match a server
@@ -528,7 +546,8 @@ server certificate, or no server that announces REQUIRETLS support).
 comes with its own challenges: the return path may differ from the
 forward path, and the return path may not support REQUIRETLS all
 the way back to the sender, even if the forward path supported
-REQUIRETLS. </p>
+REQUIRETLS. By default, Postfix follows RFC 8689 and redacts
+bounce messages so that they can be sent without REQUIRETLS. </p>
 
 </ul>
 

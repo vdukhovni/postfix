@@ -202,7 +202,7 @@ verification probes.
 This feature is available in Postfix 2.1 and later.
 </p>
 
-%PARAM address_verify_map see "postconf -d" output
+%PARAM address_verify_map Postfix &ge; 3.11: $default_cache_db_type:$data_directory/address_verify_map; Postfix &lt; 3,11: btree:$data_directory/address_verify_map
 
 <p>
 Lookup table for persistent address verification status
@@ -10082,10 +10082,11 @@ generally be left empty.  TLS session tickets require an OpenSSL
 library (at least version 0.9.8h) that provides full support for
 this TLS extension.  See also smtpd_tls_session_cache_timeout. </p>
 
-<p> Example: </p>
+<p> Examples: </p>
 
 <pre>
 smtpd_tls_session_cache_database = btree:/var/lib/postfix/smtpd_scache
+smtpd_tls_session_cache_database = lmdb:/var/lib/postfix/smtpd_scache
 </pre>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
@@ -10460,6 +10461,7 @@ data_directory, and a warning is logged. </p>
 
 <pre>
 smtp_tls_session_cache_database = btree:/var/lib/postfix/smtp_scache
+smtp_tls_session_cache_database = lmdb:/var/lib/postfix/smtp_scache
 </pre>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
@@ -14285,10 +14287,11 @@ the directory specified with the data_directory parameter. </p>
 passwords, and requires that Postfix is compiled with TLS support.
 </p>
 
-<p> Example: </p>
+<p> Examples: </p>
 
 <pre>
 smtp_sasl_auth_cache_name = proxy:btree:/var/lib/postfix/sasl_auth_cache
+smtp_sasl_auth_cache_name = proxy:lmdb:/var/lib/postfix/sasl_auth_cache
 </pre>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
@@ -14667,12 +14670,13 @@ inspection for DKIM-signed mail from known friendly domains. </p>
 <p> This feature is available in Postfix 2.7, and as an optional
 patch for Postfix 2.6. </p>
 
-%PARAM postscreen_cache_map btree:$data_directory/postscreen_cache
+%PARAM postscreen_cache_map Postfix &ge; 3.11: $default_cache_db_type:$data_directory/postscreen_cache_map; Postfix &lt; 3.11: btree:$data_directory/postscreen_cache_map
 
 <p> Persistent storage for the postscreen(8) server decisions. </p>
 
 <p> To share a postscreen(8) cache between multiple postscreen(8)
-instances, use "postscreen_cache_map = proxy:btree:/path/to/file".
+instances, use "postscreen_cache_map = proxy:btree:/path/to/file"
+or "proxy:lmdb:/path/to/file".
 This requires Postfix version 2.9 or later; earlier proxymap(8)
 implementations don't support cache cleanup. For an alternative
 approach see the memcache_table(5) manpage. </p>
@@ -20286,5 +20290,13 @@ to=&lt;<i>recipient</i>&gt;
 </dd>
 
 <dl>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM default_cache_db_type lmdb if default_database_type is lmdb, otherwise btree
+
+<p> The default database type for address_verify_map and
+postscreen_cache_map. Before Postfix 3.11 those caches used btree
+by default. </p>
 
 <p> This feature is available in Postfix &ge; 3.11. </p>

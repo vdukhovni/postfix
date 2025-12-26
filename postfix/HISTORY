@@ -30279,3 +30279,18 @@ Apologies for any names omitted.
 	util/unescape.ref.
 
 	Documentation: minor edits of Postfix 3.11.0 RELEASE_NOTES.
+
+20251226
+
+	Tooling to reduce hard-coded database types in main.cf.
+	This introduces default_cache_db_type as the default database
+	for address_verify_map and postscreen_cache_map. It defaults
+	to 'lmdb' if default_database_type is 'lmdb', otherwise it
+	assumes the historical value 'btree'. With instructions for
+	overriding default_cache_db_type and default_database_type
+	in Postfix 3.11.0 RELEASE_NOTES. Files: makedefs,
+	mantools/postlink, proto/INSTALL.html, proto/postconf.proto,
+	README_FILES/INSTALL, RELEASE_NOTES-3.11, global/mail_params.c,
+	global/mail_params.h.
+
+	Documentation: updated REQUIRETLS_README.
