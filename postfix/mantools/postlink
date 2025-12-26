@@ -140,6 +140,7 @@ while (<>) {
     s;\bdebug_peer_list\b;<a href="postconf.5.html#debug_peer_list">$&</a>;g;
     s;\bdefault_delivery_status_filter\b;<a href="postconf.5.html#default_delivery_status_filter">$&</a>;g;
     s;\bdefault_data[-</Bb>]*\n* *[<Bb>]*base_type\b;<a href="postconf.5.html#default_database_type">$&</a>;g;
+    s;\bdefault_cache_[-</Bb>]*\n* *[<Bb>]*db_type\b;<a href="postconf.5.html#default_cache_db_type">$&</a>;g;
     s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_cost\b;<a href="postconf.5.html#default_delivery_slot_cost">$&</a>;g;
     s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_dis[-</Bb>]*\n* *[<Bb>]*count\b;<a href="postconf.5.html#default_delivery_slot_discount">$&</a>;g;
     s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_loan\b;<a href="postconf.5.html#default_delivery_slot_loan">$&</a>;g;

@@ -378,6 +378,16 @@ extern char *var_config_dirs;
 extern char *var_db_type;
 
  /*
+  * Preferred type of cache database files. The DEF_CACHE_DB_TYPE macro value
+  * is system dependent. It is defined in <sys_defs.h>.
+  */
+#define VAR_CACHE_DB_TYPE	"default_cache_db_type"
+#ifndef DEF_CACHE_DB_TYPE
+#define DEF_CACHE_DB_TYPE	"${{$default_database_type}=={lmdb}?{lmdb}:{btree}}"
+#endif
+extern char *var_cache_db_type;
+
+ /*
   * What syslog facility to use. Unfortunately, something may have to be
   * logged before parameters are read from the main.cf file. This logging
   * will go the LOG_FACILITY facility specified below.
@@ -2964,7 +2974,7 @@ extern int var_vrfy_pend_limit;
 extern char *var_verify_service;
 
 #define VAR_VERIFY_MAP			"address_verify_map"
-#define DEF_VERIFY_MAP			"btree:$data_directory/verify_cache"
+#define DEF_VERIFY_MAP			"$" VAR_CACHE_DB_TYPE ":$data_directory/verify_cache"
 extern char *var_verify_map;
 
 #define VAR_VERIFY_POS_EXP		"address_verify_positive_expire_time"
@@ -3788,7 +3798,7 @@ extern char *var_multi_cntrl_cmds;
   * postscreen(8)
   */
 #define VAR_PSC_CACHE_MAP	"postscreen_cache_map"
-#define DEF_PSC_CACHE_MAP	"btree:$data_directory/postscreen_cache"
+#define DEF_PSC_CACHE_MAP	"$" VAR_CACHE_DB_TYPE ":$data_directory/postscreen_cache"
 extern char *var_psc_cache_map;
 
 #define VAR_SMTPD_SERVICE	"smtpd_service_name"
