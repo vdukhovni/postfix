@@ -382,9 +382,6 @@ extern char *var_db_type;
   * is system dependent. It is defined in <sys_defs.h>.
   */
 #define VAR_CACHE_DB_TYPE	"default_cache_db_type"
-#ifndef DEF_CACHE_DB_TYPE
-#define DEF_CACHE_DB_TYPE	"${{$default_database_type}=={lmdb}?{lmdb}:{btree}}"
-#endif
 extern char *var_cache_db_type;
 
  /*

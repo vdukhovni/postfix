@@ -1306,6 +1306,14 @@ extern int h_errno;
 #define DEF_DB_TYPE	NATIVE_DB_TYPE
 #endif
 
+#ifndef NATIVE_CACHE_DB_TYPE
+#define NATIVE_CACHE_DB_TYPE	"btree"	/* Postfix < 3.11 default */
+#endif
+
+#ifndef DEF_CACHE_DB_TYPE
+#define DEF_CACHE_DB_TYPE	NATIVE_CACHE_DB_TYPE
+#endif
+
 #define CAST_ANY_PTR_TO_INT(cptr)	((int) (long) (cptr))
 #define CAST_INT_TO_VOID_PTR(ival)	((void *) (long) (ival))
 

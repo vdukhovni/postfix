@@ -202,7 +202,7 @@ verification probes.
 This feature is available in Postfix 2.1 and later.
 </p>
 
-%PARAM address_verify_map Postfix &ge; 3.11: $default_cache_db_type:$data_directory/address_verify_map; Postfix &lt; 3,11: btree:$data_directory/address_verify_map
+%PARAM address_verify_map Postfix &ge; 3.11: $default_cache_db_type:$data_directory/verify_cache; Postfix &lt; 3.11: btree:$data_directory/verify_cache
 
 <p>
 Lookup table for persistent address verification status
@@ -235,8 +235,9 @@ Examples:
 </p>
 
 <pre>
-address_verify_map = hash:/var/lib/postfix/verify
-address_verify_map = btree:/var/lib/postfix/verify
+address_verify_map = $default_cache_db_type:$data_directory/verify_cache
+address_verify_map = hash:/var/lib/postfix/verify_cache
+address_verify_map = btree:/var/lib/postfix/verify_cache
 </pre>
 
 <p>
@@ -14670,7 +14671,7 @@ inspection for DKIM-signed mail from known friendly domains. </p>
 <p> This feature is available in Postfix 2.7, and as an optional
 patch for Postfix 2.6. </p>
 
-%PARAM postscreen_cache_map Postfix &ge; 3.11: $default_cache_db_type:$data_directory/postscreen_cache_map; Postfix &lt; 3.11: btree:$data_directory/postscreen_cache_map
+%PARAM postscreen_cache_map Postfix &ge; 3.11: $default_cache_db_type:$data_directory/postscreen_cache; Postfix &lt; 3.11: btree:$data_directory/postscreen_cache
 
 <p> Persistent storage for the postscreen(8) server decisions. </p>
 
@@ -20293,7 +20294,7 @@ to=&lt;<i>recipient</i>&gt;
 
 <p> This feature is available in Postfix &ge; 3.11. </p>
 
-%PARAM default_cache_db_type lmdb if default_database_type is lmdb, otherwise btree
+%PARAM default_cache_db_type see 'postconf -d default_cache_db_type' output
 
 <p> The default database type for address_verify_map and
 postscreen_cache_map. Before Postfix 3.11 those caches used btree

@@ -126,9 +126,9 @@ $ setenv MANPATH "`pwd`/man:$MANPATH"
 </pre>
 </blockquote>
 
-<p> Of particular interest is the postconf(5) manual page that
-lists all the 500+ configuration parameters. The HTML version of
-this text makes it easy to navigate around.  </p>
+<p> Of particular interest is the postconf(5) manual page that lists
+all the 900+ configuration parameters. The hyperlinks in the HTML
+version (html/postconf.5.html) make the text easy to navigate. </p>
 
 <p> All Postfix source files have their own built-in manual page.
 Tools to extract those embedded manual pages are available in the
@@ -136,10 +136,9 @@ mantools directory. </p>
 
 <h2> <a name="4">4 - Building on a supported system</a> </h2>
 
-<p> Postfix development happens on FreeBSD and MacOS X, with regular
-tests on Linux (Fedora, Ubuntu) and Solaris. Support for other
-systems relies on feedback from their users, and may not always be
-up-to-date. </p>
+<p> Postfix development happens on FreeBSD and Linux, with occasional
+tests on Solaris. Support for other systems relies on feedback from
+their users, and may not always be up-to-date. </p>
 
 <p> OpenBSD is partially supported. The libc resolver does not
 implement the documented "internal resolver options which are [...]
@@ -672,9 +671,9 @@ listed below. See the postconf(5) manpage for a description
 
 <tr> <td>config_directory</td> <td>/etc/postfix</td> </tr>
 
-<tr> <td>default_database_type</td> <td>hash</td> </tr>
+<tr> <td>default_database_type</td> <td>lmdb or hash</td> </tr>
 
-<tr> <td>default_cache_db_type</td> <td>(lmdb if default_database_type is lmdb, otherwise btree)</td> </tr>
+<tr> <td>default_cache_db_type</td> <td>lmdb or btree</td> </tr>
 
 <tr> <td>daemon_directory</td> <td>/usr/libexec/postfix</td> </tr>
 
@@ -742,10 +741,10 @@ default</th> </tr>
 <td>/etc/postfix</td> </tr>
 
 <tr> <td>DEF_DB_TYPE</td> <td>default_database_type</td>
-<td>hash</td> </tr>
+<td>lmdb or hash</td> </tr>
 
 <tr> <td>DEF_CACHE_DB_TYPE</td> <td>default_cache_db_type</td>
-<td>hash or lmdb, depends on platform</td> </tr>
+<td>lmdb or btree</td> </tr>
 
 <tr> <td>DEF_DAEMON_DIR</td> <td>daemon_directory</td>
 <td>/usr/libexec/postfix</td> </tr>
