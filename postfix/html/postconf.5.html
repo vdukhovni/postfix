@@ -225,7 +225,7 @@ This feature is available in Postfix 2.1 and later.
 </DD>
 
 <DT><b><a name="address_verify_map">address_verify_map</a>
-(default: Postfix &ge; 3.11: $<a href="postconf.5.html#default_cache_db_type">default_cache_db_type</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/address_verify_map; Postfix &lt; 3,11: <a href="DATABASE_README.html#types">btree</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/address_verify_map)</b></DT><DD>
+(default: Postfix &ge; 3.11: $<a href="postconf.5.html#default_cache_db_type">default_cache_db_type</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/verify_cache; Postfix &lt; 3.11: <a href="DATABASE_README.html#types">btree</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/verify_cache)</b></DT><DD>
 
 <p>
 Lookup table for persistent address verification status
@@ -258,8 +258,9 @@ Examples:
 </p>
 
 <pre>
-<a href="postconf.5.html#address_verify_map">address_verify_map</a> = <a href="DATABASE_README.html#types">hash</a>:/var/lib/postfix/verify
-<a href="postconf.5.html#address_verify_map">address_verify_map</a> = <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/verify
+<a href="postconf.5.html#address_verify_map">address_verify_map</a> = $<a href="postconf.5.html#default_cache_db_type">default_cache_db_type</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/verify_cache
+<a href="postconf.5.html#address_verify_map">address_verify_map</a> = <a href="DATABASE_README.html#types">hash</a>:/var/lib/postfix/verify_cache
+<a href="postconf.5.html#address_verify_map">address_verify_map</a> = <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/verify_cache
 </pre>
 
 <p>
@@ -2021,7 +2022,7 @@ Example:
 </DD>
 
 <DT><b><a name="default_cache_db_type">default_cache_db_type</a>
-(default: lmdb if <a href="postconf.5.html#default_database_type">default_database_type</a> is lmdb, otherwise btree)</b></DT><DD>
+(default: see 'postconf -d <a href="postconf.5.html#default_cache_db_type">default_cache_db_type</a>' output)</b></DT><DD>
 
 <p> The default database type for <a href="postconf.5.html#address_verify_map">address_verify_map</a> and
 <a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a>. Before Postfix 3.11 those caches used btree
@@ -8727,7 +8728,7 @@ The default time unit is h (hours).  </p>
 </DD>
 
 <DT><b><a name="postscreen_cache_map">postscreen_cache_map</a>
-(default: Postfix &ge; 3.11: $<a href="postconf.5.html#default_cache_db_type">default_cache_db_type</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/<a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a>; Postfix &lt; 3.11: <a href="DATABASE_README.html#types">btree</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/<a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a>)</b></DT><DD>
+(default: Postfix &ge; 3.11: $<a href="postconf.5.html#default_cache_db_type">default_cache_db_type</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/postscreen_cache; Postfix &lt; 3.11: <a href="DATABASE_README.html#types">btree</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/postscreen_cache)</b></DT><DD>
 
 <p> Persistent storage for the <a href="postscreen.8.html">postscreen(8)</a> server decisions. </p>
 

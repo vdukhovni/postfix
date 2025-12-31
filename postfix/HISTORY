@@ -30294,3 +30294,12 @@ Apologies for any names omitted.
 	global/mail_params.h.
 
 	Documentation: updated REQUIRETLS_README.
+
+20251231
+
+	Cleanup: eliminated implicit dependency of default_cache_db_type
+	on $default_database_type. Files: global/mail_params.h,
+	proto/postconf.proto, RELEASE_NOTES-3.11, util/sys_defs.h.
+
+	Documentation: fixed wrong default in INSTALL and postconf(5).
+	Files: proto/INSTALL.html, proto/postconf.proto.

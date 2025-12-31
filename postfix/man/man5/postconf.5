@@ -134,7 +134,7 @@ Overrides the local_transport parameter setting for address
 verification probes.
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH address_verify_map (default: Postfix >= 3.11: $default_cache_db_type:$data_directory/address_verify_map; Postfix < 3,11: btree:$data_directory/address_verify_map)
+.SH address_verify_map (default: Postfix >= 3.11: $default_cache_db_type:$data_directory/verify_cache; Postfix < 3.11: btree:$data_directory/verify_cache)
 Lookup table for persistent address verification status
 storage.  The table is maintained by the \fBverify\fR(8) service, and
 is opened before the process releases privileges.
@@ -159,8 +159,9 @@ Examples:
 .PP
 .nf
 .na
-address_verify_map = hash:/var/lib/postfix/verify
-address_verify_map = btree:/var/lib/postfix/verify
+address_verify_map = $default_cache_db_type:$data_directory/verify_cache
+address_verify_map = hash:/var/lib/postfix/verify_cache
+address_verify_map = btree:/var/lib/postfix/verify_cache
 .fi
 .ad
 .PP
@@ -1226,7 +1227,7 @@ debugger_command =
     ddd $daemon_directory/$process_name $process_id & sleep 5
 .fi
 .ad
-.SH default_cache_db_type (default: lmdb if default_database_type is lmdb, otherwise btree)
+.SH default_cache_db_type (default: see 'postconf \-d default_cache_db_type' output)
 The default database type for address_verify_map and
 postscreen_cache_map. Before Postfix 3.11 those caches used btree
 by default.
@@ -5427,7 +5428,7 @@ one\-letter suffix that specifies the time unit).  Time units: s
 The default time unit is h (hours).
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_cache_map (default: Postfix >= 3.11: $default_cache_db_type:$data_directory/postscreen_cache_map; Postfix < 3.11: btree:$data_directory/postscreen_cache_map)
+.SH postscreen_cache_map (default: Postfix >= 3.11: $default_cache_db_type:$data_directory/postscreen_cache; Postfix < 3.11: btree:$data_directory/postscreen_cache)
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
 .PP
 To share a \fBpostscreen\fR(8) cache between multiple \fBpostscreen\fR(8)

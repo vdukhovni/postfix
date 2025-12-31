@@ -67,18 +67,18 @@ path.
     $ export MANPATH; MANPATH="`pwd`/man:$MANPATH"
     $ setenv MANPATH "`pwd`/man:$MANPATH"
 
-Of particular interest is the postconf(5) manual page that lists all the 500+
-configuration parameters. The HTML version of this text makes it easy to
-navigate around.
+Of particular interest is the postconf(5) manual page that lists all the 900+
+configuration parameters. The hyperlinks in the HTML version (html/
+postconf.5.html) make the text easy to navigate.
 
 All Postfix source files have their own built-in manual page. Tools to extract
 those embedded manual pages are available in the mantools directory.
 
 4 - Building on a supported system
 
-Postfix development happens on FreeBSD and MacOS X, with regular tests on Linux
-(Fedora, Ubuntu) and Solaris. Support for other systems relies on feedback from
-their users, and may not always be up-to-date.
+Postfix development happens on FreeBSD and Linux, with occasional tests on
+Solaris. Support for other systems relies on feedback from their users, and may
+not always be up-to-date.
 
 OpenBSD is partially supported. The libc resolver does not implement the
 documented "internal resolver options which are [...] set by changing fields in
@@ -425,44 +425,43 @@ Parameters whose defaults can be specified in this way are listed below. See
 the postconf(5) manpage for a description (command: "nroff -man man/man5/
 postconf.5 | less").
 
-     _______________________________________________________________________
-    |parameter name	  |typical default				    |
-    |_____________________|_________________________________________________|
-    |command_directory	  |/usr/sbin					    |
-    |_____________________|_________________________________________________|
-    |config_directory	  |/etc/postfix 				    |
-    |_____________________|_________________________________________________|
-    |default_database_type|hash 					    |
-    |_____________________|_________________________________________________|
-    |default_cache_db_type|(lmdb if default_database_type is lmdb, otherwise|
-    |			  |btree)					    |
-    |_____________________|_________________________________________________|
-    |daemon_directory	  |/usr/libexec/postfix 			    |
-    |_____________________|_________________________________________________|
-    |data_directory	  |/var/lib/postfix				    |
-    |_____________________|_________________________________________________|
-    |html_directory	  |no						    |
-    |_____________________|_________________________________________________|
-    |mail_spool_directory |/var/mail					    |
-    |_____________________|_________________________________________________|
-    |mailq_path 	  |/usr/bin/mailq				    |
-    |_____________________|_________________________________________________|
-    |manpage_directory	  |/usr/local/man				    |
-    |_____________________|_________________________________________________|
-    |meta_directory	  |/etc/postfix 				    |
-    |_____________________|_________________________________________________|
-    |newaliases_path	  |/usr/bin/newaliases				    |
-    |_____________________|_________________________________________________|
-    |openssl_path	  |openssl					    |
-    |_____________________|_________________________________________________|
-    |queue_directory	  |/var/spool/postfix				    |
-    |_____________________|_________________________________________________|
-    |readme_directory	  |no						    |
-    |_____________________|_________________________________________________|
-    |sendmail_path	  |/usr/sbin/sendmail				    |
-    |_____________________|_________________________________________________|
-    |shlib_directory	  |/usr/lib/postfix				    |
-    |_____________________|_________________________________________________|
+     __________________________________________
+    |parameter name	  |typical default     |
+    |_____________________|____________________|
+    |command_directory	  |/usr/sbin	       |
+    |_____________________|____________________|
+    |config_directory	  |/etc/postfix        |
+    |_____________________|____________________|
+    |default_database_type|lmdb or hash        |
+    |_____________________|____________________|
+    |default_cache_db_type|lmdb or btree       |
+    |_____________________|____________________|
+    |daemon_directory	  |/usr/libexec/postfix|
+    |_____________________|____________________|
+    |data_directory	  |/var/lib/postfix    |
+    |_____________________|____________________|
+    |html_directory	  |no		       |
+    |_____________________|____________________|
+    |mail_spool_directory |/var/mail	       |
+    |_____________________|____________________|
+    |mailq_path 	  |/usr/bin/mailq      |
+    |_____________________|____________________|
+    |manpage_directory	  |/usr/local/man      |
+    |_____________________|____________________|
+    |meta_directory	  |/etc/postfix        |
+    |_____________________|____________________|
+    |newaliases_path	  |/usr/bin/newaliases |
+    |_____________________|____________________|
+    |openssl_path	  |openssl	       |
+    |_____________________|____________________|
+    |queue_directory	  |/var/spool/postfix  |
+    |_____________________|____________________|
+    |readme_directory	  |no		       |
+    |_____________________|____________________|
+    |sendmail_path	  |/usr/sbin/sendmail  |
+    |_____________________|____________________|
+    |shlib_directory	  |/usr/lib/postfix    |
+    |_____________________|____________________|
 
 4.6.2 - All Postfix versions
 
@@ -480,35 +479,35 @@ Parameters whose defaults can be specified in this way are listed below. See
 the postconf(5) manpage for a description (command: "nroff -man man/man5/
 postconf.5 | less").
 
-     _________________________________________________________________________
-    |Macro name       |default value for    |typical default		      |
-    |_________________|_____________________|_________________________________|
-    |DEF_COMMAND_DIR  |command_directory    |/usr/sbin			      |
-    |_________________|_____________________|_________________________________|
-    |DEF_CONFIG_DIR   |config_directory     |/etc/postfix		      |
-    |_________________|_____________________|_________________________________|
-    |DEF_DB_TYPE      |default_database_type|hash			      |
-    |_________________|_____________________|_________________________________|
-    |DEF_CACHE_DB_TYPE|default_cache_db_type|hash or lmdb, depends on platform|
-    |_________________|_____________________|_________________________________|
-    |DEF_DAEMON_DIR   |daemon_directory     |/usr/libexec/postfix	      |
-    |_________________|_____________________|_________________________________|
-    |DEF_DATA_DIR     |data_directory	    |/var/lib/postfix		      |
-    |_________________|_____________________|_________________________________|
-    |DEF_MAILQ_PATH   |mailq_path	    |/usr/bin/mailq		      |
-    |_________________|_____________________|_________________________________|
-    |DEF_HTML_DIR     |html_directory	    |no 			      |
-    |_________________|_____________________|_________________________________|
-    |DEF_MANPAGE_DIR  |manpage_directory    |/usr/local/man		      |
-    |_________________|_____________________|_________________________________|
-    |DEF_NEWALIAS_PATH|newaliases_path	    |/usr/bin/newaliases	      |
-    |_________________|_____________________|_________________________________|
-    |DEF_QUEUE_DIR    |queue_directory	    |/var/spool/postfix 	      |
-    |_________________|_____________________|_________________________________|
-    |DEF_README_DIR   |readme_directory     |no 			      |
-    |_________________|_____________________|_________________________________|
-    |DEF_SENDMAIL_PATH|sendmail_path	    |/usr/sbin/sendmail 	      |
-    |_________________|_____________________|_________________________________|
+     ____________________________________________________________
+    |Macro name       |default value for    |typical default	 |
+    |_________________|_____________________|____________________|
+    |DEF_COMMAND_DIR  |command_directory    |/usr/sbin		 |
+    |_________________|_____________________|____________________|
+    |DEF_CONFIG_DIR   |config_directory     |/etc/postfix	 |
+    |_________________|_____________________|____________________|
+    |DEF_DB_TYPE      |default_database_type|lmdb or hash	 |
+    |_________________|_____________________|____________________|
+    |DEF_CACHE_DB_TYPE|default_cache_db_type|lmdb or btree	 |
+    |_________________|_____________________|____________________|
+    |DEF_DAEMON_DIR   |daemon_directory     |/usr/libexec/postfix|
+    |_________________|_____________________|____________________|
+    |DEF_DATA_DIR     |data_directory	    |/var/lib/postfix	 |
+    |_________________|_____________________|____________________|
+    |DEF_MAILQ_PATH   |mailq_path	    |/usr/bin/mailq	 |
+    |_________________|_____________________|____________________|
+    |DEF_HTML_DIR     |html_directory	    |no 		 |
+    |_________________|_____________________|____________________|
+    |DEF_MANPAGE_DIR  |manpage_directory    |/usr/local/man	 |
+    |_________________|_____________________|____________________|
+    |DEF_NEWALIAS_PATH|newaliases_path	    |/usr/bin/newaliases |
+    |_________________|_____________________|____________________|
+    |DEF_QUEUE_DIR    |queue_directory	    |/var/spool/postfix  |
+    |_________________|_____________________|____________________|
+    |DEF_README_DIR   |readme_directory     |no 		 |
+    |_________________|_____________________|____________________|
+    |DEF_SENDMAIL_PATH|sendmail_path	    |/usr/sbin/sendmail  |
+    |_________________|_____________________|____________________|
 
 Note: the data_directory parameter (for caches and pseudo-random numbers) was
 introduced with Postfix version 2.5.
