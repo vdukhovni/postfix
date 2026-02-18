@@ -7280,7 +7280,7 @@ for a list of available macro names and their meanings.  </p>
 </DD>
 
 <DT><b><a name="milter_default_action">milter_default_action</a>
-(default: tempfail)</b></DT><DD>
+(default: see 'postconf -d <a href="postconf.5.html#milter_default_action">milter_default_action</a>' output)</b></DT><DD>
 
 <p> The default action when a Milter (mail filter) response is
 unavailable (for example, bad Postfix configuration or Milter
@@ -7297,10 +7297,19 @@ with a permanent status code.</dd>
 <dt>tempfail</dt> <dd>Reject all further commands in this session
 with a temporary status code. </dd>
 
+<dt>shutdown</dt> <dd>Close the SMTP connection after sending a 421
+SMTP reply. Available in Postfix 3.11, 3.10.8, 3.9.9, 3.8.15, 3.7.20,
+and later. </dd>
+
 <dt>quarantine</dt> <dd>Like "accept", but freeze the message in
 the "<a href="QSHAPE_README.html#hold_queue">hold" queue</a>. Available with Postfix 2.6 and later. </dd>
 
 </dl>
+
+<p> The current default action is "shutdown", i.e. disconnect the
+SMTP client. With the old "tempfail" default, Postfix could tempfail
+all messages that the client sends over a long-lived connection,
+even if a Milter failure is only temporary. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 

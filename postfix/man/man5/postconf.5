@@ -4539,7 +4539,7 @@ filter) applications after the SMTP DATA command. See MILTER_README
 for a list of available macro names and their meanings.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH milter_default_action (default: tempfail)
+.SH milter_default_action (default: see 'postconf \-d milter_default_action' output)
 The default action when a Milter (mail filter) response is
 unavailable (for example, bad Postfix configuration or Milter
 failure). Specify one of the following:
@@ -4554,11 +4554,21 @@ with a permanent status code.
 Reject all further commands in this session
 with a temporary status code.
 .br
+.IP "shutdown"
+Close the SMTP connection after sending a 421
+SMTP reply. Available in Postfix 3.11, 3.10.8, 3.9.9, 3.8.15, 3.7.20,
+and later.
+.br
 .IP "quarantine"
 Like "accept", but freeze the message in
 the "hold" queue. Available with Postfix 2.6 and later.
 .br
 .br
+.PP
+The current default action is "shutdown", i.e. disconnect the
+SMTP client. With the old "tempfail" default, Postfix could tempfail
+all messages that the client sends over a long\-lived connection,
+even if a Milter failure is only temporary.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH milter_end_of_data_macros (default: see "postconf \-d" output)
