@@ -62,7 +62,7 @@ Postfix versions >= 3.0.
 .IP \(bu
 The expression "${name{value}}" is replaced with the result from
 calling the function \fIname\fR with the argument \fIvalue\fR
-after stripping whitespace betwen the "{", the value, and the "}".
+after stripping whitespace between the "{", the value, and the "}".
 An example is the domain_to_ascii{} function.
 .IP \(bu
 Each "value" is subject to recursive named parameter and relational
@@ -1192,7 +1192,8 @@ Per\-nexthop debug logging is available in Postfix 3.6 and later.
 .PP
 Specify domain names, network/netmask patterns, "/file/name"
 patterns or "type:table" lookup tables. The right\-hand side result
-from "type:table" lookups is ignored.
+from "type:table" lookups is ignored. An IPv6 address must be enclosed
+in [].
 .PP
 Pattern matching of domain names is controlled by the presence
 or absence of "debug_peer_list" in the parent_domain_matches_subdomains
@@ -6126,7 +6127,8 @@ name, a domain name, an internet address, or a network/mask pattern,
 where the mask specifies the number of bits in the network part.
 When a pattern specifies a file name, its contents are substituted
 for the file name; when a pattern is a "type:table" table specification,
-table lookup is used instead.
+table lookup is used instead. An IPv6 address must be enclosed in
+[].
 .PP
 Patterns are separated by whitespace and/or commas. In order to
 reverse the result, precede a pattern with an
@@ -15059,7 +15061,9 @@ pending a migration from configuration files with incorrect Postfix
 fingerprints used by Postfix 2.9.6 and later.  To compute the correct
 certificate public\-key fingerprints, see TLS_README.
 .PP
-This feature is available in Postfix 2.9.6 and later.
+This feature is available in Postfix 2.9.6 through 3.10.
+This parameter has had no effect since Postfix 3.9.0, and has been
+removed as of postfix 3.11.0.
 .SH tls_low_cipherlist (default: see "postconf \-d" output)
 The OpenSSL cipherlist for "low" or higher grade ciphers.
 Ignored as of Postfix 3.8.  In earlier Postfix releases this

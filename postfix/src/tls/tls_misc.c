@@ -38,7 +38,6 @@
 /*	int	var_tls_daemon_rand_bytes;
 /*	bool	var_tls_append_def_CA;
 /*	bool	var_tls_preempt_clist;
-/*	bool	var_tls_bc_pkey_fprint;
 /*	bool	var_tls_multi_wildcard;
 /*	char	*var_tls_mgr_service;
 /*	char	*var_tls_tkt_cipher;
@@ -307,7 +306,6 @@ char   *var_tls_dane_digests;
 bool    var_tls_append_def_CA;
 char   *var_tls_bug_tweaks;
 char   *var_tls_ssl_options;
-bool    var_tls_bc_pkey_fprint;
 bool    var_tls_multi_wildcard;
 char   *var_tls_mgr_service;
 char   *var_tls_tkt_cipher;
@@ -691,7 +689,6 @@ void    tls_param_init(void)
     /* If this changes, update TLS_CLIENT_PARAMS in tls_proxy.h. */
     static const CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_TLS_APPEND_DEF_CA, DEF_TLS_APPEND_DEF_CA, &var_tls_append_def_CA,
-	VAR_TLS_BC_PKEY_FPRINT, DEF_TLS_BC_PKEY_FPRINT, &var_tls_bc_pkey_fprint,
 	VAR_TLS_PREEMPT_CLIST, DEF_TLS_PREEMPT_CLIST, &var_tls_preempt_clist,
 	VAR_TLS_MULTI_WILDCARD, DEF_TLS_MULTI_WILDCARD, &var_tls_multi_wildcard,
 	VAR_TLS_FAST_SHUTDOWN, DEF_TLS_FAST_SHUTDOWN, &var_tls_fast_shutdown,

@@ -62,7 +62,7 @@ Postfix versions >= 3.0.
 .IP \(bu
 The expression "${name{value}}" is replaced with the result from
 calling the function \fIname\fR with the argument \fIvalue\fR
-after stripping whitespace betwen the "{", the value, and the "}".
+after stripping whitespace between the "{", the value, and the "}".
 An example is the domain_to_ascii{} function.
 .IP \(bu
 Each "value" is subject to recursive named parameter and relational

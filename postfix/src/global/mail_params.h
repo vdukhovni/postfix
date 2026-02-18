@@ -3548,10 +3548,6 @@ extern char *var_tls_ssl_options;
 #define DEF_TLS_TKT_CIPHER	"aes-256-cbc"
 extern char *var_tls_tkt_cipher;
 
-#define VAR_TLS_BC_PKEY_FPRINT	"tls_legacy_public_key_fingerprints"
-#define DEF_TLS_BC_PKEY_FPRINT	0
-extern bool var_tls_bc_pkey_fprint;
-
 #define VAR_TLS_SERVER_SNI_MAPS "tls_server_sni_maps"
 #define DEF_TLS_SERVER_SNI_MAPS ""
 extern char *var_tls_server_sni_maps;

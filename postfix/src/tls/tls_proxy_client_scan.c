@@ -191,8 +191,6 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 				&params->tls_daemon_rand_bytes),
 		  RECV_ATTR_INT(VAR_TLS_APPEND_DEF_CA,
 				&params->tls_append_def_CA),
-		  RECV_ATTR_INT(VAR_TLS_BC_PKEY_FPRINT,
-				&params->tls_bc_pkey_fprint),
 		  RECV_ATTR_INT(VAR_TLS_PREEMPT_CLIST,
 				&params->tls_preempt_clist),
 		  RECV_ATTR_INT(VAR_TLS_MULTI_WILDCARD,
@@ -214,7 +212,7 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     params->tls_mgr_service = vstring_export(tls_mgr_service);
     params->tls_tkt_cipher = vstring_export(tls_tkt_cipher);
 
-    ret = (ret == 19 ? 1 : -1);
+    ret = (ret == 18 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_client_param_free(params);
 	params = 0;

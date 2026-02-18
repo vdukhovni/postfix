@@ -69,6 +69,7 @@ smtpd_sasl_application_name
 smtpd_tls_cipherlist
 tls_dane_digest_agility
 tls_dane_trust_anchor_digest_enable
+tls_legacy_public_key_fingerprints
 tlsproxy_client_level
 tlsproxy_client_policy
 tlsproxy_tls_session_cache_timeout

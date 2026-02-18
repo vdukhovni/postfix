@@ -30378,3 +30378,29 @@ Apologies for any names omitted.
 	deprecated lookup tables. A typical example is "postconf
 	-PPx '*/*/proxy_read_maps". Files: postconf/postconf.[hc],
 	postconf/postconf_master.c, postconf/Makefile.in.
+
+20260128
+
+	Miscellaneous text fixes. Files: proto/MYSQL_README.html,
+	proto/postconf.html.prolog, proto/postconf.man.prolog.
+
+20260131
+
+	Cleanup: the tls_legacy_public_key_fingerprints parameter
+	has been removed. It has had no effect since Postfix
+	3.9.0. Viktor Dukhovni. Files: proto/postconf.proto,
+	global/mail_params.h, tls/tls_misc.c, tls/tls_proxy_client_misc.c,
+	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
+	tls/tls_proxy.h.
+
+20260217
+
+	Bugfix: (defect introduced: Postfix 2.11): panic() after
+	recursive logging loop with "posttls-finger -v -v -v".
+	Reported by Geert Hendrickx, diagnosed by Viktor Dukhovni,
+	and fixed by Wietse. Files: util/vstream.[hc], util/msg_vstream.c.
+
+	Cleanup: added missing notes in the postconf(5) manpage
+	that an IPv6 address needs to be enclosed in [] for the
+	debug_peer_list and qmqpd_authorized_clients parameters.
+	File: proto/postconf.proto.

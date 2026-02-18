@@ -953,7 +953,8 @@ logging level to increase by the amount specified in $debug_peer_level.
 
 <p> Specify domain names, network/netmask patterns, "/file/name"
 patterns or "type:table" lookup tables. The right-hand side result
-from "type:table" lookups is ignored.  </p>
+from "type:table" lookups is ignored. An IPv6 address must be enclosed
+in <tt>[]</tt>.  </p>
 
 <p> Pattern matching of domain names is controlled by the presence
 or absence of "debug_peer_list" in the parent_domain_matches_subdomains
@@ -3483,7 +3484,8 @@ name, a domain name, an internet address, or a network/mask pattern,
 where the mask specifies the number of bits in the network part.
 When a pattern specifies a file name, its contents are substituted
 for the file name; when a pattern is a "type:table" table specification,
-table lookup is used instead.  </p>
+table lookup is used instead. An IPv6 address must be enclosed in
+<tt>[]</tt>. </p>
 
 <p>
 Patterns are separated by whitespace and/or commas. In order to
@@ -15894,7 +15896,9 @@ pending a migration from configuration files with incorrect Postfix
 fingerprints used by Postfix 2.9.6 and later.  To compute the correct
 certificate public-key fingerprints, see TLS_README. </p>
 
-<p> This feature is available in Postfix 2.9.6 and later.  </p>
+<p> This feature is available in Postfix 2.9.6 through 3.10.
+This parameter has had no effect since Postfix 3.9.0, and has been
+removed as of postfix 3.11.0. </p>
 
 %PARAM tlsproxy_watchdog_timeout 10s
 
