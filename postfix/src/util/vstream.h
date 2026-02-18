@@ -274,6 +274,11 @@ extern int vstream_tweak_tcp(VSTREAM *);
 	vstream_memreopen((VSTREAM *) 0, (string), (flags))
 VSTREAM *vstream_memreopen(VSTREAM *, struct VSTRING *, int);
 
+ /*
+  * Debug logging lockout.
+  */
+extern void vstream_no_debug(VSTREAM *);
+
 /* LICENSE
 /* .ad
 /* .fi

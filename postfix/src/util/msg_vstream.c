@@ -80,6 +80,7 @@ void    msg_vstream_init(const char *name, VSTREAM *vp)
 
     msg_tag = name;
     msg_stream = vp;
+    vstream_no_debug(vp);
     if (first_call) {
 	first_call = 0;
 	msg_output(msg_vstream_print);
