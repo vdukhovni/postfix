@@ -29258,3 +29258,24 @@ Apologies for any names omitted.
 	large for the stable releases. Instead, the command "make
 	makefiles" will figure out how to make the compiler
 	backwards-compatible. File: makedefs.
+
+20251208
+
+	Improved Milter error handling for messages that arrive
+	over a long-lived SMTP connection, by changing the default
+	milter_default_action from "tempfail" to the new "shutdown"
+	action (i.e. disconnect the remote SMTP client).
+
+	The problem was that after a single Milter error, Postfix
+	could tempfail all messages that the client sends over a
+	long-lived connection, even if the Milter error was only
+	temporary. This problem was reported by Ankit Kulkarni.
+
+	Files: proto/postconf.proto global/mail_params.h milter/milter8.c.
+
+20260217
+
+	Bugfix: (defect introduced: Postfix 2.11): panic() after
+	recursive logging loop with "posttls-finger -v -v -v".
+	Reported by Geert Hendrickx, diagnosed by Viktor Dukhovni,
+	and fixed by Wietse. Files: util/vstream.[hc], util/msg_vstream.c.
