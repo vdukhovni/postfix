@@ -6,8 +6,13 @@
 /* SYNOPSIS
 /*	#include <spawn_command.h>
 /*
-/*	WAIT_STATUS_T spawn_command(key, value, ...)
+/*	WAIT_STATUS_T spawn_command(key, ...)
 /*	int	key;
+/* AUXILIARY FUNCTIONS
+/*	get_spawn_args(
+/*	struct spawn_args *args,
+/*	int	key,
+/*	va_list	ap)
 /* DESCRIPTION
 /*	spawn_command() runs a command in a child process and returns
 /*	the command exit status.
@@ -102,23 +107,9 @@
 
 /* Application-specific. */
 
-struct spawn_args {
-    char  **argv;			/* argument vector */
-    char   *command;			/* or a plain string */
-    int     stdin_fd;			/* read stdin here */
-    int     stdout_fd;			/* write stdout here */
-    int     stderr_fd;			/* write stderr here */
-    uid_t   uid;			/* privileges */
-    gid_t   gid;			/* privileges */
-    char  **env;			/* extra environment */
-    char  **export;			/* exportable environment */
-    char   *shell;			/* command shell */
-    int     time_limit;			/* command time limit */
-};
-
 /* get_spawn_args - capture the variadic argument list */
 
-static void get_spawn_args(struct spawn_args * args, int init_key, va_list ap)
+void    get_spawn_args(struct spawn_args *args, int init_key, va_list ap)
 {
     const char *myname = "get_spawn_args";
     int     key;

@@ -58,7 +58,7 @@ Apologies for any names omitted.
 	reflects the current status of the software.
 
 	Added -d (don't disconnect) and -c (show running counter)
-	option to te smtp-source test program. These tools are
+	option to the smtp-source test program. These tools are
 	great torture tests for the mail software, and for the
 	system that it runs on.
 
@@ -30404,3 +30404,31 @@ Apologies for any names omitted.
 	that an IPv6 address needs to be enclosed in [] for the
 	debug_peer_list and qmqpd_authorized_clients parameters.
 	File: proto/postconf.proto.
+
+20260219
+
+	Feature: support to migrate a working Postfix configuration
+	that uses hash: and btree: tables, to an OS that has deleted
+	Berkeley DB support. Files: Makefile.in, conf/postfix-files,
+	conf/postfix-non-bdb-script, conf/postfix-script,
+	global/Makefile.in, global/allowed_prefix.c,
+	global/allowed_prefix.h, global/allowed_prefix_test.c,
+	global/mail_params.c, global/mail_params.h, global/mail_proto.h,
+	global/nbdb_clnt.c, global/nbdb_clnt.h, global/nbdb_redirect.c,
+	global/nbdb_redirect.h, global/nbdb_redirect_test.c,
+	global/nbdb_surrogate.c, global/nbdb_surrogate.h,
+	global/nbdb_surrogate_test.c, global/nbdb_util.c,
+	global/nbdb_util.h, global/nbdb_util_test.c, html/Makefile.in,
+	man/Makefile.in, mantools/postlink, proto/Makefile.in,
+	proto/NON_BERKELEYDB_README.html, proto/postconf.proto,
+	proto/stop, proto/stop.double-cc,
+	proto/stop.double-install-proto-text, proto/stop.spell-cc,
+	proto/stop.spell-history, proto/stop.spell-proto-html,
+	smtp/smtp_connect.c, testing/Makefile.in, testing/mock_open_as.c,
+	testing/mock_open_as.h, testing/mock_spawn_command.c,
+	testing/mock_spawn_command.h, testing/mock_stat.c,
+	testing/mock_stat.h, testing/msg_capture.c, testing/msg_capture.h,
+	util/Makefile.in, util/dict.h, util/dict_open.c,
+	util/dict_surrogate.c, util/open_as.c, util/open_as.h,
+	util/spawn_command.c, util/spawn_command.h, util/vstream.h,
+	util/wrap_stat.c, util/wrap_stat.h.

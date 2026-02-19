@@ -20305,3 +20305,86 @@ postscreen_cache_map. Before Postfix 3.11 those caches used btree
 by default. </p>
 
 <p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM non_bdb_migration_allow_root_prefixes see 'postconf -d non_bdb_migration_allow_root_prefixes' output
+
+<p> A list of trusted pathname prefixes that must be matched when
+the non-Berkeley-DB migration service (nbdb_reindexd(8)) needs to
+run postmap(1) or postalias(1) commands with "root" privilege.
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM non_bdb_migration_allow_user_prefixes see 'postconf -d non_bdb_migration_allow_user_prefixes' output
+
+<p> A list of trusted pathname prefixes that must be matched when
+the non-Berkeley-DB migration service (nbdb_reindexd(8)) needs to
+run postmap(1) or postalias(1) commands with non-root privilege. </p>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM non_bdb_custom_mapping empty
+
+<p> When non-Berkeley-DB migration is enabled, an optional mapping
+from a hash: or btree: type to a non-Berkeley-DB type. This mapping
+takes precedence over the default mapping from hash: to
+$default_database_type, and from btree: to $default_cache_db_type.
+</p>
+
+<ul>
+
+<li> <p> Specify a lookup table with a search keys that are a
+Berkeley DB <i>type</i> (without ':') or <i>type:name</i>. </p>
+
+<li> <p> A search key with the form <i>type:name</i> takes precedence
+over <i>type</i> (without ':'). </p>
+
+<li> <p>  The lookup result must always be a non-Berkeley-DB <i>type</i>
+(without ':') and must not contain a <i>:name</i>.  </p>
+
+<li> <p> The mapping table type must not be <b>hash</b> or <b>btree</b>.
+
+</ul>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM non_bdb_migration_level disable
+
+<p> The non-Berkeley-DB migration service level. You are expected to use
+the command "<b>postfix non-bdb <i>name-of-level</i></b>" to correctly
+configure the migration service level (see postfix-non-bdb(1). </p>
+
+<dl>
+
+<dt><b>disable</b></dt>
+
+<dd> <p> Disable all non-Berkeley-DB migration features. See
+NON_BERKELEYDB_README#disable for possible negative implications
+for integration with other software such as mailman. </p> </dd>
+
+<dt><b>enable-redirect</b> (aliasing)</dt>
+
+<dd> <p> Enable redirection (aliasing) from Berkeley DB hash to
+$default_database_type, and from Berkeley DB btree to
+$default_cache_db_type, but do not automatically create the new cdb
+or lmdb indexed database files that Postfix programs need. See
+NON_BERKELEYDB_README#enable-redirect for details and limitations.
+</p> </dd>
+
+<dt><b>enable-reindex</b></dt>
+
+<dd> <p> In addition to enable-redirect, also create a non-Berkeley-DB
+indexed database file when a daemon program wants to access a file
+that does not yet exist. This feature uses the nbdb_reindexd(8)
+daemon to run postmap(1) or postalias(1).   See
+NON_BERKELEYDB_README#enable-reindex for details and limitations.
+</p>
+
+<p> <i> NOTE: <b>enable-reindex</b> should be used only temporarily to
+generate most of the non-Berkeley-DB indexed database files that Postfix
+programs need. Leaving this level enabled may expose the system to
+privilege-escalation attacks. There are no security concerns for using
+<b>enable-redirect</b>. </i> </p> </dd>
+
+</dl>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>

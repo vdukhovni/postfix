@@ -1,9 +1,12 @@
 SHELL	= /bin/sh
-SRCS	= nosleep.c dict_test_helper.c
-LIB_OBJ	= dict_test_helper.o
+SRCS	= nosleep.c dict_test_helper.c mock_open_as.c mock_spawn_command.c \
+	mock_stat.c msg_capture.c
+LIB_OBJ	= dict_test_helper.o mock_open_as.o mock_spawn_command.o \
+	mock_stat.o msg_capture.o
 MOCK_OBJ=
 TEST_OBJ=
-HDRS	= dict_test_helper.h
+HDRS	= dict_test_helper.h mock_open_as.h mock_spawn_command.h \
+	mock_stat.h msg_capture.h
 TESTSRC	=
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -87,4 +90,22 @@ dict_test_helper.o: ../../include/vstream.h
 dict_test_helper.o: ../../include/vstring.h
 dict_test_helper.o: dict_test_helper.c
 dict_test_helper.o: dict_test_helper.h
+mock_open_as.o: ../../include/check_arg.h
+mock_open_as.o: ../../include/msg.h
+mock_open_as.o: ../../include/open_as.h
+mock_open_as.o: ../../include/sys_defs.h
+mock_open_as.o: ../../include/vbuf.h
+mock_open_as.o: ../../include/vstream.h
+mock_open_as.o: ../../include/vstring.h
+mock_open_as.o: mock_open_as.c
+mock_open_as.o: mock_open_as.h
+mock_spawn_command.o: ../../include/check_arg.h
+mock_spawn_command.o: ../../include/msg.h
+mock_spawn_command.o: ../../include/spawn_command.h
+mock_spawn_command.o: ../../include/stringops.h
+mock_spawn_command.o: ../../include/sys_defs.h
+mock_spawn_command.o: ../../include/vbuf.h
+mock_spawn_command.o: ../../include/vstring.h
+mock_spawn_command.o: mock_spawn_command.c
+mock_spawn_command.o: mock_spawn_command.h
 nosleep.o: nosleep.c

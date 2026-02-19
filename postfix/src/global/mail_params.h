@@ -4618,6 +4618,34 @@ extern bool var_smtpd_hide_client_session;
 #define DEF_SMTPD_REJECT_FILTER_MAPS	""
 extern char *var_smtpd_reject_filter_maps;
 
+ /*
+  * Non-Berkeley-DB migration.
+  */
+#define NBDB_LEV_NAME_NONE	"disable"
+#define NBDB_LEV_NAME_REDIRECT	"enable-redirect"
+#define NBDB_LEV_NAME_REINDEX	"enable-reindex"
+
+#define VAR_NBDB_LEVEL		"non_bdb_migration_level"
+#define DEF_NBDB_LEVEL		NBDB_LEV_NAME_NONE
+extern char *var_nbdb_level;
+
+#define VAR_NBDB_CUST_MAP	"non_bdb_custom_mapping"
+#define DEF_NBDB_CUST_MAP	""
+extern char *var_nbdb_cust_map;
+
+#define VAR_NBDB_SERVICE	"non_bdb_service_name"
+#define DEF_NBDB_SERVICE	"nbdb_reindex"
+extern char *var_nbdb_service;
+
+#define VAR_NBDB_ALLOW_ROOT_PFXS	"non_bdb_migration_allow_root_prefixes"
+#define DEF_NBDB_ALLOW_ROOT_PFXS	"/etc /usr/local/etc"
+extern char *var_nbdb_allow_root_pfxs;
+
+#define VAR_NBDB_ALLOW_USER_PFXS	"non_bdb_migration_allow_user_prefixes"
+#define DEF_NBDB_ALLOW_USER_PFXS	"$" VAR_DATA_DIR " /var/lib/mailman" \
+					" /var/lib/mailman3"
+extern char *var_nbdb_allow_user_pfxs;
+
 /* LICENSE
 /* .ad
 /* .fi

@@ -4999,6 +4999,69 @@ This feature is available in Postfix 2.0 and later.
 Sendmail compatibility feature that specifies the location of the
 \fBnewaliases\fR(1) command. This command can be used to rebuild the
 \fBlocal\fR(8) \fBaliases\fR(5) database.
+.SH non_bdb_custom_mapping (default: empty)
+When non\-Berkeley\-DB migration is enabled, an optional mapping
+from a hash: or btree: type to a non\-Berkeley\-DB type. This mapping
+takes precedence over the default mapping from hash: to
+$default_database_type, and from btree: to $default_cache_db_type.
+.IP \(bu
+Specify a lookup table with a search keys that are a
+Berkeley DB \fItype\fR (without ':') or \fItype:name\fR.
+.IP \(bu
+A search key with the form \fItype:name\fR takes precedence
+over \fItype\fR (without ':').
+.IP \(bu
+The lookup result must always be a non\-Berkeley\-DB \fItype\fR
+(without ':') and must not contain a \fI:name\fR.
+.IP \(bu
+The mapping table type must not be \fBhash\fR or \fBbtree\fR.
+.br
+.PP
+This feature is available in Postfix >= 3.11.
+.SH non_bdb_migration_allow_root_prefixes (default: see 'postconf \-d non_bdb_migration_allow_root_prefixes' output)
+A list of trusted pathname prefixes that must be matched when
+the non\-Berkeley\-DB migration service (\fBnbdb_reindexd\fR(8)) needs to
+run \fBpostmap\fR(1) or \fBpostalias\fR(1) commands with "root" privilege.
+.PP
+This feature is available in Postfix >= 3.11.
+.SH non_bdb_migration_allow_user_prefixes (default: see 'postconf \-d non_bdb_migration_allow_user_prefixes' output)
+A list of trusted pathname prefixes that must be matched when
+the non\-Berkeley\-DB migration service (\fBnbdb_reindexd\fR(8)) needs to
+run \fBpostmap\fR(1) or \fBpostalias\fR(1) commands with non\-root privilege.
+.PP
+This feature is available in Postfix >= 3.11.
+.SH non_bdb_migration_level (default: disable)
+The non\-Berkeley\-DB migration service level. You are expected to use
+the command "\fBpostfix non\-bdb \fIname\-of\-level\fR\fR" to correctly
+configure the migration service level (see postfix\-non\-\fBbdb\fR(1).
+.IP "\fBdisable\fR"
+Disable all non\-Berkeley\-DB migration features. See
+NON_BERKELEYDB_README#disable for possible negative implications
+for integration with other software such as mailman.
+.br
+.IP "\fBenable\-redirect\fR (aliasing)"
+Enable redirection (aliasing) from Berkeley DB hash to
+$default_database_type, and from Berkeley DB btree to
+$default_cache_db_type, but do not automatically create the new cdb
+or lmdb indexed database files that Postfix programs need. See
+NON_BERKELEYDB_README#enable\-redirect for details and limitations.
+.br
+.IP "\fBenable\-reindex\fR"
+In addition to enable\-redirect, also create a non\-Berkeley\-DB
+indexed database file when a daemon program wants to access a file
+that does not yet exist. This feature uses the \fBnbdb_reindexd\fR(8)
+daemon to run \fBpostmap\fR(1) or \fBpostalias\fR(1).   See
+NON_BERKELEYDB_README#enable\-reindex for details and limitations.
+.PP
+\fI NOTE: \fBenable\-reindex\fR should be used only temporarily to
+generate most of the non\-Berkeley\-DB indexed database files that Postfix
+programs need. Leaving this level enabled may expose the system to
+privilege\-escalation attacks. There are no security concerns for using
+\fBenable\-redirect\fR. \fR
+.br
+.br
+.PP
+This feature is available in Postfix >= 3.11.
 .SH non_empty_end_of_header_action (default: fix_quietly)
 How the \fBcleanup\fR(8) daemon will process a message when the primary
 message header is terminated with a non\-empty line.

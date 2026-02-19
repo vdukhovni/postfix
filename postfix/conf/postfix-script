@@ -408,9 +408,9 @@ post-install)
 	$daemon_directory/post-install "$@"
 	;;
 
-tls)
-	shift
-	$daemon_directory/postfix-tls-script "$@"
+tls|non-bdb)
+	cmd=$1; shift
+	$daemon_directory/postfix-$cmd-script "$@"
 	;;
 
 /*)
@@ -452,7 +452,7 @@ logrotate)
 	;;
 
 *)
-	$FATAL "unknown command: '$1'. Usage: postfix start (or stop, reload, abort, flush, check, status, set-permissions, upgrade-configuration, logrotate)"
+	$FATAL "unknown command: '$1'. Usage: postfix start (or stop, reload, abort, flush, check, status, set-permissions, upgrade-configuration, logrotate, tls, non-bdb)"
 	exit 1
 	;;
 
