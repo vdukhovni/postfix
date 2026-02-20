@@ -29,6 +29,11 @@ IPL can continue with that license.
 Major changes - database
 ------------------------
 
+[Incompat 20260220] The alias_maps and alias_database parameter
+default values have changed from hash:/path/to/aliases (or
+dbm:/path/to/aliases) to $default_database_type:/path/to/aliases.
+This simplifies the migration away from Berkeley DB.
+
 [Infrastructure 20260219] Support to migrate a Postfix configuration
 that uses Berkeley DB hash: or btree: tables, to a configuration
 that uses lmdb: or a combination of cdb: and lmdb:. This is needed

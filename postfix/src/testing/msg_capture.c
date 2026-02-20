@@ -77,10 +77,10 @@ static void vstream_swap(VSTREAM *one, VSTREAM *two)
     *two = save;
 }
 
-typedef struct MSG_CAPTURE {
+struct MSG_CAPTURE {
     VSTRING *buffer;
     VSTREAM *stream;
-} MSG_CAPTURE;
+};
 
 MSG_CAPTURE *msg_capt_create(ssize_t init_size)
 {

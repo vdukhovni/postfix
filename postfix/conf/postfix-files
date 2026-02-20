@@ -439,6 +439,7 @@ $html_directory/mysql_table.5.html:f:root:-:644
 $html_directory/sqlite_table.5.html:f:root:-:644
 $html_directory/nisplus_table.5.html:f:root:-:644
 $html_directory/newaliases.1.html:h:$html_directory/mailq.1.html:-:644
+$html_directory/nbdb_reindexd.8.html:f:root:-:644
 $html_directory/oqmgr.8.html:f:root:-:644
 $html_directory/pcre_table.5.html:f:root:-:644
 $html_directory/pgsql_table.5.html:f:root:-:644

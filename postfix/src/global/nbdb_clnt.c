@@ -36,6 +36,8 @@ r*	const char *source_path,
 /*	Specify enough time to index a large table.
 /* .IP delay
 /*	The amount of time (seconds) between retries.
+/* .IP Implicit inputs:
+/*	var_nbdb_service, nbdb_reindex service name.
 /* .IP why
 /*	Storage that is updated with an applicable error description.
 /* SEE ALSO

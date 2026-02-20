@@ -20388,3 +20388,10 @@ privilege-escalation attacks. There are no security concerns for using
 </dl>
 
 <p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM non_bdb_service_name nbdb_reindex
+
+<p> The name of a master.cf service that implements the non-Berkeley-DB
+migration service protocol. </p>
+
+<p> This feature is available in Postfix &ge; 3.11. </p>

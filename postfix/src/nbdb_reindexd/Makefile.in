@@ -153,6 +153,7 @@ nbdb_process_test.o: ../../include/mock_open_as.h
 nbdb_process_test.o: ../../include/mock_spawn_command.h
 nbdb_process_test.o: ../../include/mock_stat.h
 nbdb_process_test.o: ../../include/msg.h
+nbdb_process_test.o: ../../include/msg_capture.h
 nbdb_process_test.o: ../../include/msg_vstream.h
 nbdb_process_test.o: ../../include/myflock.h
 nbdb_process_test.o: ../../include/nbdb_util.h

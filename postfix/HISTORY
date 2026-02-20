@@ -30432,3 +30432,46 @@ Apologies for any names omitted.
 	util/dict_surrogate.c, util/open_as.c, util/open_as.h,
 	util/spawn_command.c, util/spawn_command.h, util/vstream.h,
 	util/wrap_stat.c, util/wrap_stat.h.
+
+20260220
+
+	Documentation: TESTING, proto/NON_BERKELEYDB_README.html,
+	proto/stop.spell-proto-html, postfix/postfix.c, conf/postfix-files,
+	mantools/postlink, global/nbdb_clnt.c.
+
+	Portability: testing/msg_capture.c.
+
+	Migration to "No Berkeley DB": update default values
+	for alias_maps and alias_database, and replace the
+	platform-dependent database type with $default_database_type.
+	File: src/util/sys_defs.h.
+
+	Documentation: update obsolete references to "dbm or db"
+	in xxx_table(5) manpages and make text more consistent.
+	Files: proto/cidr_table, proto/ldap_table, proto/memcache_table,
+	proto/mongodb_table, proto/mysql_table, proto/nisplus_table,
+	proto/pcre_table, proto/pgsql_table, proto/regexp_table,
+	proto/socketmap_table, proto/sqlite_table, proto/tcp_table.
+
+	Documentation: made the postmap(1) and postmap(1) manpages
+	more consistent in the discussion of the default_data_base,
+	and moved that text to a more visible location. Files:
+	postalias/postalias.c, postmap/postmap.c.
+
+	Documentation: updated 'man5' manpages for changes in default
+	indexed file types. Files: proto/access, proto/canonical,
+	proto/generic, proto/relocated, proto/transport, proto/virtual.
+
+	Incompatibility: The alias_maps and alias_database parameter
+	default values have changed from hash:/path/to/aliases (or
+	dbm:/path/to/aliases) to $default_database_type:/path/to/aliases.
+	This simplifies the migration away from Berkeley DB. File:
+	util/sys_defs.h.
+
+TODO
+
+	Rename non_bdb_service_name to non_bdb_migration_service.
+
+	Update hash://path/to/foo examples in postconf.proto.
+
+	Move the {man,html}/Makefile.in original copies to proto/.

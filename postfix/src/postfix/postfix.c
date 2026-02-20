@@ -290,6 +290,7 @@
 /*	postconf(1), Postfix configuration utility
 /*	postdrop(1), Postfix mail posting utility
 /*	postfix(1), Postfix control program
+/*	postfix-non-bdb(1), Postfix Non-Berkeley-DB migration
 /*	postfix-tls(1), Postfix TLS management
 /*	postkick(1), trigger Postfix daemon
 /*	postlock(1), Postfix-compatible locking

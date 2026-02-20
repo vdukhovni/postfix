@@ -5062,6 +5062,11 @@ privilege\-escalation attacks. There are no security concerns for using
 .br
 .PP
 This feature is available in Postfix >= 3.11.
+.SH non_bdb_service_name (default: nbdb_reindex)
+The name of a master.cf service that implements the non\-Berkeley\-DB
+migration service protocol.
+.PP
+This feature is available in Postfix >= 3.11.
 .SH non_empty_end_of_header_action (default: fix_quietly)
 How the \fBcleanup\fR(8) daemon will process a message when the primary
 message header is terminated with a non\-empty line.
