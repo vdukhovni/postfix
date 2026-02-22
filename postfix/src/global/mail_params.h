@@ -4633,7 +4633,7 @@ extern char *var_nbdb_level;
 #define DEF_NBDB_CUST_MAP	""
 extern char *var_nbdb_cust_map;
 
-#define VAR_NBDB_SERVICE	"non_bdb_service_name"
+#define VAR_NBDB_SERVICE	"non_bdb_migration_service_name"
 #define DEF_NBDB_SERVICE	"nbdb_reindex"
 extern char *var_nbdb_service;
 

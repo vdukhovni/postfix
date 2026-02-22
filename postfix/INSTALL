@@ -508,9 +508,12 @@ postconf.5 | less").
     |_________________|_____________________|____________________|
     |DEF_SENDMAIL_PATH|sendmail_path	    |/usr/sbin/sendmail  |
     |_________________|_____________________|____________________|
+    |DEF_SHLIB_DIR    |shlib_directory	    |/usr/lib/postfix	 |
+    |_________________|_____________________|____________________|
 
 Note: the data_directory parameter (for caches and pseudo-random numbers) was
-introduced with Postfix version 2.5.
+introduced with Postfix version 2.5; shlib_directory (for shared-library
+objects and database plugins) with Postfix version 3.0.
 
 4.7 - Overriding other compile-time features
 

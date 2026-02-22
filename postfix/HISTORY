@@ -30468,10 +30468,20 @@ Apologies for any names omitted.
 	This simplifies the migration away from Berkeley DB. File:
 	util/sys_defs.h.
 
-TODO
+20260221
 
-	Rename non_bdb_service_name to non_bdb_migration_service.
+	Testing: factored out the mock cdb and lmdb code to make
+	more tests independent of whether the build includes support
+	for cdb and lmdb. Files: global/Makefile.in,
+	global/nbdb_redirect_test.c, global/nbdb_util_test.c,
+	nbdb_reindexd/Makefile.in, nbdb_reindexd/nbdb_index_as_test.c,
+	nbdb_reindexd/nbdb_process_test.c, testing/Makefile.in,
+	testing/mock_dict.c, testing/mock_dict.h.
 
-	Update hash://path/to/foo examples in postconf.proto.
+20260222
 
-	Move the {man,html}/Makefile.in original copies to proto/.
+	Cleanup: migration service name word-smithing. Files:
+	mantools/postlink, proto/postconf.proto, global/mail_params.h.
+
+	Documentation: missing DEF_SHLIB_DIR in INSTALL. File:
+	proto/install.html.

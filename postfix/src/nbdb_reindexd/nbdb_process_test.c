@@ -33,6 +33,7 @@
 #include <dict_lmdb.h>
 #include <msg.h>
 #include <msg_vstream.h>
+#include <mock_dict.h>
 #include <mock_stat.h>
 #include <stringops.h>
 #include <vstream.h>
@@ -137,9 +138,11 @@ static int test_nbdb_process(const TEST_CASE *tp)
     const char *got_msg;
     int     got_status;
     VSTRING *got_why;
-    int     pass;
+    int     pass = 1;
 
     nbdb_util_init(tp->params.migr_level);
+    setup_mock_cdb("{{x = x}}");
+    setup_mock_lmdb("{{x = x}}");
     if (nbdb_level >= NBDB_LEV_CODE_REINDEX) {
 	var_nbdb_allow_root_pfxs = (char *) tp->params.allow_root_pfxs;
 	var_nbdb_allow_user_pfxs = (char *) tp->params.allow_user_pfxs;
@@ -186,8 +189,6 @@ static int test_nbdb_process(const TEST_CASE *tp)
 	msg_warn("got reason '%s', want '%s'", STR(got_why),
 		 tp->process.want_why);
 	pass = 0;
-    } else {
-	pass = 1;
     }
     vstring_free(got_why);
     msg_capt_free(capture);
@@ -253,6 +254,7 @@ static const TEST_CASE test_cases[] = {
 	    .in_source_path = "/path/to/file",
 	    .want_status = NBDB_STAT_OK,
 	    .want_why = 0,
+	    .want_msg = "successfully executed",
 	},
     },
 

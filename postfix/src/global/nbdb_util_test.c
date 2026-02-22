@@ -44,6 +44,7 @@
  /*
   * Testing library.
   */
+#include <mock_dict.h>
 #include <msg_capture.h>
 
 #define STR(x)	vstring_str(x)
@@ -245,6 +246,8 @@ static int test_map_leg_type(const struct map_leg_type_test * tp)
     int     status = PASS;
 
     /* Setup. */
+    setup_mock_cdb("{{x = x}}");
+    setup_mock_lmdb("{{x = x}}");
     dict_allow_surrogate = 1;
     var_nbdb_cust_map = (char *) tp->in_custom_map;
     var_db_type = (char *) tp->in_db_type;

@@ -773,12 +773,17 @@ default</th> </tr>
 <tr> <td>DEF_SENDMAIL_PATH</td> <td><a href="postconf.5.html#sendmail_path">sendmail_path</a></td>
 <td>/usr/sbin/sendmail</td> </tr>
 
+<tr> <td>DEF_SHLIB_DIR</td> <td><a href="postconf.5.html#shlib_directory">shlib_directory</a></td>
+<td>/usr/lib/postfix</td> </tr>
+
 </table>
 
 </blockquote>
 
 <p> Note: the <a href="postconf.5.html#data_directory">data_directory</a> parameter (for caches and pseudo-random
-numbers) was introduced with Postfix version 2.5. </p>
+numbers) was introduced with Postfix version 2.5; <a href="postconf.5.html#shlib_directory">shlib_directory</a>
+(for shared-library objects and database plugins) with Postfix
+version 3.0. </p>
 
 <h3><a name="build_other">4.7 - Overriding other compile-time
 features</a></h3>

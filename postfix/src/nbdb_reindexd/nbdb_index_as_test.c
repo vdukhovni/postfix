@@ -95,7 +95,7 @@ static int test_nbdb_index_as(const TEST_CASE *tp)
 {
     int     got_status;
     VSTRING *got_why;
-    int     pass;
+    int     pass = 1;
 
     setup_mock_spawn_command(&tp->mock_spawn);
     got_why = vstring_alloc(100);
@@ -113,8 +113,6 @@ static int test_nbdb_index_as(const TEST_CASE *tp)
 	msg_warn("got reason '%s' want '%s'", STR(got_why),
 		 tp->index.want_why);
 	pass = 0;
-    } else {
-	pass = 1;
     }
     vstring_free(got_why);
     return (pass ? PASS : FAIL);

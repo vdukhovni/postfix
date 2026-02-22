@@ -44,24 +44,24 @@ tidy:	clean
 
 SNIFFER_TEST_OBJ = nbdb_sniffer.o $(TESTLIB)
 
-nbdb_sniffer_test: nbdb_sniffer_test.c $(SNIFFER_TEST_OBJ) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $@.c $(SNIFFER_TEST_OBJ) $(LIBS) $(SYSLIBS)
+nbdb_sniffer_test: nbdb_sniffer_test.o $(SNIFFER_TEST_OBJ) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(SNIFFER_TEST_OBJ) $(LIBS) $(SYSLIBS)
 
 test_nbdb_sniffer: nbdb_sniffer_test
 	$(SHLIB_ENV) $(VALGRIND) ./nbdb_sniffer_test
 
 SAFE_TEST_OBJ = nbdb_safe.o
 
-nbdb_safe_test: nbdb_safe_test.c $(SAFE_TEST_OBJ) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $@.c $(SAFE_TEST_OBJ) $(LIBS) $(SYSLIBS)
+nbdb_safe_test: nbdb_safe_test.o $(SAFE_TEST_OBJ) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(SAFE_TEST_OBJ) $(LIBS) $(SYSLIBS)
 
 test_nbdb_safe: nbdb_safe_test
 	$(SHLIB_ENV) $(VALGRIND) ./nbdb_safe_test
 
 INDEX_AS_TEST_OBJ = nbdb_index_as.o $(TESTLIB)
 
-nbdb_index_as_test: nbdb_index_as_test.c $(INDEX_AS_TEST_OBJ) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $@.c $(INDEX_AS_TEST_OBJ) $(LIBS) $(SYSLIBS)
+nbdb_index_as_test: nbdb_index_as_test.o $(INDEX_AS_TEST_OBJ) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(INDEX_AS_TEST_OBJ) $(LIBS) $(SYSLIBS)
 
 test_nbdb_index_as: nbdb_index_as_test
 	$(SHLIB_ENV) $(VALGRIND) ./nbdb_index_as_test
@@ -69,8 +69,8 @@ test_nbdb_index_as: nbdb_index_as_test
 PROCESS_TEST_OBJ = nbdb_process.o nbdb_index_as.o nbdb_sniffer.o nbdb_safe.o \
 	 $(TESTLIB)
 
-nbdb_process_test: nbdb_process_test.c $(PROCESS_TEST_OBJ) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $@.c $(PROCESS_TEST_OBJ) $(LIBS) $(SYSLIBS)
+nbdb_process_test: nbdb_process_test.o $(PROCESS_TEST_OBJ) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(PROCESS_TEST_OBJ) $(LIBS) $(SYSLIBS)
 
 test_nbdb_process: nbdb_process_test
 	$(SHLIB_ENV) $(VALGRIND) ./nbdb_process_test
@@ -149,6 +149,7 @@ nbdb_process_test.o: ../../include/dict_cdb.h
 nbdb_process_test.o: ../../include/dict_lmdb.h
 nbdb_process_test.o: ../../include/mail_params.h
 nbdb_process_test.o: ../../include/mkmap.h
+nbdb_process_test.o: ../../include/mock_dict.h
 nbdb_process_test.o: ../../include/mock_open_as.h
 nbdb_process_test.o: ../../include/mock_spawn_command.h
 nbdb_process_test.o: ../../include/mock_stat.h

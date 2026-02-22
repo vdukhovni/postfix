@@ -1,12 +1,12 @@
 SHELL	= /bin/sh
 SRCS	= nosleep.c dict_test_helper.c mock_open_as.c mock_spawn_command.c \
-	mock_stat.c msg_capture.c
+	mock_stat.c msg_capture.c mock_dict.c
 LIB_OBJ	= dict_test_helper.o mock_open_as.o mock_spawn_command.o \
-	mock_stat.o msg_capture.o
+	mock_stat.o msg_capture.o mock_dict.o
 MOCK_OBJ=
 TEST_OBJ=
 HDRS	= dict_test_helper.h mock_open_as.h mock_spawn_command.h \
-	mock_stat.h msg_capture.h
+	mock_stat.h msg_capture.h mock_dict.h
 TESTSRC	=
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -90,6 +90,21 @@ dict_test_helper.o: ../../include/vstream.h
 dict_test_helper.o: ../../include/vstring.h
 dict_test_helper.o: dict_test_helper.c
 dict_test_helper.o: dict_test_helper.h
+mock_dict.o: ../../include/argv.h
+mock_dict.o: ../../include/check_arg.h
+mock_dict.o: ../../include/dict.h
+mock_dict.o: ../../include/dict_cdb.h
+mock_dict.o: ../../include/dict_inline.h
+mock_dict.o: ../../include/dict_lmdb.h
+mock_dict.o: ../../include/mkmap.h
+mock_dict.o: ../../include/myflock.h
+mock_dict.o: ../../include/mymalloc.h
+mock_dict.o: ../../include/sys_defs.h
+mock_dict.o: ../../include/vbuf.h
+mock_dict.o: ../../include/vstream.h
+mock_dict.o: ../../include/vstring.h
+mock_dict.o: mock_dict.c
+mock_dict.o: mock_dict.h
 mock_open_as.o: ../../include/check_arg.h
 mock_open_as.o: ../../include/msg.h
 mock_open_as.o: ../../include/open_as.h
@@ -108,4 +123,19 @@ mock_spawn_command.o: ../../include/vbuf.h
 mock_spawn_command.o: ../../include/vstring.h
 mock_spawn_command.o: mock_spawn_command.c
 mock_spawn_command.o: mock_spawn_command.h
+mock_stat.o: ../../include/htable.h
+mock_stat.o: ../../include/msg.h
+mock_stat.o: ../../include/sys_defs.h
+mock_stat.o: ../../include/wrap_stat.h
+mock_stat.o: mock_stat.c
+mock_stat.o: mock_stat.h
+msg_capture.o: ../../include/check_arg.h
+msg_capture.o: ../../include/msg.h
+msg_capture.o: ../../include/mymalloc.h
+msg_capture.o: ../../include/sys_defs.h
+msg_capture.o: ../../include/vbuf.h
+msg_capture.o: ../../include/vstream.h
+msg_capture.o: ../../include/vstring.h
+msg_capture.o: msg_capture.c
+msg_capture.o: msg_capture.h
 nosleep.o: nosleep.c

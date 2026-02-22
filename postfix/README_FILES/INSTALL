@@ -508,9 +508,12 @@ postconf.5 | less").
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |DEF_SENDMAIL_PATH|sendmail_path        |/usr/sbin/sendmail  |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |DEF_SHLIB_DIR    |shlib_directory      |/usr/lib/postfix    |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
 Note: the data_directory parameter (for caches and pseudo-random numbers) was
-introduced with Postfix version 2.5.
+introduced with Postfix version 2.5; shlib_directory (for shared-library
+objects and database plugins) with Postfix version 3.0.
 
 44..77 -- OOvveerrrriiddiinngg ootthheerr ccoommppiillee--ttiimmee ffeeaattuurreess
 

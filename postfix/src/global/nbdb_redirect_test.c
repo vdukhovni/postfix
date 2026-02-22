@@ -51,6 +51,7 @@
   * Testing library.
   */
 #include <msg_capture.h>
+#include <mock_dict.h>
 
 #define PASS    (0)
 #define FAIL    (1)
@@ -67,46 +68,6 @@ char   *var_nbdb_cust_map = DEF_NBDB_CUST_MAP;
   * The redirect unit tests do not cover the 'bulk create' code paths; those
   * will be tested with postmap/postalias 'whole program' tests.
   */
-static DICT *mock_dict_cdb_open(const char *dict_name, int open_flags,
-				        int dict_flags)
-{
-    return (dict_open3(DICT_TYPE_INLINE, "{{whoami = mock cdb}}",
-		       open_flags, dict_flags));
-}
-
-static DICT *mock_dict_lmdb_open(const char *dict_name, int open_flags,
-				         int dict_flags)
-{
-    return (dict_open3(DICT_TYPE_INLINE, "{{whoami = mock lmdb}}",
-		       open_flags, dict_flags));
-}
-
-static MKMAP *mock_mkmap_cdb_open(const char *path)
-{
-    MKMAP  *mkmap = (MKMAP *) mymalloc(sizeof(*mkmap));
-
-    mkmap->open = mock_dict_cdb_open;
-    mkmap->after_open = 0;
-    mkmap->after_close = 0;
-    return (mkmap);
-}
-
-static MKMAP *mock_mkmap_lmdb_open(const char *path)
-{
-    MKMAP  *mkmap = (MKMAP *) mymalloc(sizeof(*mkmap));
-
-    mkmap->open = mock_dict_lmdb_open;
-    mkmap->after_open = 0;
-    mkmap->after_close = 0;
-    return (mkmap);
-}
-
-static const DICT_OPEN_INFO mock_dict_info[] = {
-    "cdb", mock_dict_cdb_open, mock_mkmap_cdb_open,
-    "lmdb", mock_dict_lmdb_open, mock_mkmap_lmdb_open,
-    0,
-};
-
 typedef struct TEST_CASE {
     const char *label;
     int     (*action) (const struct TEST_CASE *);
@@ -114,16 +75,11 @@ typedef struct TEST_CASE {
 
 static void setup_common_mock_open_info(void)
 {
-    const DICT_OPEN_INFO *dp;
-
     nbdb_level = NBDB_LEV_CODE_REDIRECT;
 
     nbdb_reindexing_lockout = 0;
-    for (dp = mock_dict_info; dp->type; dp++) {
-	if (dict_open_lookup(dp->type))
-	    dict_open_unregister(dp->type);
-	dict_open_register(dp);
-    }
+    setup_mock_cdb("{{whoami = mock cdb}}");
+    setup_mock_lmdb("{{whoami = mock lmdb}}");
     nbdb_rdr_init();
 }
 
