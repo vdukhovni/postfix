@@ -156,6 +156,8 @@
 #include <vstream.h>
 #include <vstring.h>
 #include <wrap_stat.h>
+#include <split_at.h>
+#include <msg_vstream.h>
 
  /*
   * Global library.
@@ -163,6 +165,7 @@
 #include <allowed_prefix.h>
 #include <mail_params.h>
 #include <mail_proto.h>
+#include <mail_task.h>
 #include <mail_version.h>
 #include <nbdb_util.h>
 
@@ -187,7 +190,7 @@ ALLOWED_PREFIX *parsed_allow_user_pfxs;
 
 #define STR(x)	vstring_str(x)
 
-/* nbdb_service - RPC protocol wrapper */
+/* nbdb_service - CLI or RPC protocol wrapper */
 
 static void nbdb_service(VSTREAM *stream, char *service, char **argv)
 {
@@ -206,8 +209,25 @@ static void nbdb_service(VSTREAM *stream, char *service, char **argv)
     }
 
     /*
-     * All decisions and all work happen in nbdb_process() or its
-     * dependencies.
+     * Command-line mode (a.k.a. stand-alone).
+     */
+    if (stream == VSTREAM_IN) {
+	char   *path;
+
+	msg_vstream_init(mail_task(var_procname), VSTREAM_ERR);
+	if (*argv == 0 || argv[1] != 0)
+	    msg_fatal("stand-alone mode requires one type:/path argument");
+	vstring_strcpy(leg_type, *argv);
+	if ((path = split_at(STR(leg_type), ':')) == 0 || *path != '/')
+	    msg_fatal("stand-alone mode called with bad argument: '%s'", *argv);
+	if ((status = nbdb_process(STR(leg_type), path, why)) != 0)
+	    msg_warn("stand-alone request to re-index '%s:%s' failed: %s",
+		     STR(leg_type), path, STR(why));
+	exit(status != 0);
+    }
+
+    /*
+     * Daemon mode.
      */
     attr_print(stream, ATTR_FLAG_NONE,
 	       SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_NBDB_REINDEX),

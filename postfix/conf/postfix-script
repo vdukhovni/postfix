@@ -142,6 +142,7 @@ start|start-fg)
 		}
 		# Foreground this so it can be stopped. All inodes are cached.
 		$daemon_directory/postfix-script check-warn
+		$daemon_directory/postfix-script check-non-bdb-migration
 	fi
 	$INFO starting the Postfix mail system || exit 1
 	case $1 in
@@ -245,6 +246,7 @@ flush)
 check)
 
 	$daemon_directory/postfix-script check-fatal || exit 1
+	$daemon_directory/postfix-script check-non-bdb-migration
 	$daemon_directory/postfix-script check-warn
 	exit 0
 	;;
@@ -296,6 +298,32 @@ check-fatal)
 
 	$command_directory/postsuper || exit 1
 	exit 0
+	;;
+
+check-non-bdb-migration)
+	# This command is NOT part of the public interface.
+
+	# As of Postfix 3.11, the default alias_maps value
+	# contains $default_database_type:/path/to/aliases. When
+	# default_database_type is changed to lmdb or cdb, Postfix
+	# will not generate hash:/path/to/aliases requests that can
+	# be resolved dynamically with enable-redirect or enable-reindex.
+	# 
+	# To avoid this, fake up a stand-alone re-indexing request.
+	BACKUP_IFS="$IFS"
+	for map	in `$command_directory/postconf -hx alias_maps`
+	do
+	    echo "$map" | (
+		IFS=: read type path; IFS="$BACKUP_IFS"
+		case "$type" in
+		cdb|lmdb)
+		    test ! -e "$path.$type" -a -e "$path" -a -e "$path.db" && {
+			$daemon_directory/nbdb_reindexd -S "hash:$path" ||
+			    $WARN "See https://www.postfix.org/NON_BERKELEYDB_README.html for suggestions"
+		    }
+		esac
+	    )
+	done
 	;;
 
 check-warn)

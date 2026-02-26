@@ -671,7 +671,7 @@ listed below. See the postconf(5) manpage for a description
 
 <tr> <td>config_directory</td> <td>/etc/postfix</td> </tr>
 
-<tr> <td>default_database_type</td> <td>lmdb or hash</td> </tr>
+<tr> <td>default_database_type</td> <td>lmdb, cdb, or hash</td> </tr>
 
 <tr> <td>default_cache_db_type</td> <td>lmdb or btree</td> </tr>
 
@@ -741,7 +741,7 @@ default</th> </tr>
 <td>/etc/postfix</td> </tr>
 
 <tr> <td>DEF_DB_TYPE</td> <td>default_database_type</td>
-<td>lmdb or hash</td> </tr>
+<td>lmdb, cdb, or hash</td> </tr>
 
 <tr> <td>DEF_CACHE_DB_TYPE</td> <td>default_cache_db_type</td>
 <td>lmdb or btree</td> </tr>
@@ -821,7 +821,7 @@ off Postfix features at compile time:</td> </tr>
 
 <tr> <td> </td> <td> -DNO_DB </td> <td> Do not build with Berkeley
 DB support. By default, Berkeley DB support is compiled in on
-platforms that are known to support this feature. If you override
+platforms that have historically supported this feature. If you override
 this, then you probably should also override default_database_type
 or DEF_DB_TYPE as described in section 4.6. </td> </tr>
 
@@ -1555,8 +1555,8 @@ the exact location of the text file.  </p>
 
 <p> First, be sure to update the text file with aliases for root,
 postmaster and "postfix" that forward mail to a real person.  Postfix
-has a sample aliases file /etc/postfix/aliases that you can adapt
-to local conditions.  </p>
+has a sample aliases file /etc/postfix/aliases that you can copy
+and adapt to local conditions.  /p>
 
 <blockquote>
 <pre>
@@ -1581,6 +1581,15 @@ following commands: </p>
 # postalias /etc/aliases (pathname is system dependent!)
 </pre>
 </blockquote>
+
+<p> The form "postalias /etc/aliases" builds a default-type indexed
+file. Use "postalias <i>type</i>:/etc/aliases" to specify an explicit
+type (it should match the type in the output from "postconf -x
+alias_maps"). </p>
+
+<p> The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types, 
+execute the command "<b>postconf -m</b>".</p>
 
 <h2><a name="hamlet">11 - To chroot or not to chroot</a></h2>
 

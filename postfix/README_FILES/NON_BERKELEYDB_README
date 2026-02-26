@@ -22,9 +22,9 @@ rude awakening when you update the OS to a newer version that has deleted its
 support for Berkeley DB. Postfix programs fail to open all hash: and btree:
 tables with messages like this:
 
-    Berkeley DB support for 'hash:/etc/aliases' is not available for this OS
-    distribution; see https://www.postfix.org/NON_BERKELEYDB_README.html for
-    alternatives
+    Berkeley DB support for 'hash:/etc/postfix/virtual' is not available
+    for this build; see https://www.postfix.org/NON_BERKELEYDB_README.html
+    for alternatives
 
 This document comes to the rescue, with strategies to migrate an existing
 Postfix configuration that uses Berkeley DB hash: and btree: database files, to

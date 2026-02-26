@@ -180,13 +180,16 @@ nbdb_reindexd.o: ../../include/mail_conf.h
 nbdb_reindexd.o: ../../include/mail_params.h
 nbdb_reindexd.o: ../../include/mail_proto.h
 nbdb_reindexd.o: ../../include/mail_server.h
+nbdb_reindexd.o: ../../include/mail_task.h
 nbdb_reindexd.o: ../../include/mail_version.h
 nbdb_reindexd.o: ../../include/msg.h
+nbdb_reindexd.o: ../../include/msg_vstream.h
 nbdb_reindexd.o: ../../include/myflock.h
 nbdb_reindexd.o: ../../include/mymalloc.h
 nbdb_reindexd.o: ../../include/nbdb_util.h
 nbdb_reindexd.o: ../../include/nvtable.h
 nbdb_reindexd.o: ../../include/set_eugid.h
+nbdb_reindexd.o: ../../include/split_at.h
 nbdb_reindexd.o: ../../include/sys_defs.h
 nbdb_reindexd.o: ../../include/vbuf.h
 nbdb_reindexd.o: ../../include/vstream.h

@@ -763,7 +763,7 @@ extern int initgroups(const char *, int);
   * LINUX.
   */
 #if defined(LINUX2) || defined(LINUX3) || defined(LINUX4) || defined(LINUX5) \
-	|| defined(LINUX6)
+	|| defined(LINUX6) || defined(LINUX7)
 #define SUPPORTED
 #define UINT32_TYPE	unsigned int
 #define UINT16_TYPE	unsigned short

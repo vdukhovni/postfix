@@ -30485,3 +30485,31 @@ Apologies for any names omitted.
 
 	Documentation: missing DEF_SHLIB_DIR in INSTALL. File:
 	proto/install.html.
+
+20260225
+
+	Documentation: examples now use lmdb plus text about implicit
+	types with "postmap /path/to/file" and available explicit types.
+	Files: proto/INSTALL.html, proto/SASL_README.html,
+	proto/STANDARD_CONFIGURATION_README.html, proto/UUCP_README.html,
+	proto/VIRTUAL_README.html.
+
+	Workaround: as of Postfix 3.11, the default alias_maps value
+	contains $default_database_type:/path/to/aliases, instead
+	of a hard-coded type hash. If default_database_type was
+	changed from hash to lmdb (or cdb), then the indexed file
+	/path/to/aliases.lmdb (or /path/to/aliases.cdb) will likely
+	not exist.
+
+	Unfortunately, if  $default_database_type has changed from
+	hash to lmdb (or cdb) Postfix will not try to use
+	hash:/path/to/aliases, and will not trigger compatibility
+	workarounds that are implemented with "enable-redirect" or
+	"enable-reindex". This would be a gap in migration coverage.
+
+	To avoid this, synthesize a stand-alone re-indexing request.
+	Files: conf/postfix-script, proto/NON_BERKELEYDB_README.html.
+	This is needed only for databases specified in alias_maps.
+
+	Postfix works on Linux 7.x kernels. Frank Scheiner. Files:
+	makedefs, util/sys_defs.h.
