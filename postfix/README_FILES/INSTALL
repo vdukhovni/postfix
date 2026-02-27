@@ -432,7 +432,7 @@ postconf.5 | less").
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |config_directory     |/etc/postfix        |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |default_database_type|lmdb or hash        |
+    |default_database_type|lmdb, cdb, or hash  |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |default_cache_db_type|lmdb or btree       |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
@@ -486,7 +486,7 @@ postconf.5 | less").
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |DEF_CONFIG_DIR   |config_directory     |/etc/postfix        |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |DEF_DB_TYPE      |default_database_type|lmdb or hash        |
+    |DEF_DB_TYPE      |default_database_type|lmdb, cdb, or hash  |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |DEF_CACHE_DB_TYPE|default_cache_db_type|lmdb or btree       |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
@@ -508,9 +508,12 @@ postconf.5 | less").
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |DEF_SENDMAIL_PATH|sendmail_path        |/usr/sbin/sendmail  |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |DEF_SHLIB_DIR    |shlib_directory      |/usr/lib/postfix    |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
 Note: the data_directory parameter (for caches and pseudo-random numbers) was
-introduced with Postfix version 2.5.
+introduced with Postfix version 2.5; shlib_directory (for shared-library
+objects and database plugins) with Postfix version 3.0.
 
 44..77 -- OOvveerrrriiddiinngg ootthheerr ccoommppiillee--ttiimmee ffeeaattuurreess
 
@@ -542,8 +545,8 @@ The following is an extensive list of names and values.
 |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 ||                              |Do not build with Berkeley DB support. By    |
 ||                              |default, Berkeley DB support is compiled in  |
-||                              |on platforms that are known to support this  |
-||-DNO_DB                       |feature. If you override this, then you      |
+||                              |on platforms that have historically supported|
+||-DNO_DB                       |this feature. If you override this, then you |
 ||                              |probably should also override                |
 ||                              |default_database_type or DEF_DB_TYPE as      |
 ||                              |described in section 4.6.                    |
@@ -1080,7 +1083,7 @@ alias_maps" will tell you the exact location of the text file.
 
 First, be sure to update the text file with aliases for root, postmaster and
 "postfix" that forward mail to a real person. Postfix has a sample aliases file
-/etc/postfix/aliases that you can adapt to local conditions.
+/etc/postfix/aliases that you can copy and adapt to local conditions. /p>
 
     /etc/aliases:
         root: you
@@ -1096,6 +1099,13 @@ Finally, build the indexed aliases file with one of the following commands:
     # newaliases
     # sendmail -bi
     # postalias /etc/aliases (pathname is system dependent!)
+
+The form "postalias /etc/aliases" builds a default-type indexed file. Use
+"postalias type:/etc/aliases" to specify an explicit type (it should match the
+type in the output from "postconf -x alias_maps").
+
+The default indexed file type is configured with the default_database_type
+parameter. To list available explicit types, execute the command "ppoossttccoonnff --mm".
 
 1111 -- TToo cchhrroooott oorr nnoott ttoo cchhrroooott
 

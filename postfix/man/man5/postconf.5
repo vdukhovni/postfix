@@ -160,7 +160,7 @@ Examples:
 .nf
 .na
 address_verify_map = $default_cache_db_type:$data_directory/verify_cache
-address_verify_map = hash:/var/lib/postfix/verify_cache
+address_verify_map = lmdb:/var/lib/postfix/verify_cache
 address_verify_map = btree:/var/lib/postfix/verify_cache
 .fi
 .ad
@@ -351,10 +351,13 @@ Examples:
 .PP
 .nf
 .na
-alias_database = hash:/etc/aliases
-alias_database = hash:/etc/mail/aliases
+alias_database = $default_database_type:/etc/aliases
+alias_database = lmdb:/etc/aliases
+alias_database = lmdb:/etc/mail/aliases
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 .SH alias_maps (default: see "postconf \-d" output)
 Optional lookup tables that are searched only with an email address
 localpart (no domain) and that apply only to \fBlocal\fR(8) recipients;
@@ -374,10 +377,6 @@ The default list is system dependent.  On systems with NIS, the
 default is to search the local alias database, then the NIS alias
 database.
 .PP
-If you change the alias database, run "\fBpostalias /etc/aliases\fR"
-(or wherever your system stores the mail alias file), or simply
-run "\fBnewaliases\fR" to build the necessary DBM or DB file.
-.PP
 The \fBlocal\fR(8) delivery agent disallows regular expression substitution
 of $1 etc. in alias_maps, because that would open a security hole.
 .PP
@@ -390,10 +389,26 @@ Examples:
 .PP
 .nf
 .na
-alias_maps = hash:/etc/aliases, nis:mail.aliases
-alias_maps = hash:/etc/aliases
+alias_maps = $default_database_type:/etc/aliases, nis:mail.aliases
+alias_maps = $default_database_type:/etc/aliases
+alias_maps = lmdb:/etc/mail/aliases
+alias_maps = lmdb:/etc/aliases
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postalias \fI/path/to/aliases\fR" after you
+change the aliases file, to (re)build a default\-type indexed file.
+Execute "postalias \fItype:/path/to/aliases\fR" to specify an explicit
+type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .SH allow_mail_to_commands (default: alias, forward)
 Restrict \fBlocal\fR(8) mail delivery to external commands.  The default
 is to disallow delivery to "|command" in :include:  files (see
@@ -847,11 +862,6 @@ whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 Note: these lookups are recursive.
 .PP
-If you use this feature, run "\fBpostmap /etc/postfix/canonical\fR" to
-build the necessary DBM or DB file after every change. The changes
-will become visible after a minute or so.  Use "\fBpostfix reload\fR"
-to eliminate the delay.
-.PP
 Note: with Postfix version 2.2, message header address mapping
 happens only when message header address rewriting is enabled:
 .IP \(bu
@@ -871,10 +881,23 @@ Examples:
 .PP
 .nf
 .na
-canonical_maps = dbm:/etc/postfix/canonical
-canonical_maps = hash:/etc/postfix/canonical
+canonical_maps = lmdb:/etc/postfix/canonical
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/canonical" after you
+change the canonical file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/canonical" to specify an
+explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .SH cleanup_replace_stray_cr_lf (default: yes)
 Replace each stray <CR> or <LF> character in message
 content with a space character, to prevent outbound SMTP smuggling,
@@ -1237,15 +1260,15 @@ This feature is available in Postfix >= 3.11.
 .SH default_database_type (default: see "postconf \-d" output)
 The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
 and \fBpostmap\fR(1) commands. On many UNIX systems the default type is
-either \fBdbm\fR or \fBhash\fR. The default setting is frozen
+either \fBlmdb\fR or \fBhash\fR. The default setting is frozen
 when the Postfix system is built.
 .PP
 Examples:
 .PP
 .nf
 .na
+default_database_type = lmdb
 default_database_type = hash
-default_database_type = dbm
 .fi
 .ad
 .SH default_delivery_slot_cost (default: 5)
@@ -3860,10 +3883,12 @@ system.
 .na
 local_header_rewrite_clients = permit_mynetworks,
     permit_sasl_authenticated permit_tls_clientcerts
-    check_address_map hash:/etc/postfix/pop\-before\-smtp
+    check_address_map lmdb:/etc/postfix/pop\-before\-smtp
 .fi
 .ad
 .in -4
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 .SH local_login_sender_maps (default: static:*)
 A list of lookup tables that are searched by the UNIX login name,
 and that return a list of allowed envelope sender patterns separated
@@ -4951,10 +4976,15 @@ mynetworks = 127.0.0.0/8 168.100.189.0/28
 mynetworks = !192.168.0.1, 192.168.0.0/28
 mynetworks = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [2001:240:587::]/64
 mynetworks = $config_directory/mynetworks
-mynetworks = hash:/etc/postfix/network_table
+mynetworks = lmdb:/etc/postfix/network_table
 mynetworks = cidr:/etc/postfix/network_table.cidr
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .SH mynetworks_style (default: Postfix >= 3.0: host, Postfix < 3.0: subnet)
 The method to generate the default value for the mynetworks parameter.
 This is the list of trusted networks for relay access control etc.
@@ -4999,6 +5029,74 @@ This feature is available in Postfix 2.0 and later.
 Sendmail compatibility feature that specifies the location of the
 \fBnewaliases\fR(1) command. This command can be used to rebuild the
 \fBlocal\fR(8) \fBaliases\fR(5) database.
+.SH non_bdb_custom_mapping (default: empty)
+When non\-Berkeley\-DB migration is enabled, an optional mapping
+from a hash: or btree: type to a non\-Berkeley\-DB type. This mapping
+takes precedence over the default mapping from hash: to
+$default_database_type, and from btree: to $default_cache_db_type.
+.IP \(bu
+Specify a lookup table with a search keys that are a
+Berkeley DB \fItype\fR (without ':') or \fItype:name\fR.
+.IP \(bu
+A search key with the form \fItype:name\fR takes precedence
+over \fItype\fR (without ':').
+.IP \(bu
+The lookup result must always be a non\-Berkeley\-DB \fItype\fR
+(without ':') and must not contain a \fI:name\fR.
+.IP \(bu
+The mapping table type must not be \fBhash\fR or \fBbtree\fR.
+.br
+.PP
+This feature is available in Postfix >= 3.11.
+.SH non_bdb_migration_allow_root_prefixes (default: see 'postconf \-d non_bdb_migration_allow_root_prefixes' output)
+A list of trusted pathname prefixes that must be matched when
+the non\-Berkeley\-DB migration service (\fBnbdb_reindexd\fR(8)) needs to
+run \fBpostmap\fR(1) or \fBpostalias\fR(1) commands with "root" privilege.
+.PP
+This feature is available in Postfix >= 3.11.
+.SH non_bdb_migration_allow_user_prefixes (default: see 'postconf \-d non_bdb_migration_allow_user_prefixes' output)
+A list of trusted pathname prefixes that must be matched when
+the non\-Berkeley\-DB migration service (\fBnbdb_reindexd\fR(8)) needs to
+run \fBpostmap\fR(1) or \fBpostalias\fR(1) commands with non\-root privilege.
+.PP
+This feature is available in Postfix >= 3.11.
+.SH non_bdb_migration_level (default: disable)
+The non\-Berkeley\-DB migration service level. You are expected to use
+the command "\fBpostfix non\-bdb \fIname\-of\-level\fR\fR" to correctly
+configure the migration service level (see postfix\-non\-\fBbdb\fR(1).
+.IP "\fBdisable\fR"
+Disable all non\-Berkeley\-DB migration features. See
+NON_BERKELEYDB_README#disable for possible negative implications
+for integration with other software such as mailman.
+.br
+.IP "\fBenable\-redirect\fR (aliasing)"
+Enable redirection (aliasing) from Berkeley DB hash to
+$default_database_type, and from Berkeley DB btree to
+$default_cache_db_type, but do not automatically create the new cdb
+or lmdb indexed database files that Postfix programs need. See
+NON_BERKELEYDB_README#enable\-redirect for details and limitations.
+.br
+.IP "\fBenable\-reindex\fR"
+In addition to enable\-redirect, also create a non\-Berkeley\-DB
+indexed database file when a daemon program wants to access a file
+that does not yet exist. This feature uses the \fBnbdb_reindexd\fR(8)
+daemon to run \fBpostmap\fR(1) or \fBpostalias\fR(1).   See
+NON_BERKELEYDB_README#enable\-reindex for details and limitations.
+.PP
+\fI NOTE: \fBenable\-reindex\fR should be used only temporarily to
+generate most of the non\-Berkeley\-DB indexed database files that Postfix
+programs need. Leaving this level enabled may expose the system to
+privilege\-escalation attacks. There are no security concerns for using
+\fBenable\-redirect\fR. \fR
+.br
+.br
+.PP
+This feature is available in Postfix >= 3.11.
+.SH non_bdb_migration_service_name (default: nbdb_reindex)
+The name of a master.cf service that implements the non\-Berkeley\-DB
+migration service protocol.
+.PP
+This feature is available in Postfix >= 3.11.
 .SH non_empty_end_of_header_action (default: fix_quietly)
 How the \fBcleanup\fR(8) daemon will process a message when the primary
 message header is terminated with a non\-empty line.
@@ -5032,6 +5130,7 @@ with non\-empty line: \fIerroneous text\fR; from=<\fIsender\fR>
 to=<\fIrecipient\fR>
 .fi
 .ad
+.br
 .br
 .PP
 This feature is available in Postfix >= 3.11.
@@ -5433,8 +5532,8 @@ This feature is available in Postfix 2.8.
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
 .PP
 To share a \fBpostscreen\fR(8) cache between multiple \fBpostscreen\fR(8)
-instances, use "postscreen_cache_map = proxy:btree:/path/to/file"
-or "proxy:lmdb:/path/to/file".
+instances, use "postscreen_cache_map = proxy:lmdb:/path/to/file"
+or "proxy:btree:/path/to/file".
 This requires Postfix version 2.9 or later; earlier \fBproxymap\fR(8)
 implementations don't support cache cleanup. For an alternative
 approach see the \fBmemcache_table\fR(5) manpage.
@@ -6225,7 +6324,7 @@ Example:
 .nf
 .na
 /etc/postfix/main.cf:
-    rbl_reply_maps = hash:/etc/postfix/rbl_reply
+    rbl_reply_maps = lmdb:/etc/postfix/rbl_reply
     smtpd_recipient_restrictions =
         permit_mynetworks,
         reject_rbl_client \fIsecret\fR.zen.dq.spamhaus.net=127.0.0.[2..11],
@@ -6250,10 +6349,24 @@ Example:
 .fi
 .ad
 .PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
 NOTE: This feature differs from postscreen_dnsbl_reply_map where
 the table search key is only a domain name (no "\fI=address\-filter\fR",
 no "\fI*weight\fR" factor) and where the lookup result
 should be only a domain name (no free text, no \fI$name\fR variables).
+.PP
+Execute the command "postmap /etc/postfix/rbl_reply" after you
+change the rbl_reply file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/rbl_reply" to specify an
+explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .PP
 This feature is available in Postfix 2.0 and later.
 The "=address\-filter" feature is available in Postfix 2.8 and later.
@@ -6354,11 +6467,23 @@ Example:
 .PP
 .nf
 .na
-recipient_bcc_maps = hash:/etc/postfix/recipient_bcc
+recipient_bcc_maps = lmdb:/etc/postfix/recipient_bcc
 .fi
 .ad
 .PP
-After a change, run "\fBpostmap /etc/postfix/recipient_bcc\fR".
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/recipient_bcc" after
+you change the recipient_bcc file, to (re)build a default\-type indexed
+file.  Execute "postmap \fItype\fR:/etc/postfix/recipient_bcc" to
+specify an explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH recipient_canonical_classes (default: envelope_recipient, header_recipient)
@@ -6381,9 +6506,24 @@ Example:
 .PP
 .nf
 .na
-recipient_canonical_maps = hash:/etc/postfix/recipient_canonical
+recipient_canonical_maps = lmdb:/etc/postfix/recipient_canonical
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/recipient_canonical"
+after you change the recipient_canonical file, to (re)build a
+default\-type indexed file.  Execute "postmap
+\fItype\fR:/etc/postfix/recipient_canonical" to specify an explicit
+type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .SH recipient_delimiter (default: empty)
 The set of characters that can separate an email address
 localpart, user name, or a .forward file name from its extension.
@@ -6485,13 +6625,27 @@ Example:
 .PP
 .nf
 .na
-relay_clientcerts = hash:/etc/postfix/relay_clientcerts
+relay_clientcerts = lmdb:/etc/postfix/relay_clientcerts
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 .PP
 For more fine\-grained control, use check_ccert_access to select
 an appropriate \fBaccess\fR(5) policy for each client.
 See RESTRICTION_CLASS_README.
+.PP
+Execute the command "postmap /etc/postfix/relay_clientcerts"
+after you change the relay_clientcerts file, to (re)build a default\-type
+indexed file.  Execute "postmap \fItype\fR:/etc/postfix/relay_clientcerts"
+to specify an explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .PP
 This feature is available with Postfix version 2.2.
 .SH relay_destination_concurrency_limit (default: $default_destination_concurrency_limit)
@@ -6571,9 +6725,23 @@ Example:
 .PP
 .nf
 .na
-relay_recipient_maps = hash:/etc/postfix/relay_recipients
+relay_recipient_maps = lmdb:/etc/postfix/relay_recipients
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/relay_recipients"
+after you change the relay_recipients file, to (re)build a default\-type
+indexed file.  Execute "postmap \fItype\fR:/etc/postfix/relay_recipients"
+to specify an explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH relay_transport (default: relay)
@@ -6662,18 +6830,27 @@ Specify zero or more "type:name" lookup tables, separated by
 whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
-If you use this feature, run "\fBpostmap /etc/postfix/relocated\fR" to
-build the necessary DBM or DB file after change, then "\fBpostfix
-reload\fR" to make the changes visible.
-.PP
 Examples:
 .PP
 .nf
 .na
-relocated_maps = dbm:/etc/postfix/relocated
-relocated_maps = hash:/etc/postfix/relocated
+relocated_maps = lmdb:/etc/postfix/relocated
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/relocated" after you
+change the relocated file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/relocated" to specify an
+explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .SH relocated_prefix_enable (default: yes)
 Prepend the prefix "\fB5.1.6 User has moved to \fR" to all
 relocated_maps lookup results. With "relocated_prefix_enable =
@@ -6685,13 +6862,29 @@ Example:
 .nf
 .na
 /etc/postfix/main.cf:
-    relocated_maps = hash:/etc/postfix/relocated
+    relocated_maps = lmdb:/etc/postfix/relocated
     relocated_prefix_enable = no
 .br
-hash:/etc/postfix/relocated:
+/etc/postfix/relocated:
     user@example.com 5.2.1 User account is disabled
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/relocated" after you
+change the relocated file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/relocated" to specify an
+explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
+.PP
+This feature is available in Postfix 3.11 and later.
 .SH remote_header_rewrite_domain (default: empty)
 Rewrite or add message headers in mail from remote clients if
 the remote_header_rewrite_domain parameter value is non\-empty,
@@ -6951,11 +7144,23 @@ Example:
 .PP
 .nf
 .na
-sender_bcc_maps = hash:/etc/postfix/sender_bcc
+sender_bcc_maps = lmdb:/etc/postfix/sender_bcc
 .fi
 .ad
 .PP
-After a change, run "\fBpostmap /etc/postfix/sender_bcc\fR".
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/sender_bcc" after you
+change the sender_bcc file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/sender_bcc" to specify an
+explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH sender_canonical_classes (default: envelope_sender, header_sender)
@@ -6981,9 +7186,23 @@ Example:
 .PP
 .nf
 .na
-sender_canonical_maps = hash:/etc/postfix/sender_canonical
+sender_canonical_maps = lmdb:/etc/postfix/sender_canonical
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/sender_canonical"
+after you change the sender_canonical file, to (re)build a default\-type
+indexed file.  Execute "postmap \fItype\fR:/etc/postfix/sender_canonical"
+to specify an explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .SH sender_dependent_default_transport_maps (default: empty)
 A sender\-dependent override for the global default_transport
 parameter setting. The tables are searched by the envelope sender
@@ -7221,7 +7440,7 @@ transport_maps to apply this feature selectively:
 .nf
 .na
 /etc/postfix/main.cf:
-    transport_maps = hash:/etc/postfix/transport
+    transport_maps = lmdb:/etc/postfix/transport
 .fi
 .ad
 .in -4
@@ -7248,9 +7467,23 @@ transport_maps to apply this feature selectively:
 .ad
 .in -4
 .PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
 Unselective use of the "data" target does no harm, but will
 result in unnecessary "lost connection after DATA" events at remote
 SMTP/LMTP servers.
+.PP
+Execute the command "postmap /etc/postfix/transport" after you
+change the transport file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/transport" to specify an
+explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .PP
 This feature is available in Postfix 3.0 and later.
 .SH smtp_always_send_ehlo (default: yes)
@@ -8246,7 +8479,7 @@ A non\-ASCII next\-hop destination is converted into ASCII form
 (Punycode) before making a policy query; lookup tables must answer
 ASCII\-form queries.
 .IP \(bu
-A fixed\-string table (such as hash:, btree:, or lmdb:) is
+A fixed\-string table (such as lmdb:, cdb:, or hash:) is
 also searched with the next\-hop ".parent" domains (in a table key,
 prepend a '.' to a parent domain name). These ".parent" domain
 queries are not made with pattern\-based lookup tables such as regexp:
@@ -8336,7 +8569,7 @@ Notes:
 To match any name below the domain "example.com" specify
 a table entry with the storage key ".example.com" in type:table
 lookup tables that need an exact match. This is appropriate, for
-example, with hash:, btree: or lmdb:.
+example, with lmdb:, cdb: or hash:.
 .IP \(bu
 Do not specify a match pattern for ".domain" with regexp:,
 pcre:, socketmap:, or tcp:, as smtp_requiretls_policy will
@@ -8445,7 +8678,7 @@ file for easier maintenance.
         cidr:{
             { 0.0.0.0/0 opportunistic },
             { ::/0 opportunistic } },
-        hash:/etc/postfix/requiretls\-per\-site
+        lmdb:/etc/postfix/requiretls\-per\-site
         opportunistic+starttls
 .sp
 /etc/postfix/requiretls\-per\-site:
@@ -8455,6 +8688,20 @@ file for easier maintenance.
     ...
 .fi
 .ad
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/requiretls\-per\-site"
+after you change the requiretls\-per\-site file, to (re)build a
+default\-type indexed file.  Execute "postmap
+\fItype\fR:/etc/postfix/requiretls\-per\-site" to specify an explicit
+type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .br
 .PP
 LMTP client examples. See REQUIRETLS_README for discussion.
@@ -8518,8 +8765,8 @@ Examples:
 .PP
 .nf
 .na
-smtp_sasl_auth_cache_name = proxy:btree:/var/lib/postfix/sasl_auth_cache
 smtp_sasl_auth_cache_name = proxy:lmdb:/var/lib/postfix/sasl_auth_cache
+smtp_sasl_auth_cache_name = proxy:btree:/var/lib/postfix/sasl_auth_cache
 .fi
 .ad
 .PP
@@ -9353,7 +9600,7 @@ As in the example above, we show two matching fingerprints:
 .nf
 .na
 /etc/postfix/main.cf:
-    smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
+    smtp_tls_policy_maps = lmdb:/etc/postfix/tls_policy
     smtp_tls_fingerprint_digest = sha256
 .fi
 .ad
@@ -9369,6 +9616,20 @@ As in the example above, we show two matching fingerprints:
 .fi
 .ad
 .in -4
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/tls_policy" after you
+change the tls_policy file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/tls_policy" to specify an
+explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .PP
 This feature is available in Postfix 2.5 and later.
 .SH smtp_tls_fingerprint_digest (default: see "postconf \-d" output)
@@ -9959,7 +10220,7 @@ Example:
 .nf
 .na
 /etc/postfix/main.cf:
-    smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
+    smtp_tls_policy_maps = lmdb:/etc/postfix/tls_policy
     # Postfix 2.5 and later.
     #
     # The default digest is sha256 with Postfix >= 3.6 and
@@ -9986,11 +10247,25 @@ Example:
 .fi
 .ad
 .PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
 \fBNote:\fR The "hostname" strategy if listed in a non\-default
 setting of smtp_tls_secure_cert_match or in the "match" attribute
 in the policy table can render the "secure" level vulnerable to
 DNS forgery. Do not use the "hostname" strategy for secure\-channel
 configurations in environments where DNS security is not assured.
+.PP
+Execute the command "postmap /etc/postfix/tls_policy" after you
+change the tls_policy file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/tls_policy" to specify
+an explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtp_tls_protocols (default: see 'postconf \-d' output)
@@ -10331,7 +10606,7 @@ This feature is available in Postfix 3.4 and later.
 .SH smtp_tls_session_cache_database (default: empty)
 Name of the file containing the optional Postfix SMTP client
 TLS session cache. Specify a database type that supports enumeration,
-such as \fBbtree\fR or \fBsdbm\fR; there is no need to support
+such as \fBlmdb\fR or \fBbtree\fR; there is no need to support
 concurrent access.  The file is created if it does not exist. The \fBsmtp\fR(8)
 daemon does not use this parameter directly, rather the cache is
 implemented indirectly in the \fBtlsmgr\fR(8) daemon. This means that
@@ -10355,8 +10630,8 @@ Example:
 .PP
 .nf
 .na
-smtp_tls_session_cache_database = btree:/var/lib/postfix/smtp_scache
 smtp_tls_session_cache_database = lmdb:/var/lib/postfix/smtp_scache
+smtp_tls_session_cache_database = btree:/var/lib/postfix/smtp_scache
 .fi
 .ad
 .PP
@@ -13105,9 +13380,23 @@ Examples:
 .na
 smtpd_sender_restrictions = reject_unknown_sender_domain
 smtpd_sender_restrictions = reject_unknown_sender_domain,
-    check_sender_access hash:/etc/postfix/access
+    check_sender_access lmdb:/etc/postfix/access
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/access" after you
+change the access file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/access" to specify an
+explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .SH smtpd_service_name (default: smtpd)
 The internal service that \fBpostscreen\fR(8) hands off allowed
 connections to. In a future version there may be different
@@ -13883,7 +14172,7 @@ Example: client\-certificate access table, with sha256 fingerprints:
 /etc/postfix/main.cf:
     smtpd_tls_fingerprint_digest = sha256
     smtpd_client_restrictions =
-        check_ccert_access hash:/etc/postfix/access,
+        check_ccert_access lmdb:/etc/postfix/access,
         reject
 .sp
 /etc/postfix/access:
@@ -13895,6 +14184,20 @@ Example: client\-certificate access table, with sha256 fingerprints:
 .fi
 .ad
 .in -4
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/access" after you
+change the access file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/access" to specify an
+explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .PP
 This feature is available in Postfix 2.5 and later.
 .SH smtpd_tls_key_file (default: $smtpd_tls_cert_file)
@@ -14251,8 +14554,8 @@ Examples:
 .PP
 .nf
 .na
-smtpd_tls_session_cache_database = btree:/var/lib/postfix/smtpd_scache
 smtpd_tls_session_cache_database = lmdb:/var/lib/postfix/smtpd_scache
+smtpd_tls_session_cache_database = btree:/var/lib/postfix/smtpd_scache
 .fi
 .ad
 .PP
@@ -15929,9 +16232,7 @@ $sender_dependent_default_transport_maps, or the recipient domain.
 .PP
 Specify zero or more "type:table" lookup tables, separated by
 whitespace or comma. Tables will be searched in the specified order
-until a match is found.  If you use this
-feature with local files, run "\fBpostmap /etc/postfix/transport\fR"
-after making a change.
+until a match is found.
 .PP
 Pattern matching of domain names is controlled by the presence
 or absence of "transport_maps" in the parent_domain_matches_subdomains
@@ -15944,10 +16245,23 @@ Examples:
 .PP
 .nf
 .na
-transport_maps = dbm:/etc/postfix/transport
-transport_maps = hash:/etc/postfix/transport
+transport_maps = lmdb:/etc/postfix/transport
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/transport" after you
+change the transport file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/transport" to specify an
+explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .SH transport_minimum_delivery_slots (default: $default_minimum_delivery_slots)
 A transport\-specific override for the default_minimum_delivery_slots
 parameter value, where \fItransport\fR is the master.cf name of
@@ -16389,17 +16703,27 @@ whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 Note: these lookups are recursive.
 .PP
-If you use this feature with indexed files, run "\fBpostmap
-/etc/postfix/virtual\fR" after changing the file.
-.PP
 Examples:
 .PP
 .nf
 .na
-virtual_alias_maps = dbm:/etc/postfix/virtual
-virtual_alias_maps = hash:/etc/postfix/virtual
+virtual_alias_maps = lmdb:/etc/postfix/virtual
 .fi
 .ad
+.PP
+Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
+.PP
+Execute the command "postmap /etc/postfix/virtual" after you
+change the virtual file, to (re)build a default\-type indexed file.
+Execute "postmap \fItype\fR:/etc/postfix/virtual" to specify an
+explicit type.
+.PP
+The default indexed file type is configured with the
+default_database_type parameter. To list available explicit types,
+execute the command "postconf \-m".
+.PP
+Configuration changes will become visible after a minute or so.
+Use "postfix reload" to eliminate the delay.
 .SH virtual_alias_recursion_limit (default: 1000)
 The maximal nesting depth of virtual alias expansion.  Currently
 the recursion limit is applied only to the left branch of the

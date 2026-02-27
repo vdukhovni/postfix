@@ -693,7 +693,7 @@ static void print_stack(STATE *state, x509_stack_t *sk, int trustout)
     for (i = 0; i < sk_X509_num(sk); i++) {
 	X509   *cert = sk_X509_value(sk, i);
 	char    buf[CCERT_BUFSIZ];
-	X509_NAME *xn;
+	const X509_NAME *xn;
 	char   *digest;
 
 	if ((xn = X509_get_subject_name(cert)) != 0) {

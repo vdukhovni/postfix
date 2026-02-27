@@ -52,6 +52,9 @@
 /*	void	dict_open_register(open_info)
 /*	DICT_OPEN_INFO *open_info;
 /*
+/*	void	dict_open_unregister(dict_type)
+/*	const char *dict_type;
+/*
 /*	const DICT_OPEN_INFO *dict_open_lookup(dict_type)
 /*	const char *dict_type;
 /*
@@ -256,7 +259,11 @@
 /*	associated data structures.
 /*
 /*	dict_open_register() adds support for a new dictionary type.
-/*	NOTE: this function does not copy its argument.
+/*	NOTE: this function does not copy its argument. It is an error
+/*	to add an existing type.
+/*
+/*	dict_open_unregister() removes support for a dictionary type.
+/*	NOTE: it is an error to delete a non-existent type.
 /*
 /*	dict_open_lookup() returns a pointer to the DICT_OPEN_INFO
 /*	for the specified dictionary type, or a null pointer if the
@@ -296,7 +303,8 @@
 /*	be lifted.
 /* DIAGNOSTICS
 /*	Fatal error: open error, unsupported dictionary type, attempt to
-/*	update non-writable dictionary.
+/*	update non-writable dictionary, attempt to unregister a type
+/*	that is not registered.
 /*
 /*	The lookup routine returns non-null when the request is
 /*	satisfied. The update, delete and sequence routines return
@@ -564,6 +572,19 @@ void    dict_open_register(const DICT_OPEN_INFO *dp)
     (void) htable_enter(dict_open_hash, dp->type, (void *) dp);
 }
 
+/* dict_open_unregister - unregister dictionary type */
+
+void    dict_open_unregister(const char *dict_type)
+{
+    const char *myname = "dict_open_unregister";
+
+    if (msg_verbose > 1)
+	msg_info("%s: %s", myname, dict_type);
+    if (NEED_DICT_OPEN_INIT())
+	dict_open_init();
+    htable_delete(dict_open_hash, dict_type, (void (*) (void *)) 0);
+}
+
 /* dict_open_lookup - look up DICT_OPEN_INFO for dictionary type */
 
 const DICT_OPEN_INFO *dict_open_lookup(const char *dict_type)
@@ -573,6 +594,8 @@ const DICT_OPEN_INFO *dict_open_lookup(const char *dict_type)
 
     if (msg_verbose > 1)
 	msg_info("%s: %s", myname, dict_type);
+    if (NEED_DICT_OPEN_INIT())
+	dict_open_init();
     if ((dp = (DICT_OPEN_INFO *) htable_find(dict_open_hash, dict_type)) == 0
 	&& dict_open_extend_hook != 0
 	&& (dp = dict_open_extend_hook(dict_type)) != 0)

@@ -12,9 +12,15 @@
 /* DESCRIPTION
 /* .nf
 
+ /*
+  * Utility library.
+  */
+#include <vstream.h>
+
  /* External interface. */
 
 extern int open_as(const char *, int, int, uid_t, gid_t);
+extern VSTREAM *vstream_fopen_as(const char *, int, mode_t, uid_t, gid_t);
 
 /* LICENSE
 /* .ad
@@ -25,6 +31,9 @@ extern int open_as(const char *, int, int, uid_t, gid_t);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 #endif

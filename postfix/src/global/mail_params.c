@@ -169,6 +169,10 @@
 /*	bool	var_relay_before_rcpt_checks;
 /*	bool	var_respectful_logging;
 /*	char	*var_known_tcp_ports;
+/*
+/*	char	*var_nbdb_level;
+/*	char	*var_nbdb_service;
+/*	char	*var_nbdb_cust_map;
 /* DESCRIPTION
 /*	This module (actually the associated include file) defines
 /*	the names and defaults of all mail configuration parameters.
@@ -246,6 +250,7 @@
 #include <verp_sender.h>
 #include <own_inet_addr.h>
 #include <mail_params.h>
+#include <nbdb_util.h>
 #include <compat_level.h>
 #include <config_known_tcp_ports.h>
 
@@ -395,6 +400,10 @@ char   *var_postlog_service;
 char   *var_dnssec_probe;
 bool    var_respectful_logging;
 char   *var_known_tcp_ports;
+
+char   *var_nbdb_level;
+char   *var_nbdb_service;
+char   *var_nbdb_cust_map;
 
 const char null_format_string[1] = "";
 
@@ -863,6 +872,9 @@ void    mail_params_init()
 	VAR_SMTPUTF8_AUTOCLASS, DEF_SMTPUTF8_AUTOCLASS, &var_smtputf8_autoclass, 1, 0,
 	VAR_DROP_HDRS, DEF_DROP_HDRS, &var_drop_hdrs, 0, 0,
 	VAR_INFO_LOG_ADDR_FORM, DEF_INFO_LOG_ADDR_FORM, &var_info_log_addr_form, 1, 0,
+	VAR_NBDB_LEVEL, DEF_NBDB_LEVEL, &var_nbdb_level, 1, 0,
+	VAR_NBDB_SERVICE, DEF_NBDB_SERVICE, &var_nbdb_service, 0, 0,
+	VAR_NBDB_CUST_MAP, DEF_NBDB_CUST_MAP, &var_nbdb_cust_map, 0, 0,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
@@ -1102,4 +1114,9 @@ void    mail_params_init()
 	msg_fatal("file %s/%s: parameters %s and %s: %s",
 		  var_config_dir, MAIN_CONF_FILE,
 		  VAR_VERP_DELIMS, VAR_VERP_FILTER, cp);
+
+    /*
+     * Non-Berkeley-DB migration support.
+     */
+    nbdb_util_init(var_nbdb_level);
 }

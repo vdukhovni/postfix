@@ -12,7 +12,7 @@
 
 <script type="text/javascript">
 
-// Kludge for https://support.google.com/chrome/thread/11993079
+// See support.google.com/chrome/thread/11993079
 const isChrome = /Chrome/.test(navigator.userAgent)
     && /Google Inc/.test(navigator.vendor);
 const hash = window.location.hash;

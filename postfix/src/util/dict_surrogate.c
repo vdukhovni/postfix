@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	surrogate table for graceful "open" failure
 /* SYNOPSIS
-/*	#include <dict_surrogate.h>
+/*	#include <dict.h>
 /*
 /*	DICT	*dict_surrogate(dict_type, dict_name,
 /*				open_flags, dict_flags,
@@ -169,7 +169,7 @@ DICT   *dict_surrogate(const char *dict_type, const char *dict_name,
     }
     dp->dict.sequence = dict_surrogate_sequence;
     dp->dict.close = dict_surrogate_close;
-    dp->dict.flags = dict_flags | DICT_FLAG_PATTERN;
+    dp->dict.flags = dict_flags | DICT_FLAG_PATTERN | DICT_FLAG_SURROGATE;
     dp->dict.owner.status = DICT_OWNER_TRUSTED;
     buf = vstring_alloc(10);
     errno = saved_errno;

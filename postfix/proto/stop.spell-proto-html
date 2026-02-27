@@ -405,3 +405,12 @@ noencryption
 nomatch
 nostarttls
 mariadb
+BERKELEYDB
+bdb
+gitlab
+nbdb
+reindex
+reindexd
+hPP
+hPPx
+hx

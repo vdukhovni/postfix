@@ -132,6 +132,7 @@ extern void dict_free(DICT *);
 #define DICT_FLAG_UTF8_ACTIVE	(1<<20)	/* UTF-8 proxy layer is present */
 #define DICT_FLAG_SRC_RHS_IS_FILE \
 				(1<<21)	/* Map source RHS is a file */
+#define DICT_FLAG_SURROGATE	(1<22)	/* This is a surrogate dictionary */
 
 #define DICT_FLAG_UTF8_MASK	(DICT_FLAG_UTF8_REQUEST)
 
@@ -219,6 +220,7 @@ typedef const DICT_OPEN_INFO *(*DICT_OPEN_EXTEND_FN) (const char *);
 extern DICT *dict_open(const char *, int, int);
 extern DICT *dict_open3(const char *, const char *, int, int);
 extern void dict_open_register(const DICT_OPEN_INFO *);
+extern void dict_open_unregister(const char *);
 extern const DICT_OPEN_INFO *dict_open_lookup(const char *);
 extern DICT_OPEN_EXTEND_FN dict_open_extend(DICT_OPEN_EXTEND_FN);
 

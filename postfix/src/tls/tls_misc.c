@@ -1424,7 +1424,7 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
     if (TLScontext->srvr_sig_dgst)
 	myfree((void *) TLScontext->srvr_sig_dgst);
     if (TLScontext->errorcert)
-	X509_free(TLScontext->errorcert);
+	X509_free((X509 *) TLScontext->errorcert);
     if (TLScontext->ffail_type)
 	myfree(TLScontext->ffail_type);
 

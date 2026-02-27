@@ -352,3 +352,7 @@ void  void pol_stats_revert POL_STATS pstats
  feature feature etc where 
  policies policy policy domain If null this defaults to the
 bounce  bounce defer trace 
+dict_open  dict_open looks up our DICT_OPEN_INFO with dict_fn and mkmap_fn
+mkmap_open  mkmap_open looks up our DICT_OPEN_INFO with dict_fn and mkmap_fn
+ typedef struct MSG_CAPTURE MSG_CAPTURE 
+MSG_CAPTURE  MSG_CAPTURE msg_capt_create ssize_t init_size 
