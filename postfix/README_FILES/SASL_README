@@ -864,9 +864,9 @@ envelope address and the SASL login names that own that address:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ccoonnttrroolllleedd__eennvveellooppee__sseennddeerrss" after
-you change the controlled_envelope_senders file, to rebuild a default-type
-indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//ccoonnttrroolllleedd__eennvveellooppee__sseennddeerrss to
-specify an explicit type.
+you change the controlled_envelope_senders file, to (re)build a default-type
+indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//ccoonnttrroolllleedd__eennvveellooppee__sseennddeerrss"
+to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
 parameter. To list available explicit types, execute the command "ppoossttccoonnff --mm".
@@ -908,8 +908,8 @@ credentials have been compromised.
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ssaassll__aacccceessss" after you change the
-sasl_access file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp
-ttyyppee:://eettcc//ppoossttffiixx//ssaassll__aacccceessss to specify an explicit type.
+sasl_access file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp
+ttyyppee:://eettcc//ppoossttffiixx//ssaassll__aacccceessss" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
 parameter. To list available explicit types, execute the command "ppoossttccoonnff --mm".
@@ -1117,8 +1117,8 @@ username/password information.
     Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
   * Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd" after changing the
-    sasl_passwd file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp
-    ttyyppee:://eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd" to specify an explicit type.
+    sasl_passwd file, to (re)build a default-type indexed file. Execute
+    "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd" to specify an explicit type.
 
     The default indexed file type is configured with the default_database_type
     parameter. To list available explicit types, execute the command "ppoossttccoonnff
@@ -1176,16 +1176,16 @@ final resort.
     the appropriate information.
 
   * Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd" after you change the
-    sasl_passwd file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp
-    ttyyppee:://eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd to specify an explicit type.
+    sasl_passwd file, to (re)build a default-type indexed file. Execute
+    "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd" to specify an explicit type.
 
     The default indexed file type is configured with the default_database_type
     parameter. To list available explicit types, execute the command "ppoossttccoonnff
     --mm".
 
   * Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//sseennddeerr__rreellaayy" after you change
-    the sender_relay file, to rebuild a default-type indexed file. Execute
-    "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//sseennddeerr__rreellaayy to specify an explicit type.
+    the sender_relay file, to (re)build a default-type indexed file. Execute
+    "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//sseennddeerr__rreellaayy" to specify an explicit type.
 
 PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt ppoolliiccyy -- SSAASSLL mmeecchhaanniissmm pprrooppeerrttiieess
 

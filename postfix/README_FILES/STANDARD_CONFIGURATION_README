@@ -296,19 +296,19 @@ Translation:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//vviirrttuuaall" whenever you change the
-virtual file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
+virtual file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
 eettcc//ppoossttffiixx//vviirrttuuaall" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
 parameter. To list available explicit types, execute the command "ppoossttccoonnff --mm".
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//rreellaayy__rreecciippiieennttss" whenever you change
-the relay_recipients file, to rebuild a default-type indexed file. Execute
+the relay_recipients file, to (re)build a default-type indexed file. Execute
 "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//rreellaayy__rreecciippiieennttss" to specify an explicit type.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ttrraannssppoorrtt" whenever you change the
-transport file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
-eettcc//ppoossttffiixx//ttrraannssppoorrtt" to specify an explicit type.
+transport file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp
+ttyyppee:://eettcc//ppoossttffiixx//ttrraannssppoorrtt" to specify an explicit type.
 
 In some installations, there may be separate instances of Postfix processing
 inbound and outbound mail on a multi-homed firewall. The inbound Postfix
@@ -349,8 +349,8 @@ Translation:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//vviirrttuuaall" after editing the virtual
-file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
-ppoossttffiixx//vviirrttuuaall to specify an explicit type.
+file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
+ppoossttffiixx//vviirrttuuaall" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
 parameter. To list available explicit types, execute the command "ppoossttccoonnff --mm".
@@ -399,8 +399,8 @@ Translation:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ttrraannssppoorrtt" whenever you edit the
-transport file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
-eettcc//ppoossttffiixx//ttrraannssppoorrtt" to specify an explicit type.
+transport file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp
+ttyyppee:://eettcc//ppoossttffiixx//ttrraannssppoorrtt" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
 parameter. To list available explicit types, execute the command "ppoossttccoonnff --mm".
@@ -475,15 +475,15 @@ Important notes:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//rreellaayy__rreecciippiieennttss" whenever you change
-the relay_recipients file, to rebuild a default-type indexed file. Execute
+the relay_recipients file, to (re)build a default-type indexed file. Execute
 "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//rreellaayy__rreecciippiieennttss" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
 parameter. To list available explicit types, execute the command "ppoossttccoonnff --mm".
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ttrraannssppoorrtt" whenever you change the
-transport file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
-eettcc//ppoossttffiixx//ttrraannssppoorrtt" to specify an explicit type.
+transport file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp
+ttyyppee:://eettcc//ppoossttffiixx//ttrraannssppoorrtt" to specify an explicit type.
 
 NOTE for Postfix < 2.2: Do not use the fallback_relay feature when relaying
 mail for a backup or primary MX domain. Mail would loop between the Postfix MX
@@ -608,7 +608,7 @@ When mail is sent to a remote host via SMTP:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ggeenneerriicc" whenever you change the
-generic file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
+generic file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
 eettcc//ppoossttffiixx//ggeenneerriicc" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
@@ -657,13 +657,13 @@ Translation:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ccaannoonniiccaall" whenever you change the
-canonical file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
-eettcc//ppoossttffiixx//ccaannoonniiccaall" to specify an explicit type.
+canonical file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp
+ttyyppee:://eettcc//ppoossttffiixx//ccaannoonniiccaall" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
 parameter. To list available explicit types, execute the command "ppoossttccoonnff --mm".
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//vviirrttuuaall" whenever you change the
-virtual file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
+virtual file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
 eettcc//ppoossttffiixx//vviirrttuuaall" to specify an explicit type.
 

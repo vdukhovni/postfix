@@ -97,7 +97,7 @@ When mail is sent to a remote host via SMTP:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ggeenneerriicc" whenever you change the
-generic file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
+generic file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
 eettcc//ppoossttffiixx//ggeenneerriicc" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
@@ -146,14 +146,14 @@ Translation:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ccaannoonniiccaall" whenever you change the
-canonical file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
-eettcc//ppoossttffiixx//ccaannoonniiccaall" to specify an explicit type.
+canonical file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp
+ttyyppee:://eettcc//ppoossttffiixx//ccaannoonniiccaall" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
 parameter. To list available explicit types, execute the command "ppoossttccoonnff --mm".
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//vviirrttuuaall" whenever you change the
-virtual file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
+virtual file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://
 eettcc//ppoossttffiixx//vviirrttuuaall" to specify an explicit type.
 
 EEnnaabblliinngg SSAASSLL aauutthheennttiiccaattiioonn iinn tthhee PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt
@@ -235,8 +235,8 @@ username/password information.
     Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
   * Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd" after changing the
-    sasl_passwd file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp
-    ttyyppee:://eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd" to specify an explicit type.
+    sasl_passwd file, to (re)build a default-type indexed file. Execute
+    "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd" to specify an explicit type.
 
     The default indexed file type is configured with the default_database_type
     parameter. To list available explicit types, execute the command "ppoossttccoonnff
@@ -294,14 +294,14 @@ final resort.
     the appropriate information.
 
   * Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd" after you change the
-    sasl_passwd file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp
-    ttyyppee:://eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd to specify an explicit type.
+    sasl_passwd file, to (re)build a default-type indexed file. Execute
+    "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//ssaassll__ppaasssswwdd" to specify an explicit type.
 
     The default indexed file type is configured with the default_database_type
     parameter. To list available explicit types, execute the command "ppoossttccoonnff
     --mm".
 
   * Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//sseennddeerr__rreellaayy" after you change
-    the sender_relay file, to rebuild a default-type indexed file. Execute
-    "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//sseennddeerr__rreellaayy to specify an explicit type.
+    the sender_relay file, to (re)build a default-type indexed file. Execute
+    "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//sseennddeerr__rreellaayy" to specify an explicit type.
 

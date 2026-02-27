@@ -30513,3 +30513,21 @@ Apologies for any names omitted.
 
 	Postfix works on Linux 7.x kernels. Frank Scheiner. Files:
 	makedefs, util/sys_defs.h.
+
+20260226
+
+	Documentation: update postconf(5) examples: all examples
+	show "lmdb", and mention cdb, hash, etc. as alternatives.
+	File: proto/postconf.proto.
+
+	Cleanup: wordsmithing of recently-edited README files.
+	proto/SASL_README.html, proto/STANDARD_CONFIGURATION_README.html,
+	proto/UUCP_README.html.
+
+	Cleanup: fix HTML validator complaint. File:
+	proto/postconf.html.prolog
+
+	Cleanup: make only one attempt to generate an indexed file
+	for $alias_maps. This creates a status file
+	$config_directory/check-alias-maps-migration-done. File:
+	conf/postfix-script.

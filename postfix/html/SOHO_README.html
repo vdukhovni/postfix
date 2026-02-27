@@ -151,7 +151,7 @@ that the ISP supports "+" style address extensions). </p>
 <p> Instead of <a href="lmdb_table.5.html">lmdb</a>:, some systems use <a href="CDB_README.html">cdb</a>:, <a href="DATABASE_README.html#types">hash</a>:, or <a href="DATABASE_README.html#types">dbm</a>:. </p>
 
 <p> Execute the command "<b>postmap /etc/postfix/generic</b>"
-whenever you change the generic file, to rebuild a default-type
+whenever you change the generic file, to (re)build a default-type
 indexed file. Execute  "<b>postmap <i>type</i>:/etc/postfix/generic</b>"
 to specify an explicit type.</p>
 
@@ -212,7 +212,7 @@ but is convenient.
 <p> Instead of <a href="lmdb_table.5.html">lmdb</a>:, some systems use <a href="CDB_README.html">cdb</a>:, <a href="DATABASE_README.html#types">hash</a>:, or <a href="DATABASE_README.html#types">dbm</a>:. </p>
 
 <p> Execute the command "<b>postmap /etc/postfix/canonical</b>"
-whenever you change the canonical file, to rebuild a default-type
+whenever you change the canonical file, to (re)build a default-type
 indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/canonical</b>"
 to specify an explicit type. </p>
 
@@ -221,7 +221,7 @@ to specify an explicit type. </p>
 execute the command "<b>postconf -m</b>".</p>
 
 <p> Execute the command "<b>postmap /etc/postfix/virtual</b>"
-whenever you change the virtual file, to rebuild a default-type
+whenever you change the virtual file, to (re)build a default-type
 indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/virtual</b>"
 to specify an explicit type. </p>
 
@@ -341,7 +341,7 @@ and before entering an optional chroot jail. </p>
 <p> Instead of <a href="lmdb_table.5.html">lmdb</a>:, some systems use <a href="CDB_README.html">cdb</a>:, <a href="DATABASE_README.html#types">hash</a>:, or <a href="DATABASE_README.html#types">dbm</a>:. </p>
 
 <li> <p> Execute the command "<b>postmap /etc/postfix/sasl_passwd</b>"
-after changing the sasl_passwd file, to rebuild a default-type
+after changing the sasl_passwd file, to (re)build a default-type
 indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/sasl_passwd</b>"
 to specify an explicit type.</p>
 
@@ -423,8 +423,8 @@ tables into one single MySQL database, and configure different
 Postfix queries to extract the appropriate information. </p>
 
 <li> <p> Execute the command "<b>postmap /etc/postfix/sasl_passwd</b>"
-after you change the sasl_passwd file, to rebuild a default-type
-indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/sasl_passwd</b>
+after you change the sasl_passwd file, to (re)build a default-type
+indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/sasl_passwd</b>"
 to specify an explicit type.</p>
 
 <p> The default indexed file type is configured with the
@@ -432,8 +432,8 @@ to specify an explicit type.</p>
 execute the command "<b>postconf -m</b>".</p>
 
 <li> <p> Execute the command "<b>postmap /etc/postfix/sender_relay</b>"
-after you change the sender_relay file, to rebuild a default-type
-indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/sender_relay</b>
+after you change the sender_relay file, to (re)build a default-type
+indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/sender_relay</b>"
 to specify an explicit type.</p>
 
 </ul>

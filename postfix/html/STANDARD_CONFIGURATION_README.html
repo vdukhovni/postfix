@@ -412,7 +412,7 @@ default "smtp" delivery transport. </p>
 <p> Instead of <a href="lmdb_table.5.html">lmdb</a>:, some systems use <a href="CDB_README.html">cdb</a>:, <a href="DATABASE_README.html#types">hash</a>:, or <a href="DATABASE_README.html#types">dbm</a>:. </p>
 
 <p> Execute the command "<b>postmap /etc/postfix/virtual</b>"
-whenever you change the virtual file, to rebuild a default-type
+whenever you change the virtual file, to (re)build a default-type
 indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/virtual</b>"
 to specify an explicit type. </p>
 
@@ -421,13 +421,13 @@ to specify an explicit type. </p>
 execute the command "<b>postconf -m</b>".</p>
 
 <p> Execute the command "<b>postmap /etc/postfix/relay_recipients</b>"
-whenever you change the relay_recipients file, to rebuild a
+whenever you change the relay_recipients file, to (re)build a
 default-type indexed file. Execute "<b>postmap
 <i>type</i>:/etc/postfix/relay_recipients</b>" to specify an explicit
 type.</p>
 
 <p> Execute the command "<b>postmap /etc/postfix/transport</b>"
-whenever you change the transport file, to rebuild a default-type
+whenever you change the transport file, to (re)build a default-type
 indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/transport</b>"
 to specify an explicit type. </p>
 
@@ -481,8 +481,8 @@ matches $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a> or $<a hr
 <p> Instead of <a href="lmdb_table.5.html">lmdb</a>:, some systems use <a href="CDB_README.html">cdb</a>:, <a href="DATABASE_README.html#types">hash</a>:, or <a href="DATABASE_README.html#types">dbm</a>:. </p>
 
 <p> Execute the command "<b>postmap /etc/postfix/virtual</b>" after
-editing the virtual file, to rebuild a default-type indexed file.
-Execute "<b>postmap <i>type</i>:/etc/postfix/virtual</b> to specify
+editing the virtual file, to (re)build a default-type indexed file.
+Execute "<b>postmap <i>type</i>:/etc/postfix/virtual</b>" to specify
 an explicit type. </p>
 
 <p> The default indexed file type is configured with the
@@ -545,7 +545,7 @@ directly, and gives undeliverable mail to a gateway.  </p>
 <p> Instead of <a href="lmdb_table.5.html">lmdb</a>:, some systems use <a href="CDB_README.html">cdb</a>:, <a href="DATABASE_README.html#types">hash</a>:, or <a href="DATABASE_README.html#types">dbm</a>:. </p>
 
 <p> Execute the command "<b>postmap /etc/postfix/transport</b>"
-whenever you edit the transport file, to rebuild a default-type
+whenever you edit the transport file, to (re)build a default-type
 indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/transport</b>"
 to specify an explicit type. </p>
 
@@ -641,7 +641,7 @@ relay_recipients table. </p>
 <p> Instead of <a href="lmdb_table.5.html">lmdb</a>:, some systems use <a href="CDB_README.html">cdb</a>:, <a href="DATABASE_README.html#types">hash</a>:, or <a href="DATABASE_README.html#types">dbm</a>:. </p>
 
 <p> Execute the command "<b>postmap /etc/postfix/relay_recipients</b>"
-whenever you change the relay_recipients file, to rebuild a
+whenever you change the relay_recipients file, to (re)build a
 default-type indexed file. Execute "<b>postmap
 <i>type</i>:/etc/postfix/relay_recipients</b>" to specify an explicit
 type. </p>
@@ -651,7 +651,7 @@ type. </p>
 execute the command "<b>postconf -m</b>".</p>
 
 <p> Execute the command "<b>postmap /etc/postfix/transport</b>"
-whenever you change the transport file, to rebuild a default-type
+whenever you change the transport file, to (re)build a default-type
 indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/transport</b>"
 to specify an explicit type. </p>
 
@@ -823,7 +823,7 @@ that the ISP supports "+" style address extensions). </p>
 <p> Instead of <a href="lmdb_table.5.html">lmdb</a>:, some systems use <a href="CDB_README.html">cdb</a>:, <a href="DATABASE_README.html#types">hash</a>:, or <a href="DATABASE_README.html#types">dbm</a>:. </p>
 
 <p> Execute the command "<b>postmap /etc/postfix/generic</b>"
-whenever you change the generic file, to rebuild a default-type
+whenever you change the generic file, to (re)build a default-type
 indexed file. Execute  "<b>postmap <i>type</i>:/etc/postfix/generic</b>"
 to specify an explicit type.</p>
 
@@ -884,7 +884,7 @@ but is convenient.
 <p> Instead of <a href="lmdb_table.5.html">lmdb</a>:, some systems use <a href="CDB_README.html">cdb</a>:, <a href="DATABASE_README.html#types">hash</a>:, or <a href="DATABASE_README.html#types">dbm</a>:. </p>
 
 <p> Execute the command "<b>postmap /etc/postfix/canonical</b>"
-whenever you change the canonical file, to rebuild a default-type
+whenever you change the canonical file, to (re)build a default-type
 indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/canonical</b>"
 to specify an explicit type. </p>
 
@@ -893,7 +893,7 @@ to specify an explicit type. </p>
 execute the command "<b>postconf -m</b>".</p>
 
 <p> Execute the command "<b>postmap /etc/postfix/virtual</b>"
-whenever you change the virtual file, to rebuild a default-type
+whenever you change the virtual file, to (re)build a default-type
 indexed file. Execute "<b>postmap <i>type</i>:/etc/postfix/virtual</b>"
 to specify an explicit type. </p>
 

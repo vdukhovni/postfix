@@ -66,7 +66,7 @@ for the other side of the story.
     See the transport(5) manual page for more details.
 
   * Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//ttrraannssppoorrtt" whenever you change
-    the ttrraannssppoorrtt file, to rebuild a default-type indexed file. Execute
+    the ttrraannssppoorrtt file, to (re)build a default-type indexed file. Execute
     "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//ttrraannssppoorrtt" to specify an explicit type.
 
     The default indexed file type is configured with the default_database_type

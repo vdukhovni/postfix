@@ -150,7 +150,7 @@ Notes:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//vviirrttuuaall" after changing the virtual
-file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
+file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
 ppoossttffiixx//vviirrttuuaall" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
@@ -261,14 +261,14 @@ Notes:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//vviirrttuuaall" after changing the virtual
-file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
+file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
 ppoossttffiixx//vviirrttuuaall" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
 parameter. To list available explicit types, execute the command "ppoossttccoonnff --mm".
 
 Execute "ppoossttmmaapp //eettcc//ppoossttffiixx//vvmmaaiillbbooxx" after changing the vmailbox file, to
-rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//
+(re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//ppoossttffiixx//
 vvmmaaiillbbooxx" to specify an explicit type.
 
 Execute the command "ppoossttffiixx rreellooaadd" after changing the main.cf file.
@@ -378,14 +378,14 @@ Notes:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//vviirrttuuaall" after changing the virtual
-file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
+file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
 ppoossttffiixx//vviirrttuuaall" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
 parameter. To list available explicit types, execute the command "ppoossttccoonnff --mm".
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//vvmmaaiillbbooxx" after changing the vmailbox
-file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
+file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
 ppoossttffiixx//vvmmaaiillbbooxx" to specify an explicit type.
 
 Execute the command "ppoossttffiixx rreellooaadd" after changing the main.cf file.
@@ -435,7 +435,7 @@ Notes:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//vviirrttuuaall" after changing the virtual
-file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
+file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
 ppoossttffiixx//vviirrttuuaall" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
@@ -480,7 +480,7 @@ agent:
 Instead of lmdb:, some systems use cdb:, hash:, or dbm:.
 
 Execute the command "ppoossttmmaapp //eettcc//ppoossttffiixx//vviirrttuuaall" after changing the virtual
-file, to rebuild a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
+file, to (re)build a default-type indexed file. Execute "ppoossttmmaapp ttyyppee:://eettcc//
 ppoossttffiixx//vviirrttuuaall" to specify an explicit type.
 
 The default indexed file type is configured with the default_database_type
