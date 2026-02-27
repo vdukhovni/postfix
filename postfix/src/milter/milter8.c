@@ -560,7 +560,7 @@ static int milter8_comm_error(MILTER8 *milter)
     } else if (strcasecmp(milter->def_action, "tempfail") == 0) {
 	reply = "451 4.7.1 Service unavailable - try again later";
     } else if (strcasecmp(milter->def_action, "shutdown") == 0) {
-	reply = "421 Service unavailable - try again later";
+	reply = "421 4.7.1 Service unavailable - try again later";
     } else if (strcasecmp(milter->def_action, "quarantine") == 0) {
 	reply = "Hdefault_action";
     } else {

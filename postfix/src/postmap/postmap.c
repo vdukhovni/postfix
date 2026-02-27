@@ -207,6 +207,11 @@
 /*	The database type. To find out what types are supported, use
 /*	the "\fBpostconf -m\fR" command.
 /*
+/*	When no \fIfile_type\fR is specified, the software uses the database
+/*	type specified via the \fBdefault_database_type\fR configuration
+/*	parameter.
+/*	The default value for this parameter depends on the host environment.
+/*
 /*	The \fBpostmap\fR(1) command can query any supported file type,
 /*	but it can create only the following file types:
 /* .RS
@@ -236,10 +241,6 @@
 /*	The output consists of two files, named \fIfile_name\fB.pag\fR and
 /*	\fIfile_name\fB.dir\fR.
 /*	This is available on systems with support for \fBsdbm\fR databases.
-/* .PP
-/*	When no \fIfile_type\fR is specified, the software uses the database
-/*	type specified via the \fBdefault_database_type\fR configuration
-/*	parameter.
 /* .RE
 /* .IP \fIfile_name\fR
 /*	The name of the lookup table source file when rebuilding a database.

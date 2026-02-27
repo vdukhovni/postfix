@@ -215,3 +215,16 @@ proto  proto socketmap_table qmqpd qmqpd c tls tls_misc c
  verification in progress File verify verify c 
  virtual virtual c 
  with setgid permissions File postlogd postlogd c 
+ default value with a lookup table File proxymap proxymap c 
+ in file name and in restriction_classes File proxymap proxymap c
+ proxymap proxymap c
+ src dns dns h 
+ postconf postconf hc postconf postconf_master c 
+ PPx proxy_read_maps Files postconf postconf hc 
+proto  proto stop proto stop double cc 
+ proto stop spell proto html postfix postfix c
+ postalias postalias c postmap postmap c 
+ proto stop spell proto html postfix postfix c conf postfix files
+ proto stop spell proto html postfix postfix c conf postfix files 
+ File nbdb_reindexd nbdb_reindexd c 
+ tls tls h tls tls_misc c tls tls_verify c 

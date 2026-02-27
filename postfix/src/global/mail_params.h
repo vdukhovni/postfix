@@ -2586,7 +2586,32 @@ extern int var_local_rcpt_code;
 				" $" VAR_SMTP_HEAD_CHKS \
 				" $" VAR_SMTP_MIME_CHKS \
 				" $" VAR_SMTP_NEST_CHKS \
-				" $" VAR_SMTPD_REJECT_FILTER_MAPS
+				" $" VAR_SMTPD_REJECT_FILTER_MAPS \
+				" $" VAR_DEBUG_PEER_LIST \
+				" $" VAR_ETRN_CHECKS \
+				" $" VAR_FFLUSH_DOMAINS \
+				" $" VAR_FLUSH_ACL \
+				" $" VAR_LMTP_CACHE_DEST \
+				" $" VAR_LOC_RWR_CLIENTS \
+				" $" VAR_MASQ_EXCEPTIONS \
+				" $" VAR_PSC_ACL \
+				" $" VAR_PSC_ALLIST_IF \
+				" $" VAR_PSC_FORBID_CMDS \
+				" $" VAR_QMQPD_CLIENTS \
+				" $" VAR_SHOWQ_ACL \
+				" $" VAR_SMTP_CACHE_DEST \
+				" $" VAR_SMTPD_ACL_PERM_LOG \
+				" $" VAR_SMTPD_FORBID_CMDS \
+				" $" VAR_SMTPD_HOGGERS \
+				" $" VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS \
+				" $" VAR_SMTPD_SASL_MECH_FILTER \
+				" $" VAR_SMTP_REQTLS_POLICY \
+				" $" VAR_SMTP_SASL_MECHS \
+				" $" VAR_SUBMIT_ACL \
+				" $" VAR_VERP_CLIENTS \
+				" $" VAR_XCLIENT_HOSTS \
+				" $" VAR_XFORWARD_HOSTS \
+
 extern char *var_proxy_read_maps;
 
 #define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"
@@ -3522,10 +3547,6 @@ extern char *var_tls_ssl_options;
 #define VAR_TLS_TKT_CIPHER	"tls_session_ticket_cipher"
 #define DEF_TLS_TKT_CIPHER	"aes-256-cbc"
 extern char *var_tls_tkt_cipher;
-
-#define VAR_TLS_BC_PKEY_FPRINT	"tls_legacy_public_key_fingerprints"
-#define DEF_TLS_BC_PKEY_FPRINT	0
-extern bool var_tls_bc_pkey_fprint;
 
 #define VAR_TLS_SERVER_SNI_MAPS "tls_server_sni_maps"
 #define DEF_TLS_SERVER_SNI_MAPS ""
@@ -4596,6 +4617,34 @@ extern bool var_smtpd_hide_client_session;
 #define VAR_SMTPD_REJECT_FILTER_MAPS	"smtpd_reject_filter_maps"
 #define DEF_SMTPD_REJECT_FILTER_MAPS	""
 extern char *var_smtpd_reject_filter_maps;
+
+ /*
+  * Non-Berkeley-DB migration.
+  */
+#define NBDB_LEV_NAME_NONE	"disable"
+#define NBDB_LEV_NAME_REDIRECT	"enable-redirect"
+#define NBDB_LEV_NAME_REINDEX	"enable-reindex"
+
+#define VAR_NBDB_LEVEL		"non_bdb_migration_level"
+#define DEF_NBDB_LEVEL		NBDB_LEV_NAME_NONE
+extern char *var_nbdb_level;
+
+#define VAR_NBDB_CUST_MAP	"non_bdb_custom_mapping"
+#define DEF_NBDB_CUST_MAP	""
+extern char *var_nbdb_cust_map;
+
+#define VAR_NBDB_SERVICE	"non_bdb_migration_service_name"
+#define DEF_NBDB_SERVICE	"nbdb_reindex"
+extern char *var_nbdb_service;
+
+#define VAR_NBDB_ALLOW_ROOT_PFXS	"non_bdb_migration_allow_root_prefixes"
+#define DEF_NBDB_ALLOW_ROOT_PFXS	"/etc /usr/local/etc"
+extern char *var_nbdb_allow_root_pfxs;
+
+#define VAR_NBDB_ALLOW_USER_PFXS	"non_bdb_migration_allow_user_prefixes"
+#define DEF_NBDB_ALLOW_USER_PFXS	"$" VAR_DATA_DIR " /var/lib/mailman" \
+					" /var/lib/mailman3"
+extern char *var_nbdb_allow_user_pfxs;
 
 /* LICENSE
 /* .ad

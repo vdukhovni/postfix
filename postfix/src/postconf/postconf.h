@@ -48,6 +48,7 @@
 #define PCF_SHOW_TLS		(1<<21)	/* TLS support introspection */
 #define PCF_WARN_UNUSED_DEPRECATED (1<<22)	/* As the name says */
 #define PCF_SHOW_JSON		(1 << 23)	/* JSON output */
+#define PCF_MASTER_PP		(1<<24)	/* multiple -P */
 
 #define PCF_DEF_MODE	(PCF_WARN_UNUSED_DEPRECATED)
 
@@ -202,7 +203,7 @@ extern void pcf_print_master_entry(VSTREAM *, int, PCF_MASTER_ENT *);
 extern void pcf_free_master_entry(PCF_MASTER_ENT *);
 extern void pcf_show_master_fields(VSTREAM *, int, int, char **);
 extern void pcf_edit_master_field(PCF_MASTER_ENT *, int, const char *);
-extern void pcf_show_master_params(VSTREAM *, int, int, char **);
+extern void pcf_show_master_params(VSTREAM *, int, int, int, char **);
 extern void pcf_edit_master_param(PCF_MASTER_ENT *, int, const char *, const char *);
 
 #define PCF_WARN_ON_OPEN_ERROR	0

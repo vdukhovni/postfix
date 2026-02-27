@@ -12,7 +12,7 @@
 
 <script type="text/javascript">
 
-// Kludge for https://support.google.com/chrome/thread/11993079
+// See support.google.com/chrome/thread/11993079
 const isChrome = /Chrome/.test(navigator.userAgent)
     && /Google Inc/.test(navigator.vendor);
 const hash = window.location.hash;
@@ -91,7 +91,7 @@ are supported with Postfix versions &ge; 3.0. </p>
 
 <li> <p> The expression "${name{value}}" is replaced with the result
 from calling the function <i>name</i> with the argument <i>value</i>
-after stripping whitespace betwen the "{", the value, and the "}".
+after stripping whitespace between the "{", the value, and the "}".
 An example is the domain_to_ascii{} function. </p>
 
 <li> <p> Each "value" is subject to recursive named parameter and

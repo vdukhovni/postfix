@@ -552,7 +552,7 @@ static int smtp_get_effective_tls_level(DSN_BUF *why, SMTP_STATE *state)
 		       STR(iter->host));
 	    return (0);
 	}
-	break;
+ 	break;
     case SMTP_REQTLS_POLICY_ACT_OPP_TLS:
 	if (tls->level == TLS_LEV_NONE) {
 	    if (state->tls_stats)

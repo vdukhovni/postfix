@@ -27,9 +27,10 @@
 /*	int	field;
 /*	const char *new_value;
 /*
-/*	void	pcf_show_master_params(fp, mode, argc, **param_filters)
+/*	void	pcf_show_master_params(fp, mode, param_class, argc, **param_filters)
 /*	VSTREAM	*fp;
 /*	int	mode;
+/*	int	param_class;
 /*	int	argc;
 /*	char	**param_filters;
 /*
@@ -63,7 +64,9 @@
 /*	or multi-column attribute.
 /*
 /*	pcf_show_master_params() writes name/type/parameter=value
-/*	records to the specified stream.
+/*	records to the specified stream. Like show_parameters(),
+/*	this may list either selected parameters, or all parameters that
+/*	match the param_class argument.
 /*
 /*	pcf_edit_master_param() updates, removes or adds the named
 /*	parameter in a master.cf entry (the remove request ignores
@@ -1106,14 +1109,69 @@ static int pcf_sort_argv_cb(const void *a, const void *b)
     return (strcmp(*(char **) a, *(char **) b));
 }
 
+/* merge_main_master_parameters - all parameters as sen by this service */
+
+static DICT *merge_main_master_parameters(int mode, PCF_MASTER_ENT *masterp,
+					          int param_class)
+{
+    DICT   *dict;
+    PCF_PARAM_INFO **main_list;
+    PCF_PARAM_INFO **main_ht;
+    const char *dict_spec = "merged_dict";
+    const char *param_name;
+    const char *param_value;
+    int     how;
+
+    /*
+     * With -PP, use the merged main/master.cf settings instead of
+     * masterp->allparams (the master.cf settings for this service).
+     */
+    dict = dict_ht_open(dict_spec, O_CREAT | O_RDWR, 0);
+    dict_register(dict_spec, dict);
+
+    /*
+     * For each parameter in the main.cf namespace, look up its effective
+     * value (from master.cf or main.cf, or use the default).
+     */
+    main_list = PCF_PARAM_TABLE_LIST(pcf_param_table);
+    for (main_ht = main_list; *main_ht; main_ht++) {
+	param_name = PCF_PARAM_INFO_NAME(*main_ht);
+	if (param_class && !(PCF_PARAM_INFO_NODE(*main_ht)->flags & param_class))
+	    continue;
+	if ((param_value =
+	     pcf_lookup_parameter_value(mode, param_name, masterp,
+					PCF_PARAM_INFO_NODE(*main_ht))) == 0)
+	    msg_panic("%s: parameter name not found: %s", __func__, param_name);
+	dict->update(dict, param_name, param_value);
+    }
+    myfree((void *) main_list);
+
+    /*
+     * Add master.cf settings with service-specific custom names. Skip
+     * settings that were already copied in the above loop.
+     */
+    if (masterp->all_params) {
+	DICT   *all_params = masterp->all_params;
+
+	for (how = DICT_SEQ_FUN_FIRST;
+	     all_params->sequence(all_params, how, &param_name,
+				  &param_value) == 0;
+	     how = DICT_SEQ_FUN_NEXT) {
+	    if (dict->lookup(dict, param_name) == 0)
+		dict->update(dict, param_name, param_value);
+	}
+    }
+    return (dict);
+}
+
 /* pcf_show_master_any_param - show any parameter in master.cf service entry */
 
 static void pcf_show_master_any_param(VSTREAM *fp, int mode,
-				              PCF_MASTER_ENT *masterp)
+				              PCF_MASTER_ENT *masterp,
+				              DICT *dict)
 {
     const char *myname = "pcf_show_master_any_param";
     ARGV   *argv = argv_alloc(10);
-    DICT   *dict = masterp->all_params;
     const char *param_name;
     const char *param_value;
     int     param_count = 0;
@@ -1152,7 +1210,8 @@ static void pcf_show_master_any_param(VSTREAM *fp, int mode,
 
 /* pcf_show_master_params - show master.cf params */
 
-void    pcf_show_master_params(VSTREAM *fp, int mode, int argc, char **argv)
+void    pcf_show_master_params(VSTREAM *fp, int mode, int param_class,
+			               int argc, char **argv)
 {
     PCF_MASTER_ENT *masterp;
     PCF_MASTER_FLD_REQ *field_reqs;
@@ -1181,14 +1240,20 @@ void    pcf_show_master_params(VSTREAM *fp, int mode, int argc, char **argv)
      * Iterate over the master table.
      */
     for (masterp = pcf_master_table; masterp->argv != 0; masterp++) {
-	if ((dict = masterp->all_params) != 0) {
+	if (mode & PCF_MASTER_PP) {
+	    dict = merge_main_master_parameters(mode, masterp,
+						argc > 0 ? 0 : param_class);
+	} else {
+	    dict = masterp->all_params;
+	}
+	if (dict != 0) {
 	    if (argc > 0) {
 		for (req = field_reqs; req < field_reqs + argc; req++) {
 		    if (PCF_MATCH_SERVICE_PATTERN(req->service_pattern,
 						  masterp->argv->argv[0],
 						  masterp->argv->argv[1])) {
 			if (PCF_IS_MAGIC_PARAM_PATTERN(req->param_pattern)) {
-			    pcf_show_master_any_param(fp, mode, masterp);
+			    pcf_show_master_any_param(fp, mode, masterp, dict);
 			    req->match_count += 1;
 			} else if ((param_value = dict_get(dict,
 						req->param_pattern)) != 0) {
@@ -1200,9 +1265,11 @@ void    pcf_show_master_params(VSTREAM *fp, int mode, int argc, char **argv)
 		    }
 		}
 	    } else {
-		pcf_show_master_any_param(fp, mode, masterp);
+		pcf_show_master_any_param(fp, mode, masterp, dict);
 	    }
 	}
+	if (mode & PCF_MASTER_PP)
+	    dict_close(dict);
     }
 
     /*

@@ -319,6 +319,13 @@ extern char *mail_pathname(const char *, const char *);
   */
 #define MAIL_ATTR_SERVER_NAME	"server_name"
 
+ /*
+  * Non-Berkeley-DB migration.
+  */
+#define MAIL_ATTR_PROTO_NBDB_REINDEX	"nbdb_reindex"	/* Re-index protocol */
+#define MAIL_ATTR_NBDB_TYPE		"nbdb_type"	/* maptype */
+#define MAIL_ATTR_NBDB_PATH		"nbdb_path"	/* mapname */
+
 /* LICENSE
 /* .ad
 /* .fi

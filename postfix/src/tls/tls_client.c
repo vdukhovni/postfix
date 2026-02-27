@@ -517,7 +517,7 @@ static void add_namechecks(TLS_SESS_STATE *TLScontext,
 #endif
 
 	if (!match_subdomain) {
-	    if (SSL_add1_host(ssl, name))
+	    if (TLS_ADD1_HOST(ssl, name))
 		++namechecks_count;
 	    else
 		msg_warn("%s: error loading match name: \"%s\"",
@@ -525,7 +525,7 @@ static void add_namechecks(TLS_SESS_STATE *TLScontext,
 	} else {
 	    char   *dot_name = concatenate(".", name, (char *) 0);
 
-	    if (SSL_add1_host(ssl, dot_name))
+	    if (TLS_ADD1_HOST(ssl, dot_name))
 		++namechecks_count;
 	    else
 		msg_warn("%s: error loading match name: \"%s\"",

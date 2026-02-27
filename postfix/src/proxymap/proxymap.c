@@ -236,6 +236,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <ctype.h>
 
 /* Utility library. */
 
@@ -247,6 +248,7 @@
 #include <dict.h>
 #include <dict_pipe.h>
 #include <dict_union.h>
+#include <readlline.h>
 
 /* Global library. */
 
@@ -282,8 +284,11 @@ char   *var_transport_maps;
 char   *var_verify_map;
 char   *var_smtpd_snd_auth_maps;
 char   *var_psc_cache_map;
+char   *var_smtpd_forbid_cmds;
+char   *var_psc_forbid_cmds;
 char   *var_proxy_read_maps;
 char   *var_proxy_write_maps;
+char   *var_rest_classes;
 
  /*
   * The pre-approved, pre-parsed list of maps.
@@ -303,6 +308,24 @@ static VSTRING *map_type_name_flags;
   * Are we a proxy writer or not?
   */
 static int proxy_writer;
+
+ /*
+  * Do we implement the proxymap or proxywrite service, or do we export
+  * type:table information to stdout? The exported info is without the proxy:
+  * prefix.
+  * 
+  * EXPORT_PROXY lists only tables that proxied.
+  * 
+  * EXPORT_ALL lists both proxied and non-proxied tables that Postfix is
+  * configured to use. This requires that proxy_read_maps and
+  * proxy_write_maps list all tables, including those that will never be
+  * proxied.
+  */
+static enum {
+    EXPORT_NONE,			/* Answer requests */
+    EXPORT_PROXY,			/* Export proxied type:table */
+    EXPORT_ALL,				/* Export all type:table */
+}       proxy_exporter = EXPORT_NONE;
 
  /*
   * Silly little macros.
@@ -708,9 +731,11 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
     return (dict_open(map, open_flags, dict_flags));
 }
 
+static void authorize_file_content(const char *);
+
 /* authorize_proxied_maps - recursively authorize maps */
 
-static void authorize_proxied_maps(char *bp)
+static void authorize_proxied_maps(char *bp, const char *origin)
 {
     const char *sep = CHARS_COMMA_SP;
     const char *parens = CHARS_BRACE;
@@ -725,8 +750,7 @@ static void authorize_proxied_maps(char *bp)
 
 	    /* Warn about blatant syntax error. */
 	    if ((err = extpar(&type_name, parens, EXTPAR_FLAG_NONE)) != 0) {
-		msg_warn("bad %s parameter value: %s",
-			 PROXY_MAP_PARAM_NAME(proxy_writer), err);
+		msg_warn("bad syntax in %s content: %s", origin, err);
 		myfree(err);
 		continue;
 	    }
@@ -734,6 +758,14 @@ static void authorize_proxied_maps(char *bp)
 	    if ((type_name = mystrtokq(&type_name, sep, parens)) == 0)
 		continue;
 	}
+	/* Recurse into /file/name. */
+	if (*type_name == '/') {
+	    authorize_file_content(type_name);
+	    continue;
+	}
+	/* Skip [ipv6::addr] and other non-table forms. */
+	if (!ISALNUM(*type_name) || strchr(type_name, ':') == 0)
+	    continue;
 	/* Recurse into nested map (pipemap, unionmap). */
 	if ((nested_info = get_nested_dict_name(type_name)) != 0) {
 	    char   *err;
@@ -742,34 +774,114 @@ static void authorize_proxied_maps(char *bp)
 		continue;
 	    /* Warn about blatant syntax error. */
 	    if ((err = extpar(&nested_info, parens, EXTPAR_FLAG_NONE)) != 0) {
-		msg_warn("bad %s parameter value: %s",
-			 PROXY_MAP_PARAM_NAME(proxy_writer), err);
+		msg_warn("bad syntax in %s content: %s", origin, err);
 		myfree(err);
 		continue;
 	    }
-	    authorize_proxied_maps(nested_info);
+	    authorize_proxied_maps(nested_info, origin);
 	    continue;
 	}
-	if (strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN))
-	    continue;
-	do {
-	    type_name += PROXY_COLON_LEN;
-	} while (!strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN));
-	if (strchr(type_name, ':') != 0
-	    && htable_locate(proxy_auth_maps, type_name) == 0) {
-	    (void) htable_enter(proxy_auth_maps, type_name, (void *) 0);
+	switch (proxy_exporter) {
+	case EXPORT_NONE:
+	case EXPORT_PROXY:
+	    if (strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN))
+		continue;
+	    do {
+		type_name += PROXY_COLON_LEN;
+	    } while (!strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN));
+	    break;
+	case EXPORT_ALL:
+	    while (!strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN))
+		type_name += PROXY_COLON_LEN;
+	    break;
+	}
+	if (htable_locate(proxy_auth_maps, type_name) == 0) {
+	    (void) htable_enter(proxy_auth_maps, type_name, mystrdup(origin));
 	    if (msg_verbose)
-		msg_info("allowlisting %s from %s", type_name,
-			 PROXY_MAP_PARAM_NAME(proxy_writer));
+		msg_info("allowlisting %s from %s", type_name, origin);
 	}
     }
 }
 
-/* post_jail_init - initialization after privilege drop */
+/* authorize_file_content - authorize table references in /file/name */
 
-static void post_jail_init(char *service_name, char **unused_argv)
+static void authorize_file_content(const char *file_name)
+{
+    VSTREAM *fp;
+    VSTRING *buf;
+
+    if ((fp = vstream_fopen(file_name, O_RDONLY, 0)) == 0) {
+	msg_warn("open %s: %m", file_name);
+	return;
+    }
+    buf = vstring_alloc(100);
+    while (readlline(buf, fp, (int *) 0))
+	authorize_proxied_maps(STR(buf), file_name);
+    if (vstream_ferror(fp))
+	msg_warn("read %s: %m", file_name);
+    vstring_free(buf);
+    vstream_fclose(fp);
+}
+
+/* authorize_rest_classes - scan restriction classes for table references */
+
+static void authorize_rest_classes(const char *rest_classes)
+{
+    char   *bp, *saved_rest_classes, *class_name, *saved_class_val;
+    const char *class_val;
+
+    bp = saved_rest_classes = mystrdup(rest_classes);
+    while ((class_name = mystrtok(&bp, CHARS_COMMA_SP)) != 0) {
+	if ((class_val = mail_conf_lookup_eval(class_name)) != 0) {
+	    saved_class_val = mystrdup(class_val);
+	    authorize_proxied_maps(saved_class_val, VAR_REST_CLASSES);
+	    myfree(saved_class_val);
+	}
+    }
+    myfree(saved_rest_classes);
+}
+
+/* cmp_ht_key - qsort helper for ht_info pointer array */
+
+static int cmp_ht_key(const void *a, const void *b)
+{
+    HTABLE_INFO **ap = (HTABLE_INFO **) a;
+    HTABLE_INFO **bp = (HTABLE_INFO **) b;
+
+    return (strcmp(ap[0]->key, bp[0]->key));
+}
+
+/* export_type_name_entries - serialize table authorizations to stdout */
+
+static void export_type_name_entries(void)
+{
+    HTABLE_INFO **ht_info, **ht;
+
+    ht_info = htable_list(proxy_auth_maps);
+    qsort((void *) ht_info, proxy_auth_maps->used, sizeof(*ht_info),
+	  cmp_ht_key);
+    for (ht = ht_info; *ht; ht++)
+	vstream_printf("%s\n", ht[0]->key);
+    vstream_fflush(VSTREAM_OUT);
+    myfree(ht_info);
+}
+
+/* pre_jail_init - initialization after privilege drop */
+
+static void pre_jail_init(char *service_name, char **unused_argv)
 {
     char   *saved_filter;
+
+    /*
+     * Is this a request for service, or export?
+     */
+    if (strncmp(service_name, "export-all-", 11) == 0) {
+	proxy_exporter = EXPORT_ALL;
+	service_name += 11;
+    } else if (strncmp(service_name, "export-proxy-", 13) == 0) {
+	proxy_exporter = EXPORT_PROXY;
+	service_name += 13;
+    }
 
     /*
      * Are we proxy writer?
@@ -797,8 +909,22 @@ static void post_jail_init(char *service_name, char **unused_argv)
     saved_filter = mystrdup(proxy_writer ? var_proxy_write_maps :
 			    var_proxy_read_maps);
     proxy_auth_maps = htable_create(13);
-    authorize_proxied_maps(saved_filter);
+    authorize_proxied_maps(saved_filter, PROXY_MAP_PARAM_NAME(proxy_writer));
     myfree(saved_filter);
+
+    /*
+     * Authorize tables in restriction_classes.
+     */
+    if (proxy_writer == 0 && *var_rest_classes)
+	authorize_rest_classes(var_rest_classes);
+
+    /*
+     * If run as exporter, serialize the authorization table to stdout.
+     */
+    if (proxy_exporter != EXPORT_NONE) {
+	export_type_name_entries();
+	exit(0);
+    }
 
     /*
      * Never, ever, get killed by a master signal, as that could corrupt a
@@ -841,7 +967,26 @@ MAIL_VERSION_STAMP_DECLARE;
 
 int     main(int argc, char **argv)
 {
+
+    /*
+     * Respect the proxy_read_maps and proxy_write_maps dependency graphs.
+     * First, initialize the parameters that specify tables in their
+     * non-empty default values, then initialize the parameters that depend
+     * on those parameters, and so on. Only at the end initialize
+     * proxy_read_maps and proxy_write_maps.
+     * 
+     * TODO(wietse) remove parameters below that have empty default values. It
+     * is sufficient to list their $name in the proxy_*_maps default values.
+     * The list below should be checked with a tool that runs during
+     * pre-release-checks.
+     * 
+     * List parameters even if their defaults do not specify proxied queries (as
+     * of Postfix 3.11, only local_recipient_maps does that). The goal is to
+     * implement an authoritative source of truth tat covers all Postfix
+     * table lookups.
+     */
     static const CONFIG_STR_TABLE str_table[] = {
+	/* Dependencies of proxy_read_maps. */
 	VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps, 0, 0,
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps, 0, 0,
@@ -854,12 +999,17 @@ int     main(int argc, char **argv)
 	VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,
 	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
 	VAR_TRANSPORT_MAPS, DEF_TRANSPORT_MAPS, &var_transport_maps, 0, 0,
-	VAR_VERIFY_MAP, DEF_VERIFY_MAP, &var_verify_map, 0, 0,
 	VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps, 0, 0,
+	VAR_SMTPD_FORBID_CMDS, DEF_SMTPD_FORBID_CMDS, &var_smtpd_forbid_cmds, 0, 0,
+	VAR_PSC_FORBID_CMDS, DEF_PSC_FORBID_CMDS, &var_psc_forbid_cmds, 0, 0,
+	/* Dependencies of proxy_write_maps. */
+	VAR_VERIFY_MAP, DEF_VERIFY_MAP, &var_verify_map, 0, 0,
 	VAR_PSC_CACHE_MAP, DEF_PSC_CACHE_MAP, &var_psc_cache_map, 0, 0,
 	/* The following two must be last for $mapname to work as expected. */
 	VAR_PROXY_READ_MAPS, DEF_PROXY_READ_MAPS, &var_proxy_read_maps, 0, 0,
 	VAR_PROXY_WRITE_MAPS, DEF_PROXY_WRITE_MAPS, &var_proxy_write_maps, 0, 0,
+	/* Settings that don't affect or depend on proxy_read/write_maps. */
+	VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes, 0, 0,
 	0,
     };
 
@@ -900,7 +1050,7 @@ int     main(int argc, char **argv)
      */
     multi_server_main(argc, argv, proxymap_service,
 		      CA_MAIL_SERVER_STR_TABLE(str_table),
-		      CA_MAIL_SERVER_POST_INIT(post_jail_init),
+		      CA_MAIL_SERVER_PRE_INIT(pre_jail_init),
 		      CA_MAIL_SERVER_PRE_ACCEPT(pre_accept),
 		      CA_MAIL_SERVER_POST_ACCEPT(post_accept),
     /* XXX CA_MAIL_SERVER_SOLITARY if proxywrite */

@@ -448,6 +448,10 @@ POSTCONF(1)                                                        POSTCONF(1)
               vices  and  all  parameters), formatted as "<i>service/type/parame-</i>
               <i>ter=value</i>", one per line.  Specify <b>-Pf</b> to fold long lines.
 
+              Specify multiple <b>-P</b> options to also list service parameters that
+              are not set in <a href="master.5.html">master.cf</a>. This is useful with <b>-x</b> to evaluate the
+              impact of <a href="master.5.html">master.cf</a> overrides on other parameter settings.
+
               Specify one or more "<i>service/type/parameter</i>"  instances  on  the
               <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  line  to limit the output to parameters of
               interest.  Trailing parameter name or service type  fields  that

@@ -465,6 +465,11 @@
 /*	"\fIservice/type/parameter=value\fR", one per line.  Specify
 /*	\fB-Pf\fR to fold long lines.
 /*
+/*	Specify multiple \fB-P\fR options to also list service parameters
+/*	that are not set in master.cf. This is useful with \fB-x\fR to
+/*	evaluate the impact of master.cf overrides on other parameter
+/*	settings.
+/*
 /*	Specify one or more "\fIservice/type/parameter\fR" instances
 /*	on the \fBpostconf\fR(1) command line to limit the output
 /*	to parameters of interest.  Trailing parameter name or
@@ -673,6 +678,7 @@ static const int pcf_incompat_options[] = {
     |PCF_SHOW_LOCKS | PCF_SHOW_MAPS | PCF_DUMP_DSN_TEMPL | PCF_MAIN_PARAM \
     |PCF_MASTER_ENTRY | PCF_MASTER_FLD | PCF_MASTER_PARAM | PCF_SHOW_TLS,
     /* Modifiers. */
+    PCF_MASTER_PP | PCF_EDIT_CONF | PCF_COMMENT_OUT | PCF_EDIT_EXCL,
     PCF_SHOW_DEFS | PCF_EDIT_CONF | PCF_SHOW_NONDEF | PCF_COMMENT_OUT \
     |PCF_EDIT_EXCL,
     PCF_FOLD_LINE | PCF_EDIT_CONF | PCF_COMMENT_OUT | PCF_EDIT_EXCL,
@@ -710,7 +716,10 @@ static const int pcf_compat_options[][2] = {
 		      |PCF_SHOW_JSON)},
     {PCF_MASTER_PARAM, (PCF_EDIT_CONF | PCF_EDIT_EXCL | PCF_FOLD_LINE \
 			|PCF_HIDE_NAME | PCF_MAIN_OVER | PCF_SHOW_EVAL \
-			|PCF_HIDE_VALUE | PCF_SHOW_JSON)},
+			|PCF_HIDE_VALUE | PCF_SHOW_JSON | PCF_MASTER_PP)},
+    {PCF_MASTER_PP, (PCF_FOLD_LINE \
+		     |PCF_HIDE_NAME | PCF_MAIN_OVER | PCF_SHOW_EVAL \
+		     |PCF_HIDE_VALUE | PCF_SHOW_JSON | PCF_MASTER_PARAM)},
     {PCF_SHOW_JSON, (PCF_MAIN_PARAM | PCF_MASTER_ENTRY | PCF_MASTER_FLD \
 		     |PCF_MASTER_PARAM | PCF_MAIN_OVER | PCF_SHOW_EVAL \
 		     |PCF_SHOW_NONDEF | PCF_SHOW_DEFS)},
@@ -746,6 +755,7 @@ static const NAME_MASK pcf_compat_names[] = {
     "-x", PCF_SHOW_EVAL,
     "-X", PCF_EDIT_EXCL,
     "-#", PCF_COMMENT_OUT,
+    "-PP", PCF_MASTER_PP,
     0,
 };
 
@@ -947,7 +957,10 @@ int     main(int argc, char **argv)
 	    pcf_cmd_mode |= PCF_MAIN_PARAM;
 	    break;
 	case 'P':
-	    pcf_cmd_mode |= PCF_MASTER_PARAM;
+	    if (pcf_cmd_mode & PCF_MASTER_PARAM)
+		pcf_cmd_mode |= PCF_MASTER_PP;
+	    else
+		pcf_cmd_mode |= PCF_MASTER_PARAM;
 	    break;
 	case 'q':
 	    pcf_cmd_mode &= ~(PCF_WARN_UNUSED_DEPRECATED);
@@ -1074,8 +1087,8 @@ int     main(int argc, char **argv)
 	    pcf_show_master_fields(VSTREAM_OUT, pcf_cmd_mode, argc - optind,
 				   argv + optind);
 	else if (pcf_cmd_mode & PCF_MASTER_PARAM)
-	    pcf_show_master_params(VSTREAM_OUT, pcf_cmd_mode, argc - optind,
-				   argv + optind);
+	    pcf_show_master_params(VSTREAM_OUT, pcf_cmd_mode, param_class,
+				   argc - optind, argv + optind);
 	else
 	    pcf_show_master_entries(VSTREAM_OUT, pcf_cmd_mode, argc - optind,
 				    argv + optind);

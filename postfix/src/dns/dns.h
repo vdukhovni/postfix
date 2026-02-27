@@ -334,7 +334,7 @@ extern int dns_get_h_errno(void);
  /*
   * How long can a DNS name or single text value be?
   */
-#define DNS_NAME_LEN	1024
+#define DNS_NAME_LEN	MAXDNAME	/* From <arpa/nameser.h */
 
  /*
   * dns_rr_filter.c.

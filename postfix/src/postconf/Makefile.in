@@ -28,7 +28,7 @@ LIBS	= ../../lib/libxsasl.a \
 	../../lib/lib$(LIB_PREFIX)dns$(LIB_SUFFIX) \
 	../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
 	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
-HTABLE_FIX = NORANDOMIZE=1
+HTABLE_FIX = NORANDOMIZE=1 LD_PRELOAD=../../lib/nosleep.so
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
@@ -56,9 +56,10 @@ tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test42 test43 test44 test45 test46 test47 test48 test49 test50 test51 \
 	test52 test53 test54 test55 test56 test57 test58 test59 test60 test61 \
 	test62 test63 test64 test65 test66 test67 test68 test69 test70 test71 \
-	test72 test73 test74 test75 test76 test78 test79 json_tests
+	test72 test73 test74 test75 test76 test78 test79 json_tests80-90 \
+	test91 test92
 
-json_tests: test80 test81 test82 test83 test84 test85 test86 test87
+json_tests80-90: test80 test81 test82 test83 test84 test85 test86 test87
 
 root_tests:
 
@@ -1253,6 +1254,45 @@ test87: $(PROG) test87.ref
 	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -c. -Pjx >test87.tmp 2>&1
 	diff test87.ref test87.tmp
 	rm -f main.cf master.cf test87.tmp
+
+# postconf -PP will list parameters not set in master.cf.
+test91: $(PROG) test91.ref
+	rm -f main.cf master.cf test91.tmp
+	touch main.cf master.cf test91.tmp
+	#echo 'foo/unix/proxymap = foo_map' >> test91.tmp
+	#echo 'bar/unix/proxymap = bar_map' >> test91.tmp
+	#echo 'baz/unix/proxymap = baz_map' >> test91.tmp
+	echo 'foo_proxy_write_maps=foo_map' >> main.cf
+	echo 'bar_proxy_write_maps=bar_map' >> main.cf
+	echo 'proxy_write_maps=baz_map' >> main.cf
+	touch -t 197601010000 main.cf
+	echo foo unix - n n - 0 foo >> master.cf
+	echo ' -o proxy_write_maps=$$foo_proxy_write_maps' >> master.cf
+	echo bar unix - n n - 0 bar >> master.cf
+	echo ' -o proxy_write_maps=$$bar_proxy_write_maps' >> master.cf
+	echo baz unix - n n - 0 baz >> master.cf
+	touch -t 197601010000 master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -xPPc. \
+	    '*/*/proxy_write_maps' >test91.tmp 2>&1
+	diff test91.ref test91.tmp
+	rm -f main.cf master.cf test91.tmp
+
+# postconf -PP will list the same parameters as "postconf", but it does
+# that once for every master.cf service, and will show the settings that
+# are in effect for that service.
+test92: $(PROG)
+	rm -f main.cf master.cf test92.tmp
+	touch main.cf master.cf test92.tmp
+	touch -t 197601010000 main.cf
+	echo foo unix - n n - 0 foo >> master.cf
+	touch -t 197601010000 master.cf
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -c. | \
+	    grep -E -v '^(process_id|process_name|service_name) =' >test92.tmp
+	$(HTABLE_FIX) $(SHLIB_ENV) $(VALGRIND) ./$(PROG) -PPc. | \
+	    sed 's;foo/unix/;;' | \
+	    grep -E -v '^(process_id|process_name|service_name) =' | \
+	    diff test92.tmp -
+	rm -f main.cf master.cf test92.tmp
 
 tidy:	clean
 

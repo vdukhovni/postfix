@@ -135,6 +135,14 @@ extern const char *str_tls_level(int);
 #define TLS_GROUP_NAME(ssl) ((const char *)0)
 #endif
 
+#if OPENSSL_VERSION_PREREQ(4,0)
+#define TLS_ADD1_HOST   SSL_add1_dnsname
+#define TLS_SET1_HOST   SSL_set1_dnsname
+#else
+#define TLS_ADD1_HOST   SSL_add1_host
+#define TLS_SET1_HOST   SSL_set1_host
+#endif
+
  /*
   * Utility library.
   */
@@ -268,7 +276,7 @@ typedef struct {
     VSTREAM *stream;			/* Blocking-mode SMTP session */
     /* DANE TLSA trust input and verification state */
     const TLS_DANE *dane;		/* DANE TLSA digests */
-    X509   *errorcert;			/* Error certificate closest to leaf */
+    const X509 *errorcert;		/* Error certificate closest to leaf */
     int     errordepth;			/* Chain depth of error cert */
     int     errorcode;			/* First error at error depth */
     int     must_fail;			/* Failed to load trust settings */

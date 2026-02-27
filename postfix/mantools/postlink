@@ -63,7 +63,7 @@ while (<>) {
     }
     s;\bautho[-</bB>]*\n*[ <bB>]*rized_flush_users\b;<a href="postconf.5.html#authorized_flush_users">$&</a>;g;
     s;\bautho[-</bB>]*\n*[ <bB>]*rized_mailq_users\b;<a href="postconf.5.html#authorized_mailq_users">$&</a>;g;
-    s;\bautho[-</bB>]*\n*[ <bB>]*rized_submit_users\b;<a href="postconf.5.html#authorized_submit_users">$&</a>;g;
+    s;\bautho[-</bB>]*\n*[ <bB>]*rized_sub[-</bB>]*\n*[ <bB>]*mit_users\b;<a href="postconf.5.html#authorized_submit_users">$&</a>;g;
     s;\bautho[-</bB>]*\n*[ <bB>]*rized_verp_clients\b;<a href="postconf.5.html#authorized_verp_clients">$&</a>;g;
     s;\bdebugger_command\b;<a href="postconf.5.html#debugger_command">$&</a>;g;
     s;\b2bounce_notice_recipi[-</bB>]*\n*[ <bB>]*ent\b;<a href="postconf.5.html#2bounce_notice_recipient">$&</a>;g;
@@ -822,6 +822,12 @@ while (<>) {
     s;\benable_threaded_bounces\b;<a href="postconf.5.html#enable_threaded_bounces">$&</a>;g;
     s;\bknown_tcp_ports\b;<a href="postconf.5.html#known_tcp_ports">$&</a>;g;
 
+    s;\bnon_bdb_migra[-</Bb>]*\n* *[<Bb>]*tion_[-</Bb>]*\n* *[<Bb>]*allow_root_prefixes\b;<a href="postconf.5.html#non_bdb_migration_allow_root_prefixes">$&</a>;g;
+    s;\bnon_bdb_migra[-</Bb>]*\n* *[<Bb>]*tion_[-</Bb>]*\n* *[<Bb>]*allow_user_pre[-</Bb>]*\n* *[<Bb>]*fixes\b;<a href="postconf.5.html#non_bdb_migration_allow_user_prefixes">$&</a>;g;
+    s;\bnon_bdb_migration_level\b;<a href="postconf.5.html#non_bdb_migration_level">$&</a>;g;
+    s;\bnon_bdb_custom_mapping\b;<a href="postconf.5.html#non_bdb_custom_mapping">$&</a>;g;
+    s;\bnon_bdb_migration_service_name\b;<a href="postconf.5.html#non_bdb_migration_service_name">$&</a>;g;
+
     # Transport-dependent magical parameters.
     # Note: Accept non-italic "transport" prefix for content that has been
     # converted from troff in C sources. Tooling doesn't support bold+italic.
@@ -865,6 +871,7 @@ while (<>) {
     s/[<bB>]*lmtp[<\/bB>]*\(8\)/<a href="lmtp.8.html">$&<\/a>/g;
     s/[<bB>]*local[<\/bB>]*\(8\)/<a href="local.8.html">$&<\/a>/g;
     s/[<bB>]*mas[-<\/bB>]*\n* *[<bB>]*ter[<\/bB>]*\(8\)/<a href="master.8.html">$&<\/a>/g;
+    s/[<bB>]*nbdb_reindexd[<\/bB>]*\(8\)/<a href="nbdb_reindexd.8.html">$&<\/a>/g;
     s/[<bB>]*pickup[<\/bB>]*\(8\)/<a href="pickup.8.html">$&<\/a>/g;
     s/[<bB>]*pipe[<\/bB>]*\(8\)/<a href="pipe.8.html">$&<\/a>/g;
     s/[<bB>]*postlogd[<\/bB>]*\(8\)/<a href="postlogd.8.html">$&<\/a>/g;
@@ -883,12 +890,13 @@ while (<>) {
     s/[<bB>]*triv[-<\/bB>]*\n* *[<bB>]*ial-[<\/bB>]*\n* *[<bB>]*re[-<\/bB>]*\n*[ <bB>]*write[<\/bB>]*\(8\)/<a href="trivial-rewrite.8.html">$&<\/a>/g;
     s/[<bB>]*mailq[<\/bB>]*\(1\)/<a href="mailq.1.html">$&<\/a>/g;
     s/[<bB>]*newaliases[<\/bB>]*\(1\)/<a href="newaliases.1.html">$&<\/a>/g;
-    s/[<bB>]*postalias[<\/bB>]*\(1\)/<a href="postalias.1.html">$&<\/a>/g;
+    s/[<bB>]*postal[-<\/bB>]*\n* *[<bB>]*ias[<\/bB>]*\(1\)/<a href="postalias.1.html">$&<\/a>/g;
     s/[<bB>]*postcat[<\/bB>]*\(1\)/<a href="postcat.1.html">$&<\/a>/g;
     s/[<bB>]*post[-<\/bB>]*\n*[ <bB>]*conf[<\/bB>]*\(1\)/<a href="postconf.1.html">$&<\/a>/g;
     s/[<bB>]*postdrop[<\/bB>]*\(1\)/<a href="postdrop.1.html">$&<\/a>/g;
     s/[<bB>]*post[-<\/bB>]*\n* *[<bB>]*fix[<\/bB>]*\(1\)/<a href="postfix.1.html">$&<\/a>/g;
     s/[<bB>]*post[-<\/bB>]*\n* *[<bB>]*fix-tls[<\/bB>]*\(1\)/<a href="postfix-tls.1.html">$&<\/a>/g;
+    s/[<bB>]*postfix-non-bdb[<\/bB>]*\(1\)/<a href="postfix-non-bdb.1.html">$&<\/a>/g;
     s/[<bB>]*postkick[<\/bB>]*\(1\)/<a href="postkick.1.html">$&<\/a>/g;
     s/[<bB>]*postlock[<\/bB>]*\(1\)/<a href="postlock.1.html">$&<\/a>/g;
     s/[<bB>]*postlog[<\/bB>]*\(1\)/<a href="postlog.1.html">$&<\/a>/g;
@@ -943,7 +951,7 @@ while (<>) {
 
     # Hyperlink README document names
 
-    s/\b([A-Z][A-Z0-9_]*)[-]*\n*[ ]*([A-Z0-9_]*_README)\b/<a href="$1$2.html">$&<\/a>/g;
+    s/\b(([A-Z][A-Z0-9_]*)[-]*\n*[ ]*([A-Z0-9_]*_README))(#[-a-zA-Z0-9_]+)?\b/<a href="$2$3.html$4">$1<\/a>/g;
     s/\bINSTALL\b/<a href="$&.html">$&<\/a>/g;
     s/\bOVERVIEW\b/<a href="$&.html">$&<\/a>/g;
     s/\btype:table\b/<a href="DATABASE_README.html">type:table<\/a>/g;
@@ -1189,7 +1197,7 @@ while (<>) {
     s;\bpostlog_service_name\b;<a href="postconf.5.html#postlog_service_name">$&</a>;g;
     s;\bpostlogd_watchdog_timeout\b;<a href="postconf.5.html#postlogd_watchdog_timeout">$&</a>;g;
 
-    s;\blocal_login_sender_maps\b;<a href="postconf.5.html#local_login_sender_maps">$&</a>;g;
+    s;\blocal_[-</bB>]*\n*[ <bB>]*login_[-</bB>]*\n*[ <bB>]*sender_maps\b;<a href="postconf.5.html#local_login_sender_maps">$&</a>;g;
     s;\bempty_address_local_login_sender_maps_lookup_key\b;<a href="postconf.5.html#empty_address_local_login_sender_maps_lookup_key">$&</a>;g;
 
     s;\buse_srv_lookup\b;<a href="postconf.5.html#use_srv_lookup">$&</a>;g;
@@ -1265,6 +1273,8 @@ while (<>) {
     s/\b(postfix  *tls)\b/<a href="postfix-tls.1.html">$1<\/a>/g;
     s/\b(local\s*aliasing)\b/<a href="ADDRESS_REWRITING_README.html#aliases">$1<\/a>/g;
     s/\b(virtual\s*aliasing)\b/<a href="ADDRESS_REWRITING_README.html#virtual">$1<\/a>/g;
+    s/\b(postfix non-bdb)\b/<a href="postfix-non-bdb.1.html">$1<\/a>/g;
+    #s/\b(postfix tls)\b/<a href="postfix-tls.1.html">$1<\/a>/g;
 
     # Hyperlink map types.
 

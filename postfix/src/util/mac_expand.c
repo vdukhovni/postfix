@@ -6,6 +6,16 @@
 /* SYNOPSIS
 /*	#include <mac_expand.h>
 /*
+/*	int	mac_expand7(result, pattern, flags, filter, lookup,
+/*				dont_expand, context)
+/*	VSTRING *result;
+/*	const char *pattern;
+/*	int	flags;
+/*	const char *filter;
+/*	const char *lookup(const char *key, int mode, void *context)
+/*	const bool dont_parse(const char *key, void *context)
+/*	void *context;
+/* AUXILIARY FUNCTIONS
 /*	int	mac_expand(result, pattern, flags, filter, lookup, context)
 /*	VSTRING *result;
 /*	const char *pattern;
@@ -13,7 +23,7 @@
 /*	const char *filter;
 /*	const char *lookup(const char *key, int mode, void *context)
 /*	void *context;
-/* AUXILIARY FUNCTIONS
+/*
 /*	typedef	MAC_EXP_OP_RES (*MAC_EXPAND_RELOP_FN) (
 /*	const char *left,
 /*	int	tok_val,
@@ -121,8 +131,14 @@
 /*	or MAC_EXP_MODE_USE to use the value of the named attribute,
 /*	and the caller context that was given to mac_expand(). A null
 /*	result value means that the requested attribute was not defined.
+/* .IP don_parse
+/*	An optional function that disables the MAC_EXP_FLAG_RECURSE
+/*	feature with lookup() results for a specific attribute. Arguments
+/*	are: the attribute name, and the caller context that was given
+/*	to mac_expand(). Specify null to disable this feature.
 /* .IP context
-/*	Caller context that is passed on to the attribute lookup routine.
+/*	Caller context that is passed on to the attribute lookup and
+/*	don_parse routines.
 /* .PP
 /*	mac_expand_add_relop() registers a function that implements
 /*	support for custom relational operators. Custom operator names
@@ -220,6 +236,7 @@ typedef struct {
     int     flags;			/* features */
     const char *filter;			/* character filter */
     MAC_EXP_LOOKUP_FN lookup;		/* lookup routine */
+    MAC_EXP_DONT_PARSE_FN dont_parse;	/* veto routine */
     void   *context;			/* caller context */
     int     status;			/* findings */
     int     level;			/* nesting level */
@@ -657,6 +674,7 @@ static int mac_expand_callback(int type, VSTRING *buf, void *ptr)
     ssize_t tmp_len;
     const char *res_iftrue;
     const char *res_iffalse;
+    int     dont_parse = false;
 
     /*
      * Sanity check.
@@ -735,6 +753,8 @@ static int mac_expand_callback(int type, VSTRING *buf, void *ptr)
 	     * Look up the named parameter. Todo: allow the lookup function
 	     * to specify if the result is safe for $name expansion.
 	     */
+	    if (mc->dont_parse)
+		dont_parse = mc->dont_parse(start, mc->context);
 	    lookup = mc->lookup(start, lookup_mode, mc->context);
 	}
 
@@ -789,7 +809,7 @@ static int mac_expand_callback(int type, VSTRING *buf, void *ptr)
 		mc->status |= MAC_PARSE_UNDEF;
 	    } else if (*lookup == 0 || (mc->flags & MAC_EXP_FLAG_SCAN)) {
 		 /* void */ ;
-	    } else if (mc->flags & MAC_EXP_FLAG_RECURSE) {
+	    } else if ((mc->flags & MAC_EXP_FLAG_RECURSE) && !dont_parse) {
 		vstring_strcpy(buf, lookup);
 		mc->status |= mac_parse(vstring_str(buf), mac_expand_callback,
 					(void *) mc);
@@ -821,12 +841,29 @@ static int mac_expand_callback(int type, VSTRING *buf, void *ptr)
     return (mc->status);
 }
 
+ /*
+  * ABI compatibility wrapper.
+  */
+#undef mac_expand
+int     mac_expand(VSTRING *, const char *, int, const char *,
+		           MAC_EXP_LOOKUP_FN, void *);
+
 /* mac_expand - expand $name instances */
 
 int     mac_expand(VSTRING *result, const char *pattern, int flags,
 		           const char *filter,
 		           MAC_EXP_LOOKUP_FN lookup, void *context)
 {
+    return (mac_expand7(result, pattern, flags, filter, lookup,
+			(MAC_EXP_DONT_PARSE_FN) 0, context));
+}
+
+int     mac_expand7(VSTRING *result, const char *pattern, int flags,
+		            const char *filter,
+		            MAC_EXP_LOOKUP_FN lookup,
+		            MAC_EXP_DONT_PARSE_FN dont_parse, void *context)
+{
+
     MAC_EXP_CONTEXT mc;
     int     status;
 
@@ -837,6 +874,7 @@ int     mac_expand(VSTRING *result, const char *pattern, int flags,
     mc.flags = flags;
     mc.filter = filter;
     mc.lookup = lookup;
+    mc.dont_parse = dont_parse;
     mc.context = context;
     mc.status = 0;
     mc.level = 0;

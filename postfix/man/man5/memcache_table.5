@@ -16,10 +16,10 @@ Postfix memcache client configuration
 .fi
 The Postfix mail system uses optional tables for address
 rewriting or mail routing. These tables are usually in
-\fBdbm\fR or \fBdb\fR format.
+\fBlmdb:\fR, \fBcdb:\fR, \fBhash:\fR, or \fBdbm:\fR format.
 
 Alternatively, lookup tables can be specified as memcache
-instances.  To use memcache lookups, define a memcache
+instances. To use memcache lookups, define a memcache
 source as a lookup table in main.cf, for example:
 
 .nf

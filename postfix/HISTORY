@@ -58,7 +58,7 @@ Apologies for any names omitted.
 	reflects the current status of the software.
 
 	Added -d (don't disconnect) and -c (show running counter)
-	option to te smtp-source test program. These tools are
+	option to the smtp-source test program. These tools are
 	great torture tests for the mail software, and for the
 	system that it runs on.
 
@@ -30303,3 +30303,246 @@ Apologies for any names omitted.
 
 	Documentation: fixed wrong default in INSTALL and postconf(5).
 	Files: proto/INSTALL.html, proto/postconf.proto.
+
+20260105
+
+	Cleanup: added missing entries to the proxy_read_maps default
+	value for more complete coverage. File: global/mail_params.h.
+
+20260106
+
+	Cleanup: added more missing entries to the proxy_read_maps
+	default value, based on documentation that parameters support
+	type:table inputs. Files: mantools/check-proxy-type-table,
+	global/mail_params.h
+
+20260107
+
+	Cleanup: added missing initialization for parameters with
+	a non-empty default value that specifies a lookup table.
+	File: proxymap/proxymap.c.
+
+	Cleanup: the proxymap service now detects table references
+	in /file/name and in restriction_classes. File: proxymap/proxymap.c
+
+	Feature: export the proxymap authorization tables, for
+	testing, and for potential use by other tools. File:
+	proxymap/proxymap.c
+
+	Cleanup: re-run 'make depend'. File: cleanup/Makefile.in.
+
+20260111
+
+	Cleanup: proxymap provenance in error and debug logging.
+	File: proxymap/proxymap.c.
+
+	Cleanup: unbroke Valgrind tests. Files: postmulti/Makefile.in,
+	proxymap/Makefile.in.
+
+	Cleanup: missing "4.7.1" enhanced status code in Milter
+	"shutdown" response. File: milter/milter8.c.
+
+20260119
+
+	Cleanup: change the domain name length limit from 1024 to
+	MAXDNAME (defined in <arpa/nameser.h>) which is 1025. File:
+	src/dns/dns.h.
+
+20260126
+
+	Cleanup: postconf logged errors when a 'raw parameter' $name
+	(such as $smtpd_expansion_filter) appeared in the value of
+	a non-raw parameter. The solution was to selectively disable
+	mac_expand() recursion for 'raw' parameters. Files:
+	util/mac_expand.[hc], postconf/postconf_lookup.c
+
+20260127
+
+	Usability: when building on a Linux system that has no
+	Berkeley DB header file installed, "make makefiles" will
+	now suggest building with -DNO_DB instead. File: makedefs.
+
+	Usability: when building with -DNO_DB, makedefs will now
+	remind the user to override the default_database_type and
+	default_cache_db_type with names other than 'hash' or
+	'btree'. File: makedefs.
+
+	Added notes about MariaDB support, suggested by Otto
+	Kekäläinen. Files: proto/MYSQL_README.html proto/mysql_table.
+
+	Feature: "postconf -PP service/type/parameter" will list
+	parameters that are not set in master.cf. This is useful
+	because the value of such a parameter may depend on some
+	other parameter setting in master.cf. The initial use case
+	is to support tools that scan Postfix configurations for
+	deprecated lookup tables. A typical example is "postconf
+	-PPx '*/*/proxy_read_maps". Files: postconf/postconf.[hc],
+	postconf/postconf_master.c, postconf/Makefile.in.
+
+20260128
+
+	Miscellaneous text fixes. Files: proto/MYSQL_README.html,
+	proto/postconf.html.prolog, proto/postconf.man.prolog.
+
+20260131
+
+	Cleanup: the tls_legacy_public_key_fingerprints parameter
+	has been removed. It has had no effect since Postfix
+	3.9.0. Viktor Dukhovni. Files: proto/postconf.proto,
+	global/mail_params.h, tls/tls_misc.c, tls/tls_proxy_client_misc.c,
+	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
+	tls/tls_proxy.h.
+
+20260217
+
+	Bugfix: (defect introduced: Postfix 2.11): panic() after
+	recursive logging loop with "posttls-finger -v -v -v".
+	Reported by Geert Hendrickx, diagnosed by Viktor Dukhovni,
+	and fixed by Wietse. Files: util/vstream.[hc], util/msg_vstream.c.
+
+	Cleanup: added missing notes in the postconf(5) manpage
+	that an IPv6 address needs to be enclosed in [] for the
+	debug_peer_list and qmqpd_authorized_clients parameters.
+	File: proto/postconf.proto.
+
+20260219
+
+	Feature: support to migrate a working Postfix configuration
+	that uses hash: and btree: tables, to an OS that has deleted
+	Berkeley DB support. Files: Makefile.in, conf/postfix-files,
+	conf/postfix-non-bdb-script, conf/postfix-script,
+	global/Makefile.in, global/allowed_prefix.c,
+	global/allowed_prefix.h, global/allowed_prefix_test.c,
+	global/mail_params.c, global/mail_params.h, global/mail_proto.h,
+	global/nbdb_clnt.c, global/nbdb_clnt.h, global/nbdb_redirect.c,
+	global/nbdb_redirect.h, global/nbdb_redirect_test.c,
+	global/nbdb_surrogate.c, global/nbdb_surrogate.h,
+	global/nbdb_surrogate_test.c, global/nbdb_util.c,
+	global/nbdb_util.h, global/nbdb_util_test.c, html/Makefile.in,
+	man/Makefile.in, mantools/postlink, proto/Makefile.in,
+	proto/NON_BERKELEYDB_README.html, proto/postconf.proto,
+	proto/stop, proto/stop.double-cc,
+	proto/stop.double-install-proto-text, proto/stop.spell-cc,
+	proto/stop.spell-history, proto/stop.spell-proto-html,
+	smtp/smtp_connect.c, testing/Makefile.in, testing/mock_open_as.c,
+	testing/mock_open_as.h, testing/mock_spawn_command.c,
+	testing/mock_spawn_command.h, testing/mock_stat.c,
+	testing/mock_stat.h, testing/msg_capture.c, testing/msg_capture.h,
+	util/Makefile.in, util/dict.h, util/dict_open.c,
+	util/dict_surrogate.c, util/open_as.c, util/open_as.h,
+	util/spawn_command.c, util/spawn_command.h, util/vstream.h,
+	util/wrap_stat.c, util/wrap_stat.h.
+
+20260220
+
+	Documentation: TESTING, proto/NON_BERKELEYDB_README.html,
+	proto/stop.spell-proto-html, postfix/postfix.c, conf/postfix-files,
+	mantools/postlink, global/nbdb_clnt.c.
+
+	Portability: testing/msg_capture.c.
+
+	Migration to "No Berkeley DB": update default values
+	for alias_maps and alias_database, and replace the
+	platform-dependent database type with $default_database_type.
+	File: src/util/sys_defs.h.
+
+	Documentation: update obsolete references to "dbm or db"
+	in xxx_table(5) manpages and make text more consistent.
+	Files: proto/cidr_table, proto/ldap_table, proto/memcache_table,
+	proto/mongodb_table, proto/mysql_table, proto/nisplus_table,
+	proto/pcre_table, proto/pgsql_table, proto/regexp_table,
+	proto/socketmap_table, proto/sqlite_table, proto/tcp_table.
+
+	Documentation: made the postmap(1) and postmap(1) manpages
+	more consistent in the discussion of the default_data_base,
+	and moved that text to a more visible location. Files:
+	postalias/postalias.c, postmap/postmap.c.
+
+	Documentation: updated 'man5' manpages for changes in default
+	indexed file types. Files: proto/access, proto/canonical,
+	proto/generic, proto/relocated, proto/transport, proto/virtual.
+
+	Incompatibility: The alias_maps and alias_database parameter
+	default values have changed from hash:/path/to/aliases (or
+	dbm:/path/to/aliases) to $default_database_type:/path/to/aliases.
+	This simplifies the migration away from Berkeley DB. File:
+	util/sys_defs.h.
+
+20260221
+
+	Testing: factored out the mock cdb and lmdb code to make
+	more tests independent of whether the build includes support
+	for cdb and lmdb. Files: global/Makefile.in,
+	global/nbdb_redirect_test.c, global/nbdb_util_test.c,
+	nbdb_reindexd/Makefile.in, nbdb_reindexd/nbdb_index_as_test.c,
+	nbdb_reindexd/nbdb_process_test.c, testing/Makefile.in,
+	testing/mock_dict.c, testing/mock_dict.h.
+
+20260222
+
+	Cleanup: migration service name word-smithing. Files:
+	mantools/postlink, proto/postconf.proto, global/mail_params.h.
+
+	Documentation: missing DEF_SHLIB_DIR in INSTALL. File:
+	proto/install.html.
+
+20260225
+
+	Documentation: examples now use lmdb plus text about implicit
+	types with "postmap /path/to/file" and available explicit types.
+	Files: proto/INSTALL.html, proto/SASL_README.html,
+	proto/STANDARD_CONFIGURATION_README.html, proto/UUCP_README.html,
+	proto/VIRTUAL_README.html.
+
+	Workaround: as of Postfix 3.11, the default alias_maps value
+	contains $default_database_type:/path/to/aliases, instead
+	of a hard-coded type hash. If default_database_type was
+	changed from hash to lmdb (or cdb), then the indexed file
+	/path/to/aliases.lmdb (or /path/to/aliases.cdb) will likely
+	not exist.
+
+	Unfortunately, if  $default_database_type has changed from
+	hash to lmdb (or cdb) Postfix will not try to use
+	hash:/path/to/aliases, and will not trigger compatibility
+	workarounds that are implemented with "enable-redirect" or
+	"enable-reindex". This would be a gap in migration coverage.
+
+	To avoid this, synthesize a stand-alone re-indexing request.
+	Files: conf/postfix-script, proto/NON_BERKELEYDB_README.html.
+	This is needed only for databases specified in alias_maps.
+
+	Postfix works on Linux 7.x kernels. Frank Scheiner. Files:
+	makedefs, util/sys_defs.h.
+
+20260226
+
+	Documentation: update postconf(5) examples: all examples
+	show "lmdb", and mention cdb, hash, etc. as alternatives.
+	File: proto/postconf.proto.
+
+	Cleanup: wordsmithing of recently-edited README files.
+	proto/SASL_README.html, proto/STANDARD_CONFIGURATION_README.html,
+	proto/UUCP_README.html.
+
+	Cleanup: fix HTML validator complaint. File:
+	proto/postconf.html.prolog
+
+	Cleanup: make only one attempt to generate an indexed file
+	for $alias_maps. This creates a status file
+	$config_directory/check-alias-maps-migration-done. File:
+	conf/postfix-script.
+
+20260227
+
+	Documentation: new Appendix with Mailman migration
+	instructions. File: proto/NON_BERKELEYDB_README.html.
+
+	Cleanup: missing #include <stdlib.h>, reported on Solaris 11.4.
+	File: nbdb_reindexd/nbdb_reindexd.c.
+
+	Cleanup: log a fatal error instead of dereferencing a null
+	pointer. Fedor Vorobev. File: util/dict_db.c.
+
+	Bitrot: patches in anticipation of OpenSSL 4. Viktor Dukhovni.
+	Files: posttls-finger/posttls-finger.c, tls/tls_client.c,
+	tls/tls.h, tls/tls_misc.c, tls/tls_verify.c.

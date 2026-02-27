@@ -471,6 +471,11 @@ all services and all parameters), formatted as
 "\fIservice/type/parameter=value\fR", one per line.  Specify
 \fB\-Pf\fR to fold long lines.
 
+Specify multiple \fB\-P\fR options to also list service parameters
+that are not set in master.cf. This is useful with \fB\-x\fR to
+evaluate the impact of master.cf overrides on other parameter
+settings.
+
 Specify one or more "\fIservice/type/parameter\fR" instances
 on the \fBpostconf\fR(1) command line to limit the output
 to parameters of interest.  Trailing parameter name or

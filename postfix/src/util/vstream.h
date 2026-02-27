@@ -179,6 +179,7 @@ extern void vstream_control(VSTREAM *, int,...);
 #define CA_VSTREAM_CTL_SWAP_FD(v)	VSTREAM_CTL_SWAP_FD, CHECK_PTR(VSTREAM_CTL, VSTREAM, (v))
 #define CA_VSTREAM_CTL_START_DEADLINE	VSTREAM_CTL_START_DEADLINE
 #define CA_VSTREAM_CTL_STOP_DEADLINE	VSTREAM_CTL_STOP_DEADLINE
+#define CA_VSTREAM_CTL_OWN_VSTRING	VSTREAM_CTL_OWN_VSTRING
 #define CA_VSTREAM_CTL_MIN_DATA_RATE(v)	VSTREAM_CTL_MIN_DATA_RATE, CHECK_VAL(VSTREAM_CTL, int, (v))
 
 CHECK_VAL_HELPER_DCL(VSTREAM_CTL, ssize_t);
@@ -273,6 +274,11 @@ extern int vstream_tweak_tcp(VSTREAM *);
 #define vstream_memopen(string, flags) \
 	vstream_memreopen((VSTREAM *) 0, (string), (flags))
 VSTREAM *vstream_memreopen(VSTREAM *, struct VSTRING *, int);
+
+ /*
+  * Debug logging lockout.
+  */
+extern void vstream_no_debug(VSTREAM *);
 
 /* LICENSE
 /* .ad
