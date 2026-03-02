@@ -4646,6 +4646,10 @@ extern char *var_nbdb_allow_root_pfxs;
 					" /var/lib/mailman3"
 extern char *var_nbdb_allow_user_pfxs;
 
+#define VAR_NBDB_LOG_REDIRECT		"non_bdb_migration_log_redirect"
+#define DEF_NBDB_LOG_REDIRECT		"yes"
+extern bool var_nbdb_log_redirect;
+
 /* LICENSE
 /* .ad
 /* .fi

@@ -659,6 +659,7 @@ EOF
 			echo "No <db.h> include file found." 1>&2
 			echo "Install the appropriate db*-devel package first." 1>&2
 			echo "Alternatively, build with CCARGS=\"-NO_DB ...\"" 1>&2
+			echo "See: https://www.postfix.org/NON_BERKELEYDB_README.html#build-conf" 1>&2
 			exit 1
 		    fi
 		    SYSLIBS="-ldb"

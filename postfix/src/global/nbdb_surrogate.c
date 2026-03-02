@@ -94,6 +94,7 @@ static MKMAP *surrogate_mkmap_btree_open(const char *path)
 static const DICT_OPEN_INFO surrogate_bdb_info[] = {
     {DICT_TYPE_HASH, surrogate_dict_hash_open, surrogate_mkmap_hash_open},
     {DICT_TYPE_BTREE, surrogate_dict_btree_open, surrogate_mkmap_btree_open},
+    0,
 };
 
 /* nbdb_surr_init - register the above surrogates */

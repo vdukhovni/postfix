@@ -210,7 +210,7 @@ enable_reindex() {
 }
 
 usage() {
-    $FATAL "usage: postfix non-bdb enable-redirect (or enable-reindex, or disable)"
+    $FATAL "usage: postfix non-bdb status (or enable-redirect, or enable-reindex, or disable)"
     exit 1
 }
 
