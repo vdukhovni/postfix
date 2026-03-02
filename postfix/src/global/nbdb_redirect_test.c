@@ -58,7 +58,10 @@
 
 #define STR(x)	vstring_str(x)
 
+char   *var_db_type = 0;
+char   *var_cache_db_type = 0;
 char   *var_nbdb_cust_map = DEF_NBDB_CUST_MAP;
+bool    var_nbdb_log_redirect = 0;
 
  /*
   * Tests that a dict_open() request for 'hash' or 'btree' will redirect to
@@ -85,126 +88,229 @@ static void setup_common_mock_open_info(void)
 
 static int redirects_dict_open_hash_to_def_db_type(const TEST_CASE *tp)
 {
+    MSG_CAPTURE *capture;
+    const char *got_logging;
     const char *got_whoami;
     DICT   *dict;
     int     status = PASS;
     const char *want_whoami;
+    const char *want_logging_list[] = {
+	"redirecting hash:ignored to cdb:ignored", 0,
+    };
+    int     n;
 
     /*
-     * Setup. Use the mapping hash->cdb.
+     * Test with and without logging.
      */
-    setup_common_mock_open_info();
-    var_db_type = "cdb";
+    for (n = 0; n < 2; n++) {
+	const char *want_logging = want_logging_list[n];
 
-    /*
-     * Verify that 'hash' redirects to $default_database_type ('cdb').
-     */
-    want_whoami = "mock cdb";
-    dict = dict_open3(DICT_TYPE_HASH, "ignored", O_RDONLY, 0);
-    if ((got_whoami = dict_get(dict, "whoami")) == 0) {
-	msg_warn("'whoami' query returned 'not found'");
-	status = FAIL;
-    } else if (strstr(got_whoami, want_whoami) == 0) {
-	msg_warn("unexpected result; got: '%s', want: '%s'",
-		 got_whoami, want_whoami);
-	status = FAIL;
+	/*
+	 * Setup. Use the mapping hash->cdb.
+	 */
+	setup_common_mock_open_info();
+	var_db_type = "cdb";
+	capture = msg_capt_create(100);
+	var_nbdb_log_redirect = want_logging != 0;
+
+	/*
+	 * Verify that 'hash' redirects to $default_database_type ('cdb').
+	 */
+	want_whoami = "mock cdb";
+	msg_capt_start(capture);
+	dict = dict_open3(DICT_TYPE_HASH, "ignored", O_RDONLY, 0);
+	msg_capt_stop(capture);
+	got_logging = msg_capt_expose(capture);
+
+	if ((got_whoami = dict_get(dict, "whoami")) == 0) {
+	    msg_warn("'whoami' query returned 'not found'");
+	    status = FAIL;
+	} else if (strstr(got_whoami, want_whoami) == 0) {
+	    msg_warn("unexpected result; got: '%s', want: '%s'",
+		     got_whoami, want_whoami);
+	    status = FAIL;
+	} else if (want_logging == 0 && *got_logging != 0) {
+	    msg_warn("unexpected logging: got: '%s'", got_logging);
+	    status = FAIL;
+	} else if (want_logging && strstr(got_logging, want_logging) == 0) {
+	    msg_warn("unexpected logging: got: '%s', want: '%s'",
+		     got_logging, want_logging);
+	    status = FAIL;
+	}
+	dict_close(dict);
     }
-    dict_close(dict);
 
     return (status);
 }
 
 static int redirects_dict_open_btree_to_def_cache_db_type(const TEST_CASE *tp)
 {
+    MSG_CAPTURE *capture;
+    const char *got_logging;
     const char *got_whoami;
     DICT   *dict;
     int     status = PASS;
     const char *want_whoami;
+    const char *want_logging_list[] = {
+	"redirecting btree:ignored to lmdb:ignored", 0,
+    };
+    int     n;
 
     /*
-     * Setup. Use the mapping btree->lmdb.
+     * Test with and without logging.
      */
-    setup_common_mock_open_info();
-    var_cache_db_type = "lmdb";
+    for (n = 0; n < 2; n++) {
+	const char *want_logging = want_logging_list[n];
 
-    /*
-     * Verify that 'btree' redirects to $default_cache_db_type ('lmdb').
-     */
-    want_whoami = "mock lmdb";
-    dict = dict_open3(DICT_TYPE_BTREE, "ignored", O_RDONLY, 0);
-    if ((got_whoami = dict_get(dict, "whoami")) == 0) {
-	msg_warn("'whoami' query returned 'not found'");
-	status = FAIL;
-    } else if (strstr(got_whoami, "mock lmdb") == 0) {
-	msg_warn("unexpected result; got: '%s', want: '%s'",
-		 got_whoami, want_whoami);
-	status = FAIL;
+	/*
+	 * Setup. Use the mapping btree->lmdb.
+	 */
+	setup_common_mock_open_info();
+	var_cache_db_type = "lmdb";
+	capture = msg_capt_create(100);
+        var_nbdb_log_redirect = want_logging != 0;
+
+	/*
+	 * Verify that 'btree' redirects to $default_cache_db_type ('lmdb').
+	 */
+	want_whoami = "mock lmdb";
+	msg_capt_start(capture);
+	dict = dict_open3(DICT_TYPE_BTREE, "ignored", O_RDONLY, 0);
+	msg_capt_stop(capture);
+	got_logging = msg_capt_expose(capture);
+
+	if ((got_whoami = dict_get(dict, "whoami")) == 0) {
+	    msg_warn("'whoami' query returned 'not found'");
+	    status = FAIL;
+	} else if (strstr(got_whoami, "mock lmdb") == 0) {
+	    msg_warn("unexpected result; got: '%s', want: '%s'",
+		     got_whoami, want_whoami);
+	    status = FAIL;
+	} else if (want_logging == 0 && *got_logging != 0) {
+	    msg_warn("unexpected logging: got: '%s'", got_logging);
+	    status = FAIL;
+	} else if (want_logging && strstr(got_logging, want_logging) == 0) {
+	    msg_warn("unexpected logging: got: '%s', want: '%s'",
+		     got_logging, want_logging);
+	    status = FAIL;
+	}
+	dict_close(dict);
     }
-    dict_close(dict);
 
     return (status);
 }
 
 static int redirects_mkmap_open_hash_to_def_db_type(const TEST_CASE *tp)
 {
+    MSG_CAPTURE *capture;
+    const char *got_logging;
     const char *got_whoami;
     MKMAP  *mkmap;
     int     status = PASS;
     const char *want_whoami;
+    const char *want_logging_list[] = {
+	"Redirecting hash:ignored to cdb:ignored", 0,
+    };
+    int     n;
 
     /*
-     * Setup. Use the mapping hash->cdb.
+     * Test with and without logging.
      */
-    setup_common_mock_open_info();
-    var_db_type = "cdb";
+    for (n = 0; n < 2; n++) {
+	const char *want_logging = want_logging_list[n];
 
-    /*
-     * Verify that mkmap_open("hash"...) redirects to $default_database_type
-     * ('cdb').
-     */
-    want_whoami = "mock cdb";
-    mkmap = mkmap_open(DICT_TYPE_HASH, "ignored", O_RDONLY, 0);
-    if ((got_whoami = dict_get(mkmap->dict, "whoami")) == 0) {
-	msg_warn("'whoami' query returned 'not found'");
-	status = FAIL;
-    } else if (strstr(got_whoami, want_whoami) == 0) {
-	msg_warn("unexpected result; got: '%s', want: '%s'",
-		 got_whoami, want_whoami);
-	status = FAIL;
+	/*
+	 * Setup. Use the mapping hash->cdb.
+	 */
+	setup_common_mock_open_info();
+	var_db_type = "cdb";
+	capture = msg_capt_create(100);
+	var_nbdb_log_redirect = want_logging != 0;
+
+	/*
+	 * Verify that mkmap_open("hash"...) redirects to
+	 * $default_database_type ('cdb').
+	 */
+	want_whoami = "mock cdb";
+	msg_capt_start(capture);
+	mkmap = mkmap_open(DICT_TYPE_HASH, "ignored", O_RDONLY, 0);
+	msg_capt_stop(capture);
+	got_logging = msg_capt_expose(capture);
+
+	if ((got_whoami = dict_get(mkmap->dict, "whoami")) == 0) {
+	    msg_warn("'whoami' query returned 'not found'");
+	    status = FAIL;
+	} else if (strstr(got_whoami, want_whoami) == 0) {
+	    msg_warn("unexpected result; got: '%s', want: '%s'",
+		     got_whoami, want_whoami);
+	    status = FAIL;
+	} else if (want_logging == 0 && *got_logging != 0) {
+	    msg_warn("unexpected logging: got: '%s'", got_logging);
+	    status = FAIL;
+	} else if (want_logging == 0 && *got_logging != 0) {
+	    msg_warn("unexpected logging: got: '%s'", got_logging);
+	    status = FAIL;
+	}
+	mkmap_close(mkmap);
     }
-    mkmap_close(mkmap);
 
     return (status);
 }
 
 static int redirects_mkmap_open_btree_to_def_cache_db_type(const TEST_CASE *tp)
 {
+    MSG_CAPTURE *capture;
+    const char *got_logging;
     const char *got_whoami;
     MKMAP  *mkmap;
     int     status = PASS;
     const char *want_whoami;
+    const char *want_logging_list[] = {
+	"redirecting btree:ignored to lmdb:ignored", 0,
+    };
+    int     n;
 
     /*
-     * Setup. Use the mapping btree->lmdb.
+     * Test with and without logging.
      */
-    setup_common_mock_open_info();
-    var_cache_db_type = "lmdb";
+    for (n = 0; n < 2; n++) {
+	const char *want_logging = want_logging_list[n];
 
-    /*
-     * Verify that mkmap_open("btree"...) redirects to $default_cache_db_type
-     * ('lmdb').
-     */
-    want_whoami = "mock lmdb";
-    mkmap = mkmap_open(DICT_TYPE_BTREE, "ignored", O_RDONLY, 0);
-    if ((got_whoami = dict_get(mkmap->dict, "whoami")) == 0) {
-	msg_warn("'whoami' query returned 'not found'");
-	status = FAIL;
-    } else if (strstr(got_whoami, want_whoami) == 0) {
-	msg_warn("unexpected result; got: '%s', want: '%s'",
-		 got_whoami, want_whoami);
-	status = FAIL;
+	/*
+	 * Setup. Use the mapping btree->lmdb.
+	 */
+	setup_common_mock_open_info();
+	var_cache_db_type = "lmdb";
+	capture = msg_capt_create(100);
+	var_nbdb_log_redirect = want_logging != 0;
+
+	/*
+	 * Verify that mkmap_open("btree"...) redirects to
+	 * $default_cache_db_type ('lmdb').
+	 */
+	want_whoami = "mock lmdb";
+	msg_capt_start(capture);
+	mkmap = mkmap_open(DICT_TYPE_BTREE, "ignored", O_RDONLY, 0);
+	msg_capt_stop(capture);
+	got_logging = msg_capt_expose(capture);
+
+	if ((got_whoami = dict_get(mkmap->dict, "whoami")) == 0) {
+	    msg_warn("'whoami' query returned 'not found'");
+	    status = FAIL;
+	} else if (strstr(got_whoami, want_whoami) == 0) {
+	    msg_warn("unexpected result; got: '%s', want: '%s'",
+		     got_whoami, want_whoami);
+	    status = FAIL;
+	} else if (want_logging == 0 && *got_logging != 0) {
+	    msg_warn("unexpected logging: got: '%s'", got_logging);
+	    status = FAIL;
+	} else if (want_logging && strstr(got_logging, want_logging) == 0) {
+	    msg_warn("unexpected logging: got: '%s', want: '%s'",
+		     got_logging, want_logging);
+	    status = FAIL;
+	}
+	mkmap_close(mkmap);
     }
-    mkmap_close(mkmap);
 
     return (status);
 }
@@ -223,6 +329,7 @@ static int nbdb_dict_xxx_open_handles_mapping_error(const TEST_CASE *tp)
     nbdb_util_init("enable-reindex");
     dict_allow_surrogate = 1;
     capture = msg_capt_create(100);
+    var_nbdb_log_redirect = false;
 
     /*
      * Run the test for nbdb_dict_hash_open().
@@ -288,6 +395,7 @@ static int nbdb_dict_xxx_open_handles_no_suffix_error(const TEST_CASE *tp)
     nbdb_util_init("enable-reindex");
     dict_allow_surrogate = 1;
     capture = msg_capt_create(100);
+    var_nbdb_log_redirect = false;
 
     /*
      * Run the test for nbdb_dict_hash_open().

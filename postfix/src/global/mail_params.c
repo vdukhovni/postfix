@@ -173,6 +173,7 @@
 /*	char	*var_nbdb_level;
 /*	char	*var_nbdb_service;
 /*	char	*var_nbdb_cust_map;
+/*	bool	var_nbdb_log_redirect;
 /* DESCRIPTION
 /*	This module (actually the associated include file) defines
 /*	the names and defaults of all mail configuration parameters.
@@ -404,6 +405,7 @@ char   *var_known_tcp_ports;
 char   *var_nbdb_level;
 char   *var_nbdb_service;
 char   *var_nbdb_cust_map;
+bool    var_nbdb_log_redirect;
 
 const char null_format_string[1] = "";
 
@@ -810,6 +812,7 @@ void    mail_params_init()
 	VAR_RESPECTFUL_LOGGING, DEF_RESPECTFUL_LOGGING, &var_respectful_logging,
 	VAR_REQTLS_ENABLE, DEF_REQTLS_ENABLE, &var_reqtls_enable,
 	VAR_TLSREQUIRED_ENABLE, DEF_TLSREQUIRED_ENABLE, &var_tls_required_enable,
+	VAR_NBDB_LOG_REDIRECT, DEF_NBDB_LOG_REDIRECT, &var_nbdb_log_redirect,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults[] = {

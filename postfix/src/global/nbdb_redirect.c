@@ -17,6 +17,8 @@
 /*	respectively, and that may send requests to a reindexing
 /*	server. The mapping from legacy to non-legacy type names is
 /*	implemented by nbdb_map_leg_type().
+/* IMPLICIT INPUTS
+/*	var_nbdb_log_redirect, controls logging of 'redirect' activity
 /* SEE ALSO
 /*	nbdb_reindexd(8), helper daemon to reindex legacy tables
 /* LICENSE
@@ -156,6 +158,9 @@ static DICT *nbdb_dict_open(const char *leg_type, const char *name,
 			       "Berkeley DB type mapping lookup error for "
 			       "'%s:%s': %s", leg_type, name, STR(why)));
     }
+    if (var_nbdb_log_redirect)
+	msg_info("redirecting %s:%s to %s:%s", leg_type, name,
+		 non_leg_type, name);
 
     /*
      * Do not delegate dict_open() requests to create an indexed file (this
@@ -254,6 +259,9 @@ static MKMAP *nbdb_mkmap_open(const char *leg_type, const char *name)
     if (non_leg_type == 0)
 	msg_fatal("non_bdb migration mapping lookup error for '%s': %s",
 		  leg_type, STR(why));
+    if (var_nbdb_log_redirect)
+	msg_info("redirecting %s:%s to %s:%s", leg_type, name,
+		 non_leg_type, name);
     if (open_info->mkmap_fn == 0)
 	msg_fatal("no 'map create' support for non_bdb mapped type: %s",
 		  non_leg_type);

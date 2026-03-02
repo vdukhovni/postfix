@@ -30546,3 +30546,33 @@ Apologies for any names omitted.
 	Bitrot: patches in anticipation of OpenSSL 4. Viktor Dukhovni.
 	Files: posttls-finger/posttls-finger.c, tls/tls_client.c,
 	tls/tls.h, tls/tls_misc.c, tls/tls_verify.c.
+
+20260301
+
+	Logging: to make obsolete configuration easier to discover,
+	log "redirecting <old-type>:/path/to/file to
+	<new-type>:/path/to/file" with non-Berkeley DB migration
+	support level "enable-redirect" and higher. To silence this
+	logging, specify "non_bdb_migration_log_redirect = no".
+	Files: global/nbdb_redirect.c, global/nbdb_redirect_test.c,
+	global/mail_params.[hc], proto/NON_BERKELEYDB_README.html.
+
+	Bugfix (defect introduced: 20260219): missing "status" in
+	the "postfix non-bdb" usage message. Problem reported by
+	Geert Hendrickx. File: conf/postfix-non-bdb-script
+
+20260302
+
+	Documentation: added "Migration Process" walk-through guides,
+	and made the "Manual Migration" process suitable for Postfix
+	versions 3.10 and earlier. File: proto/NON_BERKELEYDB_README.html.
+
+	Documentation: add CDB to the 'INSTALL' list of optional
+	build features. Reference LMDB_README and CDB_README from
+	NON_BERKELEYDB_README. Reference NON_BERKELEYDB_README
+	from "make makedefs". Files: proto/INSTALL.html,
+	proto/NON_BERKELEYDB_README.html, makedefs.
+
+	Bugfix (defect introduced: 20260219): segfault caused
+	by missing null terminator after array. Problem reported
+	by Avram-Teodor Berindeie. File: global/nbdb_surrogate.c.
