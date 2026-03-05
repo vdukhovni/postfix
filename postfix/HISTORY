@@ -30568,11 +30568,18 @@ Apologies for any names omitted.
 	versions 3.10 and earlier. File: proto/NON_BERKELEYDB_README.html.
 
 	Documentation: add CDB to the 'INSTALL' list of optional
-	build features. Reference LMDB_README and CDB_README from
-	NON_BERKELEYDB_README. Reference NON_BERKELEYDB_README
-	from "make makedefs". Files: proto/INSTALL.html,
+	build features. Link LMDB_README and CDB_README from
+	NON_BERKELEYDB_README. Link NON_BERKELEYDB_README from "make
+	makefiles". Files: proto/INSTALL.html,
 	proto/NON_BERKELEYDB_README.html, makedefs.
 
 	Bugfix (defect introduced: 20260219): segfault caused
 	by missing null terminator after array. Problem reported
 	by Avram-Teodor Berindeie. File: global/nbdb_surrogate.c.
+
+20260305
+
+	In the "Manual Migration" instructions, added a "postconf
+	master_service_disable=inet" + "postfix start" step, to
+	locate settings that still need to be updated. File:
+	proto/NON_BERKELEYDB_README.html.
