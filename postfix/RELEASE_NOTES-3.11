@@ -38,7 +38,7 @@ This simplifies the migration away from Berkeley DB.
 that uses Berkeley DB hash: or btree: tables, to a configuration
 that uses lmdb: or a combination of cdb: and lmdb:. This is needed
 for (Linux) OS distributions that have removed Berkeley DB support.
-See NON_BERKELEYDB_README for manual and atomatic migratom support.
+See NON_BERKELEYDB_README for manual and automatic migration support.
 
 Postfix already supports CDB and LMDB for more than 10 years.  It
 may be a good idea to do the migration before you need to upgrade

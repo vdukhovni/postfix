@@ -21,6 +21,10 @@ Non-Berkeley-DB migration</h1>
 
 <h2> Table of contents </h2>
 
+<p> Note: be sure to visit the on-line version of this text at
+https://www.postfix.org/<a href="NON_BERKELEYDB_README.html">NON_BERKELEYDB_README</a>.html, as support for
+different Postfix versions may be added over time. </p>
+
 <ul>
 
 <li> <a href="#intro">Introduction </a>
@@ -199,12 +203,12 @@ disable
 
 <dt> <a href="#disable">disable</a> (manual migration) </dt>
 
-<dd> <p> You start up Postfix, watch the logging when Postfix
-programs fail to open a <a href="DATABASE_README.html#types">hash</a>: or <a href="DATABASE_README.html#types">btree</a>: table, edit Postfix
-configuration files to use <a href="lmdb_table.5.html">lmdb</a>: or <a href="CDB_README.html">cdb</a>:, then run <a href="postmap.1.html">postmap(1)</a> or
-<a href="postalias.1.html">postalias(1)</a> commands to create <a href="lmdb_table.5.html">lmdb</a>: or <a href="CDB_README.html">cdb</a>: indexed database
-files. Use this option if you are familiar with Postfix configuration.
-</p>
+<dd> <p> You start up Postfix, watch the <a
+href="DEBUG_README.html#logging">logging</a> when Postfix programs
+fail to open a <a href="DATABASE_README.html#types">hash</a>: or <a href="DATABASE_README.html#types">btree</a>: table, edit Postfix configuration
+files to use <a href="lmdb_table.5.html">lmdb</a>: or <a href="CDB_README.html">cdb</a>:, then run <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a>
+commands to create <a href="lmdb_table.5.html">lmdb</a>: or <a href="CDB_README.html">cdb</a>: indexed database files. Use this
+option if you are familiar with Postfix configuration.  </p>
 
 <p> This will not fix the integration with Mailman versions from
 before <a
@@ -328,7 +332,7 @@ in the output from "<tt>postconf -x <a href="postconf.5.html#config_directory">c
 
 <li> <p> For each instance in the "<tt>grep</tt>" output : </p>
 
-<ul>
+<ol>
 
 <li> <p> Edit the configuration file and replace "hash" with "lmdb"
 or "cdb" (use the same value as the output from "<tt><b>postconf
@@ -373,13 +377,33 @@ is like "<tt><a href="lmdb_table.5.html">lmdb</a>:/path/to/source</tt>": </p>
 <p> Instead of "<a href="lmdb_table.5.html">lmdb</a>:" use "<a href="CDB_README.html">cdb</a>:" if this instance is like
 "<tt><a href="CDB_README.html">cdb</a>:/path/to/source</tt>". </p>
 
-</ul>
+</ol>
 
-<li> <p> Start Postfix, watch the log for warnings about files that
-cannot be opened, find the configuration file that still uses "hash"
-or "btree", and repeat the steps above. </p>
+<li> <p> Disable inbound network mail, and start Postfix. </p>
 
-<li> <p> It is now safe to delete the unused ".db" files. </p>
+<pre>
+# <b>postconf <a href="postconf.5.html#master_service_disable">master_service_disable</a> = inet</b>
+# <b>postfix start</b>
+</pre>
+
+<li> <p> Watch the <a href="DEBUG_README.html#logging">log</a> for
+warnings about files that cannot be opened, find the configuration
+file that still uses "hash" or "btree", and repeat steps 1-5 above.
+</p>
+
+<li> <p> Enable inbound network mail, reload Postfix, and connect
+to an SMTP network port. </p>
+
+<pre>
+# <b>postconf -X <a href="postconf.5.html#master_service_disable">master_service_disable</a></b>
+# <b>postfix reload</b>
+# <b>telnet <i>hostname</i> 25</b>
+</pre>
+
+<li> <p> Watch the  <a href="DEBUG_README.html#logging">log</a> for
+warnings about files that cannot be opened, find the configuration
+file that still uses "hash" or "btree", and repeat steps 1-5 above.
+</p>
 
 </ul>
 
@@ -407,8 +431,9 @@ and $<a href="postconf.5.html#default_cache_db_type">default_cache_db_type</a>. 
 with <a href="postconf.5.html#non_bdb_custom_mapping">non_bdb_custom_mapping</a>. This command also edits <a href="master.5.html">master.cf</a> to
 remove an unused <tt>nbdb_reindex</tt> service entry. </p>
 
-<p> The redirection activity is logged by default, to help discovering
-obsolete configuration. Example: </p>
+<p> The redirection activity is <a
+href="DEBUG_README.html#logging">logged</a> by default, to help
+discovering obsolete configuration. Example: </p>
 
 <blockquote>
 <pre>
@@ -451,10 +476,10 @@ and later) </b> </th> </tr>
 
 <p> Start (or reload) Postfix. </p>
 
-<p> Scan the logging for failure to open database files.  For each
-instance of "<tt><a href="DATABASE_README.html#types">hash</a>:/path/to/source</tt>" or
-"<tt><a href="DATABASE_README.html#types">btree</a>:/path/to/source</tt>" that requires manually running
-<a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a>: </p>
+<p> Scan the <a href="DEBUG_README.html#logging">logging</a> for
+failure to open database files. For each instance of
+"<tt><a href="DATABASE_README.html#types">hash</a>:/path/to/source</tt>" or "<tt><a href="DATABASE_README.html#types">btree</a>:/path/to/source</tt>"
+that requires manually running <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a>: </p>
 
 <ul>
 
@@ -492,8 +517,9 @@ is like "<tt><a href="lmdb_table.5.html">lmdb</a>:/path/to/source</tt>": </p>
 </blockquote>
 
 <p> This may reveal a few more problems. Once there are no more
-errors with opening database files for about 24 hours, scan the log
-for instances similar to: </p>
+errors with opening database files for about 24 hours, scan the <a
+href="DEBUG_README.html#logging">log</a> for messages similar to:
+</p>
  
 <blockquote>
 <pre>
@@ -597,7 +623,8 @@ and later)</b> </th> </tr>
  
 <p> Start (or reload) Postfix. </p>
 
-<p> The <a href="nbdb_reindexd.8.html">nbdb_reindexd(8)</a> daemon will log when it successfully runs
+<p> The <a href="nbdb_reindexd.8.html">nbdb_reindexd(8)</a> daemon will <a
+href="DEBUG_README.html#logging">log</a> when it successfully runs
 a <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command.  Examples, for a system with
 "<tt><a href="postconf.5.html#default_database_type">default_database_type</a> = lmdb</tt>": </p>
 
@@ -608,7 +635,8 @@ successfully executed 'postalias <a href="lmdb_table.5.html">lmdb</a>:/etc/alias
 </pre>
 </blockquote>
 
-<p> If Postfix programs log error messages like: </p>
+<p> If Postfix programs <a href="DEBUG_README.html#logging">logs</a>
+error messages like: </p>
 
 <blockquote>
 <pre>
@@ -642,7 +670,8 @@ with: </p>
 </pre>
 </blockquote>
 
-<p> Then, scan the log for instances similar to: </p>
+<p> Then, scan the <a href="DEBUG_README.html#logging">log</a> for
+instances similar to: </p>
  
 <blockquote>
 <pre>
@@ -670,8 +699,9 @@ indexed file generation </a> </h2>
 <h3> Unexpected pathname errors </h3>
 
 <p> Depending on the location of your Postfix lookup tables, Postfix
-programs may log a request to add a trusted directory to the
-directories listed with <a href="postconf.5.html#non_bdb_migration_allow_root_prefixes">non_bdb_migration_allow_root_prefixes</a> or
+programs may <a href="DEBUG_README.html#logging">log</a> a request
+to add a trusted directory to the directories listed with
+<a href="postconf.5.html#non_bdb_migration_allow_root_prefixes">non_bdb_migration_allow_root_prefixes</a> or
 <a href="postconf.5.html#non_bdb_migration_allow_user_prefixes">non_bdb_migration_allow_user_prefixes</a>. </p>
 
 <p> Example, with line breaks added for readability: </p>
@@ -707,9 +737,9 @@ a non-root user. </p>
 
 <h3> Unexpected file or directory owner or permissions </h3>
 
-<p> Other errors may be logged when a database file or directory
-has an unexpected owner, or when it is writable by group or by other
-users. </p>
+<p> Other errors may be <a href="DEBUG_README.html#logging">logged</a>
+when a database file or directory has an unexpected owner, or when
+it is writable by group or by other users. </p>
 
 <p> Example with line breaks added for readability: </p>
 
@@ -829,9 +859,10 @@ Postfix will also try to run commands like "<tt>postmap
 depending on the amount of mailing list traffic; you may want to post
 a test message to make the postmap commands happen sooner. </p>
 
-<p> Postfix will log the postmap commands (or will log a request to make
-some configuration changes; see "<a href="addr-errors">Addressing errors
-with automatic indexed file generation</a>" above). </p>
+<p> Postfix will <a href="DEBUG_README.html#logging">log</a> the
+postmap commands (or will log a request to make some configuration
+changes; see "<a href="addr-errors">Addressing errors with automatic
+indexed file generation</a>" above). </p>
 
 <p> <i>Note: once these "postmap" commands have completed,
 you should reduce the migration support level with the command

@@ -4,6 +4,10 @@ PPoossttffiixx NNoonn--BBeerrkkeelleeyy--DDBB mmiiggrr
 
 TTaabbllee ooff ccoonntteennttss
 
+Note: be sure to visit the on-line version of this text at https://
+www.postfix.org/NON_BERKELEYDB_README.html, as support for different Postfix
+versions may be added over time.
+
   * Introduction
   * Background
   * Skip this if not building Postfix from source, or if your system still
@@ -224,14 +228,14 @@ The manual migration process goes like this:
 |  * For each instance in the "grep" output :                                 |
 |                                                                             |
 |                                                                             |
-|      o Edit the configuration file and replace "hash" with "lmdb" or "cdb"  |
+|     1. Edit the configuration file and replace "hash" with "lmdb" or "cdb"  |
 |        (use the same value as the output from "ppoossttccoonnff --hhxx                 |
 |        ddeeffaauulltt__ddaattaabbaassee__ttyyppee") and replace "btree" with "lmdb".             |
 |                                                                             |
-|      o If this instance has no source file (only the ".db" file exists),    |
+|     2. If this instance has no source file (only the ".db" file exists),    |
 |        proceed with the next instance of "grep" output.                     |
 |                                                                             |
-|      o Postfix 3.11 and later: if this instance appears in the output from  |
+|     3. Postfix 3.11 and later: if this instance appears in the output from  |
 |        "ppoossttccoonnff --hhPPPPxx ''**//**//aalliiaass__mmaappss'' || ssoorrtt --uu", run the postalias(1)    |
 |        command. If this instance is like "lmdb:/path/to/source":            |
 |                                                                             |
@@ -241,7 +245,7 @@ The manual migration process goes like this:
 |        Instead of "lmdb:" use "cdb:" if the instance is like "cdb:/path/to/ |
 |        source".                                                             |
 |                                                                             |
-|      o Postfix 3.10 and earlier: if this instance appears in the output from|
+|     4. Postfix 3.10 and earlier: if this instance appears in the output from|
 |        "ppoossttccoonnff --hhxx aalliiaass__mmaappss", run the postalias(1) command. If this     |
 |        instance is like "lmdb:/path/to/source":                             |
 |                                                                             |
@@ -251,7 +255,7 @@ The manual migration process goes like this:
 |        Instead of "lmdb:" use "cdb:" if the instance is like "cdb:/path/to/ |
 |        source".                                                             |
 |                                                                             |
-|      o Otherwise, run the postmap(1) command. If this instance is like      |
+|     5. Otherwise, run the postmap(1) command. If this instance is like      |
 |        "lmdb:/path/to/source":                                              |
 |                                                                             |
 |                                                                             |
@@ -261,11 +265,27 @@ The manual migration process goes like this:
 |        source".                                                             |
 |                                                                             |
 |                                                                             |
-|  * Start Postfix, watch the log for warnings about files that cannot be     |
-|    opened, find the configuration file that still uses "hash" or "btree",   |
-|    and repeat the steps above.                                              |
+|  * Disable inbound network mail, and start Postfix.                         |
 |                                                                             |
-|  * It is now safe to delete the unused ".db" files.                         |
+|                                                                             |
+|    # ppoossttccoonnff mmaasstteerr__sseerrvviiccee__ddiissaabbllee == iinneett                                 |
+|    # ppoossttffiixx ssttaarrtt                                                          |
+|                                                                             |
+|  * Watch the log for warnings about files that cannot be opened, find the   |
+|    configuration file that still uses "hash" or "btree", and repeat steps 1-|
+|    5 above.                                                                 |
+|                                                                             |
+|  * Enable inbound network mail, reload Postfix, and connect to an SMTP      |
+|    network port.                                                            |
+|                                                                             |
+|                                                                             |
+|    # ppoossttccoonnff --XX mmaasstteerr__sseerrvviiccee__ddiissaabbllee                                     |
+|    # ppoossttffiixx rreellooaadd                                                         |
+|    # tteellnneett hhoossttnnaammee 2255                                                     |
+|                                                                             |
+|  * Watch the log for warnings about files that cannot be opened, find the   |
+|    configuration file that still uses "hash" or "btree", and repeat steps 1-|
+|    5 above.                                                                 |
 |                                                                             |
 |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
@@ -350,7 +370,7 @@ postalias(1) to create that file.
 |                                                                             |
 |                                                                             |
 |This may reveal a few more problems. Once there are no more errors with      |
-|opening database files for about 24 hours, scan the log for instances similar|
+|opening database files for about 24 hours, scan the log for messages similar |
 |to:                                                                          |
 |                                                                             |
 |                                                                             |
@@ -443,7 +463,7 @@ type.
 |    successfully executed 'postalias lmdb:/etc/aliases' as uid 0             |
 |                                                                             |
 |                                                                             |
-|If Postfix programs log error messages like:                                 |
+|If Postfix programs logs error messages like:                                |
 |                                                                             |
 |                                                                             |
 |                                                                             |

@@ -383,6 +383,4 @@ smtp_requiretls_policy smtp_requiretls_policy inline
  xn mumble mumble Punycode A label form that Postfix needs This works around a limitation that may be eliminated in a future Postfix version 
 in tt tt p 
 mynetworks mynetworks lmdb etc postfix network_table
- 25 enable redirect redirect hash to lmdb or cdb 
- 28 enable redirect redirect hash to lmdb or cdb 
- 33 enable redirect redirect hash to lmdb or cdb 
+ 44 enable redirect redirect hash to lmdb or cdb 
