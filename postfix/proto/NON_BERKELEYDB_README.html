@@ -379,11 +379,13 @@ is like "<tt>lmdb:/path/to/source</tt>": </p>
 
 </ol>
 
-<li> <p> Disable inbound network mail, and start Postfix. </p>
+<li> <p> Disable inbound network mail, start Postfix, and
+send a test message using the Postfix sendmail(1) command. </p>
 
 <pre>
 # <b>postconf master_service_disable = inet</b>
 # <b>postfix start</b>
+# <b>sendmail -bv postmaster</b>
 </pre>
 
 <li> <p> Watch the <a href="DEBUG_README.html#logging">log</a> for
@@ -392,7 +394,7 @@ file that still uses "hash" or "btree", and repeat steps 1-5 above.
 </p>
 
 <li> <p> Enable inbound network mail, reload Postfix, and connect
-to an SMTP network port. </p>
+to the Postfix SMTP network port. </p>
 
 <pre>
 # <b>postconf -X master_service_disable</b>
@@ -474,7 +476,15 @@ and later) </b> </th> </tr>
 </pre>
 </blockquote>
 
-<p> Start (or reload) Postfix. </p>
+<p> Start (or reload) Postfix, and send a test message using the
+Postfix sendmail(1) command. </p>
+
+<blockquote>
+<pre>
+# <b>postfix start</b> (or <B>postfix reload</b>)
+# <b>sendmail -bv postmaster</b>
+</pre>
+</blockquote>
 
 <p> Scan the <a href="DEBUG_README.html#logging">logging</a> for
 failure to open database files. For each instance of
@@ -507,12 +517,14 @@ is like "<tt>lmdb:/path/to/source</tt>": </p>
 
 </ul>
 
-<p> Resume inbound mail with: </p>
+<p> Resume inbound mail, reload Postfix, and connect to the Postfix
+SMTP network port: </p>
 
 <blockquote>
 <pre>
 # <b>postconf -X master_service_disable</b>
 # <b>postfix reload</b>
+# <b>telnet <i>hostname</i> 25</b>
 </pre>
 </blockquote>
 
@@ -621,7 +633,15 @@ and later)</b> </th> </tr>
 </pre>
 </blockquote>
  
-<p> Start (or reload) Postfix. </p>
+<p> Start (or reload) Postfix, and send a test message using the
+Postfix sendmail(1) command. </p>
+
+<blockquote>
+<pre>
+# <b>postfix start</b> (or <B>postfix reload</b>)
+# <b>sendmail -bv postmaster</b>
+</pre>
+</blockquote>
 
 <p> The nbdb_reindexd(8) daemon will <a
 href="DEBUG_README.html#logging">log</a> when it successfully runs
@@ -649,12 +669,14 @@ with automatic indexed file generation</a>" for the most likely
 errors that Postfix programs may log. </p>
 
 <p> Once there are no more errors from Postfix programs, resume
-inbound mail with: </p>
+inbound mail, reload Postfix, and connect to the Postfix SMTP network
+port: </p>
 
 <blockquote>
 <pre>
 # <b>postconf -X master_service_disable</b>
 # <b>postfix reload</b>
+# <b>telnet <i>hostname</i> 25</b>
 </pre>
 </blockquote>
 

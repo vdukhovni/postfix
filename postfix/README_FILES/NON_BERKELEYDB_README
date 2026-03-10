@@ -265,18 +265,20 @@ The manual migration process goes like this:
 |        source".                                                             |
 |                                                                             |
 |                                                                             |
-|  * Disable inbound network mail, and start Postfix.                         |
+|  * Disable inbound network mail, start Postfix, and send a test message     |
+|    using the Postfix sendmail(1) command.                                   |
 |                                                                             |
 |                                                                             |
 |    # ppoossttccoonnff mmaasstteerr__sseerrvviiccee__ddiissaabbllee == iinneett                                 |
 |    # ppoossttffiixx ssttaarrtt                                                          |
+|    # sseennddmmaaiill --bbvv ppoossttmmaasstteerr                                                |
 |                                                                             |
 |  * Watch the log for warnings about files that cannot be opened, find the   |
 |    configuration file that still uses "hash" or "btree", and repeat steps 1-|
 |    5 above.                                                                 |
 |                                                                             |
-|  * Enable inbound network mail, reload Postfix, and connect to an SMTP      |
-|    network port.                                                            |
+|  * Enable inbound network mail, reload Postfix, and connect to the Postfix  |
+|    SMTP network port.                                                       |
 |                                                                             |
 |                                                                             |
 |    # ppoossttccoonnff --XX mmaasstteerr__sseerrvviiccee__ddiissaabbllee                                     |
@@ -334,7 +336,14 @@ postalias(1) to create that file.
 |    # ppoossttffiixx nnoonn--bbddbb eennaabbllee--rreeddiirreecctt                                        |
 |                                                                             |
 |                                                                             |
-|Start (or reload) Postfix.                                                   |
+|Start (or reload) Postfix, and send a test message using the Postfix sendmail|
+|(1) command.                                                                 |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|    # ppoossttffiixx ssttaarrtt (or ppoossttffiixx rreellooaadd)                                      |
+|    # sseennddmmaaiill --bbvv ppoossttmmaasstteerr                                                |
+|                                                                             |
 |                                                                             |
 |Scan the logging for failure to open database files. For each instance of    |
 |"hash:/path/to/source" or "btree:/path/to/source" that requires manually     |
@@ -361,12 +370,14 @@ postalias(1) to create that file.
 |    source".                                                                 |
 |                                                                             |
 |                                                                             |
-|Resume inbound mail with:                                                    |
+|Resume inbound mail, reload Postfix, and connect to the Postfix SMTP network |
+|port:                                                                        |
 |                                                                             |
 |                                                                             |
 |                                                                             |
 |    # ppoossttccoonnff --XX mmaasstteerr__sseerrvviiccee__ddiissaabbllee                                     |
 |    # ppoossttffiixx rreellooaadd                                                         |
+|    # tteellnneett hhoossttnnaammee 2255                                                     |
 |                                                                             |
 |                                                                             |
 |This may reveal a few more problems. Once there are no more errors with      |
@@ -451,7 +462,14 @@ type.
 |    # ppoossttffiixx nnoonn--bbddbb eennaabbllee--rreeiinnddeexx                                         |
 |                                                                             |
 |                                                                             |
-|Start (or reload) Postfix.                                                   |
+|Start (or reload) Postfix, and send a test message using the Postfix sendmail|
+|(1) command.                                                                 |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|    # ppoossttffiixx ssttaarrtt (or ppoossttffiixx rreellooaadd)                                      |
+|    # sseennddmmaaiill --bbvv ppoossttmmaasstteerr                                                |
+|                                                                             |
 |                                                                             |
 |The nbdb_reindexd(8) daemon will log when it successfully runs a postmap(1)  |
 |or postalias(1) command. Examples, for a system with "default_database_type =|
@@ -473,13 +491,14 @@ type.
 |see the section "Addressing errors with automatic indexed file generation"   |
 |for the most likely errors that Postfix programs may log.                    |
 |                                                                             |
-|Once there are no more errors from Postfix programs, resume inbound mail     |
-|with:                                                                        |
+|Once there are no more errors from Postfix programs, resume inbound mail,    |
+|reload Postfix, and connect to the Postfix SMTP network port:                |
 |                                                                             |
 |                                                                             |
 |                                                                             |
 |    # ppoossttccoonnff --XX mmaasstteerr__sseerrvviiccee__ddiissaabbllee                                     |
 |    # ppoossttffiixx rreellooaadd                                                         |
+|    # tteellnneett hhoossttnnaammee 2255                                                     |
 |                                                                             |
 |                                                                             |
 |This may reveal a few more problems. Once there are no more errors from      |

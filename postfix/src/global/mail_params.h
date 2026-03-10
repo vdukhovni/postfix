@@ -2636,6 +2636,7 @@ extern char *var_proxy_write_acl;
 extern char *var_procname;
 
 #define VAR_SERVNAME		"service_name"
+#define DEF_SERVNAME		"amnesiac"
 extern char *var_servname;
 
 #define VAR_PID			"process_id"

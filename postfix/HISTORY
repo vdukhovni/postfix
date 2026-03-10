@@ -30583,3 +30583,45 @@ Apologies for any names omitted.
 	master_service_disable=inet" + "postfix start" step, to
 	locate settings that still need to be updated. File:
 	proto/NON_BERKELEYDB_README.html.
+
+20260307
+
+	In NON_BERKELEYDB_README, add active tests using sendmail(1)
+	and telnet(1). File: proto/NON_BERKELEYDB_README.html.
+
+20260309
+
+	Bugfix (defect introduced: 20260219): alias_maps errors
+	when default_database_type was not set in main.cf, or when
+	it was set later than alias_maps. Fix by Michael Tokarev.
+	File: global/mail_params.c.
+
+	Bugfix (defect introduced: 20260219): null pointer in
+	nbdb_reindexd(8) because the "service_name" value was not
+	propagated. Report by Michael Tokarev, fix by Wietse. Files:
+	global/mail_params.c, global/mail_params.h
+
+	Bugfix (defect introduced: 20260219): spurious error message
+	from nbdb_reindexd(8). File: conf/postfix-script.
+
+20260310
+
+	Bugfix (defect introduced: Postfix 3.0): buffer over-read
+	when Postfix is configured with an enhanced status code not
+	followed by other text. For example, "5.7.2" without text
+	after the three-number code, in an access(5) table, header
+	or body checks, or with "$rbl_code $rbl_text" in rbl_reply_maps
+	or default_rbl_reply. Problem reported by Kamil Frankowicz.
+	File: global/dsn_split.c.
+
+	Bugfix (defect introduced: Postfix postfix-2.9): bad free()
+	call when mail_version_parse() is called with a malformed
+	Postfix version string. This function is currently called
+	only in test code. Reported by Kamil Frankowicz. File:
+	global/mail_version.c.
+
+	Portability: The __MAXINT__(T) macro, to determine the
+	maximal signed value for objects of type T, was using
+	implementation-defined behavior (shift one bit into the
+	sign position). This works today but may break later.
+	Reported by Kamil Frankowicz. File: util/sys_defs.h.

@@ -311,6 +311,7 @@ check-alias-maps-migration)
 	# 
 	# To avoid this, craft a one-time stand-alone re-indexing request.
 	test -f $config_directory/check-alias-maps-migration-done && exit 0
+	test "x`$command_directory/postconf -h non_bdb_migration_level`" = xenable-reindex || exit 0
 	BACKUP_IFS="$IFS"
 	for map	in `$command_directory/postconf -hx alias_maps`
 	do

@@ -115,7 +115,7 @@ static const char *mail_version_worker(MAIL_VERSION *mp, char *cp)
     /*
      * Program name.
      */
-    if ((mp->program = mystrtok(&cp, "-")) == 0)
+    if (*cp == '-' || (mp->program = mystrtok(&cp, "-")) == 0)
 	return ("no program name");
 
     /*
