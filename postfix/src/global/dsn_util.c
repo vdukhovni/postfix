@@ -154,7 +154,7 @@ DSN_SPLIT *dsn_split(DSN_SPLIT *dp, const char *def_dsn, const char *text)
     if ((len = dsn_valid(cp)) > 0) {
 	strncpy(dp->dsn.data, cp, len);
 	dp->dsn.data[len] = 0;
-	cp += len + 1;
+	cp += len;
     } else if ((len = dsn_valid(def_dsn)) > 0) {
 	strncpy(dp->dsn.data, def_dsn, len);
 	dp->dsn.data[len] = 0;
