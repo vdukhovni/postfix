@@ -96,10 +96,6 @@
 #include <stringops.h>
 #include <split_at.h>
 #include <scan_dir.h>
-
- /*
-  * Global library.
-  */
 #include <dynamicmaps.h>
 
 #ifdef USE_DYNAMIC_MAPS

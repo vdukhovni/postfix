@@ -49,7 +49,10 @@ surrounding white space is stripped off. Whitespace in lookup
 keys is supported in Postfix 3.2 and later, by surrounding the
 key with double quote characters `"'. Within the double quotes,
 double quote `"' and backslash `\\' characters can be included
-by quoting them with a preceding backslash.
+by quoting them with a preceding backslash. For backwards
+compatibility, Postfix programs will search with the legacy
+internal form only if the preferred external form is not found,
+and the internal and external forms differ.
 
 When the \fB\-F\fR option is given, the \fIvalue\fR must
 specify one or more filenames separated by comma and/or

@@ -87,6 +87,7 @@
 #include <sent.h>
 #include <trace.h>
 #include <dsn_mask.h>
+#include <quote_822_local.h>
 
 /* Application-specific. */
 
@@ -96,6 +97,27 @@
 
 #define NO	0
 #define YES	1
+
+/* get_alias - look up alias expansion, with legacy search key support */
+
+static const char *get_alias(LOCAL_STATE state, DICT *dict, const char *name)
+{
+    const char *alias_result;
+
+    /*
+     * The legacy query with the unquoted form should be removed when the
+     * legacy strategy is removed in mail_addr_find.h.
+     */
+    quote_822_local_flags(state.alias_key, name, QUOTE_FLAG_DEFAULT
+			  | QUOTE_FLAG_BARE_LOCALPART);
+    alias_result = dict_get(dict, STR(state.alias_key));
+    /* LINT.IfChange */
+    if (alias_result == 0 && dict->error == 0
+	&& strcmp(name, STR(state.alias_key)) != 0)
+	alias_result = dict_get(dict, name);
+    /* LINT.ThenChange(../global/mail_addr_find.h) */
+    return (alias_result);
+}
 
 /* deliver_alias - expand alias file entry */
 
@@ -172,7 +194,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
     for (cpp = alias_maps->argv->argv; *cpp; cpp++) {
 	if ((dict = dict_handle(*cpp)) == 0)
 	    msg_panic("%s: dictionary not found: %s", myname, *cpp);
-	if ((alias_result = dict_get(dict, name)) != 0) {
+	if ((alias_result = get_alias(state, dict, name)) != 0) {
 	    if (msg_verbose)
 		msg_info("%s: %s: %s = %s", myname, *cpp, name, alias_result);
 

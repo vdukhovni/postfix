@@ -111,6 +111,7 @@ typedef struct LOCAL_STATE {
     BH_TABLE *dup_filter;		/* internal duplicate filter */
     DELIVERED_HDR_INFO *loop_info;	/* external loop filter */
     DELIVER_REQUEST *request;		/* as from queue manager */
+    VSTRING *alias_key;			/* external-form search key */
 } LOCAL_STATE;
 
 #define RESET_OWNER_ATTR(msg_attr, level) { \

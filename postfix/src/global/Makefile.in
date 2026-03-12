@@ -31,7 +31,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c \
 	smtp_reply_footer.c safe_ultostr.c verify_sender_addr.c \
 	dict_memcache.c mail_version.c memcache_proto.c server_acl.c \
-	haproxy_srvr.c dsn_filter.c dynamicmaps.c uxtext.c \
+	haproxy_srvr.c dsn_filter.c uxtext.c \
 	smtputf8.c mail_conf_over.c mail_parm_split.c midna_adomain.c \
 	mail_addr_form.c quote_flags.c maillog_client.c \
 	normalize_mailhost_addr.c map_search.c reject_deliver_request.c \
@@ -72,7 +72,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o \
 	smtp_reply_footer.o safe_ultostr.o verify_sender_addr.o \
 	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
-	haproxy_srvr.o dsn_filter.o dynamicmaps.o uxtext.o \
+	haproxy_srvr.o dsn_filter.o uxtext.o \
 	smtputf8.o attr_override.o mail_parm_split.o midna_adomain.o \
 	$(NON_PLUGIN_MAP_OBJ) mail_addr_form.o quote_flags.o maillog_client.o \
 	normalize_mailhost_addr.o map_search.o reject_deliver_request.o \
@@ -112,7 +112,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	fold_addr.h header_body_checks.h data_redirect.h match_service.h \
 	addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
 	verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h \
-	haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h smtputf8.h \
+	haproxy_srvr.h dsn_filter.h uxtext.h smtputf8.h \
 	attr_override.h mail_parm_split.h midna_adomain.h mail_addr_form.h \
 	maillog_client.h normalize_mailhost_addr.h map_search.h \
 	info_log_addr_form.h sasl_mech_filter.h login_sender_match.h \
@@ -136,7 +136,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	verify_clnt xtext anvil_clnt scache ehlo_mask_test \
 	valid_mailhost_addr own_inet_addr header_body_checks \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
-	mail_version mail_dict server_acl uxtext mail_parm_split \
+	mail_dict server_acl uxtext mail_parm_split \
 	fold_addr smtp_reply_footer mail_addr_map normalize_mailhost_addr \
 	haproxy_srvr_test map_search delivered_hdr login_sender_match_test \
 	compat_level config_known_tcp_ports hfrom_format rfc2047_code \
@@ -446,7 +446,7 @@ config_known_tcp_ports: config_known_tcp_ports.c $(LIB) $(LIBS)
 tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	xtext_test scache_multi_test test_ehlo_mask \
 	namadr_list_test mail_conf_time_test header_body_checks_tests \
-	mail_version_test server_acl_test resolve_local_test maps_test \
+	server_acl_test resolve_local_test maps_test \
 	safe_ultostr_test mail_parm_split_test fold_addr_test \
 	smtp_reply_footer_test off_cvt_test mail_addr_crunch_test \
 	mail_addr_find_test mail_addr_map_test quote_822_local_test \
@@ -548,11 +548,6 @@ xtext_test: xtext
 	od -cb <xtext.c >xtext.ref
 	cmp xtext.ref xtext.tmp
 	rm -f xtext.ref xtext.tmp
-
-mail_version_test: mail_version mail_version.in mail_version.ref
-	$(SHLIB_ENV) $(VALGRIND) ./mail_version <mail_version.in >mail_version.tmp
-	diff  mail_version.ref mail_version.tmp
-	rm -f mail_version.tmp
 
 server_acl_test: server_acl server_acl.in server_acl.ref
 	$(SHLIB_ENV) $(VALGRIND) ./server_acl <server_acl.in >server_acl.tmp 2>&1
@@ -1525,25 +1520,6 @@ dsn_util.o: ../../include/vbuf.h
 dsn_util.o: ../../include/vstring.h
 dsn_util.o: dsn_util.c
 dsn_util.o: dsn_util.h
-dynamicmaps.o: ../../include/argv.h
-dynamicmaps.o: ../../include/check_arg.h
-dynamicmaps.o: ../../include/dict.h
-dynamicmaps.o: ../../include/htable.h
-dynamicmaps.o: ../../include/load_lib.h
-dynamicmaps.o: ../../include/mkmap.h
-dynamicmaps.o: ../../include/msg.h
-dynamicmaps.o: ../../include/myflock.h
-dynamicmaps.o: ../../include/mymalloc.h
-dynamicmaps.o: ../../include/scan_dir.h
-dynamicmaps.o: ../../include/split_at.h
-dynamicmaps.o: ../../include/stringops.h
-dynamicmaps.o: ../../include/sys_defs.h
-dynamicmaps.o: ../../include/vbuf.h
-dynamicmaps.o: ../../include/vstream.h
-dynamicmaps.o: ../../include/vstring.h
-dynamicmaps.o: ../../include/vstring_vstream.h
-dynamicmaps.o: dynamicmaps.c
-dynamicmaps.o: dynamicmaps.h
 ehlo_mask.o: ../../include/check_arg.h
 ehlo_mask.o: ../../include/name_mask.h
 ehlo_mask.o: ../../include/sys_defs.h
@@ -2020,6 +1996,7 @@ mail_date.o: mail_date.h
 mail_dict.o: ../../include/argv.h
 mail_dict.o: ../../include/check_arg.h
 mail_dict.o: ../../include/dict.h
+mail_dict.o: ../../include/dynamicmaps.h
 mail_dict.o: ../../include/mkmap.h
 mail_dict.o: ../../include/msg.h
 mail_dict.o: ../../include/myflock.h
@@ -2036,7 +2013,6 @@ mail_dict.o: dict_mysql.h
 mail_dict.o: dict_pgsql.h
 mail_dict.o: dict_proxy.h
 mail_dict.o: dict_sqlite.h
-mail_dict.o: dynamicmaps.h
 mail_dict.o: mail_dict.c
 mail_dict.o: mail_dict.h
 mail_dict.o: mail_params.h

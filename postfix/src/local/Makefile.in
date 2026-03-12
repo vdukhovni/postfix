@@ -79,6 +79,8 @@ alias.o: ../../include/mymalloc.h
 alias.o: ../../include/mypwd.h
 alias.o: ../../include/nvtable.h
 alias.o: ../../include/pol_stats.h
+alias.o: ../../include/quote_822_local.h
+alias.o: ../../include/quote_flags.h
 alias.o: ../../include/recipient_list.h
 alias.o: ../../include/resolve_clnt.h
 alias.o: ../../include/sent.h

@@ -34,6 +34,14 @@
 /*	text, such as regexp: and pcre:. This resulted in loss of
 /*	information with $\fInumber\fR substitutions.
 /*
+/*	In a database file, \fBpostalias\fR(1) stores keys in the external
+/*	(quoted) form. Historically, Postfix versions 3.10 and earlier
+/*	stored the internal (unquoted) form. This was not consistent
+/*	with \fBpostmap\fR(1) behavior. For backwards compatibility,
+/*	Postfix programs will search with the legacy internal form only
+/*	if the preferred external form is not found, and the internal
+/*	and external forms differ.
+/*
 /*	Options:
 /* .IP "\fB-c \fIconfig_dir\fR"
 /*	Read the \fBmain.cf\fR configuration file in the named directory
@@ -462,7 +470,7 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
 	    tok822_unlink(colon);
 	    tok822_free(colon);
 
-	    tok822_internalize(key_buffer, key_list, TOK822_STR_DEFL);
+	    tok822_externalize(key_buffer, key_list, TOK822_STR_DEFL);
 	    tok822_free_tree(key_list);
 
 	    tok822_externalize(value_buffer, value_list, TOK822_STR_DEFL);

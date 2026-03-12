@@ -228,3 +228,5 @@ proto  proto stop proto stop double cc
  proto stop spell proto html postfix postfix c conf postfix files 
  File nbdb_reindexd nbdb_reindexd c 
  tls tls h tls tls_misc c tls tls_verify c 
+ differ Files postalias postalias c local alias c 
+ local local hc local Makefile 

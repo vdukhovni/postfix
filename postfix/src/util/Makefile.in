@@ -48,7 +48,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	inet_addr_sizes.c quote_for_json.c mystrerror.c \
 	sane_sockaddr_to_hostaddr.c normalize_ws.c valid_uri_scheme.c \
 	clean_ascii_cntrl_space.c normalize_v4mapped_addr.c ossl_digest.c \
-	mac_midna.c wrap_stat.c
+	mac_midna.c wrap_stat.c dynamicmaps.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -97,7 +97,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	mkmap_fail.o mkmap_open.o inet_prefix_top.o inet_addr_sizes.o \
 	quote_for_json.o mystrerror.o sane_sockaddr_to_hostaddr.o \
 	normalize_ws.o valid_uri_scheme.o clean_ascii_cntrl_space.o \
-	normalize_v4mapped_addr.o ossl_digest.o mac_midna.o wrap_stat.o
+	normalize_v4mapped_addr.o ossl_digest.o mac_midna.o wrap_stat.o \
+	dynamicmaps.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -132,7 +133,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	known_tcp_ports.h sane_strtol.h hash_fnv.h ldseed.h mkmap.h \
 	inet_prefix_top.h inet_addr_sizes.h valid_uri_scheme.h \
 	clean_ascii_cntrl_space.h normalize_v4mapped_addr.h ossl_digest.h \
-	mac_midna.h wrap_stat.h
+	mac_midna.h wrap_stat.h dynamicmaps.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -1992,6 +1993,25 @@ duplex_pipe.o: duplex_pipe.c
 duplex_pipe.o: iostuff.h
 duplex_pipe.o: sane_socketpair.h
 duplex_pipe.o: sys_defs.h
+dynamicmaps.o: argv.h
+dynamicmaps.o: check_arg.h
+dynamicmaps.o: dict.h
+dynamicmaps.o: dynamicmaps.c
+dynamicmaps.o: dynamicmaps.h
+dynamicmaps.o: htable.h
+dynamicmaps.o: load_lib.h
+dynamicmaps.o: mkmap.h
+dynamicmaps.o: msg.h
+dynamicmaps.o: myflock.h
+dynamicmaps.o: mymalloc.h
+dynamicmaps.o: scan_dir.h
+dynamicmaps.o: split_at.h
+dynamicmaps.o: stringops.h
+dynamicmaps.o: sys_defs.h
+dynamicmaps.o: vbuf.h
+dynamicmaps.o: vstream.h
+dynamicmaps.o: vstring.h
+dynamicmaps.o: vstring_vstream.h
 edit_file.o: check_arg.h
 edit_file.o: edit_file.c
 edit_file.o: edit_file.h

@@ -30601,8 +30601,9 @@ Apologies for any names omitted.
 	propagated. Report by Michael Tokarev, fix by Wietse. Files:
 	global/mail_params.c, global/mail_params.h
 
-	Bugfix (defect introduced: 20260219): spurious error message
-	from nbdb_reindexd(8). File: conf/postfix-script.
+	Cleanup: during Postfix start-up, avoid a spurious error
+	message from nbdb_reindexd(8), when non_bdb_migration_level
+	disables automatic re-indexing. File: conf/postfix-script.
 
 20260310
 
@@ -30625,3 +30626,31 @@ Apologies for any names omitted.
 	implementation-defined behavior (shift one bit into the
 	sign position). This works today but may break later.
 	Reported by Kamil Frankowicz. File: util/sys_defs.h.
+
+20260311
+
+	Preparation: move src/global/dynamicmaps.[hc] to src/util
+	without making any other code changes. This is a baseline
+	for developing support to build tests with "shared=yes
+	dynamicmaps=yes". Curently, tests must be built with
+	"shared=yes dynamicmaps=no", which is annoying.  Files:
+	util/dynamicmaps.[hc], util/Makefile.in, global/Makefile.in.
+
+20260312
+
+	Technical debt elimination: make postalias behavior consistent
+	with postmap behavior that was introduced with Postfix 3.2.
+	Store search keys in the external (quoted) form, and update
+	the local(8) delivery agent to search with the legacy
+	internal (unquoted) form only if the preferred external
+	form is not found, and the internal and external forms
+	differ. Files: postalias/postalias.c, local/alias.c,
+	local/local.[hc], local/Makefile.
+
+	Future proofing: added IfThisThenThat linter hints to remove
+	the legacy internal-form lookups consistently from database
+	client programs. Files: global/mail_addr_find.h, local/alias.c.
+
+	Deleted mail_version_parse() and mail_version_free()
+	infrastructure. It was used only by test code. Files:
+	src/global/mail_version.[hc].

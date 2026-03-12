@@ -762,6 +762,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     state.loop_info = delivered_hdr_init(rqst->fp, rqst->data_offset,
 					 FOLD_ADDR_ALL);
     state.request = rqst;
+    state.alias_key = vstring_alloc(100);
 
     /*
      * Iterate over each recipient named in the delivery request. When the
@@ -786,6 +787,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
      */
     delivered_hdr_free(state.loop_info);
     deliver_attr_free(&state.msg_attr);
+    vstring_free(state.alias_key);
 
     return (msg_stat);
 }

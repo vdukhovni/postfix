@@ -25,3 +25,20 @@ now also distributed with the more recent Eclipse Public License
 (EPL) 2.0. Recipients can choose to take the software under the
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
+
+Incompatible changes with snapshot 20260312
+===========================================
+
+For consistency with postmap, the postalias command now stores the
+alias database search key in external (quoted) form. For example,
+if an alias name contains whitespace between the words 'foo' and
+'bar', then it will be stored as "foo bar" including the double
+quotes.
+
+For consistency with "postmap -s", the "postalias -s" command now
+outputs the search key in external (quoted) form.
+
+For backwards compatibility, the local(8) delivery agent will look
+up the legacy internal (unquoted) form of an alias name only if the
+preferred external (quoted) form is not found, and the internal and
+external forms differ.

@@ -47,6 +47,7 @@ extern const char *mail_addr_find_opt(MAPS *, const char *, char **,
 	    MA_FORM_EXTERNAL, MA_FIND_DEFAULT)
 
  /* The legacy forms. */
+ /* LINT.IfChange */
 #define MA_FIND_FORM_LEGACY \
 	MA_FORM_INTERNAL, MA_FORM_EXTERNAL_FIRST, \
 	    MA_FORM_EXTERNAL
@@ -62,6 +63,7 @@ extern const char *mail_addr_find_opt(MAPS *, const char *, char **,
 #define mail_addr_find_to_internal(maps, address, extension) \
 	mail_addr_find_opt((maps), (address), (extension), \
 	    MA_FIND_FORM_LEGACY, MA_FIND_DEFAULT)
+ /* LINT.ThenChange(../local/alias.c) */
 
 /* LICENSE
 /* .ad
