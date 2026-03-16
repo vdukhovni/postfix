@@ -466,7 +466,7 @@ void    pcf_register_builtin_parameters(const char *procname, pid_t pid)
     PCF_PARAM_TABLE_ENTER(pcf_param_table, pcf_adhoc_procname.name,
 			  PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_READONLY,
 		      (void *) &pcf_adhoc_procname, pcf_conv_str_parameter);
-    pcf_adhoc_servname.defval = mystrdup("");
+    pcf_adhoc_servname.defval = mystrdup(DEF_SERVNAME);
     PCF_PARAM_TABLE_ENTER(pcf_param_table, pcf_adhoc_servname.name,
 			  PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_READONLY,
 		      (void *) &pcf_adhoc_servname, pcf_conv_str_parameter);

@@ -51,7 +51,7 @@
 #define DEF_MAILBOX_LOCK "flock, dotlock"
 #define HAS_SUN_LEN
 #define HAS_FSYNC
-#define HAS_DB
+#define HAS_DB		1
 #define HAS_SA_LEN
 #define NATIVE_DB_TYPE	"hash"
 #if (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 104250000)
@@ -232,7 +232,7 @@
 #define DEF_MAILBOX_LOCK "flock, dotlock"
 #define HAS_SUN_LEN
 #define HAS_FSYNC
-#define HAS_DB
+#define HAS_DB		1
 #define HAS_SA_LEN
 #define NATIVE_DB_TYPE	"hash"
 #define ALIAS_DB_MAP	"$default_database_type:/etc/aliases"
@@ -774,7 +774,7 @@ extern int initgroups(const char *, int);
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"	/* RedHat >= 4.x */
 #define HAS_FSYNC
-#define HAS_DB
+#define HAS_DB		1
 #define NATIVE_DB_TYPE	"hash"
 #define ALIAS_DB_MAP	"$default_database_type:/etc/aliases"
 #ifndef NO_NIS
@@ -850,7 +850,7 @@ extern int initgroups(const char *, int);
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FLOCK
 #define DEF_MAILBOX_LOCK "dotlock"	/* verified RedHat 3.03 */
 #define HAS_FSYNC
-#define HAS_DB
+#define HAS_DB		1
 #define NATIVE_DB_TYPE	"hash"
 #define ALIAS_DB_MAP	"$default_database_type:/etc/aliases"
 #ifndef NO_NIS
@@ -883,7 +883,7 @@ extern int initgroups(const char *, int);
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"	/* RedHat >= 4.x */
 #define HAS_FSYNC
-#define HAS_DB
+#define HAS_DB		1
 #define NATIVE_DB_TYPE	"hash"
 #define ALIAS_DB_MAP	"$default_database_type:/etc/aliases"
 #ifndef NO_NIS

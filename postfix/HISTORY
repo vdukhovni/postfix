@@ -30632,8 +30632,8 @@ Apologies for any names omitted.
 	Preparation: move src/global/dynamicmaps.[hc] to src/util
 	without making any other code changes. This is a baseline
 	for developing support to build tests with "shared=yes
-	dynamicmaps=yes". Curently, tests must be built with
-	"shared=yes dynamicmaps=no", which is annoying.  Files:
+	dynamicmaps=yes". Currently, tests must be built with
+	"shared=yes dynamicmaps=no", which is annoying. Files:
 	util/dynamicmaps.[hc], util/Makefile.in, global/Makefile.in.
 
 20260312
@@ -30654,3 +30654,21 @@ Apologies for any names omitted.
 	Deleted mail_version_parse() and mail_version_free()
 	infrastructure. It was used only by test code. Files:
 	src/global/mail_version.[hc].
+
+20260316
+
+	Cleanup: Berkeley DB plug-in support, like CDB and other
+	databases that have a third-party dependency. Files:
+	conf/dynamicmaps.cf, conf/postfix-files, makedefs, Makefile.in,
+	proto/DB_README.html, util/dict_open.c, util/Makefile.in,
+	util/sys_defs.h.
+
+	Build incompatibility: on non-Linux, non-BSD systems, if
+	CCARGS="...-DHAS_DB...", then it may be necessary to also
+	specify AUXLIBS_DB="-ldb".
+
+	Bugfix (defect introduced: 20260310) a change, to set the
+	service_name default value to "amnesiac", violated a test
+	that parameter names in postconf output must match 1:1 with
+	parameter names in the postlink script. File: global/mail_params.c,
+	postconf/postconf_builtin.c.

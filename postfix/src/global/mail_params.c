@@ -797,7 +797,6 @@ void    mail_params_init()
 	VAR_POSTLOG_SERVICE, DEF_POSTLOG_SERVICE, &var_postlog_service, 1, 0,
 	VAR_DNSSEC_PROBE, DEF_DNSSEC_PROBE, &var_dnssec_probe, 0, 0,
 	VAR_KNOWN_TCP_PORTS, DEF_KNOWN_TCP_PORTS, &var_known_tcp_ports, 0, 0,
-	VAR_SERVNAME, DEF_SERVNAME, &var_servname, 0, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE first_bool_defaults[] = {

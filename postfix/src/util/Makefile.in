@@ -53,7 +53,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
 	chroot_uid.o cidr_match.o clean_env.o close_on_exec.o concatenate.o \
-	ctable.o dict.o dict_alloc.o dict_cidr.o dict_db.o \
+	ctable.o dict.o dict_alloc.o dict_cidr.o \
 	dict_dbm.o dict_debug.o dict_env.o dict_ht.o dict_ni.o dict_nis.o \
 	dict_nisplus.o dict_open.o dict_regexp.o \
 	dict_static.o dict_tcp.o dict_unix.o dir_forest.o doze.o dummy_read.o \
@@ -93,7 +93,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	split_qnameval.o argv_attr_print.o argv_attr_scan.o dict_file.o \
 	msg_logger.o logwriter.o unix_dgram_connect.o unix_dgram_listen.o \
 	byte_mask.o known_tcp_ports.o argv_split_at.o dict_stream.o \
-	sane_strtol.o hash_fnv.o ldseed.o mkmap_db.o mkmap_dbm.o \
+	sane_strtol.o hash_fnv.o ldseed.o mkmap_dbm.o \
 	mkmap_fail.o mkmap_open.o inet_prefix_top.o inet_addr_sizes.o \
 	quote_for_json.o mystrerror.o sane_sockaddr_to_hostaddr.o \
 	normalize_ws.o valid_uri_scheme.o clean_ascii_cntrl_space.o \
@@ -103,7 +103,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
 MAP_OBJ	= dict_pcre.o dict_cdb.o dict_lmdb.o dict_sdbm.o slmdb.o \
-	mkmap_cdb.o mkmap_lmdb.o mkmap_sdbm.o 
+	mkmap_cdb.o mkmap_lmdb.o mkmap_sdbm.o dict_db.o mkmap_db.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_debug.h dict_env.h \
@@ -160,7 +160,8 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	normalize_v4mapped_addr_test ossl_digest_test dict_pipe_test \
 	dict_union_test
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
-	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX)
+	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX) \
+	$(LIB_PREFIX)db$(LIB_SUFFIX)
 HTABLE_FIX = NORANDOMIZE=1
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -202,6 +203,10 @@ $(LIB_PREFIX)lmdb$(LIB_SUFFIX): mkmap_lmdb.o dict_lmdb.o slmdb.o
 $(LIB_PREFIX)sdbm$(LIB_SUFFIX): mkmap_sdbm.o dict_sdbm.o
 	$(PLUGIN_LD) $(SHLIB_RPATH) -o $@ mkmap_sdbm.o \
 	    dict_sdbm.o $(AUXLIBS_SDBM)
+
+$(LIB_PREFIX)db$(LIB_SUFFIX): mkmap_db.o dict_db.o
+	$(PLUGIN_LD) $(SHLIB_RPATH) -o $@ mkmap_db.o \
+	    dict_db.o $(AUXLIBS_DB)
 
 update: $(LIB_DIR)/$(LIB) $(HDRS) $(PLUGIN_MAP_SO_UPDATE) \
 	$(PLUGIN_MAP_OBJ_UPDATE)

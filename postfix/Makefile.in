@@ -108,7 +108,10 @@ libexec/postmulti-script: conf/postmulti-script
 meta/dynamicmaps.cf: conf/dynamicmaps.cf Makefile
 	rm -f $@ && $(EXPAND) conf/dynamicmaps.cf | $(AWK) ' \
 		BEGIN { split("'"$(DEFINED_MAP_TYPES)"'", map_types); \
-			for (n in map_types) has_type[map_types[n]] = n } \
+			for (n in map_types) has_type[map_types[n]] = n; \
+			if (has_type["db"]) { \
+			    has_type["hash"] = has_type["btree"] = 1; \
+			    delete has_type["db"] } } \
 		/^#/ { print } \
 		/^[a-z]/ { if (has_type[$$1]) print } \
 	' >$@

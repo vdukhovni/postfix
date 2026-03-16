@@ -646,7 +646,9 @@ EOF
 		SYSTYPE=LINUX$RELEASE_MAJOR
 		case "$CCARGS" in
 		 *-DNO_DB*) ;;
-		 *-DHAS_DB*) ;;
+		 *-DHAS_DB*) case "$AUXLIBS_DB" in
+			     "") AUXLIBS_DB=-ldb;;
+			     esac;;
 		 *) if [ -f /usr/include/db.h ]
 		    then
 			: we are all set
@@ -662,7 +664,7 @@ EOF
 			echo "See: https://www.postfix.org/NON_BERKELEYDB_README.html#build-conf" 1>&2
 			exit 1
 		    fi
-		    SYSLIBS="-ldb"
+		    AUXLIBS_DB="-ldb"
 		    ;;
 		esac
 		for name in nsl resolv
@@ -701,7 +703,7 @@ EOF
 			echo "Alternatively, build with CCARGS=\"-NO_DB ...\"" 1>&2
 			exit 1
 		    fi
-		    SYSLIBS="-ldb"
+		    AUXLIBS_DB="-ldb"
 		    ;;
 		esac
 		for name in nsl resolv
@@ -745,14 +747,14 @@ HP-UX.B.10.*)	SYSTYPE=HPUX10
 		CCARGS="$CCARGS -DNO_SNPRINTF"
 		if [ -f /usr/lib/libdb.a ]; then
 		    CCARGS="$CCARGS -DHAS_DB"
-		    SYSLIBS=-ldb
+		    AUXLIBS_DB=-ldb
 		fi
 		;;
 HP-UX.B.11.*)	SYSTYPE=HPUX11
 		SYSLIBS=-lnsl
 		if [ -f /usr/lib/libdb.a ]; then
 		    CCARGS="$CCARGS -DHAS_DB"
-		    SYSLIBS="$SYSLIBS -ldb"
+		    AUXLIBS_DB="-ldb"
 		fi
 		;;
 ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
@@ -1262,8 +1264,26 @@ ${WARN='-Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
 # and we don't try to figure out which awk versions have tolower().
 # The following was validated in 2014 on FreeBSD/Linux and Solaris 9.
 
+# But first, find out if sys_defs.h may contain '#define HAS_DB'.
+# Historically, this was how Postfix builds "knew" BDB was supported.
+trap 'rm -f makedefs.test makedefs.test.[co]' 0 1 2 3 15
+    cat >makedefs.test.c <<'EOF'
+#include "src/util/sys_defs.h"
+#include <stdio.h>
+int     main(void)
+{
+#ifdef HAS_DB
+    printf("-DHAS_DB\n");
+#endif 
+    return (0);
+}
+EOF
+eval ${CC-gcc} ${CCARGS} -D$SYSTYPE -o makedefs.test makedefs.test.c || exit 1
+HAS_DB=`./makedefs.test` || exit 1
+rm -f makedefs.test makedefs.test.[co]
+
 DEFINED_MAP_TYPES=`
-    echo $CCARGS | sed 's/=[^ ]*//g' | 
+    echo $HAS_DB $CCARGS | sed 's/=[^ ]*//g' | 
 	tr -cd '\- _ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' | 
 	tr ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz | ${AWK} '
 	{ for (n = 1; n <= NF; n++)
@@ -1274,7 +1294,7 @@ DEFINED_MAP_TYPES=`
 
 # Propagate AUXLIBS_FOO or merge them into global AUXLIBS (i.e. SYSLIBS).
 
-PLUGGABLE_MAPS="CDB LDAP LMDB MONGODB MYSQL PCRE PGSQL SDBM SQLITE"
+PLUGGABLE_MAPS="CDB DB LDAP LMDB MONGODB MYSQL PCRE PGSQL SDBM SQLITE"
 
 case "$dynamicmaps" in
 yes) for name in $PLUGGABLE_MAPS

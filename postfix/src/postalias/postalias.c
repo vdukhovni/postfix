@@ -35,8 +35,8 @@
 /*	information with $\fInumber\fR substitutions.
 /*
 /*	In a database file, \fBpostalias\fR(1) stores keys in the external
-/*	(quoted) form. Historically, Postfix versions 3.10 and earlier
-/*	stored the internal (unquoted) form. This was not consistent
+/*	(quoted) form. Historically, Postfix versions 3.11 and earlier
+/*	store the internal (unquoted) form. This was not consistent
 /*	with \fBpostmap\fR(1) behavior. For backwards compatibility,
 /*	Postfix programs will search with the legacy internal form only
 /*	if the preferred external form is not found, and the internal

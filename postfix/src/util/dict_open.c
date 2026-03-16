@@ -397,10 +397,6 @@ static const DICT_OPEN_INFO dict_open_info[] = {
 #ifdef HAS_DBM
     DICT_TYPE_DBM, dict_dbm_open, mkmap_dbm_open,
 #endif
-#ifdef HAS_DB
-    DICT_TYPE_HASH, dict_hash_open, mkmap_hash_open,
-    DICT_TYPE_BTREE, dict_btree_open, mkmap_btree_open,
-#endif
 #ifdef HAS_NIS
     DICT_TYPE_NIS, dict_nis_open, 0,
 #endif
@@ -423,6 +419,10 @@ static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_UNION, dict_union_open, 0,
     DICT_TYPE_INLINE, dict_inline_open, 0,
 #ifndef USE_DYNAMIC_MAPS
+#ifdef HAS_DB
+    DICT_TYPE_HASH, dict_hash_open, mkmap_hash_open,
+    DICT_TYPE_BTREE, dict_btree_open, mkmap_btree_open,
+#endif
 #ifdef HAS_PCRE
     DICT_TYPE_PCRE, dict_pcre_open, 0,
 #endif

@@ -10,8 +10,6 @@ Postfix database type "hash" and "btree". The name of a Postfix Berkeley DB
 database is the name of the database file without the ".db" suffix. Berkeley DB
 databases are maintained with the postmap(1) command.
 
-Note: Berkeley DB version 4 is not supported by Postfix versions before 2.0.
-
 This document describes:
 
  1. How to build Postfix without Berkeley DB support even if the system comes
@@ -63,8 +61,11 @@ To build Postfix after you installed the Berkeley DB from source code, use
 something like:
 
     % make makefiles CCARGS="-DHAS_DB -I/usr/local/BerkeleyDB/include" \
-        AUXLIBS="-L/usr/local/BerkeleyDB/lib -ldb"
+        AUXLIBS_DB="-L/usr/local/BerkeleyDB/lib -ldb"
     % make
+
+Note: Postfix version 3.12 and later use AUXLIBS_DB. With earlier versions, use
+AUXLIBS instead.
 
 If your Berkeley DB shared library is in a directory that the RUN-TIME linker
 does not know about, add a "-Wl,-R,/path/to/directory" option after "-ldb".
@@ -72,8 +73,12 @@ does not know about, add a "-Wl,-R,/path/to/directory" option after "-ldb".
 Solaris needs this:
 
     % make makefiles CCARGS="-DHAS_DB -I/usr/local/BerkeleyDB/include" \
-        AUXLIBS="-R/usr/local/BerkeleyDB/lib -L/usr/local/BerkeleyDB/lib -ldb"
+        AUXLIBS_DB="-R/usr/local/BerkeleyDB/lib -L/usr/local/BerkeleyDB/lib -
+    ldb"
     % make
+
+Note: Postfix version 3.12 and later use AUXLIBS_DB. With earlier versions, use
+AUXLIBS instead.
 
 The exact pathnames depend on the Berkeley DB version, and on how it was
 installed.
@@ -97,8 +102,11 @@ Postfix builds with the default DB version that ships with the system.
 To build Postfix on BSD systems with a non-default DB version, use a variant of
 the following commands:
 
-    % make makefiles CCARGS=-I/usr/include/db3 AUXLIBS=-ldb3
+    % make makefiles CCARGS=-I/usr/include/db3 AUXLIBS_DB=-ldb3
     % make
+
+Note: Postfix version 3.12 and later use AUXLIBS_DB. With earlier versions, use
+AUXLIBS instead.
 
 Warning: the file format produced by Berkeley DB version 1 is not compatible
 with that of versions 2 and 3 (versions 2 and 3 have the same format). If you
@@ -168,7 +176,10 @@ When building Postfix fails with:
 
 Add the "-lpthread" library to the "make makefiles" command.
 
-    % make makefiles .... AUXLIBS="... -lpthread"
+    % make makefiles .... AUXLIBS_DB="... -lpthread"
+
+Note: Postfix version 3.12 and later use AUXLIBS_DB. With earlier versions, use
+AUXLIBS instead.
 
 More information is available at https://www.oracle.com/database/technologies/
 related/berkeleydb.html.

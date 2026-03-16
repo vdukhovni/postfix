@@ -27,9 +27,6 @@ Berkeley DB implements the Postfix database type "hash" and
 of the database file without the ".db" suffix. Berkeley DB databases
 are maintained with the <a href="postmap.1.html">postmap(1)</a> command.  </p>
 
-<p> Note: Berkeley DB version 4 is not supported by Postfix versions
-before 2.0.  </p>
-
 <p> This document describes: </p>
 
 <ol>
@@ -96,10 +93,13 @@ source code, use something like: </p>
 <blockquote>
 <pre>
 % make makefiles CCARGS="-DHAS_DB -I/usr/local/BerkeleyDB/include" \
-    AUXLIBS="-L/usr/local/BerkeleyDB/lib -ldb"
+    <a href="DB_README.html">AUXLIBS_DB</a>="-L/usr/local/BerkeleyDB/lib -ldb"
 % make
 </pre>
 </blockquote>
+
+<p> Note: Postfix version 3.12 and later use <a href="DB_README.html">AUXLIBS_DB</a>. With earlier
+versions, use AUXLIBS instead. </p>
 
 <p> If your Berkeley DB shared library is in a directory that the RUN-TIME
 linker does not know about, add a "-Wl,-R,/path/to/directory" option after
@@ -110,10 +110,13 @@ linker does not know about, add a "-Wl,-R,/path/to/directory" option after
 <blockquote>
 <pre>
 % make makefiles CCARGS="-DHAS_DB -I/usr/local/BerkeleyDB/include" \
-    AUXLIBS="-R/usr/local/BerkeleyDB/lib -L/usr/local/BerkeleyDB/lib -ldb"
+    <a href="DB_README.html">AUXLIBS_DB</a>="-R/usr/local/BerkeleyDB/lib -L/usr/local/BerkeleyDB/lib -ldb"
 % make
 </pre>
 </blockquote>
+
+<p> Note: Postfix version 3.12 and later use <a href="DB_README.html">AUXLIBS_DB</a>. With earlier
+versions, use AUXLIBS instead. </p>
 
 <p> The exact pathnames depend on the Berkeley DB version, and on
 how it was installed. </p>
@@ -143,10 +146,13 @@ use a variant of the following commands: </p>
 
 <blockquote>
 <pre>
-% make makefiles CCARGS=-I/usr/include/db3 AUXLIBS=-ldb3
+% make makefiles CCARGS=-I/usr/include/db3 <a href="DB_README.html">AUXLIBS_DB</a>=-ldb3
 % make
 </pre>
 </blockquote>
+
+<p> Note: Postfix version 3.12 and later use <a href="DB_README.html">AUXLIBS_DB</a>. With earlier
+versions, use AUXLIBS instead. </p> 
 
 <p> Warning: the file format produced by Berkeley DB version 1 is
 not compatible with that of versions 2 and 3 (versions 2 and 3 have
@@ -235,9 +241,12 @@ undefined reference to `pthread_mutex_trylock'
 
 <blockquote>
 <pre>
-% make makefiles .... AUXLIBS="... -lpthread"
+% make makefiles .... <a href="DB_README.html">AUXLIBS_DB</a>="... -lpthread"
 </pre>
 </blockquote>
+
+<p> Note: Postfix version 3.12 and later use <a href="DB_README.html">AUXLIBS_DB</a>. With earlier
+versions, use AUXLIBS instead. </p> 
 
 <p> More information is available at
 <a href="https://www.oracle.com/database/technologies/related/berkeleydb.html">https://www.oracle.com/database/technologies/related/berkeleydb.html</a>. </p>

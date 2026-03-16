@@ -73,6 +73,7 @@ $shlib_directory/lib${LIB_PREFIX}dns${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}tls${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}master${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}cdb${LIB_SUFFIX}:f:root:-:755
+$shlib_directory/${LIB_PREFIX}db${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}ldap${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}lmdb${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/${LIB_PREFIX}mongodb${LIB_SUFFIX}:f:root:-:755

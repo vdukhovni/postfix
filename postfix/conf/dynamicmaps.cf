@@ -1,5 +1,7 @@
 # dict-type	so-name (pathname)	dict-function	mkmap-function
 cdb	${LIB_PREFIX}cdb${LIB_SUFFIX}	dict_cdb_open	mkmap_cdb_open
+hash	${LIB_PREFIX}db${LIB_SUFFIX}	dict_hash_open	mkmap_hash_open
+btree	${LIB_PREFIX}db${LIB_SUFFIX}	dict_btree_open	mkmap_btree_open
 ldap	${LIB_PREFIX}ldap${LIB_SUFFIX}	dict_ldap_open
 lmdb	${LIB_PREFIX}lmdb${LIB_SUFFIX}	dict_lmdb_open	mkmap_lmdb_open
 mongodb	${LIB_PREFIX}mongodb${LIB_SUFFIX}	dict_mongodb_open
