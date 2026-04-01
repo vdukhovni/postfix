@@ -59,6 +59,9 @@
 /*	int	count;
 /*
 /*	void	msg_error_clear()
+/*
+/*	void	msg_set_longjmp_action(
+/*	NORETURN (*longjmp_action) (int)
 /* DESCRIPTION
 /*	This module reports diagnostics. By default, diagnostics are sent
 /*	to the standard error stream, but the disposition can be changed
@@ -131,9 +134,20 @@
 /*	This protection exists under the condition that these
 /*	specific resources are accessed exclusively via the msg_info()
 /*	etc.  functions.
+/* EXCEPTIONS AND NON-PRODUCTION TESTS
+/* .ad
+/* .fi
+/*	The default action for msg_fatal*() and msg_panic() is to
+/*	terminate the program. In order to support non-production tests,
+/*	the following function implements support to maintain control
+/*	over the execution.
+/*
+/*	msg_set_longjmp_action() accepts a pointer to non-returning
+/*	function that will be called by msg_fatal*() and msg_panic(),
+/*	with an argument of MSG_LONGJMP_FATAL and MSG_LONGJMP_PANIC,
+/*	respectively. Specify a null argument to disable this feature.
 /* SEE ALSO
 /*	msg_output(3) specify diagnostics disposition
-/*	msg_stdio(3) direct diagnostics to standard I/O stream
 /*	msg_vstream(3) direct diagnostics to VSTREAM.
 /*	msg_syslog(3) direct diagnostics to syslog daemon
 /* BUGS
@@ -157,6 +171,9 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System libraries. */
@@ -179,6 +196,7 @@ int     msg_verbose = 0;
  /*
   * Private state.
   */
+MSG_LONGJMP_ACTION msg_longjmp_action;
 static MSG_CLEANUP_FN msg_cleanup_fn = 0;
 static int msg_error_count = 0;
 static int msg_error_bound = 13;
@@ -262,6 +280,11 @@ NORETURN vmsg_fatal(const char *fmt, va_list ap)
 	if (msg_cleanup_fn)
 	    msg_cleanup_fn();
     }
+    if (msg_longjmp_action) {
+	/* This code is reachable during testing only. */
+	msg_exiting = 0;
+	msg_longjmp_action(MSG_LONGJMP_FATAL);
+    }
     sleep(1);
     /* In case we're running as a signal handler. */
     _exit(1);
@@ -285,6 +308,11 @@ NORETURN vmsg_fatal_status(int status, const char *fmt, va_list ap)
 	if (msg_cleanup_fn)
 	    msg_cleanup_fn();
     }
+    if (msg_longjmp_action) {
+	/* This code is reachable during testing only. */
+	msg_exiting = 0;
+	msg_longjmp_action(MSG_LONGJMP_FATAL);
+    }
     sleep(1);
     /* In case we're running as a signal handler. */
     _exit(status);
@@ -305,6 +333,11 @@ NORETURN vmsg_panic(const char *fmt, va_list ap)
 {
     if (msg_exiting++ == 0) {
 	msg_vprintf(MSG_PANIC, fmt, ap);
+    }
+    if (msg_longjmp_action) {
+	/* This code is reachable during testing only. */
+	msg_exiting = 0;
+	msg_longjmp_action(MSG_LONGJMP_PANIC);
     }
     sleep(1);
     abort();					/* Die! */
@@ -337,4 +370,11 @@ int     msg_error_limit(int limit)
 void    msg_error_clear(void)
 {
     msg_error_count = 0;
+}
+
+/* msg_set_longjmp_action() - exception handling */
+
+void    msg_set_longjmp_action(MSG_LONGJMP_ACTION action)
+{
+    msg_longjmp_action = action;
 }

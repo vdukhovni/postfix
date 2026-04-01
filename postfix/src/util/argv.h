@@ -27,7 +27,9 @@ extern ARGV *argv_sort(ARGV *);		/* backwards compatibility */
 extern ARGV *argv_qsort(ARGV *, ARGV_COMPAR_FN);
 extern ARGV *argv_uniq(ARGV *, ARGV_COMPAR_FN);
 extern void argv_add(ARGV *,...);
+#if 0
 extern void argv_addn(ARGV *,...);
+#endif
 extern ARGV *argv_addv(ARGV *, const char *const *);
 extern void argv_terminate(ARGV *);
 extern void argv_truncate(ARGV *, ssize_t);

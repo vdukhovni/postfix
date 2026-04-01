@@ -165,7 +165,7 @@ static void msg_logger_disconnect(void)
 
 /* msg_logger_print - log info to service or file */
 
-static void msg_logger_print(int level, const char *text)
+static void msg_logger_print(int level, const char *text, void *unused)
 {
     time_t  now;
     struct tm *lt;
@@ -288,7 +288,7 @@ void    msg_logger_init(const char *progname, const char *hostname,
      */
     if (first_call) {
 	first_call = 0;
-	msg_output(msg_logger_print);
+	msg_output_push(msg_logger_print, (void *) 0);
 	msg_logger_buf = vstring_alloc(2048);
     }
 

@@ -6,10 +6,15 @@
 /* SYNOPSIS
 /*	#include <msg_output.h>
 /*
-/*	typedef void (*MSG_OUTPUT_FN)(int level, char *text)
+/*	typedef void (*MSG_OUTPUT_FN)(int level, const char *text)
 /*
-/*	void	msg_output(output_fn)
+/*	void	msg_output_push(output_fn, context)
 /*	MSG_OUTPUT_FN output_fn;
+/*	void	*context;
+/*
+/*	msg_output_pop(output_fn, context)
+/*	MSG_OUTPUT_FN output_fn
+/*	void	*context;
 /*
 /*	void	msg_printf(level, format, ...)
 /*	int	level;
@@ -23,13 +28,17 @@
 /*	This module implements low-level output management for the
 /*	msg(3) diagnostics interface.
 /*
-/*	msg_output() registers an output handler for the diagnostics
-/*	interface. An application can register multiple output handlers.
-/*	Output handlers are called in the specified order.
-/*	An output handler takes as arguments a severity level (MSG_INFO,
-/*	MSG_WARN, MSG_ERROR, MSG_FATAL, MSG_PANIC, monotonically increasing
-/*	integer values ranging from 0 to MSG_LAST) and pre-formatted,
-/*	sanitized, text in the form of a null-terminated string.
+/*	msg_output_push() registers an output handler for the diagnostics
+/*	interface, ignoring a duplicate request. Output handlers are
+/*	called in the specified order. An output handler takes as
+/*	arguments: a severity level (MSG_INFO, MSG_WARN, MSG_ERROR,
+/*	MSG_FATAL, MSG_PANIC, i.e., integer values ranging from 0 to
+/*	MSG_LAST inclusive); pre-formatted, sanitized, text in the form
+/*	of a null-terminated string; and the caller-provided context.
+/*
+/*	msg_output_pop() unregisters the specified output handler and
+/*	context, and later registrations made with msg_output_push(). It
+/*	invokes a panic when the handler and context are not found.
 /*
 /*	msg_printf() and msg_vprintf() format their arguments, sanitize the
 /*	result, and call the output handlers registered with msg_output().
@@ -49,9 +58,7 @@
 /*	block the process.
 /* .IP \(bu
 /*	The signal handlers must call the above output routines not
-/*	until after msg_output() completes initialization, and not
-/*	until after the first formatted output to a VSTRING or
-/*	VSTREAM.
+/*	until after msg_output() completes initialization.
 /* .IP \(bu
 /*	Each msg_output() call-back function, and each Postfix or
 /*	system function called by that call-back function, either
@@ -80,6 +87,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -95,6 +105,7 @@
 #include <vstream.h>
 #include <msg_vstream.h>
 #include <stringops.h>
+#include <msg.h>
 #include <msg_output.h>
 
  /*
@@ -106,16 +117,22 @@ volatile int msg_vprintf_level;
   * Private state. Allow one nested call, so that one logging error can be
   * reported to stderr before bailing out.
   */
+typedef struct MSG_OUT_INFO {
+    MSG_OUTPUT_FN output_fn;
+    void   *context;
+} MSG_OUT_INFO;
+
 #define MSG_OUT_NESTING_LIMIT	2
-static MSG_OUTPUT_FN *msg_output_fn = 0;
+static MSG_OUT_INFO *msg_out_info = 0;
 static int msg_output_fn_count = 0;
 static VSTRING *msg_buffers[MSG_OUT_NESTING_LIMIT];
 
-/* msg_output - specify output handler */
+/* msg_output_push - specify output handler and context */
 
-void    msg_output(MSG_OUTPUT_FN output_fn)
+void    msg_output_push(MSG_OUTPUT_FN output_fn, void *context)
 {
     int     i;
+    MSG_OUT_INFO *mp;
 
     /*
      * Allocate all resources during initialization. This may result in a
@@ -127,15 +144,25 @@ void    msg_output(MSG_OUTPUT_FN output_fn)
     }
 
     /*
+     * Deduplicate requests. This is a purely defensive measure for the case
+     * that msg_vstream_init() etc. are called more than once.
+     */
+    for (mp = msg_out_info; mp < msg_out_info + msg_output_fn_count; mp++)
+	if (mp->output_fn == output_fn && mp->context == context)
+	    return;
+
+    /*
      * We're not doing this often, so avoid complexity and allocate memory
      * for an exact fit.
      */
     if (msg_output_fn_count == 0)
-	msg_output_fn = (MSG_OUTPUT_FN *) mymalloc(sizeof(*msg_output_fn));
+	msg_out_info = (MSG_OUT_INFO *) mymalloc(sizeof(*msg_out_info));
     else
-	msg_output_fn = (MSG_OUTPUT_FN *) myrealloc((void *) msg_output_fn,
-			(msg_output_fn_count + 1) * sizeof(*msg_output_fn));
-    msg_output_fn[msg_output_fn_count++] = output_fn;
+	msg_out_info = (MSG_OUT_INFO *) myrealloc((void *) msg_out_info,
+			 (msg_output_fn_count + 1) * sizeof(*msg_out_info));
+    msg_out_info[msg_output_fn_count++] = (MSG_OUT_INFO) {
+	output_fn, context
+    };
 }
 
 /* msg_printf - format text and log it */
@@ -159,7 +186,7 @@ void    msg_vprintf(int level, const char *format, va_list ap)
 
     if (msg_vprintf_level < MSG_OUT_NESTING_LIMIT) {
 	msg_vprintf_level += 1;
-	/* On-the-fly initialization for test programs and startup errors. */
+	/* On-the-fly initialization for test programs and startup errors.  */
 	if (msg_output_fn_count == 0)
 	    msg_vstream_init("unknown", VSTREAM_ERR);
 	vp = msg_buffers[msg_vprintf_level - 1];
@@ -167,8 +194,26 @@ void    msg_vprintf(int level, const char *format, va_list ap)
 	vstring_vsprintf(vp, format, ap);
 	printable(vstring_str(vp), '?');
 	for (i = 0; i < msg_output_fn_count; i++)
-	    msg_output_fn[i] (level, vstring_str(vp));
+	    msg_out_info[i].output_fn(level, vstring_str(vp),
+				      msg_out_info[i].context);
 	msg_vprintf_level -= 1;
     }
     errno = saved_errno;
+}
+
+/* msg_output_pop - pop output handler and context */
+
+void    msg_output_pop(MSG_OUTPUT_FN output_fn, void *context)
+{
+    MSG_OUT_INFO *mp;
+
+    for (mp = msg_out_info; /* See below */ ; mp++) {
+	if (mp >= msg_out_info + msg_output_fn_count)
+	    msg_panic("msg_output_pop: handler %p and context %p not found",
+		      (void *) output_fn, (void *) context);
+	if (mp->output_fn == output_fn && mp->context == context) {
+	    msg_output_fn_count = mp - msg_out_info;
+	    return;
+	}
+    }
 }

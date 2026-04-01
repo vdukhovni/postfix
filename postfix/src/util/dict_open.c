@@ -485,11 +485,14 @@ DICT   *dict_open(const char *dict_spec, int open_flags, int dict_flags)
     char   *dict_name;
     DICT   *dict;
 
-    if ((dict_name = split_at(saved_dict_spec, ':')) == 0)
-	msg_fatal("open dictionary: expecting \"type:name\" form instead of \"%s\"",
-		  dict_spec);
-
-    dict = dict_open3(saved_dict_spec, dict_name, open_flags, dict_flags);
+    if ((dict_name = split_at(saved_dict_spec, ':')) == 0 
+	|| *saved_dict_spec == 0 || *dict_name == 0) {
+	dict = dict_surrogate(dict_spec, "", open_flags, dict_flags,
+	  "open dictionary: expecting \"type:name\" form instead of \"%s\"",
+			      dict_spec);
+    } else {
+	dict = dict_open3(saved_dict_spec, dict_name, open_flags, dict_flags);
+    }
     myfree(saved_dict_spec);
     return (dict);
 }
@@ -676,7 +679,7 @@ void    dict_type_override(DICT *dict, const char *type)
   */
 int     main(int argc, char **argv)
 {
-    dict_test(argc, argv);
+    dict_cli(argc, argv);
     return (0);
 }
 

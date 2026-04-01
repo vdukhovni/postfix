@@ -1,4 +1,9 @@
  /*
+  * Test program to exercise the hash_fnv implementation. See PTEST_README
+  * for documentation.
+  */
+
+ /*
   * System library.
   */
 #include <sys_defs.h>
@@ -9,16 +14,22 @@
   * Utility library.
   */
 #include <msg.h>
-#include <msg_vstream.h>
-#include <stringops.h>
 #include <hash_fnv.h>
 
-int     main(int srgc, char **argv)
-{
-    int     pass = 0;
-    int     fail = 0;
+ /*
+  * Test library.
+  */
+#include <ptest.h>
 
-    msg_vstream_init(sane_basename((VSTRING *) 0, argv[0]), VSTREAM_ERR);
+typedef struct PTEST_CASE {
+    const char *testname;
+    void    (*action) (PTEST_CTX *t, const struct PTEST_CASE *tp);
+    HASH_FNV_T want_hval;
+    const char *str;
+} PTEST_CASE;
+
+static void setup_test(void)
+{
 
     /*
      * Sanity check.
@@ -32,83 +43,39 @@ int     main(int srgc, char **argv)
      */
     if (putenv("NORANDOMIZE=") != 0)
 	msg_fatal("putenv(\"NORANDOMIZE=\"): %m");
-
-    /*
-     * Test: hashing produces the expected results.
-     */
-    {
-	struct testcase {
-	    HASH_FNV_T hval;
-	    const char *str;
-	};
-	static struct testcase testcases[] =
-	{
-#ifdef USE_FNV_32BIT
-	    0x1c00fc06UL, "overdeeply",
-	    0x1c00fc06UL, "undescript",
-	    0x1e1e52a4UL, "fanfold",
-	    0x1e1e52a4UL, "phrensied",
-#else
-	    0xda19999ec0bda706ULL, "overdeeply",
-	    0xd7b9e43f26396a66ULL, "undescript",
-	    0xa50c585d385a2604ULL, "fanfold",
-	    0x1ec3ef9bb2b734a4ULL, "phrensied",
-#endif
-	    0,
-	};
-	struct testcase *tp;
-	HASH_FNV_T hval;
-	int     test_failed;
-
-	for (tp = testcases; tp->str; tp++) {
-	    test_failed = 0;
-	    msg_info("RUN  hash_fnvz(\"%s\")", tp->str);
-	    if ((hval = hash_fnvz(tp->str)) != tp->hval) {
-		msg_warn("hash_fnv(\"%s\") want %lu, got: %lu",
-			 tp->str, (unsigned long) tp->hval,
-			 (unsigned long) hval);
-		test_failed = 1;
-	    }
-	    if (test_failed) {
-		fail += 1;
-		msg_info("FAIL hash_fnvz(\"%s\")", tp->str);
-	    } else {
-		pass += 1;
-		msg_info("PASS hash_fnvz(\"%s\")", tp->str);
-	    }
-	}
-    }
-
-    /*
-     * Test: hash_fnvz(s) is equivalent to hash_fnv(s, strlen(s)). No need to
-     * verify the actual result; we already did that above.
-     */
-    {
-	const char *strval = "foobar";
-	HASH_FNV_T h1;
-	HASH_FNV_T h2;
-
-	msg_info("RUN hash_fnvz(\"%s\") == hash_fnv(\"%s\", %ld)",
-		 strval, strval, (long) strlen(strval));
-
-	h1 = hash_fnv(strval, strlen(strval));
-	h2 = hash_fnvz(strval);
-
-	if (h1 == h2) {
-	    pass += 1;
-	    msg_info("PASS: hash_fnvz(\"%s\") == hash_fnv(\"%s\", %ld)",
-		     strval, strval, (long) strlen(strval));
-	} else {
-	    fail += 1;
-	    msg_info("FAIL: hash_fnvz(\"%s\") == hash_fnv(\"%s\", %ld)",
-		     strval, strval, (long) strlen(strval));
-	}
-    }
-
-
-    /*
-     * Wrap up.
-     */
-    msg_info("PASS=%d FAIL=%d", pass, fail);
-    return (fail != 0);
 }
+
+static void test_known_input(PTEST_CTX *t, const PTEST_CASE *tp)
+{
+    HASH_FNV_T got_hval;
+
+    setup_test();
+
+    if ((got_hval = hash_fnvz(tp->str)) != tp->want_hval)
+	ptest_error(t, "hash_fnvz(\"%s\") got %lu, want %lu",
+		    tp->str, (unsigned long) got_hval,
+		    (unsigned long) tp->want_hval);
+
+    if ((got_hval = hash_fnv(tp->str, strlen(tp->str))) != tp->want_hval)
+	ptest_error(t, "hash_fnv(\"%s\", strlen(\"%s\")) got %lu, want %lu",
+		    tp->str, tp->str, (unsigned long) got_hval,
+		    (unsigned long) tp->want_hval);
+}
+
+
+static const PTEST_CASE ptestcases[] =
+{
+#ifdef USE_FNV_32BIT
+    "test_known_input_overdeeply", test_known_input, 0x1c00fc06UL, "overdeeply",
+    "test_known_input_undescript", test_known_input, 0x1c00fc06UL, "undescript",
+    "test_known_input_fanfold", test_known_input, 0x1e1e52a4UL, "fanfold",
+    "test_known_input_phrensied", test_known_input, 0x1e1e52a4UL, "phrensied",
+#else
+    "test_known_input_overdeeply", test_known_input, 0xda19999ec0bda706ULL, "overdeeply",
+    "test_known_input_undescript", test_known_input, 0xd7b9e43f26396a66ULL, "undescript",
+    "test_known_input_fanfold", test_known_input, 0xa50c585d385a2604ULL, "fanfold",
+    "test_known_input_phrensied", test_known_input, 0x1ec3ef9bb2b734a4ULL, "phrensied",
+#endif
+};
+
+#include <ptest_main.h>

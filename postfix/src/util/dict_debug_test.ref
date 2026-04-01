@@ -1,7 +1,9 @@
 >>> dict_open 'debug:' read
-./dict_open: fatal: open dictionary: expecting "type:name" form instead of "debug:"
+./dict_open: error: open dictionary: expecting "type:name" form instead of "debug:"
+owner=trusted (uid=2147483647)
 >>> dict_open 'debug:missing_colon_and_name' read
-./dict_open: fatal: open dictionary: expecting "type:name" form instead of "missing_colon_and_name"
+./dict_open: error: open dictionary: expecting "type:name" form instead of "missing_colon_and_name"
+owner=trusted (uid=2147483647)
 >>> dict_open 'debug:static:{space in name}' read
 owner=trusted (uid=2147483647)
 > get k

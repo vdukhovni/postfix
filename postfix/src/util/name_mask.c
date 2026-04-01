@@ -167,6 +167,9 @@
 /*	Enable case-insensitive matching.
 /*	This feature is not enabled by default when calling name_mask();
 /*	it has no effect with str_name_mask().
+/* .IP NAME_MASK_NULL
+/*	When converting from mask to string, output "0" when the
+/*	input mask is empty.
 /* .IP NAME_MASK_COMMA
 /*	Use comma instead of space when converting a mask to string.
 /* .IP NAME_MASK_PIPE
@@ -318,6 +321,8 @@ const char *str_name_mask_delim_opt(VSTRING *buf, const char *context,
     }
     if ((len = VSTRING_LEN(buf)) > 0)
 	vstring_truncate(buf, len - strlen(delim));
+    else if (flags & NAME_MASK_NULL)
+	vstring_strcat(buf, "0");
     VSTRING_TERMINATE(buf);
 
     return (STR(buf));
@@ -445,6 +450,8 @@ const char *str_long_name_mask_opt(VSTRING *buf, const char *context,
     }
     if ((len = VSTRING_LEN(buf)) > 0)
 	vstring_truncate(buf, len - 1);
+    else if (flags & NAME_MASK_NULL)
+	vstring_strcat(buf, "0");
     VSTRING_TERMINATE(buf);
 
     return (STR(buf));
