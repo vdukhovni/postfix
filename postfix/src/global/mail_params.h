@@ -3568,6 +3568,14 @@ extern char *var_tls_dane_digests;
 extern bool var_tls_fast_shutdown;
 
  /*
+  * Whether to trust TLS client certificates whose extended key usage (EKU)
+  * lists only "serverAuth" and not "clientAuth".
+  */
+#define VAR_TLS_SRVR_CCERTS	"tls_trust_server_ccerts"
+#define DEF_TLS_SRVR_CCERTS	0
+extern bool var_tls_srvr_ccerts;
+
+ /*
   * Sendmail-style mail filter support.
   */
 #define VAR_SMTPD_MILTERS		"smtpd_milters"

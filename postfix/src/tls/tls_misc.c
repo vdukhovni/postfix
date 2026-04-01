@@ -44,6 +44,7 @@
 /*	char	*var_openssl_path;
 /*	char	*var_tls_server_sni_maps;
 /*	bool	var_tls_fast_shutdown;
+/*	bool	var_tls_srvr_ccerts;
 /*
 /*	TLS_APPL_STATE *tls_alloc_app_context(ssl_ctx, log_mask)
 /*	SSL_CTX	*ssl_ctx;
@@ -313,6 +314,7 @@ char   *var_openssl_path;
 char   *var_tls_server_sni_maps;
 bool    var_tls_fast_shutdown;
 bool    var_tls_preempt_clist;
+bool    var_tls_srvr_ccerts;
 
 #ifdef USE_TLS
 
@@ -692,6 +694,7 @@ void    tls_param_init(void)
 	VAR_TLS_PREEMPT_CLIST, DEF_TLS_PREEMPT_CLIST, &var_tls_preempt_clist,
 	VAR_TLS_MULTI_WILDCARD, DEF_TLS_MULTI_WILDCARD, &var_tls_multi_wildcard,
 	VAR_TLS_FAST_SHUTDOWN, DEF_TLS_FAST_SHUTDOWN, &var_tls_fast_shutdown,
+	VAR_TLS_SRVR_CCERTS, DEF_TLS_SRVR_CCERTS, &var_tls_srvr_ccerts,
 	0,
     };
     static int init_done;

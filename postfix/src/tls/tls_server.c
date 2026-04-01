@@ -385,6 +385,41 @@ static int ticket_cb(SSL *con, unsigned char name[], unsigned char iv[],
 #endif					/* defined(SSL_OP_NO_TICKET) &&
 					 * !defined(OPENSSL_NO_TLSEXT) */
 
+/* Accept use of TLS server-only certificates by TLS clients */
+
+static int trust_server_ccerts(X509_STORE_CTX *ctx, void *unused)
+{
+    const X509 *x;
+    EXTENDED_KEY_USAGE *xku;
+    int     i, usages = 0;
+
+    if ((x = X509_STORE_CTX_get0_cert(ctx)) == NULL
+        || (xku = X509_get_ext_d2i(x, NID_ext_key_usage, NULL, NULL)) == NULL)
+	return X509_verify_cert(ctx);
+
+    for (i = 0; i < sk_ASN1_OBJECT_num(xku); i++) {
+	switch (OBJ_obj2nid(sk_ASN1_OBJECT_value(xku, i))) {
+	case NID_server_auth:
+	    usages |= XKU_SSL_SERVER;
+	    break;
+	case NID_client_auth:
+	    usages |= XKU_SSL_CLIENT;
+	    break;
+	default:
+	    break;
+	}
+    }
+    sk_ASN1_OBJECT_pop_free(xku, ASN1_OBJECT_free);
+
+    if (usages == XKU_SSL_SERVER) {
+	X509_VERIFY_PARAM *params = X509_STORE_CTX_get0_param(ctx);
+
+	X509_VERIFY_PARAM_set_purpose(params, X509_PURPOSE_SSL_SERVER);
+	X509_VERIFY_PARAM_set_trust(params, X509_TRUST_SSL_SERVER);
+    }
+    return X509_verify_cert(ctx);
+}
+
 /* tls_server_init - initialize the server-side TLS engine */
 
 TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
@@ -748,6 +783,11 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 		SSL_CTX_set_client_CA_list(sni_ctx, calist);
 	    }
 	}
+    }
+
+    if (props->ask_ccert && var_tls_srvr_ccerts) {
+	SSL_CTX_set_cert_verify_callback(server_ctx, trust_server_ccerts, NULL);
+	SSL_CTX_set_cert_verify_callback(sni_ctx, trust_server_ccerts, NULL);
     }
 
     /*

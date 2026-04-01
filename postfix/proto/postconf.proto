@@ -17380,6 +17380,8 @@ Postfix will not wait for the remote TLS peer to respond to a TLS
 'close' notification. This behavior is recommended for TLSv1.0 and
 later. </p>
 
+<p> This feature is available in Postfix 3.5 and later. </p>
+
 %PARAM default_delivery_status_filter
 
 <p> Optional filter in Postfix delivery agents, to replace the
@@ -20649,3 +20651,38 @@ migration service protocol. </p>
 type to a non-Berkeley-DB type. </p>
 
 <p> This feature is available in Postfix &ge; 3.11. </p>
+
+%PARAM tls_trust_server_ccerts no
+
+<p> Whether to trust client certificates whose extended key usage (EKU) lists
+only <b>serverAuth</b> and not <b>clientAuth</b> as valid TLS client
+certificates.  This parameter is used only in the SMTP server, when client
+certificates are requested via smtpd_tls_ask_ccert or smtpd_tls_req_ccert.
+It is a workaround for policy changes at the major WebPKI CAs that preclude the
+issuance of certificates with a <b>clientAuth</b> EKU. </p> </p>
+
+<p> In almost all cases the default value of <b>no</b> should not be changed.
+When TLS client certificates are used to extend the right to send outbound mail
+to remote clients in possession of a trusted key pair, the public key
+<b>SHOULD</b> be trusted <i>directly</i>.  This is done by using the public key
+digest (see smtpd_tls_fingerprint_digest) as a lookup key with
+check_ccert_access.  Various Third party CAs should not be in a position to
+decide which client systems are part of your extended network.  </p>
+
+<p> The <b>yes</b> setting should only be used when TLS certificates are used
+to implement mutual authentication within a clique of independent peer systems
+that perhaps trust each other to not transmit spam, or to be allowed to reach
+otherwise restricted mailboxes, etc., but where it is impractical for each
+receiving system to issue long-term stable keys to each trusted sending system,
+and a suitable CA or small set of CAs is trusted to issue certificates to each
+of the peers.  Trusting every WebPKI CA is likely unwise in this context. </p>
+
+<p> When this parameter is set to <b>yes</b>, the Postfix SMTP server will
+trust CA-signed SMTP client certificates even when the EKU extension lists
+<b>serverAuth</b>, but does not list <b>clientAuth</b>.  Such certificates are
+by default not accepted as valid TLS client certificates.  When the certificate
+is trusted, its issuer and subject name are made available in SMTP policy
+service queries and the client connection will be reported "Trusted" in the
+logs. </p>
+
+<p> This feature is available in Postfix &ge; 3.12. </p>

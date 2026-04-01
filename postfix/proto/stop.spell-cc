@@ -1916,3 +1916,7 @@ surr
 whoami
 IfChange
 ThenChange
+EKU
+clientAuth
+serverAuth
+WebPKI

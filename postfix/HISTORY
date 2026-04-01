@@ -30672,3 +30672,22 @@ Apologies for any names omitted.
 	that parameter names in postconf output must match 1:1 with
 	parameter names in the postlink script. File: global/mail_params.c,
 	postconf/postconf_builtin.c.
+
+20260323
+
+	Feature: specify "tls_trust_server_ccerts = yes" to trust
+	client certificates whose extended key usage (EKU) lists
+	only serverAuth and not clientAuth as valid TLS client
+	certificates. This parameter is used only in the Postfix
+	SMTP server, when client certificates are requested via
+	smtpd_tls_ask_ccert or smtpd_tls_req_ccert. It is a workaround
+	for policy changes at the major WebPKI CAs that preclude
+	the issuance of certificates with a clientAuth EKU. Viktor
+	Dukhovni. Files: proto/postconf.proto, global/mail_params.h,
+	tls/tls_misc.c, tls/tls_server.c.
+
+20260324
+
+	Cleanup: added missing smtpd_data_restrictions and
+	smtpd_end_of_data_restrictions in the sample master.cf
+	file. Omission reported by Viktor Dukhovni. File: conf/master.cf.

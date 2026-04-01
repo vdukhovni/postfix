@@ -15310,6 +15310,8 @@ down a TLS session, until Postfix times out. With this enabled,
 Postfix will not wait for the remote TLS peer to respond to a TLS
 \&'close' notification. This behavior is recommended for TLSv1.0 and
 later.
+.PP
+This feature is available in Postfix 3.5 and later.
 .SH tls_ffdhe_auto_groups (default: see "postconf \-d" output)
 The prioritized list of finite\-field Diffie\-Hellman ephemeral
 (FFDHE) key exchange groups supported by the Postfix SMTP client and
@@ -15693,6 +15695,39 @@ Postfix >= 3.4. See \fBSSL_CTX_set_options\fR(3).
 .br
 .PP
 This feature is available in Postfix 2.11 and later.
+.SH tls_trust_server_ccerts (default: no)
+Whether to trust client certificates whose extended key usage (EKU) lists
+only \fBserverAuth\fR and not \fBclientAuth\fR as valid TLS client
+certificates.  This parameter is used only in the SMTP server, when client
+certificates are requested via smtpd_tls_ask_ccert or smtpd_tls_req_ccert.
+It is a workaround for policy changes at the major WebPKI CAs that preclude the
+issuance of certificates with a \fBclientAuth\fR EKU.
+.PP
+In almost all cases the default value of \fBno\fR should not be changed.
+When TLS client certificates are used to extend the right to send outbound mail
+to remote clients in possession of a trusted key pair, the public key
+\fBSHOULD\fR be trusted \fIdirectly\fR.  This is done by using the public key
+digest (see smtpd_tls_fingerprint_digest) as a lookup key with
+check_ccert_access.  Various Third party CAs should not be in a position to
+decide which client systems are part of your extended network.
+.PP
+The \fByes\fR setting should only be used when TLS certificates are used
+to implement mutual authentication within a clique of independent peer systems
+that perhaps trust each other to not transmit spam, or to be allowed to reach
+otherwise restricted mailboxes, etc., but where it is impractical for each
+receiving system to issue long\-term stable keys to each trusted sending system,
+and a suitable CA or small set of CAs is trusted to issue certificates to each
+of the peers.  Trusting every WebPKI CA is likely unwise in this context.
+.PP
+When this parameter is set to \fByes\fR, the Postfix SMTP server will
+trust CA\-signed SMTP client certificates even when the EKU extension lists
+\fBserverAuth\fR, but does not list \fBclientAuth\fR.  Such certificates are
+by default not accepted as valid TLS client certificates.  When the certificate
+is trusted, its issuer and subject name are made available in SMTP policy
+service queries and the client connection will be reported "Trusted" in the
+logs.
+.PP
+This feature is available in Postfix >= 3.12.
 .SH tls_wildcard_matches_multiple_labels (default: yes)
 Match multiple DNS labels with "*" in wildcard certificates.
 .PP

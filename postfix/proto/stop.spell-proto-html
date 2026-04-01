@@ -415,3 +415,17 @@ hPP
 hPPx
 hx
 lcdb
+#!/bin/sh
+
+# Spellchecks the proto HTML files.
+
+LANG=C; export LANG
+
+mantools/dehtml proto/*html proto/*.proto | tr '+' ' ' | spell | grep -F -vxf proto/stop | grep -F -vxf proto/stop.spell-proto-html
+EKU
+WebPKI
+ccerts
+clientAuth
+dehtml
+serverAuth
+vxf
