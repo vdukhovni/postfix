@@ -208,6 +208,8 @@ static int strategy_from_string(const char *strategy_string)
 
 /* strategy_to_string - internal form to symbolic strategy flags */
 
+#if 0
+
 static const char *strategy_to_string(VSTRING *res_buf, int strategy_mask)
 {
     static VSTRING *my_buf;
@@ -218,6 +220,8 @@ static const char *strategy_to_string(VSTRING *res_buf, int strategy_mask)
 			      strategy_table, strategy_mask,
 			      NAME_MASK_WARN | NAME_MASK_PIPE));
 }
+
+#endif
 
 #endif
 

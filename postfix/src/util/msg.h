@@ -46,6 +46,15 @@ extern void PRINTFLIKE(4, 5) msg_rate_delay(time_t *, int,
 	              void PRINTFPTRLIKE(1, 2) (*log_fn) (const char *,...),
 					            const char *,...);
 
+ /*
+  * Exception call-back handler for unit tests.
+  */
+typedef NORETURN(*MSG_LONGJMP_ACTION) (int);
+extern void msg_set_longjmp_action(MSG_LONGJMP_ACTION);
+
+#define MSG_LONGJMP_FATAL	2	/* msg_fatal longjmp code */
+#define MSG_LONGJMP_PANIC	3	/* msg_panic longjmp code */
+
 /* LICENSE
 /* .ad
 /* .fi
@@ -55,6 +64,9 @@ extern void PRINTFLIKE(4, 5) msg_rate_delay(time_t *, int,
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 #endif

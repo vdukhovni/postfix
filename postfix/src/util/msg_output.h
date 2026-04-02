@@ -19,8 +19,9 @@
   * External interface. Severity levels are documented to be monotonically
   * increasing from 0 up to MSG_LAST.
   */
-typedef void (*MSG_OUTPUT_FN) (int, const char *);
-extern void msg_output(MSG_OUTPUT_FN);
+typedef void (*MSG_OUTPUT_FN) (int, const char *, void *);
+extern void msg_output_push(MSG_OUTPUT_FN, void *);
+extern void msg_output_pop(MSG_OUTPUT_FN, void *);
 extern void PRINTFLIKE(2, 3) msg_printf(int, const char *,...);
 extern void msg_vprintf(int, const char *, va_list);
 

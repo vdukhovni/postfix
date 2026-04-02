@@ -138,6 +138,7 @@ static int redirects_dict_open_hash_to_def_db_type(const TEST_CASE *tp)
 	    status = FAIL;
 	}
 	dict_close(dict);
+	msg_capt_free(capture);
     }
 
     return (status);
@@ -195,6 +196,7 @@ static int redirects_dict_open_btree_to_def_cache_db_type(const TEST_CASE *tp)
 	    status = FAIL;
 	}
 	dict_close(dict);
+	msg_capt_free(capture);
     }
 
     return (status);
@@ -252,6 +254,7 @@ static int redirects_mkmap_open_hash_to_def_db_type(const TEST_CASE *tp)
 	    status = FAIL;
 	}
 	mkmap_close(mkmap);
+	msg_capt_free(capture);
     }
 
     return (status);
@@ -310,6 +313,7 @@ static int redirects_mkmap_open_btree_to_def_cache_db_type(const TEST_CASE *tp)
 	    status = FAIL;
 	}
 	mkmap_close(mkmap);
+	msg_capt_free(capture);
     }
 
     return (status);

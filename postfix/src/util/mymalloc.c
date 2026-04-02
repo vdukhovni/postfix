@@ -249,7 +249,7 @@ char   *mystrndup(const char *str, ssize_t len)
     if (len < 0)
 	msg_panic("mystrndup: requested length %ld", (long) len);
 #ifndef NO_SHARED_EMPTY_STRINGS
-    if (*str == 0)
+    if (*str == 0 || /* fix 20220615 */ len == 0)
 	return ((char *) empty_string);
 #endif
     if ((cp = memchr(str, 0, len)) != 0)

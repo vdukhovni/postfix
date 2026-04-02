@@ -2,10 +2,10 @@
 set -e
 
 echo ">>> dict_open 'debug:' read"
-! ${VALGRIND} ./dict_open 'debug:' read </dev/null || exit 1
+! ${VALGRIND} ./dict_open 'debug:' read </dev/null
 
 echo ">>> dict_open 'debug:missing_colon_and_name' read"
-! ${VALGRIND} ./dict_open 'debug:missing_colon_and_name' read </dev/null || exit 1
+! ${VALGRIND} ./dict_open 'debug:missing_colon_and_name' read </dev/null
 
 echo ">>> dict_open 'debug:static:{space in name}' read"
 ${VALGRIND} ./dict_open 'debug:static:{space in name}' read <<EOF

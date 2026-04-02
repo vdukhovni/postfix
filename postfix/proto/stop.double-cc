@@ -356,3 +356,11 @@ dict_open  dict_open looks up our DICT_OPEN_INFO with dict_fn and mkmap_fn
 mkmap_open  mkmap_open looks up our DICT_OPEN_INFO with dict_fn and mkmap_fn
  typedef struct MSG_CAPTURE MSG_CAPTURE 
 MSG_CAPTURE  MSG_CAPTURE msg_capt_create ssize_t init_size 
+copy_addrinfo  copy_addrinfo expectation helper 
+int  int eq_enum 
+int  int eq_str 
+void  void dns_set_h_errno int herrval 
+application  application specific 
+ Null name or name name 
+void  void defer_ctx 
+ To undo a ptest_defer call call the function with a

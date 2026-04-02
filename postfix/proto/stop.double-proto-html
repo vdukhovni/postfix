@@ -384,3 +384,9 @@ smtp_requiretls_policy smtp_requiretls_policy inline
 in tt tt p 
 mynetworks mynetworks lmdb etc postfix network_table
  44 enable redirect redirect hash to lmdb or cdb 
+ 90 type_name unionmap static one fail fail 
+132 for cpp tp want_log cpp tp want_log MAX_WANT_LOG cpp cpp 
+184 test_map_search test_map_search 
+ void ptest_defer PTEST_CTX t void defer_fn void void defer_ctx 
+130 type_name unionmap static one fail fail 
+187 for cpp tp want_log cpp tp want_log MAX_WANT_LOG cpp cpp 

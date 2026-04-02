@@ -157,7 +157,7 @@ static int msg_syslog_enable;
 
 /* msg_syslog_print - log info to syslog daemon */
 
-static void msg_syslog_print(int level, const char *text)
+static void msg_syslog_print(int level, const char *text, void *unused)
 {
     static int log_level[] = {
 	LOG_INFO, LOG_WARNING, LOG_ERR, LOG_CRIT, LOG_CRIT,
@@ -207,7 +207,7 @@ void    msg_syslog_init(const char *name, int logopt, int facility)
     openlog(name, LOG_NDELAY | logopt, facility);
     if (first_call) {
 	first_call = 0;
-	msg_output(msg_syslog_print);
+	msg_output_push(msg_syslog_print, (void *) 0);
     }
     msg_syslog_enable = 1;
 }

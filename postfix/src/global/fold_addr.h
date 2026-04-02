@@ -12,6 +12,11 @@
 /* .nf
 
  /*
+  * Utility library.
+  */
+#include <vstring.h>
+
+ /*
   * External interface.
   */
 #define FOLD_ADDR_USER	(1<<0)

@@ -1,14 +1,12 @@
-/*++
-/* AUTHOR(S)
-/*	Wietse Venema
-/*	porcupine.org
-/*--*/
+ /*
+  * Test program to exercise dict_union.c. See PTEST_README for
+  * documentation.
+  */
 
  /*
   * System library.
   */
 #include <sys_defs.h>
-#include <stdlib.h>
 #include <string.h>
 
  /*
@@ -16,28 +14,38 @@
   */
 #include <argv.h>
 #include <dict_union.h>
-#include <msg.h>
-#include <msg_vstream.h>
-#include <stringops.h>
 #include <vstring.h>
 
  /*
-  * Testing library.
+  * Test library.
   */
 #include <dict_test_helper.h>
-
-#define LEN(x)	VSTRING_LEN(x)
-#define STR(x)	vstring_str(x)
+#include <ptest.h>
 
  /*
-  * TODO(wietse) move these to common testing header file.
+  * The following needs to be large enough to include a null terminator in
+  * every ptestcase.want field.
   */
-#define PASS	1
-#define FAIL	0
+#define MAX_PROBE	5
 
-static VSTRING *msg_buf;
+struct probe {
+    const char *query;
+    const char *want_value;
+    int     want_error;
+};
 
-static int valid_refcounts_for_good_composite_syntax(void)
+typedef struct PTEST_CASE {
+    const char *testname;
+    void    (*action) (PTEST_CTX *, const struct PTEST_CASE *);
+    const char *type_name;
+    const struct probe probes[MAX_PROBE];
+} PTEST_CASE;
+
+#define STR_OR_NULL(s)	((s) ? (s) : "null")
+#define STR(x)  vstring_str(x)
+
+static void valid_refcounts_for_good_composite_syntax(PTEST_CTX *t,
+					        const struct PTEST_CASE *tp)
 {
     DICT   *dict;
     int     open_flags = O_RDONLY;
@@ -54,200 +62,93 @@ static int valid_refcounts_for_good_composite_syntax(void)
 
     dict_compose_spec(DICT_TYPE_UNION, component_specs, open_flags, dict_flags,
 		      composite_spec, reg_component_specs);
-    dict = dict_open_and_capture_msg(STR(composite_spec), open_flags, dict_flags,
-				     msg_buf);
+    dict = dict_open(STR(composite_spec), open_flags, dict_flags);
 
-#undef RETURN
-#define RETURN(x) do { \
-	if (dict) dict_close(dict); \
-	vstring_free(composite_spec); \
-	argv_free(reg_component_specs); \
-	return (x); \
-    } while (0);
-
-    if (LEN(msg_buf) > 0) {
-	msg_warn("unexpected dict_open() warning: got '%s'", STR(msg_buf));
-	RETURN(FAIL);
-    }
     for (cpp = reg_component_specs->argv; *cpp; cpp++) {
 	if (dict_handle(*cpp) == 0) {
-	    msg_warn("table '%s' is not registered after dict_open()", *cpp);
-	    RETURN(FAIL);
+	    ptest_fatal(t, "table '%s' is not registered after dict_open()",
+			*cpp);
 	}
     }
     dict_close(dict);
-    dict = 0;
     for (cpp = reg_component_specs->argv; *cpp; cpp++) {
 	if (dict_handle(*cpp) != 0) {
-	    msg_warn("table '%s' is still registered after dict_close()", *cpp);
-	    RETURN(FAIL);
+	    ptest_fatal(t, "table '%s' is still registered after dict_close()",
+			*cpp);
 	}
     }
-    RETURN(PASS);
+    vstring_free(composite_spec);
+    argv_free(reg_component_specs);
 }
 
-static int valid_refcounts_for_bad_composite_syntax(void)
+static void test_dict_union(PTEST_CTX *t, const struct PTEST_CASE *tp)
 {
     DICT   *dict;
-    int     open_flags = O_RDONLY;
-    int     dict_flags = DICT_FLAG_LOCK;
-    VSTRING *composite_spec = vstring_alloc(100);
-    ARGV   *reg_component_specs = argv_alloc(3);
-    const char *component_specs[] = {
-	"static:one",
-	"static:two",
-	"inline{foo=three}",
-	0,
-    };
-    char  **cpp;
-    const char *want_msg = "bad syntax:";
+    const struct probe *pp;
+    const char *got_value;
+    int     got_error;
 
-    dict_compose_spec(DICT_TYPE_UNION, component_specs, open_flags, dict_flags,
-		      composite_spec, reg_component_specs);
-    dict = dict_open_and_capture_msg(STR(composite_spec), open_flags,
-				     dict_flags, msg_buf);
+    dict = dict_open(tp->type_name, O_RDONLY, 0);
 
-#undef RETURN
-#define RETURN(x) do { \
-	dict_close(dict); \
-	vstring_free(composite_spec); \
-	argv_free(reg_component_specs); \
-	return (x); \
-    } while (0);
-
-    if (LEN(msg_buf) == 0) {
-	msg_warn("missing dict_open() warning: want '%s'", want_msg);
-	RETURN(FAIL);
-    }
-    if (strstr(STR(msg_buf), want_msg) == 0) {
-	msg_warn("unexpected warning message: got '%s', want '%s'",
-		 STR(msg_buf), want_msg);
-	RETURN(FAIL);
-    }
-    for (cpp = reg_component_specs->argv; *cpp; cpp++) {
-	if (dict_handle(*cpp) != 0) {
-	    msg_warn("table '%s' is registered after failed dict_open()",
-		     *cpp);
-	    RETURN(FAIL);
+    for (pp = tp->probes; pp < tp->probes + MAX_PROBE && pp->query != 0; pp++) {
+	got_value = dict_get(dict, pp->query);
+	got_error = dict->error;
+	if (got_value == 0 && pp->want_value == 0)
+	    continue;
+	if (got_value == 0 || pp->want_value == 0) {
+	    ptest_error(t, "dict_get(dict, \"%s\"): got '%s', want '%s'",
+			pp->query, STR_OR_NULL(got_value),
+			STR_OR_NULL(pp->want_value));
+	    break;
 	}
-    }
-    RETURN(PASS);
-}
-
-static int propagates_notfound_and_found(void)
-{
-    DICT   *dict;
-    int     open_flags = O_RDONLY;
-    int     dict_flags = DICT_FLAG_LOCK;
-    const char *dict_spec = ("unionmap:{static:one,static:two,"
-			     "inline:{foo=three}}");
-    static struct dict_get_verify_data expectations[] = {
-	{.key = "foo",.want_value = "one,two,three"},
-	{.key = "bar",.want_value = "one,two"},
-	{0},
-    };
-    int     ret;
-
-    dict = dict_open_and_capture_msg(dict_spec, open_flags, dict_flags,
-				     msg_buf);
-    if (LEN(msg_buf) > 0) {
-	msg_warn("unexpected dict_open() warning: got '%s'", STR(msg_buf));
-	ret = FAIL;
-    } else {
-	ret = dict_get_and_verify_bulk(dict, expectations);
+	if (strcmp(got_value, pp->want_value) != 0) {
+	    ptest_error(t, "dict_get(dict, \"%s\"): got '%s', want '%s'",
+			pp->query, got_value, pp->want_value);
+	}
+	if (got_error != pp->want_error)
+	    ptest_error(t, "dict_get(dict,\"%s\") error: got %d, want %d",
+			pp->query, got_error, pp->want_error);
     }
     dict_close(dict);
-    return (ret);
 }
 
-static int propagates_error(void)
-{
-    DICT   *dict;
-    int     open_flags = O_RDONLY;
-    int     dict_flags = DICT_FLAG_LOCK;
-    const char *dict_spec = "unionmap:{static:one,fail:fail}";
-    static struct dict_get_verify_data expectations[] = {
-	{.key = "foo",.want_value = 0,.want_error = DICT_ERR_RETRY},
-	{0},
-    };
-    int     ret;
-
-    dict = dict_open_and_capture_msg(dict_spec, open_flags, dict_flags,
-				     msg_buf);
-    if (LEN(msg_buf) > 0) {
-	msg_warn("unexpected dict_open() warning: got '%s'", STR(msg_buf));
-	ret = FAIL;
-    } else {
-	ret = dict_get_and_verify_bulk(dict, expectations);
-    }
-    dict_close(dict);
-    return (ret);
-}
-
-static int no_comma_for_not_found(void)
-{
-    DICT   *dict;
-    int     open_flags = O_RDONLY;
-    int     dict_flags = DICT_FLAG_LOCK;
-    const char *dict_spec = "unionmap:{regexp:{{/a|c/ 1}},regexp:{{/b|c/ 2}}}";
-    static struct dict_get_verify_data expectations[] = {
-	{.key = "x",.want_value = 0},
-	{.key = "a",.want_value = "1"},
-	{.key = "b",.want_value = "2"},
-	{.key = "c",.want_value = "1,2"},
-	{0},
-    };
-    int     ret;
-
-    dict = dict_open_and_capture_msg(dict_spec, open_flags, dict_flags,
-				     msg_buf);
-    if (LEN(msg_buf) > 0) {
-	msg_warn("unexpected dict_open() warning: got '%s'", STR(msg_buf));
-	ret = FAIL;
-    } else {
-	ret = dict_get_and_verify_bulk(dict, expectations);
-    }
-    dict_close(dict);
-    return (ret);
-}
-
-struct TEST_CASE {
-    const char *label;
-    int     (*action) (void);
+static const PTEST_CASE ptestcases[] = {
+    {
+	.testname = "valid refcounts for good composite syntax",
+	.action = valid_refcounts_for_good_composite_syntax,
+    }, {
+	.testname = "propagates notfound and found",
+	.action = test_dict_union,
+	.type_name = "unionmap:{static:one,inline:{foo=two}}",
+	.probes = {
+	    {"foo", "one,two", DICT_STAT_SUCCESS},
+	    {"bar", "one", DICT_STAT_SUCCESS},
+	},
+    }, {
+	.testname = "error propagation: static map + fail map",
+	.action = test_dict_union,
+	.type_name = "unionmap:{static:one,fail:fail}",
+	.probes = {
+	    {"foo", 0, DICT_ERR_RETRY},
+	},
+    }, {
+	.testname = "error propagation: fail map + static map",
+	.action = test_dict_union,
+	.type_name = "unionmap:{fail:fail,static:one}",
+	.probes = {
+	    {"foo", 0, DICT_ERR_RETRY},
+	},
+    }, {
+	.testname = "no comma for not found",
+	.action = test_dict_union,
+	.type_name = "unionmap:{regexp:{{/a|c/ 1}},regexp:{{/b|c/ 2}}}",
+	.probes = {
+	    {.query = "x",.want_value = 0, DICT_STAT_SUCCESS},
+	    {.query = "a",.want_value = "1", DICT_STAT_SUCCESS},
+	    {.query = "b",.want_value = "2", DICT_STAT_SUCCESS},
+	    {.query = "c",.want_value = "1,2", DICT_STAT_SUCCESS},
+	},
+    },
 };
 
-static const struct TEST_CASE test_cases[] = {
-    {"valid_refcounts_for_good_composite_syntax", valid_refcounts_for_good_composite_syntax,},
-    {"valid_refcounts_for_bad_composite_syntax", valid_refcounts_for_bad_composite_syntax,},
-    {"propagates_notfound_and_found", propagates_notfound_and_found,},
-    {"propagates_error", propagates_error,},
-    {"no_comma_for_not_found", no_comma_for_not_found,},
-    {0},
-};
-
-int     main(int argc, char **argv)
-{
-    static int tests_passed = 0;
-    static int tests_failed = 0;
-    const struct TEST_CASE *tp;
-
-    msg_vstream_init(sane_basename((VSTRING *) 0, argv[0]), VSTREAM_ERR);
-
-    msg_buf = vstring_alloc(100);
-    dict_allow_surrogate = 1;
-
-    for (tp = test_cases; tp->label; tp++) {
-	msg_info("RUN  %s", tp->label);
-	if (tp->action() == PASS) {
-	    msg_info("PASS %s", tp->label);
-	    tests_passed += 1;
-	} else {
-	    msg_info("FAIL %s", tp->label);
-	    tests_failed += 1;
-	}
-    }
-    vstring_free(msg_buf);
-
-    msg_info("PASS=%d FAIL=%d", tests_passed, tests_failed);
-    exit(tests_failed != 0);
-}
+#include <ptest_main.h>

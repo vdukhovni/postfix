@@ -485,6 +485,7 @@ const char *psc_maps_find(MAPS *, const char *, int);
 extern void psc_dnsbl_init(void);
 extern int psc_dnsbl_retrieve(const char *, const char **, int, int *);
 extern int psc_dnsbl_request(const char *, void (*) (int, void *), void *);
+extern void psc_dnsbl_deinit(void);
 
  /*
   * postscreen_tests.c
