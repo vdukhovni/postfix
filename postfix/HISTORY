@@ -30795,6 +30795,15 @@ Apologies for any names omitted.
 	Renamed dict_test.c to dict_cli.c, stream_test.c to
 	sunos5_stream_test.c.
 
+20260403
+
+	Testing: 'make test' supports builds with "dynamicmaps=yes".
+	Some tests may still be non-hermetic. That will be addressed
+	in the course of time. Files: makedefs, Makefile.in,
+	dns/Makefile.in, postalias/Makefile.in, postmap/Makefile.in,
+	smtpd/Makefile.in, smtpd/smtpd_check.c, util/dict_open.c,
+	util/dynamicmaps.c, util/Makefile.in.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

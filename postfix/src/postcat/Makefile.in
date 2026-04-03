@@ -38,44 +38,58 @@ clean:
 tidy:	clean
 
 default_test: test-queue-file default_test.ref
-	./postcat test-queue-file >postcat.tmp 2>&1
+	$(VALGRIND) $(SHLIB_ENV) ./postcat test-queue-file >postcat.tmp 2>&1
 	diff default_test.ref postcat.tmp
 	rm -f postcat.tmp
 
 ebh_test: test-queue-file default_test.ref
-	./postcat -ebh test-queue-file >postcat.tmp 2>&1
+	rm -f main.cf
+	touch -t 197101010000 main.cf
+	$(VALGRIND) $(SHLIB_ENV) ./postcat -ebhc. test-queue-file >postcat.tmp 2>&1
 	diff default_test.ref postcat.tmp
-	rm -f postcat.tmp
+	rm -f postcat.tmp main.cf
 
 e_test: test-queue-file e_test.ref
-	./postcat -e test-queue-file >postcat.tmp 2>&1
+	rm -f main.cf
+	touch -t 197101010000 main.cf
+	$(VALGRIND) $(SHLIB_ENV) ./postcat -ec. test-queue-file >postcat.tmp 2>&1
 	diff e_test.ref postcat.tmp
-	rm -f postcat.tmp
+	rm -f postcat.tmp main.cf
 
 b_test: test-queue-file b_test.ref
-	./postcat -b test-queue-file >postcat.tmp 2>&1
+	rm -f main.cf
+	touch -t 197101010000 main.cf
+	$(VALGRIND) $(SHLIB_ENV) ./postcat -bc. test-queue-file >postcat.tmp 2>&1
 	diff b_test.ref postcat.tmp
-	rm -f postcat.tmp
+	rm -f postcat.tmp main.cf
 
 h_test: test-queue-file h_test.ref
-	./postcat -h test-queue-file >postcat.tmp 2>&1
+	rm -f main.cf
+	touch -t 197101010000 main.cf
+	$(VALGRIND) $(SHLIB_ENV) ./postcat -hc. test-queue-file >postcat.tmp 2>&1
 	diff h_test.ref postcat.tmp
-	rm -f postcat.tmp
+	rm -f postcat.tmp main.cf
 
 eb_test: test-queue-file eb_test.ref
-	./postcat -eb test-queue-file >postcat.tmp 2>&1
+	rm -f main.cf
+	touch -t 197101010000 main.cf
+	$(VALGRIND) $(SHLIB_ENV) ./postcat -ebc. test-queue-file >postcat.tmp 2>&1
 	diff eb_test.ref postcat.tmp
-	rm -f postcat.tmp
+	rm -f postcat.tmp main.cf
 
 eh_test: test-queue-file eh_test.ref
-	./postcat -eh test-queue-file >postcat.tmp 2>&1
+	rm -f main.cf
+	touch -t 197101010000 main.cf
+	$(VALGRIND) $(SHLIB_ENV) ./postcat -ehc. test-queue-file >postcat.tmp 2>&1
 	diff eh_test.ref postcat.tmp
-	rm -f postcat.tmp
+	rm -f postcat.tmp main.cf
 
 bh_test: test-queue-file bh_test.ref
-	./postcat -bh test-queue-file >postcat.tmp 2>&1
+	rm -f main.cf
+	touch -t 197101010000 main.cf
+	$(VALGRIND) $(SHLIB_ENV) ./postcat -bhc. test-queue-file >postcat.tmp 2>&1
 	diff bh_test.ref postcat.tmp
-	rm -f postcat.tmp
+	rm -f postcat.tmp main.cf
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

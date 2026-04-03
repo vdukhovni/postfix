@@ -5651,6 +5651,7 @@ char   *smtpd_check_eod(SMTPD_STATE *state)
 
 #include <mail_conf.h>
 #include <rewrite_clnt.h>
+#include <mail_dict.h>
 #include <dns.h>
 
 #include <smtpd_chat.h>
@@ -5712,6 +5713,8 @@ char   *var_unk_addr_tf_act;
 char   *var_unv_rcpt_tf_act;
 char   *var_unv_from_tf_act;
 char   *var_smtpd_acl_perm_log;
+char   *var_meta_dir;
+char   *shlib_dir;
 
 typedef struct {
     char   *name;
@@ -5771,6 +5774,8 @@ static const STRING_TABLE string_table[] = {
     /* XXX No static initialization with "", because owned by a library. */
     VAR_MYNETWORKS, "", &var_mynetworks,
     VAR_RELAY_DOMAINS, "", &var_relay_domains,
+    VAR_META_DIR, "../../meta", &var_meta_dir,
+    VAR_SHLIB_DIR, "../../lib", &var_shlib_dir,
     0,
 };
 
@@ -6170,6 +6175,7 @@ int     main(int argc, char **argv)
     string_init();
     int_init();
     bool_init();
+    mail_dict_init();
     smtpd_check_init();
     smtpd_expand_init();
     (void) inet_proto_init(argv[0], INET_PROTO_NAME_IPV4);

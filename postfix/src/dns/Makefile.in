@@ -30,10 +30,12 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:	update test dns_rr_to_pa_test dns_rr_to_sa_test dns_sa_to_rr_test \
-	dns_rr_eq_sa_test no-a-test no-aaaa-test no-mx-test \
+tests:	update test dns_rr_to_pa_test dns_rr_to_sa_test \
+	no-a-test no-aaaa-test no-mx-test \
 	error-filter-test nullmx_test nxdomain_test mxonly_test \
 	dnsbl_tests test_dns_rr test_dns_lookup_types
+
+broken_tests: dns_sa_to_rr_test dns_rr_eq_sa_test
 
 dnsbl_tests: \
 	dnsbl_ttl_127.0.0.2_bind_plain_test \

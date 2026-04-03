@@ -77,30 +77,50 @@ root_tests:
 # This requires that the DNS server can query porcupine.org.
 
 smtpd_check_test: smtpd_check smtpd_check.in smtpd_check.ref smtpd_check_access
-	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap hash:smtpd_check_access
+	@echo ; echo RUN smtpd_check_test
+	rm -f main.cf
+	cp ../../testing/main.cf .
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_check.in >smtpd_check.tmp 2>&1
 	diff smtpd_check.ref smtpd_check.tmp
-	rm -f smtpd_check.tmp smtpd_check_access.*
+	rm -f smtpd_check.tmp smtpd_check_access.* main.cf
+	@echo PASS smtpd_check_test
 
 # This requires that the DNS server can query porcupine.org.
 
 smtpd_check_test2: smtpd_check smtpd_check.in2 smtpd_check.ref2 smtpd_check_access
-	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap hash:smtpd_check_access
+	@echo ; echo RUN smtpd_check_test2
+	rm -f main.cf
+	cp ../../testing/main.cf .
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_check.in2 >smtpd_check.tmp 2>&1
 	diff smtpd_check.ref2 smtpd_check.tmp
-	rm -f smtpd_check.tmp smtpd_check_access.*
+	rm -f smtpd_check.tmp smtpd_check_access.* main.cf
+	@echo PASS smtpd_check_test2
 
 smtpd_check_test4: smtpd_check smtpd_check.in4 smtpd_check.ref4 smtpd_check_access
-	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap hash:smtpd_check_access
+	@echo ; echo RUN smtpd_check_test4
+	rm -f main.cf
+	cp ../../testing/main.cf .
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_check.in4 >smtpd_check.tmp 2>&1
 	diff smtpd_check.ref4 smtpd_check.tmp
-	rm -f smtpd_check.tmp smtpd_check_access.*
+	rm -f smtpd_check.tmp smtpd_check_access.* main.cf
+	@echo PASS smtpd_check_test4
 
 smtpd_acl_test: smtpd_check smtpd_acl.in smtpd_acl.ref smtpd_check_access
-	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap hash:smtpd_check_access
+	@echo ; echo RUN smtpd_acl_test
+	rm -f main.cf
+	cp ../../testing/main.cf .
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_acl.in >smtpd_check.tmp 2>&1
 	diff smtpd_acl.ref smtpd_check.tmp
-	rm -f smtpd_check.tmp smtpd_check_access.*
+	rm -f smtpd_check.tmp smtpd_check_access.* main.cf
+	@echo PASS smtpd_acl_test
 
 smtpd_addr_valid_test: smtpd_check smtpd_addr_valid.in smtpd_addr_valid.ref
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_addr_valid.in >smtpd_check.tmp 2>&1
@@ -113,66 +133,97 @@ ADDRINFO_FIX = sed -e 's/No address associated with hostname/hostname nor servna
 		-e 's/Name or service not known/hostname nor servname provided, or not known/'
 
 smtpd_exp_test: smtpd_check smtpd_exp.in smtpd_exp.ref
-	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap hash:smtpd_check_access
+	@echo ; echo RUN smtpd_acl_test
+	rm -f main.cf
+	cp ../../testing/main.cf .
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_exp.in >smtpd_exp.tmp 2>&1
 	diff smtpd_exp.ref smtpd_exp.tmp
-	rm -f smtpd_exp.tmp smtpd_check_access.*
+	rm -f smtpd_exp.tmp smtpd_check_access.* main.cf
+	@echo PASS smtpd_exp_test
 
 smtpd_server_test: smtpd_check smtpd_server.in smtpd_server.ref
+	@echo ; echo RUN smtpd_server_test
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_server.in >smtpd_server.tmp 2>&1
 	$(ADDRINFO_FIX) smtpd_server.tmp | diff smtpd_server.ref -
 	rm -f smtpd_server.tmp smtpd_check_access.*
+	@echo PASS smtpd_server_test
 
 smtpd_nullmx_test: smtpd_check smtpd_nullmx.in smtpd_nullmx.ref
-	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap hash:smtpd_check_access
+	@echo ; echo RUN smtpd_nullmx_test
+	rm -f main.cf
+	cp ../../testing/main.cf .
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_nullmx.in >smtpd_nullmx.tmp 2>&1
 	$(ADDRINFO_FIX) smtpd_nullmx.tmp | diff smtpd_nullmx.ref -
-	rm -f smtpd_nullmx.tmp smtpd_check_access.*
+	rm -f smtpd_nullmx.tmp smtpd_check_access.* main.cf
+	@echo PASS smtpd_nullmx_test
 
 smtpd_dns_filter_test: smtpd_check smtpd_dns_filter.in smtpd_dns_filter.ref \
 	../dns/no-mx.reg ../dns/no-a.reg ../dns/error.reg
+	@echo ; echo smtpd_dns_filter_test
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_dns_filter.in 2>&1 | \
 	    sed 's/\. [0-9]* IN/. TTL IN/' >smtpd_dns_filter.tmp
 	diff smtpd_dns_filter.ref smtpd_dns_filter.tmp
 	rm -f smtpd_dns_filter.tmp
+	@echo PASS smtpd_dns_filter_test
 
 smtpd_check_dsn_test: smtpd_check smtpd_check_dsn.in smtpd_check_dsn.ref smtpd_check_access
-	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap hash:smtpd_check_access
+	@echo ; echo RUN smtpd_check_dsn_test
+	rm -f main.cf
+	cp ../../testing/main.cf .
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_check_dsn.in >smtpd_check.tmp 2>&1
 	diff smtpd_check_dsn.ref smtpd_check.tmp
-	rm -f smtpd_check.tmp smtpd_check_access.*
+	rm -f smtpd_check.tmp smtpd_check_access.* main.cf
+	@echo PASS smtpd_check_dsn_test
 
 # This requires that 168.100.3.7 is a local or virtual interface.
 
 smtpd_check_backup_test: smtpd_check smtpd_check_backup.in smtpd_check_backup.ref
+	@echo ; echo RUN smtpd_check_backup_test
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_check_backup.in >smtpd_check.tmp 2>&1
 	diff smtpd_check_backup.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp
+	@echo PASS smtpd_check_backup_test
 
 smtpd_token_test: smtpd_token smtpd_token.in smtpd_token.ref
+	@echo ; echo RUN smtpd_token_test
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_token <smtpd_token.in >smtpd_token.tmp 2>&1
 	diff smtpd_token.ref smtpd_token.tmp
 	rm -f smtpd_token.tmp
+	@echo PASS smtpd_token_test
 
 # This requires that the DNS server can query porcupine.org and rfc-ignorant.org
 
 smtpd_dnswl_test: smtpd_check smtpd_dnswl.in smtpd_dnswl.ref
+	@echo ; echo RUN smtpd_dnswl_test
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_dnswl.in >smtpd_dnswl.tmp 2>&1
 	diff smtpd_dnswl.ref smtpd_dnswl.tmp
 	rm -f smtpd_dnswl.tmp
+	@echo PASS smtpd_dnswl_test
 
 smtpd_error_test: smtpd_check smtpd_error.in smtpd_error.ref
+	@echo ; echo RUN smtpd_error_test
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_error.in >smtpd_check.tmp 2>&1
 	diff smtpd_error.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp
+	@echo PASS smtpd_error_test
 
 smtpd_deprecated_test: smtpd_check smtpd_deprecated.in smtpd_deprecated.ref
+	@echo ; echo RUN smtpd_deprecated_test
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_deprecated.in >smtpd_check.tmp 2>&1
 	diff smtpd_deprecated.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp
+	@echo PASS smtpd_deprecated_test
 
 test_smtpd_peer: smtpd_peer_test
+	@echo ; echo RUN test_smtpd_peer
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_peer_test
+	@echo PASS test_smtpd_peer
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

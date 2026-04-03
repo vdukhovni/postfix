@@ -1439,6 +1439,7 @@ EXPORT	= CCARGS='$CCARGS' OPT='$OPT' DEBUG='$DEBUG'
 WARN	= $WARN
 DEFINED_MAP_TYPES = $DEFINED_MAP_TYPES
 MAKE_FIX = $MAKE_FIX
+BUILD_ROOT = `pwd`
 # Switch between Postfix static and dynamically-linked libraries.
 AR	= $AR
 RANLIB	= $RANLIB

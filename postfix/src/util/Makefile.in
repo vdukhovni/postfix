@@ -740,6 +740,7 @@ attr_scan0_test: attr_print0 attr_scan0 attr_scan0.ref
 
 dict_test: dict_open testdb dict_test.in dict_test.ref
 	rm -f testdb.db testdb.dir testdb.pag main.cf
+	cp ../../testing/main.cf .
 	touch -t 197601010000 main.cf
 	$(SHLIB_ENV) ../postmap/postmap -Nc. hash:testdb
 	$(SHLIB_ENV) ${VALGRIND} ./dict_open hash:testdb write < dict_test.in 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_test.tmp
@@ -942,6 +943,7 @@ base32_code_test: base32_code
 
 dict_thash_test: ../postmap/postmap dict_thash.map dict_thash.in dict_thash.ref
 	rm -f main.cf
+	cp ../../testing/main.cf .
 	touch -t 197601010000 main.cf
 	$(SHLIB_ENV) ${VALGRIND} ../postmap/postmap -fsc. texthash:dict_thash.map 2>&1 | \
 	    LANG=C sort | diff dict_thash.map -

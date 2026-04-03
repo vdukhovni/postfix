@@ -149,14 +149,15 @@ static const DICT_OPEN_INFO *dymap_dict_lookup(const char *dict_type)
 		 dict_type, dict_type);
 	return (0);
     }
-    if (stat(dp->soname, &st) < 0) {
+    if (stat (dp->soname, &st) < 0) {
 	msg_warn("unsupported dictionary type: %s (%s: %m)",
 		 dict_type, dp->soname);
 	return (0);
     }
-    if (st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
+    if ((st.st_uid != geteuid() && st.st_uid != 0)
+	|| (st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
 	msg_warn("unsupported dictionary type: %s "
-		 "(%s: file is owned or writable by non-root users)",
+		 "(%s: file is owned or writable by other users)",
 		 dict_type, dp->soname);
 	return (0);
     }
@@ -235,8 +236,9 @@ static void dymap_read_conf(const char *path, const char *path_base)
     if ((fp = vstream_fopen(path, O_RDONLY, 0)) != 0) {
 	if (fstat(vstream_fileno(fp), &st) < 0)
 	    msg_fatal("%s: fstat failed; %m", path);
-	if (st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
-	    msg_warn("%s: file is owned or writable by non-root users"
+	if ((st.st_uid != geteuid() && st.st_uid != 0)
+	    || (st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
+	    msg_warn("%s: file is owned or writable by other users"
 		     " -- skipping this file", path);
 	} else {
 	    buf = vstring_alloc(100);

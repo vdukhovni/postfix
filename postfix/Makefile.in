@@ -20,6 +20,7 @@ LIBEXEC	= libexec/post-install libexec/postfix-script libexec/postfix-wrapper \
 PLUGINS	= meta/dynamicmaps.cf
 META	= meta/main.cf.proto meta/master.cf.proto meta/postfix-files \
 	meta/makedefs.out $(PLUGINS)
+TESTING	= testing/main.cf
 EXPAND	= sed -e "s;\$${LIB_PREFIX};$(LIB_PREFIX);" \
 	    -e "s;\$${LIB_SUFFIX};$(LIB_SUFFIX);"
 SHLIB_DIR_OVERRIDE = \
@@ -50,7 +51,7 @@ update tests root_tests:
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $(OPTS) $@ MAKELEVEL=) || exit 1; \
 	done
 
-update: $(META) $(LIBEXEC)
+update: $(META) $(TESTING) $(LIBEXEC)
 
 libexec/post-install: conf/post-install
 	rm -f $@ && ln -f $? $@
@@ -98,6 +99,12 @@ libexec/postfix-wrapper: conf/postfix-wrapper
 
 meta/main.cf.proto: conf/main.cf
 	rm -f $@ && ln -f $? $@
+
+testing/main.cf:
+	rm -f $@
+	mkdir -p testing
+	echo 'meta_directory = $(BUILD_ROOT)/meta' >> $@
+	echo 'shlib_directory = $(BUILD_ROOT)/lib' >> $@
 
 meta/master.cf.proto: conf/master.cf
 	rm -f $@ && ln -f $? $@
@@ -243,6 +250,7 @@ tidy:	clean
 	    make.err */make.err */*/make.err \
 	    *.gmon */*.gmon */*/*.gmon \
 	    conf/main.cf.default conf/bounce.cf.default meta/*
+	rm -rf testing
 	find . -type s -print | xargs rm -f
 	find . -type d -print | xargs chmod 755
 	find . -type f -print | xargs chmod a+r
