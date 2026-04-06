@@ -918,7 +918,7 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
      * Allocate an application context, and populate with mandatory protocol
      * and cipher data.
      */
-    app_ctx = tls_alloc_app_context(client_ctx, 0, log_mask);
+    app_ctx = tls_alloc_app_context(client_ctx, log_mask);
 
     /*
      * The external session cache is implemented by the tlsmgr(8) process.

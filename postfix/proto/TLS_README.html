@@ -145,6 +145,8 @@ key configuration </a>
 
 <li><a href="#server_misc"> Miscellaneous server controls</a>
 
+<li><a href="#testing_sni"> Testing SNI support</a>
+
 </ul>
 
 <h3><a name="server_cert_key">Server-side certificate and private
@@ -1037,6 +1039,277 @@ by other means in a later release, and the mask bit will then be
 ignored.  Therefore, use of the hexadecimal mask is only a temporary
 measure until a new Postfix or OpenSSL release provides a better
 solution.  </p>
+
+<h3><a name="testing_sni"> Testing SNI support</a> </h3>
+
+<p> The Postfix SMTP server supports dynamic selection of private keys and
+certificate chains based on the content of the server-name-indication (SNI)
+TLS extension sent by the SMTP client.  See the documentation of the <a
+href="postconf.5.html#tls_server_sni_maps">tls_server_sni_maps</a>
+configuration parameter for basic syntax details. </p>
+
+<p> Below you'll see how to test SNI support, and, in particular, how to
+determine whether your OpenSSL runtime has been patched to correctly handle
+SNI with recently added public key algorithms, such as the post-quantum
+<b>ML-DSA</b>.  Use of post-quantum certificates via SNI will become
+relevant once certification authorities start to issue post-quantum
+certificates.  Until then, with self-signed certificates, it rarely matters
+what names happen to appear in a certificate that can't be chained to a
+trusted CA.  </p>
+
+<p> First let's check that SNI support works with RSA keys.  The below
+commands will generate a key and self-signed certificate: </p>
+
+<blockquote>
+<pre>
+    # cfdir=$(postconf -dxh config_directory)
+    # cd "$cfdir"
+    # rchain="rsa-test.pem"
+    # fqdn=sni-test.localhost
+    # openssl genpkey -out "$rchain" -algorithm rsa \
+        -pkeyopt rsa_keygen_bits:2048
+    # openssl req -new -x509 -key "$rchain" -subj "/CN=$fqdn" \
+        -addext "basicConstraints = critical,CA:false" \
+        -addext "extendedKeyUsage = serverAuth" \
+        -addext "subjectAltName = DNS:$fqdn" >> "$rchain"
+</pre>
+</blockquote>
+
+<p> Next, we check that the private key matches the public key in the
+certificate: </p>
+
+<blockquote>
+<pre>
+    # cfdir=$(postconf -dxh config_directory)
+    # cd "$cfdir"
+    # rchain=rsa-test.pem
+    # kh=$(openssl pkey -in "$rchain" -pubout -outform DER |
+        openssl dgst -sha256 | sed 's/.*= *//')
+    # xh=$(openssl x509 -in "$rchain" -noout -pubkey |
+        openssl pkey -pubin -outform DER |
+        openssl dgst -sha256 | sed 's/.*= *//')
+    # if [[ "X$kh" == "X$xh" ]] then
+        echo "Equal private and certificate pubkey hashes: $kh"
+      else
+        echo "key does not match certificate in ${rchain}" >&2
+      fi
+</pre>
+</blockquote>
+
+<p> Next, we construct a test SNI table (as a matter of good habit, making
+sure it is not world-readable), and check that queries return the same public
+key hash as before: </p>
+
+<blockquote>
+<pre>
+    # cfdir=$(postconf -dxh config_directory)
+    # cd "$cfdir"
+    # rchain=rsa-test.pem
+    # fqdn=sni-test.localhost
+    # dbtype=$(postconf -xh default_database_type)
+    # snitab=sni-test-table
+    # (
+        umask 077
+        printf "%s\t%s\n" "$fqdn" "$cfdir/$rchain" > "$snitab"
+      )
+    # postmap -F "${dbtype}:${snitab}"
+    # postmap -Fq "$fqdn" "${dbtype}:${snitab}" |
+        openssl pkey -pubout -outform DER |
+        openssl dgst -sha256 | sed 's/.*= */pubkey hash: /'
+    # postmap -Fq "$fqdn" "${dbtype}:${snitab}" |
+        openssl x509 -noout -pubkey |
+        openssl pkey -pubin -outform DER |
+        openssl dgst -sha256 | sed 's/.*= */pubkey hash: /'
+</pre>
+</blockquote>
+
+<p> Next, we add a test SNI-enabled SMTP service on an unused port and
+loopback IP address: </p>
+
+<blockquote>
+<pre>
+    # cfdir=$(postconf -dxh config_directory)
+    # cd "$cfdir"
+    # rchain=rsa-test.pem
+    # fqdn=sni-test.localhost
+    # dbtype=$(postconf -xh default_database_type)
+    # snitab=sni-test-table
+    # port=$(perl -MIO::Socket -le '
+        # Just pick a "random" unused port if you do not have Perl
+        print IO::Socket::INET->new(
+            Listen => 1,
+            ReuseAddr => 1,
+            LocalHost => "127.0.0.1",
+            LocalPort => 0)->sockport()
+            ')
+    # postconf -M "$(
+        printf '%s/inet = %s inet n - n - - smtpd' \
+            "127.0.0.1:$port" "127.0.0.1:$port"
+        printf '\t-o { tls_server_sni_maps = %s:%s/%s }' \
+            "$dbtype" "$cfdir" "$snitab"
+        printf '\t-o { syslog_name = postfix/sni-test }'
+        )"
+    # postfix reload; sleep 1
+    #
+    # kh=$(openssl pkey -in "$rchain" -pubout -outform DER |
+        openssl dgst -sha256 | sed 's/.*= *//')
+    # ( sleep 1; printf "QUIT\r\n") |
+        openssl s_client -brief -starttls smtp \
+            -connect "127.0.0.1:$port" \
+            -verify 1 -verify_return_error \
+            -dane_tlsa_domain "$fqdn" \
+            -dane_tlsa_rrdata "3 1 1 $kh" &&
+        printf "OK: Got expected SNI chain\n" ||
+        printf "ERROR: Unexpected SNI certificate\n" >&2
+    # postconf -MX "127.0.0.1:$port/inet"
+    # postfix reload
+</pre>
+</blockquote>
+
+<p> The above basic RSA tests are expected to work, if the instructions
+are followed accurately.  If there's an unexpected failure, and the reasons
+are unclear, see the <a href="DEBUG_README.html#mail">debugging
+tutorial</a>, for how seek help from the <b>postfix-users</b> list. </p>
+
+<p> With the basic RSA test out of the way, let's try combining RSA and
+ECDSA keys: </p>
+
+<blockquote>
+<pre>
+    # cfdir=$(postconf -dxh config_directory)
+    # cd "$cfdir"
+    # rchain="rsa-test.pem"
+    # echain="ec-test.pem"
+    # rsasig="rsa_pss_rsae_sha256:rsa_pss_rsae_sha384:rsa_pss_rsae_sha512"
+    # rsasig="$rsasig:rsa_pss_pss_sha256:rsa_pss_pss_sha384:rsa_pss_pss_sha512"
+    # rsasig="$rsasig:rsa_pkcs1_sha256:rsa_pkcs1_sha384:rsa_pkcs1_sha512"
+    # ecsig="ecdsa_secp256r1_sha256:ecdsa_secp384r1_sha384:ecdsa_secp521r1_sha512"
+    # fqdn=sni-test.localhost
+    # dbtype=$(postconf -xh default_database_type)
+    # snitab=sni-test-table
+    # openssl genpkey -algorithm rsa -pkeyopt rsa_keygen_bits:2048 \
+        -out "$rchain"
+    # openssl req -new -x509 -key "$rchain" -subj "/CN=$fqdn" \
+        -addext "basicConstraints = critical,CA:false" \
+        -addext "extendedKeyUsage = serverAuth" \
+        -addext "subjectAltName = DNS:$fqdn" >> "$rchain"
+    # openssl genpkey -algorithm ec -pkeyopt ec_paramgen_curve:prime256v1 \
+        -out "$echain"
+    # openssl req -new -x509 -key "$echain" -subj "/CN=$fqdn" \
+        -addext "basicConstraints = critical,CA:false" \
+        -addext "extendedKeyUsage = serverAuth" \
+        -addext "subjectAltName = DNS:$fqdn" >> "$echain"
+    # rh=$(openssl pkey -in "$rchain" -pubout -outform DER |
+        openssl dgst -sha256 | sed 's/.*= *//')
+    # eh=$(openssl pkey -in "$echain" -pubout -outform DER |
+        openssl dgst -sha256 | sed 's/.*= *//')
+    # (
+        umask 077
+        printf "%s\t%s, %s\n" \
+            "$fqdn" "$cfdir/$rchain" "$cfdir/$echain" > "$snitab"
+      )
+    # postmap -F "${dbtype}:${snitab}"
+    # port=$(perl -MIO::Socket -le '
+        print IO::Socket::INET->new(
+            Listen => 1,
+            ReuseAddr => 1,
+            LocalHost => "127.0.0.1",
+            LocalPort => 0)->sockport()
+            ')
+    # postconf -M "$(
+        printf '%s/inet = %s inet n - n - - smtpd' \
+            "127.0.0.1:$port" "127.0.0.1:$port"
+        printf '\t-o { tls_server_sni_maps = %s:%s/%s }' \
+            "$dbtype" "$cfdir" "$snitab"
+        printf '\t-o { syslog_name = postfix/sni-test }'
+        )"
+    # postfix reload; sleep 1
+    # ( sleep 1; printf "QUIT\r\n") |
+        openssl s_client -brief -starttls smtp \
+            -connect "127.0.0.1:$port" \
+            -sigalgs "$rsasig" -cipher aRSA \
+            -verify 1 -verify_return_error \
+            -dane_tlsa_domain "$fqdn" \
+            -dane_tlsa_rrdata "3 1 1 $rh" &&
+        printf "OK: Got expected RSA SNI chain\n" ||
+        printf "ERROR: Unexpected RSA server certificate\n" >&2
+    # ( sleep 1; printf "QUIT\r\n") |
+        openssl s_client -brief -starttls smtp \
+            -connect "127.0.0.1:$port" \
+            -sigalgs "$ecsig" -cipher aECDSA \
+            -verify 1 -verify_return_error \
+            -dane_tlsa_domain "$fqdn" \
+            -dane_tlsa_rrdata "3 1 1 $eh" &&
+        printf "OK: Got expected EC SNI chain\n" ||
+        printf "ERROR: Unexpected EC SNI certificate\n" >&2
+    # postconf -MX "127.0.0.1:$port/inet"
+    # postfix reload
+</pre>
+</blockquote>
+
+<p> With a dual algorithm RSA + ECDSA chain also successful (for most users
+just single-algorithm RSA is the better choice), it is time to check
+whether the OpenSSL runtime supports SNI also for post-quantum algorithm
+keys.  This requires OpenSSL 3.5 or later, earlier versions don't support
+the <b>ML-DSA</b> algorithm needed for this test: </p>
+
+<blockquote>
+<pre>
+    # cfdir=$(postconf -dxh config_directory)
+    # cd "$cfdir"
+    # mchain="test-mldsa-chain.pem"
+    # mlsig="mldsa44"
+    # fqdn=sni-test.localhost
+    # dbtype=$(postconf -xh default_database_type)
+    # snitab=sni-test-table
+    # openssl genpkey -algorithm ml-dsa-44 -out "$mchain"
+    # openssl req -new -x509 -key "$mchain" -subj "/CN=$fqdn" \
+        -addext "basicConstraints = critical,CA:false" \
+        -addext "extendedKeyUsage = serverAuth" \
+        -addext "subjectAltName = DNS:$fqdn" >> "$mchain"
+    # mh=$(openssl pkey -in "$mchain" -pubout -outform DER |
+        openssl dgst -sha256 | sed 's/.*= *//')
+    # (
+        umask 077
+        printf "%s\t%s\n" "$fqdn" "$cfdir/$mchain" > "$snitab"
+      )
+    # postmap -F "${dbtype}:${snitab}"
+    # port=$(perl -MIO::Socket -le '
+        print IO::Socket::INET->new(
+            Listen => 1,
+            ReuseAddr => 1,
+            LocalHost => "127.0.0.1",
+            LocalPort => 0)->sockport()
+            ')
+    # postconf -M "$(
+        printf '%s/inet = %s inet n - n - - smtpd' \
+            "127.0.0.1:$port" "127.0.0.1:$port"
+        printf '\t-o { tls_server_sni_maps = %s:%s/%s }' \
+            "$dbtype" "$cfdir" "$snitab"
+        printf '\t-o { syslog_name = postfix/sni-test }'
+        )"
+    # postfix reload; sleep 1
+    # ( sleep 1; printf "QUIT\r\n") |
+        openssl s_client -brief -starttls smtp \
+            -connect "127.0.0.1:$port" \
+            -sigalgs "$mlsig" -tls1_3 \
+            -verify 1 -verify_return_error \
+            -dane_tlsa_domain "$fqdn" \
+            -dane_tlsa_rrdata "3 1 1 $mh" &&
+        printf "OK: Got expected ML-DSA SNI chain\n" ||
+        printf "ERROR: Unexpected ML-DSA server certificate\n" >&2
+    # postconf -MX "127.0.0.1:$port/inet"
+    # postfix reload
+</pre>
+</blockquote>
+
+<p> If all went well, your OpenSSL runtime working SNI support for also for
+newer public key algorithms, such as <b>ML-DSA</b>.  If the test failed, and
+the Postfix logs show that the test Postfix SMTP server failed with a
+segfault, your OpenSSL runtime has not yet been patched.  The test is not
+viable with OpenSSL 3.4 or earlier, which don't include <b>ML-DSA</b>
+support, and is expected to work with OpenSSL 4.0, which should be free of
+the underlying defect when initially released.  </p>
 
 <h2> <a name="client_tls">SMTP Client specific settings</a> </h2>
 

@@ -31,7 +31,7 @@ typedef struct PTEST_CASE {
 struct name_test_case {
     const char *label;			/* identifies test case */
     const char *config;			/* configuration under test */
-    const char *want_warning;		/* expected warning or empty */
+    const char *want_log;		/* expected warning or empty */
     const int want_code;		/* expected code */
 };
 
@@ -67,10 +67,10 @@ static void test_hfrom_format_parse(PTEST_CTX *t, const PTEST_CASE *tp)
 	PTEST_RUN(t, np->label, {
 	    int     got_code;
 
-	    if (*np->want_warning)
-		expect_ptest_error(t, np->want_warning);
+	    if (*np->want_log)
+		expect_ptest_log_event(t, np->want_log);
 	    got_code = hfrom_format_parse(np->label, np->config);
-	    if (*np->want_warning == 0) {
+	    if (*np->want_log == 0) {
 		if (got_code != np->want_code) {
 		    ptest_error(t, "got code \"%d\", want \"%d\"(%s)",
 			       got_code, np->want_code,
@@ -84,7 +84,7 @@ static void test_hfrom_format_parse(PTEST_CTX *t, const PTEST_CASE *tp)
 struct code_test_case {
     const char *label;			/* identifies test case */
     int     code;			/* code under test */
-    const char *want_warning;		/* expected warning or empty */
+    const char *want_log;		/* expected warning or empty */
     const char *want_name;		/* expected namme */
 };
 
@@ -115,10 +115,10 @@ static void test_str_hfrom_format_code(PTEST_CTX *t, const PTEST_CASE *tp)
 	PTEST_RUN(t, cp->label, {
 	    const char *got_name;
 
-	    if (*cp->want_warning)
-		expect_ptest_error(t, cp->want_warning);
+	    if (*cp->want_log)
+		expect_ptest_log_event(t, cp->want_log);
 	    got_name = str_hfrom_format_code(cp->code);
-	    if (*cp->want_warning == 0) {
+	    if (*cp->want_log == 0) {
 		if (strcmp(got_name, cp->want_name) != 0) {
 		    ptest_error(t, "got name: \"%s\", want: \"%s\"",
 			       got_name, cp->want_name);

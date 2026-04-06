@@ -15522,6 +15522,25 @@ smtp_tls_chain_files parameter (see there for additional details),
 but here scoped to just TLS connections in which the client sends
 a matching SNI domain name.
 .PP
+Unpatched versions of OpenSSL versions 3.2 through 3.6, may not
+correctly handle SNI certificate chains for private key algorithms
+other than:
+.IP \(bu
+\fBRSA\fR
+.IP \(bu
+\fBECDSA\fR
+.IP \(bu
+\fBDSA\fR (obsolete and best avoided)
+.IP \(bu
+\fBEdDSA\fR (Ed25519 or Ed448).
+.br
+The issue does not arise if you limit your SNI chains to just
+these algorithms. Otherwise, inclusion of, e.g., \fBML\-DSA\fR
+keys in SNI chains may lead to a null\-pointer\-exception (NPE).  The
+most recent update of your system's OpenSSL runtime libraries may
+already include a fix for this issue. See the testing SNI section of the
+Postfix TLS documentation for further guidance.
+.PP
 Example:
 .sp
 .in +4

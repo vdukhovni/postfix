@@ -30743,11 +30743,12 @@ Apologies for any names omitted.
 	Cleanup: migrate the MySQL client from find_inet(3) to
 	find_inet_service(3). Files: src/global/dict_mysql.c.
 
-	Feature: new NAME_MASK_NULL flag. When is present, the
-	str_name_mask_opt() function will output a string "0" when
-	the input mask is empty. Files: util/name_mask.[hc].
+	Feature: new NAME_MASK_NULL flag. When this flag is set,
+	the str_name_mask_opt() function will output a string "0"
+	when the input mask is empty. Otherwise, the result is an
+	empty string. Files: util/name_mask.[hc].
 
-	Cleanup: to make dict_open() easier to test, with support
+	Cleanup: make dict_open() easier to test, with support
 	for graceful degradation after dictionary type or name
 	syntax errors. File: util/dict_open.c.
 
@@ -30803,6 +30804,27 @@ Apologies for any names omitted.
 	dns/Makefile.in, postalias/Makefile.in, postmap/Makefile.in,
 	smtpd/Makefile.in, smtpd/smtpd_check.c, util/dict_open.c,
 	util/dynamicmaps.c, util/Makefile.in.
+
+20260404
+
+	Refactored SNI support and eliminated some duplicate code
+	and data. Viktor Dukhovni. Files: tls/tls_client.c,
+	tls/tls.h, tls/tls_misc.c, tls/tls_server.c.
+
+20260405
+
+	Documentation: in TLS_README, step-by-step instructions to
+	test Postfix SMTP server SNI support, and how to avoid a
+	null pointer bug in unpatched OpenSSL versions 3.2..3.6;
+	this text is linked to from the postconf(5) manpage. Viktor
+	Dukhovni. Files: proto/postconf.proto, proto/TLS_README.html.
+
+	Testing: In the SQLite test, call ptest_skip() if Postfix
+	is built without SQLite (after converting the test to use
+	Ptest). Files: global/Makefile.in, global/dict_sqlite_test.c.
+
+	Testing: expect_ptest_error() should be expect_ptest_log_event().
+	File: global/hfrom_format_test.c.
 
 TODO
 

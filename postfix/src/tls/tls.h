@@ -336,7 +336,6 @@ extern int tls_log_mask(const char *, const char *);
   */
 struct TLS_APPL_STATE {
     SSL_CTX *ssl_ctx;
-    SSL_CTX *sni_ctx;
     int     log_mask;
     char   *cache_type;
 };
@@ -714,13 +713,14 @@ extern int tls_set_my_certificate_key_info(SSL_CTX *, /* All */ const char *,
   */
 extern int TLScontext_index;
 
-extern TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *, SSL_CTX *, int);
+extern TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *, int);
 extern TLS_SESS_STATE *tls_alloc_sess_context(int, const char *);
 extern void tls_free_context(TLS_SESS_STATE *);
 extern void tls_check_version(void);
 extern long tls_bug_bits(void);
 extern void tls_print_errors(void);
 extern void tls_info_callback(const SSL *, int, int);
+extern int tls_cert_cb(SSL *, void *);
 
 #if OPENSSL_VERSION_PREREQ(3,0)
 extern long tls_bio_dump_cb(BIO *, int, const char *, size_t, int, long,

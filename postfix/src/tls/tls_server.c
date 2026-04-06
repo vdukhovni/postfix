@@ -425,7 +425,6 @@ static int trust_server_ccerts(X509_STORE_CTX *ctx, void *unused)
 TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 {
     SSL_CTX *server_ctx;
-    SSL_CTX *sni_ctx;
     X509_STORE *cert_store;
     long    off = 0;
     int     verify_flags = SSL_VERIFY_NONE;
@@ -524,24 +523,15 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 	tls_print_errors();
 	return (0);
     }
-    sni_ctx = SSL_CTX_new(TLS_server_method());
-    if (sni_ctx == 0) {
-	SSL_CTX_free(server_ctx);
-	msg_warn("cannot allocate server SNI SSL_CTX: disabling TLS support");
-	tls_print_errors();
-	return (0);
-    }
 #ifdef SSL_SECOP_PEER
     /* Backwards compatible security as a base for opportunistic TLS. */
     SSL_CTX_set_security_level(server_ctx, 0);
-    SSL_CTX_set_security_level(sni_ctx, 0);
 #endif
 
     /*
      * See the verify callback in tls_verify.c
      */
     SSL_CTX_set_verify_depth(server_ctx, props->verifydepth + 1);
-    SSL_CTX_set_verify_depth(sni_ctx, props->verifydepth + 1);
 
     /*
      * The session cache is implemented by the tlsmgr(8) server.
@@ -630,8 +620,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 	SSL_CTX_set_options(server_ctx, TLS_SSL_OP_PROTOMASK(protomask));
     SSL_CTX_set_min_proto_version(server_ctx, min_proto);
     SSL_CTX_set_max_proto_version(server_ctx, max_proto);
-    SSL_CTX_set_min_proto_version(sni_ctx, min_proto);
-    SSL_CTX_set_max_proto_version(sni_ctx, max_proto);
 
     /*
      * Some sites may want to give the client less rope. On the other hand,
@@ -642,17 +630,11 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     if (var_tls_preempt_clist)
 	SSL_CTX_set_options(server_ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
 
-    /* Done with server_ctx options, clone to sni_ctx */
-    SSL_CTX_clear_options(sni_ctx, ~0);
-    SSL_CTX_set_options(sni_ctx, SSL_CTX_get_options(server_ctx));
-
     /*
      * Set the call-back routine to debug handshake progress.
      */
-    if (log_mask & TLS_LOG_DEBUG) {
+    if (log_mask & TLS_LOG_DEBUG)
 	SSL_CTX_set_info_callback(server_ctx, tls_info_callback);
-	SSL_CTX_set_info_callback(sni_ctx, tls_info_callback);
-    }
 
     /*
      * Load the CA public key certificates for both the server cert and for
@@ -669,7 +651,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 				    props->CAfile, props->CApath) < 0) {
 	/* tls_set_ca_certificate_info() already logs a warning. */
 	SSL_CTX_free(server_ctx);		/* 200411 */
-	SSL_CTX_free(sni_ctx);
 	return (0);
     }
 
@@ -678,15 +659,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      * for the client, they're good enough for us.
      */
     tls_enable_server_rpk(server_ctx, NULL);
-    tls_enable_server_rpk(sni_ctx, NULL);
-
-    /*
-     * Upref and share the cert store.  Sadly we can't yet use
-     * SSL_CTX_set1_cert_store(3) which was added in OpenSSL 1.1.0.
-     */
-    cert_store = SSL_CTX_get_cert_store(server_ctx);
-    X509_STORE_up_ref(cert_store);
-    SSL_CTX_set_cert_store(sni_ctx, cert_store);
 
     /*
      * Load the server public key certificate and private key from file and
@@ -710,7 +682,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 					props->eckey_file) < 0) {
 	/* tls_set_my_certificate_key_info() already logs a warning. */
 	SSL_CTX_free(server_ctx);		/* 200411 */
-	SSL_CTX_free(sni_ctx);
 	return (0);
     }
 
@@ -725,7 +696,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     if (*props->dh1024_param_file != 0)
 	tls_set_dh_from_file(props->dh1024_param_file);
     tls_tmp_dh(server_ctx, 1);
-    tls_tmp_dh(sni_ctx, 1);
 
     /*
      * Enable EECDH if available, errors are not fatal, we just keep going
@@ -734,7 +704,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      * unified "groups" list.
      */
     tls_auto_groups(server_ctx, var_tls_eecdh_auto, var_tls_ffdhe_auto);
-    tls_auto_groups(sni_ctx, var_tls_eecdh_auto, var_tls_ffdhe_auto);
 
     /*
      * If we want to check client certificates, we have to indicate it in
@@ -760,8 +729,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 	verify_flags = SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE;
     SSL_CTX_set_verify(server_ctx, verify_flags,
 		       tls_verify_certificate_callback);
-    SSL_CTX_set_verify(sni_ctx, verify_flags,
-		       tls_verify_certificate_callback);
     if (props->ask_ccert && *props->CAfile) {
 	STACK_OF(X509_NAME) *calist = SSL_load_client_CA_file(props->CAfile);
 
@@ -772,29 +739,16 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 	    tls_print_errors();
 	}
 	SSL_CTX_set_client_CA_list(server_ctx, calist);
-
-	if (calist != 0 && sk_X509_NAME_num(calist) > 0) {
-	    calist = SSL_dup_CA_list(calist);
-
-	    if (calist == 0) {
-		msg_warn("error duplicating client CA names for SNI");
-		tls_print_errors();
-	    } else {
-		SSL_CTX_set_client_CA_list(sni_ctx, calist);
-	    }
-	}
     }
 
-    if (props->ask_ccert && var_tls_srvr_ccerts) {
+    if (props->ask_ccert && var_tls_srvr_ccerts)
 	SSL_CTX_set_cert_verify_callback(server_ctx, trust_server_ccerts, NULL);
-	SSL_CTX_set_cert_verify_callback(sni_ctx, trust_server_ccerts, NULL);
-    }
 
     /*
      * Initialize our own TLS server handle, before diving into the details
      * of TLS session cache management.
      */
-    app_ctx = tls_alloc_app_context(server_ctx, sni_ctx, log_mask);
+    app_ctx = tls_alloc_app_context(server_ctx, log_mask);
 
     if (cachable || ticketable || props->set_sessid) {
 
@@ -914,6 +868,9 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 	tls_free_context(TLScontext);
 	return (0);
     }
+
+    /* Configure the SNI-based certificate selection callback */
+    SSL_set_cert_cb(TLScontext->con, tls_cert_cb, TLScontext);
 
     /*
      * When encryption is mandatory use the 80-bit plus OpenSSL security

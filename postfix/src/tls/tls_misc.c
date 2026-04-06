@@ -845,18 +845,50 @@ void    tls_pre_jail_init(TLS_ROLE role)
 	maps_create(VAR_TLS_SERVER_SNI_MAPS, var_tls_server_sni_maps, flags);
 }
 
-/* server_sni_callback - process client's SNI extension */
-
-static int server_sni_callback(SSL *ssl, int *alert, void *arg)
+int tls_cert_cb(SSL *ssl, void *arg)
 {
-    SSL_CTX *sni_ctx = (SSL_CTX *) arg;
-    TLS_SESS_STATE *TLScontext = SSL_get_ex_data(ssl, TLScontext_index);
-    const char *sni = SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name);
-    const char *cp = sni;
+    TLS_SESS_STATE *TLScontext = arg;
+    const char *cp = TLScontext->peer_sni;
     const char *pem;
 
+    if (!cp || !tls_server_sni_maps)
+	return 1;
+
+    do {
+	/* Don't silently skip maps opened with the wrong flags. */
+	pem = maps_file_find(tls_server_sni_maps, cp, 0);
+    } while (!pem
+	     && !tls_server_sni_maps->error
+	     && (cp = strchr(cp + 1, '.')) != 0);
+
+    if (!pem) {
+	if (tls_server_sni_maps->error) {
+	    msg_warn("%s: %s map lookup problem",
+		     tls_server_sni_maps->title, TLScontext->peer_sni);
+	    return 0;
+	}
+	msg_info("TLS SNI %s from %s not matched, using default chain",
+		 TLScontext->peer_sni, TLScontext->namaddr);
+        return 1;
+    }
+
+    SSL_certs_clear(ssl);
+    if (tls_load_pem_chain(ssl, pem, TLScontext->peer_sni) == 0)
+        return 1;
+
+    /* errors already logged */
+    return 0;
+}
+
+/* server_sni_callback - process client's SNI extension */
+
+static int server_sni_callback(SSL *ssl, int *alert, void *unused)
+{
+    TLS_SESS_STATE *TLScontext = SSL_get_ex_data(ssl, TLScontext_index);
+    const char *sni = SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name);
+
     /* SNI is silently ignored when we don't care or is NULL or empty */
-    if (!sni_ctx || !tls_server_sni_maps || !sni || !*sni)
+    if (!tls_server_sni_maps || !sni || !*sni)
 	return SSL_TLSEXT_ERR_NOACK;
 
     if (!valid_hostname(sni, DONT_GRIPE)) {
@@ -885,37 +917,7 @@ static int server_sni_callback(SSL *ssl, int *alert, void *arg)
 		 TLScontext->namaddr, TLScontext->peer_sni, sni);
 	return SSL_TLSEXT_ERR_NOACK;
     }
-    do {
-	/* Don't silently skip maps opened with the wrong flags. */
-	pem = maps_file_find(tls_server_sni_maps, cp, 0);
-    } while (!pem
-	     && !tls_server_sni_maps->error
-	     && (cp = strchr(cp + 1, '.')) != 0);
 
-    if (!pem) {
-	if (tls_server_sni_maps->error) {
-	    msg_warn("%s: %s map lookup problem",
-		     tls_server_sni_maps->title, sni);
-	    *alert = SSL_AD_INTERNAL_ERROR;
-	    return SSL_TLSEXT_ERR_ALERT_FATAL;
-	}
-	msg_info("TLS SNI %s from %s not matched, using default chain",
-		 sni, TLScontext->namaddr);
-
-	/*
-	 * XXX: We could lie and pretend to accept the name, but since we've
-	 * previously not implemented the callback (with OpenSSL then
-	 * declining the extension), and nothing bad happened, declining it
-	 * explicitly should be safe.
-	 */
-	return SSL_TLSEXT_ERR_NOACK;
-    }
-    SSL_set_SSL_CTX(ssl, sni_ctx);
-    if (tls_load_pem_chain(ssl, pem, sni) != 0) {
-	/* errors already logged */
-	*alert = SSL_AD_INTERNAL_ERROR;
-	return SSL_TLSEXT_ERR_ALERT_FATAL;
-    }
     TLScontext->peer_sni = mystrdup(sni);
     return SSL_TLSEXT_ERR_OK;
 }
@@ -1296,8 +1298,7 @@ void    tls_log_summary(TLS_ROLE role, TLS_USAGE usage, TLS_SESS_STATE *ctx)
 
 /* tls_alloc_app_context - allocate TLS application context */
 
-TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *ssl_ctx, SSL_CTX *sni_ctx,
-				              int log_mask)
+TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *ssl_ctx, int log_mask)
 {
     TLS_APPL_STATE *app_ctx;
 
@@ -1306,16 +1307,13 @@ TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *ssl_ctx, SSL_CTX *sni_ctx,
     /* See portability note below with other memset() call. */
     memset((void *) app_ctx, 0, sizeof(*app_ctx));
     app_ctx->ssl_ctx = ssl_ctx;
-    app_ctx->sni_ctx = sni_ctx;
     app_ctx->log_mask = log_mask;
 
     /* See also: cache purging code in tls_set_ciphers(). */
     app_ctx->cache_type = 0;
 
-    if (tls_server_sni_maps) {
+    if (tls_server_sni_maps)
 	SSL_CTX_set_tlsext_servername_callback(ssl_ctx, server_sni_callback);
-	SSL_CTX_set_tlsext_servername_arg(ssl_ctx, (void *) sni_ctx);
-    }
     return (app_ctx);
 }
 
@@ -1325,8 +1323,6 @@ void    tls_free_app_context(TLS_APPL_STATE *app_ctx)
 {
     if (app_ctx->ssl_ctx)
 	SSL_CTX_free(app_ctx->ssl_ctx);
-    if (app_ctx->sni_ctx)
-	SSL_CTX_free(app_ctx->sni_ctx);
     if (app_ctx->cache_type)
 	myfree(app_ctx->cache_type);
     myfree((void *) app_ctx);
