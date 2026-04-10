@@ -30826,6 +30826,51 @@ Apologies for any names omitted.
 	Testing: expect_ptest_error() should be expect_ptest_log_event().
 	File: global/hfrom_format_test.c.
 
+20260406
+
+	Documentation: some construction debris. Viktor Dukhovni.
+	File: proto/TLS_README.html.
+
+20260407
+
+	Tech debt: added 'bool' support to internal protocols.
+	util/attr.h, util/attr_print0.c, util/attr_print64.c,
+	util/attr_print_plain.c, util/attr_scan0.c, util/attr_scan0.ref,
+	util/attr_scan64.c, util/attr_scan64.ref, util/attr_scan_plain.c,
+	util/attr_scan_plain.ref. There is no code that uses this now,
+	but there are tests to make sure that it is works when neded.
+
+20260408
+
+	Testing: pass an output function argument to make_attr().
+	Files: testing/make_attr.[hc], testing/match_attr_test.c,
+	testing/mock_server_test.c.
+
+20260410
+
+	Tech debt: refactored tlsproxy PARAM, INIT and START send
+	and receive handlers to make the code easier to test, and
+	added some unit tests. This removes tls_proxy_client_misc.c,
+	tls_proxy_client_print.c, tls_proxy_client_scan.c,
+	tls_proxy_server_print.c, and tls_proxy_server_scan.c, after
+	redistributing their content to new files. Files:
+	postscreen/Makefile.in, smtpd/Makefile.in, smtp/Makefile.in,
+	tls/Makefile.in, tls_proxy.h, tls_proxy_attr.h,
+	tls_proxy_client_init_proto.c tls_proxy_client_init_proto.h,
+	tls_proxy_client_init_proto_test.c tls_proxy_client_param_proto.c,
+	tls_proxy_client_param_proto.h tls_proxy_client_param_proto_test.c,
+	tls_proxy_client_start_proto.c tls_proxy_client_start_proto.h,
+	tls_proxy_server_init_proto.c tls_proxy_server_init_proto.h,
+	tls_proxy_server_init_proto_test.c tls_proxy_server_param_proto.c,
+	tls_proxy_server_param_proto.h tls_proxy_server_param_proto_test.c,
+	tls_proxy_server_start_proto.c tls_proxy_server_start_proto.h.
+
+	Added missing tls_trust_server_ccerts parameter entry in
+	smtpd(8) manpage, missing tls_trust_server_ccerts parameter
+	support in postlink. Files: smtpd/smtpd.c, mantools/postlink.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.
+
+	Document TLS parameters in tlsproxy(8) and postscreen(8).

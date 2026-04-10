@@ -857,8 +857,8 @@ address:
 
 The above basic RSA tests are expected to work, if the instructions are
 followed accurately. If there's an unexpected failure, and the reasons are
-unclear, see the debugging tutorial, for how seek help from the ppoossttffiixx--uusseerrss
-list.
+unclear, see the debugging tutorial, for how to ask for help on the ppoossttffiixx--
+uusseerrss list.
 
 With the basic RSA test out of the way, let's try combining RSA and ECDSA keys:
 
@@ -985,7 +985,7 @@ algorithm needed for this test:
         # postconf -MX "127.0.0.1:$port/inet"
         # postfix reload
 
-If all went well, your OpenSSL runtime working SNI support for also for newer
+If all went well, your OpenSSL runtime has working SNI support also for newer
 public key algorithms, such as MMLL--DDSSAA. If the test failed, and the Postfix logs
 show that the test Postfix SMTP server failed with a segfault, your OpenSSL
 runtime has not yet been patched. The test is not viable with OpenSSL 3.4 or

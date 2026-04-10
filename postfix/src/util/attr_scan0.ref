@@ -1,6 +1,7 @@
 ./attr_print0: send attr protocol = test
 ./attr_print0: send attr number = 4711
 ./attr_print0: send attr long_number = 1234
+./attr_print0: send attr bool = 1
 ./attr_print0: send attr string = whoopee
 ./attr_print0: send attr data = [data 7 bytes]
 ./attr_print0: send attr name bar-name value bar-value
@@ -9,6 +10,7 @@
 ./attr_print0: send attr protocol = test
 ./attr_print0: send attr number = 4711
 ./attr_print0: send attr long_number = 1234
+./attr_print0: send attr bool = 0
 ./attr_print0: send attr string = whoopee
 ./attr_print0: send attr data = [data 7 bytes]
 ./attr_print0: send attr protocol = not-test
@@ -21,6 +23,9 @@
 ./attr_scan0: unknown_stream: wanted attribute: long_number
 ./attr_scan0: input attribute name: long_number
 ./attr_scan0: input attribute value: 1234
+./attr_scan0: unknown_stream: wanted attribute: bool
+./attr_scan0: input attribute name: bool
+./attr_scan0: input attribute value: 1
 ./attr_scan0: unknown_stream: wanted attribute: string
 ./attr_scan0: input attribute name: string
 ./attr_scan0: input attribute value: whoopee
@@ -51,6 +56,9 @@
 ./attr_scan0: unknown_stream: wanted attribute: long_number
 ./attr_scan0: input attribute name: long_number
 ./attr_scan0: input attribute value: 1234
+./attr_scan0: unknown_stream: wanted attribute: bool
+./attr_scan0: input attribute name: bool
+./attr_scan0: input attribute value: 0
 ./attr_scan0: unknown_stream: wanted attribute: string
 ./attr_scan0: input attribute name: string
 ./attr_scan0: input attribute value: whoopee
@@ -65,6 +73,7 @@
 ./attr_scan0: warning: unexpected protocol not-test from unknown_stream (expected: test)
 number 4711
 long_number 1234
+bool 1
 string whoopee
 data whoopee
 (hash) bar-name bar-value
@@ -72,6 +81,7 @@ data whoopee
 long_number 4321
 number 4711
 long_number 1234
+bool 0
 string whoopee
 data whoopee
 (hash) bar-name bar-value

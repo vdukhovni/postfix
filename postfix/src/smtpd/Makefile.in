@@ -297,6 +297,13 @@ smtpd.o: ../../include/stringops.h
 smtpd.o: ../../include/sys_defs.h
 smtpd.o: ../../include/tls.h
 smtpd.o: ../../include/tls_proxy.h
+smtpd.o: ../../include/tls_proxy_attr.h
+smtpd.o: ../../include/tls_proxy_client_init_proto.h
+smtpd.o: ../../include/tls_proxy_client_param_proto.h
+smtpd.o: ../../include/tls_proxy_client_start_proto.h
+smtpd.o: ../../include/tls_proxy_server_init_proto.h
+smtpd.o: ../../include/tls_proxy_server_param_proto.h
+smtpd.o: ../../include/tls_proxy_server_start_proto.h
 smtpd.o: ../../include/tok822.h
 smtpd.o: ../../include/uxtext.h
 smtpd.o: ../../include/valid_hostname.h

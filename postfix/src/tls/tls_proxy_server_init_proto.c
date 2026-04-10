@@ -1,10 +1,25 @@
 /*++
 /* NAME
-/*	tls_proxy_server_scan 3
+/*	tls_proxy_server_init_proto 3
 /* SUMMARY
-/*	read TLS_SERVER_XXX structures from stream
+/*	TLS_SERVER_XXX structure support
 /* SYNOPSIS
-/*	#include <tls_proxy.h>
+/*	#include <tls_proxy_server_init_proto.h>
+/*
+/*	char	*tls_proxy_server_init_serialize(print_fn, buf, init_props)
+/*	ATTR_PRINT_COMMON_FN print_fn;
+/*	VSTRING *buf;
+/*	const TLS_SERVER_INIT_PROPS *init_props;
+/*
+/*	TLS_SERVER_INIT_PROPS *tls_proxy_server_init_from_string(
+/*	ATTR_SCAN_COMMON_FN scan_fn,
+/*	const VSTRING *buf)
+/*
+/*	int     tls_proxy_server_init_print(print_fn, stream, flags, ptr)
+/*	ATTR_PRINT_COMMON_FN print_fn;
+/*	VSTREAM *stream;
+/*	int     flags;
+/*	void    *ptr;
 /*
 /*	int	tls_proxy_server_init_scan(scan_fn, stream, flags, ptr)
 /*	ATTR_SCAN_COMMON_FN scan_fn;
@@ -14,16 +29,25 @@
 /*
 /*	tls_proxy_server_init_free(init_props)
 /*	TLS_SERVER_INIT_PROPS *init_props;
-/*
-/*	int	tls_proxy_server_start_scan(scan_fn, stream, flags, ptr)
-/*	ATTR_SCAN_COMMON_FN scan_fn;
-/*	VSTREAM *stream;
-/*	int     flags;
-/*	void    *ptr;
-/*
-/*	void	tls_proxy_server_start_free(start_props)
-/*	TLS_SERVER_START_PROPS *start_props;
 /* DESCRIPTION
+/*	tls_proxy_server_init_serialize() serializes the specified object
+/*	to a memory buffer, using the specified print function (typically,
+/*	attr_print_plain). The result can be used determine whether
+/*	there are any differences between instances of the same object
+/*	type.
+/*
+/*      tls_proxy_server_init_from_string() deserializes the specified
+/*      buffer into a TLS_SERVER_INIT_PROPS object, and returns null in case
+/*      of error. The result if not null should be passed to
+/*      tls_proxy_server_init_free().
+/*
+/*	tls_proxy_server_init_print() writes a TLS_SERVER_INIT_PROPS
+/*	structure to the named stream using the specified attribute print
+/*	routine. tls_proxy_server_init_print() is meant to be passed as
+/*	a call-back to attr_print(), thusly:
+/*
+/*	... SEND_ATTR_FUNC(tls_proxy_server_init_print, (const void *) init_props), ...
+/*
 /*	tls_proxy_server_init_scan() reads a TLS_SERVER_INIT_PROPS
 /*	structure from the named stream using the specified attribute
 /*	scan routine. tls_proxy_server_init_scan() is meant to be passed
@@ -37,24 +61,7 @@
 /*	... RECV_ATTR_FUNC(tls_proxy_server_init_scan, (void *) &init_props)
 /*	...
 /*	if (init_props)
-/*	    tls_proxy_client_init_free(init_props);
-/*
-/*	tls_proxy_server_start_scan() reads a TLS_SERVER_START_PROPS
-/*	structure from the named stream using the specified attribute
-/*	scan routine. tls_proxy_server_start_scan() is meant to be passed
-/*	as a call-back function to attr_scan(), as shown below.
-/*
-/*	tls_proxy_server_start_free() destroys a TLS_SERVER_START_PROPS
-/*	structure that was created by tls_proxy_server_start_scan().
-/*
-/*	TLS_SERVER_START_PROPS *start_props = 0;
-/*	...
-/*	... RECV_ATTR_FUNC(tls_proxy_server_start_scan, (void *) &start_props)
-/*	...
-/*	if (start_props)
-/*	    tls_proxy_server_start_free(start_props);
-/* DIAGNOSTICS
-/*	Fatal: out of memory.
+/*	    tls_proxy_server_init_free(init_props);
 /* LICENSE
 /* .ad
 /* .fi
@@ -64,6 +71,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 #ifdef USE_TLS
@@ -75,11 +85,109 @@
 /* Utility library */
 
 #include <attr.h>
+#include <msg.h>
+
+/* Global library. */
+
+#include <mail_params.h>
 
 /* TLS library. */
 
 #include <tls.h>
-#include <tls_proxy.h>
+#include <tls_proxy_attr.h>
+#include <tls_proxy_server_init_proto.h>
+
+/* tls_proxy_server_init_serialize - serialize to string */
+
+char   *tls_proxy_server_init_serialize(ATTR_PRINT_COMMON_FN print_fn,
+					        VSTRING *buf,
+				         const TLS_SERVER_INIT_PROPS *props)
+{
+    const char myname[] = "tls_proxy_server_init_serialize";
+    VSTREAM *mp;
+
+    if ((mp = vstream_memopen(buf, O_WRONLY)) == 0
+	|| print_fn(mp, ATTR_FLAG_NONE,
+		    SEND_ATTR_FUNC(tls_proxy_server_init_print,
+				   (const void *) props),
+		    ATTR_TYPE_END) != 0
+	|| vstream_fclose(mp) != 0)
+	msg_fatal("%s: can't serialize properties: %m", myname);
+    return (vstring_str(buf));
+}
+
+/* tls_proxy_server_init_from_string - deserialize TLS_SERVER_INIT_PROPS */
+
+TLS_SERVER_INIT_PROPS *tls_proxy_server_init_from_string(
+                                                ATTR_SCAN_COMMON_FN scan_fn,
+                                                             VSTRING *buf)
+{
+    const char myname[] = "tls_proxy_server_init_from_string";
+    TLS_SERVER_INIT_PROPS *props = 0;
+    VSTREAM *mp;
+
+    if ((mp = vstream_memopen(buf, O_RDONLY)) == 0
+        || scan_fn(mp, ATTR_FLAG_NONE,
+                   RECV_ATTR_FUNC(tls_proxy_server_init_scan,
+                                  (void *) &props),
+                   ATTR_TYPE_END) != 1
+        || vstream_fclose(mp) != 0)
+        msg_fatal("%s: can't deserialize properties: %m", myname);
+    return (props);
+}
+
+/* tls_proxy_server_init_print - send TLS_SERVER_INIT_PROPS over stream */
+
+int     tls_proxy_server_init_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
+				            int flags, const void *ptr)
+{
+    const TLS_SERVER_INIT_PROPS *props = (const TLS_SERVER_INIT_PROPS *) ptr;
+    int     ret;
+
+#define STRING_OR_EMPTY(s) ((s) ? (s) : "")
+
+    ret = print_fn(fp, flags | ATTR_FLAG_MORE,
+		   SEND_ATTR_STR(TLS_ATTR_LOG_PARAM,
+				 STRING_OR_EMPTY(props->log_param)),
+		   SEND_ATTR_STR(TLS_ATTR_LOG_LEVEL,
+				 STRING_OR_EMPTY(props->log_level)),
+		   SEND_ATTR_INT(TLS_ATTR_VERIFYDEPTH, props->verifydepth),
+		   SEND_ATTR_STR(TLS_ATTR_CACHE_TYPE,
+				 STRING_OR_EMPTY(props->cache_type)),
+		   SEND_ATTR_INT(TLS_ATTR_SET_SESSID, props->set_sessid),
+		   SEND_ATTR_STR(TLS_ATTR_CHAIN_FILES,
+				 STRING_OR_EMPTY(props->chain_files)),
+		   SEND_ATTR_STR(TLS_ATTR_CERT_FILE,
+				 STRING_OR_EMPTY(props->cert_file)),
+		   SEND_ATTR_STR(TLS_ATTR_KEY_FILE,
+				 STRING_OR_EMPTY(props->key_file)),
+		   SEND_ATTR_STR(TLS_ATTR_DCERT_FILE,
+				 STRING_OR_EMPTY(props->dcert_file)),
+		   SEND_ATTR_STR(TLS_ATTR_DKEY_FILE,
+				 STRING_OR_EMPTY(props->dkey_file)),
+		   SEND_ATTR_STR(TLS_ATTR_ECCERT_FILE,
+				 STRING_OR_EMPTY(props->eccert_file)),
+		   SEND_ATTR_STR(TLS_ATTR_ECKEY_FILE,
+				 STRING_OR_EMPTY(props->eckey_file)),
+		   SEND_ATTR_STR(TLS_ATTR_CAFILE,
+				 STRING_OR_EMPTY(props->CAfile)),
+		   SEND_ATTR_STR(TLS_ATTR_CAPATH,
+				 STRING_OR_EMPTY(props->CApath)),
+		   SEND_ATTR_STR(TLS_ATTR_PROTOCOLS,
+				 STRING_OR_EMPTY(props->protocols)),
+		   SEND_ATTR_STR(TLS_ATTR_EECDH_GRADE,
+				 STRING_OR_EMPTY(props->eecdh_grade)),
+		   SEND_ATTR_STR(TLS_ATTR_DH1K_PARAM_FILE,
+				 STRING_OR_EMPTY(props->dh1024_param_file)),
+		   SEND_ATTR_STR(TLS_ATTR_DH512_PARAM_FILE,
+				 STRING_OR_EMPTY(props->dh512_param_file)),
+		   SEND_ATTR_INT(TLS_ATTR_ASK_CCERT, props->ask_ccert),
+		   SEND_ATTR_STR(TLS_ATTR_MDALG,
+				 STRING_OR_EMPTY(props->mdalg)),
+		   ATTR_TYPE_END);
+    /* Do not flush the stream. */
+    return (ret);
+}
 
 /* tls_proxy_server_init_scan - receive TLS_SERVER_INIT_PROPS from stream */
 
@@ -180,64 +288,6 @@ void    tls_proxy_server_init_free(TLS_SERVER_INIT_PROPS *props)
     myfree((void *) props->eecdh_grade);
     myfree((void *) props->dh1024_param_file);
     myfree((void *) props->dh512_param_file);
-    myfree((void *) props->mdalg);
-    myfree((void *) props);
-}
-
-/* tls_proxy_server_start_scan - receive TLS_SERVER_START_PROPS from stream */
-
-int     tls_proxy_server_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
-				            int flags, void *ptr)
-{
-    TLS_SERVER_START_PROPS *props
-    = (TLS_SERVER_START_PROPS *) mymalloc(sizeof(*props));
-    int     ret;
-    VSTRING *serverid = vstring_alloc(25);
-    VSTRING *namaddr = vstring_alloc(25);
-    VSTRING *cipher_grade = vstring_alloc(25);
-    VSTRING *cipher_exclusions = vstring_alloc(25);
-    VSTRING *mdalg = vstring_alloc(25);
-
-    /*
-     * Note: memset() is not a portable way to initialize non-integer types.
-     */
-    memset(props, 0, sizeof(*props));
-    props->ctx = 0;
-    props->stream = 0;
-    /* XXX Caller sets fd. */
-    ret = scan_fn(fp, flags | ATTR_FLAG_MORE,
-		  RECV_ATTR_INT(TLS_ATTR_TIMEOUT, &props->timeout),
-		  RECV_ATTR_INT(TLS_ATTR_REQUIRECERT, &props->requirecert),
-		  RECV_ATTR_STR(TLS_ATTR_SERVERID, serverid),
-		  RECV_ATTR_STR(TLS_ATTR_NAMADDR, namaddr),
-		  RECV_ATTR_STR(TLS_ATTR_CIPHER_GRADE, cipher_grade),
-		  RECV_ATTR_STR(TLS_ATTR_CIPHER_EXCLUSIONS,
-				cipher_exclusions),
-		  RECV_ATTR_STR(TLS_ATTR_MDALG, mdalg),
-		  ATTR_TYPE_END);
-    props->serverid = vstring_export(serverid);
-    props->namaddr = vstring_export(namaddr);
-    props->cipher_grade = vstring_export(cipher_grade);
-    props->cipher_exclusions = vstring_export(cipher_exclusions);
-    props->mdalg = vstring_export(mdalg);
-    ret = (ret == 7 ? 1 : -1);
-    if (ret != 1) {
-	tls_proxy_server_start_free(props);
-	props = 0;
-    }
-    *(TLS_SERVER_START_PROPS **) ptr = props;
-    return (ret);
-}
-
-/* tls_proxy_server_start_free - destroy TLS_SERVER_START_PROPS structure */
-
-void    tls_proxy_server_start_free(TLS_SERVER_START_PROPS *props)
-{
-    /* XXX Caller closes fd. */
-    myfree((void *) props->serverid);
-    myfree((void *) props->namaddr);
-    myfree((void *) props->cipher_grade);
-    myfree((void *) props->cipher_exclusions);
     myfree((void *) props->mdalg);
     myfree((void *) props);
 }

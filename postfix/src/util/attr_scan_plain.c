@@ -100,6 +100,8 @@
 /*	This argument is followed by an attribute name and an integer pointer.
 /* .IP "RECV_ATTR_LONG(const char *name, long *ptr)"
 /*	This argument is followed by an attribute name and a long pointer.
+/* .IP "RECV_ATTR_BOOL(const char *name, bool *ptr)"
+/*	This argument is followed by an attribute name and a pointer to bool.
 /* .IP "RECV_ATTR_STR(const char *name, VSTRING *vp)"
 /*	This argument is followed by an attribute name and a VSTRING pointer.
 /* .IP "RECV_ATTR_STREQ(const char *name, const char *value)"
@@ -162,6 +164,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -283,6 +288,30 @@ static int attr_scan_plain_long_number(VSTREAM *fp, unsigned long *ptr,
     return (ch);
 }
 
+/* attr_scan_plain_bool - pull a boolean from the input stream */
+
+static int attr_scan_plain_bool(VSTREAM *fp, bool * ptr,
+				        VSTRING *str_buf,
+				        int terminator,
+				        const char *context)
+{
+    int     ch;
+
+    if ((ch = attr_scan_plain_string(fp, str_buf, terminator, context)) < 0) {
+	return (-1);
+    } else if (strcmp(STR(str_buf), "false") == 0) {
+	*ptr = false;
+	return (ch);
+    } else if (strcmp(STR(str_buf), "true") == 0) {
+	*ptr = true;
+	return (ch);
+    } else {
+	msg_warn("malformed boolean value from %s while reading %s: %.100s",
+		 VSTREAM_PATH(fp), context, STR(str_buf));
+	return (-1);
+    }
+}
+
 /* attr_vscan_plain - receive attribute list from stream */
 
 int     attr_vscan_plain(VSTREAM *fp, int flags, va_list ap)
@@ -294,6 +323,7 @@ int     attr_vscan_plain(VSTREAM *fp, int flags, va_list ap)
     char   *wanted_name;
     unsigned int *number;
     unsigned long *long_number;
+    bool   *bool_val;
     VSTRING *string;
     HTABLE *hash_table;
     int     ch;
@@ -434,6 +464,17 @@ int     attr_vscan_plain(VSTREAM *fp, int flags, va_list ap)
 	    }
 	    long_number = va_arg(ap, unsigned long *);
 	    if ((ch = attr_scan_plain_long_number(fp, long_number, str_buf,
+					   0, "input attribute value")) < 0)
+		return (-1);
+	    break;
+	case ATTR_TYPE_BOOL:
+	    if (ch != '=') {
+		msg_warn("missing value for number attribute %s from %s",
+			 STR(name_buf), VSTREAM_PATH(fp));
+		return (-1);
+	    }
+	    bool_val = va_arg(ap, bool *);
+	    if ((ch = attr_scan_plain_bool(fp, bool_val, str_buf,
 					   0, "input attribute value")) < 0)
 		return (-1);
 	    break;
@@ -580,6 +621,7 @@ int     main(int unused_argc, char **used_argv)
     int     int_val;
     long    long_val;
     long    long_val2;
+    bool    bool_val;
     int     ret;
 
     msg_verbose = 1;
@@ -589,13 +631,15 @@ int     main(int unused_argc, char **used_argv)
 			       RECV_ATTR_STREQ("protocol", "test"),
 			       RECV_ATTR_INT(ATTR_NAME_INT, &int_val),
 			       RECV_ATTR_LONG(ATTR_NAME_LONG, &long_val),
+			       RECV_ATTR_BOOL(ATTR_NAME_BOOL, &bool_val),
 			       RECV_ATTR_STR(ATTR_NAME_STR, str_val),
 			       RECV_ATTR_DATA(ATTR_NAME_DATA, data_val),
 			       RECV_ATTR_HASH(table),
 			       RECV_ATTR_LONG(ATTR_NAME_LONG, &long_val2),
-			       ATTR_TYPE_END)) > 4) {
+			       ATTR_TYPE_END)) > 5) {
 	vstream_printf("%s %d\n", ATTR_NAME_INT, int_val);
 	vstream_printf("%s %ld\n", ATTR_NAME_LONG, long_val);
+	vstream_printf("%s %s\n", ATTR_NAME_BOOL, bool_val ? "true" : "false");
 	vstream_printf("%s %s\n", ATTR_NAME_STR, STR(str_val));
 	vstream_printf("%s %s\n", ATTR_NAME_DATA, STR(data_val));
 	ht_info_list = htable_list(table);
@@ -611,11 +655,13 @@ int     main(int unused_argc, char **used_argv)
 			       RECV_ATTR_STREQ("protocol", "test"),
 			       RECV_ATTR_INT(ATTR_NAME_INT, &int_val),
 			       RECV_ATTR_LONG(ATTR_NAME_LONG, &long_val),
+			       RECV_ATTR_BOOL(ATTR_NAME_BOOL, &bool_val),
 			       RECV_ATTR_STR(ATTR_NAME_STR, str_val),
 			       RECV_ATTR_DATA(ATTR_NAME_DATA, data_val),
-			       ATTR_TYPE_END)) == 4) {
+			       ATTR_TYPE_END)) == 5) {
 	vstream_printf("%s %d\n", ATTR_NAME_INT, int_val);
 	vstream_printf("%s %ld\n", ATTR_NAME_LONG, long_val);
+	vstream_printf("%s %s\n", ATTR_NAME_BOOL, bool_val ? "true" : "false");
 	vstream_printf("%s %s\n", ATTR_NAME_STR, STR(str_val));
 	vstream_printf("%s %s\n", ATTR_NAME_DATA, STR(data_val));
 	ht_info_list = htable_list(table);

@@ -47,6 +47,8 @@
 /*	The arguments are an attribute name and an integer.
 /* .IP "SEND_ATTR_LONG(const char *name, long value)"
 /*	The arguments are an attribute name and a long integer.
+/* .IP "SEND_ATTR_BOOL(const char *name, bool value)"
+/*	The arguments are an attribute name and a boolean.
 /* .IP "SEND_ATTR_STR(const char *name, const char *value)"
 /*	The arguments are an attribute name and a null-terminated
 /*	string.
@@ -85,6 +87,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -149,6 +154,7 @@ int     attr_vprint64(VSTREAM *fp, int flags, va_list ap)
     char   *attr_name;
     unsigned int_val;
     unsigned long long_val;
+    bool    bool_val;
     char   *str_val;
     HTABLE_INFO **ht_info_list;
     HTABLE_INFO **ht;
@@ -187,6 +193,16 @@ int     attr_vprint64(VSTREAM *fp, int flags, va_list ap)
 	    VSTREAM_PUTC('\n', fp);
 	    if (msg_verbose)
 		msg_info("send attr %s = %lu", attr_name, long_val);
+	    break;
+	case ATTR_TYPE_BOOL:
+	    attr_name = va_arg(ap, char *);
+	    attr_print64_str(fp, attr_name, strlen(attr_name));
+	    bool_val = va_arg(ap, unsigned);
+	    VSTREAM_PUTC(':', fp);
+	    attr_print64_num(fp, (unsigned) bool_val);
+	    VSTREAM_PUTC('\n', fp);
+	    if (msg_verbose)
+		msg_info("send attr %s = %u", attr_name, (unsigned) bool_val);
 	    break;
 	case ATTR_TYPE_STR:
 	    attr_name = va_arg(ap, char *);
@@ -272,6 +288,7 @@ int     main(int unused_argc, char **argv)
 		 SEND_ATTR_STR("protocol", "test"),
 		 SEND_ATTR_INT(ATTR_NAME_INT, 4711),
 		 SEND_ATTR_LONG(ATTR_NAME_LONG, 1234L),
+		 SEND_ATTR_BOOL(ATTR_NAME_BOOL, true),
 		 SEND_ATTR_STR(ATTR_NAME_STR, "whoopee"),
 	       SEND_ATTR_DATA(ATTR_NAME_DATA, strlen("whoopee"), "whoopee"),
 		 SEND_ATTR_HASH(table),
@@ -281,6 +298,7 @@ int     main(int unused_argc, char **argv)
 		 SEND_ATTR_STR("protocol", "test"),
 		 SEND_ATTR_INT(ATTR_NAME_INT, 4711),
 		 SEND_ATTR_LONG(ATTR_NAME_LONG, 1234L),
+		 SEND_ATTR_BOOL(ATTR_NAME_BOOL, false),
 		 SEND_ATTR_STR(ATTR_NAME_STR, "whoopee"),
 	       SEND_ATTR_DATA(ATTR_NAME_DATA, strlen("whoopee"), "whoopee"),
 		 ATTR_TYPE_END);

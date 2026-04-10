@@ -5,27 +5,46 @@ SRCS	= tls_prng_dev.c tls_prng_egd.c tls_prng_file.c tls_fprint.c \
 	tls_client.c tls_server.c tls_scache.c tls_mgr.c tls_seed.c \
 	tls_level.c \
 	tls_proxy_clnt.c tls_proxy_context_print.c tls_proxy_context_scan.c \
-	tls_proxy_client_init_print.c tls_proxy_client_init_scan.c \
-	tls_proxy_server_init_print.c tls_proxy_server_init_scan.c \
-	tls_proxy_client_start_print.c tls_proxy_client_start_scan.c \
-	tls_proxy_server_start_print.c tls_proxy_server_start_scan.c \
-	tls_proxy_client_misc.c tlsrpt_wrapper.c
+	tlsrpt_wrapper.c \
+	tls_proxy_client_param_proto.c \
+	tls_proxy_client_init_proto.c \
+	tls_proxy_client_start_proto.c \
+	tls_proxy_server_param_proto.c \
+	tls_proxy_server_init_proto.c \
+	tls_proxy_server_start_proto.c
 OBJS	= tls_prng_dev.o tls_prng_egd.o tls_prng_file.o tls_fprint.o \
 	tls_prng_exch.o tls_stream.o tls_bio_ops.o tls_misc.o tls_dh.o \
 	tls_verify.o tls_dane.o tls_certkey.o tls_session.o \
 	tls_client.o tls_server.o tls_scache.o tls_mgr.o tls_seed.o \
 	tls_level.o \
 	tls_proxy_clnt.o tls_proxy_context_print.o tls_proxy_context_scan.o \
-	tls_proxy_client_print.o tls_proxy_client_scan.o \
-	tls_proxy_server_print.o tls_proxy_server_scan.o \
-	tls_proxy_client_misc.o tlsrpt_wrapper.o
-HDRS	= tls.h tls_prng.h tls_scache.h tls_mgr.h tls_proxy.h tlsrpt_wrapper.h
-TESTSRC	= 
+	tlsrpt_wrapper.o \
+	tls_proxy_client_param_proto.o \
+	tls_proxy_client_init_proto.o \
+	tls_proxy_client_start_proto.o \
+	tls_proxy_server_param_proto.o \
+	tls_proxy_server_init_proto.o \
+	tls_proxy_server_start_proto.o
+HDRS	= tls.h tls_prng.h tls_scache.h tls_mgr.h tls_proxy.h tlsrpt_wrapper.h \
+	tls_proxy_attr.h \
+	tls_proxy_client_param_proto.h \
+	tls_proxy_client_init_proto.h \
+	tls_proxy_client_start_proto.h \
+	tls_proxy_server_param_proto.h \
+	tls_proxy_server_init_proto.h \
+	tls_proxy_server_start_proto.h
+TESTSRC	= tls_proxy_client_param_proto_test.c tls_proxy_client_init_proto_test.c \
+	tls_proxy_server_param_proto_test.c tls_proxy_server_init_proto_test.c
+TESTOBJ	= tls_proxy_client_param_proto_test.o tls_proxy_client_init_proto_test.o \
+	tls_proxy_server_param_proto_test.o tls_proxy_server_init_proto_test.o
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 INCL	=
 LIB	= lib$(LIB_PREFIX)tls$(LIB_SUFFIX)
-TESTPROG= tls_dh tls_mgr tls_dane tls_certkey
+TESTPROG= tls_dh tls_mgr tls_dane tls_certkey \
+	tls_proxy_client_param_proto_test tls_proxy_client_init_proto_test \
+	tls_proxy_server_param_proto_test tls_proxy_server_init_proto_test
+TESTLIBS= $(LIB_DIR)/libtesting.a $(LIB_DIR)/libptest.a
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)dns$(LIB_SUFFIX) \
 	../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
@@ -38,14 +57,32 @@ MAKES	=
 
 all: $(LIB)
 
-$(OBJS): ../../conf/makedefs.out
+$(OBJS) $(TESTOBJ): ../../conf/makedefs.out
 
 Makefile: Makefile.in
 	cat ../../conf/makedefs.out $? >$@
 
 test:	$(TESTPROG)
 
-tests: tls_certkey_tests tls_dane_tests
+tls_proxy_client_param_proto_test: update tls_proxy_client_param_proto_test.o \
+	    $(TESTLIBS) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TESTLIBS) $(LIB) $(LIBS)
+
+tls_proxy_client_init_proto_test: update tls_proxy_client_init_proto_test.o \
+	    $(TESTLIBS) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TESTLIBS) $(LIB) $(LIBS)
+
+tls_proxy_server_param_proto_test: update tls_proxy_server_param_proto_test.o \
+	    $(TESTLIBS) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TESTLIBS) $(LIB) $(LIBS)
+
+tls_proxy_server_init_proto_test: update tls_proxy_server_init_proto_test.o \
+	    $(TESTLIBS) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(TESTLIBS) $(LIB) $(LIBS)
+
+tests: tls_certkey_tests tls_dane_tests \
+	test_tls_proxy_client_param_proto test_tls_proxy_client_init_proto \
+	test_tls_proxy_server_param_proto test_tls_proxy_server_init_proto
 
 tls_certkey_tests: test
 	@echo Testing loading of keys and certs
@@ -78,6 +115,18 @@ tls_certkey_tests: test
 
 tls_dane_tests: tls_dane tls_dane.sh
 	$(SHLIB_ENV) $(VALGRIND) bash tls_dane.sh
+
+test_tls_proxy_client_param_proto: tls_proxy_client_param_proto_test
+	$(SHLIB_ENV) $(VALGRIND)  ./tls_proxy_client_param_proto_test
+
+test_tls_proxy_client_init_proto: tls_proxy_client_init_proto_test
+	$(SHLIB_ENV) $(VALGRIND)  ./tls_proxy_client_init_proto_test
+
+test_tls_proxy_server_param_proto: tls_proxy_server_param_proto_test
+	$(SHLIB_ENV) $(VALGRIND)  ./tls_proxy_server_param_proto_test
+
+test_tls_proxy_server_init_proto: tls_proxy_server_init_proto_test
+	$(SHLIB_ENV) $(VALGRIND)  ./tls_proxy_server_init_proto_test
 
 root_tests:
 
@@ -329,70 +378,135 @@ tls_prng_file.o: ../../include/mymalloc.h
 tls_prng_file.o: ../../include/sys_defs.h
 tls_prng_file.o: tls_prng.h
 tls_prng_file.o: tls_prng_file.c
-tls_proxy_client_misc.o: ../../include/argv.h
-tls_proxy_client_misc.o: ../../include/attr.h
-tls_proxy_client_misc.o: ../../include/check_arg.h
-tls_proxy_client_misc.o: ../../include/dns.h
-tls_proxy_client_misc.o: ../../include/htable.h
-tls_proxy_client_misc.o: ../../include/mail_params.h
-tls_proxy_client_misc.o: ../../include/msg.h
-tls_proxy_client_misc.o: ../../include/myaddrinfo.h
-tls_proxy_client_misc.o: ../../include/mymalloc.h
-tls_proxy_client_misc.o: ../../include/name_code.h
-tls_proxy_client_misc.o: ../../include/name_mask.h
-tls_proxy_client_misc.o: ../../include/nvtable.h
-tls_proxy_client_misc.o: ../../include/sock_addr.h
-tls_proxy_client_misc.o: ../../include/sys_defs.h
-tls_proxy_client_misc.o: ../../include/vbuf.h
-tls_proxy_client_misc.o: ../../include/vstream.h
-tls_proxy_client_misc.o: ../../include/vstring.h
-tls_proxy_client_misc.o: tls.h
-tls_proxy_client_misc.o: tls_proxy.h
-tls_proxy_client_misc.o: tls_proxy_client_misc.c
-tls_proxy_client_print.o: ../../include/argv.h
-tls_proxy_client_print.o: ../../include/argv_attr.h
-tls_proxy_client_print.o: ../../include/attr.h
-tls_proxy_client_print.o: ../../include/check_arg.h
-tls_proxy_client_print.o: ../../include/dns.h
-tls_proxy_client_print.o: ../../include/htable.h
-tls_proxy_client_print.o: ../../include/mail_params.h
-tls_proxy_client_print.o: ../../include/msg.h
-tls_proxy_client_print.o: ../../include/myaddrinfo.h
-tls_proxy_client_print.o: ../../include/mymalloc.h
-tls_proxy_client_print.o: ../../include/name_code.h
-tls_proxy_client_print.o: ../../include/name_mask.h
-tls_proxy_client_print.o: ../../include/nvtable.h
-tls_proxy_client_print.o: ../../include/sock_addr.h
-tls_proxy_client_print.o: ../../include/sys_defs.h
-tls_proxy_client_print.o: ../../include/vbuf.h
-tls_proxy_client_print.o: ../../include/vstream.h
-tls_proxy_client_print.o: ../../include/vstring.h
-tls_proxy_client_print.o: tls.h
-tls_proxy_client_print.o: tls_proxy.h
-tls_proxy_client_print.o: tls_proxy_client_print.c
-tls_proxy_client_print.o: tlsrpt_wrapper.h
-tls_proxy_client_scan.o: ../../include/argv.h
-tls_proxy_client_scan.o: ../../include/argv_attr.h
-tls_proxy_client_scan.o: ../../include/attr.h
-tls_proxy_client_scan.o: ../../include/check_arg.h
-tls_proxy_client_scan.o: ../../include/dns.h
-tls_proxy_client_scan.o: ../../include/htable.h
-tls_proxy_client_scan.o: ../../include/mail_params.h
-tls_proxy_client_scan.o: ../../include/msg.h
-tls_proxy_client_scan.o: ../../include/myaddrinfo.h
-tls_proxy_client_scan.o: ../../include/mymalloc.h
-tls_proxy_client_scan.o: ../../include/name_code.h
-tls_proxy_client_scan.o: ../../include/name_mask.h
-tls_proxy_client_scan.o: ../../include/nvtable.h
-tls_proxy_client_scan.o: ../../include/sock_addr.h
-tls_proxy_client_scan.o: ../../include/sys_defs.h
-tls_proxy_client_scan.o: ../../include/vbuf.h
-tls_proxy_client_scan.o: ../../include/vstream.h
-tls_proxy_client_scan.o: ../../include/vstring.h
-tls_proxy_client_scan.o: tls.h
-tls_proxy_client_scan.o: tls_proxy.h
-tls_proxy_client_scan.o: tls_proxy_client_scan.c
-tls_proxy_client_scan.o: tlsrpt_wrapper.h
+tls_proxy_client_init_proto.o: ../../include/argv.h
+tls_proxy_client_init_proto.o: ../../include/argv_attr.h
+tls_proxy_client_init_proto.o: ../../include/attr.h
+tls_proxy_client_init_proto.o: ../../include/check_arg.h
+tls_proxy_client_init_proto.o: ../../include/dns.h
+tls_proxy_client_init_proto.o: ../../include/htable.h
+tls_proxy_client_init_proto.o: ../../include/mail_params.h
+tls_proxy_client_init_proto.o: ../../include/msg.h
+tls_proxy_client_init_proto.o: ../../include/myaddrinfo.h
+tls_proxy_client_init_proto.o: ../../include/mymalloc.h
+tls_proxy_client_init_proto.o: ../../include/name_code.h
+tls_proxy_client_init_proto.o: ../../include/name_mask.h
+tls_proxy_client_init_proto.o: ../../include/nvtable.h
+tls_proxy_client_init_proto.o: ../../include/sock_addr.h
+tls_proxy_client_init_proto.o: ../../include/sys_defs.h
+tls_proxy_client_init_proto.o: ../../include/vbuf.h
+tls_proxy_client_init_proto.o: ../../include/vstream.h
+tls_proxy_client_init_proto.o: ../../include/vstring.h
+tls_proxy_client_init_proto.o: tls.h
+tls_proxy_client_init_proto.o: tls_proxy_attr.h
+tls_proxy_client_init_proto.o: tls_proxy_client_init_proto.c
+tls_proxy_client_init_proto.o: tls_proxy_client_init_proto.h
+tls_proxy_client_init_proto.o: tlsrpt_wrapper.h
+tls_proxy_client_init_proto_test.o: ../../include/argv.h
+tls_proxy_client_init_proto_test.o: ../../include/attr.h
+tls_proxy_client_init_proto_test.o: ../../include/check_arg.h
+tls_proxy_client_init_proto_test.o: ../../include/dns.h
+tls_proxy_client_init_proto_test.o: ../../include/htable.h
+tls_proxy_client_init_proto_test.o: ../../include/mail_params.h
+tls_proxy_client_init_proto_test.o: ../../include/make_attr.h
+tls_proxy_client_init_proto_test.o: ../../include/match_attr.h
+tls_proxy_client_init_proto_test.o: ../../include/msg.h
+tls_proxy_client_init_proto_test.o: ../../include/msg_jmp.h
+tls_proxy_client_init_proto_test.o: ../../include/msg_output.h
+tls_proxy_client_init_proto_test.o: ../../include/msg_vstream.h
+tls_proxy_client_init_proto_test.o: ../../include/myaddrinfo.h
+tls_proxy_client_init_proto_test.o: ../../include/mymalloc.h
+tls_proxy_client_init_proto_test.o: ../../include/myrand.h
+tls_proxy_client_init_proto_test.o: ../../include/name_code.h
+tls_proxy_client_init_proto_test.o: ../../include/name_mask.h
+tls_proxy_client_init_proto_test.o: ../../include/nvtable.h
+tls_proxy_client_init_proto_test.o: ../../include/pmock_expect.h
+tls_proxy_client_init_proto_test.o: ../../include/ptest.h
+tls_proxy_client_init_proto_test.o: ../../include/ptest_main.h
+tls_proxy_client_init_proto_test.o: ../../include/sock_addr.h
+tls_proxy_client_init_proto_test.o: ../../include/stringops.h
+tls_proxy_client_init_proto_test.o: ../../include/sys_defs.h
+tls_proxy_client_init_proto_test.o: ../../include/vbuf.h
+tls_proxy_client_init_proto_test.o: ../../include/vstream.h
+tls_proxy_client_init_proto_test.o: ../../include/vstring.h
+tls_proxy_client_init_proto_test.o: tls.h
+tls_proxy_client_init_proto_test.o: tls_proxy_attr.h
+tls_proxy_client_init_proto_test.o: tls_proxy_client_init_proto.h
+tls_proxy_client_init_proto_test.o: tls_proxy_client_init_proto_test.c
+tls_proxy_client_param_proto.o: ../../include/argv.h
+tls_proxy_client_param_proto.o: ../../include/attr.h
+tls_proxy_client_param_proto.o: ../../include/check_arg.h
+tls_proxy_client_param_proto.o: ../../include/dns.h
+tls_proxy_client_param_proto.o: ../../include/htable.h
+tls_proxy_client_param_proto.o: ../../include/mail_params.h
+tls_proxy_client_param_proto.o: ../../include/msg.h
+tls_proxy_client_param_proto.o: ../../include/myaddrinfo.h
+tls_proxy_client_param_proto.o: ../../include/mymalloc.h
+tls_proxy_client_param_proto.o: ../../include/name_code.h
+tls_proxy_client_param_proto.o: ../../include/name_mask.h
+tls_proxy_client_param_proto.o: ../../include/nvtable.h
+tls_proxy_client_param_proto.o: ../../include/sock_addr.h
+tls_proxy_client_param_proto.o: ../../include/sys_defs.h
+tls_proxy_client_param_proto.o: ../../include/vbuf.h
+tls_proxy_client_param_proto.o: ../../include/vstream.h
+tls_proxy_client_param_proto.o: ../../include/vstring.h
+tls_proxy_client_param_proto.o: tls.h
+tls_proxy_client_param_proto.o: tls_proxy_attr.h
+tls_proxy_client_param_proto.o: tls_proxy_client_param_proto.c
+tls_proxy_client_param_proto.o: tls_proxy_client_param_proto.h
+tls_proxy_client_param_proto_test.o: ../../include/argv.h
+tls_proxy_client_param_proto_test.o: ../../include/attr.h
+tls_proxy_client_param_proto_test.o: ../../include/check_arg.h
+tls_proxy_client_param_proto_test.o: ../../include/dns.h
+tls_proxy_client_param_proto_test.o: ../../include/htable.h
+tls_proxy_client_param_proto_test.o: ../../include/mail_params.h
+tls_proxy_client_param_proto_test.o: ../../include/make_attr.h
+tls_proxy_client_param_proto_test.o: ../../include/match_attr.h
+tls_proxy_client_param_proto_test.o: ../../include/msg.h
+tls_proxy_client_param_proto_test.o: ../../include/msg_jmp.h
+tls_proxy_client_param_proto_test.o: ../../include/msg_output.h
+tls_proxy_client_param_proto_test.o: ../../include/msg_vstream.h
+tls_proxy_client_param_proto_test.o: ../../include/myaddrinfo.h
+tls_proxy_client_param_proto_test.o: ../../include/mymalloc.h
+tls_proxy_client_param_proto_test.o: ../../include/myrand.h
+tls_proxy_client_param_proto_test.o: ../../include/name_code.h
+tls_proxy_client_param_proto_test.o: ../../include/name_mask.h
+tls_proxy_client_param_proto_test.o: ../../include/nvtable.h
+tls_proxy_client_param_proto_test.o: ../../include/pmock_expect.h
+tls_proxy_client_param_proto_test.o: ../../include/ptest.h
+tls_proxy_client_param_proto_test.o: ../../include/ptest_main.h
+tls_proxy_client_param_proto_test.o: ../../include/sock_addr.h
+tls_proxy_client_param_proto_test.o: ../../include/stringops.h
+tls_proxy_client_param_proto_test.o: ../../include/sys_defs.h
+tls_proxy_client_param_proto_test.o: ../../include/vbuf.h
+tls_proxy_client_param_proto_test.o: ../../include/vstream.h
+tls_proxy_client_param_proto_test.o: ../../include/vstring.h
+tls_proxy_client_param_proto_test.o: tls.h
+tls_proxy_client_param_proto_test.o: tls_proxy_attr.h
+tls_proxy_client_param_proto_test.o: tls_proxy_client_param_proto.h
+tls_proxy_client_param_proto_test.o: tls_proxy_client_param_proto_test.c
+tls_proxy_client_start_proto.o: ../../include/argv.h
+tls_proxy_client_start_proto.o: ../../include/argv_attr.h
+tls_proxy_client_start_proto.o: ../../include/attr.h
+tls_proxy_client_start_proto.o: ../../include/check_arg.h
+tls_proxy_client_start_proto.o: ../../include/dns.h
+tls_proxy_client_start_proto.o: ../../include/htable.h
+tls_proxy_client_start_proto.o: ../../include/mail_params.h
+tls_proxy_client_start_proto.o: ../../include/msg.h
+tls_proxy_client_start_proto.o: ../../include/myaddrinfo.h
+tls_proxy_client_start_proto.o: ../../include/mymalloc.h
+tls_proxy_client_start_proto.o: ../../include/name_code.h
+tls_proxy_client_start_proto.o: ../../include/name_mask.h
+tls_proxy_client_start_proto.o: ../../include/nvtable.h
+tls_proxy_client_start_proto.o: ../../include/sock_addr.h
+tls_proxy_client_start_proto.o: ../../include/sys_defs.h
+tls_proxy_client_start_proto.o: ../../include/vbuf.h
+tls_proxy_client_start_proto.o: ../../include/vstream.h
+tls_proxy_client_start_proto.o: ../../include/vstring.h
+tls_proxy_client_start_proto.o: tls.h
+tls_proxy_client_start_proto.o: tls_proxy_attr.h
+tls_proxy_client_start_proto.o: tls_proxy_client_start_proto.c
+tls_proxy_client_start_proto.o: tls_proxy_client_start_proto.h
+tls_proxy_client_start_proto.o: tlsrpt_wrapper.h
 tls_proxy_clnt.o: ../../include/argv.h
 tls_proxy_clnt.o: ../../include/attr.h
 tls_proxy_clnt.o: ../../include/check_arg.h
@@ -416,7 +530,14 @@ tls_proxy_clnt.o: ../../include/vstream.h
 tls_proxy_clnt.o: ../../include/vstring.h
 tls_proxy_clnt.o: tls.h
 tls_proxy_clnt.o: tls_proxy.h
+tls_proxy_clnt.o: tls_proxy_attr.h
+tls_proxy_clnt.o: tls_proxy_client_init_proto.h
+tls_proxy_clnt.o: tls_proxy_client_param_proto.h
+tls_proxy_clnt.o: tls_proxy_client_start_proto.h
 tls_proxy_clnt.o: tls_proxy_clnt.c
+tls_proxy_clnt.o: tls_proxy_server_init_proto.h
+tls_proxy_clnt.o: tls_proxy_server_param_proto.h
+tls_proxy_clnt.o: tls_proxy_server_start_proto.h
 tls_proxy_context_print.o: ../../include/argv.h
 tls_proxy_context_print.o: ../../include/attr.h
 tls_proxy_context_print.o: ../../include/check_arg.h
@@ -434,7 +555,14 @@ tls_proxy_context_print.o: ../../include/vstream.h
 tls_proxy_context_print.o: ../../include/vstring.h
 tls_proxy_context_print.o: tls.h
 tls_proxy_context_print.o: tls_proxy.h
+tls_proxy_context_print.o: tls_proxy_attr.h
+tls_proxy_context_print.o: tls_proxy_client_init_proto.h
+tls_proxy_context_print.o: tls_proxy_client_param_proto.h
+tls_proxy_context_print.o: tls_proxy_client_start_proto.h
 tls_proxy_context_print.o: tls_proxy_context_print.c
+tls_proxy_context_print.o: tls_proxy_server_init_proto.h
+tls_proxy_context_print.o: tls_proxy_server_param_proto.h
+tls_proxy_context_print.o: tls_proxy_server_start_proto.h
 tls_proxy_context_scan.o: ../../include/argv.h
 tls_proxy_context_scan.o: ../../include/attr.h
 tls_proxy_context_scan.o: ../../include/check_arg.h
@@ -453,43 +581,140 @@ tls_proxy_context_scan.o: ../../include/vstream.h
 tls_proxy_context_scan.o: ../../include/vstring.h
 tls_proxy_context_scan.o: tls.h
 tls_proxy_context_scan.o: tls_proxy.h
+tls_proxy_context_scan.o: tls_proxy_attr.h
+tls_proxy_context_scan.o: tls_proxy_client_init_proto.h
+tls_proxy_context_scan.o: tls_proxy_client_param_proto.h
+tls_proxy_context_scan.o: tls_proxy_client_start_proto.h
 tls_proxy_context_scan.o: tls_proxy_context_scan.c
-tls_proxy_server_print.o: ../../include/argv.h
-tls_proxy_server_print.o: ../../include/attr.h
-tls_proxy_server_print.o: ../../include/check_arg.h
-tls_proxy_server_print.o: ../../include/dns.h
-tls_proxy_server_print.o: ../../include/htable.h
-tls_proxy_server_print.o: ../../include/myaddrinfo.h
-tls_proxy_server_print.o: ../../include/mymalloc.h
-tls_proxy_server_print.o: ../../include/name_code.h
-tls_proxy_server_print.o: ../../include/name_mask.h
-tls_proxy_server_print.o: ../../include/nvtable.h
-tls_proxy_server_print.o: ../../include/sock_addr.h
-tls_proxy_server_print.o: ../../include/sys_defs.h
-tls_proxy_server_print.o: ../../include/vbuf.h
-tls_proxy_server_print.o: ../../include/vstream.h
-tls_proxy_server_print.o: ../../include/vstring.h
-tls_proxy_server_print.o: tls.h
-tls_proxy_server_print.o: tls_proxy.h
-tls_proxy_server_print.o: tls_proxy_server_print.c
-tls_proxy_server_scan.o: ../../include/argv.h
-tls_proxy_server_scan.o: ../../include/attr.h
-tls_proxy_server_scan.o: ../../include/check_arg.h
-tls_proxy_server_scan.o: ../../include/dns.h
-tls_proxy_server_scan.o: ../../include/htable.h
-tls_proxy_server_scan.o: ../../include/myaddrinfo.h
-tls_proxy_server_scan.o: ../../include/mymalloc.h
-tls_proxy_server_scan.o: ../../include/name_code.h
-tls_proxy_server_scan.o: ../../include/name_mask.h
-tls_proxy_server_scan.o: ../../include/nvtable.h
-tls_proxy_server_scan.o: ../../include/sock_addr.h
-tls_proxy_server_scan.o: ../../include/sys_defs.h
-tls_proxy_server_scan.o: ../../include/vbuf.h
-tls_proxy_server_scan.o: ../../include/vstream.h
-tls_proxy_server_scan.o: ../../include/vstring.h
-tls_proxy_server_scan.o: tls.h
-tls_proxy_server_scan.o: tls_proxy.h
-tls_proxy_server_scan.o: tls_proxy_server_scan.c
+tls_proxy_context_scan.o: tls_proxy_server_init_proto.h
+tls_proxy_context_scan.o: tls_proxy_server_param_proto.h
+tls_proxy_context_scan.o: tls_proxy_server_start_proto.h
+tls_proxy_server_init_proto.o: ../../include/argv.h
+tls_proxy_server_init_proto.o: ../../include/attr.h
+tls_proxy_server_init_proto.o: ../../include/check_arg.h
+tls_proxy_server_init_proto.o: ../../include/dns.h
+tls_proxy_server_init_proto.o: ../../include/htable.h
+tls_proxy_server_init_proto.o: ../../include/mail_params.h
+tls_proxy_server_init_proto.o: ../../include/msg.h
+tls_proxy_server_init_proto.o: ../../include/myaddrinfo.h
+tls_proxy_server_init_proto.o: ../../include/mymalloc.h
+tls_proxy_server_init_proto.o: ../../include/name_code.h
+tls_proxy_server_init_proto.o: ../../include/name_mask.h
+tls_proxy_server_init_proto.o: ../../include/nvtable.h
+tls_proxy_server_init_proto.o: ../../include/sock_addr.h
+tls_proxy_server_init_proto.o: ../../include/sys_defs.h
+tls_proxy_server_init_proto.o: ../../include/vbuf.h
+tls_proxy_server_init_proto.o: ../../include/vstream.h
+tls_proxy_server_init_proto.o: ../../include/vstring.h
+tls_proxy_server_init_proto.o: tls.h
+tls_proxy_server_init_proto.o: tls_proxy_attr.h
+tls_proxy_server_init_proto.o: tls_proxy_server_init_proto.c
+tls_proxy_server_init_proto.o: tls_proxy_server_init_proto.h
+tls_proxy_server_init_proto_test.o: ../../include/argv.h
+tls_proxy_server_init_proto_test.o: ../../include/attr.h
+tls_proxy_server_init_proto_test.o: ../../include/check_arg.h
+tls_proxy_server_init_proto_test.o: ../../include/dns.h
+tls_proxy_server_init_proto_test.o: ../../include/htable.h
+tls_proxy_server_init_proto_test.o: ../../include/mail_params.h
+tls_proxy_server_init_proto_test.o: ../../include/make_attr.h
+tls_proxy_server_init_proto_test.o: ../../include/match_attr.h
+tls_proxy_server_init_proto_test.o: ../../include/msg.h
+tls_proxy_server_init_proto_test.o: ../../include/msg_jmp.h
+tls_proxy_server_init_proto_test.o: ../../include/msg_output.h
+tls_proxy_server_init_proto_test.o: ../../include/msg_vstream.h
+tls_proxy_server_init_proto_test.o: ../../include/myaddrinfo.h
+tls_proxy_server_init_proto_test.o: ../../include/mymalloc.h
+tls_proxy_server_init_proto_test.o: ../../include/myrand.h
+tls_proxy_server_init_proto_test.o: ../../include/name_code.h
+tls_proxy_server_init_proto_test.o: ../../include/name_mask.h
+tls_proxy_server_init_proto_test.o: ../../include/nvtable.h
+tls_proxy_server_init_proto_test.o: ../../include/pmock_expect.h
+tls_proxy_server_init_proto_test.o: ../../include/ptest.h
+tls_proxy_server_init_proto_test.o: ../../include/ptest_main.h
+tls_proxy_server_init_proto_test.o: ../../include/sock_addr.h
+tls_proxy_server_init_proto_test.o: ../../include/stringops.h
+tls_proxy_server_init_proto_test.o: ../../include/sys_defs.h
+tls_proxy_server_init_proto_test.o: ../../include/vbuf.h
+tls_proxy_server_init_proto_test.o: ../../include/vstream.h
+tls_proxy_server_init_proto_test.o: ../../include/vstring.h
+tls_proxy_server_init_proto_test.o: tls.h
+tls_proxy_server_init_proto_test.o: tls_proxy_attr.h
+tls_proxy_server_init_proto_test.o: tls_proxy_server_init_proto.h
+tls_proxy_server_init_proto_test.o: tls_proxy_server_init_proto_test.c
+tls_proxy_server_param_proto.o: ../../include/argv.h
+tls_proxy_server_param_proto.o: ../../include/attr.h
+tls_proxy_server_param_proto.o: ../../include/check_arg.h
+tls_proxy_server_param_proto.o: ../../include/dns.h
+tls_proxy_server_param_proto.o: ../../include/htable.h
+tls_proxy_server_param_proto.o: ../../include/mail_params.h
+tls_proxy_server_param_proto.o: ../../include/msg.h
+tls_proxy_server_param_proto.o: ../../include/myaddrinfo.h
+tls_proxy_server_param_proto.o: ../../include/mymalloc.h
+tls_proxy_server_param_proto.o: ../../include/name_code.h
+tls_proxy_server_param_proto.o: ../../include/name_mask.h
+tls_proxy_server_param_proto.o: ../../include/nvtable.h
+tls_proxy_server_param_proto.o: ../../include/sock_addr.h
+tls_proxy_server_param_proto.o: ../../include/sys_defs.h
+tls_proxy_server_param_proto.o: ../../include/vbuf.h
+tls_proxy_server_param_proto.o: ../../include/vstream.h
+tls_proxy_server_param_proto.o: ../../include/vstring.h
+tls_proxy_server_param_proto.o: tls.h
+tls_proxy_server_param_proto.o: tls_proxy_attr.h
+tls_proxy_server_param_proto.o: tls_proxy_server_param_proto.c
+tls_proxy_server_param_proto.o: tls_proxy_server_param_proto.h
+tls_proxy_server_param_proto_test.o: ../../include/argv.h
+tls_proxy_server_param_proto_test.o: ../../include/attr.h
+tls_proxy_server_param_proto_test.o: ../../include/check_arg.h
+tls_proxy_server_param_proto_test.o: ../../include/dns.h
+tls_proxy_server_param_proto_test.o: ../../include/htable.h
+tls_proxy_server_param_proto_test.o: ../../include/mail_params.h
+tls_proxy_server_param_proto_test.o: ../../include/make_attr.h
+tls_proxy_server_param_proto_test.o: ../../include/match_attr.h
+tls_proxy_server_param_proto_test.o: ../../include/msg.h
+tls_proxy_server_param_proto_test.o: ../../include/msg_jmp.h
+tls_proxy_server_param_proto_test.o: ../../include/msg_output.h
+tls_proxy_server_param_proto_test.o: ../../include/msg_vstream.h
+tls_proxy_server_param_proto_test.o: ../../include/myaddrinfo.h
+tls_proxy_server_param_proto_test.o: ../../include/mymalloc.h
+tls_proxy_server_param_proto_test.o: ../../include/myrand.h
+tls_proxy_server_param_proto_test.o: ../../include/name_code.h
+tls_proxy_server_param_proto_test.o: ../../include/name_mask.h
+tls_proxy_server_param_proto_test.o: ../../include/nvtable.h
+tls_proxy_server_param_proto_test.o: ../../include/pmock_expect.h
+tls_proxy_server_param_proto_test.o: ../../include/ptest.h
+tls_proxy_server_param_proto_test.o: ../../include/ptest_main.h
+tls_proxy_server_param_proto_test.o: ../../include/sock_addr.h
+tls_proxy_server_param_proto_test.o: ../../include/stringops.h
+tls_proxy_server_param_proto_test.o: ../../include/sys_defs.h
+tls_proxy_server_param_proto_test.o: ../../include/vbuf.h
+tls_proxy_server_param_proto_test.o: ../../include/vstream.h
+tls_proxy_server_param_proto_test.o: ../../include/vstring.h
+tls_proxy_server_param_proto_test.o: tls.h
+tls_proxy_server_param_proto_test.o: tls_proxy_attr.h
+tls_proxy_server_param_proto_test.o: tls_proxy_server_param_proto.h
+tls_proxy_server_param_proto_test.o: tls_proxy_server_param_proto_test.c
+tls_proxy_server_start_proto.o: ../../include/argv.h
+tls_proxy_server_start_proto.o: ../../include/argv_attr.h
+tls_proxy_server_start_proto.o: ../../include/attr.h
+tls_proxy_server_start_proto.o: ../../include/check_arg.h
+tls_proxy_server_start_proto.o: ../../include/dns.h
+tls_proxy_server_start_proto.o: ../../include/htable.h
+tls_proxy_server_start_proto.o: ../../include/mail_params.h
+tls_proxy_server_start_proto.o: ../../include/msg.h
+tls_proxy_server_start_proto.o: ../../include/myaddrinfo.h
+tls_proxy_server_start_proto.o: ../../include/mymalloc.h
+tls_proxy_server_start_proto.o: ../../include/name_code.h
+tls_proxy_server_start_proto.o: ../../include/name_mask.h
+tls_proxy_server_start_proto.o: ../../include/nvtable.h
+tls_proxy_server_start_proto.o: ../../include/sock_addr.h
+tls_proxy_server_start_proto.o: ../../include/sys_defs.h
+tls_proxy_server_start_proto.o: ../../include/vbuf.h
+tls_proxy_server_start_proto.o: ../../include/vstream.h
+tls_proxy_server_start_proto.o: ../../include/vstring.h
+tls_proxy_server_start_proto.o: tls.h
+tls_proxy_server_start_proto.o: tls_proxy_attr.h
+tls_proxy_server_start_proto.o: tls_proxy_server_start_proto.c
+tls_proxy_server_start_proto.o: tls_proxy_server_start_proto.h
 tls_scache.o: ../../include/argv.h
 tls_scache.o: ../../include/check_arg.h
 tls_scache.o: ../../include/dict.h

@@ -119,11 +119,11 @@ static void test_single_server(PTEST_CTX *t, const PTEST_CASE *tp)
      * Set up a server request expectation, and response.
      */
     serialized_req =
-	make_attr(ATTR_FLAG_NONE,
+	make_attr(attr_vprint, ATTR_FLAG_NONE,
 		  SEND_ATTR_STR(MAIL_ATTR_REQ, REQUEST_VAL),
 		  ATTR_TYPE_END);
     serialized_resp =
-	make_attr(ATTR_FLAG_NONE,
+	make_attr(attr_vprint, ATTR_FLAG_NONE,
 		  SEND_ATTR_STR(MAIL_ATTR_REQ, REQUEST_VAL),
 		  SEND_ATTR_INT(MAIL_ATTR_SIZE, strlen(REQUEST_VAL)),
 		  ATTR_TYPE_END);
@@ -195,11 +195,11 @@ static void test_request_mismatch(PTEST_CTX *t, const PTEST_CASE *tp)
      * Set up a server request expectation, and response.
      */
     serialized_req =
-	make_attr(ATTR_FLAG_NONE,
+	make_attr(attr_vprint, ATTR_FLAG_NONE,
 		  SEND_ATTR_STR(MAIL_ATTR_REQ, REQUEST_VAL "g"),
 		  ATTR_TYPE_END);
     serialized_resp =
-	make_attr(ATTR_FLAG_NONE,
+	make_attr(attr_vprint, ATTR_FLAG_NONE,
 		  SEND_ATTR_STR(MAIL_ATTR_REQ, REQUEST_VAL),
 		  SEND_ATTR_INT(MAIL_ATTR_SIZE, strlen(REQUEST_VAL)),
 		  ATTR_TYPE_END);
@@ -306,7 +306,7 @@ static void test_server_speaks_only(PTEST_CTX *t, const PTEST_CASE *tp)
      * Set up a server response, without request expectation.
      */
     serialized_resp =
-	make_attr(ATTR_FLAG_NONE,
+	make_attr(attr_vprint, ATTR_FLAG_NONE,
 		  SEND_ATTR_STR(MAIL_ATTR_REQ, REQUEST_VAL),
 		  SEND_ATTR_INT(MAIL_ATTR_SIZE, strlen(REQUEST_VAL)),
 		  ATTR_TYPE_END);
@@ -367,7 +367,7 @@ static void test_client_speaks_only(PTEST_CTX *t, const PTEST_CASE *tp)
      * Set up a server request expectation, and response.
      */
     serialized_req =
-	make_attr(ATTR_FLAG_NONE,
+	make_attr(attr_vprint, ATTR_FLAG_NONE,
 		  SEND_ATTR_STR(MAIL_ATTR_REQ, REQUEST_VAL),
 		  ATTR_TYPE_END);
     mock_server_interact(mp, serialized_req, NO_RESPONSE);

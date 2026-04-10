@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <make_attr.h>
 /*
-/*	VSTRING *make_attr(int flags, ...)
+/*	VSTRING *make_attr(ATTR_VPRINT_COMMON_FN vprint_fn, int flags, ...)
 /* DESCRIPTION
 /*	make_attr() creates a serialized request or response attribute
-/*	list. The arguments are like attr_print().
+/*	list. The flags and following arguments are like attr_print().
 /* LICENSE
 /* .ad
 /* .fi
@@ -19,6 +19,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
  /*
@@ -41,7 +44,7 @@
 
 /* make_attr - serialize attribute list */
 
-VSTRING *make_attr(int flags,...)
+VSTRING *make_attr(ATTR_VPRINT_COMMON_FN vprint_fn, int flags, ...)
 {
     static const char myname[] = "make_attr";
     VSTRING *res = vstring_alloc(100);
@@ -52,7 +55,7 @@ VSTRING *make_attr(int flags,...)
     if ((stream = vstream_memopen(res, O_WRONLY)) == 0)
 	ptest_fatal(ptest_ctx_current(), "%s: vstream_memopen: %m", myname);;
     va_start(ap, flags);
-    err = attr_vprint(stream, flags, ap);
+    err = vprint_fn(stream, flags, ap);
     va_end(ap);
     if (vstream_fclose(stream) != 0 || err)
 	ptest_fatal(ptest_ctx_current(), "%s: write attributes: %m", myname);

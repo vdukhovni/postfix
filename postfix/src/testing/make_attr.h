@@ -19,7 +19,7 @@
  /*
   * External interface.
   */
-extern VSTRING *make_attr(int,...);
+extern VSTRING *make_attr(ATTR_VPRINT_COMMON_FN, int,...);
 
 /* LICENSE
 /* .ad

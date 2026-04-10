@@ -30,8 +30,11 @@
   */
 typedef int (*ATTR_SCAN_COMMON_FN) (VSTREAM *, int,...);
 typedef int (*ATTR_SCAN_CUSTOM_FN) (ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
+typedef int (*ATTR_VSCAN_COMMON_FN) (VSTREAM *, int, va_list);
+
 typedef int (*ATTR_PRINT_COMMON_FN) (VSTREAM *, int,...);
 typedef int (*ATTR_PRINT_CUSTOM_FN) (ATTR_PRINT_COMMON_FN, VSTREAM *, int, const void *);
+typedef int (*ATTR_VPRINT_COMMON_FN) (VSTREAM *, int, va_list);
 
  /*
   * Attribute types. See attr_scan(3) for documentation.
@@ -46,6 +49,7 @@ typedef int (*ATTR_PRINT_CUSTOM_FN) (ATTR_PRINT_COMMON_FN, VSTREAM *, int, const
 #define ATTR_TYPE_DATA		5	/* Binary data */
 #define ATTR_TYPE_FUNC		6	/* Function pointer */
 #define ATTR_TYPE_STREQ		7	/* Requires (name, value) match */
+#define ATTR_TYPE_BOOL		8	/* Bool */
 
  /*
   * Optional sender-specified grouping for hash or nameval tables.
@@ -63,6 +67,7 @@ typedef int (*ATTR_PRINT_CUSTOM_FN) (ATTR_PRINT_COMMON_FN, VSTREAM *, int, const
   */
 #define SEND_ATTR_INT(name, val)	ATTR_TYPE_INT, CHECK_CPTR(ATTR, char, (name)), CHECK_VAL(ATTR, int, (val))
 #define SEND_ATTR_UINT(name, val)	ATTR_TYPE_INT, CHECK_CPTR(ATTR, char, (name)), CHECK_VAL(ATTR, unsigned, (val))
+#define SEND_ATTR_BOOL(name, val)	ATTR_TYPE_BOOL, CHECK_CPTR(ATTR, char, (name)), CHECK_VAL(ATTR, bool, (val))
 #define SEND_ATTR_STR(name, val)	ATTR_TYPE_STR, CHECK_CPTR(ATTR, char, (name)), CHECK_CPTR(ATTR, char, (val))
 #define SEND_ATTR_HASH(val)		ATTR_TYPE_HASH, CHECK_CPTR(ATTR, HTABLE, (val))
 #define SEND_ATTR_NV(val)		ATTR_TYPE_NV, CHECK_CPTR(ATTR, NVTABLE, (val))
@@ -72,6 +77,7 @@ typedef int (*ATTR_PRINT_CUSTOM_FN) (ATTR_PRINT_COMMON_FN, VSTREAM *, int, const
 
 #define RECV_ATTR_INT(name, val)	ATTR_TYPE_INT, CHECK_CPTR(ATTR, char, (name)), CHECK_PTR(ATTR, int, (val))
 #define RECV_ATTR_UINT(name, val)	ATTR_TYPE_INT, CHECK_CPTR(ATTR, char, (name)), CHECK_PTR(ATTR, unsigned, (val))
+#define RECV_ATTR_BOOL(name, val)	ATTR_TYPE_BOOL, CHECK_CPTR(ATTR, char, (name)), CHECK_PTR(ATTR, bool, (val))
 #define RECV_ATTR_STR(name, val)	ATTR_TYPE_STR, CHECK_CPTR(ATTR, char, (name)), CHECK_PTR(ATTR, VSTRING, (val))
 #define RECV_ATTR_STREQ(name, val)	ATTR_TYPE_STREQ, CHECK_CPTR(ATTR, char, (name)), CHECK_CPTR(ATTR, char, (val))
 #define RECV_ATTR_HASH(val)		ATTR_TYPE_HASH, CHECK_PTR(ATTR, HTABLE, (val))
@@ -84,10 +90,12 @@ CHECK_VAL_HELPER_DCL(ATTR, ssize_t);
 CHECK_VAL_HELPER_DCL(ATTR, long);
 CHECK_VAL_HELPER_DCL(ATTR, int);
 CHECK_VAL_HELPER_DCL(ATTR, unsigned);
+CHECK_VAL_HELPER_DCL(ATTR, bool);
 CHECK_PTR_HELPER_DCL(ATTR, void);
 CHECK_PTR_HELPER_DCL(ATTR, long);
 CHECK_PTR_HELPER_DCL(ATTR, int);
 CHECK_PTR_HELPER_DCL(ATTR, unsigned);
+CHECK_PTR_HELPER_DCL(ATTR, bool);
 CHECK_PTR_HELPER_DCL(ATTR, VSTRING);
 CHECK_PTR_HELPER_DCL(ATTR, NVTABLE);
 CHECK_PTR_HELPER_DCL(ATTR, HTABLE);
@@ -167,6 +175,7 @@ extern int WARN_UNUSED_RESULT attr_vscan_plain(VSTREAM *, int, va_list);
 #define ATTR_NAME_STR		"string"
 #define ATTR_NAME_LONG		"long_number"
 #define ATTR_NAME_DATA		"data"
+#define ATTR_NAME_BOOL		"bool"
 #endif
 
 /* LICENSE
@@ -183,6 +192,9 @@ extern int WARN_UNUSED_RESULT attr_vscan_plain(VSTREAM *, int, va_list);
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 #endif

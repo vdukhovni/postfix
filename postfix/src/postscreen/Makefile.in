@@ -405,6 +405,13 @@ postscreen_starttls.o: ../../include/stringops.h
 postscreen_starttls.o: ../../include/sys_defs.h
 postscreen_starttls.o: ../../include/tls.h
 postscreen_starttls.o: ../../include/tls_proxy.h
+postscreen_starttls.o: ../../include/tls_proxy_attr.h
+postscreen_starttls.o: ../../include/tls_proxy_client_init_proto.h
+postscreen_starttls.o: ../../include/tls_proxy_client_param_proto.h
+postscreen_starttls.o: ../../include/tls_proxy_client_start_proto.h
+postscreen_starttls.o: ../../include/tls_proxy_server_init_proto.h
+postscreen_starttls.o: ../../include/tls_proxy_server_param_proto.h
+postscreen_starttls.o: ../../include/tls_proxy_server_start_proto.h
 postscreen_starttls.o: ../../include/vbuf.h
 postscreen_starttls.o: ../../include/vstream.h
 postscreen_starttls.o: ../../include/vstring.h

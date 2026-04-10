@@ -553,6 +553,10 @@
 /* .IP "\fBrequiretls_esmtp_header (yes)\fR"
 /*	Record the ESMTP REQUIRETLS request in a "Require-TLS-ESMTP:
 /*	yes" message header.
+/* .IP "\fBtls_trust_server_ccerts (no)\fR"
+/*	Whether to trust client certificates whose extended key usage (EKU) lists
+/*	only \fBserverAuth\fR and not \fBclientAuth\fR as valid TLS client
+/*	certificates.
 /* OBSOLETE TLS CONTROLS
 /* .ad
 /* .fi

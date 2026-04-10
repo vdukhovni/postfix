@@ -33,7 +33,7 @@ static void test_eq_attr_equal(PTEST_CTX *t, const PTEST_CASE *unused)
     /*
      * Serialize some attributes.
      */
-    want_attr = make_attr(ATTR_FLAG_NONE,
+    want_attr = make_attr(attr_vprint, ATTR_FLAG_NONE,
 			  SEND_ATTR_STR("this-key", "this-value"),
 			  SEND_ATTR_STR("that-key", "that-value"),
 			  ATTR_TYPE_END);
@@ -58,11 +58,11 @@ static void test_eq_attr_swapped(PTEST_CTX *t, const PTEST_CASE *unused)
     /*
      * Serialize some attributes.
      */
-    want_attr = make_attr(ATTR_FLAG_NONE,
+    want_attr = make_attr(attr_vprint, ATTR_FLAG_NONE,
 			  SEND_ATTR_STR("this-key", "this-value"),
 			  SEND_ATTR_STR("that-key", "that-value"),
 			  ATTR_TYPE_END);
-    swapped_attr = make_attr(ATTR_FLAG_NONE,
+    swapped_attr = make_attr(attr_vprint, ATTR_FLAG_NONE,
 			     SEND_ATTR_STR("that-key", "that-value"),
 			     SEND_ATTR_STR("this-key", "this-value"),
 			     ATTR_TYPE_END);
@@ -88,12 +88,12 @@ static void test_eq_attr_diff(PTEST_CTX *t, const PTEST_CASE *unused)
     /*
      * Serialize some attributes.
      */
-    want_attr = make_attr(ATTR_FLAG_NONE,
+    want_attr = make_attr(attr_vprint, ATTR_FLAG_NONE,
 			  SEND_ATTR_STR("this-key", "this-value"),
 			  SEND_ATTR_STR("that-key", "that-value"),
 			  SEND_ATTR_STR("same-key", "same-value"),
 			  ATTR_TYPE_END);
-    swapped_attr = make_attr(ATTR_FLAG_NONE,
+    swapped_attr = make_attr(attr_vprint, ATTR_FLAG_NONE,
 			     SEND_ATTR_STR("not-this-key", "this-value"),
 			     SEND_ATTR_STR("that-key", "not-that-value"),
 			     SEND_ATTR_STR("same-key", "same-value"),

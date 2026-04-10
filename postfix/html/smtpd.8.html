@@ -667,6 +667,11 @@ SMTPD(8)                                                              SMTPD(8)
               Record the ESMTP REQUIRETLS  request  in  a  "Require-TLS-ESMTP:
               yes" message header.
 
+       <b><a href="postconf.5.html#tls_trust_server_ccerts">tls_trust_server_ccerts</a> (no)</b>
+              Whether  to  trust  client certificates whose extended key usage
+              (EKU) lists only <b>serverAuth</b> and  not  <b>clientAuth</b>  as  valid  TLS
+              client certificates.
+
 <b><a name="obsolete_tls_controls">OBSOLETE TLS CONTROLS</a></b>
        The  following  configuration  parameters  exist for compatibility with
        Postfix versions before 2.3. Support for these will  be  removed  in  a
