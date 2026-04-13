@@ -61,6 +61,9 @@
 /*	of bytes parsed, and the non_proxy argument is true or false
 /*	if the haproxy message specifies a non-proxied connection.
 /*
+/*	Note: haproxy v2 protocol support requires that the protocol
+/*	message buffer has "struct proxy_hdr_v2" alignment.
+/*
 /*	haproxy_srvr_receive_sa() receives and parses a haproxy protocol
 /*	handshake. This must be called before any I/O is done on
 /*	the specified file descriptor. The result is 0 in case of
@@ -583,7 +586,12 @@ int     haproxy_srvr_receive_sa(int fd, int *non_proxy,
 {
     const char *err;
     VSTRING *escape_buf;
-    char    read_buf[HAPROXY_HEADER_MAX_LEN + 1];
+
+    /* 202604 Claude: read_buf should have "struct proxy_hdr_v2" alignment. */
+    union {
+	char    b[HAPROXY_HEADER_MAX_LEN + 1];
+	struct proxy_hdr_v2 p;
+    }       read_buf;
     ssize_t read_len;
 
     /*
@@ -592,7 +600,7 @@ int     haproxy_srvr_receive_sa(int fd, int *non_proxy,
      * therefore we peek, parse the entire input, then read(2) only the
      * number of bytes parsed.
      */
-    if ((read_len = recv(fd, read_buf, sizeof(read_buf) - 1, MSG_PEEK)) <= 0) {
+    if ((read_len = recv(fd, read_buf.b, sizeof(read_buf.b) - 1, MSG_PEEK)) <= 0) {
 	msg_warn("haproxy read: EOF");
 	return (-1);
     }
@@ -600,15 +608,15 @@ int     haproxy_srvr_receive_sa(int fd, int *non_proxy,
     /*
      * Parse the haproxy handshake, and determine the handshake length.
      */
-    read_buf[read_len] = 0;
+    read_buf.b[read_len] = 0;
 
-    if ((err = haproxy_srvr_parse_sa(read_buf, &read_len, non_proxy,
+    if ((err = haproxy_srvr_parse_sa(read_buf.b, &read_len, non_proxy,
 				     smtp_client_addr, smtp_client_port,
 				     smtp_server_addr, smtp_server_port,
 				     client_sa, client_sa_len,
 				     server_sa, server_sa_len)) != 0) {
 	escape_buf = vstring_alloc(read_len * 2);
-	escape(escape_buf, read_buf, read_len);
+	escape(escape_buf, read_buf.b, read_len);
 	msg_warn("haproxy read: %s: %s", err, vstring_str(escape_buf));
 	vstring_free(escape_buf);
 	return (-1);
@@ -617,7 +625,7 @@ int     haproxy_srvr_receive_sa(int fd, int *non_proxy,
     /*
      * Try to pop the haproxy handshake off the input queue.
      */
-    if (recv(fd, read_buf, read_len, 0) != read_len) {
+    if (recv(fd, read_buf.b, read_len, 0) != read_len) {
 	msg_warn("haproxy read: %m");
 	return (-1);
     }

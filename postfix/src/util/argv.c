@@ -262,6 +262,9 @@ static void argv_extend(ARGV *argvp)
 {
     ssize_t new_len;
 
+    /* 202604 Claude: avoid small non-negative expression 'new_len + 1'.  */
+    if (argvp->len > SSIZE_MAX / 2)
+	msg_panic("argv_extend: array length overflow");
     new_len = argvp->len * 2;
     argvp->argv = (char **)
 	myrealloc((void *) argvp->argv, (new_len + 1) * sizeof(char *));
@@ -409,9 +412,10 @@ void    argv_delete(ARGV *argvp, ssize_t first, ssize_t how_many)
     ssize_t pos;
 
     /*
-     * Sanity check.
+     * Sanity check. 202604 Claude: avoid expression 'first + how_many'.
      */
-    if (first < 0 || how_many < 0 || first + how_many > argvp->argc)
+    if (first < 0 || how_many < 0 || first > argvp->argc 
+	|| how_many > argvp->argc - first)
 	msg_panic("argv_delete bad range: (start=%ld count=%ld)",
 		  (long) first, (long) how_many);
 

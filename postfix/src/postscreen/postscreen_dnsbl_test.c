@@ -258,14 +258,14 @@ static void test_single_dnsbl(PTEST_CTX *t, const PTEST_CASE *tp)
 	     * event request, so we should send something soon.
 	     */
 	    serialized_req =
-		make_attr(ATTR_FLAG_NONE,
+		make_attr(attr_vprint, ATTR_FLAG_NONE,
 			  SEND_ATTR_STR(MAIL_ATTR_RBL_DOMAIN, tt->req_dnsbl),
 			  SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR,
 					tt->req_addr),
 			  SEND_ATTR_INT(MAIL_ATTR_LABEL, request_id),
 			  ATTR_TYPE_END);
 	    serialized_resp =
-		make_attr(ATTR_FLAG_NONE,
+		make_attr(attr_vprint, ATTR_FLAG_NONE,
 			  SEND_ATTR_STR(MAIL_ATTR_RBL_DOMAIN, tt->req_dnsbl),
 			  SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR,
 					tt->req_addr),
@@ -479,7 +479,7 @@ static void test_multi_dnsbl(PTEST_CTX *t, const PTEST_CASE *tp)
 		 * send something soon.
 		 */
 		serialized_req =
-		    make_attr(ATTR_FLAG_NONE,
+		    make_attr(attr_vprint, ATTR_FLAG_NONE,
 			      SEND_ATTR_STR(MAIL_ATTR_RBL_DOMAIN,
 					    dp[n].req_dnsbl),
 			      SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR,
@@ -487,7 +487,7 @@ static void test_multi_dnsbl(PTEST_CTX *t, const PTEST_CASE *tp)
 			      SEND_ATTR_INT(MAIL_ATTR_LABEL, request_id),
 			      ATTR_TYPE_END);
 		serialized_resp =
-		    make_attr(ATTR_FLAG_NONE,
+		    make_attr(attr_vprint, ATTR_FLAG_NONE,
 			      SEND_ATTR_STR(MAIL_ATTR_RBL_DOMAIN,
 					    dp[n].req_dnsbl),
 			      SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR,

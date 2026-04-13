@@ -102,12 +102,13 @@
 
  /*
   * What ASCII characters are allowed in the 'charset' or 'encoding' tokens
-  * of an encoded-word.
+  * of an encoded-word. 202604 Claude: in the macro expansion replace
+  * several instances of 'ch' with 'c'.
   */
 #define RFC2047_ESPECIALS_STR	"()<>@,;:\\\"/[]?.="
 #define RFC2047_ALLOWED_TOKEN_CHAR(c) \
-    (isascii(c) && !iscntrl(c) && ch != ' ' \
-	&& !strchr(RFC2047_ESPECIALS_STR, ch))
+	(isascii(c) && !iscntrl(c) && c != ' ' \
+	&& !strchr(RFC2047_ESPECIALS_STR, c))
 
  /*
   * Common definitions for the base64 and quoted-printable encoders.
@@ -272,6 +273,12 @@ char   *rfc2047_encode(VSTRING *result, int header_context,
      */
     if (*charset == 0) {
 	msg_warn("%s: encoder called with empty charset name", myname);
+	return (0);
+    }
+    /* 202604 Claude: avoid 'space_left' underflow. */
+    if (strlen(charset) > ENC_WORD_MAX_LEN / 2) {
+	msg_warn("%s: unreasonable charset name: '%.100s'",
+		 myname, charset);
 	return (0);
     }
     for (cp = (const unsigned char *) charset; (ch = *cp) != 0; cp++) {
@@ -650,6 +657,13 @@ static const TEST_CASE test_cases[] = {
 	RFC2047_HEADER_CONTEXT_COMMENT, /* charset= */ "",
 	"testme", 0, " ", NO_OUTPUT, "rfc2047_code: warning: rfc2047_encode: "
 	"encoder called with empty charset name\n"
+    },
+    {"validates_charset_length", test_rfc2047_encode,
+	RFC2047_HEADER_CONTEXT_COMMENT, /* charset= */ 
+	"1234567890123456789012345678901234567890",
+	"testme", 0, " ", NO_OUTPUT, "rfc2047_code: warning: rfc2047_encode: "
+	"unreasonable charset name: "
+	"'1234567890123456789012345678901234567890'\n"
     },
     {"validates_charset", validates_charset},
     {"encodes_comment_text", encodes_comment_text},

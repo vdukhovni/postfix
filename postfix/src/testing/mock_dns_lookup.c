@@ -171,16 +171,16 @@ const char *dns_status_to_string(int status)
     return (str_name_code(status_string, status));
 }
 
-/* copy_dns_rrlist - deep copy */
+/* full_copy_dns_rrlist - deep copy */
 
-static DNS_RR *copy_dns_rrlist(DNS_RR *list)
+static DNS_RR *full_copy_dns_rrlist(DNS_RR *list)
 {
     DNS_RR *rr;
 
     if (list == 0)
 	return (0);
-    rr = dns_rr_copy(list);
-    rr->next = copy_dns_rrlist(list->next);
+    rr = dns_rr_full_copy(list);
+    rr->next = full_copy_dns_rrlist(list->next);
     return (rr);
 }
 
@@ -353,7 +353,7 @@ static void assign_dns_lookup_x(const MOCK_EXPECT *expect,
 
     if (pe->retval == DNS_OK) {
 	if (pt->rrlist)
-	    *(pt->rrlist) = copy_dns_rrlist(pe->rrlist);
+	    *(pt->rrlist) = full_copy_dns_rrlist(pe->rrlist);
 	if (pt->fqdn && pe->fqdn)
 	    vstring_strcpy(pt->fqdn, STR(pe->fqdn));
     } else {
@@ -439,7 +439,7 @@ void    _expect_dns_lookup_x(const char *file, int line, int calls_expected,
     pe->herrval = herrval;
     pe->retval = retval;
     if (pe->retval == DNS_OK) {
-	pe->rrlist = copy_dns_rrlist(rrlist);
+	pe->rrlist = full_copy_dns_rrlist(rrlist);
 	pe->fqdn = VSTRDUP_OR_NULL(fqdn);
     } else {
 	pe->why = VSTRDUP_OR_NULL(why);

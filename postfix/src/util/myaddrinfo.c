@@ -356,15 +356,16 @@ int     hostname_to_sockaddr_pf(const char *hostname, int pf,
      */
     if ((hp = gethostbyname(hostname)) == 0)
 	return (h_errno == TRY_AGAIN ? EAI_AGAIN : EAI_NODATA);
+    /* 202604 Claude: return EAI_NODATA when gethostbyname() returns empty. */
     if (hp->h_addrtype != AF_INET
+	|| hp->h_addr_list[0] == 0
 	|| hp->h_length != sizeof(template.sin.sin_addr))
 	return (EAI_NODATA);
 
     /*
-     * Initialize the result template.
+     * Initialize the result template. 202604 Claude: always do that.
      */
-    if (template.info.ai_addrlen == 0)
-	init_ipv4addrinfo(&template, socktype);
+    init_ipv4addrinfo(&template, socktype);
 
     /*
      * Copy the address information into an addrinfo structure.
@@ -474,7 +475,7 @@ int     hostname_to_sockaddr_pf(const char *hostname, int pf,
 /* hostaddr_to_sockaddr - printable address to binary address form */
 
 int     hostaddr_to_sockaddr(const char *hostaddr, const char *service,
-			             int socktype, struct addrinfo ** res)
+			             int socktype, struct addrinfo **  res)
 {
 #ifdef EMULATE_IPV4_ADDRINFO
 

@@ -1976,3 +1976,7 @@ Bool
 HERMETICITY
 VPRINT
 deserializes
+PQerrorMessage
+deref
+openUTS
+xff

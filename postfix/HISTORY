@@ -30833,12 +30833,12 @@ Apologies for any names omitted.
 
 20260407
 
-	Tech debt: added 'bool' support to internal protocols.
+	Code health: added 'bool' support to internal protocols.
 	util/attr.h, util/attr_print0.c, util/attr_print64.c,
 	util/attr_print_plain.c, util/attr_scan0.c, util/attr_scan0.ref,
 	util/attr_scan64.c, util/attr_scan64.ref, util/attr_scan_plain.c,
 	util/attr_scan_plain.ref. There is no code that uses this now,
-	but there are tests to make sure that it is works when neded.
+	but there are tests to make sure that it is works when needed.
 
 20260408
 
@@ -30848,7 +30848,7 @@ Apologies for any names omitted.
 
 20260410
 
-	Tech debt: refactored tlsproxy PARAM, INIT and START send
+	Code health: refactored tlsproxy PARAM, INIT and START send
 	and receive handlers to make the code easier to test, and
 	added some unit tests. This removes tls_proxy_client_misc.c,
 	tls_proxy_client_print.c, tls_proxy_client_scan.c,
@@ -30868,6 +30868,44 @@ Apologies for any names omitted.
 	Added missing tls_trust_server_ccerts parameter entry in
 	smtpd(8) manpage, missing tls_trust_server_ccerts parameter
 	support in postlink. Files: smtpd/smtpd.c, mantools/postlink.
+
+20260413
+
+	Viktor Dukhovni scanned Postfix source with Claude Opus
+	4.6. It found a minor bug in the proxymap server (requires
+	an invalid map name configured in main.cf) and in the RFC
+	2047 encoder (requires an absurdly long charset name
+	configured main.cf), two instances where Postfix internal
+	documentation was not consistent with Postfix implementation
+	(handling of "*" wildcards in domain names, handling of a
+	'truncated list' flag in the DNS client), two bugs in debug
+	logging (CIDR map, DNS client), one null pointer bug in the
+	PostgreSQL client (with libpq < 8.0), one resource leak
+	after fork() failure, ignored errors that may happen during
+	memory shortage, missing detection of integer overflows
+	that are unlikely because Postfix memory by design does not
+	contain large objects or large numbers of objects. The
+	number of false positives was remarkably low (about three).
+	Claude also suggested clarification in code comments that
+	will help to make Postfix maintainable by other people (and
+	to silence future code scanners). Files: dns/dns.h,
+	dns/dns_lookup.c, dns/dns_rr.c, dns/dns_rr_test.c,
+	global/dict_pgsql.c, global/haproxy_srvr.c, global/mime_state.c,
+	global/pipe_command.c, global/rfc2047_code.c, local/dotforward.c,
+	proxymap/proxymap.c, smtp/smtp_proto.c, smtpd/smtpd_expand.c,
+	testing/mock_dns_lookup.c, util/argv.c, util/dict_cdb.c,
+	util/dict_cidr.c, util/dict.h, util/dict_sockmap.c,
+	util/midna_domain.c, util/myaddrinfo.c, util/netstring.c,
+	util/slmdb.c, util/valid_hostname.c, util/valid_hostname.ref,
+	util/vbuf_print.c, util/vstream.c, util/vstring.c.
+
+	Code health: renamed identifiers to prepare for integration
+	of proxied tls_server_init() and tls_server_start() calls.
+	Files: tlsproxy/tlsproxy.c, tlsproxy/tlsproxy.h,
+	tlsproxy/tlsproxy_state.c.
+
+	Testing: updated postscreen tests for changes in make_attr()
+	API. File: src/postscreen/postscreen_dnsbl_test.c.
 
 TODO
 

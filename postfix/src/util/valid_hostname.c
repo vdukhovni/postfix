@@ -122,7 +122,8 @@ int     valid_hostname(const char *name, int flags)
 	    if (!ISDIGIT(ch))
 		non_numeric = 1;
 	} else if ((flags & DO_WILDCARD) && ch == '*') {
-	    if (label_length || label_count || (cp[1] && cp[1] != '.')) {
+	    /* 202604 Claude: leading '*' must be followed by '.'. */
+	    if (label_length || label_count || cp[1] != '.') {
 		if (gripe)
 		    msg_warn("%s: '*' can be the first label only: %.100s", myname, name);
 		return (0);

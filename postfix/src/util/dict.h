@@ -51,9 +51,10 @@ typedef struct DICT_OWNER {
   * When combining tables with different provenance, we initialize to the
   * highest trust level, and remember the lowest trust level that we find
   * during aggregation. If we combine tables that are owned by different
-  * untrusted users, the resulting provenance is "unknown".
+  * untrusted users, the resulting provenance is "unknown". 202406 Claude:
+  * add missing 'do'.
   */
-#define DICT_OWNER_AGGREGATE_INIT(dst) { \
+#define DICT_OWNER_AGGREGATE_INIT(dst) do { \
 	(dst).status = DICT_OWNER_TRUSTED; \
 	(dst).uid = 0; \
     } while (0)
@@ -313,7 +314,7 @@ extern const char *dict_file_lookup(DICT *dict, const char *);
   * dict_stream(3)
   */
 extern VSTREAM *dict_stream_open(const char *dict_type, const char *mapname,
-           int open_flags, int dict_flags, struct stat * st, VSTRING **why);
+            int open_flags, int dict_flags, struct stat *st, VSTRING **why);
 
 /* LICENSE
 /* .ad

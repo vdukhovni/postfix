@@ -517,6 +517,7 @@ VSTRING *vstring_memcpy(VSTRING *vp, const char *src, ssize_t len)
 
 VSTRING *vstring_memcat(VSTRING *vp, const char *src, ssize_t len)
 {
+    /* VSTRING_SPACE() does not return if the buffer size would wrap around. */
     VSTRING_SPACE(vp, len);
     memcpy(vstring_end(vp), src, len);
     len += VSTRING_LEN(vp);

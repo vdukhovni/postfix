@@ -151,3 +151,4 @@
 ./valid_hostname: testing: "foo.bar*"
 ./valid_hostname: warning: valid_hostname: '*' can be the first label only: foo.bar*
 ./valid_hostname: testing: "*"
+./valid_hostname: warning: valid_hostname: '*' can be the first label only: *

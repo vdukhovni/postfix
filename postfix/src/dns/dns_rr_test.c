@@ -230,6 +230,33 @@ static int append_to_list_from_list(void)
     return (eq_dns_rr_free(got, want));
 }
 
+static int dns_rr_copy_clears_truncated_flag(void)
+{
+    DNS_RR *orig;
+    DNS_RR *copy;
+
+    orig = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+
+    orig->flags |= DNS_RR_FLAG_TRUNCATED;
+    copy = dns_rr_copy(orig);
+    orig->flags &= ~DNS_RR_FLAG_TRUNCATED;
+
+    return (eq_dns_rr_free(copy, orig));
+}
+
+static int dns_rr_full_copy_copies_truncated_flag(void)
+{
+    DNS_RR *orig;
+    DNS_RR *full_copy;
+
+    orig = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
+
+    orig->flags |= DNS_RR_FLAG_TRUNCATED;
+    full_copy = dns_rr_full_copy(orig);
+
+    return (eq_dns_rr_free(full_copy, orig));
+}
+
 static int append_propagates_flags(void)
 {
     DNS_RR *a = dns_rr_create_noport("qa", "ra", T_MX, C_IN, 3600, 1, "mxa", 4);
@@ -470,6 +497,12 @@ static const TEST_CASE test_cases[] = {
     "append to element from list", append_to_elem_from_list,
     "append to list from element", append_to_list_from_elem,
     "append to list from list", append_to_list_from_list,
+
+    /*
+     * Test dns_rr_copy() flag propagation.
+     */
+    "dns_rr_copy clears truncation", dns_rr_copy_clears_truncated_flag,
+    "dns_rr_full_copy copies truncation", dns_rr_full_copy_copies_truncated_flag,
 
     /*
      * Test dns_rr_append() flag propagation.

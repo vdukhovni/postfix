@@ -22,6 +22,9 @@
 /*	void	dns_rr_free(list)
 /*	DNS_RR	*list;
 /*
+/*	DNS_RR	*dns_rr_full_copy(record)
+/*	DNS_RR	*record;
+/*
 /*	DNS_RR	*dns_rr_copy(record)
 /*	DNS_RR	*record;
 /*
@@ -99,7 +102,10 @@
 /*	dns_rr_free() releases the resource used by of zero or more
 /*	resource records.
 /*
-/*	dns_rr_copy() makes a copy of a resource record.
+/*	dns_rr_full_copy() makes a copy of a resource record.
+/*
+/*	dns_rr_copy() makes a sanitized copy of a resource record.
+/*	This does not copy the DNS_RR_FLAG_TRUNCATED flag.
 /*
 /*	dns_rr_append() appends an input resource record list to
 /*	an output list. Null arguments are explicitly allowed.
@@ -229,6 +235,25 @@ void    dns_rr_free(DNS_RR *rr)
     }
 }
 
+/* dns_rr_full_copy - copy resource record */
+
+DNS_RR *dns_rr_full_copy(DNS_RR *src)
+{
+    DNS_RR *dst;
+
+    /*
+     * Note: struct copy, because dns_rr_create() would not copy all fields.
+     */
+    dst = (DNS_RR *) mymalloc(sizeof(*dst));
+    *dst = *src;
+    dst->qname = mystrdup(src->qname);
+    dst->rname = mystrdup(src->rname);
+    if (dst->data)
+	dst->data = mymemdup(src->data, src->data_len);
+    dst->next = 0;
+    return (dst);
+}
+
 /* dns_rr_copy - copy resource record */
 
 DNS_RR *dns_rr_copy(DNS_RR *src)
@@ -240,6 +265,8 @@ DNS_RR *dns_rr_copy(DNS_RR *src)
      */
     dst = (DNS_RR *) mymalloc(sizeof(*dst));
     *dst = *src;
+    /* 202604 Claude: avoid surprising behavior. */
+    dst->flags &= ~DNS_RR_FLAG_TRUNCATED;
     dst->qname = mystrdup(src->qname);
     dst->rname = mystrdup(src->rname);
     if (dst->data)

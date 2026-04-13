@@ -714,7 +714,8 @@ static void mime_state_downgrade(MIME_STATE *state, int rec_type,
 
 #define QP_ENCODE(buffer, ch) { \
 	VSTRING_ADDCH(buffer, '='); \
-	VSTRING_ADDCH(buffer, hexchars[(ch >> 4) & 0xff]); \
+	/* 202406 Claude: 0xff should be 0xf. */ \
+	VSTRING_ADDCH(buffer, hexchars[(ch >> 4) & 0xf]); \
 	VSTRING_ADDCH(buffer, hexchars[ch & 0xf]); \
     }
 

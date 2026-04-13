@@ -1224,6 +1224,7 @@ off_t   vstream_fseek(VSTREAM *stream, off_t offset, int whence)
 	    return (-1);
 	}
 	if (offset > bp->len && (bp->flags & VSTREAM_FLAG_WRITE))
+	    /* Note: vstring_space() does not return after error. */
 	    vstream_buf_space(bp, offset - bp->len);
 	VSTREAM_BUF_AT_OFFSET(bp, offset);
 	return (offset);
@@ -1766,7 +1767,8 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    stream->min_data_rate = min_data_rate;
 	    break;
 	case VSTREAM_CTL_OWN_VSTRING:
-	    if ((stream->buf.flags |= VSTREAM_FLAG_MEMORY) == 0)
+	    /* 202604 Claude: '|=' should be '&'. */
+	    if ((stream->buf.flags & VSTREAM_FLAG_MEMORY) == 0)
 		msg_panic("%s: operation on non-VSTRING stream", myname);
 	    stream->buf.flags |= VSTREAM_FLAG_OWN_VSTRING;
 	    break;

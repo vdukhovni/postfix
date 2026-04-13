@@ -211,6 +211,7 @@ extern DNS_RR *dns_rr_create(const char *, const char *,
 			             unsigned, unsigned,
 			             const char *, size_t);
 extern void dns_rr_free(DNS_RR *);
+extern DNS_RR *dns_rr_full_copy(DNS_RR *);
 extern DNS_RR *dns_rr_copy(DNS_RR *);
 extern DNS_RR *dns_rr_append(DNS_RR *, DNS_RR *);
 extern DNS_RR *dns_rr_sort(DNS_RR *, int (*) (DNS_RR *, DNS_RR *));

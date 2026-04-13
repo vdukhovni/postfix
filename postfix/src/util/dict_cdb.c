@@ -456,7 +456,8 @@ static DICT *dict_cdbm_open(const char *path, int dict_flags)
     }
 
 #ifndef NO_FTRUNCATE
-    if (st0.st_size)
+    /* 202604 Claude: use the post-myflock() fstat result. */
+    if (st1.st_size)
 	ftruncate(fd, 0);
 #endif
 

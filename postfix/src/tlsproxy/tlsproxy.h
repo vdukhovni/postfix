@@ -39,9 +39,10 @@ typedef struct {
     TLS_APPL_STATE *appl_state;		/* libtls state */
     TLS_SESS_STATE *tls_context;	/* libtls state */
     int     ssl_last_err;		/* TLS I/O state */
-    TLS_CLIENT_PARAMS *tls_params;	/* globals not part of init_props */
+    TLS_SERVER_PARAMS *server_params;	/* globals not part of init_props */
     TLS_SERVER_INIT_PROPS *server_init_props;
     TLS_SERVER_START_PROPS *server_start_props;
+    TLS_CLIENT_PARAMS *client_params;	/* globals not part of init_props */
     TLS_CLIENT_INIT_PROPS *client_init_props;
     TLS_CLIENT_START_PROPS *client_start_props;
 } TLSP_STATE;
@@ -66,4 +67,7 @@ extern void tlsp_state_free(TLSP_STATE *);
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/

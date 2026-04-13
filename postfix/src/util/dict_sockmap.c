@@ -254,7 +254,8 @@ static const char *dict_sockmap_lookup(DICT *dict, const char *key)
     reply_payload = split_at(STR(dp->rdwr_buf), ' ');
     if (strcmp(STR(dp->rdwr_buf), DICT_SOCKMAP_PROT_OK) == 0) {
 	dict->error = 0;
-	return (reply_payload);
+	/* 202604 Claude: don't return NULL with dict->error==0. */
+	return (reply_payload ? reply_payload : "");
     } else if (strcmp(STR(dp->rdwr_buf), DICT_SOCKMAP_PROT_NOTFOUND) == 0) {
 	dict->error = 0;
 	return (0);

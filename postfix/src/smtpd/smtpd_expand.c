@@ -220,7 +220,8 @@ const char *smtpd_expand_lookup(const char *name, int unused_mode,
     } else if (STREQN(name, MAIL_ATTR_RECIP, CONST_LEN(MAIL_ATTR_RECIP))) {
 	return (smtpd_expand_addr(state->expand_buf, state->recipient,
 				  name, CONST_LEN(MAIL_ATTR_RECIP)));
-    } if (STREQ(name, MAIL_ATTR_LOCALTIME)) {
+	/* 202406 Claude: add missing 'else'. No effect on generated code. */
+    } else if (STREQ(name, MAIL_ATTR_LOCALTIME)) {
 	if (time(&now) == (time_t) -1)
 	    msg_fatal("time lookup failed: %m");
 	lt = localtime(&now);

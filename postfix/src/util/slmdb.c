@@ -481,8 +481,9 @@ static int slmdb_recover(SLMDB *slmdb, int status)
     case MDB_MAP_RESIZED:
 	if ((status = mdb_env_set_mapsize(slmdb->env, 0)) == 0) {
 	    /* Do not panic. Maps may shrink after bulk update. */
-	    mdb_env_info(slmdb->env, &info);
-	    slmdb->curr_limit = info.me_mapsize;
+	    /* 202604 Claude: handle impossible mdb_env_info() error. */
+	    if (mdb_env_info(slmdb->env, &info) == 0)
+		slmdb->curr_limit = info.me_mapsize;
 	    if (slmdb->notify_fn)
 		slmdb->notify_fn(slmdb->cb_context, MDB_MAP_RESIZED,
 				 slmdb->curr_limit);

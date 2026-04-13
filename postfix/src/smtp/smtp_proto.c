@@ -595,6 +595,7 @@ int     smtp_helo(SMTP_STATE *state)
 				msg_warn("bad EHLO SIZE limit \"%s\" from %s",
 					 word, session->namaddrport);
 			    else
+				/* We treat size_limit <= 0 as 'unknown'. */
 				session->size_limit = off_cvt_string(word);
 			}
 		    }

@@ -383,6 +383,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
  /*
@@ -1465,7 +1468,7 @@ static void tlsp_get_request_event(int event, void *context)
 	state->is_server_role = 0;
 	if (attr_scan(plaintext_stream, ATTR_FLAG_STRICT,
 		      RECV_ATTR_FUNC(tls_proxy_client_param_scan,
-				     (void *) &state->tls_params),
+				     (void *) &state->client_params),
 		      RECV_ATTR_FUNC(tls_proxy_client_init_scan,
 				     (void *) &state->client_init_props),
 		      RECV_ATTR_FUNC(tls_proxy_client_start_scan,
@@ -1475,7 +1478,7 @@ static void tlsp_get_request_event(int event, void *context)
 	    tlsp_state_free(state);
 	    return;
 	}
-	state->appl_state = tlsp_client_init(state->tls_params,
+	state->appl_state = tlsp_client_init(state->client_params,
 					     state->client_init_props);
 	ready = state->appl_state != 0;
 	break;

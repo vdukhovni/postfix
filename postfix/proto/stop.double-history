@@ -232,3 +232,8 @@ proto  proto stop proto stop double cc
  local local hc local Makefile 
  Dukhovni Files proto postconf proto proto TLS_README html 
  tls tls h tls tls_misc c tls tls_server c 
+ support in postlink Files smtpd smtpd c mantools postlink 
+ to silence future code scanners Files dns dns h 
+ proxymap proxymap c smtp smtp_proto c smtpd smtpd_expand c 
+ Files tlsproxy tlsproxy c tlsproxy tlsproxy h 
+ Files tlsproxy tlsproxy c tlsproxy tlsproxy h 

@@ -256,6 +256,19 @@ int     deliver_dotforward(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 		 * associated with that alias.  The NOTIFY parameter is
 		 * propagated to the forwarding addresses, except that any
 		 * SUCCESS keyword is removed.
+		 * 
+		 * 202604 Claude: a local recipient can attempt to sabotage
+		 * deliveries with malicious targets inside .forward such as
+		 * a /path/to/fifo without listener, or a "|command" that
+		 * sleeps, or by replacing .forward with a fifo. The impact
+		 * of such attempts is limited by design because each local
+		 * recipient is limited to only two concurrent deliveries
+		 * (the defaults are "local_destination_concurrency_limit =
+		 * 2" and "local_destination_recipient_limit = 1"). So they
+		 * will only slow down their own deliveries; 98% of local
+		 * delivery processes will remain available for other
+		 * recipients (the default setting "default_process_limit =
+		 * 100").
 		 */
 		close_on_exec(fd, CLOSE_ON_EXEC);
 		addr_count = 0;
