@@ -1,3 +1,6 @@
+#ifndef _TLSPROXY_H_INCLUDED_
+#define _TLSPROXY_H_INCLUDED_
+
 /*++
 /* NAME
 /*	tlsproxy 3h
@@ -18,6 +21,7 @@
   * TLS library.
   */
 #include <tls.h>
+#include <tls_proxy.h>
 
  /*
   * Internal interface.
@@ -53,6 +57,28 @@ typedef struct {
 extern TLSP_STATE *tlsp_state_create(const char *, VSTREAM *);
 extern void tlsp_state_free(TLSP_STATE *);
 
+ /*
+  * Error handling: if a function detects an error, then that function is
+  * responsible for destroying TLSP_STATE. Exceptions to this principle are
+  * indicated in the code.
+  * 
+  * TODO(wietse) Revisit this contract. Destroying state violates layering.
+  * Maybe encapsulate the error returning action in a wrapper that destroys
+  * state.
+  */
+
+ /*
+  * Internal status API.
+  */
+#define TLSP_STAT_OK    0
+#define TLSP_STAT_ERR   (-1)
+
+ /*
+  * SLMs.
+  */
+#define STR(x)	vstring_str(x)
+#define LEN(x)	VSTRING_LEN(x)
+
 /* LICENSE
 /* .ad
 /* .fi
@@ -71,3 +97,5 @@ extern void tlsp_state_free(TLSP_STATE *);
 /*	Wietse Venema
 /*	porcupine.org
 /*--*/
+
+#endif

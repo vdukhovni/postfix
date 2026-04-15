@@ -620,7 +620,8 @@ void    dict_walk(DICT_WALK_ACTION action, void *ptr)
 
     ht_info_list = htable_list(dict_table);
     for (ht = ht_info_list; (h = *ht) != 0; ht++)
-	action(h->key, (DICT *) h->value, ptr);
+	/* 202604 Claude: h->value is (DICT_NODE *) not (DICT *). */
+	action(h->key, ((DICT_NODE *) h->value)->dict, ptr);
     myfree((void *) ht_info_list);
 }
 

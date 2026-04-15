@@ -237,3 +237,4 @@ proto  proto stop proto stop double cc
  proxymap proxymap c smtp smtp_proto c smtpd smtpd_expand c 
  Files tlsproxy tlsproxy c tlsproxy tlsproxy h 
  Files tlsproxy tlsproxy c tlsproxy tlsproxy h 
+ for consistency Files tlsproxy tlsproxy hc 

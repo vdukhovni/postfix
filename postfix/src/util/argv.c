@@ -262,8 +262,8 @@ static void argv_extend(ARGV *argvp)
 {
     ssize_t new_len;
 
-    /* 202604 Claude: avoid small non-negative expression 'new_len + 1'.  */
-    if (argvp->len > SSIZE_MAX / 2)
+    /* 202604 Claude: avoid overflowing (new_len + 1) * sizeof(char *).  */
+    if (argvp->len + 1 > SSIZE_MAX / (2 * sizeof(char *)))
 	msg_panic("argv_extend: array length overflow");
     new_len = argvp->len * 2;
     argvp->argv = (char **)

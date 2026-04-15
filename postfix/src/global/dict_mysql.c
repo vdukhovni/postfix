@@ -135,7 +135,8 @@ typedef struct {
     MYSQL  *db;
     char   *hostname;
     char   *name;
-    unsigned port;
+    /* 202604 Claude: find_inet_service() returns -1 on error. */
+    int     port;
     unsigned type;			/* TYPEUNIX | TYPEINET */
     unsigned stat;			/* STATUNTRIED | STATFAIL | STATCUR */
     time_t  ts;				/* used for attempting reconnection

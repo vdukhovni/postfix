@@ -191,11 +191,17 @@ static void dict_pgsql_quote(DICT *dict, const char *name, VSTRING *result)
     buflen = 2 * len + 1;
 
     /*
-     * XXX Workaround: stop further processing when PQescapeStringConn()
-     * (below) fails. A more proper fix requires invasive changes, not
-     * suitable for a stable release.
+     * 202604 Claude: error recovery strategy needs clarification.
+     * 
+     * When the PQescapeStringConn() call below fails, we flag the host via
+     * active_host->stat = STATFAIL and return without writing to `result`.
+     * plpgsql_query() examines host->stat immediately after
+     * db_common_expand() returns, calls plpgsql_down_host(), and tries the
+     * next available server (i.e. not already flagged as STATFAIL).
+     * dict_pgsql_lookup() sets dict->error = DICT_ERR_RETRY if all servers
+     * fail.
      */
-    if (active_host->stat == STATFAIL)
+    if (active_host->stat == STATFAIL)		/* Can't happen */
 	return;
 
     /*

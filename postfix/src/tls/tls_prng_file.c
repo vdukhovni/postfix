@@ -118,7 +118,7 @@ ssize_t tls_prng_file_read(TLS_PRNG_SRC *fh, size_t len)
 	    msg_info("cannot seek entropy file %s: %m", fh->name);
 	return (-1);
     }
-    errno = 0;
+    /* 202604 Claude: no need to reset errno. */
     for (to_read = len; to_read > 0; to_read -= count) {
 	if ((count = timed_read(fh->fd, buffer, to_read > sizeof(buffer) ?
 				sizeof(buffer) : to_read,
@@ -132,7 +132,8 @@ ssize_t tls_prng_file_read(TLS_PRNG_SRC *fh, size_t len)
 	RAND_seed(buffer, count);
     }
     if (msg_verbose)
-	msg_info("read %ld bytes from entropy file %s: %m",
+	/* 202604 Claude: remove '%m' from non-error logging. */
+	msg_info("read %ld bytes from entropy file %s",
 		 (long) (len - to_read), fh->name);
     return (len - to_read);
 }

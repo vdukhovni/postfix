@@ -343,8 +343,9 @@ static int dict_memcache_valid_key(DICT_MC *dict_mc,
     if (rc < 0)
 	DICT_ERR_VAL_RETURN(dict_mc, rc, 0);
     for (cp = (unsigned char *) STR(dict_mc->key_buf); *cp; cp++)
-	if (isascii(*cp) && isspace(*cp))
-	    DICT_MC_SKIP("name contains space");
+	/* 202604 Claude: memcached rejects control characters in key. */
+	if (ISSPACE(*cp) || ISCNTRL(*cp))
+	    DICT_MC_SKIP("name contains space or controls");
 
     DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_NONE, 1);
 }

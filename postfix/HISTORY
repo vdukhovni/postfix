@@ -30907,6 +30907,48 @@ Apologies for any names omitted.
 	Testing: updated postscreen tests for changes in make_attr()
 	API. File: src/postscreen/postscreen_dnsbl_test.c.
 
+20260415
+
+	Code health: verified zero functionality change. Factored
+	out tlsproxy code for client role management, in preparation
+	for overhaul of the code for server role management (which
+	will become very similar). Next up will be renaming identifiers
+	for consistency. Files: tlsproxy/tlsproxy.[hc],
+	tlsproxy/tlsproxy_client.[hc], tlsproxy/tlsproxy_diff.[hc].
+
+	Code health: renamed some identifiers for consistency.
+	Files: tlsproxy/tlsproxy_client.[hc].
+
+	Claude scan: the memcached server rejects control characters
+	in a text-protocol key, but it is better if Postfix rejects
+	such keys, because that produces a better-quality error
+	message. File: global/dict_memcache.c.
+
+	Claude scan: the MySQL client used an unsigned int for the
+	server port variable, but the find_inet_service() function
+	returns -1 after an error which is converted to unsigned,
+	resulting in no error message from Postfix, and a low-quality
+	error message from the MySQL client library. Changed the
+	port variable type to a signed int, so that Postfix will
+	log its better error message. File: global/dict_mysql.c.
+
+	Claude scan: the PostgreSQL client strategy to recover from
+	an error in PQescapeStringConn() needed clarification. File:
+	global/dict_pgsql.c.
+
+	Claude scan: remove %m (errno to string) from non-error logging.
+	File: tls/tls_prng_file.c.
+
+	Claude scan: the recent argv.c fix should count the number
+	of bytes per (char *) pointer. File: util/argv.c.
+
+	Claude scan: dict_walk() was broken (but never called). File:
+	util/dict.c.
+
+	Claude scan: handle a pcre2_match_data_create_from_pattern()
+	out-of-memory error, instead of letting the PCRE2 library
+	silently skip a rule. File: util/dict_pcre.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.
