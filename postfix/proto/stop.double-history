@@ -238,3 +238,4 @@ proto  proto stop proto stop double cc
  Files tlsproxy tlsproxy c tlsproxy tlsproxy h 
  Files tlsproxy tlsproxy c tlsproxy tlsproxy h 
  for consistency Files tlsproxy tlsproxy hc 
+ tlsproxy tlsproxy_diff c tlsproxy tlsproxy h 

@@ -9,6 +9,8 @@
 /*	TLS_SERVER_PARAMS *tls_proxy_server_param_from_config(params)
 /*	TLS_SERVER_PARAMS *params;
 /*
+/*	TLS_PROXY_SERVER_PARAMS(params, name1 = value1, ..., nameN = valueN)
+/*
 /*	char	*tls_proxy_server_param_serialize(print_fn, buf, params)
 /*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTRING *buf;
@@ -37,6 +39,11 @@
 /*	TLS_SERVER_PARAMS structure from configuration parameters and
 /*	returns its argument. Strings are not copied. The result must
 /*	therefore not be passed to tls_proxy_server_param_free().
+/*
+/*	TLS_PROXY_SERVER_PARAMS() makes shallow copies of the form
+/*	(params)->name1 = value1, ..., (params)->nameN = valueN. As with
+/*	tls_proxy_server_param_from_config(), the result should not be
+/*	passed to tls_proxy_server_param_free().
 /*
 /*	tls_proxy_server_param_serialize() serializes the specified object
 /*	to a memory buffer, using the specified print function (typically,

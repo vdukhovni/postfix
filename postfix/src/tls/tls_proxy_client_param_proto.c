@@ -6,6 +6,8 @@
 /* SYNOPSIS
 /*	#include <tls_proxy_client_param_proto.h>
 /*
+/*	TLS_PROXY_CLIENT_PARAMS(params, name1 = value1, ..., nameN = valueN)
+/*
 /*	TLS_CLIENT_PARAMS *tls_proxy_client_param_from_config(params)
 /*	TLS_CLIENT_PARAMS *params;
 /*
@@ -37,6 +39,11 @@
 /*	structure from configuration parameters and returns its
 /*	argument. Strings are not copied. The result must therefore
 /*	not be passed to tls_proxy_client_param_free().
+/*
+/*	TLS_PROXY_CLIENT_PARAMS() makes shallow copies of the form
+/*	(params)->name1 = value1, ..., (params)->nameN = valueN. As with
+/*	tls_proxy_client_param_from_config(), the result should not be
+/*	passed to tls_proxy_client_param_free().
 /*
 /*	tls_proxy_client_param_serialize() serializes the specified
 /*	object to a memory buffer, using the specified print function

@@ -41,13 +41,18 @@
  /*
   * System library.
   */
+#ifdef USE_TLS
+
 #include <sys_defs.h>
+#include <string.h>
 
  /*
   * Utility library.
   */
 #include <msg.h>
+#include <mymalloc.h>
 #include <split_at.h>
+#include <vstring.h>
 
  /*
   * Internal API.
@@ -90,3 +95,5 @@ void    tlsp_log_config_diff(const char *server_cfg, const char *client_cfg)
     myfree(saved_client);
     myfree(saved_server);
 }
+
+#endif

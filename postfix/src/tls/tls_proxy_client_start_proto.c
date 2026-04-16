@@ -6,6 +6,8 @@
 /* SYNOPSIS
 /*	#include <tls_proxy_client_start_proto.h>
 /*
+/*	TLS_PROXY_CLIENT_START_PROPS(props, name1 = value1, ..., nameN = valueN)
+/*
 /*	int	tls_proxy_client_start_print(print_fn, stream, flags, ptr)
 /*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM	*stream;
@@ -21,6 +23,10 @@
 /*	void	tls_proxy_client_start_free(start_props)
 /*	TLS_CLIENT_START_PROPS *start_props;
 /* DESCRIPTION
+/*	TLS_PROXY_CLIENT_START_PROPS() makes shallow copies of the form
+/*	(props)->name1 = value1, ..., (props)->nameN = valueN. The result
+/*	should not be passed to tls_proxy_client_start_free().
+/*
 /*	tls_proxy_client_start_print() writes a TLS_CLIENT_START_PROPS
 /*	structure, without stream or file descriptor members, to
 /*	the named stream using the specified attribute print routine.

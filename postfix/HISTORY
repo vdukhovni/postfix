@@ -30949,6 +30949,21 @@ Apologies for any names omitted.
 	out-of-memory error, instead of letting the PCRE2 library
 	silently skip a rule. File: util/dict_pcre.c.
 
+20260416
+
+	Code health: verified zero functionality change. Factored
+	out the tlsproxy support for the server role. Next up is
+	to make server role support consistent with client role
+	support. Files: tlsproxy/tlsproxy.c, tlsproxy/tlsproxy_server.[hc].
+
+	Cleanup: defensive comment for code scanner, fixed an
+	almost-correct overflow defense. File: util/argv.c.
+
+	Added #ifdef guards to un-break non-TLS builds. Files:
+	tlsproxy/tlsproxy_diff.c, tlsproxy/tlsproxy.h.
+
+	Added missing text to manpages. Files: tls/tls_proxy_*_proto.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

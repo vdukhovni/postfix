@@ -20,6 +20,8 @@
  /*
   * TLS library.
   */
+#ifdef USE_TLS
+
 #include <tls.h>
 #include <tls_proxy.h>
 
@@ -97,5 +99,7 @@ extern void tlsp_state_free(TLSP_STATE *);
 /*	Wietse Venema
 /*	porcupine.org
 /*--*/
+
+#endif
 
 #endif

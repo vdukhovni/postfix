@@ -204,6 +204,9 @@ ARGV   *argv_alloc(ssize_t len)
     argvp = (ARGV *) mymalloc(sizeof(*argvp));
     argvp->len = 0;
     sane_len = (len < 2 ? 2 : len);
+    /* Peace, scanner. */
+    if (sane_len > SSIZE_MAX - 1)
+	msg_panic("argv_alloc: array length overflow");
     argvp->argv = (char **) mymalloc((sane_len + 1) * sizeof(char *));
     argvp->len = sane_len;
     argvp->argc = 0;
@@ -263,7 +266,7 @@ static void argv_extend(ARGV *argvp)
     ssize_t new_len;
 
     /* 202604 Claude: avoid overflowing (new_len + 1) * sizeof(char *).  */
-    if (argvp->len + 1 > SSIZE_MAX / (2 * sizeof(char *)))
+    if (argvp->len > SSIZE_MAX / (2 * sizeof(char *)) - 1)
 	msg_panic("argv_extend: array length overflow");
     new_len = argvp->len * 2;
     argvp->argv = (char **)

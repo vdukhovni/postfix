@@ -6,6 +6,8 @@
 /* SYNOPSIS
 /*	#include <tls_proxy_client_init_proto.h>
 /*
+/*	TLS_PROXY_CLIENT_INIT_PROPS(props, name1 = value1, ..., nameN = valueN)
+/*
 /*	char	*tls_proxy_client_init_serialize(print_fn, buf, init_props)
 /*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTRING *buf;
@@ -30,6 +32,10 @@
 /*	void	tls_proxy_client_init_free(init_props)
 /*	TLS_CLIENT_INIT_PROPS *init_props;
 /* DESCRIPTION
+/*	TLS_PROXY_CLIENT_INIT_PROPS() makes shallow copies of the form
+/*	(props)->name1 = value1, ..., (props)->nameN = valueN. The result
+/*	should not be passed to tls_proxy_client_init_free().
+/*
 /*	tls_proxy_client_init_serialize() serializes the specified
 /*	object to a memory buffer, using the specified print function
 /*	(typically, attr_print_plain). The result can be used

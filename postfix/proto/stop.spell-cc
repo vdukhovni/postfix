@@ -1980,3 +1980,5 @@ PQerrorMessage
 deref
 openUTS
 xff
+nameN
+valueN

@@ -1,7 +1,9 @@
 SHELL	= /bin/sh
-SRCS	= tlsproxy.c tlsproxy_state.c tlsproxy_client.c tlsproxy_diff.c
-OBJS	= tlsproxy.o tlsproxy_state.o tlsproxy_client.o tlsproxy_diff.o
-HDRS	= tlsproxy.h tlsproxy_client.h tlsproxy_diff.h
+SRCS	= tlsproxy.c tlsproxy_state.c tlsproxy_client.c tlsproxy_diff.c \
+	tlsproxy_server.c
+OBJS	= tlsproxy.o tlsproxy_state.o tlsproxy_client.o tlsproxy_diff.o \
+	tlsproxy_server.o
+HDRS	= tlsproxy.h tlsproxy_client.h tlsproxy_diff.h tlsproxy_server.h
 TESTSRC	=
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -89,6 +91,7 @@ tlsproxy.o: ../../include/vstring.h
 tlsproxy.o: tlsproxy.c
 tlsproxy.o: tlsproxy.h
 tlsproxy.o: tlsproxy_client.h
+tlsproxy.o: tlsproxy_server.h
 tlsproxy_client.o: ../../include/argv.h
 tlsproxy_client.o: ../../include/attr.h
 tlsproxy_client.o: ../../include/been_here.h
@@ -155,6 +158,37 @@ tlsproxy_diff.o: ../../include/vstring.h
 tlsproxy_diff.o: tlsproxy.h
 tlsproxy_diff.o: tlsproxy_diff.c
 tlsproxy_diff.o: tlsproxy_diff.h
+tlsproxy_server.o: ../../include/argv.h
+tlsproxy_server.o: ../../include/attr.h
+tlsproxy_server.o: ../../include/check_arg.h
+tlsproxy_server.o: ../../include/dns.h
+tlsproxy_server.o: ../../include/events.h
+tlsproxy_server.o: ../../include/htable.h
+tlsproxy_server.o: ../../include/mail_params.h
+tlsproxy_server.o: ../../include/msg.h
+tlsproxy_server.o: ../../include/myaddrinfo.h
+tlsproxy_server.o: ../../include/mymalloc.h
+tlsproxy_server.o: ../../include/name_code.h
+tlsproxy_server.o: ../../include/name_mask.h
+tlsproxy_server.o: ../../include/nbbio.h
+tlsproxy_server.o: ../../include/nvtable.h
+tlsproxy_server.o: ../../include/sock_addr.h
+tlsproxy_server.o: ../../include/sys_defs.h
+tlsproxy_server.o: ../../include/tls.h
+tlsproxy_server.o: ../../include/tls_proxy.h
+tlsproxy_server.o: ../../include/tls_proxy_attr.h
+tlsproxy_server.o: ../../include/tls_proxy_client_init_proto.h
+tlsproxy_server.o: ../../include/tls_proxy_client_param_proto.h
+tlsproxy_server.o: ../../include/tls_proxy_client_start_proto.h
+tlsproxy_server.o: ../../include/tls_proxy_server_init_proto.h
+tlsproxy_server.o: ../../include/tls_proxy_server_param_proto.h
+tlsproxy_server.o: ../../include/tls_proxy_server_start_proto.h
+tlsproxy_server.o: ../../include/vbuf.h
+tlsproxy_server.o: ../../include/vstream.h
+tlsproxy_server.o: ../../include/vstring.h
+tlsproxy_server.o: tlsproxy.h
+tlsproxy_server.o: tlsproxy_server.c
+tlsproxy_server.o: tlsproxy_server.h
 tlsproxy_state.o: ../../include/argv.h
 tlsproxy_state.o: ../../include/attr.h
 tlsproxy_state.o: ../../include/check_arg.h
