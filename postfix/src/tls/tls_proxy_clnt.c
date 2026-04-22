@@ -34,6 +34,12 @@
 /*	const char *peer_port;
 /*	int	timeout;
 /*	const char *serverid;
+/*
+/*	bool	tls_proxy_probe(service, flags, peer_addr, peer_port)
+/*	const char *service;
+/*	int	flags;
+/*	const char *peer_addr;
+/*	const char *peer_port;
 /* DESCRIPTION
 /*	tls_proxy_open() prepares for inserting the tlsproxy(8)
 /*	daemon between the current process and a remote peer (the
@@ -60,6 +66,9 @@
 /*
 /*	tls_proxy_legacy_open() is a backwards-compatibility feature
 /*	that provides a historical interface.
+/*
+/*	tls_proxy_probe() asks the tlsproxy server if the requested role
+/*	would be available.
 /*
 /*	Arguments:
 /* .IP service
@@ -212,6 +221,8 @@ VSTREAM *tls_proxy_open(const char *service, int flags,
     }
     switch (flags & (TLS_PROXY_FLAG_ROLE_CLIENT | TLS_PROXY_FLAG_ROLE_SERVER)) {
     case TLS_PROXY_FLAG_ROLE_CLIENT:
+	if ((flags & TLS_PROXY_FLAG_PROBE_ONLY))
+	    break;
 	attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
 		   SEND_ATTR_FUNC(tls_proxy_client_param_print, tls_params),
 		   SEND_ATTR_FUNC(tls_proxy_client_init_print, init_props),
@@ -219,13 +230,13 @@ VSTREAM *tls_proxy_open(const char *service, int flags,
 		   ATTR_TYPE_END);
 	break;
     case TLS_PROXY_FLAG_ROLE_SERVER:
-#if 0
+	if ((flags & TLS_PROXY_FLAG_PROBE_ONLY))
+	    break;
 	attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
 		   SEND_ATTR_FUNC(tls_proxy_server_param_print, tls_params),
 		   SEND_ATTR_FUNC(tls_proxy_server_init_print, init_props),
 		   SEND_ATTR_FUNC(tls_proxy_server_start_print, start_props),
 		   ATTR_TYPE_END);
-#endif
 	break;
     default:
 	msg_panic("%s: bad flags: 0x%x", myname, flags);
@@ -263,6 +274,12 @@ VSTREAM *tls_proxy_open(const char *service, int flags,
     }
 
     /*
+     * What-if probe only.
+     */
+    if ((flags & TLS_PROXY_FLAG_PROBE_ONLY) != 0)
+	return (tlsproxy_stream);
+
+    /*
      * Send the remote peer file descriptor.
      */
     if (LOCAL_SEND_FD(vstream_fileno(tlsproxy_stream),
@@ -295,6 +312,28 @@ TLS_SESS_STATE *tls_proxy_context_receive(VSTREAM *proxy_stream)
     } else {
 	return (tls_context);
     }
+}
+
+/* tls_proxy_probe - service availability check */
+
+bool    tls_proxy_probe(const char *service, int flags,
+			        const char *peer_addr, const char *peer_port)
+{
+    VSTREAM *tlsproxy_stream;
+    bool    ret;
+
+#define UNUSED_VSTREAM	(0)
+#define UNUSED_TIMEOUT	(0)
+
+    tlsproxy_stream = tls_proxy_open(service,
+				     flags | TLS_PROXY_FLAG_PROBE_ONLY,
+				     UNUSED_VSTREAM, peer_addr,
+				     peer_port, UNUSED_TIMEOUT,
+				     UNUSED_TIMEOUT, "unused_server",
+				     (void *) 0, (void *) 0, (void *) 0);
+    if ((ret = tlsproxy_stream != 0))
+	(void) vstream_fclose(tlsproxy_stream);
+    return (ret);
 }
 
 #endif

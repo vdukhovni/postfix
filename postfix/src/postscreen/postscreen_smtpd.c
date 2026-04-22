@@ -439,7 +439,8 @@ static int psc_starttls_cmd(PSC_STATE *state, char *args)
     if (state->flags & PSC_STATE_FLAG_USING_TLS)
 	return (PSC_SEND_REPLY(state,
 			       "554 5.5.1 Error: TLS already active\r\n"));
-    if (var_psc_use_tls == 0 || (state->ehlo_discard_mask & EHLO_MASK_STARTTLS))
+#ifdef USE_TLS
+    if (!psc_tls_ready)
 	return (PSC_SEND_REPLY(state,
 			   "502 5.5.1 Error: command not implemented\r\n"));
 
@@ -449,6 +450,10 @@ static int psc_starttls_cmd(PSC_STATE *state, char *args)
     PSC_SUSPEND_SMTP_CMD_EVENTS(state);
     psc_starttls_open(state, psc_starttls_resume);
     return (0);
+#else
+    return (PSC_SEND_REPLY(state,
+			   "502 5.5.1 Error: command not implemented\r\n"));
+#endif
 }
 
 /* psc_extract_addr - extract MAIL/RCPT address, unquoted form */
@@ -1238,49 +1243,15 @@ void    psc_smtpd_init(void)
     psc_smtpd_helo_reply = mystrdup(STR(psc_temp));
 
     /*
-     * STARTTLS support. Note the complete absence of #ifdef USE_TLS
-     * throughout the postscreen(8) source code. If Postfix is built without
-     * TLS support, then the TLS proxy will simply report that TLS is not
-     * available, and conventional error handling will take care of the
-     * issue.
-     * 
-     * Legacy code copied from smtpd(8). The pre-fabricated EHLO reply depends
-     * on this.
-     */
-    if (*var_psc_tls_level) {
-	switch (tls_level_lookup(var_psc_tls_level)) {
-	default:
-	    msg_fatal("Invalid TLS level \"%s\"", var_psc_tls_level);
-	    /* NOTREACHED */
-	    break;
-	case TLS_LEV_SECURE:
-	case TLS_LEV_VERIFY:
-	case TLS_LEV_FPRINT:
-	    msg_warn("%s: unsupported TLS level \"%s\", using \"encrypt\"",
-		     VAR_PSC_TLS_LEVEL, var_psc_tls_level);
-	    /* FALLTHROUGH */
-	case TLS_LEV_ENCRYPT:
-	    var_psc_enforce_tls = var_psc_use_tls = 1;
-	    break;
-	case TLS_LEV_MAY:
-	    var_psc_enforce_tls = 0;
-	    var_psc_use_tls = 1;
-	    break;
-	case TLS_LEV_NONE:
-	    var_psc_enforce_tls = var_psc_use_tls = 0;
-	    break;
-	}
-    }
-    var_psc_use_tls = var_psc_use_tls || var_psc_enforce_tls;
-#ifdef TODO_SASL_AUTH
-    var_psc_tls_auth_only = var_psc_tls_auth_only || var_psc_enforce_tls;
-#endif
+     * STARTTLS support. This affects the EHLO greeting. */
+    psc_tls_pre_jail();
 
     /*
      * Initialize the EHLO reply. Once for plaintext sessions, and once for
      * TLS sessions.
      */
-    psc_smtpd_format_ehlo_reply(psc_temp, psc_ehlo_discard_mask);
+    psc_smtpd_format_ehlo_reply(psc_temp, psc_ehlo_discard_mask 
+				| (psc_tls_ready ? 0 : EHLO_MASK_STARTTLS));
     psc_smtpd_ehlo_reply_plain = mystrdup(STR(psc_temp));
 
     psc_smtpd_format_ehlo_reply(psc_temp,

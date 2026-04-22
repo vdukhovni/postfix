@@ -285,7 +285,7 @@
 /* .fi
 /* .IP "\fBpostscreen_cache_cleanup_interval (12h)\fR"
 /*	The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
-/* .IP "\fBpostscreen_cache_map (btree:$data_directory/postscreen_cache)\fR"
+/* .IP "\fBpostscreen_cache_map (Postfix >= 3.11: $default_cache_db_type:$data_directory/postscreen_cache; Postfix < 3.11: btree:$data_directory/postscreen_cache)\fR"
 /*	Persistent storage for the \fBpostscreen\fR(8) server decisions.
 /* .IP "\fBpostscreen_cache_retention_time (7d)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will cache an expired
@@ -351,6 +351,60 @@
 /*	postscreen_use_tls and postscreen_enforce_tls.
 /* .IP "\fBtlsproxy_service_name (tlsproxy)\fR"
 /*	The name of the \fBtlsproxy\fR(8) service entry in master.cf.
+/* .PP
+/*	Available with Postfix 3.12 and later:
+/* .IP "\fBpostscreen_starttls_timeout ($smtpd_starttls_timeout)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_starttls_timeout.
+/* .IP "\fBpostscreen_tls_always_issue_session_ids ($smtpd_tls_always_issue_session_ids)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_always_issue_session_ids.
+/* .IP "\fBpostscreen_tls_ask_ccert ($smtpd_tls_ask_ccert)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_ask_ccert.
+/* .IP "\fBpostscreen_tls_CAfile ($smtpd_tls_CAfile)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_CAfile.
+/* .IP "\fBpostscreen_tls_CApath ($smtpd_tls_CApath)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_CApath.
+/* .IP "\fBpostscreen_tls_ccert_verifydepth ($smtpd_tls_ccert_verifydepth)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_ccert_verifydepth.
+/* .IP "\fBpostscreen_tls_cert_file ($smtpd_tls_cert_file)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_cert_file.
+/* .IP "\fBpostscreen_tls_chain_files ($smtpd_tls_chain_files)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_chain_files.
+/* .IP "\fBpostscreen_tls_ciphers ($smtpd_tls_ciphers)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_ciphers.
+/* .IP "\fBpostscreen_tls_dcert_file ($smtpd_tls_dcert_file)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_dcert_file.
+/* .IP "\fBpostscreen_tls_dh1024_param_file ($smtpd_tls_dh1024_param_file)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_dh1024_param_file.
+/* .IP "\fBpostscreen_tls_dh512_param_file ($smtpd_tls_dh512_param_file)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_dh512_param_file.
+/* .IP "\fBpostscreen_tls_dkey_file ($smtpd_tls_dkey_file)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_dkey_file.
+/* .IP "\fBpostscreen_tls_eccert_file ($smtpd_tls_eccert_file)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_eccert_file.
+/* .IP "\fBpostscreen_tls_eckey_file ($smtpd_tls_eckey_file)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_eckey_file.
+/* .IP "\fBpostscreen_tls_eecdh_grade ($smtpd_tls_eecdh_grade)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_eecdh_grade.
+/* .IP "\fBpostscreen_tls_enable_rpk ($smtpd_tls_enable_rpk)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_enable_rpk.
+/* .IP "\fBpostscreen_tls_exclude_ciphers ($smtpd_tls_exclude_ciphers)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_exclude_ciphers.
+/* .IP "\fBpostscreen_tls_fingerprint_digest ($smtpd_tls_fingerprint_digest)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_fingerprint_digest.
+/* .IP "\fBpostscreen_tls_key_file ($smtpd_tls_key_file)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_key_file.
+/* .IP "\fBpostscreen_tls_loglevel ($smtpd_tls_loglevel)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_loglevel.
+/* .IP "\fBpostscreen_tls_mandatory_ciphers ($smtpd_tls_mandatory_ciphers)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_mandatory_ciphers.
+/* .IP "\fBpostscreen_tls_mandatory_exclude_ciphers ($smtpd_tls_mandatory_exclude_ciphers)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_mandatory_exclude_ciphers.
+/* .IP "\fBpostscreen_tls_mandatory_protocols ($smtpd_tls_mandatory_protocols)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_mandatory_protocols.
+/* .IP "\fBpostscreen_tls_protocols ($smtpd_tls_protocols)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_protocols.
+/* .IP "\fBpostscreen_tls_req_ccert ($smtpd_tls_req_ccert)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_req_ccert.
 /* OBSOLETE STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -556,6 +610,67 @@ char   *var_psc_exp_filter;
 char   *var_psc_allist_if;
 char   *var_psc_uproxy_proto;
 int     var_psc_uproxy_tmout;
+
+ /*
+  * We use smtpd TLS parameters as the defaults for postscreen TLS support.
+  */
+bool    var_smtpd_tls_ask_ccert;
+bool    var_smtpd_tls_enable_rpk;
+bool    var_smtpd_tls_req_ccert;
+bool    var_smtpd_tls_set_sessid;
+
+char   *var_smtpd_tls_CAfile;
+char   *var_smtpd_tls_CApath;
+char   *var_smtpd_tls_cert_file;
+char   *var_smtpd_tls_chain_files;
+char   *var_smtpd_tls_ciph;
+char   *var_smtpd_tls_dcert_file;
+char   *var_smtpd_tls_dh1024_param_file;
+char   *var_smtpd_tls_dh512_param_file;
+char   *var_smtpd_tls_dkey_file;
+char   *var_smtpd_tls_eccert_file;
+char   *var_smtpd_tls_eckey_file;
+char   *var_smtpd_tls_eecdh;
+char   *var_smtpd_tls_excl_ciph;
+char   *var_smtpd_tls_fpt_dgst;
+char   *var_smtpd_tls_key_file;
+char   *var_smtpd_tls_loglevel;
+char   *var_smtpd_tls_mand_ciph;
+char   *var_smtpd_tls_mand_excl;
+char   *var_smtpd_tls_mand_proto;
+char   *var_smtpd_tls_proto;
+
+int     var_smtpd_tls_ccert_vd;
+int     var_smtpd_starttls_tmout;
+
+bool    var_psc_tls_ask_ccert;
+bool    var_psc_tls_enable_rpk;
+bool    var_psc_tls_req_ccert;
+bool    var_psc_tls_set_sessid;
+
+char   *var_psc_tls_CAfile;
+char   *var_psc_tls_CApath;
+char   *var_psc_tls_cert_file;
+char   *var_psc_tls_chain_files;
+char   *var_psc_tls_ciph;
+char   *var_psc_tls_dcert_file;
+char   *var_psc_tls_dh1024_param_file;
+char   *var_psc_tls_dh512_param_file;
+char   *var_psc_tls_dkey_file;
+char   *var_psc_tls_eccert_file;
+char   *var_psc_tls_eckey_file;
+char   *var_psc_tls_eecdh;
+char   *var_psc_tls_excl_ciph;
+char   *var_psc_tls_fpt_dgst;
+char   *var_psc_tls_key_file;
+char   *var_psc_tls_loglevel;
+char   *var_psc_tls_mand_ciph;
+char   *var_psc_tls_mand_excl;
+char   *var_psc_tls_mand_proto;
+char   *var_psc_tls_proto;
+
+int     var_psc_tls_ccert_vd;
+int     var_psc_starttls_tmout;
 
  /*
   * Global variables.
@@ -1178,6 +1293,26 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_EHLO_DIS_WORDS, DEF_SMTPD_EHLO_DIS_WORDS, &var_smtpd_ehlo_dis_words, 0, 0,
 	VAR_SMTPD_EHLO_DIS_MAPS, DEF_SMTPD_EHLO_DIS_MAPS, &var_smtpd_ehlo_dis_maps, 0, 0,
 	VAR_SMTPD_TLS_LEVEL, DEF_SMTPD_TLS_LEVEL, &var_smtpd_tls_level, 0, 0,
+	VAR_SMTPD_TLS_CA_FILE, DEF_SMTPD_TLS_CA_FILE, &var_smtpd_tls_CAfile, 0, 0,
+	VAR_SMTPD_TLS_CA_PATH, DEF_SMTPD_TLS_CA_PATH, &var_smtpd_tls_CApath, 0, 0,
+	VAR_SMTPD_TLS_CERT_FILE, DEF_SMTPD_TLS_CERT_FILE, &var_smtpd_tls_cert_file, 0, 0,
+	VAR_SMTPD_TLS_CHAIN_FILES, DEF_SMTPD_TLS_CHAIN_FILES, &var_smtpd_tls_chain_files, 0, 0,
+	VAR_SMTPD_TLS_CIPH, DEF_SMTPD_TLS_CIPH, &var_smtpd_tls_ciph, 1, 0,
+	VAR_SMTPD_TLS_DCERT_FILE, DEF_SMTPD_TLS_DCERT_FILE, &var_smtpd_tls_dcert_file, 0, 0,
+	VAR_SMTPD_TLS_1024_FILE, DEF_SMTPD_TLS_1024_FILE, &var_smtpd_tls_dh1024_param_file, 0, 0,
+	VAR_SMTPD_TLS_512_FILE, DEF_SMTPD_TLS_512_FILE, &var_smtpd_tls_dh512_param_file, 0, 0,
+	VAR_SMTPD_TLS_DKEY_FILE, DEF_SMTPD_TLS_DKEY_FILE, &var_smtpd_tls_dkey_file, 0, 0,
+	VAR_SMTPD_TLS_ECCERT_FILE, DEF_SMTPD_TLS_ECCERT_FILE, &var_smtpd_tls_eccert_file, 0, 0,
+	VAR_SMTPD_TLS_ECKEY_FILE, DEF_SMTPD_TLS_ECKEY_FILE, &var_smtpd_tls_eckey_file, 0, 0,
+	VAR_SMTPD_TLS_EECDH, DEF_SMTPD_TLS_EECDH, &var_smtpd_tls_eecdh, 1, 0,
+	VAR_SMTPD_TLS_EXCL_CIPH, DEF_SMTPD_TLS_EXCL_CIPH, &var_smtpd_tls_excl_ciph, 0, 0,
+	VAR_SMTPD_TLS_FPT_DGST, DEF_SMTPD_TLS_FPT_DGST, &var_smtpd_tls_fpt_dgst, 1, 0,
+	VAR_SMTPD_TLS_KEY_FILE, DEF_SMTPD_TLS_KEY_FILE, &var_smtpd_tls_key_file, 0, 0,
+	VAR_SMTPD_TLS_LOGLEVEL, DEF_SMTPD_TLS_LOGLEVEL, &var_smtpd_tls_loglevel, 0, 0,
+	VAR_SMTPD_TLS_MAND_CIPH, DEF_SMTPD_TLS_MAND_CIPH, &var_smtpd_tls_mand_ciph, 1, 0,
+	VAR_SMTPD_TLS_MAND_EXCL, DEF_SMTPD_TLS_MAND_EXCL, &var_smtpd_tls_mand_excl, 0, 0,
+	VAR_SMTPD_TLS_MAND_PROTO, DEF_SMTPD_TLS_MAND_PROTO, &var_smtpd_tls_mand_proto, 0, 0,
+	VAR_SMTPD_TLS_PROTO, DEF_SMTPD_TLS_PROTO, &var_smtpd_tls_proto, 0, 0,
 	VAR_SMTPD_CMD_FILTER, DEF_SMTPD_CMD_FILTER, &var_smtpd_cmd_filter, 0, 0,
 	VAR_PSC_CACHE_MAP, DEF_PSC_CACHE_MAP, &var_psc_cache_map, 0, 0,
 	VAR_PSC_PREGR_BANNER, DEF_PSC_PREGR_BANNER, &var_psc_pregr_banner, 0, 0,
@@ -1194,6 +1329,26 @@ int     main(int argc, char **argv)
 	VAR_PSC_EHLO_DIS_MAPS, DEF_PSC_EHLO_DIS_MAPS, &var_psc_ehlo_dis_maps, 0, 0,
 	VAR_PSC_DNSBL_REPLY, DEF_PSC_DNSBL_REPLY, &var_psc_dnsbl_reply, 0, 0,
 	VAR_PSC_TLS_LEVEL, DEF_PSC_TLS_LEVEL, &var_psc_tls_level, 0, 0,
+	VAR_PSC_TLS_CAFILE, DEF_PSC_TLS_CAFILE, &var_psc_tls_CAfile, 0, 0,
+	VAR_PSC_TLS_CAPATH, DEF_PSC_TLS_CAPATH, &var_psc_tls_CApath, 0, 0,
+	VAR_PSC_TLS_CERT_FILE, DEF_PSC_TLS_CERT_FILE, &var_psc_tls_cert_file, 0, 0,
+	VAR_PSC_TLS_CHAIN_FILES, DEF_PSC_TLS_CHAIN_FILES, &var_psc_tls_chain_files, 0, 0,
+	VAR_PSC_TLS_CIPH, DEF_PSC_TLS_CIPH, &var_psc_tls_ciph, 1, 0,
+	VAR_PSC_TLS_DCERT_FILE, DEF_PSC_TLS_DCERT_FILE, &var_psc_tls_dcert_file, 0, 0,
+	VAR_PSC_TLS_1024_FILE, DEF_PSC_TLS_1024_FILE, &var_psc_tls_dh1024_param_file, 0, 0,
+	VAR_PSC_TLS_512_FILE, DEF_PSC_TLS_512_FILE, &var_psc_tls_dh512_param_file, 0, 0,
+	VAR_PSC_TLS_DKEY_FILE, DEF_PSC_TLS_DKEY_FILE, &var_psc_tls_dkey_file, 0, 0,
+	VAR_PSC_TLS_ECCERT_FILE, DEF_PSC_TLS_ECCERT_FILE, &var_psc_tls_eccert_file, 0, 0,
+	VAR_PSC_TLS_ECKEY_FILE, DEF_PSC_TLS_ECKEY_FILE, &var_psc_tls_eckey_file, 0, 0,
+	VAR_PSC_TLS_EECDH, DEF_PSC_TLS_EECDH, &var_psc_tls_eecdh, 1, 0,
+	VAR_PSC_TLS_EXCL_CIPH, DEF_PSC_TLS_EXCL_CIPH, &var_psc_tls_excl_ciph, 0, 0,
+	VAR_PSC_TLS_FPT_DGST, DEF_PSC_TLS_FPT_DGST, &var_psc_tls_fpt_dgst, 1, 0,
+	VAR_PSC_TLS_KEY_FILE, DEF_PSC_TLS_KEY_FILE, &var_psc_tls_key_file, 0, 0,
+	VAR_PSC_TLS_LOGLEVEL, DEF_PSC_TLS_LOGLEVEL, &var_psc_tls_loglevel, 0, 0,
+	VAR_PSC_TLS_MAND_CIPH, DEF_PSC_TLS_MAND_CIPH, &var_psc_tls_mand_ciph, 1, 0,
+	VAR_PSC_TLS_MAND_EXCL, DEF_PSC_TLS_MAND_EXCL, &var_psc_tls_mand_excl, 0, 0,
+	VAR_PSC_TLS_MAND_PROTO, DEF_PSC_TLS_MAND_PROTO, &var_psc_tls_mand_proto, 0, 0,
+	VAR_PSC_TLS_PROTO, DEF_PSC_TLS_PROTO, &var_psc_tls_proto, 0, 0,
 	VAR_PSC_CMD_FILTER, DEF_PSC_CMD_FILTER, &var_psc_cmd_filter, 0, 0,
 	VAR_DNSBLOG_SERVICE, DEF_DNSBLOG_SERVICE, &var_dnsblog_service, 1, 0,
 	VAR_TLSPROXY_SERVICE, DEF_TLSPROXY_SERVICE, &var_tlsproxy_service, 1, 0,
@@ -1206,6 +1361,7 @@ int     main(int argc, char **argv)
 	VAR_PSC_DNSBL_THRESH, DEF_PSC_DNSBL_THRESH, &var_psc_dnsbl_thresh, 1, 0,
 	VAR_PSC_CMD_COUNT, DEF_PSC_CMD_COUNT, &var_psc_cmd_count, 1, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
+	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
 	0,
     };
     static const CONFIG_NINT_TABLE nint_table[] = {
@@ -1213,6 +1369,7 @@ int     main(int argc, char **argv)
 	VAR_PSC_PRE_QLIMIT, DEF_PSC_PRE_QLIMIT, &var_psc_pre_queue_limit, 10, 0,
 	VAR_PSC_CCONN_LIMIT, DEF_PSC_CCONN_LIMIT, &var_psc_cconn_limit, 0, 0,
 	VAR_PSC_DNSBL_ALTHRESH, DEF_PSC_DNSBL_ALTHRESH, &var_psc_dnsbl_althresh, 0, 0,
+	VAR_PSC_TLS_CCERT_VD, DEF_PSC_TLS_CCERT_VD, &var_psc_tls_ccert_vd, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {
@@ -1229,7 +1386,8 @@ int     main(int argc, char **argv)
 	VAR_PSC_WATCHDOG, DEF_PSC_WATCHDOG, &var_psc_watchdog, 10, 0,
 	VAR_PSC_UPROXY_TMOUT, DEF_PSC_UPROXY_TMOUT, &var_psc_uproxy_tmout, 1, 0,
 	VAR_PSC_DNSBL_TMOUT, DEF_PSC_DNSBL_TMOUT, &var_psc_dnsbl_tmout, 1, 0,
-
+	VAR_SMTPD_STARTTLS_TMOUT, DEF_SMTPD_STARTTLS_TMOUT, &var_smtpd_starttls_tmout, 1, 0,
+	VAR_PSC_STARTTLS_TMOUT, DEF_PSC_STARTTLS_TMOUT, &var_psc_starttls_tmout, 1, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {
@@ -1240,6 +1398,10 @@ int     main(int argc, char **argv)
 	VAR_PSC_PIPEL_ENABLE, DEF_PSC_PIPEL_ENABLE, &var_psc_pipel_enable,
 	VAR_PSC_NSMTP_ENABLE, DEF_PSC_NSMTP_ENABLE, &var_psc_nsmtp_enable,
 	VAR_PSC_BARLF_ENABLE, DEF_PSC_BARLF_ENABLE, &var_psc_barlf_enable,
+	VAR_SMTPD_TLS_ACERT, DEF_SMTPD_TLS_ACERT, &var_smtpd_tls_ask_ccert,
+	VAR_SMTPD_TLS_ENABLE_RPK, DEF_SMTPD_TLS_ENABLE_RPK, &var_smtpd_tls_enable_rpk,
+	VAR_SMTPD_TLS_RCERT, DEF_SMTPD_TLS_RCERT, &var_smtpd_tls_req_ccert,
+	VAR_SMTPD_TLS_SET_SESSID, DEF_SMTPD_TLS_SET_SESSID, &var_smtpd_tls_set_sessid,
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {
@@ -1254,6 +1416,10 @@ int     main(int argc, char **argv)
 	VAR_PSC_DISABLE_VRFY, DEF_PSC_DISABLE_VRFY, &var_psc_disable_vrfy,
 	VAR_PSC_USE_TLS, DEF_PSC_USE_TLS, &var_psc_use_tls,
 	VAR_PSC_ENFORCE_TLS, DEF_PSC_ENFORCE_TLS, &var_psc_enforce_tls,
+	VAR_PSC_TLS_ACERT, DEF_PSC_TLS_ACERT, &var_psc_tls_ask_ccert,
+	VAR_PSC_TLS_ENABLE_RPK, DEF_PSC_TLS_ENABLE_RPK, &var_psc_tls_enable_rpk,
+	VAR_PSC_TLS_RCERT, DEF_PSC_TLS_RCERT, &var_psc_tls_req_ccert,
+	VAR_PSC_TLS_SET_SESSID, DEF_PSC_TLS_SET_SESSID, &var_psc_tls_set_sessid,
 	0,
     };
 

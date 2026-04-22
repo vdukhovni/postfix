@@ -593,14 +593,19 @@ extern TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *);
 #define tls_server_stop(ctx, stream, timeout, failure, TLScontext) \
 	tls_session_stop(ctx, (stream), (timeout), (failure), (TLScontext))
 
-#define TLS_SERVER_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
+#define TLS_SERVER_INIT_ARGS(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
     a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20) \
-    tls_server_init((((props)->a1), ((props)->a2), ((props)->a3), \
+    (((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
     ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
     ((props)->a16), ((props)->a17), ((props)->a18), ((props)->a19), \
-    ((props)->a20), (props)))
+    ((props)->a20), (props))
+
+#define TLS_SERVER_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
+    a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20) \
+    tls_server_init(TLS_SERVER_INIT_ARGS(props, a1, a2, a3, a4, a5, a6, \
+    a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20))
 
 #define TLS_SERVER_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
     a10, a11) \

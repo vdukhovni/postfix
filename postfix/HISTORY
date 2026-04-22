@@ -30964,7 +30964,35 @@ Apologies for any names omitted.
 
 	Added missing text to manpages. Files: tls/tls_proxy_*_proto.c.
 
+20260419
+
+	Testing: completed smtpd(8) support to remotely call
+	tls_server_init() and tls_server_start() in tlsproxy(8);
+	tlsproxy(8) still ignores that information. This is a
+	non-production feature that will be used to test tlsproxy(8)
+	server role support. Files: smtpd/smtpd.c, tlsproxy/tlsproxy.c.
+
+20260420
+
+	Code health: completed tlsproxy(8) support to use remote
+	arguments for tls_server_init() and tls_server_start()
+	calls. Files: tlsproxy/tlsproxy.c, mantools/postlink,
+	proto/postconf.proto.
+
+20260422
+
+	Code health: completed postscreen(8) support to remotely
+	call tls_server_init() and tls_server_start() in tlsproxy(8).
+	Files: postscreen/postscreen.[hc],
+	postscreen/postscreen_starttls.c, postscreen/postscreen_tls_conf.c
+
+	Code health: script to enforce consistent upper and lower
+	bounds in Postfix configuration parameter definitions. File:
+	mantools/check-param-defaults.
+
 TODO
+
+	Do something about the false log parametername warnings.
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.
 

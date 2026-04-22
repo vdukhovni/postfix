@@ -20705,3 +20705,159 @@ service queries and the client connection will be reported "Trusted" in the
 logs. </p>
 
 <p> This feature is available in Postfix &ge; 3.12. </p>
+
+%PARAM postscreen_starttls_timeout $smtpd_starttls_timeout
+
+<p> The postscreen(8) equivalent of smtpd_starttls_timeout. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_always_issue_session_ids $smtpd_tls_always_issue_session_ids
+
+<p> The postscreen(8) equivalent of smtpd_tls_always_issue_session_ids. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_ask_ccert $smtpd_tls_ask_ccert
+
+<p> The postscreen(8) equivalent of smtpd_tls_ask_ccert. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_CAfile $smtpd_tls_CAfile
+
+<p> The postscreen(8) equivalent of smtpd_tls_CAfile. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_CApath $smtpd_tls_CApath
+
+<p> The postscreen(8) equivalent of smtpd_tls_CApath. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_cert_file $smtpd_tls_cert_file
+
+<p> The postscreen(8) equivalent of smtpd_tls_cert_file. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_chain_files $smtpd_tls_chain_files
+
+<p> The postscreen(8) equivalent of smtpd_tls_chain_files. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_ciphers $smtpd_tls_ciphers
+
+<p> The postscreen(8) equivalent of smtpd_tls_ciphers. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_dcert_file $smtpd_tls_dcert_file
+
+<p> The postscreen(8) equivalent of smtpd_tls_dcert_file. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_dh1024_param_file $smtpd_tls_dh1024_param_file
+
+<p> The postscreen(8) equivalent of smtpd_tls_dh1024_param_file. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_dh512_param_file $smtpd_tls_dh512_param_file
+
+<p> The postscreen(8) equivalent of smtpd_tls_dh512_param_file. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_dkey_file $smtpd_tls_dkey_file
+
+<p> The postscreen(8) equivalent of smtpd_tls_dkey_file. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_eccert_file $smtpd_tls_eccert_file
+
+<p> The postscreen(8) equivalent of smtpd_tls_eccert_file. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_eckey_file $smtpd_tls_eckey_file
+
+<p> The postscreen(8) equivalent of smtpd_tls_eckey_file. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_eecdh_grade $smtpd_tls_eecdh_grade
+
+<p> The postscreen(8) equivalent of smtpd_tls_eecdh_grade. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_enable_rpk $smtpd_tls_enable_rpk
+
+<p> The postscreen(8) equivalent of smtpd_tls_enable_rpk. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_exclude_ciphers $smtpd_tls_exclude_ciphers
+
+<p> The postscreen(8) equivalent of smtpd_tls_exclude_ciphers. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_fingerprint_digest $smtpd_tls_fingerprint_digest
+
+<p> The postscreen(8) equivalent of smtpd_tls_fingerprint_digest. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_key_file $smtpd_tls_key_file
+
+<p> The postscreen(8) equivalent of smtpd_tls_key_file. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_loglevel $smtpd_tls_loglevel
+
+<p> The postscreen(8) equivalent of smtpd_tls_loglevel. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_mandatory_ciphers $smtpd_tls_mandatory_ciphers
+
+<p> The postscreen(8) equivalent of smtpd_tls_mandatory_ciphers. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_mandatory_exclude_ciphers $smtpd_tls_mandatory_exclude_ciphers
+
+<p> The postscreen(8) equivalent of smtpd_tls_mandatory_exclude_ciphers. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_mandatory_protocols $smtpd_tls_mandatory_protocols
+
+<p> The postscreen(8) equivalent of smtpd_tls_mandatory_protocols. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_protocols $smtpd_tls_protocols
+
+<p> The postscreen(8) equivalent of smtpd_tls_protocols. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_req_ccert $smtpd_tls_req_ccert
+
+<p> The postscreen(8) equivalent of smtpd_tls_req_ccert. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_ccert_verifydepth $smtpd_tls_ccert_verifydepth
+
+<p> The postscreen(8) equivalent of smtpd_tls_ccert_verifydepth. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>

@@ -307,7 +307,9 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        <b><a href="postconf.5.html#postscreen_cache_cleanup_interval">postscreen_cache_cleanup_interval</a> (12h)</b>
               The amount of time between <a href="postscreen.8.html"><b>postscreen</b>(8)</a> cache cleanup runs.
 
-       <b><a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> (<a href="DATABASE_README.html#types">btree</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/postscreen_cache)</b>
+       <b><a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a>            (Postfix</b>            &gt;<b>=            3.11:</b>
+       <b>$<a href="postconf.5.html#default_cache_db_type">default_cache_db_type</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/postscreen_cache;    Postfix</b>   &lt;
+       <b>3.11: <a href="DATABASE_README.html#types">btree</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/postscreen_cache)</b>
               Persistent storage for the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server decisions.
 
        <b><a href="postconf.5.html#postscreen_cache_retention_time">postscreen_cache_retention_time</a> (7d)</b>
@@ -385,6 +387,90 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 
        <b><a href="postconf.5.html#tlsproxy_service_name">tlsproxy_service_name</a> (tlsproxy)</b>
               The name of the <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a> service entry in <a href="master.5.html">master.cf</a>.
+
+       Available with Postfix 3.12 and later:
+
+       <b><a href="postconf.5.html#postscreen_starttls_timeout">postscreen_starttls_timeout</a> ($<a href="postconf.5.html#smtpd_starttls_timeout">smtpd_starttls_timeout</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_starttls_timeout">smtpd_starttls_timeout</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_always_issue_session_ids">postscreen_tls_always_issue_session_ids</a>   ($<a href="postconf.5.html#smtpd_tls_always_issue_session_ids">smtpd_tls_always_issue_ses</a>-</b>
+       <b><a href="postconf.5.html#smtpd_tls_always_issue_session_ids">sion_ids</a>)</b>
+              The  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  equivalent  of   <a href="postconf.5.html#smtpd_tls_always_issue_session_ids">smtpd_tls_always_issue_ses</a>-
+              <a href="postconf.5.html#smtpd_tls_always_issue_session_ids">sion_ids</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_ask_ccert">postscreen_tls_ask_ccert</a> ($<a href="postconf.5.html#smtpd_tls_ask_ccert">smtpd_tls_ask_ccert</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_ask_ccert">smtpd_tls_ask_ccert</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_CAfile">postscreen_tls_CAfile</a> ($<a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_CApath">postscreen_tls_CApath</a> ($<a href="postconf.5.html#smtpd_tls_CApath">smtpd_tls_CApath</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_CApath">smtpd_tls_CApath</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_ccert_verifydepth">postscreen_tls_ccert_verifydepth</a> ($<a href="postconf.5.html#smtpd_tls_ccert_verifydepth">smtpd_tls_ccert_verifydepth</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_ccert_verifydepth">smtpd_tls_ccert_verifydepth</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_cert_file">postscreen_tls_cert_file</a> ($<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_chain_files">postscreen_tls_chain_files</a> ($<a href="postconf.5.html#smtpd_tls_chain_files">smtpd_tls_chain_files</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_chain_files">smtpd_tls_chain_files</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_ciphers">postscreen_tls_ciphers</a> ($<a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_dcert_file">postscreen_tls_dcert_file</a> ($<a href="postconf.5.html#smtpd_tls_dcert_file">smtpd_tls_dcert_file</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_dcert_file">smtpd_tls_dcert_file</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_dh1024_param_file">postscreen_tls_dh1024_param_file</a> ($<a href="postconf.5.html#smtpd_tls_dh1024_param_file">smtpd_tls_dh1024_param_file</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_dh1024_param_file">smtpd_tls_dh1024_param_file</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_dh512_param_file">postscreen_tls_dh512_param_file</a> ($<a href="postconf.5.html#smtpd_tls_dh512_param_file">smtpd_tls_dh512_param_file</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_dh512_param_file">smtpd_tls_dh512_param_file</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_dkey_file">postscreen_tls_dkey_file</a> ($<a href="postconf.5.html#smtpd_tls_dkey_file">smtpd_tls_dkey_file</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_dkey_file">smtpd_tls_dkey_file</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_eccert_file">postscreen_tls_eccert_file</a> ($<a href="postconf.5.html#smtpd_tls_eccert_file">smtpd_tls_eccert_file</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_eccert_file">smtpd_tls_eccert_file</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_eckey_file">postscreen_tls_eckey_file</a> ($<a href="postconf.5.html#smtpd_tls_eckey_file">smtpd_tls_eckey_file</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_eckey_file">smtpd_tls_eckey_file</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_eecdh_grade">postscreen_tls_eecdh_grade</a> ($<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_enable_rpk">postscreen_tls_enable_rpk</a> ($<a href="postconf.5.html#smtpd_tls_enable_rpk">smtpd_tls_enable_rpk</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_enable_rpk">smtpd_tls_enable_rpk</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_exclude_ciphers">postscreen_tls_exclude_ciphers</a> ($<a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_fingerprint_digest">postscreen_tls_fingerprint_digest</a> ($<a href="postconf.5.html#smtpd_tls_fingerprint_digest">smtpd_tls_fingerprint_digest</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_fingerprint_digest">smtpd_tls_fingerprint_digest</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_key_file">postscreen_tls_key_file</a> ($<a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_loglevel">postscreen_tls_loglevel</a> ($<a href="postconf.5.html#smtpd_tls_loglevel">smtpd_tls_loglevel</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_loglevel">smtpd_tls_loglevel</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_mandatory_ciphers">postscreen_tls_mandatory_ciphers</a> ($<a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_mandatory_exclude_ciphers">postscreen_tls_mandatory_exclude_ciphers</a>             ($<a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_manda</a>-</b>
+       <b><a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">tory_exclude_ciphers</a>)</b>
+              The     <a href="postscreen.8.html"><b>postscreen</b>(8)</a>     equivalent     of     <a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_manda</a>-
+              <a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">tory_exclude_ciphers</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_mandatory_protocols">postscreen_tls_mandatory_protocols</a> ($<a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_protocols">postscreen_tls_protocols</a> ($<a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a>.
+
+       <b><a href="postconf.5.html#postscreen_tls_req_ccert">postscreen_tls_req_ccert</a> ($<a href="postconf.5.html#smtpd_tls_req_ccert">smtpd_tls_req_ccert</a>)</b>
+              The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_req_ccert">smtpd_tls_req_ccert</a>.
 
 <b><a name="obsolete_starttls_support_controls">OBSOLETE STARTTLS SUPPORT CONTROLS</a></b>
        These parameters are supported for compatibility with  <a href="smtpd.8.html"><b>smtpd</b>(8)</a>  legacy
