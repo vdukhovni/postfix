@@ -288,9 +288,6 @@
 /* .IP "\fBtlsproxy_client_loglevel ($smtp_tls_loglevel)\fR"
 /*	Enable additional Postfix \fBtlsproxy\fR(8) client logging of TLS
 /*	activity.
-/* .IP "\fBtlsproxy_client_loglevel_parameter (smtp_tls_loglevel)\fR"
-/*	The name of the parameter that provides the tlsproxy_client_loglevel
-/*	value.
 /* .IP "\fBtlsproxy_client_scert_verifydepth ($smtp_tls_scert_verifydepth)\fR"
 /*	The verification depth for remote TLS server certificates.
 /* .IP "\fBtlsproxy_client_use_tls ($smtp_use_tls)\fR"
@@ -542,6 +539,12 @@ bool    var_tlsp_clnt_use_tls;
 bool    var_tlsp_clnt_enforce_tls;
 char   *var_tlsp_clnt_per_site;
 char   *var_tlsp_clnt_policy;
+
+ /*
+  * TODO(wietse): simplify role state management.
+  */
+static bool tlsp_server_role_ready;
+static bool tlsp_client_role_ready;
 
  /*
   * The code that implements the TLS engine looks simpler than expected. That
@@ -1181,6 +1184,10 @@ static void tlsp_get_request_event(int event, void *context)
     switch (req_flags & (TLS_PROXY_FLAG_ROLE_CLIENT | TLS_PROXY_FLAG_ROLE_SERVER)) {
     case TLS_PROXY_FLAG_ROLE_CLIENT:
 	state->is_server_role = 0;
+	if (req_flags & TLS_PROXY_FLAG_PROBE_ONLY) {
+	    ready = tlsp_client_role_ready;
+	    break;
+	}
 	if (attr_scan(plaintext_stream, ATTR_FLAG_STRICT,
 		      RECV_ATTR_FUNC(tls_proxy_client_param_scan,
 				     (void *) &state->client_params),
@@ -1199,9 +1206,25 @@ static void tlsp_get_request_event(int event, void *context)
 	break;
     case TLS_PROXY_FLAG_ROLE_SERVER:
 	state->is_server_role = 1;
-	ready = (tlsp_server_ctx != 0);
-	if (server_role_disabled)
-	    msg_warn("%s", server_role_disabled);
+	if (req_flags & TLS_PROXY_FLAG_PROBE_ONLY) {
+	    ready = tlsp_server_role_ready;
+	    break;
+	}
+	if (attr_scan(plaintext_stream, ATTR_FLAG_STRICT,
+		      RECV_ATTR_FUNC(tls_proxy_server_param_scan,
+				     (void *) &state->server_params),
+		      RECV_ATTR_FUNC(tls_proxy_server_init_scan,
+				     (void *) &state->server_init_props),
+		      RECV_ATTR_FUNC(tls_proxy_server_start_scan,
+				     (void *) &state->server_start_props),
+		      ATTR_TYPE_END) != 3) {
+	    msg_warn("%s: receive server TLS settings: %m", myname);
+	    tlsp_state_free(state);
+	    return;
+	}
+	state->appl_state = tlsp_server_init(state->server_params,
+					     state->server_init_props);
+	ready = state->appl_state != 0;
 	break;
     default:
 	state->is_server_role = 0;
@@ -1220,6 +1243,7 @@ static void tlsp_get_request_event(int event, void *context)
 		   SEND_ATTR_INT(MAIL_ATTR_STATUS, ready),
 		   ATTR_TYPE_END) != 0
 	|| vstream_fflush(plaintext_stream) != 0
+	|| (req_flags & TLS_PROXY_FLAG_PROBE_ONLY)
 	|| ready == 0) {
 	tlsp_request_read_event(plaintext_fd, tlsp_close_event,
 				TLSP_INIT_TIMEOUT, (void *) state);
@@ -1281,8 +1305,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     /*
      * Initialize roles separately.
      */
-    pre_jail_init_server();
-    tlsp_pre_jail_client_init();
+    tlsp_server_role_ready = pre_jail_init_server();
+    tlsp_client_role_ready = tlsp_pre_jail_client_init();
 }
 
 MAIL_VERSION_STAMP_DECLARE;
@@ -1398,7 +1422,6 @@ int     main(int argc, char **argv)
 	VAR_TLSP_TLS_LOGLEVEL, DEF_TLSP_TLS_LOGLEVEL, &var_tlsp_tls_loglevel, 0, 0,
 	VAR_TLSP_TLS_LEVEL, DEF_TLSP_TLS_LEVEL, &var_tlsp_tls_level, 0, 0,
 	VAR_TLSP_CLNT_LOGLEVEL, DEF_TLSP_CLNT_LOGLEVEL, &var_tlsp_clnt_loglevel, 0, 0,
-	VAR_TLSP_CLNT_LOGPARAM, DEF_TLSP_CLNT_LOGPARAM, &var_tlsp_clnt_logparam, 0, 0,
 	VAR_TLSP_CLNT_CHAIN_FILES, DEF_TLSP_CLNT_CHAIN_FILES, &var_tlsp_clnt_chain_files, 0, 0,
 	VAR_TLSP_CLNT_CERT_FILE, DEF_TLSP_CLNT_CERT_FILE, &var_tlsp_clnt_cert_file, 0, 0,
 	VAR_TLSP_CLNT_KEY_FILE, DEF_TLSP_CLNT_KEY_FILE, &var_tlsp_clnt_key_file, 0, 0,

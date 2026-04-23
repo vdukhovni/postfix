@@ -783,6 +783,7 @@ void    mail_params_init()
     static const CONFIG_STR_TABLE first_str_defaults[] = {
 	/* $mail_version may appear in other parameters. */
 	VAR_MAIL_VERSION, DEF_MAIL_VERSION, &var_mail_version, 1, 0,
+	VAR_SERVNAME, DEF_SERVNAME, &var_servname, 1, 0,
 	VAR_SYSLOG_FACILITY, DEF_SYSLOG_FACILITY, &var_syslog_facility, 1, 0,
 	VAR_INET_PROTOCOLS, DEF_INET_PROTOCOLS, &var_inet_protocols, 0, 0,
 	VAR_MULTI_CONF_DIRS, DEF_MULTI_CONF_DIRS, &var_multi_conf_dirs, 0, 0,

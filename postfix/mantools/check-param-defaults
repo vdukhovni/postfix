@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# Verify the consistency of upper and lower bounds in definitions for
+# the same parameter in different programs. Also verify the consistency
+# between smtpd versus postscreen, smtpd versus tlsproxy, and smtp
+# versus tlsproxy.
+
+# Verify the consistency of instances for the same parameter.
+
+grep -h '^[ 	]*VAR_[^,]*, DEF_[^,]*, &' src/*/*.c | awk '
+    NF > 3 { print $1, $2, $3, $4, $5 }
+' | sort -u | grep -v VAR_LMTP_TLS_LOGLEVEL | awk '
+    $1 == last1 { print last_all; print $0; print "" }
+    { last1 = $1; last_all = $0 }
+'
+
+# Verify consistency between smtpd_xxx and postscreen_xxx instances.
+
+grep -h '^[ 	]*VAR_[^,]*, DEF_[^,]*, &' src/*/*.c | awk '
+    NF > 3 { print $1, $2, $3, $4, $5 }
+' | sed 's/SMTPD_/PSC_/g; s/smtpd_/psc_/g' | grep PSC_ | sort -u | awk '
+    $1 == last1 { print "smtpd/postscreen"; print last_all; print $0; print "" }
+    { last1 = $1; last_all = $0 }
+'
+
+# Verify consistency between smtpd_xxx and tlsproxy_xxx instances.
+
+grep -h '^[ 	]*VAR_[^,]*, DEF_[^,]*, &' src/*/*.c | awk '
+    NF > 3 { print $1, $2, $3, $4, $5 }
+' | sed 's/SMTPD_/TLSP_/g; s/smtpd_/tlsp_/g' | grep TLSP_ | sort -u | awk '
+    $1 == last1 { print "tlsproxy/smtpd"; print last_all; print $0; print "" }
+    { last1 = $1; last_all = $0 }
+'
+
+# Verify consistency between smtp_tls_xxx and tlsproxy_client_xxx instances.
+# TODO:" rename TLSP_CLNT_CAFILE to TLSP_CLNT_CA_FILE.
+
+grep -h '^[ 	]*VAR_[^,]*, DEF_[^,]*, &' src/*/*.c | awk '
+    NF > 3 { print $1, $2, $3, $4, $5 }
+' | sed 's/SMTP_TLS_/TLSP_CLNT_/g; s/smtp_tls_/tlsp_clnt_/g' | grep TLSP_ | sort -u | awk '
+    $1 == last1 { print "tlsproxy/smtp"; print last_all; print $0; print "" }
+    { last1 = $1; last_all = $0 }
+'

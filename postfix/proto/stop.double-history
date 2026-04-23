@@ -239,3 +239,8 @@ proto  proto stop proto stop double cc
  Files tlsproxy tlsproxy c tlsproxy tlsproxy h 
  for consistency Files tlsproxy tlsproxy hc 
  tlsproxy tlsproxy_diff c tlsproxy tlsproxy h 
+ calls File tlsproxy tlsproxy c 
+ Files postscreen postscreen hc 
+ server role support Files smtpd smtpd c tlsproxy tlsproxy c 
+ support Files tlsproxy tlsproxy c tlsproxy tlsproxy_server hc 
+ calls Files tlsproxy tlsproxy c mantools postlink 

@@ -6,36 +6,33 @@
 /* SYNOPSIS
 /*	#include <tlsproxy_server.h>
 /*
-/*	void	pre_jail_init_server(void)
-/*Begin TODO
+/*	bool	pre_jail_init_server(void)
+/*
 /*	TLS_APPL_STATE *tlsp_server_init(
 /*	TLS_SERVER_PARAMS *tls_params,
 /*	TLS_SERVER_INIT_PROPS *init_props)
-/*End TODO
+/*
 /*	int	tlsp_server_start_pre_handshake(TLSP_STATE *state)
 /* DESCRIPTION
 /*	This module implements TLS proxy server role support. The legacy
 /*	implementation uses the same tlsproxy(8) configuration for all
 /*	tls_server_init() and tls_server_start() calls.
 /*
-/*	pre_jail_init_server() creates an SSL context based on tlsproxy(8)
-/*	server configuration.
-/*Begin TODO
-/*	A future version will save a copy of serialized TLS_SERVER_PARAMS
-/*	and TLS_SERVER_INIT_PROPS based on tlsproxy(8) server
-/*	configuration. These will be used as a reference when receiving
-/*	a request for the server role.
+/*	pre_jail_init_server() creates an SSL context based on local
+/*	tlsproxy(8) server configuration, and creates TLS_SERVER_PARAMS
+/*	and TLS_SERVER_INIT_PROPS objects that will be used as a reference
+/*	when receiving a remote request for the server role. The result
+/*	is true if successful.
 /*
 /*	tlsp_server_init() processes a request for the TLS proxy server
-/*	role. If the request has not been seen before it checks the
+/*	role. If the request has not been seen before, it checks the
 /*	request for relevant differences that would conflict with
 /*	tlsproxy(8) server configuration. The result is null when TLS
 /*	is not available.
-/*End TODO
+/*
 /*	tlsp_server_start_pre_handshake() requests the tls_server_start()
 /*	handshake. It returns TLSP_STAT_OK when the request succeeds.
-/*	Otherwise, it returns TLSP_STAT_ERR and state becomes a dangling
-/*	pointer.
+/*	Otherwise, it destroys the state, and returns TLSP_STAT_ERR.
 /* DIAGNOSTICS
 /*	Problems are logged to \fBsyslogd\fR(8) or \fBpostlogd\fR(8).
 /* LICENSE
@@ -80,6 +77,7 @@
  /*
   * Global library.
   */
+#include <been_here.h>
 #include <mail_params.h>
 
  /*
@@ -95,71 +93,29 @@
   */
 #include <tlsproxy.h>
 #include <tlsproxy_server.h>
+#include <tlsproxy_diff.h>
 
  /*
   * TLS per-process status.
-  * 
-  * TODO(wietse) delete externally visible state after tlsp_server_init() is
-  * implemented.
   */
-TLS_APPL_STATE *tlsp_server_ctx;
-static int ask_client_cert;
-const char *server_role_disabled;
+static int ask_client_cert;		/* move to pre-jail code? */
+static int tlsp_pre_jail_server_done;
+static char *tlsp_pre_jail_server_param_key;	/* pre-jail global params */
+static char *tlsp_pre_jail_server_init_key;	/* pre-jail init props */
+
+ /*
+  * TLS per-server status.
+  */
+static HTABLE *tlsp_server_app_cache;
+static BH_TABLE *tlsp_server_params_nag_filter;
 
 /* tlsp_server_start_pre_handshake - turn on TLS or force disconnect */
 
 int     tlsp_server_start_pre_handshake(TLSP_STATE *state)
 {
-    TLS_SERVER_START_PROPS props;
-    static char *cipher_grade;
-    static VSTRING *cipher_exclusions;
-
-    /*
-     * The code in this routine is pasted literally from smtpd(8). I am not
-     * going to sanitize this because doing so surely will break things in
-     * unexpected ways.
-     */
-
-    /*
-     * Perform the before-handshake portion of per-session initialization.
-     * Pass a null VSTREAM to indicate that this program will do the
-     * ciphertext I/O, not libtls.
-     * 
-     * The cipher grade and exclusions don't change between sessions. Compute
-     * just once and cache.
-     */
-#define ADD_EXCLUDE(vstr, str) \
-    do { \
-	if (*(str)) \
-	    vstring_sprintf_append((vstr), "%s%s", \
-				   VSTRING_LEN(vstr) ? " " : "", (str)); \
-    } while (0)
-
-    if (cipher_grade == 0) {
-	cipher_grade =
-	    var_tlsp_enforce_tls ? var_tlsp_tls_mand_ciph : var_tlsp_tls_ciph;
-	cipher_exclusions = vstring_alloc(10);
-	ADD_EXCLUDE(cipher_exclusions, var_tlsp_tls_excl_ciph);
-	if (var_tlsp_enforce_tls)
-	    ADD_EXCLUDE(cipher_exclusions, var_tlsp_tls_mand_excl);
-	if (ask_client_cert)
-	    ADD_EXCLUDE(cipher_exclusions, "aNULL");
-    }
-    state->tls_context =
-	TLS_SERVER_START(&props,
-			 ctx = tlsp_server_ctx,
-			 stream = (VSTREAM *) 0,/* unused */
-			 fd = state->ciphertext_fd,
-			 timeout = 0,		/* unused */
-			 requirecert = (var_tlsp_tls_req_ccert
-					&& var_tlsp_enforce_tls),
-			 enable_rpk = var_tlsp_tls_enable_rpk,
-			 serverid = state->server_id,
-			 namaddr = state->remote_endpt,
-			 cipher_grade = cipher_grade,
-			 cipher_exclusions = STR(cipher_exclusions),
-			 mdalg = var_tlsp_tls_fpt_dgst);
-
+    state->server_start_props->ctx = state->appl_state;
+    state->server_start_props->fd = state->ciphertext_fd;
+    state->tls_context = tls_server_start(state->server_start_props);
     if (state->tls_context == 0) {
 	tlsp_state_free(state);
 	return (TLSP_STAT_ERR);
@@ -175,15 +131,174 @@ int     tlsp_server_start_pre_handshake(TLSP_STATE *state)
     return (TLSP_STAT_OK);
 }
 
+/* tlsp_server_init - initialize a TLS server engine */
+
+TLS_APPL_STATE *tlsp_server_init(TLS_SERVER_PARAMS *tls_params,
+				         TLS_SERVER_INIT_PROPS *init_props)
+{
+    TLS_APPL_STATE *appl_state;
+    VSTRING *param_buf;
+    char   *param_key;
+    VSTRING *init_buf;
+    char   *init_key;
+    int     log_hints = 0;
+    const char *saved_log_param;
+
+    /*
+     * Use one TLS_APPL_STATE object for all requests that specify the same
+     * TLS_SERVER_INIT_PROPS. Each TLS_APPL_STATE owns an SSL_CTX, which is
+     * expensive to create. Bug: TLS_SERVER_PARAMS are not used when creating
+     * a TLS_APPL_STATE instance.
+     * 
+     * First, compute the TLS_APPL_STATE cache lookup key. Save a copy of the
+     * pre-jail request TLS_SERVER_PARAMS and TLSPROXY_SERVER_INIT_PROPS
+     * settings, so that we can detect post-jail requests that do not match.
+     * 
+     * For TLS_APPL_STATE cache lookup, ignore harmless differences in
+     * xxx_tls_loglevel parameter names. They don't affect program behavior.
+     */
+    param_buf = vstring_alloc(100);
+    param_key = tls_proxy_server_param_serialize(attr_print_plain, param_buf,
+						 tls_params);
+
+    init_buf = vstring_alloc(100);
+    saved_log_param = init_props->log_param;
+    init_props->log_param = "dummy";
+    init_key = tls_proxy_server_init_serialize(attr_print_plain, init_buf,
+					       init_props);
+    init_props->log_param = saved_log_param;
+
+#define TLSP_SERVER_INIT_RETURN(retval) do { \
+        vstring_free(init_buf); \
+        vstring_free(param_buf); \
+        return (retval); \
+    } while (0)
+
+    if (tlsp_pre_jail_server_done == 0) {
+	if (tlsp_pre_jail_server_param_key == 0
+	    || tlsp_pre_jail_server_init_key == 0) {
+	    tlsp_pre_jail_server_param_key = mystrdup(param_key);
+	    tlsp_pre_jail_server_init_key = mystrdup(init_key);
+	} else if (strcmp(tlsp_pre_jail_server_param_key, param_key) != 0
+		   || strcmp(tlsp_pre_jail_server_init_key, init_key) != 0) {
+	    msg_panic("tlsp_server_init: too many pre-jail calls");
+	}
+    }
+
+    /*
+     * Log a warning if a post-jail request uses unexpected TLS_SERVER_PARAMS
+     * settings. Bug: TLS_SERVER_PARAMS settings are not used when creating a
+     * TLS_APPL_STATE instance; this makes a mismatch of TLS_SERVER_PARAMS
+     * settings problematic.
+     */
+    else if (tlsp_pre_jail_server_param_key == 0
+	     || tlsp_pre_jail_server_init_key == 0) {
+	msg_warn("TLS server role is disabled by configuration");
+	TLSP_SERVER_INIT_RETURN(0);
+    } else if (!been_here_fixed(tlsp_server_params_nag_filter, param_key)
+	       && strcmp(tlsp_pre_jail_server_param_key, param_key) != 0) {
+	msg_warn("request from tlsproxy client with unexpected settings");
+	tlsp_log_config_diff(tlsp_pre_jail_server_param_key, param_key);
+	log_hints = 1;
+    }
+
+    /*
+     * Look up the cached TLS_APPL_STATE for this tls_server_init request.
+     */
+    if ((appl_state = (TLS_APPL_STATE *)
+	 htable_find(tlsp_server_app_cache, init_key)) == 0) {
+
+	/*
+	 * Before creating a TLS_APPL_STATE instance, log a warning if a
+	 * post-jail request differs from the saved pre-jail request AND the
+	 * post-jail request specifies file/directory pathname arguments.
+	 * Unexpected requests containing pathnames are problematic after
+	 * chroot (pathname resolution) and after dropping privileges (key
+	 * files must be root read-only). Unexpected requests are not a
+	 * problem as long as they contain no pathnames (for example a
+	 * tls_loglevel change).
+	 * 
+	 * We could eliminate some of this complication by adding code that
+	 * opens a cert/key lookup table at pre-jail time, and by reading
+	 * cert/key info on-the-fly from that table. But then all requests
+	 * would still have to specify the same table.
+	 */
+#define NOT_EMPTY(x) ((x) && *(x))
+
+	if (tlsp_pre_jail_server_done
+	    && strcmp(tlsp_pre_jail_server_init_key, init_key) != 0
+	    && (NOT_EMPTY(init_props->chain_files)
+		|| NOT_EMPTY(init_props->cert_file)
+		|| NOT_EMPTY(init_props->key_file)
+		|| NOT_EMPTY(init_props->dcert_file)
+		|| NOT_EMPTY(init_props->dkey_file)
+		|| NOT_EMPTY(init_props->eccert_file)
+		|| NOT_EMPTY(init_props->eckey_file)
+		|| NOT_EMPTY(init_props->CAfile)
+		|| NOT_EMPTY(init_props->CApath))) {
+	    msg_warn("request from tlsproxy server with unexpected settings");
+	    tlsp_log_config_diff(tlsp_pre_jail_server_init_key, init_key);
+	    log_hints = 1;
+	}
+    }
+    if (log_hints)
+	msg_warn("to avoid this warning, 1) identify the tlsproxy "
+		 "server that is making this request, 2) configure "
+		 "a custom tlsproxy service with settings that "
+		 "match that tlsproxy server, and 3) configure "
+		 "that tlsproxy server with a tlsproxy_service_name "
+		 "setting that resolves to that custom tlsproxy "
+		 "service");
+
+    /*
+     * TLS_APPL_STATE creation may fail when a post-jail request specifies
+     * unexpected cert/key information, but that is OK because we already
+     * logged a warning with configuration suggestions.
+     */
+    if (appl_state == 0 && (appl_state = tls_server_init(init_props)) != 0) {
+	(void) htable_enter(tlsp_server_app_cache, init_key,
+			    (void *) appl_state);
+
+	/*
+	 * To maintain sanity, allow partial SSL_write() operations, and
+	 * allow SSL_write() buffer pointers to change after a WANT_READ or
+	 * WANT_WRITE result. This is based on OpenSSL developers talking on
+	 * a mailing list, but is not supported by documentation. If this
+	 * code stops working then no-one can be held responsible.
+	 */
+	SSL_CTX_set_mode(appl_state->ssl_ctx,
+			 SSL_MODE_ENABLE_PARTIAL_WRITE
+			 | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+    }
+    TLSP_SERVER_INIT_RETURN(appl_state);
+}
+
 /* pre_jail_init_server - pre-jail initialization */
 
-void    pre_jail_init_server(void)
+bool    pre_jail_init_server(void)
 {
-    TLS_SERVER_INIT_PROPS props;
     const char *cert_file;
     int     have_server_cert;
     int     no_server_cert_ok;
     int     require_server_cert;
+
+    /*
+     * TODO(wietse): simplify module initialization state and module error
+     * state (too many booleans).
+     */
+    bool    ret = false;
+
+    /*
+     * Sanity check.
+     */
+    if (tlsp_pre_jail_server_done)
+	msg_panic("%s: multiple calls", __func__);
+
+    /*
+     * The cache with TLS_APPL_STATE instances for different TLS_CLIENT_INIT
+     * configurations.
+     */
+    tlsp_server_app_cache = htable_create(10);
 
     /*
      * The code in this routine is pasted literally from smtpd(8). I am not
@@ -216,8 +331,8 @@ void    pre_jail_init_server(void)
     }
     var_tlsp_use_tls = var_tlsp_use_tls || var_tlsp_enforce_tls;
     if (!var_tlsp_use_tls) {
-	server_role_disabled = "TLS server role is disabled by configuration";
-	return;
+	tlsp_pre_jail_server_done = 1;
+	return (false);
     }
 
     /*
@@ -258,6 +373,8 @@ void    pre_jail_init_server(void)
 	msg_warn("Can't require client certs unless TLS is required");
     /* After a show-stopper error, log a warning. */
     if (have_server_cert || (no_server_cert_ok && !require_server_cert)) {
+	TLS_SERVER_PARAMS tls_params;
+	TLS_SERVER_INIT_PROPS init_props;
 
 	tls_pre_jail_init(TLS_ROLE_SERVER);
 
@@ -265,47 +382,53 @@ void    pre_jail_init_server(void)
 	 * Large parameter lists are error-prone, so we emulate a language
 	 * feature that C does not have natively: named parameter lists.
 	 */
-	tlsp_server_ctx =
-	    TLS_SERVER_INIT(&props,
-			    log_param = VAR_TLSP_TLS_LOGLEVEL,
-			    log_level = var_tlsp_tls_loglevel,
-			    verifydepth = var_tlsp_tls_ccert_vd,
-			    cache_type = TLS_MGR_SCACHE_SMTPD,
-			    set_sessid = var_tlsp_tls_set_sessid,
-			    chain_files = var_tlsp_tls_chain_files,
-			    cert_file = cert_file,
-			    key_file = var_tlsp_tls_key_file,
-			    dcert_file = var_tlsp_tls_dcert_file,
-			    dkey_file = var_tlsp_tls_dkey_file,
-			    eccert_file = var_tlsp_tls_eccert_file,
-			    eckey_file = var_tlsp_tls_eckey_file,
-			    CAfile = var_tlsp_tls_CAfile,
-			    CApath = var_tlsp_tls_CApath,
-			    dh1024_param_file
-			    = var_tlsp_tls_dh1024_param_file,
-			    dh512_param_file
-			    = var_tlsp_tls_dh512_param_file,
-			    eecdh_grade = var_tlsp_tls_eecdh,
-			    protocols = var_tlsp_enforce_tls ?
-			    var_tlsp_tls_mand_proto :
-			    var_tlsp_tls_proto,
-			    ask_ccert = ask_client_cert,
-			    mdalg = var_tlsp_tls_fpt_dgst);
+	(void) tls_proxy_server_param_from_config(&tls_params);
+	(void) TLS_SERVER_INIT_ARGS(&init_props,
+				    log_param = VAR_TLSP_TLS_LOGLEVEL,
+				    log_level = var_tlsp_tls_loglevel,
+				    verifydepth = var_tlsp_tls_ccert_vd,
+				    cache_type = TLS_MGR_SCACHE_SMTPD,
+				    set_sessid = var_tlsp_tls_set_sessid,
+				    chain_files = var_tlsp_tls_chain_files,
+				    cert_file = cert_file,
+				    key_file = var_tlsp_tls_key_file,
+				    dcert_file = var_tlsp_tls_dcert_file,
+				    dkey_file = var_tlsp_tls_dkey_file,
+				    eccert_file = var_tlsp_tls_eccert_file,
+				    eckey_file = var_tlsp_tls_eckey_file,
+				    CAfile = var_tlsp_tls_CAfile,
+				    CApath = var_tlsp_tls_CApath,
+				    dh1024_param_file
+				    = var_tlsp_tls_dh1024_param_file,
+				    dh512_param_file
+				    = var_tlsp_tls_dh512_param_file,
+				    eecdh_grade = var_tlsp_tls_eecdh,
+				    protocols = var_tlsp_enforce_tls ?
+				    var_tlsp_tls_mand_proto :
+				    var_tlsp_tls_proto,
+				    ask_ccert = ask_client_cert,
+				    mdalg = var_tlsp_tls_fpt_dgst);
+	if (tlsp_server_init(&tls_params, &init_props) == 0)
+	    msg_warn("TLS server initialization failed");
+	else
+	    ret = true;
     } else {
 	msg_warn("No server certs available. TLS can't be enabled");
     }
 
     /*
-     * To maintain sanity, allow partial SSL_write() operations, and allow
-     * SSL_write() buffer pointers to change after a WANT_READ or WANT_WRITE
-     * result. This is based on OpenSSL developers talking on a mailing list,
-     * but is not supported by documentation. If this code stops working then
-     * no-one can be held responsible.
+     * Bug: TLS_SERVER_PARAMS attributes are not used when creating a
+     * TLS_APPL_STATE instance; we can only warn about attribute mismatches.
      */
-    if (tlsp_server_ctx)
-	SSL_CTX_set_mode(tlsp_server_ctx->ssl_ctx,
-			 SSL_MODE_ENABLE_PARTIAL_WRITE
-			 | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+    tlsp_server_params_nag_filter = been_here_init(BH_BOUND_NONE, BH_FLAG_NONE);
+
+    /*
+     * Any of the static global variables would suffice, but this is more
+     * explicit.
+     */
+    tlsp_pre_jail_server_done = 1;
+
+    return (ret);
 }
 
 #endif

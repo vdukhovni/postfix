@@ -317,7 +317,7 @@ server.
 .fi
 .IP "\fBpostscreen_cache_cleanup_interval (12h)\fR"
 The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
-.IP "\fBpostscreen_cache_map (btree:$data_directory/postscreen_cache)\fR"
+.IP "\fBpostscreen_cache_map (Postfix >= 3.11: $default_cache_db_type:$data_directory/postscreen_cache; Postfix < 3.11: btree:$data_directory/postscreen_cache)\fR"
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
 .IP "\fBpostscreen_cache_retention_time (7d)\fR"
 The amount of time that \fBpostscreen\fR(8) will cache an expired
@@ -387,6 +387,60 @@ a non\-empty value is specified, this overrides the obsolete parameters
 postscreen_use_tls and postscreen_enforce_tls.
 .IP "\fBtlsproxy_service_name (tlsproxy)\fR"
 The name of the \fBtlsproxy\fR(8) service entry in master.cf.
+.PP
+Available with Postfix 3.12 and later:
+.IP "\fBpostscreen_starttls_timeout ($smtpd_starttls_timeout)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_starttls_timeout.
+.IP "\fBpostscreen_tls_always_issue_session_ids ($smtpd_tls_always_issue_session_ids)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_always_issue_session_ids.
+.IP "\fBpostscreen_tls_ask_ccert ($smtpd_tls_ask_ccert)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_ask_ccert.
+.IP "\fBpostscreen_tls_CAfile ($smtpd_tls_CAfile)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_CAfile.
+.IP "\fBpostscreen_tls_CApath ($smtpd_tls_CApath)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_CApath.
+.IP "\fBpostscreen_tls_ccert_verifydepth ($smtpd_tls_ccert_verifydepth)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_ccert_verifydepth.
+.IP "\fBpostscreen_tls_cert_file ($smtpd_tls_cert_file)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_cert_file.
+.IP "\fBpostscreen_tls_chain_files ($smtpd_tls_chain_files)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_chain_files.
+.IP "\fBpostscreen_tls_ciphers ($smtpd_tls_ciphers)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_ciphers.
+.IP "\fBpostscreen_tls_dcert_file ($smtpd_tls_dcert_file)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_dcert_file.
+.IP "\fBpostscreen_tls_dh1024_param_file ($smtpd_tls_dh1024_param_file)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_dh1024_param_file.
+.IP "\fBpostscreen_tls_dh512_param_file ($smtpd_tls_dh512_param_file)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_dh512_param_file.
+.IP "\fBpostscreen_tls_dkey_file ($smtpd_tls_dkey_file)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_dkey_file.
+.IP "\fBpostscreen_tls_eccert_file ($smtpd_tls_eccert_file)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_eccert_file.
+.IP "\fBpostscreen_tls_eckey_file ($smtpd_tls_eckey_file)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_eckey_file.
+.IP "\fBpostscreen_tls_eecdh_grade ($smtpd_tls_eecdh_grade)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_eecdh_grade.
+.IP "\fBpostscreen_tls_enable_rpk ($smtpd_tls_enable_rpk)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_enable_rpk.
+.IP "\fBpostscreen_tls_exclude_ciphers ($smtpd_tls_exclude_ciphers)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_exclude_ciphers.
+.IP "\fBpostscreen_tls_fingerprint_digest ($smtpd_tls_fingerprint_digest)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_fingerprint_digest.
+.IP "\fBpostscreen_tls_key_file ($smtpd_tls_key_file)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_key_file.
+.IP "\fBpostscreen_tls_loglevel ($smtpd_tls_loglevel)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_loglevel.
+.IP "\fBpostscreen_tls_mandatory_ciphers ($smtpd_tls_mandatory_ciphers)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_mandatory_ciphers.
+.IP "\fBpostscreen_tls_mandatory_exclude_ciphers ($smtpd_tls_mandatory_exclude_ciphers)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_mandatory_exclude_ciphers.
+.IP "\fBpostscreen_tls_mandatory_protocols ($smtpd_tls_mandatory_protocols)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_mandatory_protocols.
+.IP "\fBpostscreen_tls_protocols ($smtpd_tls_protocols)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_protocols.
+.IP "\fBpostscreen_tls_req_ccert ($smtpd_tls_req_ccert)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_req_ccert.
 .SH "OBSOLETE STARTTLS SUPPORT CONTROLS"
 .na
 .nf

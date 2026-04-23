@@ -129,6 +129,11 @@ static const PCF_DEPR_PARAM_INFO pcf_depr_param_info[] = {
     "smtp_cname_overrides_servername", "do not specify",
 
     /*
+     * Deprecated and removed as of Postfix 3.12.
+     */
+    "tlsproxy_client_loglevel_parameter", "do not specify",
+
+    /*
      * Terminator.
      */
     0,

@@ -31,6 +31,13 @@
 #include <server_acl.h>
 
  /*
+  * TLS library.
+  */
+#ifdef USE_TLS
+#include <tls_proxy.h>
+#endif
+
+ /*
   * Preliminary stuff, to be fixed.
   */
 #define PSC_READ_BUF_SIZE	1024
@@ -554,6 +561,19 @@ extern void psc_send_socket(PSC_STATE *);
   * postscreen_starttls.c
   */
 extern void psc_starttls_open(PSC_STATE *, EVENT_NOTIFY_FN);
+
+ /*
+  * postscreen_tls_conf.c.
+  */
+extern bool psc_tls_ready;
+extern bool psc_tls_pre_jail(void);
+
+#ifdef USE_TLS
+extern TLS_SERVER_PARAMS psc_tls_params;
+extern TLS_SERVER_INIT_PROPS psc_init_props;
+extern bool psc_tls_pre_start(const char *, TLS_SERVER_START_PROPS *);
+
+#endif
 
  /*
   * postscreen_expand.c

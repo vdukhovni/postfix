@@ -44,6 +44,8 @@
 /*	New York, NY 10011, USA
 /*--*/
 
+#ifdef USE_TLS
+
 /* System library. */
 
 #include <sys_defs.h>
@@ -203,6 +205,7 @@ static void psc_starttls_first(int event, void *context)
     PSC_STATE *smtp_state = starttls_state->smtp_state;
     VSTREAM *tlsproxy_stream = starttls_state->tlsproxy_stream;
     static VSTRING *remote_endpt = 0;
+    TLS_SERVER_START_PROPS start_props;
 
     if (msg_verbose)
 	msg_info("%s: receive server protocol on proxy socket %d"
@@ -247,14 +250,21 @@ static void psc_starttls_first(int event, void *context)
 	remote_endpt = vstring_alloc(20);
     vstring_sprintf(remote_endpt, "[%s]:%s", smtp_state->smtp_client_addr,
 		    smtp_state->smtp_client_port);
-    attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
-	       SEND_ATTR_STR(TLS_ATTR_REMOTE_ENDPT, STR(remote_endpt)),
-	       SEND_ATTR_INT(TLS_ATTR_FLAGS, TLS_PROXY_FLAG_ROLE_SERVER),
-	       SEND_ATTR_INT(TLS_ATTR_TIMEOUT, psc_normal_cmd_time_limit),
-	       SEND_ATTR_INT(TLS_ATTR_TIMEOUT, psc_normal_cmd_time_limit),
-	       SEND_ATTR_STR(TLS_ATTR_SERVERID, MAIL_SERVICE_SMTPD),	/* XXX */
-	       ATTR_TYPE_END);
-    if (vstream_fflush(tlsproxy_stream) != 0) {
+    psc_tls_pre_start(STR(remote_endpt), &start_props);
+
+    if (attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
+		   SEND_ATTR_STR(TLS_ATTR_REMOTE_ENDPT, STR(remote_endpt)),
+		   SEND_ATTR_INT(TLS_ATTR_FLAGS, TLS_PROXY_FLAG_ROLE_SERVER),
+		 SEND_ATTR_INT(TLS_ATTR_TIMEOUT, psc_normal_cmd_time_limit),
+		 SEND_ATTR_INT(TLS_ATTR_TIMEOUT, psc_normal_cmd_time_limit),
+		   SEND_ATTR_STR(TLS_ATTR_SERVERID, var_servname),
+		   ATTR_TYPE_END) != 0
+	|| attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
+	      SEND_ATTR_FUNC(tls_proxy_server_param_print, &psc_tls_params),
+	       SEND_ATTR_FUNC(tls_proxy_server_init_print, &psc_init_props),
+		 SEND_ATTR_FUNC(tls_proxy_server_start_print, &start_props),
+		      ATTR_TYPE_END) != 0
+	|| vstream_fflush(tlsproxy_stream) != 0) {
 	msg_warn("error sending request to %s service: %m", psc_tlsp_service);
 	PSC_SEND_REPLY(smtp_state,
 		    "454 4.7.0 TLS not available due to local problem\r\n");
@@ -315,3 +325,5 @@ void    psc_starttls_open(PSC_STATE *smtp_state, EVENT_NOTIFY_FN resume_event)
     PSC_READ_EVENT_REQUEST(vstream_fileno(tlsproxy_stream), psc_starttls_first,
 			   (void *) starttls_state, TLSPROXY_INIT_TIMEOUT);
 }
+
+#endif

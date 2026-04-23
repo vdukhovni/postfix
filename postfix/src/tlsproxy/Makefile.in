@@ -160,6 +160,7 @@ tlsproxy_diff.o: tlsproxy_diff.c
 tlsproxy_diff.o: tlsproxy_diff.h
 tlsproxy_server.o: ../../include/argv.h
 tlsproxy_server.o: ../../include/attr.h
+tlsproxy_server.o: ../../include/been_here.h
 tlsproxy_server.o: ../../include/check_arg.h
 tlsproxy_server.o: ../../include/dns.h
 tlsproxy_server.o: ../../include/events.h
@@ -187,6 +188,7 @@ tlsproxy_server.o: ../../include/vbuf.h
 tlsproxy_server.o: ../../include/vstream.h
 tlsproxy_server.o: ../../include/vstring.h
 tlsproxy_server.o: tlsproxy.h
+tlsproxy_server.o: tlsproxy_diff.h
 tlsproxy_server.o: tlsproxy_server.c
 tlsproxy_server.o: tlsproxy_server.h
 tlsproxy_state.o: ../../include/argv.h

@@ -74,6 +74,7 @@ tlsproxy_client_level
 tlsproxy_client_policy
 tlsproxy_tls_session_cache_timeout
 virtual_maps
+tlsproxy_client_loglevel_parameter
 EOF
 
 # Eliminate config functions. The are documented in the postconf(5)

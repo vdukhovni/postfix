@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <tlsproxy_client.h>
 /*
-/*	void tlsp_pre_jail_client_init(void)
+/*	bool	tlsp_pre_jail_client_init(void)
 /*
 /*	TLS_APPL_STATE *tlsp_client_init(
 /*	TLS_CLIENT_PARAMS *tls_params,
@@ -16,10 +16,11 @@
 /* DESCRIPTION
 /*	This module implements TLS proxy client role support.
 /*
-/*	tlsp_pre_jail_client_init() saves a copy of serialized
-/*	TLS_CLIENT_PARAMS and TLS_CLIENT_INIT_PROPS based on configuration
-/*	parameter settings. These will be used as a reference when
-/*	receiving a request for the client role.
+/*	tlsp_pre_jail_client_init() creates an SSL context based on local
+/*	tlsproxy(8) client configuration, and populates TLS_CLIENT_PARAMS
+/*	and TLS_CLIENT_INIT_PROPS objects that will be used as a reference
+/*	when receiving a remote request for the client role. The result
+/*	is true if successful.
 /*
 /*	tlsp_client_init() processes a request for the TLS proxy client
 /*	role. If the request has not been seen before it checks the
@@ -29,8 +30,7 @@
 /*
 /*	tlsp_client_start_pre_handshake() requests the tls_client_start()
 /*	handshake. It returns TLSP_STAT_OK when the request succeeds.
-/*	Otherwise, it returns TLSP_STAT_ERR and state becomes a dangling
-/*	pointer.
+/*	Otherwise, it destroys the state and returns TLSP_STAT_ERR.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8)
 /*	or \fBpostlogd\fR(8).
@@ -131,6 +131,7 @@ TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
     VSTRING *init_buf;
     char   *init_key;
     int     log_hints = 0;
+    const char *saved_log_param;
 
     /*
      * Use one TLS_APPL_STATE object for all requests that specify the same
@@ -141,13 +142,21 @@ TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
      * First, compute the TLS_APPL_STATE cache lookup key. Save a copy of the
      * pre-jail request TLS_CLIENT_PARAMS and TLSPROXY_CLIENT_INIT_PROPS
      * settings, so that we can detect post-jail requests that do not match.
+     * 
+     * For TLS_APPL_STATE cache lookup, ignore harmless differences in
+     * xxx_tls_loglevel parameter names. They don't affect program behavior.
      */
     param_buf = vstring_alloc(100);
     param_key = tls_proxy_client_param_serialize(attr_print_plain, param_buf,
 						 tls_params);
+
     init_buf = vstring_alloc(100);
+    saved_log_param = init_props->log_param;
+    init_props->log_param = "dummy";
     init_key = tls_proxy_client_init_serialize(attr_print_plain, init_buf,
 					       init_props);
+    init_props->log_param = saved_log_param;
+
 #define TLSP_CLIENT_INIT_RETURN(retval) do { \
 	vstring_free(init_buf); \
 	vstring_free(param_buf); \
@@ -256,9 +265,21 @@ TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
 
 /* tlsp_pre_jail_client_init - pre-jail initialization */
 
-void    tlsp_pre_jail_client_init(void)
+bool    tlsp_pre_jail_client_init(void)
 {
     int     clnt_use_tls;
+
+    /*
+     * TODO(wietse):  simplify module initialization state and module error
+     * state.
+     */
+    bool    ret = false;
+
+    /*
+     * Sanity check.
+     */
+    if (tlsp_pre_jail_client_done)
+	msg_panic("%s: multiple calls", __func__);
 
     /*
      * The cache with TLS_APPL_STATE instances for different TLS_CLIENT_INIT
@@ -355,7 +376,7 @@ void    tlsp_pre_jail_client_init(void)
 	 */
 	(void) tls_proxy_client_param_from_config(&tls_params);
 	(void) TLS_CLIENT_INIT_ARGS(&init_props,
-				    log_param = var_tlsp_clnt_logparam,
+				    log_param = VAR_TLSP_CLNT_LOGLEVEL,
 				    log_level = var_tlsp_clnt_loglevel,
 				    verifydepth = var_tlsp_clnt_scert_vd,
 				    cache_type = TLS_MGR_SCACHE_SMTP,
@@ -371,6 +392,8 @@ void    tlsp_pre_jail_client_init(void)
 				    mdalg = var_tlsp_clnt_fpt_dgst);
 	if (tlsp_client_init(&tls_params, &init_props) == 0)
 	    msg_warn("TLS client initialization failed");
+	else
+	    ret = true;
     }
 
     /*
@@ -384,6 +407,8 @@ void    tlsp_pre_jail_client_init(void)
      * explicit.
      */
     tlsp_pre_jail_client_done = 1;
+
+    return (ret);
 }
 
 #endif

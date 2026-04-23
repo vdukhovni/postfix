@@ -853,7 +853,7 @@ static int starttls(STATE *state)
 	tlsproxy =
 	    tls_proxy_open(DEF_TLSPROXY_SERVICE /* TODO */ , PROXY_OPEN_FLAGS,
 			   state->stream, state->paddr, STR(port_buf),
-			   smtp_tmout, smtp_tmout, state->addrport,
+			   smtp_tmout, smtp_tmout, var_procname,
 			   tls_proxy_client_param_from_config(&tls_params),
 			   &init_props, &start_props);
 	vstring_free(port_buf);

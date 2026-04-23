@@ -22,7 +22,7 @@
   */
 #include <tlsproxy.h>
 
-extern void tlsp_pre_jail_client_init(void);
+extern bool tlsp_pre_jail_client_init(void);
 extern TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *, TLS_CLIENT_INIT_PROPS *);
 extern int tlsp_client_start_pre_handshake(TLSP_STATE *);
 

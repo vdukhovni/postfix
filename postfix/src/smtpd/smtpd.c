@@ -1569,6 +1569,7 @@ int     smtpd_proxy_opts;
 
 #ifdef USE_TLSPROXY
 char   *var_tlsproxy_service;
+TLS_SERVER_INIT_PROPS smtpd_init_props;
 
 #endif
 
@@ -1668,9 +1669,10 @@ static void tls_reset(SMTPD_STATE *);
   */
 #ifndef USE_TLSPROXY
 static TLS_APPL_STATE *smtpd_tls_ctx;
-static int ask_client_cert;
 
 #endif					/* USE_TLSPROXY */
+static int ask_client_cert;
+
 #endif
 
  /*
@@ -5249,48 +5251,14 @@ static void smtpd_start_tls(SMTPD_STATE *state)
     int     cert_present;
     int     requirecert;
 
-#ifdef USE_TLSPROXY
-
-    /*
-     * This is non-production code, for tlsproxy(8) load testing only. It
-     * implements enough to enable some Postfix features that depend on TLS
-     * encryption.
-     * 
-     * To insert tlsproxy(8) between this process and the SMTP client, we swap
-     * the file descriptors between the state->tlsproxy and state->client
-     * VSTREAMS, so that we don't lose all the user-configurable
-     * state->client attributes (such as longjump buffers or timeouts).
-     * 
-     * As we implement tlsproxy support in the Postfix SMTP client we should
-     * develop a usable abstraction that encapsulates this stream plumbing in
-     * a library module.
-     */
-    vstream_control(state->tlsproxy, CA_VSTREAM_CTL_DOUBLE, CA_VSTREAM_CTL_END);
-    vstream_control(state->client, CA_VSTREAM_CTL_SWAP_FD(state->tlsproxy),
-		    CA_VSTREAM_CTL_END);
-    (void) vstream_fclose(state->tlsproxy);	/* direct-to-client stream! */
-    state->tlsproxy = 0;
-
-    /*
-     * After plumbing the plaintext stream, receive the TLS context object.
-     * For this we must use the same VSTREAM buffer that we also use to
-     * receive subsequent SMTP commands. The attribute protocol is robust
-     * enough that an adversary cannot inject their own bogus TLS context
-     * attributes into the stream.
-     */
-    state->tls_context = tls_proxy_context_receive(state->client);
-
-    /*
-     * XXX Maybe it is better to send this information to tlsproxy(8) when
-     * requesting service, effectively making a remote tls_server_start()
-     * call.
-     */
-    requirecert = (var_smtpd_tls_req_ccert && var_smtpd_enforce_tls);
-
-#else						/* USE_TLSPROXY */
     TLS_SERVER_START_PROPS props;
     static char *cipher_grade;
     static VSTRING *cipher_exclusions;
+
+#ifdef USE_TLSPROXY
+    TLS_SERVER_PARAMS tls_params;
+
+#endif
 
     /*
      * Wrapper mode uses a dedicated port and always requires TLS.
@@ -5328,7 +5296,62 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * requirements later, if necessary.
      */
     requirecert = (var_smtpd_tls_req_ccert && var_smtpd_enforce_tls);
+#ifdef USE_TLSPROXY
 
+    /*
+     * This is non-production code, for tlsproxy(8) load testing only. It
+     * implements enough to enable some Postfix features that depend on TLS
+     * encryption.
+     * 
+     * To insert tlsproxy(8) between this process and the SMTP client, we swap
+     * the file descriptors between the state->tlsproxy and state->client
+     * VSTREAMS, so that we don't lose all the user-configurable
+     * state->client attributes (such as longjump buffers or timeouts).
+     */
+    tls_proxy_server_param_from_config(&tls_params);
+    TLS_PROXY_SERVER_START_PROPS(&props,
+				 timeout = var_smtpd_starttls_tmout,
+				 enable_rpk = var_smtpd_tls_enable_rpk,
+				 requirecert = requirecert,
+				 serverid = state->service,
+				 namaddr = state->namaddr,
+				 cipher_grade = cipher_grade,
+				 cipher_exclusions = STR(cipher_exclusions),
+				 mdalg = var_smtpd_tls_fpt_dgst);
+
+    /*
+     * Note: state->tlsproxy is left open when smtp_flush() calls longjmp(),
+     * so we garbage-collect the VSTREAM in smtpd_state_reset().
+     */
+#define PROXY_OPEN_FLAGS \
+        (TLS_PROXY_FLAG_ROLE_SERVER | TLS_PROXY_FLAG_SEND_CONTEXT)
+
+    state->tlsproxy =
+	tls_proxy_open(var_tlsproxy_service, PROXY_OPEN_FLAGS,
+		       state->client, state->addr, state->port,
+		       var_smtpd_tmout, var_smtpd_tmout,
+		       state->service, &tls_params,
+		       &smtpd_init_props, &props);
+    if (state->tlsproxy == 0) {
+	state->error_mask |= MAIL_ERROR_SOFTWARE;
+	msg_warn("tlsproxy handshake failed");
+	vstream_longjmp(state->client, SMTP_ERR_EOF);
+    }
+    vstream_control(state->tlsproxy, CA_VSTREAM_CTL_DOUBLE, CA_VSTREAM_CTL_END);
+    vstream_control(state->client, CA_VSTREAM_CTL_SWAP_FD(state->tlsproxy),
+		    CA_VSTREAM_CTL_END);
+    (void) vstream_fclose(state->tlsproxy);	/* direct-to-client stream! */
+    state->tlsproxy = 0;
+
+    /*
+     * After plumbing the plaintext stream, receive the TLS context object.
+     * For this we must use the same VSTREAM buffer that we also use to
+     * receive subsequent SMTP commands. The attribute protocol is robust
+     * enough that an adversary cannot inject their own bogus TLS context
+     * attributes into the stream.
+     */
+    state->tls_context = tls_proxy_context_receive(state->client);
+#else						/* USE_TLSPROXY */
     state->tls_context =
 	TLS_SERVER_START(&props,
 			 ctx = smtpd_tls_ctx,
@@ -5469,20 +5492,8 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	return (-1);
     }
 #ifdef USE_TLSPROXY
-
-    /*
-     * Note: state->tlsproxy is left open when smtp_flush() calls longjmp(),
-     * so we garbage-collect the VSTREAM in smtpd_state_reset().
-     */
-#define PROXY_OPEN_FLAGS \
-	(TLS_PROXY_FLAG_ROLE_SERVER | TLS_PROXY_FLAG_SEND_CONTEXT)
-
-    state->tlsproxy =
-	tls_proxy_legacy_open(var_tlsproxy_service, PROXY_OPEN_FLAGS,
-			      state->client, state->addr,
-			      state->port, var_smtpd_tmout,
-			      state->service);
-    if (state->tlsproxy == 0) {
+    if (!tls_proxy_probe(var_tlsproxy_service, TLS_PROXY_FLAG_ROLE_SERVER,
+			 state->addr, state->port)) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	/* RFC 3207 Section 4. */
 	smtpd_chat_reply(state, "454 4.7.0 TLS not available due to local problem");
@@ -6583,6 +6594,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 #ifdef USE_TLS
 #ifndef USE_TLSPROXY
 	    TLS_SERVER_INIT_PROPS props;
+
+#endif
 	    const char *cert_file;
 	    int     have_server_cert;
 	    int     no_server_cert_ok;
@@ -6636,6 +6649,33 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 		 * language feature that C does not have natively: named
 		 * parameter lists.
 		 */
+#ifdef USE_TLSPROXY
+		TLS_PROXY_SERVER_INIT_PROPS(&smtpd_init_props,
+					 log_param = VAR_SMTPD_TLS_LOGLEVEL,
+					 log_level = var_smtpd_tls_loglevel,
+				       verifydepth = var_smtpd_tls_ccert_vd,
+					  cache_type = TLS_MGR_SCACHE_SMTPD,
+				      set_sessid = var_smtpd_tls_set_sessid,
+				    chain_files = var_smtpd_tls_chain_files,
+					    cert_file = cert_file,
+					  key_file = var_smtpd_tls_key_file,
+				      dcert_file = var_smtpd_tls_dcert_file,
+					dkey_file = var_smtpd_tls_dkey_file,
+				    eccert_file = var_smtpd_tls_eccert_file,
+				      eckey_file = var_smtpd_tls_eckey_file,
+					    CAfile = var_smtpd_tls_CAfile,
+					    CApath = var_smtpd_tls_CApath,
+					    dh1024_param_file
+					  = var_smtpd_tls_dh1024_param_file,
+					    dh512_param_file
+					    = var_smtpd_tls_dh512_param_file,
+					  eecdh_grade = var_smtpd_tls_eecdh,
+					 protocols = var_smtpd_enforce_tls ?
+					    var_smtpd_tls_mand_proto :
+					    var_smtpd_tls_proto,
+					    ask_ccert = ask_client_cert,
+					    mdalg = var_smtpd_tls_fpt_dgst);
+#else
 		smtpd_tls_ctx =
 		    TLS_SERVER_INIT(&props,
 				    log_param = VAR_SMTPD_TLS_LOGLEVEL,
@@ -6662,10 +6702,10 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    var_smtpd_tls_proto,
 				    ask_ccert = ask_client_cert,
 				    mdalg = var_smtpd_tls_fpt_dgst);
+#endif						/* USE_TLSPROXY */
 	    } else {
 		msg_warn("No server certs available. TLS won't be enabled");
 	    }
-#endif						/* USE_TLSPROXY */
 #else
 	    msg_warn("TLS has been selected, but TLS support is not compiled in");
 #endif

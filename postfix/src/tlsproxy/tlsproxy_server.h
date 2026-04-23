@@ -22,15 +22,9 @@
   */
 #include <tlsproxy.h>
 
-extern void pre_jail_init_server(void);
+extern bool pre_jail_init_server(void);
 extern TLS_APPL_STATE *tlsp_server_init(TLS_SERVER_PARAMS *, TLS_SERVER_INIT_PROPS *);
 extern int tlsp_server_start_pre_handshake(TLSP_STATE *);
-
- /*
-  * TODO(wietse): delete these after tlsp_server_init() is implemented.
-  */
-extern TLS_APPL_STATE *tlsp_server_ctx;
-extern const char *server_role_disabled;
 
 /* LICENSE
 /* .ad

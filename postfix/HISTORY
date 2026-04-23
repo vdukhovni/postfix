@@ -30964,8 +30964,61 @@ Apologies for any names omitted.
 
 	Added missing text to manpages. Files: tls/tls_proxy_*_proto.c.
 
+20260419
+
+	Testing: completed smtpd(8) support to remotely call
+	tls_server_init() and tls_server_start() in tlsproxy(8);
+	tlsproxy(8) still ignores that information. This is a
+	non-production feature that will be used to test tlsproxy(8)
+	server role support. Files: smtpd/smtpd.c, tlsproxy/tlsproxy.c.
+
+20260420
+
+	Code health: completed tlsproxy(8) support to use remote
+	arguments for tls_server_init() and tls_server_start()
+	calls. Files: tlsproxy/tlsproxy.c, mantools/postlink,
+	proto/postconf.proto.
+
+20260422
+
+	Code health: completed postscreen(8) support to remotely
+	call tls_server_init() and tls_server_start() in tlsproxy(8).
+	Files: postscreen/postscreen.[hc],
+	postscreen/postscreen_starttls.c, postscreen/postscreen_tls_conf.c
+
+	Code health: script to enforce consistent upper and lower
+	bounds in Postfix configuration parameter definitions. File:
+	mantools/check-param-defaults.
+
+	Remaining tech debt: we now have three subtly-different
+	instances of code that maps main.cf settings to tls_client_xxx()
+	and tls_server_xxx() arguments.
+
+20260423
+
+	Cleanup: silence tlsproxy warnings about harmless differences
+	in xxx_tls_loglevel parameter names; use the posttls-finger(1)
+	process name when delegating TLS to a tlsproxy(8) daemon.
+	Files: tlsproxy/tlsproxy_client.c, tlsproxy/tlsproxy_server.c,
+	posttls-finger/posttls-finger.c.
+
+	Cleanup: the tlsproxy_client_loglevel_parameter feature is
+	gone. It was solving the wrong problem, and therefore no-one
+	should miss it. Files: postconf/postconf_unused.c,
+	proto/DEPRECATION_README.html, tlsproxy/tlsproxy_client.c,
+	src/global/mail_params.h.
+
+	Code health: eliminate a null pointer time bomb by assigning
+	the "service_name" parameter value to the "var_servname" C
+	variable. Every daemon program already sets its service name
+	value in the configuration parameter dictionary. File:
+	global/mail_params.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.
 
 	Document TLS parameters in tlsproxy(8) and postscreen(8).
+
+	Why are process_name and service_name implemented in different
+	ways?
