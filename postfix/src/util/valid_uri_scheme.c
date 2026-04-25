@@ -49,8 +49,8 @@ ssize_t valid_uri_scheme(const char *str)
 	return (0);
 
     while ((ch = *cp++) != 0) {
-	/* A valid scheme continues with ALPHA | DIGIT | '+' | '-'. */
-	if (ISALNUM(ch) || ch == '+' || ch == '-')
+	/* A valid scheme continues with ALPHA | DIGIT | '+' | '-' | ','. */
+	if (ISALNUM(ch) || ch == '+' || ch == '-' || ch == '.')
 	    continue;
 	/* A valid scheme is followed by "://". */
 	if (ch == ':' && *cp++ == '/' && *cp++ == '/')

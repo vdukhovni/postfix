@@ -31014,6 +31014,14 @@ Apologies for any names omitted.
 	value in the configuration parameter dictionary. File:
 	global/mail_params.c.
 
+20260425
+
+	Work-in-progress: support to convert PostgreSQL queries
+	into prepared statements, where %letter becomes $number.
+	Ömer Güven. This not only speeds up queries, but also
+	makes them immune against SQL injection. This supports
+	%letter in quoted and in unquoted text. File: global/dict_pgsql.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

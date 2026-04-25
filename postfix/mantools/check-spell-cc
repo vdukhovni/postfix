@@ -3,6 +3,7 @@
 # Spellchecks comments in C source code. See mantools/comment.c for
 # 'comment' source code.
 
-LANG=C; export LANG
+#LANG=C; export LANG
+LANG=en_US.UTF-8; export LANG
 
 find . -name *.[hc] | xargs cat | comment | mantools/deroff | spell | grep -F -vxf proto/stop | grep -F -vxf proto/stop.spell-cc
