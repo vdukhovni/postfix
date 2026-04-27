@@ -856,6 +856,20 @@ int     smtp_helo(SMTP_STATE *state)
 	     * there are no more alternative MX hosts.
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
+
+	    /*
+	     * After the server rejects STARTTLS, do not send SASL
+	     * credentials over a plaintext connection. A MITM attacker
+	     * can replace the server's "220 Ready to start TLS" with
+	     * "454 TLS not available", causing the client to fall back
+	     * to plaintext. If AUTH was announced in the same (plaintext)
+	     * EHLO, the client would then send credentials in the clear.
+	     */
+#ifdef USE_SASL_AUTH
+	    if (session->features & SMTP_FEATURE_AUTH)
+		smtp_sasl_cleanup(session);
+	    session->features &= ~SMTP_FEATURE_AUTH;
+#endif
 	    if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->tls->level)
 		|| TLS_REQUIRED_BY_REQTLS_POLICY(state->reqtls_level)) {
 		/* Before returning, decide all relevant policy status info. */
