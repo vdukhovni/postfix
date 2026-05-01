@@ -446,8 +446,10 @@ static int dict_db_sequence(DICT *dict, int function,
      */
     switch (function) {
     case DICT_SEQ_FUN_FIRST:
-	if (dict_db->cursor == 0)
-	    DICT_DB_CURSOR(db, &(dict_db->cursor));
+	if (dict_db->cursor == 0
+	    && (status = DICT_DB_CURSOR(db, &(dict_db->cursor))) != 0)
+	    msg_fatal("error [%d] initializing cursor for %s: %m",
+		      status, dict_db->dict.name);
 	db_function = DB_FIRST;
 	break;
     case DICT_SEQ_FUN_NEXT:
