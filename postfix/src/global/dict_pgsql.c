@@ -574,8 +574,10 @@ static void plpgsql_connect_single(DICT_PGSQL *dict_pgsql, HOST *host)
 				dict_pgsql->password);
     }
     if (host->db == NULL || PQstatus(host->db) != CONNECTION_OK) {
+	/* 202604 Claude: don't call PQerrorMessage(NULL). */
 	msg_warn("connect to pgsql server %s: %s",
-		 host->hostname, PQerrorMessage(host->db));
+		 host->hostname, host->db ? PQerrorMessage(host->db) :
+		 "PQconnectdb or PQsetdbLogin failed");
 	plpgsql_down_host(host, dict_pgsql->retry_interval);
 	return;
     }

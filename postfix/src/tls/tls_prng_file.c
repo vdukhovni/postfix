@@ -132,7 +132,8 @@ ssize_t tls_prng_file_read(TLS_PRNG_SRC *fh, size_t len)
 	RAND_seed(buffer, count);
     }
     if (msg_verbose)
-	msg_info("read %ld bytes from entropy file %s: %m",
+	/* 202604 Claude: remove '%m' from non-error logging. */
+	msg_info("read %ld bytes from entropy file %s",
 		 (long) (len - to_read), fh->name);
     return (len - to_read);
 }
