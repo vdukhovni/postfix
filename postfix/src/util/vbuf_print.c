@@ -103,12 +103,16 @@
 
  /*
   * Helper macros... Note that there is no need to check the result from
-  * VSTRING_SPACE() because that always succeeds or never returns.
+  * VSTRING_SPACE() because that always succeeds or never returns. 202406
+  * Claude: avoid integer overflow in field width computations.
   */
 #ifndef NO_SNPRINTF
-#define VBUF_SNPRINTF(bp, sz, fmt, arg) do { \
+#define VBUF_SNPRINTF(bp, width_or_prec, type_space, fmt, arg) do { \
 	ssize_t _ret; \
-	if (VBUF_SPACE((bp), (sz)) != 0) \
+	if ((width_or_prec) > INT_MAX - (type_space)) \
+	    msg_panic("vbuf_print: field width (%d + %lu) > INT_MAX", \
+		(width_or_prec), (unsigned long) (type_space)); \
+	if (VBUF_SPACE((bp), (width_or_prec) + (type_space)) != 0) \
 	    return (bp); \
 	_ret = snprintf((char *) (bp)->ptr, (bp)->cnt, (fmt), (arg)); \
 	if (_ret < 0) \
@@ -133,7 +137,7 @@
     } while (0)
 
 #define VSTRING_ADDNUM(vp, n) do { \
-	VBUF_SNPRINTF(&(vp)->vbuf, INT_SPACE, "%d", n); \
+	VBUF_SNPRINTF(&(vp)->vbuf, 0, INT_SPACE, "%d", n); \
     } while (0)
 
 #define VBUF_STRCAT(bp, s) do { \
@@ -260,7 +264,7 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		    msg_panic("%s: %%l%c is not supported", myname, *cp);
 		s = va_arg(ap, char *);
 		if (prec >= 0 || (width > 0 && width > strlen(s))) {
-		    VBUF_SNPRINTF(bp, (width > prec ? width : prec) + INT_SPACE,
+		    VBUF_SNPRINTF(bp, (width > prec ? width : prec), INT_SPACE,
 				  vstring_str(fmt), s);
 		} else {
 		    VBUF_STRCAT(bp, s);
@@ -276,17 +280,17 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	    case 'x':
 	    case 'X':
 		if (long_flag)
-		    VBUF_SNPRINTF(bp, (width > prec ? width : prec) + INT_SPACE,
+		    VBUF_SNPRINTF(bp, (width > prec ? width : prec), INT_SPACE,
 				  vstring_str(fmt), va_arg(ap, long));
 		else
-		    VBUF_SNPRINTF(bp, (width > prec ? width : prec) + INT_SPACE,
+		    VBUF_SNPRINTF(bp, (width > prec ? width : prec), INT_SPACE,
 				  vstring_str(fmt), va_arg(ap, int));
 		break;
 	    case 'e':				/* float-valued argument */
 	    case 'f':
 	    case 'g':
 		/* C99 *printf ignore the 'l' modifier. */
-		VBUF_SNPRINTF(bp, (width > prec ? width : prec) + DBL_SPACE,
+		VBUF_SNPRINTF(bp, (width > prec ? width : prec), DBL_SPACE,
 			      vstring_str(fmt), va_arg(ap, double));
 		break;
 	    case 'm':
@@ -296,7 +300,7 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	    case 'p':
 		if (long_flag)
 		    msg_panic("%s: %%l%c is not supported", myname, *cp);
-		VBUF_SNPRINTF(bp, (width > prec ? width : prec) + PTR_SPACE,
+		VBUF_SNPRINTF(bp, (width > prec ? width : prec), PTR_SPACE,
 			      vstring_str(fmt), va_arg(ap, char *));
 		break;
 	    default:				/* anything else is bad */

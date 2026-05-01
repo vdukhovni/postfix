@@ -20,8 +20,8 @@
   * Patches change both the patchlevel and the release date. Snapshots have no
   * patchlevel; they change the release date only.
   */
-#define MAIL_RELEASE_DATE	"20260218"
-#define MAIL_VERSION_NUMBER	"3.10.8"
+#define MAIL_RELEASE_DATE	"20260501"
+#define MAIL_VERSION_NUMBER	"3.10.9"
 
 #ifdef SNAPSHOT
 #define MAIL_VERSION_DATE	"-" MAIL_RELEASE_DATE

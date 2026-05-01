@@ -728,6 +728,9 @@ static int dict_pcre_compile(const char *mapname, int lineno,
     }
     engine->match_data = pcre2_match_data_create_from_pattern(
 					       engine->pattern, (void *) 0);
+    /* 202604 Claude: handle error result. */
+    if (engine->match_data == 0)
+	msg_fatal("out of memory in pcre2_match_data_create_from_pattern()");
 #endif
     return (1);
 }

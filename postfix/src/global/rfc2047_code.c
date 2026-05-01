@@ -274,6 +274,12 @@ char   *rfc2047_encode(VSTRING *result, int header_context,
 	msg_warn("%s: encoder called with empty charset name", myname);
 	return (0);
     }
+    /* 202604 Claude: avoid 'space_left' underflow. */
+    if (strlen(charset) > ENC_WORD_MAX_LEN / 2) {
+	msg_warn("%s: unreasonable charset name: '%.100s'",
+		 myname, charset);
+	return (0);
+    }
     for (cp = (const unsigned char *) charset; (ch = *cp) != 0; cp++) {
 	if (!RFC2047_ALLOWED_TOKEN_CHAR(ch)) {
 	    msg_warn("%s: invalid character: 0x%x in charset name: '%s'",

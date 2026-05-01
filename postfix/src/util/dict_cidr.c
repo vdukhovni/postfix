@@ -237,11 +237,14 @@ static DICT_CIDR_ENTRY *dict_cidr_parse_rule(DICT *dict, char *p, int lineno,
     rule->lineno = lineno;
 
     if (msg_verbose) {
-	if (inet_ntop(cidr_info.addr_family, cidr_info.net_bytes,
-		      hostaddr.buf, sizeof(hostaddr.buf)) == 0)
-	    msg_fatal("inet_ntop: %m");
-	msg_info("dict_cidr_open: add %s/%d %s",
-		 hostaddr.buf, cidr_info.mask_shift, rule->value);
+	/* 202604 Claude: ENDIF has no address pattern. */
+	if (cidr_info.op != CIDR_MATCH_OP_ENDIF) {
+	    if (inet_ntop(cidr_info.addr_family, cidr_info.net_bytes,
+			  hostaddr.buf, sizeof(hostaddr.buf)) == 0)
+		msg_fatal("inet_ntop: %m");
+	    msg_info("dict_cidr_open: add %s/%d %s",
+		     hostaddr.buf, cidr_info.mask_shift, rule->value);
+	}
     }
     return (rule);
 }

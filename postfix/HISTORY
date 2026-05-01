@@ -29279,3 +29279,52 @@ Apologies for any names omitted.
 	recursive logging loop with "posttls-finger -v -v -v".
 	Reported by Geert Hendrickx, diagnosed by Viktor Dukhovni,
 	and fixed by Wietse. Files: util/vstream.[hc], util/msg_vstream.c.
+
+20260310
+
+	Bugfix (defect introduced: Postfix 3.0): buffer over-read
+	when Postfix is configured with an enhanced status code not
+	followed by other text. For example, "5.7.2" without text
+	after the three-number code in a remote server response,
+	in an access(5) table, header or body checks, or with
+	"$rbl_code $rbl_text" in rbl_reply_maps or default_rbl_reply.
+	Problem reported by Kamil Frankowicz.  File: global/dsn_split.c.
+
+20260426
+
+	Portability: support for recent FreeBSD, NetBSD, and OpenBSD
+	versions. Brad Smith. Files: makedefs, util/sys_defs.h.
+
+20260501
+
+	Bugfix (defect introduced: Postfix 3.10): The RFC 2047
+	encoder for the sender "full name" could loop when a very
+	long full_name_encoding_charset value was configured in
+	main.cf. Found by Claude Opus 4.6. File: global/rfc2047_code.c.
+
+	Bugfix (defect introduced: Postfix 2.2, date 20041207):
+	When truncating a database file, the CDB client looked at
+	the file size from before requesting an exclusive lock on
+	a database file, instead of the file size after the exclusive
+	lock was granted. Found by Claude Opus 4.6. File:
+	util/dict_cdb.c.
+
+	Bugfix (defect introduced: Postfix alpha, date 19980309):
+	file descriptor leak after fork() failure. Found by Claude
+	Opus 4.6. File: global/pipe_command.c.
+
+	Mistakes in debug logging. Found by Claude Opus 4.6. Files:
+	dns/dns_lookup.c, util/dict_cidr.c, tls/tls_prng_file.c.
+
+	Unchecked null pointer results after an out-of-memory
+	condition in a library dependency. Found by Claude Opus
+	4.6. Files: util/dict_pcre.c, util/midna_domain.c,
+	global/dict_pgsql.c.
+
+	Missing or incomplete guards for ssize_t or int overflow,
+	found by Claude Opus 4.6. Files: util/argv.c, util/netstring.c,
+	util/vbuf_print.c.
+
+	Cleanup: log a fatal error instead of dereferencing a null
+	pointer after a first/next cursor initialization failure.
+	Fedor Vorobev. File: util/dict_db.c.
