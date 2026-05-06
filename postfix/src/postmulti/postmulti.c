@@ -492,6 +492,7 @@
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <mail_parm_split.h>
+#include <mail_task.h>
 #include <maillog_client.h>
 
 /* Application-specific. */
@@ -1759,7 +1760,9 @@ int     main(int argc, char **argv)
     if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
-    maillog_client_init(argv[0], MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
+    maillog_client_init(mail_task(argv[0]),
+			MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
+    set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
      * Check the Postfix library version as soon as we enable logging.

@@ -283,9 +283,9 @@ int     main(int argc, char **argv)
      * user.
      */
     argv[0] = POSTLOG_CMD;
-    tag = mail_task(argv[0]);
-    msg_vstream_init(tag, VSTREAM_ERR);
-    maillog_client_init(tag, MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
+    msg_vstream_init(argv[0], VSTREAM_ERR);
+    maillog_client_init(tag = mail_task(argv[0]),
+			MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 
     /*
      * Check the Postfix library version as soon as we enable logging.
@@ -328,7 +328,8 @@ int     main(int argc, char **argv)
      */
     mail_conf_read();
     /* Re-evaluate mail_task() after reading main.cf. */
-    maillog_client_init(mail_task(POSTLOG_CMD), MAILLOG_CLIENT_FLAG_NONE);
+    maillog_client_init(mail_task(POSTLOG_CMD),
+			MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 #if 0
     mail_dict_init();				/* proxy, sql, ldap */
     get_mail_conf_str_table(str_table);

@@ -20,7 +20,7 @@ LIBEXEC	= libexec/post-install libexec/postfix-script libexec/postfix-wrapper \
 PLUGINS	= meta/dynamicmaps.cf
 META	= meta/main.cf.proto meta/master.cf.proto meta/postfix-files \
 	meta/makedefs.out $(PLUGINS)
-TESTING	= testing/main.cf
+TESTING	= test-conf/main.cf
 EXPAND	= sed -e "s;\$${LIB_PREFIX};$(LIB_PREFIX);" \
 	    -e "s;\$${LIB_SUFFIX};$(LIB_SUFFIX);"
 SHLIB_DIR_OVERRIDE = \
@@ -100,9 +100,9 @@ libexec/postfix-wrapper: conf/postfix-wrapper
 meta/main.cf.proto: conf/main.cf
 	rm -f $@ && ln -f $? $@
 
-testing/main.cf:
+test-conf/main.cf:
 	rm -f $@
-	mkdir -p testing
+	mkdir -p test-conf
 	echo 'meta_directory = $(BUILD_ROOT)/meta' >> $@
 	echo 'shlib_directory = $(BUILD_ROOT)/lib' >> $@
 
@@ -254,7 +254,7 @@ tidy:	clean
 	    make.err */make.err */*/make.err \
 	    *.gmon */*.gmon */*/*.gmon \
 	    conf/main.cf.default conf/bounce.cf.default meta/*
-	rm -rf testing
+	rm -rf test-conf
 	find . -type s -print | xargs rm -f
 	find . -type d -print | xargs chmod 755
 	find . -type f -print | xargs chmod a+r

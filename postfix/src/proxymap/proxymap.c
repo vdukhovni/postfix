@@ -422,7 +422,7 @@ static void proxymap_sequence_service(VSTREAM *client_stream)
 {
     int     inst_flags;
     int     request_flags;
-    DICT   *dict;
+    DICT   *dict = 0;
     int     request_func;
     const char *reply_key;
     const char *reply_value;
@@ -461,11 +461,12 @@ static void proxymap_sequence_service(VSTREAM *client_stream)
     }
 
     /*
-     * Respond to the client.
+     * Respond to the client. 202604 Claude: don't dereference uninitialized
+     * dict.
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
 	       SEND_ATTR_INT(MAIL_ATTR_STATUS, reply_status),
-	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, dict->flags),
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, dict ? dict->flags : 0),
 	       SEND_ATTR_STR(MAIL_ATTR_KEY, reply_key),
 	       SEND_ATTR_STR(MAIL_ATTR_VALUE, reply_value),
 	       ATTR_TYPE_END);

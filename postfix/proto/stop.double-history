@@ -248,3 +248,9 @@ proto  proto stop proto stop double cc
  postscreen postscreen h postscreen postscreen_starttls c 
  posttls finger posttls finger c smtp smtp c smtp smtp h 
  smtp smtp_proto c smtpd smtpd c tls tls_client c tls tls h 
+ across Postfix command line tools Files postalias postalias c 
+ for Claude findings File proxymap proxymap c 
+ Postfix command line tools but avoid postfix postfix 
+ postfix postfix c postmap postmap c postmulti postmulti c 
+ stutter File postmulti postmulti c 
+ with other command line tools File postlog postlog c 

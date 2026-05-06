@@ -30838,7 +30838,7 @@ Apologies for any names omitted.
 	util/attr_print_plain.c, util/attr_scan0.c, util/attr_scan0.ref,
 	util/attr_scan64.c, util/attr_scan64.ref, util/attr_scan_plain.c,
 	util/attr_scan_plain.ref. There is no code that uses this now,
-	but there are tests to make sure that it is works when needed.
+	but there are tests to make sure that it works when needed.
 
 20260408
 
@@ -31043,11 +31043,41 @@ Apologies for any names omitted.
 	Next up is replacing a large number of "[%s]:%s" format strings
 	in postscreen code.
 
-20240629
+20260429
 
 	Testing: portability. Files: postscreen/postscreen_dnsbl_test.c,
 	testing/mock_myaddrinfo_test.c.
 
+20260501
+
+	The Postfix 3.12 proxymap server missed one of the fixes
+	for Claude findings. File: proxymap/proxymap.c.
+
+20260506
+
+	Tech debt: make the $process_name initialization consistent
+	across Postfix command-line tools. Files: postalias/postalias.c,
+	postfix/postfix.c, postmap/postmap.c, postmulti/postmulti.c.
+
+	Tech debt: consistent logging with "postfix" prefix across
+	Postfix command-line tools, but avoid "postfix/postfix"
+	stutter. File: postmulti/postmulti.c.
+
+	Tech debt: make postlog logging initialization consistent
+	with other command-line tools. File: postlog/postlog.c.
+
+	No change: don't add syslog/maillog_file logging to the
+	postcat and postkick command-line tools.
+
+	Documentation: readability and typographical fixes. Files:
+	proto/REQUIRETLS_README.html, proto/postconf.proto,
+	postscreen/postscreen_tls_conf.c.
+
+	Workaround for MacOS: rename a top-level temporary "testing"
+	directory to "test-conf". On MacOS, "rm -rf testing" deleted
+	the TESTING text file. Files: Makefile.in, postalias/Makefile.in,
+	postmap/Makefile.in, smtpd/Makefile.in, util/Makefile.in.
+	
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

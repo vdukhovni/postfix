@@ -79,7 +79,7 @@ root_tests:
 smtpd_check_test: smtpd_check smtpd_check.in smtpd_check.ref smtpd_check_access
 	@echo ; echo RUN smtpd_check_test
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	touch -t 197101010000 main.cf
 	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_check.in >smtpd_check.tmp 2>&1
@@ -92,7 +92,7 @@ smtpd_check_test: smtpd_check smtpd_check.in smtpd_check.ref smtpd_check_access
 smtpd_check_test2: smtpd_check smtpd_check.in2 smtpd_check.ref2 smtpd_check_access
 	@echo ; echo RUN smtpd_check_test2
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	touch -t 197101010000 main.cf
 	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_check.in2 >smtpd_check.tmp 2>&1
@@ -103,7 +103,7 @@ smtpd_check_test2: smtpd_check smtpd_check.in2 smtpd_check.ref2 smtpd_check_acce
 smtpd_check_test4: smtpd_check smtpd_check.in4 smtpd_check.ref4 smtpd_check_access
 	@echo ; echo RUN smtpd_check_test4
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	touch -t 197101010000 main.cf
 	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_check.in4 >smtpd_check.tmp 2>&1
@@ -114,7 +114,7 @@ smtpd_check_test4: smtpd_check smtpd_check.in4 smtpd_check.ref4 smtpd_check_acce
 smtpd_acl_test: smtpd_check smtpd_acl.in smtpd_acl.ref smtpd_check_access
 	@echo ; echo RUN smtpd_acl_test
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	touch -t 197101010000 main.cf
 	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_acl.in >smtpd_check.tmp 2>&1
@@ -135,7 +135,7 @@ ADDRINFO_FIX = sed -e 's/No address associated with hostname/hostname nor servna
 smtpd_exp_test: smtpd_check smtpd_exp.in smtpd_exp.ref
 	@echo ; echo RUN smtpd_acl_test
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	touch -t 197101010000 main.cf
 	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_exp.in >smtpd_exp.tmp 2>&1
@@ -153,7 +153,7 @@ smtpd_server_test: smtpd_check smtpd_server.in smtpd_server.ref
 smtpd_nullmx_test: smtpd_check smtpd_nullmx.in smtpd_nullmx.ref
 	@echo ; echo RUN smtpd_nullmx_test
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	touch -t 197101010000 main.cf
 	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_nullmx.in >smtpd_nullmx.tmp 2>&1
@@ -173,7 +173,7 @@ smtpd_dns_filter_test: smtpd_check smtpd_dns_filter.in smtpd_dns_filter.ref \
 smtpd_check_dsn_test: smtpd_check smtpd_check_dsn.in smtpd_check_dsn.ref smtpd_check_access
 	@echo ; echo RUN smtpd_check_dsn_test
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	touch -t 197101010000 main.cf
 	$(SHLIB_ENV) $(VALGRIND) ../postmap/postmap -c. hash:smtpd_check_access
 	$(SHLIB_ENV) $(VALGRIND) ./smtpd_check <smtpd_check_dsn.in >smtpd_check.tmp 2>&1

@@ -31,7 +31,7 @@ root_tests:
 test1:	$(PROG) map.in map-abc1.ref map-ghi1.ref map-uABC1.ref
 	@echo ; echo RUN test1
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	touch -t 197101010000 main.cf
 	${SHLIB_ENV} ${VALGRIND} ./$(PROG) -c . map.in
 	for key in abc ghi; \
@@ -49,7 +49,7 @@ test1:	$(PROG) map.in map-abc1.ref map-ghi1.ref map-uABC1.ref
 test2:	$(PROG) map.in map-abc2.ref map-ghi2.ref map-uABC2.ref
 	@echo ; echo RUN test2
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	touch -t 197101010000 main.cf
 	${SHLIB_ENV} ${VALGRIND} ./$(PROG) -c . map.in
 	for key in abc ghi; \
@@ -67,7 +67,7 @@ test2:	$(PROG) map.in map-abc2.ref map-ghi2.ref map-uABC2.ref
 fail_test: $(PROG) aliases fail_test.in fail_test.ref
 	@echo ; echo RUN fail_test
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	touch -t 197101010000 main.cf
 	-(${SHLIB_ENV} MAIL_CONFIG=. $(NOSLEEP) sh fail_test.in 2>&1 || exit 0) | sed \
 	    -e 's/No error:/Unknown error:/' \
@@ -79,7 +79,7 @@ fail_test: $(PROG) aliases fail_test.in fail_test.ref
 mode_conflict_test: $(PROG) mode_conflict_test.in mode_conflict_test.ref
 	@echo ; echo RUN mode_conflict_test
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	touch -t 197101010000 main.cf
 	$(SHLIB_ENV) MAIL_CONFIG=. $(NOSLEEP) sh -x mode_conflict_test.in >mode_conflict_test.tmp 2>&1
 	diff mode_conflict_test.ref mode_conflict_test.tmp
@@ -92,7 +92,7 @@ json_query_test: $(PROG)
 	# Exercise code in postalias_query().
 	@echo ; echo RUN json_query_test
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	echo '{"postmaster": "root"}' >json_query.tmp
 	$(SHLIB_ENV) ${VALGRIND} ./$(PROG)  -jq postmaster \
 		'inline:{{postmaster = root}}' | diff json_query.tmp -
@@ -105,7 +105,7 @@ json_queries_test: $(PROG)
 	# Exercise json formatting in postalias_queries().
 	@echo ; echo RUN json_queries_test
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	echo '{"postmaster": "root"}' >json_queries.tmp
 	(echo postmaster; echo other) | $(SHLIB_ENV) ${VALGRIND} \
 		./$(PROG) -jq - 'inline:{{postmaster = root}}' | \
@@ -117,7 +117,7 @@ json_sequence_test: $(PROG)
 	# Exercise json formatting in postalias_seq().
 	@echo ; echo RUN json_sequence_test
 	rm -f main.cf
-	cp ../../testing/main.cf .
+	cp ../../test-conf/main.cf .
 	rm -f json_sequence.tmp
 	(echo '{"postmaster": "root"}'; echo '{"root": "real-user"}') |\
 		sort >json_sequence.tmp

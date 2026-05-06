@@ -20916,8 +20916,8 @@ in all specified lookup tables, and stop at the first match. If no
 match was found, this may be followed by substring lookups as
 described below. </p>
 
-<li> <p> If any lookup result returns "DUNNO", terminate the search
-and pretend that no name match and no address match were found.
+<li> <p> If any lookup returns "DUNNO", terminate the search and
+pretend that no name match and no address match were found.
 </p>
 
 </ul>
@@ -20936,8 +20936,8 @@ substrings have been tried. </p>
 
 <li> <p> To generate domain name substring queries without the
 leading '.' (examples: "example.com" and "com"), specify the
-applicable configuration parameter name ("smtpd_tls_policy_maps",
-"smtp_tls_policy_maps", or "postscreen_tls_policy_maps") in the
+applicable configuration parameter name ("smtpd_tls_loglevel_maps",
+"smtp_tls_loglevel_maps", or "postscreen_tls_loglevel_maps") in the
 parent_domain_matches_subdomains parameter value. </p>
 
 <li> <p> After all table queries with a full IP address produce

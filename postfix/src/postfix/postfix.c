@@ -440,6 +440,7 @@
 
 #include <msg.h>
 #include <msg_vstream.h>
+#include <mymalloc.h>
 #include <stringops.h>
 #include <clean_env.h>
 #include <argv.h>
@@ -528,6 +529,7 @@ int     main(int argc, char **argv)
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
     maillog_client_init(argv[0], MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
+    set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
      * Check the Postfix library version as soon as we enable logging.

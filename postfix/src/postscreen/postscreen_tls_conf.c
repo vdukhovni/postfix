@@ -13,7 +13,7 @@
 /*	bool	psc_tls_pre_jail(void)
 /*
 /*	bool	psc_tls_pre_start(
-/*	const char *remote_endpt,
+/*	const PSC_STATE *state,
 /*	TLS_SERVER_START_PROPS *start_props)
 /* DESCRIPTION
 /*	This module converts Postfix configuration settings into
