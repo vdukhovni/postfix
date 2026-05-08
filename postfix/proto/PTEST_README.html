@@ -102,9 +102,13 @@ $ make test_mymalloc
 LD_LIBRARY_PATH=/path/to/postfix-source/lib ./mymalloc_test
 RUN  mymalloc + myfree normal case
 PASS mymalloc + myfree normal case
+
 RUN  mymalloc panic for too small request
+LOG  (expected) panic: mymalloc: requested length 0
 PASS mymalloc panic for too small request
+
 ... results for myrealloc(), mystrdup(), mymemdup()...
+
 mymalloc_test: PASS: 22, SKIP: 0, FAIL: 0
 </pre>
 </blockquote>
@@ -136,11 +140,13 @@ small. But in this test the <tt>msg_panic()</tt> call will not
 terminate the process like it normally would. The Ptest framework
 changes the control flow of <tt>msg_panic()</tt> and <tt>msg_fatal()</tt>
 such that these functions will terminate their test, instead of
-their process. </p>
+terminating the entire test process. </p>
 
 <li> <p> The <tt>expect_ptest_log_event()</tt> call sets up an
 expectation that <tt>msg_panic()</tt> will produce a specific error
 message; the test would fail if the expectation remains unsatisfied.
+When an error message is logged as expected, it shows up in output
+as "<tt>LOG  (expected) ...content of expected message...</tt>.
 </p>
 
 <li> <p> The <tt>ptest_fatal()</tt> call at the end of the second
@@ -305,6 +311,7 @@ LD_LIBRARY_PATH=/path/to/postfix-source/lib ./dict_union_test
 ...
 RUN  propagates notfound and found
 PASS propagates notfound and found
+
 RUN  error propagation: static map + fail map
 PASS error propagation: static map + fail map
 ...
@@ -413,11 +420,15 @@ $ make test_map_search
 LD_LIBRARY_PATH=/path/to/postfix-source/lib  ./map_search_test
 RUN  test_map_search
 RUN  test_map_search/test 0
+LOG  (expected) warning: malformed map specification: 'type'
+LOG  (expected) warning: expected maptype:mapname instead of 'type'
 PASS test_map_search/test 0
+
 RUN  test_map_search/test 1
 PASS test_map_search/test 1
 ....
 PASS test_map_search
+
 map_search_test: PASS: 13, SKIP: 0, FAIL: 0
 </pre>
 </blockquote>
@@ -486,16 +497,16 @@ results as errors. </p>
 <dt> <b> <a name="ptest_error"> <tt>void ptest_error(PTEST_CTX *t,
 const char *format, ...)</tt> </a> </b> </dt>
 
-<dd> Called from inside a test, to report an unexpected test result,
+<dd> <p> Called from inside a test, to report an unexpected test result,
 and to flag the test as failed without terminating the test. This
-call can be ignored with <tt>expect_ptest_error()</tt>. <br> <br> </dd>
+call can be ignored with <tt>expect_ptest_error()</tt>. </p> </dd>
 
 <dt> <b> <a name="ptest_fatal"> <tt>void ptest_fatal(PTEST_CTX *t,
 const char *format, ...)</tt> </a> </b> </dt>
 
-<dd> Called from inside a test, to report an unexpected test result,
+<dd> <p> Called from inside a test, to report an unexpected test result,
 to flag the test as failed, and to terminate the test. This call
-cannot be ignored with <tt>expect_ptest_error()</tt>. </dd>
+cannot be ignored with <tt>expect_ptest_error()</tt>. </p> </dd>
 
 </dl>
 
@@ -507,9 +518,9 @@ cannot be ignored with <tt>expect_ptest_error()</tt>. </dd>
 <dt> <b> <a name="ptest_info"> <tt>void ptest_info(PTEST_CTX *t,
 const char *format, ...)</tt> </a> </b> </dt>
 
-<dd> Called from inside a test, to report a non-error condition
+<dd> <p> Called from inside a test, to report a non-error condition
 without terminating the test. This call cannot be ignored with
-<tt>expect_ptest_error()</tt>. </dd>
+<tt>expect_ptest_error()</tt>. </p> </dd>
 
 </dl>
 
@@ -522,13 +533,13 @@ to verify that an intentional error is reported as expected. </p>
 expect_ptest_error(PTEST_CTX *t, const char *text)</tt> </a> </b>
 </dt>
 
-<dd> Called from inside a test, to expect exactly one <tt>ptest_error()</tt>
+<dd> <p> Called from inside a test, to expect exactly one <tt>ptest_error()</tt>
 call with the specified text, and to ignore that <tt>ptest_error()</tt>
 call (i.e. don't flag the test as failed). To ignore multiple calls,
 call <tt>expect_ptest_error()</tt> multiple times. A test is flagged
 as failed when an expected error is not reported (and of course
 when an error is reported that is not expected with
-<tt>expect_ptest_error()</tt>). </dd>
+<tt>expect_ptest_error()</tt>). </p> </dd>
 
 </dl>
 
@@ -540,12 +551,21 @@ when an error is reported that is not expected with
 
 <li> <p> Ptest changes the control flow of <tt>msg_fatal()</tt> and
 <tt>msg_panic()</tt>. When these functions are called during a test,
-Ptest flags a test as failed and terminates the test instead of the
+they will terminate the test instead of terminating the entire test
 process. </p>
 
-<li> <p> Ptest silences the output from <tt>msg_info()</tt> and
-other <tt>msg(3)</tt> calls, and installs a log event listener to
-monitor Postfix logging. </p>
+<li> <p> Ptest installs a log event listener to monitor Postfix
+logging with <tt>msg_info()</tt> etc. Examples of what logging
+may look like: </p>
+
+<pre>
+RUN  name-of-test
+LOG  (expected) warning: some text...
+LOG  (expected) panic: some text...
+LOG  (info) some text...
+Unexpected non-info event: some text....
+FAIL name-of-test
+</pre>
 
 </ul>
 
@@ -557,11 +577,22 @@ monitor Postfix logging. </p>
 expect_ptest_log_event(PTEST_CTX *t, const char *text)</tt> </a>
 </b> </dt>
 
-<dd> Called from inside a test, to expect exactly one <tt>msg(3)</tt>
-call with the specified text. To expect multiple events, call
-<tt>expect_ptest_log_event()</tt> multiple times. A test is flagged
-as failed when expected text is not logged, or when text is logged
-that is not expected with <tt>expect_ptest_log_event()</tt>. </dd>
+<dd> <p> Called from inside a test, to expect exactly one <tt>msg(3)</tt>
+call with the specified text including any <tt>warning</tt>,
+<tt>error</tt>, <tt>fatal</tt>, or <tt>panic</tt> prefix. To expect
+multiple events, call <tt>expect_ptest_log_event()</tt> multiple
+times. A test is flagged as failed when a <tt>warning</tt> or
+higher-severity message was logged but not expected, or when such
+a message was expected but not logged. </p>
+
+<p> There is no need to call <tt>expect_ptest_log_event()</tt> for
+msg_info() logging; such text will be displayed whether or not it
+is expected. Allowing arbitrary msg_info() calls makes bug hunting
+easier. </p>
+
+<p> There also is no need to match an entire logging message; a
+substring match will be sufficient. It only needs to be specific
+enough. </p> </dd>
 
 </dl>
 
@@ -575,51 +606,51 @@ that is not expected with <tt>expect_ptest_log_event()</tt>. </dd>
 <dt> <b> <a name="PTEST_RUN"> <tt>void PTEST_RUN(PTEST_CTX *t, const
 char *test_name, { code in braces })</tt> </a> </b> </dt>
 
-<dd> Called from inside a test, to run the <tt>{ code in braces
+<dd> <p> Called from inside a test, to run the <tt>{ code in braces
 }</tt> in it own subtest environment. In the test progress report,
 the subtest name is appended to the parent test name, formatted as
-<i>parent-name/child-name</i>. <br> <br> NOTE: because <tt>PTEST_RUN()
+<i>parent-name/child-name</i>. </p> <p> NOTE: because <tt>PTEST_RUN()
 </tt> is a macro, the <tt>{ code in braces }</tt> MUST NOT contain
 a <tt>return</tt> statement; use <tt>ptest_return()</tt> instead.
 It is OK for <tt>{ code in braces }</tt> to call a function that
-uses <tt>return</tt>. <br> <br> </dd>
+uses <tt>return</tt>. </p> </dd>
 
 <dt> <b> <a name="PTEST_TRY"> <tt>void PTEST_TRY(PTEST_CTX *t, const
 char *test_name, { code in braces })</tt> </a> </b> </dt>
 
-<dd> Called from inside a test, to run the <tt>{ code in braces
+<dd> <p> Called from inside a test, to run the <tt>{ code in braces
 }</tt> without entering a new subtest environment. The purpose is
 to continue running the current test after the <tt>{ code in braces
 }</tt> calls msg_fatal*() or msg_panic(). The <tt>{ code in braces
 }</tt> should set a variable to indicate that PTEST_TRY() executed
-"normally". <br> <br> NOTE: because PTEST_TRY() is a macro, the
+"normally". </p> <p>  NOTE: because PTEST_TRY() is a macro, the
 <tt>{ code in braces }</tt> MUST NOT contain a <tt>return</tt>
 statement; use <tt>ptest_return()</tt> instead.  It is OK for <tt>{
 code in braces }</tt> to call a function that uses <tt>return</tt>.
-<br> <br> </dd>
+</p> </dd>
 
 <dt> <b> <a name="ptest_skip"> <tt>NORETURN ptest_skip(PTEST_CTX
 *t)</tt> </a> </b> </dt>
 
-<dd> Called from inside a test, to flag a test as skipped, and to
+<dd> <p> Called from inside a test, to flag a test as skipped, and to
 terminate the test without terminating the process. Use this to
 disable tests that are not applicable for a specific system type
-or build configuration. <br> <br> </dd>
+or build configuration. </p> </dd>
 
 <dt> <b> <a name="ptest_return"> <tt>NORETURN ptest_return(PTEST_CTX
 *t)</tt> </a> </b> </dt>
 
-<dd> Used inside a <tt>{ code in braces }</tt> block to terminate
-a PTEST_RUN subtest. <br> <br> </dd>
+<dd> <p> Used inside a <tt>{ code in braces }</tt> block to terminate
+a PTEST_RUN subtest. </p> </dd>
 
 <dt> <b> <a name="ptest_defer"> <tt>void ptest_defer(PTEST_CTX *t,
 void (*defer_fn)(void *), void  *defer_ctx)</tt> </a> </b> </dt>
 
-<dd> Called once from inside a test, to call <tt>defer_fn(defer_ctx)</tt>
+<dd> <p> Called once from inside a test, to call <tt>defer_fn(defer_ctx)</tt>
 after the test completes. This is typically used to eliminate a
-resource leak in tests that terminate the test early. <br> <br>
+resource leak in tests that terminate the test early. </p> <p>
 NOTE: The deferred function is designed to run outside a test, and
-therefore it must not call Ptest functions. </dd>
+therefore it must not call Ptest functions. </p> </dd>
 
 </dl>
 
@@ -630,9 +661,9 @@ therefore it must not call Ptest functions. </dd>
 <dt> <b> <a name="ptest_ctx_current"> <tt>PTEST_CTX
 *ptest_ctx_current(void)</tt> </a> </b> </dt>
 
-<dd> Returns the PTEST_CTX pointer for the current test or subtest.
+<dd> <p> Returns the PTEST_CTX pointer for the current test or subtest.
 This can be used to handle a test error in a mock function or helper
-function that has no PTEST_CTX argument. <br> <br> </dd>
+function that has no PTEST_CTX argument. </p> </dd>
 
 </dl>
 

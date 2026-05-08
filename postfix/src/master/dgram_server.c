@@ -446,7 +446,10 @@ NORETURN dgram_server_main(int argc, char **argv, DGRAM_SERVER_FN service,...)
 	    break;
 	}
     }
-    set_mail_conf_str(VAR_SERVNAME, service_name);
+    /* Read-only parameters must not be changed with '-o name=value'.
+    set_mail_conf_str(VAR_PROCNAME, var_procname);
+    var_servname = mystrdup(servname);
+    set_mail_conf_str(VAR_SERVNAME, var_servname);
 
     /*
      * Initialize generic parameters and re-initialize logging in case of a

@@ -74,9 +74,13 @@ To run the test:
     LD_LIBRARY_PATH=/path/to/postfix-source/lib ./mymalloc_test
     RUN  mymalloc + myfree normal case
     PASS mymalloc + myfree normal case
+
     RUN  mymalloc panic for too small request
+    LOG  (expected) panic: mymalloc: requested length 0
     PASS mymalloc panic for too small request
+
     ... results for myrealloc(), mystrdup(), mymemdup()...
+
     mymalloc_test: PASS: 22, SKIP: 0, FAIL: 0
 
 This simple example already shows several key features of the ptest framework.
@@ -97,12 +101,14 @@ This simple example already shows several key features of the ptest framework.
         requested amount of memory is too small. But in this test the msg_panic
         () call will not terminate the process like it normally would. The
         Ptest framework changes the control flow of msg_panic() and msg_fatal()
-        such that these functions will terminate their test, instead of their
-        process.
+        such that these functions will terminate their test, instead of
+        terminating the entire test process.
 
       o The expect_ptest_log_event() call sets up an expectation that msg_panic
         () will produce a specific error message; the test would fail if the
-        expectation remains unsatisfied.
+        expectation remains unsatisfied. When an error message is logged as
+        expected, it shows up in output as "LOG (expected) ...content of
+        expected message....
 
       o The ptest_fatal() call at the end of the second test is not needed;
         this call can only be reached if mymalloc() does not call msg_panic().
@@ -239,6 +245,7 @@ A test run looks like this:
     ...
     RUN  propagates notfound and found
     PASS propagates notfound and found
+
     RUN  error propagation: static map + fail map
     PASS error propagation: static map + fail map
     ...
@@ -331,11 +338,15 @@ This is what a test run looks like:
     LD_LIBRARY_PATH=/path/to/postfix-source/lib  ./map_search_test
     RUN  test_map_search
     RUN  test_map_search/test 0
+    LOG  (expected) warning: malformed map specification: 'type'
+    LOG  (expected) warning: expected maptype:mapname instead of 'type'
     PASS test_map_search/test 0
+
     RUN  test_map_search/test 1
     PASS test_map_search/test 1
     ....
     PASS test_map_search
+
     map_search_test: PASS: 13, SKIP: 0, FAIL: 0
 
 This shows that the subtest name is appended to the parent test name, formatted
@@ -390,12 +401,14 @@ vvooiidd pptteesstt__ffaattaall((PPTTEESSTT__CCTTXX **
     Called from inside a test, to report an unexpected test result, to flag the
     test as failed, and to terminate the test. This call cannot be ignored with
     expect_ptest_error().
+
 For convenience, Ptest can also report non-error information.
 
 vvooiidd pptteesstt__iinnffoo((PPTTEESSTT__CCTTXX **tt,, ccoonnsstt cchhaarr **ffoorrmmaatt,, ......))
     Called from inside a test, to report a non-error condition without
     terminating the test. This call cannot be ignored with expect_ptest_error
     ().
+
 Finally, Ptest has support to test ptest_error() itself, to verify that an
 intentional error is reported as expected.
 
@@ -412,20 +425,35 @@ MMaannaaggiinngg lloogg eevveennttss
 Ptest integrates with Postfix msg(3) logging.
 
   * Ptest changes the control flow of msg_fatal() and msg_panic(). When these
-    functions are called during a test, Ptest flags a test as failed and
-    terminates the test instead of the process.
+    functions are called during a test, they will terminate the test instead of
+    terminating the entire test process.
 
-  * Ptest silences the output from msg_info() and other msg(3) calls, and
-    installs a log event listener to monitor Postfix logging.
+  * Ptest installs a log event listener to monitor Postfix logging with
+    msg_info() etc. Examples of what logging may look like:
+
+    RUN  name-of-test
+    LOG  (expected) warning: some text...
+    LOG  (expected) panic: some text...
+    LOG  (info) some text...
+    Unexpected non-info event: some text....
+    FAIL name-of-test
 
 Ptest provides the following API to manage log events:
 
 vvooiidd eexxppeecctt__pptteesstt__lloogg__eevveenntt((PPTTEESSTT__CCTTXX **tt,, ccoonnsstt cchhaarr **tteexxtt))
     Called from inside a test, to expect exactly one msg(3) call with the
-    specified text. To expect multiple events, call expect_ptest_log_event()
-    multiple times. A test is flagged as failed when expected text is not
-    logged, or when text is logged that is not expected with
-    expect_ptest_log_event().
+    specified text including any warning, error, fatal, or panic prefix. To
+    expect multiple events, call expect_ptest_log_event() multiple times. A
+    test is flagged as failed when a warning or higher-severity message was
+    logged but not expected, or when such a message was expected but not
+    logged.
+
+    There is no need to call expect_ptest_log_event() for msg_info() logging;
+    such text will be displayed whether or not it is expected. Allowing
+    arbitrary msg_info() calls makes bug hunting easier.
+
+    There also is no need to match an entire logging message; a substring match
+    will be sufficient. It only needs to be specific enough.
 
 MMaannaaggiinngg tteesstt eexxeeccuuttiioonn
 

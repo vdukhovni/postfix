@@ -290,7 +290,7 @@ static const PTEST_CASE ptestcases[] = {
     },
     {"mystrndup panic for null input", test_mystrndup_panic_null,
     },
-    {"mystrndup panic for for too small size", test_mystrndup_panic_too_small,
+    {"mystrndup panic for too small size", test_mystrndup_panic_too_small,
     },
     {"mystrndup static result for empty string", test_mystrndup_static_empty,
     },

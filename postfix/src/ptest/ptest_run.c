@@ -116,13 +116,13 @@ void    ptest_run_epilog(PTEST_CTX *t, PTEST_CTX *parent)
     ptest_log_wrapup(t);
     pmock_expect_wrapup(t);
     if (ptest_error_wrapup(t) != 0 || t->sub_fail != 0) {
-	ptest_info(t, "FAIL %s", t->name);
+	ptest_info(t, "FAIL %s\n", t->name);
 	parent->sub_fail += 1;
     } else if (t->flags & PTEST_CTX_FLAG_SKIP) {
 	ptest_info(t, "SKIP %s", t->name);
 	parent->sub_skip += 1;
     } else {
-	ptest_info(t, "PASS %s", t->name);
+	ptest_info(t, "PASS %s\n", t->name);
 	parent->sub_pass += 1;
     }
     parent->sub_pass += t->sub_pass;

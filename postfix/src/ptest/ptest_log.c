@@ -101,15 +101,25 @@ static void ptest_log_event(int level, const char *text, void *context)
     }
 
     /*
-     * Handle expected versus unexpected text.
+     * Handle matched text.
      */
     for (cpp = t->allow_logs->argv; *cpp; cpp++) {
 	if (strstr(STR(t->log_buf), *cpp) != 0) {
 	    argv_delete(t->allow_logs, cpp - t->allow_logs->argv, 1);
+	    ptest_info(t, "LOG  (expected) %s", STR(t->log_buf));
 	    return;
 	}
     }
-    ptest_error(t, "Unexpected log event: got '%s'", STR(t->log_buf));
+
+    /*
+     * Pass through unmatched info logging. Flag other unmatched logging as
+     * an error.
+     */
+    if (level == MSG_INFO) {
+	ptest_info(t, "LOG  (info) %s", text);
+    } else {
+	ptest_error(t, "Unexpected non-info event: got '%s'", STR(t->log_buf));
+    }
 }
 
 /* ptest_log_setup - install logging receiver */

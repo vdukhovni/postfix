@@ -34,7 +34,7 @@ static void ptest_log_non_error(PTEST_CTX *t, const PTEST_CASE *unused)
 static void ptest_log_flags_unexpected_message(PTEST_CTX *t, const PTEST_CASE *unused)
 {
     expect_ptest_error(t, "this is a forced 'Unexpected log event' error");
-    msg_info("this is a forced 'Unexpected log event' error");
+    msg_warn("this is a forced 'Unexpected log event' error");
 }
 
 static void ptest_log_flags_missing_message(PTEST_CTX *t, const PTEST_CASE *unused)
@@ -46,13 +46,13 @@ static void ptest_log_flags_missing_message(PTEST_CTX *t, const PTEST_CASE *unus
 static void ptest_nested_logging(PTEST_CTX * t, const PTEST_CASE * unused)
 {
     expect_ptest_log_event(t, "top-level");
-    msg_info("this is a top-level event");
+    msg_warn("this is a top-level event");
     PTEST_RUN(t, "top-1 level", {
 	expect_ptest_log_event(t, "top-1 level event");
-	msg_info("this is a top-1 level event");
+	msg_warn("this is a top-1 level event");
 	PTEST_RUN(t, "top-2 level", {
 	    expect_ptest_log_event(t, "top-2 level event");
-	    msg_info("this is a top-2 level event");
+	    msg_warn("this is a top-2 level event");
 	});
     });
 }

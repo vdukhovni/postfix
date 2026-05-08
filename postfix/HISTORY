@@ -31077,7 +31077,32 @@ Apologies for any names omitted.
 	directory to "test-conf". On MacOS, "rm -rf testing" deleted
 	the TESTING text file. Files: Makefile.in, postalias/Makefile.in,
 	postmap/Makefile.in, smtpd/Makefile.in, util/Makefile.in.
-	
+
+20260507
+
+	Fix for 'uninitialized value' error. Viktor Dukhovni. File:
+	auxiliary/collate/collate.pl.
+
+	Tech debt: restructured initialization of $service_name.
+	Also enforced that Postfix daemons ignore $process_name and
+	$service_name parameter settings in main.cf or master.cf
+	(parameters are read-only). Files: master/dgram_server.c,
+	master/event_server.c, master/multi_server.c,
+	master/single_server.c, master/trigger_server.c,
+	postconf/postconf_builtin.c.
+
+20260508
+
+	Claude AI findings, bought to our attention by Robert Sayre.
+	Deleted an obsolete __MAXINT__ definition (util/timecmp.c);
+	fixed a signed integer overshift operation (util/vstring.h).
+
+	Testing: Ptest usability: don't require expectations for
+	msg_info() logging, to facilitate debugging; pass through
+	expected logging to make test output more informative.
+	Files: proto/PTEST_README.html, ptest/ptest_log.c,
+	ptest/ptest_log_test.c, ptest/ptest_run.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

@@ -29,7 +29,15 @@
 /*	Viktor Dukhovni
 /*--*/
 
-#include "timecmp.h"
+ /*
+  * System library.
+  */
+#include <sys_defs.h>
+
+ /*
+  * Utility library.
+  */
+#include <timecmp.h>
 
 /* timecmp - wrap-safe time_t comparison */
 
@@ -56,17 +64,6 @@ int     timecmp(time_t t1, time_t t2)
 
 #ifdef TEST
 #include <assert.h>
-
- /*
-  * Bit banging!! There is no official constant that defines the INT_MAX
-  * equivalent of the off_t type. Wietse came up with the following macro
-  * that works as long as off_t is some two's complement number.
-  * 
-  * Note, however, that C99 permits signed integer representations other than
-  * two's complement.
-  */
-#include <limits.h>
-#define __MAXINT__(T) ((T) (((((T) 1) << ((sizeof(T) * CHAR_BIT) - 1)) ^ ((T) -1))))
 
 int     main(void)
 {
