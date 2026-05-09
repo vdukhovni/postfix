@@ -111,6 +111,20 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
 
               This feature is available in Postfix 3.9 and later.
 
+       <b>statement_mode (default: legacy)</b>
+              The MySQL statement execution mode. Specify one of:
+
+              <b>legacy</b> Expand  the  query   template   and   execute   it   with
+                     <b>mysql_query</b>,  escaping  expanded query variables with the
+                     active MySQL connection.  This is the historical behavior
+                     and the default for compatibility.
+
+              <b>prepared</b>
+                     Rewrite  the query template into MySQL parameter markers,
+                     prepare the  normalized  SQL  once  per  connection  with
+                     <b>mysql_stmt_prepare</b>,  and  execute it with <b>mysql_stmt_exe-</b>
+                     <b>cute</b>.
+
        <b>query</b>  The SQL query template used to search the database, where <b>%s</b>  is
               a  substitute for the address Postfix is trying to resolve, e.g.
                   query = SELECT replacement FROM aliases WHERE mailbox = '%s'

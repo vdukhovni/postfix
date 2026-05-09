@@ -64,6 +64,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Prepared statement support by
+/*	Ömer Güven
 /*--*/
 
 /* System library. */
@@ -86,6 +89,9 @@
 #if !defined(MYSQL_VERSION_ID) || MYSQL_VERSION_ID < 40000
 #error "MySQL versions <4 are no longer supported"
 #endif
+#ifndef MYSQL_DATA_TRUNCATED
+#define MYSQL_DATA_TRUNCATED 101
+#endif
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -99,7 +105,7 @@
 #include "argv.h"
 #include "vstring.h"
 #include "split_at.h"
-#include "find_inet_service.h"
+#include "find_inet.h"
 #include "myrand.h"
 #include "events.h"
 #include "stringops.h"
@@ -133,10 +139,10 @@
 /* need some structs to help organize things */
 typedef struct {
     MYSQL  *db;
+    MYSQL_STMT *stmt;
     char   *hostname;
     char   *name;
-    /* 202604 Claude: find_inet_service() returns -1 on error. */
-    int     port;
+    unsigned port;
     unsigned type;			/* TYPEUNIX | TYPEINET */
     unsigned stat;			/* STATUNTRIED | STATFAIL | STATCUR */
     time_t  ts;				/* used for attempting reconnection
@@ -148,6 +154,17 @@ typedef struct {
     HOST  **db_hosts;			/* the hosts on which the databases
 					 * reside */
 } PLMYSQL;
+
+#define MYSQL_STATEMENT_LEGACY		0
+#define MYSQL_STATEMENT_PREPARED	1
+
+typedef struct {
+    char   *sql;
+    ARGV   *param_formats;
+    VSTRING **param_bufs;
+    MYSQL_BIND *param_binds;
+    unsigned long *param_lengths;
+} MYSQL_STATEMENT;
 
 typedef struct {
     DICT    dict;
@@ -167,6 +184,8 @@ typedef struct {
     ARGV   *hosts;
     PLMYSQL *pldb;
     HOST   *active_host;
+    int     statement_mode;
+    MYSQL_STATEMENT *stmt;
     char   *tls_cert_file;
     char   *tls_key_file;
     char   *tls_CAfile;
@@ -192,6 +211,8 @@ typedef struct {
 /* internal function declarations */
 static PLMYSQL *plmysql_init(ARGV *);
 static int plmysql_query(DICT_MYSQL *, const char *, VSTRING *, MYSQL_RES **);
+static int plmysql_query_prepared(DICT_MYSQL *, const char *, VSTRING *, int *);
+static int plmysql_prepare_stmt(DICT_MYSQL *, HOST *);
 static void plmysql_dealloc(PLMYSQL *);
 static void plmysql_close_host(HOST *);
 static void plmysql_down_host(HOST *, int);
@@ -201,6 +222,269 @@ DICT   *dict_mysql_open(const char *, int, int);
 static void dict_mysql_close(DICT *);
 static void mysql_parse_config(DICT_MYSQL *, const char *);
 static HOST *host_init(const char *);
+static int mysql_stmt_param(const char);
+static int mysql_stmt_param_slot(ARGV *, const char *);
+static void mysql_stmt_append_expr_param(VSTRING *, ARGV *, const char, int *);
+static void mysql_stmt_append_expr_literal(VSTRING *, const char *, ssize_t, int *);
+static void mysql_stmt_append_quoted(VSTRING *, ARGV *, const char *, ssize_t);
+static MYSQL_STATEMENT *mysql_statement_alloc(const char *, const char *);
+static void mysql_statement_free(MYSQL_STATEMENT *);
+static int mysql_stmt_bind_value(DICT_MYSQL *, const char *,
+				         const char *, VSTRING *);
+static int mysql_stmt_bind(DICT_MYSQL *, MYSQL_STMT *, const char *);
+
+static int mysql_stmt_param(const char ch)
+{
+    return (strchr("sudSUD123456789", ch) != 0);
+}
+
+static int mysql_stmt_param_slot(ARGV *param_formats, const char *format)
+{
+    /* MySQL '?' markers are anonymous; repeated %u needs repeated slots. */
+    argv_add(param_formats, format, ARGV_END);
+    return (param_formats->argc - 1);
+}
+
+static void mysql_stmt_append_expr_param(VSTRING *buf, ARGV *param_formats,
+					         const char ch, int *pieces)
+{
+    char    format[] = {'%', ch, 0};
+
+    if ((*pieces)++ > 0)
+	VSTRING_ADDCH(buf, ',');
+    (void) mysql_stmt_param_slot(param_formats, format);
+    VSTRING_ADDCH(buf, '?');
+}
+
+static void mysql_stmt_append_expr_literal(VSTRING *buf, const char *text,
+					           ssize_t len, int *pieces)
+{
+    if ((*pieces)++ > 0)
+	VSTRING_ADDCH(buf, ',');
+    VSTRING_ADDCH(buf, '\'');
+    vstring_strncat(buf, text, len);
+    VSTRING_ADDCH(buf, '\'');
+}
+
+static void mysql_stmt_append_quoted(VSTRING *sql, ARGV *param_formats,
+					       const char *text, ssize_t len)
+{
+    VSTRING *expr;
+    VSTRING *lit;
+    const char *end = text + len;
+    const char *cp;
+    int     pieces = 0;
+    int     has_param = 0;
+
+    /* Fast path for common whole-literal placeholders: '%u' -> ?. */
+    if (len == 2 && text[0] == '%' && mysql_stmt_param(text[1])) {
+	char    format[] = {'%', text[1], 0};
+
+	(void) mysql_stmt_param_slot(param_formats, format);
+	VSTRING_ADDCH(sql, '?');
+	return;
+    }
+
+    expr = vstring_alloc(10);
+    lit = vstring_alloc(10);
+
+    /*
+     * MySQL does not use || for string concatenation by default, so mixed
+     * quoted literals become CONCAT('prefix-', ?, ...).
+     */
+    for (cp = text; cp < end; cp++) {
+	if (*cp == '\'' && cp + 1 < end && cp[1] == '\'') {
+	    VSTRING_ADDCH(lit, *cp);
+	    VSTRING_ADDCH(lit, *++cp);
+	} else if (*cp == '%' && cp + 1 < end) {
+	    if (cp[1] == '%') {
+		VSTRING_ADDCH(lit, '%');
+		cp += 1;
+	    } else if (mysql_stmt_param(cp[1])) {
+		if (VSTRING_LEN(lit) > 0) {
+		    VSTRING_TERMINATE(lit);
+		    mysql_stmt_append_expr_literal(expr, vstring_str(lit),
+						   VSTRING_LEN(lit), &pieces);
+		    VSTRING_RESET(lit);
+		    VSTRING_TERMINATE(lit);
+		}
+		mysql_stmt_append_expr_param(expr, param_formats, cp[1], &pieces);
+		has_param = 1;
+		cp += 1;
+	    } else {
+		msg_fatal("unexpected '%.2s' in mysql query template: %.*s",
+			  cp, (int) len, text);
+	    }
+	} else {
+	    VSTRING_ADDCH(lit, *cp);
+	}
+    }
+    if (VSTRING_LEN(lit) > 0 || pieces == 0) {
+	VSTRING_TERMINATE(lit);
+	mysql_stmt_append_expr_literal(expr, vstring_str(lit),
+				       VSTRING_LEN(lit), &pieces);
+    }
+
+    VSTRING_TERMINATE(expr);
+    if (has_param)
+	vstring_sprintf_append(sql, "CONCAT(%s)", vstring_str(expr));
+    else
+	vstring_strcat(sql, vstring_str(expr));
+    vstring_free(expr);
+    vstring_free(lit);
+}
+
+static MYSQL_STATEMENT *mysql_statement_alloc(const char *mapname,
+						      const char *query)
+{
+    MYSQL_STATEMENT *stmt;
+    VSTRING *sql;
+    ARGV   *param_formats;
+    const char *cp;
+    int     i;
+
+    stmt = (MYSQL_STATEMENT *) mymalloc(sizeof(*stmt));
+    sql = vstring_alloc(100);
+    param_formats = argv_alloc(1);
+
+    /*
+     * Parse once at open time. This keeps the legacy query template intact
+     * for users, while producing a MYSQL_STMT string with '?' markers.
+     */
+    for (cp = query; *cp; cp++) {
+	if (*cp == '\'') {
+	    const char *start;
+
+	    for (start = ++cp; *cp; cp++) {
+		if (*cp == '\'') {
+		    if (cp[1] == '\'')
+			cp += 1;
+		    else
+			break;
+		}
+	    }
+	    if (*cp == 0)
+		msg_fatal("%s: unterminated quote in query template: %s",
+			  mapname, query);
+	    mysql_stmt_append_quoted(sql, param_formats, start, cp - start);
+	} else if (*cp == '%') {
+	    if (cp[1] == 0) {
+		msg_fatal("%s: '%%' at end of query template: %s",
+			  mapname, query);
+	    } else if (cp[1] == '%') {
+		VSTRING_ADDCH(sql, '%');
+		cp += 1;
+	    } else if (mysql_stmt_param(cp[1])) {
+		char    format[] = {'%', cp[1], 0};
+
+		(void) mysql_stmt_param_slot(param_formats, format);
+		VSTRING_ADDCH(sql, '?');
+		cp += 1;
+	    } else {
+		msg_fatal("%s: unexpected '%.2s' in query template: %s",
+			  mapname, cp, query);
+	    }
+	} else {
+	    VSTRING_ADDCH(sql, *cp);
+	}
+    }
+    VSTRING_TERMINATE(sql);
+
+    stmt->sql = vstring_export(sql);
+    stmt->param_formats = param_formats;
+    /* No-placeholder templates avoid all per-parameter allocations. */
+    if (param_formats->argc > 0) {
+	stmt->param_bufs = (VSTRING **) mymalloc(param_formats->argc
+						 * sizeof(*stmt->param_bufs));
+	stmt->param_binds = (MYSQL_BIND *) mymalloc(param_formats->argc
+						    * sizeof(*stmt->param_binds));
+	stmt->param_lengths = (unsigned long *) mymalloc(param_formats->argc
+						* sizeof(*stmt->param_lengths));
+	for (i = 0; i < param_formats->argc; i++)
+	    stmt->param_bufs[i] = vstring_alloc(10);
+    } else {
+	stmt->param_bufs = 0;
+	stmt->param_binds = 0;
+	stmt->param_lengths = 0;
+    }
+    return (stmt);
+}
+
+static void mysql_statement_free(MYSQL_STATEMENT *stmt)
+{
+    int     i;
+
+    if (stmt->sql)
+	myfree(stmt->sql);
+    if (stmt->param_bufs) {
+	for (i = 0; i < stmt->param_formats->argc; i++)
+	    vstring_free(stmt->param_bufs[i]);
+	myfree((void *) stmt->param_bufs);
+    }
+    if (stmt->param_binds)
+	myfree((void *) stmt->param_binds);
+    if (stmt->param_lengths)
+	myfree((void *) stmt->param_lengths);
+    if (stmt->param_formats)
+	argv_free(stmt->param_formats);
+    myfree((void *) stmt);
+}
+
+static int mysql_stmt_bind_value(DICT_MYSQL *dict_mysql, const char *format,
+				         const char *name, VSTRING *buf)
+{
+    /* Re-expand this placeholder for the current lookup key into its slot. */
+    VSTRING_RESET(buf);
+    VSTRING_TERMINATE(buf);
+    return (db_common_expand(dict_mysql->ctx, format, name, 0, buf,
+			     (db_quote_callback_t) 0));
+}
+
+static int mysql_stmt_bind(DICT_MYSQL *dict_mysql, MYSQL_STMT *stmt,
+			           const char *name)
+{
+    MYSQL_STATEMENT *sql_stmt = dict_mysql->stmt;
+    VSTRING *param_buf;
+    int     i;
+    int     prev;
+
+    if (sql_stmt->param_formats->argc == 0)
+	return (1);
+    /* Fill every MYSQL_BIND in the same order as the generated '?' markers. */
+    memset(sql_stmt->param_binds, 0,
+	   sql_stmt->param_formats->argc * sizeof(*sql_stmt->param_binds));
+    for (i = 0; i < sql_stmt->param_formats->argc; i++) {
+	/*
+	 * Repeated %u needs repeated MySQL bind slots, but it can reuse the
+	 * first expansion buffer for this lookup.
+	 */
+	for (prev = 0; prev < i; prev++)
+	    if (strcmp(sql_stmt->param_formats->argv[prev],
+		       sql_stmt->param_formats->argv[i]) == 0)
+		break;
+	if (prev == i) {
+	    if (!mysql_stmt_bind_value(dict_mysql,
+				       sql_stmt->param_formats->argv[i],
+				       name, sql_stmt->param_bufs[i]))
+		return (0);
+	    param_buf = sql_stmt->param_bufs[i];
+	} else {
+	    param_buf = sql_stmt->param_bufs[prev];
+	}
+	sql_stmt->param_lengths[i] = VSTRING_LEN(param_buf);
+	sql_stmt->param_binds[i].buffer_type = MYSQL_TYPE_STRING;
+	sql_stmt->param_binds[i].buffer = (char *) vstring_str(param_buf);
+	sql_stmt->param_binds[i].buffer_length = sql_stmt->param_lengths[i];
+	sql_stmt->param_binds[i].length = &sql_stmt->param_lengths[i];
+    }
+    if (mysql_stmt_bind_param(stmt, sql_stmt->param_binds) != 0) {
+	msg_warn("%s:%s: prepared query bind failed: %s",
+		 dict_mysql->dict.type, dict_mysql->dict.name,
+		 mysql_stmt_error(stmt));
+	return (-1);
+    }
+    return (1);
+}
 
 /* dict_mysql_quote - escape SQL metacharacters in input string */
 
@@ -302,6 +586,18 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
 	VSTRING_RESET(buf); \
 	VSTRING_TERMINATE(buf); \
     } while (0)
+
+    if (dict_mysql->statement_mode == MYSQL_STATEMENT_PREPARED) {
+	int     found;
+
+	INIT_VSTR(result, 10);
+	if (plmysql_query_prepared(dict_mysql, name, result, &found) == 0) {
+	    dict->error = DICT_ERR_RETRY;
+	    return (0);
+	}
+	r = vstring_str(result);
+	return ((dict->error == 0 && found && *r) ? r : 0);
+    }
 
     INIT_VSTR(query, 10);
 
@@ -452,9 +748,9 @@ static void dict_mysql_event(int unused_event, void *context)
  */
 
 static int plmysql_query(DICT_MYSQL *dict_mysql,
-			         const char *name,
-			         VSTRING *query,
-			         MYSQL_RES **result)
+				         const char *name,
+				         VSTRING *query,
+				         MYSQL_RES **result)
 {
     HOST   *host;
     MYSQL_RES *first_result = 0;
@@ -595,6 +891,195 @@ static int plmysql_query(DICT_MYSQL *dict_mysql,
     return (query_error == 0);
 }
 
+static int plmysql_prepare_stmt(DICT_MYSQL *dict_mysql, HOST *host)
+{
+    if (host->stmt)
+	return (1);
+    if ((host->stmt = mysql_stmt_init(host->db)) == 0) {
+	msg_warn("%s:%s: prepared query init failed: %s",
+		 dict_mysql->dict.type, dict_mysql->dict.name,
+		 mysql_error(host->db));
+	return (0);
+    }
+    if (mysql_stmt_prepare(host->stmt, dict_mysql->stmt->sql,
+			   strlen(dict_mysql->stmt->sql)) != 0) {
+	msg_warn("%s:%s: prepared query failed: %s",
+		 dict_mysql->dict.type, dict_mysql->dict.name,
+		 mysql_stmt_error(host->stmt));
+	mysql_stmt_close(host->stmt);
+	host->stmt = 0;
+	return (0);
+    }
+    return (1);
+}
+
+static int plmysql_query_prepared(DICT_MYSQL *dict_mysql, const char *name,
+				          VSTRING *result, int *found)
+{
+    HOST   *host;
+    MYSQL_RES *metadata;
+    MYSQL_BIND *result_binds;
+    MYSQL_BIND column_bind;
+    unsigned long *lengths;
+    unsigned long column_length;
+    char   *dummy;
+    char   *column;
+    int     num_fields;
+    int     i;
+    int     status;
+    int     query_error = 1;
+    int     expansion = 0;
+
+    *found = 0;
+    errno = ENOTSUP;
+
+    while ((host = dict_mysql_get_active(dict_mysql)) != NULL) {
+	if (!plmysql_prepare_stmt(dict_mysql, host)) {
+	    plmysql_down_host(host, dict_mysql->retry_interval);
+	    continue;
+	}
+	status = mysql_stmt_bind(dict_mysql, host->stmt, name);
+	if (status == 0)
+	    return (1);
+	if (status < 0) {
+	    plmysql_down_host(host, dict_mysql->retry_interval);
+	    continue;
+	}
+
+	query_error = 0;
+	errno = 0;
+	if (mysql_stmt_execute(host->stmt) != 0) {
+	    query_error = 1;
+	    msg_warn("%s:%s: prepared query execute failed: %s",
+		     dict_mysql->dict.type, dict_mysql->dict.name,
+		     mysql_stmt_error(host->stmt));
+	}
+
+	metadata = 0;
+	result_binds = 0;
+	lengths = 0;
+	dummy = 0;
+
+	if (query_error == 0) {
+	    metadata = mysql_stmt_result_metadata(host->stmt);
+	    if (metadata == 0) {
+		if (mysql_stmt_field_count(host->stmt) != 0) {
+		    query_error = 1;
+		    msg_warn("%s:%s: prepared query metadata failed: %s",
+			     dict_mysql->dict.type, dict_mysql->dict.name,
+			     mysql_stmt_error(host->stmt));
+		} else if (dict_mysql->require_result_set) {
+		    query_error = 1;
+		    msg_warn("%s:%s: prepared query returned no result set"
+			     "(require_result_set = yes)",
+			     dict_mysql->dict.type, dict_mysql->dict.name);
+		}
+	    }
+	}
+
+	if (query_error == 0 && metadata != 0) {
+	    if (mysql_stmt_store_result(host->stmt) != 0) {
+		query_error = 1;
+		msg_warn("%s:%s: prepared query store result failed: %s",
+			 dict_mysql->dict.type, dict_mysql->dict.name,
+			 mysql_stmt_error(host->stmt));
+	    } else {
+		num_fields = mysql_num_fields(metadata);
+		result_binds = (MYSQL_BIND *) mymalloc(num_fields
+						       * sizeof(*result_binds));
+		lengths = (unsigned long *) mymalloc(num_fields
+						     * sizeof(*lengths));
+		dummy = (char *) mymalloc(num_fields > 0 ? num_fields : 1);
+		memset(result_binds, 0, num_fields * sizeof(*result_binds));
+		for (i = 0; i < num_fields; i++) {
+		    result_binds[i].buffer_type = MYSQL_TYPE_STRING;
+		    result_binds[i].buffer = dummy + i;
+		    result_binds[i].buffer_length = 1;
+		    result_binds[i].length = lengths + i;
+		}
+		if (mysql_stmt_bind_result(host->stmt, result_binds) != 0) {
+		    query_error = 1;
+		    msg_warn("%s:%s: prepared query bind result failed: %s",
+			     dict_mysql->dict.type, dict_mysql->dict.name,
+			     mysql_stmt_error(host->stmt));
+		}
+	    }
+	}
+
+	while (query_error == 0 && metadata != 0
+	       && (status = mysql_stmt_fetch(host->stmt)) != MYSQL_NO_DATA) {
+	    if (status != 0 && status != MYSQL_DATA_TRUNCATED) {
+		query_error = 1;
+		msg_warn("%s:%s: prepared query fetch failed: %s",
+			 dict_mysql->dict.type, dict_mysql->dict.name,
+			 mysql_stmt_error(host->stmt));
+		break;
+	    }
+	    *found = 1;
+	    for (i = 0; i < num_fields; i++) {
+		column = (char *) mymalloc(lengths[i] + 1);
+		memset(&column_bind, 0, sizeof(column_bind));
+		column_bind.buffer_type = MYSQL_TYPE_STRING;
+		column_bind.buffer = column;
+		column_bind.buffer_length = lengths[i] + 1;
+		column_bind.length = &column_length;
+		column_length = 0;
+		if (mysql_stmt_fetch_column(host->stmt, &column_bind, i, 0) != 0) {
+		    query_error = 1;
+		    msg_warn("%s:%s: prepared query fetch column failed: %s",
+			     dict_mysql->dict.type, dict_mysql->dict.name,
+			     mysql_stmt_error(host->stmt));
+		    myfree(column);
+		    break;
+		}
+		column[column_length] = 0;
+		if (db_common_expand(dict_mysql->ctx, dict_mysql->result_format,
+				     column, name, result, 0)
+		    && dict_mysql->expansion_limit > 0
+		    && ++expansion > dict_mysql->expansion_limit) {
+		    msg_warn("%s: %s: Expansion limit exceeded for key: '%s'",
+			     __func__, dict_mysql->parser->name, name);
+		    dict_mysql->dict.error = DICT_ERR_RETRY;
+		    query_error = 1;
+		    myfree(column);
+		    break;
+		}
+		myfree(column);
+	    }
+	}
+
+	if (result_binds)
+	    myfree((void *) result_binds);
+	if (lengths)
+	    myfree((void *) lengths);
+	if (dummy)
+	    myfree(dummy);
+	if (metadata)
+	    mysql_free_result(metadata);
+	mysql_stmt_free_result(host->stmt);
+
+	if (dict_mysql->dict.error) {
+	    event_request_timer(dict_mysql_event, (void *) host,
+				dict_mysql->idle_interval);
+	    return (1);
+	}
+	if (query_error) {
+	    plmysql_down_host(host, dict_mysql->retry_interval);
+	    if (errno == 0)
+		errno = ENOTSUP;
+	} else {
+	    if (msg_verbose)
+		msg_info("%s:%s: successful prepared query result from host %s",
+			 dict_mysql->dict.type, dict_mysql->dict.name,
+			 host->hostname);
+	    event_request_timer(dict_mysql_event, (void *) host,
+				dict_mysql->idle_interval);
+	    break;
+	}
+    }
+    return (query_error == 0);
+}
+
 /*
  * plmysql_connect_single -
  * used to reconnect to a single database when one is down or none is
@@ -662,6 +1147,10 @@ static void plmysql_connect_single(DICT_MYSQL *dict_mysql, HOST *host)
 /* plmysql_close_host - close an established MySQL connection */
 static void plmysql_close_host(HOST *host)
 {
+    if (host->stmt) {
+	mysql_stmt_close(host->stmt);
+	host->stmt = 0;
+    }
     mysql_close(host->db);
     host->db = 0;
     host->stat = STATUNTRIED;
@@ -673,6 +1162,10 @@ static void plmysql_close_host(HOST *host)
  */
 static void plmysql_down_host(HOST *host, int retry_interval)
 {
+    if (host->stmt) {
+	mysql_stmt_close(host->stmt);
+	host->stmt = 0;
+    }
     mysql_close(host->db);
     host->db = 0;
     host->ts = time((time_t *) 0) + retry_interval;
@@ -688,6 +1181,7 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     CFG_PARSER *p = dict_mysql->parser;
     VSTRING *buf;
     char   *hosts;
+    char   *statement_mode;
 
     dict_mysql->username = cfg_get_str(p, "user", "", 0, 0);
     dict_mysql->password = cfg_get_str(p, "password", "", 0, 0);
@@ -698,6 +1192,16 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     dict_mysql->idle_interval = cfg_get_int(p, "idle_interval",
 					    DEF_IDLE_INTV, 1, 0);
     dict_mysql->result_format = cfg_get_str(p, "result_format", "%s", 1, 0);
+    statement_mode = cfg_get_str(p, "statement_mode", "legacy", 1, 0);
+    if (strcasecmp(statement_mode, "legacy") == 0) {
+	dict_mysql->statement_mode = MYSQL_STATEMENT_LEGACY;
+    } else if (strcasecmp(statement_mode, "prepared") == 0) {
+	dict_mysql->statement_mode = MYSQL_STATEMENT_PREPARED;
+    } else {
+	msg_fatal("%s: %s: bad statement_mode value '%s'; specify "
+		  "'legacy' or 'prepared'", myname, mysqlcf, statement_mode);
+    }
+    myfree(statement_mode);
     dict_mysql->option_file = cfg_get_str(p, "option_file", NULL, 0, 0);
     dict_mysql->option_group = cfg_get_str(p, "option_group", "client", 0, 0);
     dict_mysql->tls_key_file = cfg_get_str(p, "tls_key_file", NULL, 0, 0);
@@ -736,6 +1240,9 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
 			   dict_mysql->query, 1);
     (void) db_common_parse(0, &dict_mysql->ctx, dict_mysql->result_format, 0);
     db_common_parse_domain(p, dict_mysql->ctx);
+    if (dict_mysql->statement_mode != MYSQL_STATEMENT_LEGACY)
+	dict_mysql->stmt = mysql_statement_alloc(dict_mysql->parser->name,
+						 dict_mysql->query);
 
     /*
      * Maps that use substring keys should only be used with the full input
@@ -792,6 +1299,7 @@ DICT   *dict_mysql_open(const char *name, int open_flags, int dict_flags)
     dict_mysql->dict.close = dict_mysql_close;
     dict_mysql->dict.flags = dict_flags;
     dict_mysql->parser = parser;
+    dict_mysql->stmt = 0;
     mysql_parse_config(dict_mysql, name);
     dict_mysql->active_host = 0;
     dict_mysql->pldb = plmysql_init(dict_mysql->hosts);
@@ -832,6 +1340,7 @@ static HOST *host_init(const char *hostname)
     char   *s;
 
     host->db = 0;
+    host->stmt = 0;
     host->hostname = mystrdup(hostname);
     host->port = 0;
     host->stat = STATUNTRIED;
@@ -851,9 +1360,7 @@ static HOST *host_init(const char *hostname)
     }
     host->name = mystrdup(d);
     if ((s = split_at_right(host->name, ':')) != 0)
-	if ((host->port = find_inet_service(s, "tcp")) < 0)
-	    /* TODO: return null and create a surrogate dictionary. */
-	    msg_fatal("unknown service: %s/tcp", s);
+	host->port = ntohs(find_inet_port(s, "tcp"));
     if (strcasecmp(host->name, "localhost") == 0) {
 	/* The MySQL way: this will actually connect over the UNIX socket */
 	myfree(host->name);
@@ -899,6 +1406,8 @@ static void dict_mysql_close(DICT *dict)
 	argv_free(dict_mysql->hosts);
     if (dict_mysql->ctx)
 	db_common_free_ctx(dict_mysql->ctx);
+    if (dict_mysql->stmt)
+	mysql_statement_free(dict_mysql->stmt);
     if (dict->fold_buf)
 	vstring_free(dict->fold_buf);
     dict_free(dict);
@@ -911,6 +1420,8 @@ static void plmysql_dealloc(PLMYSQL *PLDB)
 
     for (i = 0; i < PLDB->len_hosts; i++) {
 	event_cancel_timer(dict_mysql_event, (void *) (PLDB->db_hosts[i]));
+	if (PLDB->db_hosts[i]->stmt)
+	    mysql_stmt_close(PLDB->db_hosts[i]->stmt);
 	if (PLDB->db_hosts[i]->db)
 	    mysql_close(PLDB->db_hosts[i]->db);
 	myfree(PLDB->db_hosts[i]->hostname);

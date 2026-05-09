@@ -61,6 +61,18 @@ The SQLite database file location. Example:
 .nf
     dbpath = customer_database
 .fi
+.IP "\fBstatement_mode (default: legacy)\fR"
+The SQLite statement execution mode. Specify one of:
+.RS
+.IP "\fBlegacy\fR"
+Expand the query template and prepare the expanded SQL for each
+lookup. This is the historical behavior and the default for
+compatibility.
+.IP "\fBprepared\fR"
+Rewrite the query template into SQLite parameter markers, prepare the
+normalized SQL once when the map is opened, and bind lookup values for
+each query.
+.RE
 .IP "\fBquery\fR"
 The SQL query template used to search the database, where \fB%s\fR
 is a substitute for the address Postfix is trying to resolve,

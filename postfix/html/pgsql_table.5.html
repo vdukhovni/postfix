@@ -122,6 +122,26 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
 
               This feature is available in Postfix 3.9 and later.
 
+       <b>statement_mode (default: legacy)</b>
+              The PostgreSQL statement execution mode. Specify one of:
+
+              <b>legacy</b> Expand  the  query  template  and execute it with <b>PQexec</b>,
+                     escaping expanded query variables with the  active  Post-
+                     greSQL  connection.  This  is the historical behavior and
+                     the default for compatibility.
+
+              <b>parameterized</b>
+                     Rewrite the query template into PostgreSQL parameters and
+                     execute  it with <b>PQexecParams</b>. This uses the same parame-
+                     ter binding logic as prepared mode, but does  not  create
+                     server-side  prepared statements. Use this mode with con-
+                     nection poolers that do not support prepared  statements.
+
+              <b>prepared</b>
+                     Rewrite  the  query  template into PostgreSQL parameters,
+                     prepare the  normalized  SQL  once  per  connection  with
+                     <b>PQprepare</b>, and execute it with <b>PQexecPrepared</b>.
+
        <b>query</b>  The  SQL query template used to search the database, where <b>%s</b> is
               a substitute for the address Postfix is trying to resolve,  e.g.
                   query = SELECT replacement FROM aliases WHERE mailbox = '%s'

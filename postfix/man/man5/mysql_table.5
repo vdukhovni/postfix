@@ -125,6 +125,18 @@ will reconnect immediately after a single failure. With Postfix
 versions 3.9 and earlier, specify the same server twice.
 
 This feature is available in Postfix 3.9 and later.
+.IP "\fBstatement_mode (default: legacy)\fR"
+The MySQL statement execution mode. Specify one of:
+.RS
+.IP "\fBlegacy\fR"
+Expand the query template and execute it with \fBmysql_query\fR,
+escaping expanded query variables with the active MySQL connection.
+This is the historical behavior and the default for compatibility.
+.IP "\fBprepared\fR"
+Rewrite the query template into MySQL parameter markers, prepare the
+normalized SQL once per connection with \fBmysql_stmt_prepare\fR, and
+execute it with \fBmysql_stmt_execute\fR.
+.RE
 .IP "\fBquery\fR"
 The SQL query template used to search the database, where \fB%s\fR
 is a substitute for the address Postfix is trying to resolve,

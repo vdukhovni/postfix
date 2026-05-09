@@ -49,6 +49,18 @@ SQLITE_TABLE(5)                                                SQLITE_TABLE(5)
        <b>dbpath</b> The SQLite database file location. Example:
                   dbpath = customer_database
 
+       <b>statement_mode (default: legacy)</b>
+              The SQLite statement execution mode. Specify one of:
+
+              <b>legacy</b> Expand the query template and prepare  the  expanded  SQL
+                     for  each lookup. This is the historical behavior and the
+                     default for compatibility.
+
+              <b>prepared</b>
+                     Rewrite the query template into SQLite parameter markers,
+                     prepare  the  normalized SQL once when the map is opened,
+                     and bind lookup values for each query.
+
        <b>query</b>  The SQL query template used to search the database, where <b>%s</b>  is
               a  substitute for the address Postfix is trying to resolve, e.g.
                   query = SELECT replacement FROM aliases WHERE mailbox = '%s'

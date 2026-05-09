@@ -31103,6 +31103,26 @@ Apologies for any names omitted.
 	Files: proto/PTEST_README.html, ptest/ptest_log.c,
 	ptest/ptest_log_test.c, ptest/ptest_run.c.
 
+20260509
+
+	Work-in-progress: support to convert MySQL, PostgreSQL, and
+	SQLite queries into prepared or parameterized statements,
+	where each %letter sequence in a Postfix-configured query
+	is replaced with some kind of placeholder, and where each
+	placeholder is bound to Postfix's expansion of that %letter
+	sequence. Contributed by Ömer Güven. This does not necessarily
+	make queries faster, but makes them immune against SQL
+	injection. Files: global/dict_mysql.c, global/dict_pgsql.c,
+	global/dict_sqlite.c, proto/pgsql_table, proto/sqlite_table,
+	proto/mysql_table.
+
+	THESE CLIENTS ARE BASED ON OBSOLETE VERSIONS OF POSTFIX
+	DATABASE CLIENTS WITHOUT THE FIXES FOR CLAUDE OBSERVATIONS.
+
+	THESE CLIENTS INTERLEAVE LEGACY AND NON-LEGACY QUERY CODE
+	PATHS. CONSIDER SEPARATING THE LEGACY AND NON-LEGACY QUERY
+	CODE PATHS, SO THAT A HUMAN CAN EASILY DELETE LEGACY SUPPORT.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

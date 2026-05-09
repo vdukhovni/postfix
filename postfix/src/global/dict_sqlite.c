@@ -53,6 +53,9 @@
 /*
 /*	Wietse Venema
 /*	porcupine.org
+/*
+/*	Prepared statement support by
+/*	Ömer Güven
 /*--*/
 
 /* System library. */
@@ -88,6 +91,16 @@
 
 #include <dict_sqlite.h>
 
+#define SQLITE_STATEMENT_LEGACY		0
+#define SQLITE_STATEMENT_PREPARED	1
+
+typedef struct {
+    char   *sql;			/* compiled query template */
+    ARGV   *param_formats;		/* %s, %u, ... in bind order */
+    VSTRING **param_bufs;		/* per-parameter value storage */
+    sqlite3_stmt *handle;		/* prepared statement handle */
+} SQLITE_STATEMENT;
+
 typedef struct {
     DICT    dict;			/* generic member */
     CFG_PARSER *parser;			/* common parameter parser */
@@ -97,7 +110,268 @@ typedef struct {
     void   *ctx;			/* db_common_parse() context */
     char   *dbpath;			/* dbpath config attribute */
     int     expansion_limit;		/* expansion_limit config attribute */
+    int     statement_mode;
+    SQLITE_STATEMENT *stmt;
 } DICT_SQLITE;
+
+static int sqlite_stmt_param(const char);
+static int sqlite_stmt_param_index(ARGV *, const char *);
+static int sqlite_stmt_param_slot(ARGV *, const char *);
+static void sqlite_stmt_append_param_ref(VSTRING *, int, int *);
+static void sqlite_stmt_append_literal(VSTRING *, const char *, ssize_t, int *);
+static void sqlite_stmt_append_quoted(VSTRING *, ARGV *, const char *, ssize_t);
+static SQLITE_STATEMENT *sqlite_statement_alloc(const char *, const char *);
+static void sqlite_statement_free(SQLITE_STATEMENT *);
+static int sqlite_stmt_bind_value(DICT_SQLITE *, const char *,
+				          const char *, VSTRING *);
+static int sqlite_stmt_bind(DICT_SQLITE *, const char *);
+static int sqlite_prepare_stmt(DICT_SQLITE *);
+
+static int sqlite_stmt_param(const char ch)
+{
+    return (strchr("sudSUD123456789", ch) != 0);
+}
+
+static int sqlite_stmt_param_index(ARGV *param_formats, const char *format)
+{
+    int     i;
+
+    for (i = 0; i < param_formats->argc; i++)
+	if (strcmp(param_formats->argv[i], format) == 0)
+	    return (i);
+    return (-1);
+}
+
+static int sqlite_stmt_param_slot(ARGV *param_formats, const char *format)
+{
+    int     param_index;
+
+    /* SQLite accepts ?N, so repeated placeholders can share one bind slot. */
+    param_index = sqlite_stmt_param_index(param_formats, format);
+    if (param_index < 0) {
+	argv_add(param_formats, format, ARGV_END);
+	param_index = param_formats->argc - 1;
+    }
+    return (param_index);
+}
+
+static void sqlite_stmt_append_param_ref(VSTRING *buf, int param_index,
+					         int *pieces)
+{
+    if ((*pieces)++ > 0)
+	vstring_strcat(buf, " || ");
+    vstring_sprintf_append(buf, "?%d", param_index + 1);
+}
+
+static void sqlite_stmt_append_literal(VSTRING *buf, const char *text,
+					       ssize_t len, int *pieces)
+{
+    if ((*pieces)++ > 0)
+	vstring_strcat(buf, " || ");
+    VSTRING_ADDCH(buf, '\'');
+    vstring_strncat(buf, text, len);
+    VSTRING_ADDCH(buf, '\'');
+}
+
+static void sqlite_stmt_append_quoted(VSTRING *sql, ARGV *param_formats,
+					       const char *text, ssize_t len)
+{
+    int     param_index = -1;
+    VSTRING *lit;
+    const char *end = text + len;
+    const char *cp;
+    int     pieces = 0;
+
+    /* Fast path for common whole-literal placeholders: '%u' -> ?1. */
+    if (len == 2 && text[0] == '%' && sqlite_stmt_param(text[1])) {
+	char    format[] = {'%', text[1], 0};
+
+	param_index = sqlite_stmt_param_slot(param_formats, format);
+	vstring_sprintf_append(sql, "?%d", param_index + 1);
+	return;
+    }
+    lit = vstring_alloc(10);
+
+    /*
+     * Preserve legacy quoted-string use by rewriting mixed literals into
+     * SQLite concatenation, for example 'prefix-%u' -> 'prefix-' || ?1.
+     */
+    for (cp = text; cp < end; cp++) {
+	if (*cp == '\'' && cp + 1 < end && cp[1] == '\'') {
+	    VSTRING_ADDCH(lit, *cp);
+	    VSTRING_ADDCH(lit, *++cp);
+	} else if (*cp == '%' && cp + 1 < end) {
+	    if (cp[1] == '%') {
+		VSTRING_ADDCH(lit, '%');
+		cp += 1;
+	    } else if (sqlite_stmt_param(cp[1])) {
+		char    format[] = {'%', cp[1], 0};
+
+		if (VSTRING_LEN(lit) > 0) {
+		    VSTRING_TERMINATE(lit);
+		    sqlite_stmt_append_literal(sql, vstring_str(lit),
+					       VSTRING_LEN(lit), &pieces);
+		    VSTRING_RESET(lit);
+		    VSTRING_TERMINATE(lit);
+		}
+
+		param_index = sqlite_stmt_param_slot(param_formats, format);
+		sqlite_stmt_append_param_ref(sql, param_index, &pieces);
+		cp += 1;
+	    } else {
+		msg_fatal("unexpected '%.2s' in sqlite query template: %.*s",
+			  cp, (int) len, text);
+	    }
+	} else {
+	    VSTRING_ADDCH(lit, *cp);
+	}
+    }
+    if (VSTRING_LEN(lit) > 0 || pieces == 0) {
+	VSTRING_TERMINATE(lit);
+	sqlite_stmt_append_literal(sql, vstring_str(lit),
+				   VSTRING_LEN(lit), &pieces);
+    }
+    vstring_free(lit);
+}
+
+static SQLITE_STATEMENT *sqlite_statement_alloc(const char *mapname,
+						        const char *query)
+{
+    SQLITE_STATEMENT *stmt;
+    VSTRING *sql;
+    ARGV   *param_formats;
+    const char *cp;
+    int     param_index;
+    int     i;
+
+    stmt = (SQLITE_STATEMENT *) mymalloc(sizeof(*stmt));
+    sql = vstring_alloc(100);
+    param_formats = argv_alloc(1);
+
+    /*
+     * Parse once at open time. Plain %x placeholders become ?N markers, and
+     * quoted fragments are rewritten only when needed for legacy semantics.
+     */
+    for (cp = query; *cp; cp++) {
+	if (*cp == '\'') {
+	    const char *start;
+
+	    for (start = ++cp; *cp; cp++) {
+		if (*cp == '\'') {
+		    if (cp[1] == '\'')
+			cp += 1;
+		    else
+			break;
+		}
+	    }
+	    if (*cp == 0)
+		msg_fatal("%s: unterminated quote in query template: %s",
+			  mapname, query);
+	    sqlite_stmt_append_quoted(sql, param_formats, start, cp - start);
+	} else if (*cp == '%') {
+	    if (cp[1] == 0) {
+		msg_fatal("%s: '%%' at end of query template: %s",
+			  mapname, query);
+	    } else if (cp[1] == '%') {
+		VSTRING_ADDCH(sql, '%');
+		cp += 1;
+	    } else if (sqlite_stmt_param(cp[1])) {
+		char    format[] = {'%', cp[1], 0};
+
+		param_index = sqlite_stmt_param_slot(param_formats, format);
+		vstring_sprintf_append(sql, "?%d", param_index + 1);
+		cp += 1;
+	    } else {
+		msg_fatal("%s: unexpected '%.2s' in query template: %s",
+			  mapname, cp, query);
+	    }
+	} else {
+	    VSTRING_ADDCH(sql, *cp);
+	}
+    }
+    VSTRING_TERMINATE(sql);
+
+    stmt->sql = vstring_export(sql);
+    stmt->param_formats = param_formats;
+    stmt->handle = 0;
+    /* No-placeholder templates avoid all per-parameter allocations. */
+    if (param_formats->argc > 0) {
+	stmt->param_bufs = (VSTRING **) mymalloc(param_formats->argc
+						 * sizeof(*stmt->param_bufs));
+	for (i = 0; i < param_formats->argc; i++)
+	    stmt->param_bufs[i] = vstring_alloc(10);
+    } else {
+	stmt->param_bufs = 0;
+    }
+    return (stmt);
+}
+
+static void sqlite_statement_free(SQLITE_STATEMENT *stmt)
+{
+    int     i;
+
+    if (stmt->handle)
+	sqlite3_finalize(stmt->handle);
+    if (stmt->sql)
+	myfree(stmt->sql);
+    if (stmt->param_bufs) {
+	for (i = 0; i < stmt->param_formats->argc; i++)
+	    vstring_free(stmt->param_bufs[i]);
+	myfree((void *) stmt->param_bufs);
+    }
+    if (stmt->param_formats)
+	argv_free(stmt->param_formats);
+    myfree((void *) stmt);
+}
+
+static int sqlite_stmt_bind_value(DICT_SQLITE *dict_sqlite, const char *format,
+				          const char *name, VSTRING *buf)
+{
+    /* Re-expand this placeholder for the current lookup key into its slot. */
+    VSTRING_RESET(buf);
+    VSTRING_TERMINATE(buf);
+    return (db_common_expand(dict_sqlite->ctx, format, name, 0, buf,
+			     (db_quote_callback_t) 0));
+}
+
+static int sqlite_stmt_bind(DICT_SQLITE *dict_sqlite, const char *name)
+{
+    SQLITE_STATEMENT *stmt = dict_sqlite->stmt;
+    int     i;
+
+    if (stmt->param_formats->argc == 0)
+	return (1);
+    /* Fill every SQLite bind slot in the same order as sqlite_statement_alloc(). */
+    for (i = 0; i < stmt->param_formats->argc; i++) {
+	if (!sqlite_stmt_bind_value(dict_sqlite, stmt->param_formats->argv[i],
+				    name, stmt->param_bufs[i]))
+	    return (0);
+	if (sqlite3_bind_text(stmt->handle, i + 1, vstring_str(stmt->param_bufs[i]),
+			      -1, SQLITE_STATIC) != SQLITE_OK)
+	    msg_fatal("%s: %s: SQL bind failed: %s",
+		      __func__, dict_sqlite->parser->name,
+		      sqlite3_errmsg(dict_sqlite->db));
+    }
+    return (1);
+}
+
+static int sqlite_prepare_stmt(DICT_SQLITE *dict_sqlite)
+{
+    const char *query_remainder;
+
+    if (dict_sqlite->stmt->handle)
+	return (1);
+    if (sqlite3_prepare_v2(dict_sqlite->db, dict_sqlite->stmt->sql, -1,
+			   &dict_sqlite->stmt->handle,
+			   &query_remainder) != SQLITE_OK)
+	msg_fatal("%s: %s: SQL prepare failed: %s",
+		  __func__, dict_sqlite->parser->name,
+		  sqlite3_errmsg(dict_sqlite->db));
+    if (*query_remainder && msg_verbose)
+	msg_info("%s: %s: Ignoring text at end of prepared query: %s",
+		 __func__, dict_sqlite->parser->name, query_remainder);
+    return (1);
+}
 
 /* dict_sqlite_quote - escape SQL metacharacters in input string */
 
@@ -123,6 +397,8 @@ static void dict_sqlite_close(DICT *dict)
     if (msg_verbose)
 	msg_info("%s: %s", myname, dict_sqlite->parser->name);
 
+    if (dict_sqlite->stmt)
+	sqlite_statement_free(dict_sqlite->stmt);
     if (sqlite3_close(dict_sqlite->db) != SQLITE_OK)
 	msg_fatal("%s: close %s failed", myname, dict_sqlite->parser->name);
     cfg_parser_free(dict_sqlite->parser);
@@ -199,25 +475,37 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
 	VSTRING_TERMINATE(buf); \
     } while (0)
 
-    INIT_VSTR(query, 10);
+    if (dict_sqlite->statement_mode == SQLITE_STATEMENT_LEGACY) {
+	INIT_VSTR(query, 10);
 
-    if (!db_common_expand(dict_sqlite->ctx, dict_sqlite->query,
-			  name, 0, query, dict_sqlite_quote))
-	return (0);
+	if (!db_common_expand(dict_sqlite->ctx, dict_sqlite->query,
+			      name, 0, query, dict_sqlite_quote))
+	    return (0);
 
-    if (msg_verbose)
-	msg_info("%s: %s: Searching with query %s",
-		 myname, dict_sqlite->parser->name, vstring_str(query));
+	if (msg_verbose)
+	    msg_info("%s: %s: Searching with query %s",
+		     myname, dict_sqlite->parser->name, vstring_str(query));
 
-    if (sqlite3_prepare_v2(dict_sqlite->db, vstring_str(query), -1,
-			   &sql_stmt, &query_remainder) != SQLITE_OK)
-	msg_fatal("%s: %s: SQL prepare failed: %s\n",
-		  myname, dict_sqlite->parser->name,
-		  sqlite3_errmsg(dict_sqlite->db));
+	if (sqlite3_prepare_v2(dict_sqlite->db, vstring_str(query), -1,
+			       &sql_stmt, &query_remainder) != SQLITE_OK)
+	    msg_fatal("%s: %s: SQL prepare failed: %s\n",
+		      myname, dict_sqlite->parser->name,
+		      sqlite3_errmsg(dict_sqlite->db));
 
-    if (*query_remainder && msg_verbose)
-	msg_info("%s: %s: Ignoring text at end of query: %s",
-		 myname, dict_sqlite->parser->name, query_remainder);
+	if (*query_remainder && msg_verbose)
+	    msg_info("%s: %s: Ignoring text at end of query: %s",
+		     myname, dict_sqlite->parser->name, query_remainder);
+    } else {
+	sqlite_prepare_stmt(dict_sqlite);
+	sqlite3_reset(dict_sqlite->stmt->handle);
+	sqlite3_clear_bindings(dict_sqlite->stmt->handle);
+	if (!sqlite_stmt_bind(dict_sqlite, name))
+	    return (0);
+	sql_stmt = dict_sqlite->stmt->handle;
+	if (msg_verbose)
+	    msg_info("%s: %s: Searching with prepared query %s",
+		     myname, dict_sqlite->parser->name, dict_sqlite->stmt->sql);
+    }
 
     /*
      * Retrieve and expand the result(s).
@@ -240,7 +528,9 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
 	else {
 	    msg_warn("%s: %s: SQL step failed for query '%s': %s\n",
 		     myname, dict_sqlite->parser->name,
-		     vstring_str(query), sqlite3_errmsg(dict_sqlite->db));
+		     dict_sqlite->statement_mode == SQLITE_STATEMENT_LEGACY ?
+		     vstring_str(query) : dict_sqlite->stmt->sql,
+		     sqlite3_errmsg(dict_sqlite->db));
 	    dict->error = DICT_ERR_RETRY;
 	    break;
 	}
@@ -249,10 +539,16 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
     /*
      * Clean up.
      */
-    if (sqlite3_finalize(sql_stmt))
-	msg_fatal("%s: %s: SQL finalize failed for query '%s': %s\n",
+    if (dict_sqlite->statement_mode == SQLITE_STATEMENT_LEGACY) {
+	if (sqlite3_finalize(sql_stmt))
+	    msg_fatal("%s: %s: SQL finalize failed for query '%s': %s\n",
+		      myname, dict_sqlite->parser->name,
+		      vstring_str(query), sqlite3_errmsg(dict_sqlite->db));
+    } else if (sqlite3_reset(sql_stmt) != SQLITE_OK) {
+	msg_fatal("%s: %s: SQL reset failed for prepared query '%s': %s\n",
 		  myname, dict_sqlite->parser->name,
-		  vstring_str(query), sqlite3_errmsg(dict_sqlite->db));
+		  dict_sqlite->stmt->sql, sqlite3_errmsg(dict_sqlite->db));
+    }
 
     return ((dict->error == 0 && *(retval = vstring_str(result)) != 0) ?
 	    retval : 0);
@@ -295,6 +591,7 @@ static void flag_non_recommended_query(const char *query,
 static void sqlite_parse_config(DICT_SQLITE *dict_sqlite, const char *sqlitecf)
 {
     VSTRING *buf;
+    char   *statement_mode;
 
     /*
      * Parse the primary configuration parameters, and emulate the legacy
@@ -312,6 +609,17 @@ static void sqlite_parse_config(DICT_SQLITE *dict_sqlite, const char *sqlitecf)
     flag_non_recommended_query(dict_sqlite->query, sqlitecf);
     dict_sqlite->result_format =
 	cfg_get_str(dict_sqlite->parser, "result_format", "%s", 1, 0);
+    statement_mode = cfg_get_str(dict_sqlite->parser, "statement_mode",
+				 "legacy", 1, 0);
+    if (strcasecmp(statement_mode, "legacy") == 0) {
+	dict_sqlite->statement_mode = SQLITE_STATEMENT_LEGACY;
+    } else if (strcasecmp(statement_mode, "prepared") == 0) {
+	dict_sqlite->statement_mode = SQLITE_STATEMENT_PREPARED;
+    } else {
+	msg_fatal("%s: %s: bad statement_mode value '%s'; specify "
+		  "'legacy' or 'prepared'", __func__, sqlitecf, statement_mode);
+    }
+    myfree(statement_mode);
     dict_sqlite->expansion_limit =
 	cfg_get_int(dict_sqlite->parser, "expansion_limit", 0, 0, 0);
 
@@ -323,6 +631,9 @@ static void sqlite_parse_config(DICT_SQLITE *dict_sqlite, const char *sqlitecf)
 			   dict_sqlite->query, 1);
     (void) db_common_parse(0, &dict_sqlite->ctx, dict_sqlite->result_format, 0);
     db_common_parse_domain(dict_sqlite->parser, dict_sqlite->ctx);
+    if (dict_sqlite->statement_mode != SQLITE_STATEMENT_LEGACY)
+	dict_sqlite->stmt = sqlite_statement_alloc(dict_sqlite->parser->name,
+						   dict_sqlite->query);
 
     /*
      * Maps that use substring keys should only be used with the full input
@@ -363,6 +674,7 @@ DICT   *dict_sqlite_open(const char *name, int open_flags, int dict_flags)
     dict_sqlite->dict.flags = dict_flags;
 
     dict_sqlite->parser = parser;
+    dict_sqlite->stmt = 0;
     sqlite_parse_config(dict_sqlite, name);
 
     if (sqlite3_open_v2(dict_sqlite->dbpath, &dict_sqlite->db,
