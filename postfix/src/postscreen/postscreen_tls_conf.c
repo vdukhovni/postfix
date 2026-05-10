@@ -310,7 +310,8 @@ bool    psc_tls_pre_start(const PSC_STATE *state,
 				 namaddr = state->smtp_client_addr_port,
 				 cipher_grade = cipher_grade,
 				 cipher_exclusions = STR(cipher_exclusions),
-				 mdalg = var_psc_tls_fpt_dgst);
+				 mdalg = var_psc_tls_fpt_dgst,
+				 trace_size_limit = var_psc_tls_trace_size_limit);
     return (true);
 }
 

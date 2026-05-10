@@ -1097,7 +1097,8 @@ static int smtp_start_tls(SMTP_STATE *state)
 				     tlsrpt = 0,
 #endif
 				     ffail_type = 0,
-				     dane = state->tls->dane);
+				     dane = state->tls->dane,
+				     trace_size_limit = var_smtp_tls_trace_size_limit);
 
 	/*
 	 * The tlsproxy(8) server enforces timeouts that are larger than
@@ -1228,7 +1229,11 @@ static int smtp_start_tls(SMTP_STATE *state)
 			     tlsrpt = 0,
 #endif
 			     ffail_type = state->tls->ext_policy_failure,
-			     dane = state->tls->dane);
+			     dane = state->tls->dane,
+			     trace_size_limit = var_smtp_tls_trace_size_limit,
+			     trace_open = 0,
+			     trace_close = 0,
+			     trace_arg = 0);
 
 	/*
 	 * At this point there must not be any pending data in the stream

@@ -136,6 +136,7 @@
 #define TLS_ATTR_DANE		"dane"
 #define TLS_ATTR_TLSRPT		"tlsrpt"
 #define TLS_ATTR_FFAIL_TYPE	"forced_failure_type"
+#define TLS_ATTR_TRACE_SIZE_LIMIT "trace_size_limit"
 
  /*
   * TLS_TLSA attributes.

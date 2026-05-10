@@ -42,3 +42,12 @@ For backwards compatibility, the local(8) delivery agent will look
 up the legacy internal (unquoted) form of an alias name only if the
 preferred external (quoted) form is not found, and the internal and
 external forms differ.
+
+Incompatible changes with snapshot 20260502
+===========================================
+
+The internal protocol between tlsproxy(8) and its clients (smtp(8),
+postscreen(8), smtpd(8) in TLSPROXY mode, and "posttls-finger -X")
+gained a new attribute. Run "postfix reload" after the upgrade. If
+this step is skipped, TLS sessions through tlsproxy(8) will fail,
+because the old and new processes disagree on the protocol shape.

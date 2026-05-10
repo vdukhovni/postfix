@@ -206,6 +206,20 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
                      only  useful to those who can debug SSL protocol problems
                      from hex dumps.
 
+              <b>trace</b>  Available  with  Postfix  3.12   and   later.   Write   a
+                     human-readable SSL_trace transcript of the TLS session to
+                     a file in the current directory.  The file is named  <i>pre-</i>
+                     <i>fix</i>-<i>pid</i>-<i>sec</i>.<i>usec</i>-<i>peer</i>.txt,  with  <i>prefix</i>  taken  from the
+                     optional  "-o  tls_trace_file=<i>prefix</i>"  override  (default
+                     "posttls-finger").   All  reconnect  attempts in a single
+                     command-line run share the same trace file, separated  by
+                     "===  posttls-finger reconnect ===" lines.  When <b>-X</b> is in
+                     effect   <a href="tlsproxy.8.html">tlsproxy(8)</a>   generates    the    trace    under
+                     <i>$queue</i><b>_</b><i>directory</i>/tlstrace/      instead,      and     the
+                     tls_trace_file  override  is  ignored.   The  keyword  is
+                     silently  ignored if Postfix or OpenSSL was built without
+                     SSL_trace support.
+
               <b>untrusted</b>
                      Logs trust chain verification problems.  This  is  turned
                      on  automatically  at security levels that use peer names

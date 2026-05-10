@@ -259,6 +259,9 @@
 #include <sys_defs.h>
 #include <ctype.h>
 #include <string.h>
+#include <sys/socket.h>			/* getpeername(2) */
+#include <fcntl.h>			/* O_WRONLY etc. */
+#include <unistd.h>			/* getpid(2) */
 
 /* Utility library. */
 
@@ -272,6 +275,7 @@
 #include <name_code.h>
 #include <dict.h>
 #include <valid_hostname.h>
+#include <myaddrinfo.h>			/* sockaddr_to_hostaddr() */
 
  /*
   * Global library.
@@ -556,6 +560,7 @@ static const NAME_MASK tls_log_table[] = {
     "ssl-debug", TLS_LOG_DEBUG,		/* SSL library debug/verbose */
     "ssl-handshake-packet-dump", TLS_LOG_TLSPKTS,
     "ssl-session-packet-dump", TLS_LOG_TLSPKTS | TLS_LOG_ALLPKTS,
+    "trace", TLS_LOG_TRACE,		/* SSL_trace() to a file or email */
     0, 0,
 };
 
@@ -578,8 +583,115 @@ int     tls_log_mask(const char *log_param, const char *log_level)
 
     mask = name_mask_opt(log_param, tls_log_table, log_level,
 			 NAME_MASK_ANY_CASE | NAME_MASK_RETURN);
+#ifndef HAVE_SSL_TRACE
+    if (mask & TLS_LOG_TRACE) {
+	msg_warn("%s: ignoring \"trace\" log level: "
+		 "SSL_trace() is not available in this build",
+		 log_param);
+	mask &= ~TLS_LOG_TRACE;
+    }
+#endif
     return (mask);
 }
+
+#ifdef HAVE_SSL_TRACE
+
+/* tls_msg_callback - SSL message callback for TLS_LOG_TRACE */
+
+void    tls_msg_callback(int write_p, int version, int content_type,
+			         const void *buf, size_t msglen,
+			         SSL *ssl, void *arg)
+{
+    TLS_SESS_STATE *TLScontext = (TLS_SESS_STATE *) arg;
+    BIO    *bio = TLScontext->trace_bio;
+
+    /*
+     * trace_size_limit <= 0 means either tracing is off (never started)
+     * or we already crossed the budget and emitted the truncation marker.
+     * Either way, do not write further.
+     */
+    if (bio == 0 || TLScontext->trace_size_limit <= 0)
+	return;
+
+    SSL_trace(write_p, version, content_type, buf, msglen, ssl, bio);
+
+    if (BIO_tell(bio) >= TLScontext->trace_size_limit) {
+	static const char trailer[] =
+	"\n[TLS trace truncated: size limit reached]\n";
+
+	(void) BIO_write(bio, trailer, sizeof(trailer) - 1);
+	TLScontext->trace_size_limit = -1;
+    }
+}
+
+/* tls_trace_create_qfile - default trace destination for daemons */
+
+BIO *tls_trace_create_qfile(SSL *ssl)
+{
+    int     fd;
+    struct sockaddr_storage ss;
+    SOCKADDR_SIZE salen = sizeof(ss);
+    MAI_HOSTADDR_STR hostaddr;
+    struct timeval tv;
+    VSTRING *path;
+    FILE   *fp;
+    BIO    *bio;
+
+    int     newfd;
+
+    /*
+     * Build "<queue>/tlstrace/<appname>-<pid>-<sec>.<usec>-<peer>.txt".
+     * The cwd of every Postfix daemon is $queue_directory, so the
+     * relative path resolves correctly with or without chroot.  The
+     * directory itself is expected to exist; postfix-script and
+     * postfix-files arrange for it.
+     *
+     * Open with open(2)+O_EXCL so two connections that race to the
+     * same file name (extremely unlikely given microsecond + pid) do
+     * not clobber each other; fdopen(3) hands the descriptor to
+     * stdio, and BIO_new_fp() with BIO_CLOSE wraps the stream so that
+     * BIO_free_all() at session teardown also fclose()s it.
+     */
+    if ((fd = SSL_get_fd(ssl)) < 0
+	|| getpeername(fd, (struct sockaddr *) &ss, &salen) < 0) {
+	msg_warn("TLS trace: cannot determine peer address: %m");
+	return (0);
+    }
+    if (sockaddr_to_hostaddr((struct sockaddr *) &ss, salen,
+			     &hostaddr, (MAI_SERVPORT_STR *) 0, 0) != 0) {
+	msg_warn("TLS trace: cannot format peer address");
+	return (0);
+    }
+    GETTIMEOFDAY(&tv);
+    path = vstring_alloc(100);
+    vstring_sprintf(path, TLS_TRACE_QDIR "/%s-%ld-%ld.%06ld-%s.txt",
+		    var_procname, (long) getpid(),
+		    (long) tv.tv_sec, (long) tv.tv_usec, hostaddr.buf);
+    if ((newfd = open(vstring_str(path),
+		      O_WRONLY | O_CREAT | O_EXCL, 0600)) < 0) {
+	msg_warn("TLS trace: cannot open %s: %m", vstring_str(path));
+	vstring_free(path);
+	return (0);
+    }
+    if ((fp = fdopen(newfd, "w")) == 0) {
+	msg_warn("TLS trace: fdopen(%s) failed: %m", vstring_str(path));
+	(void) close(newfd);
+	vstring_free(path);
+	return (0);
+    }
+    if ((bio = BIO_new_fp(fp, BIO_CLOSE)) == 0) {
+	msg_warn("TLS trace: BIO_new_fp() failed for %s", vstring_str(path));
+	(void) fclose(fp);
+	vstring_free(path);
+	return (0);
+    }
+    msg_info("TLS protocol trace from %s saved to %s",
+	     hostaddr.buf, vstring_str(path));
+    vstring_free(path);
+    return (bio);
+}
+
+#endif					/* HAVE_SSL_TRACE */
 
 /* tls_update_app_logmask - update log level after init */
 
@@ -1372,6 +1484,10 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->errorcert = 0;
     TLScontext->rpt_reported = 0;
     TLScontext->ffail_type = 0;
+    TLScontext->trace_bio = 0;
+    TLScontext->trace_size_limit = 0;
+    TLScontext->trace_close = 0;
+    TLScontext->trace_arg = 0;
 
     return (TLScontext);
 }
@@ -1388,6 +1504,28 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
      */
     if (TLScontext->con != 0)
 	SSL_free(TLScontext->con);
+
+    /*
+     * Release the protocol trace, if one was opened.  Order matters:
+     * SSL_free() above can still drive the message callback during
+     * teardown (close-notify processing in particular), so trace_bio
+     * must stay valid until after SSL_free() returns.  Closing it
+     * first would let tls_msg_callback() write through a freed BIO.
+     *
+     * Always BIO_flush() before close, so any stdio buffering inside
+     * BIO_new_fp() lands on disk before the FILE * is fclose()d.  An
+     * application override may release the BIO; otherwise BIO_free_all
+     * walks the chain and (with BIO_CLOSE) closes the underlying file.
+     */
+    if (TLScontext->trace_bio != 0) {
+	(void) BIO_flush(TLScontext->trace_bio);
+	if (TLScontext->trace_close != 0)
+	    TLScontext->trace_close(TLScontext->trace_bio,
+				    TLScontext->trace_arg);
+	else
+	    BIO_free_all(TLScontext->trace_bio);
+	TLScontext->trace_bio = 0;
+    }
 
     if (TLScontext->namaddr)
 	myfree(TLScontext->namaddr);

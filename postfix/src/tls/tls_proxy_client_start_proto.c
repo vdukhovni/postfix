@@ -267,6 +267,8 @@ int     tls_proxy_client_start_print(ATTR_PRINT_COMMON_FN print_fn,
 #endif
 		   SEND_ATTR_STR(TLS_ATTR_FFAIL_TYPE,
 				 STRING_OR_EMPTY(props->ffail_type)),
+		   SEND_ATTR_INT(TLS_ATTR_TRACE_SIZE_LIMIT,
+				 props->trace_size_limit),
 		   ATTR_TYPE_END);
     /* Do not flush the stream. */
     if (msg_verbose)
@@ -499,9 +501,9 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     VSTRING *ffail_type = vstring_alloc(25);
 
 #ifdef USE_TLSRPT
-#define EXPECT_START_SCAN_RETURN	19
+#define EXPECT_START_SCAN_RETURN	20
 #else
-#define EXPECT_START_SCAN_RETURN	18
+#define EXPECT_START_SCAN_RETURN	19
 #endif
 
     if (msg_verbose)
@@ -540,6 +542,8 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 				 &props->tlsrpt),
 #endif
 		  RECV_ATTR_STR(TLS_ATTR_FFAIL_TYPE, ffail_type),
+		  RECV_ATTR_INT(TLS_ATTR_TRACE_SIZE_LIMIT,
+				&props->trace_size_limit),
 		  ATTR_TYPE_END);
     /* Always construct a well-formed structure. */
     props->log_param = vstring_export(log_param);

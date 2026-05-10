@@ -30,7 +30,7 @@
 #endif
 
 #ifdef NONPROD
-#define MAIL_VERSION_PROD	"-nonprod"
+#define MAIL_VERSION_PROD	"-" NONPROD
 #else
 #define MAIL_VERSION_PROD	""
 #endif

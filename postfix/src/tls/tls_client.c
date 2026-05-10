@@ -1286,6 +1286,32 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     if (log_mask & TLS_LOG_TLSPKTS)
 	tls_set_bio_callback(SSL_get_rbio(TLScontext->con), tls_bio_dump_cb);
 
+#ifdef HAVE_SSL_TRACE
+
+    /*
+     * If "trace" is included in the TLS loglevel, open a destination
+     * BIO (either the application's override or the libtls default
+     * file under $queue_directory/tlstrace/) and install the SSL
+     * message callback.  SSL_trace() writes records straight into
+     * the BIO; the budget is enforced via BIO_tell() in
+     * tls_msg_callback().
+     */
+    if ((log_mask & TLS_LOG_TRACE) && props->trace_size_limit > 0) {
+	BIO    *bio = props->trace_open != 0
+	? props->trace_open(props->trace_arg, TLScontext->con)
+	: tls_trace_create_qfile(TLScontext->con);
+
+	if (bio != 0) {
+	    TLScontext->trace_bio = bio;
+	    TLScontext->trace_size_limit = props->trace_size_limit;
+	    TLScontext->trace_close = props->trace_close;
+	    TLScontext->trace_arg = props->trace_arg;
+	    SSL_set_msg_callback(TLScontext->con, tls_msg_callback);
+	    SSL_set_msg_callback_arg(TLScontext->con, TLScontext);
+	}
+    }
+#endif
+
     /*
      * An external (STS) policy signaled a failure. Prevent false (PKI)
      * certificate matches in tls_verify.c. TODO(wietse) how was this handled

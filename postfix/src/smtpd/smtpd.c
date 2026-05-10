@@ -562,6 +562,8 @@
 /* .IP "\fBsmtpd_tls_loglevel_maps (empty)\fR"
 /*	Optional TLS loglevel override that depends on the remote peer
 /*	host name or IP address.
+/* .IP "\fBsmtpd_tls_trace_size_limit (102400)\fR"
+/*	The Postfix SMTP server equivalent of smtp_tls_trace_size_limit.
 /* OBSOLETE TLS CONTROLS
 /* .ad
 /* .fi
@@ -1529,6 +1531,7 @@ char   *var_smtpd_tls_dkey_file;
 char   *var_smtpd_tls_key_file;
 char   *var_smtpd_tls_loglevel;
 char   *var_smtpd_tls_loglevel_maps;
+int     var_smtpd_tls_trace_size_limit;
 char   *var_smtpd_tls_mand_proto;
 bool    var_smtpd_tls_received_header;
 bool    var_smtpd_tls_req_ccert;
@@ -5345,7 +5348,8 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 				 namaddr = state->namaddr,
 				 cipher_grade = cipher_grade,
 				 cipher_exclusions = STR(cipher_exclusions),
-				 mdalg = var_smtpd_tls_fpt_dgst);
+				 mdalg = var_smtpd_tls_fpt_dgst,
+				 trace_size_limit = var_smtpd_tls_trace_size_limit);
 
     /*
      * Note: state->tlsproxy is left open when smtp_flush() calls longjmp(),
@@ -5394,7 +5398,11 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 			 namaddr = state->namaddr,
 			 cipher_grade = cipher_grade,
 			 cipher_exclusions = STR(cipher_exclusions),
-			 mdalg = var_smtpd_tls_fpt_dgst);
+			 mdalg = var_smtpd_tls_fpt_dgst,
+			 trace_size_limit = var_smtpd_tls_trace_size_limit,
+			 trace_open = 0,
+			 trace_close = 0,
+			 trace_arg = 0);
 
 #endif						/* USE_TLSPROXY */
 
@@ -6885,6 +6893,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_CIPV6_PREFIX, DEF_SMTPD_CIPV6_PREFIX, &var_smtpd_cipv6_prefix, 0, MAX_SMTPD_CIPV6_PREFIX,
 #ifdef USE_TLS
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
+	VAR_SMTPD_TLS_TRACE_SIZE_LIMIT, DEF_SMTPD_TLS_TRACE_SIZE_LIMIT, &var_smtpd_tls_trace_size_limit, 0, 0,
 #endif
 	VAR_SMTPD_SASL_RESP_LIMIT, DEF_SMTPD_SASL_RESP_LIMIT, &var_smtpd_sasl_resp_limit, DEF_SMTPD_SASL_RESP_LIMIT, 0,
 	VAR_SMTPD_POLICY_REQ_LIMIT, DEF_SMTPD_POLICY_REQ_LIMIT, &var_smtpd_policy_req_limit, 0, 0,

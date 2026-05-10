@@ -118,6 +118,8 @@ int     tls_proxy_server_start_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 				 STRING_OR_EMPTY(props->cipher_exclusions)),
 		   SEND_ATTR_STR(TLS_ATTR_MDALG,
 				 STRING_OR_EMPTY(props->mdalg)),
+		   SEND_ATTR_INT(TLS_ATTR_TRACE_SIZE_LIMIT,
+				 props->trace_size_limit),
 		   ATTR_TYPE_END);
     /* Do not flush the stream. */
     return (ret);
@@ -158,6 +160,8 @@ int     tls_proxy_server_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 		  RECV_ATTR_STR(TLS_ATTR_CIPHER_EXCLUSIONS,
 				cipher_exclusions),
 		  RECV_ATTR_STR(TLS_ATTR_MDALG, mdalg),
+		  RECV_ATTR_INT(TLS_ATTR_TRACE_SIZE_LIMIT,
+				&props->trace_size_limit),
 		  ATTR_TYPE_END);
     /* Always construct a well-formed structure. */
     props->log_param = vstring_export(log_param);
@@ -167,7 +171,7 @@ int     tls_proxy_server_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     props->cipher_grade = vstring_export(cipher_grade);
     props->cipher_exclusions = vstring_export(cipher_exclusions);
     props->mdalg = vstring_export(mdalg);
-    ret = (ret == 10 ? 1 : -1);
+    ret = (ret == 11 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_server_start_free(props);
 	props = 0;

@@ -31119,6 +31119,36 @@ Apologies for any names omitted.
 	master/multi_server.c, master/single_server.c,
 	src/master/trigger_server.c.
 
+	Feature: TLS protocol trace via SSL_trace, enabled with "trace"
+	in *_tls_loglevel or *_tls_loglevel_maps.  smtp(8), smtpd(8),
+	and tlsproxy(8) write the transcript to a per-connection file
+	under $queue_directory/tlstrace/, capped at
+	*_tls_trace_size_limit bytes per file.  posttls-finger(1)
+	writes to a file in the current directory, named with an
+	optional "-o tls_trace_file=" prefix; one file per run, with
+	separator lines between reconnects.  The path is logged via
+	msg_info() when the trace begins.  Files: proto/postconf.proto,
+	global/mail_params.h, postscreen/postscreen.c,
+	postscreen/postscreen_tls_conf.c,
+	posttls-finger/posttls-finger.c, smtp/lmtp_params.c,
+	smtp/smtp.c, smtp/smtp_params.c, smtp/smtp_proto.c,
+	smtpd/smtpd.c, tls/tls.h, tls/tls_client.c, tls/tls_misc.c,
+	tls/tls_proxy_attr.h, tls/tls_proxy_client_start_proto.[hc],
+	tls/tls_proxy_server_start_proto.[hc], tls/tls_server.c,
+	tlsproxy/tlsproxy.c, tlsproxy/tlsproxy_client.c,
+	tlsproxy/tlsproxy_server.c.
+
+	This feature is developed in three iterations. In the first
+	two, it was designed by Wietse and Viktor, with preliminary
+	implementations by Claude Code supervised by Viktor. With
+	minor changes, the implementation will be finished by humans,
+	perhaps with review by Claude Code.
+
+	The release postfix-3.12-20260510-tlstrace-nonprod is not
+	meant to be used (for example, postscreen won't work out
+	of the box). It is meant to set a clear boundary between
+	AI generated code and further human development.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.
