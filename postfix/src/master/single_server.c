@@ -577,9 +577,9 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    break;
 	}
     }
-    /* Read-only parameters must not be changed with '-o name=value'.
+    /* Read-only parameters must not be changed with '-o name=value'. */
     set_mail_conf_str(VAR_PROCNAME, var_procname);
-    var_servname = mystrdup(servname);
+    var_servname = mystrdup(service_name);
     set_mail_conf_str(VAR_SERVNAME, var_servname);
 
     /*

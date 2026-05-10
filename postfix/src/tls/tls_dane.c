@@ -1356,7 +1356,7 @@ int     main(int argc, char *argv[])
     SSL_dane_set_flags(tctx->con, DANE_FLAG_NO_DANE_EE_NAMECHECKS);
     SSL_dane_set_flags(tctx->con, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
     for (i = 7; i < argc; ++i)
-	if (!SSL_add1_host(tctx->con, argv[i]))
+	if (!TLS_ADD1_HOST(tctx->con, argv[i]))
 	    msg_fatal("error adding hostname: %s", argv[i]);
     load_tlsa_args(tctx->con, argv);
     SSL_set_connect_state(tctx->con);

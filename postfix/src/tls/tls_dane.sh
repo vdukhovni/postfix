@@ -51,6 +51,7 @@ genroot() {
     local akid=$1; shift
 
     exts=$(printf "%s\n%s\n%s\n" "$skid" "$akid" "basicConstraints = CA:true")
+    key "$key"
     req "$key" "$cn" |
     	cert "$cert" "$exts" -signkey "${key}.pem" -set_serial 1 -days 30
 }
@@ -65,6 +66,7 @@ genca() {
     local cakey=$1; shift
 
     exts=$(printf "%s\n%s\n%s\n" "$skid" "$akid" "basicConstraints = CA:true")
+    key "$key"
     req "$key" "$cn" |
     	cert "$cert" "$exts" -CA "${ca}.pem" -CAkey "${cakey}.pem" \
 	    -set_serial 2 -days 30 "$@"
@@ -83,6 +85,7 @@ genee() {
 	    "basicConstraints = CA:false" \
 	    "extendedKeyUsage = serverAuth" \
 	    "subjectAltName = @alts" "DNS=${cn}")
+    key "$key"
     req "$key" "$cn" |
     	cert "$cert" "$exts" -CA "${ca}.pem" -CAkey "${cakey}.pem" \
 	    -set_serial 2 -days 30 "$@"
@@ -99,6 +102,7 @@ genss() {
 	    "basicConstraints = CA:true" \
 	    "extendedKeyUsage = serverAuth" \
 	    "subjectAltName = @alts" "DNS=${cn}")
+    key "$key"
     req "$key" "$cn" |
 	cert "$cert" "$exts" -set_serial 1 -days 30 -signkey "${key}.pem" "$@"
 }
@@ -107,8 +111,9 @@ gennocn() {
     local key=$1; shift
     local cert=$1; shift
 
+    key "$key"
     req_nocn "$key" |
-	cert "$cert" "" -signkey "${key}.pem" -set_serial 1 -days -1 "$@"
+	cert "$cert" "" -signkey "${key}.pem" -set_serial 1 -days 0 "$@"
 }
 
 runtest() {
