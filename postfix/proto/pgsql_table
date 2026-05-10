@@ -128,6 +128,33 @@
 #	versions 3.9 and earlier, specify the same server twice.
 #
 #	This feature is available in Postfix 3.9 and later.
+# .IP "\fBstatement_mode (default: legacy)\fR"
+#	How Postfix sends queries to PostgreSQL. Specify one of:
+# .RS
+# .IP "\fBlegacy\fR"
+#	Substitute the lookup key into the query and send the
+#	resulting SQL text to PostgreSQL. Special characters in the
+#	lookup key are quoted so they are not interpreted as SQL.
+#	This is the historical behavior, kept as the default for
+#	compatibility.
+# .IP "\fBparameterized\fR"
+#	Send the query and the lookup key to PostgreSQL separately,
+#	with the SQL re-sent on every lookup. The lookup key cannot
+#	become part of the SQL, regardless of what it contains. This
+#	mode does not rely on quoting to be safe, and is the right
+#	choice when a connection pooler in front of PostgreSQL would
+#	otherwise interfere with server-side prepared statements.
+# .IP "\fBprepared\fR"
+#	Send the query and the lookup key to PostgreSQL separately,
+#	with the query stored once per connection. The lookup key
+#	cannot become part of the SQL, regardless of what it contains.
+#	This mode is faster than legacy or parameterized mode and does
+#	not rely on quoting to be safe.
+# .RE
+#
+#	Existing query templates work unchanged.
+#
+#	This feature is available in Postfix 3.12 and later.
 # .IP "\fBquery\fR"
 #	The SQL query template used to search the database, where \fB%s\fR
 #	is a substitute for the address Postfix is trying to resolve,

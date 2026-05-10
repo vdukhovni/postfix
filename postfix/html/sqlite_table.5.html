@@ -49,6 +49,24 @@ SQLITE_TABLE(5)                                                SQLITE_TABLE(5)
        <b>dbpath</b> The SQLite database file location. Example:
                   dbpath = customer_database
 
+       <b>statement_mode (default: legacy)</b>
+              How Postfix sends queries to SQLite. Specify one of:
+
+              <b>legacy</b> Substitute the lookup key into the  query  and  send  the
+                     resulting  SQL  text to SQLite. Special characters in the
+                     lookup key are quoted so they are not interpreted as SQL.
+                     This  is the historical behavior, kept as the default for
+                     compatibility.
+
+              <b>prepared</b>
+                     Send the query and the lookup key to  SQLite  separately.
+                     The  lookup key cannot become part of the SQL, regardless
+                     of what it contains. Prepared mode is faster than  legacy
+                     mode  and  does  not rely on quoting to be safe. Existing
+                     query templates work unchanged.
+
+       This feature is available in Postfix 3.12 and later.
+
        <b>query</b>  The SQL query template used to search the database, where <b>%s</b>  is
               a  substitute for the address Postfix is trying to resolve, e.g.
                   query = SELECT replacement FROM aliases WHERE mailbox = '%s'

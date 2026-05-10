@@ -64,6 +64,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Prepared statement support by
+/*	Ömer Güven
 /*--*/
 
 /* System library. */
@@ -85,6 +88,9 @@
 
 #if !defined(MYSQL_VERSION_ID) || MYSQL_VERSION_ID < 40000
 #error "MySQL versions <4 are no longer supported"
+#endif
+#ifndef MYSQL_DATA_TRUNCATED
+#define MYSQL_DATA_TRUNCATED 101
 #endif
 
 #ifdef STRCASECMP_IN_STRINGS_H
@@ -130,9 +136,29 @@
 #define mysql_options	mysql_optionsv
 #endif
 
+ /*
+  * MariaDB and MySQL versions before 8.0 use my_bool (a char typedef)
+  * for the MYSQL_BIND.is_null field; MySQL 8.0 and later removed
+  * my_bool and use C99 bool instead. Match whichever the active
+  * header uses, so result-set NULL indicators bind cleanly without
+  * -Wpointer-sign noise. MySQL 8.0+ <mysql.h> pulls in <stdbool.h>
+  * itself, so we do not need to include it here.
+  */
+#if defined(MARIADB_BASE_VERSION) || MYSQL_VERSION_ID < 80000
+typedef my_bool DICT_MYSQL_NULL;
+#else
+typedef bool DICT_MYSQL_NULL;
+#endif
+
+#define MYSQL_STATEMENT_LEGACY		0
+#define MYSQL_STATEMENT_PREPARED	1
+
+typedef struct MYSQL_STATEMENT MYSQL_STATEMENT;	/* defined below */
+
 /* need some structs to help organize things */
 typedef struct {
     MYSQL  *db;
+    MYSQL_STMT *stmt;			/* prepared statement handle */
     char   *hostname;
     char   *name;
     /* 202604 Claude: find_inet_service() returns -1 on error. */
@@ -167,6 +193,8 @@ typedef struct {
     ARGV   *hosts;
     PLMYSQL *pldb;
     HOST   *active_host;
+    int     statement_mode;		/* MYSQL_STATEMENT_{LEGACY,PREPARED} */
+    MYSQL_STATEMENT *stmt;		/* compiled query, prepared mode only */
     char   *tls_cert_file;
     char   *tls_key_file;
     char   *tls_CAfile;
@@ -189,9 +217,16 @@ typedef struct {
 #define DEF_RETRY_INTV			60	/* 1 minute */
 #define DEF_IDLE_INTV			60	/* 1 minute */
 
+#define INIT_VSTR(buf, len) do { \
+	if (buf == 0) \
+	    buf = vstring_alloc(len); \
+	VSTRING_RESET(buf); \
+	VSTRING_TERMINATE(buf); \
+    } while (0)
+
 /* internal function declarations */
 static PLMYSQL *plmysql_init(ARGV *);
-static int plmysql_query(DICT_MYSQL *, const char *, VSTRING *, MYSQL_RES **);
+static int plmysql_query_legacy(DICT_MYSQL *, const char *, VSTRING *, MYSQL_RES **);
 static void plmysql_dealloc(PLMYSQL *);
 static void plmysql_close_host(HOST *);
 static void plmysql_down_host(HOST *, int);
@@ -201,6 +236,20 @@ DICT   *dict_mysql_open(const char *, int, int);
 static void dict_mysql_close(DICT *);
 static void mysql_parse_config(DICT_MYSQL *, const char *);
 static HOST *host_init(const char *);
+
+ /*
+  * Lookup variants. dict_mysql_lookup() does the per-key checks shared
+  * between the modes (UTF-8, key folding, domain filter), then dispatches
+  * to one of the implementations below. The legacy and prepared
+  * implementations are at the bottom of this file, well separated, so a
+  * future cleanup that retires legacy support can delete the legacy
+  * block, the dispatcher branch that calls it, plmysql_query_legacy(),
+  * dict_mysql_quote(), and the statement_mode parameter handling.
+  */
+static const char *dict_mysql_lookup_legacy(DICT *, const char *);
+static const char *dict_mysql_lookup_prepared(DICT *, const char *);
+static MYSQL_STATEMENT *mysql_statement_alloc(const char *, const char *);
+static void mysql_statement_free(MYSQL_STATEMENT *);
 
 /* dict_mysql_quote - escape SQL metacharacters in input string */
 
@@ -245,15 +294,6 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
 {
     const char *myname = "dict_mysql_lookup";
     DICT_MYSQL *dict_mysql = (DICT_MYSQL *) dict;
-    MYSQL_RES *query_res;
-    MYSQL_ROW row;
-    static VSTRING *result;
-    static VSTRING *query;
-    int     i;
-    int     j;
-    int     numrows;
-    int     expansion;
-    const char *r;
     int     domain_rc;
 
     dict->error = 0;
@@ -296,60 +336,11 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
 		 dict->type, dict->name, name);
 	DICT_ERR_VAL_RETURN(dict, domain_rc, (char *) 0);
     }
-#define INIT_VSTR(buf, len) do { \
-	if (buf == 0) \
-	    buf = vstring_alloc(len); \
-	VSTRING_RESET(buf); \
-	VSTRING_TERMINATE(buf); \
-    } while (0)
 
-    INIT_VSTR(query, 10);
-
-    /*
-     * Suppress the lookup if the query expansion is empty
-     * 
-     * This initial expansion is outside the context of any specific host
-     * connection, we just want to check the key pre-requisites, so when
-     * quoting happens separately for each connection, we don't bother with
-     * quoting...
-     */
-    if (!db_common_expand(dict_mysql->ctx, dict_mysql->query,
-			  name, 0, query, (db_quote_callback_t) 0))
-	return (0);
-
-    /* do the query - set dict->error & cleanup if there's an error */
-    if (plmysql_query(dict_mysql, name, query, &query_res) == 0) {
-	dict->error = DICT_ERR_RETRY;
-	return (0);
-    }
-    if (query_res == 0)
-	return (0);
-    numrows = mysql_num_rows(query_res);
-    if (msg_verbose)
-	msg_info("%s: retrieved %d rows", myname, numrows);
-    if (numrows == 0) {
-	mysql_free_result(query_res);
-	return 0;
-    }
-    INIT_VSTR(result, 10);
-
-    for (expansion = i = 0; i < numrows && dict->error == 0; i++) {
-	row = mysql_fetch_row(query_res);
-	for (j = 0; j < mysql_num_fields(query_res); j++) {
-	    if (db_common_expand(dict_mysql->ctx, dict_mysql->result_format,
-				 row[j], name, result, 0)
-		&& dict_mysql->expansion_limit > 0
-		&& ++expansion > dict_mysql->expansion_limit) {
-		msg_warn("%s: %s: Expansion limit exceeded for key: '%s'",
-			 myname, dict_mysql->parser->name, name);
-		dict->error = DICT_ERR_RETRY;
-		break;
-	    }
-	}
-    }
-    mysql_free_result(query_res);
-    r = vstring_str(result);
-    return ((dict->error == 0 && *r) ? r : 0);
+    /* Dispatch to the legacy or prepared implementation. */
+    return ((dict_mysql->statement_mode == MYSQL_STATEMENT_LEGACY) ?
+	    dict_mysql_lookup_legacy(dict, name) :
+	    dict_mysql_lookup_prepared(dict, name));
 }
 
 /* dict_mysql_check_stat - check the status of a host */
@@ -445,16 +436,16 @@ static void dict_mysql_event(int unused_event, void *context)
 }
 
 /*
- * plmysql_query - process a MySQL query.  Return 'true' on success.
+ * plmysql_query_legacy - process a MySQL query.  Return 'true' on success.
  *			On failure, log failure and try other db instances.
  *			on failure of all db instances, return 'false';
- *			close unnecessary active connections
+ *			close unnecessary active connections.
  */
 
-static int plmysql_query(DICT_MYSQL *dict_mysql,
-			         const char *name,
-			         VSTRING *query,
-			         MYSQL_RES **result)
+static int plmysql_query_legacy(DICT_MYSQL *dict_mysql,
+			                const char *name,
+			                VSTRING *query,
+			                MYSQL_RES **result)
 {
     HOST   *host;
     MYSQL_RES *first_result = 0;
@@ -662,6 +653,10 @@ static void plmysql_connect_single(DICT_MYSQL *dict_mysql, HOST *host)
 /* plmysql_close_host - close an established MySQL connection */
 static void plmysql_close_host(HOST *host)
 {
+    if (host->stmt) {
+	mysql_stmt_close(host->stmt);
+	host->stmt = 0;
+    }
     mysql_close(host->db);
     host->db = 0;
     host->stat = STATUNTRIED;
@@ -673,6 +668,10 @@ static void plmysql_close_host(HOST *host)
  */
 static void plmysql_down_host(HOST *host, int retry_interval)
 {
+    if (host->stmt) {
+	mysql_stmt_close(host->stmt);
+	host->stmt = 0;
+    }
     mysql_close(host->db);
     host->db = 0;
     host->ts = time((time_t *) 0) + retry_interval;
@@ -688,6 +687,7 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     CFG_PARSER *p = dict_mysql->parser;
     VSTRING *buf;
     char   *hosts;
+    char   *statement_mode;
 
     dict_mysql->username = cfg_get_str(p, "user", "", 0, 0);
     dict_mysql->password = cfg_get_str(p, "password", "", 0, 0);
@@ -698,6 +698,16 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     dict_mysql->idle_interval = cfg_get_int(p, "idle_interval",
 					    DEF_IDLE_INTV, 1, 0);
     dict_mysql->result_format = cfg_get_str(p, "result_format", "%s", 1, 0);
+    statement_mode = cfg_get_str(p, "statement_mode", "legacy", 1, 0);
+    if (strcasecmp(statement_mode, "legacy") == 0) {
+	dict_mysql->statement_mode = MYSQL_STATEMENT_LEGACY;
+    } else if (strcasecmp(statement_mode, "prepared") == 0) {
+	dict_mysql->statement_mode = MYSQL_STATEMENT_PREPARED;
+    } else {
+	msg_fatal("%s: %s: bad statement_mode value '%s'; specify "
+		  "'legacy' or 'prepared'", myname, mysqlcf, statement_mode);
+    }
+    myfree(statement_mode);
     dict_mysql->option_file = cfg_get_str(p, "option_file", NULL, 0, 0);
     dict_mysql->option_group = cfg_get_str(p, "option_group", "client", 0, 0);
     dict_mysql->tls_key_file = cfg_get_str(p, "tls_key_file", NULL, 0, 0);
@@ -736,6 +746,16 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
 			   dict_mysql->query, 1);
     (void) db_common_parse(0, &dict_mysql->ctx, dict_mysql->result_format, 0);
     db_common_parse_domain(p, dict_mysql->ctx);
+
+    /*
+     * In prepared mode, parse the query template into a MYSQL_STATEMENT
+     * once at open time. The actual mysql_stmt_prepare() call is deferred
+     * to the first lookup against each host, so that the connection has
+     * been established first.
+     */
+    if (dict_mysql->statement_mode != MYSQL_STATEMENT_LEGACY)
+	dict_mysql->stmt = mysql_statement_alloc(dict_mysql->parser->name,
+						 dict_mysql->query);
 
     /*
      * Maps that use substring keys should only be used with the full input
@@ -792,6 +812,8 @@ DICT   *dict_mysql_open(const char *name, int open_flags, int dict_flags)
     dict_mysql->dict.close = dict_mysql_close;
     dict_mysql->dict.flags = dict_flags;
     dict_mysql->parser = parser;
+    dict_mysql->statement_mode = MYSQL_STATEMENT_LEGACY;
+    dict_mysql->stmt = 0;
     mysql_parse_config(dict_mysql, name);
     dict_mysql->active_host = 0;
     dict_mysql->pldb = plmysql_init(dict_mysql->hosts);
@@ -832,6 +854,7 @@ static HOST *host_init(const char *hostname)
     char   *s;
 
     host->db = 0;
+    host->stmt = 0;
     host->hostname = mystrdup(hostname);
     host->port = 0;
     host->stat = STATUNTRIED;
@@ -899,6 +922,8 @@ static void dict_mysql_close(DICT *dict)
 	argv_free(dict_mysql->hosts);
     if (dict_mysql->ctx)
 	db_common_free_ctx(dict_mysql->ctx);
+    if (dict_mysql->stmt)
+	mysql_statement_free(dict_mysql->stmt);
     if (dict->fold_buf)
 	vstring_free(dict->fold_buf);
     dict_free(dict);
@@ -911,6 +936,8 @@ static void plmysql_dealloc(PLMYSQL *PLDB)
 
     for (i = 0; i < PLDB->len_hosts; i++) {
 	event_cancel_timer(dict_mysql_event, (void *) (PLDB->db_hosts[i]));
+	if (PLDB->db_hosts[i]->stmt)
+	    mysql_stmt_close(PLDB->db_hosts[i]->stmt);
 	if (PLDB->db_hosts[i]->db)
 	    mysql_close(PLDB->db_hosts[i]->db);
 	myfree(PLDB->db_hosts[i]->hostname);
@@ -921,5 +948,635 @@ static void plmysql_dealloc(PLMYSQL *PLDB)
     myfree((void *) PLDB->db_hosts);
     myfree((void *) (PLDB));
 }
+
+ /*
+  * ====================================================================
+  * Begin legacy code path: manual %letter quoting via dict_mysql_quote().
+  *
+  * The function below is reachable only when statement_mode ==
+  * MYSQL_STATEMENT_LEGACY. To retire legacy support, delete this
+  * section, the corresponding branch in dict_mysql_lookup() above,
+  * dict_mysql_quote(), plmysql_query_legacy(), and the statement_mode
+  * parameter handling.
+  * ====================================================================
+  */
+
+/* dict_mysql_lookup_legacy - find database entry, manual-quoting path */
+
+static const char *dict_mysql_lookup_legacy(DICT *dict, const char *name)
+{
+    const char *myname = "dict_mysql_lookup_legacy";
+    DICT_MYSQL *dict_mysql = (DICT_MYSQL *) dict;
+    MYSQL_RES *query_res;
+    MYSQL_ROW row;
+    static VSTRING *result;
+    static VSTRING *query;
+    int     i;
+    int     j;
+    int     numrows;
+    int     expansion;
+    const char *r;
+
+    INIT_VSTR(query, 10);
+
+    /*
+     * Suppress the lookup if the query expansion is empty
+     *
+     * This initial expansion is outside the context of any specific host
+     * connection, we just want to check the key pre-requisites, so when
+     * quoting happens separately for each connection, we don't bother with
+     * quoting...
+     */
+    if (!db_common_expand(dict_mysql->ctx, dict_mysql->query,
+			  name, 0, query, (db_quote_callback_t) 0))
+	return (0);
+
+    /* do the query - set dict->error & cleanup if there's an error */
+    if (plmysql_query_legacy(dict_mysql, name, query, &query_res) == 0) {
+	dict->error = DICT_ERR_RETRY;
+	return (0);
+    }
+    if (query_res == 0)
+	return (0);
+    numrows = mysql_num_rows(query_res);
+    if (msg_verbose)
+	msg_info("%s: retrieved %d rows", myname, numrows);
+    if (numrows == 0) {
+	mysql_free_result(query_res);
+	return 0;
+    }
+    INIT_VSTR(result, 10);
+
+    for (expansion = i = 0; i < numrows && dict->error == 0; i++) {
+	row = mysql_fetch_row(query_res);
+	for (j = 0; j < mysql_num_fields(query_res); j++) {
+	    if (db_common_expand(dict_mysql->ctx, dict_mysql->result_format,
+				 row[j], name, result, 0)
+		&& dict_mysql->expansion_limit > 0
+		&& ++expansion > dict_mysql->expansion_limit) {
+		msg_warn("%s: %s: Expansion limit exceeded for key: '%s'",
+			 myname, dict_mysql->parser->name, name);
+		dict->error = DICT_ERR_RETRY;
+		break;
+	    }
+	}
+    }
+    mysql_free_result(query_res);
+    r = vstring_str(result);
+    return ((dict->error == 0 && *r) ? r : 0);
+}
+
+ /*
+  * ====================================================================
+  * End legacy code path.
+  * ====================================================================
+  */
+
+ /*
+  * ====================================================================
+  * Begin prepared-statement code path.
+  *
+  * Each %letter in the configured query becomes a MySQL '?' parameter
+  * marker. The configured query is parsed once at open time
+  * (mysql_statement_alloc), prepared once per (host, statement) pair
+  * after each connect/reconnect, and re-bound + executed for every
+  * lookup. Existing query templates that quote substitutions ('%s',
+  * '%u', ...) work unchanged: the rewriter recognises and replaces the
+  * surrounding quotes.
+  *
+  * Result-set NULL handling: SQL NULL columns are silently skipped
+  * (matching legacy mode). Without an is_null indicator the MySQL C
+  * API would report NULL columns as zero-length values, which
+  * db_common_expand() would then warn about as "empty lookup result";
+  * the per-column is_null array below avoids that regression.
+  * ====================================================================
+  */
+
+struct MYSQL_STATEMENT {
+    char   *sql;			/* compiled query template */
+    ARGV   *param_formats;		/* %s, %u, ... in '?' marker order */
+    VSTRING **param_bufs;		/* per-parameter value storage */
+    MYSQL_BIND *param_binds;		/* MYSQL_BIND vector for execute */
+    unsigned long *param_lengths;	/* per-parameter actual length */
+};
+
+static int mysql_stmt_param(const char ch)
+{
+    return (strchr("sudSUD123456789", ch) != 0);
+}
+
+static int mysql_stmt_param_slot(ARGV *param_formats, const char *format)
+{
+    /* MySQL '?' markers are anonymous; repeated %u needs repeated slots. */
+    argv_add(param_formats, format, ARGV_END);
+    return (param_formats->argc - 1);
+}
+
+static void mysql_stmt_append_expr_param(VSTRING *buf, ARGV *param_formats,
+					         const char ch, int *pieces)
+{
+    char    format[] = {'%', ch, 0};
+
+    if ((*pieces)++ > 0)
+	VSTRING_ADDCH(buf, ',');
+    (void) mysql_stmt_param_slot(param_formats, format);
+    VSTRING_ADDCH(buf, '?');
+}
+
+static void mysql_stmt_append_expr_literal(VSTRING *buf, const char *text,
+					           ssize_t len, int *pieces)
+{
+    if ((*pieces)++ > 0)
+	VSTRING_ADDCH(buf, ',');
+    VSTRING_ADDCH(buf, '\'');
+    vstring_strncat(buf, text, len);
+    VSTRING_ADDCH(buf, '\'');
+}
+
+static void mysql_stmt_append_quoted(VSTRING *sql, ARGV *param_formats,
+					       const char *text, ssize_t len)
+{
+    VSTRING *expr;
+    VSTRING *lit;
+    const char *end = text + len;
+    const char *cp;
+    int     pieces = 0;
+    int     has_param = 0;
+
+    /* Fast path for common whole-literal placeholders: '%u' -> ?. */
+    if (len == 2 && text[0] == '%' && mysql_stmt_param(text[1])) {
+	char    format[] = {'%', text[1], 0};
+
+	(void) mysql_stmt_param_slot(param_formats, format);
+	VSTRING_ADDCH(sql, '?');
+	return;
+    }
+
+    expr = vstring_alloc(10);
+    lit = vstring_alloc(10);
+
+    /*
+     * MySQL does not use || for string concatenation by default, so mixed
+     * quoted literals become CONCAT('prefix-', ?, ...).
+     */
+    for (cp = text; cp < end; cp++) {
+	if (*cp == '\'' && cp + 1 < end && cp[1] == '\'') {
+	    VSTRING_ADDCH(lit, *cp);
+	    VSTRING_ADDCH(lit, *++cp);
+	} else if (*cp == '%' && cp + 1 < end) {
+	    if (cp[1] == '%') {
+		VSTRING_ADDCH(lit, '%');
+		cp += 1;
+	    } else if (mysql_stmt_param(cp[1])) {
+		if (VSTRING_LEN(lit) > 0) {
+		    VSTRING_TERMINATE(lit);
+		    mysql_stmt_append_expr_literal(expr, vstring_str(lit),
+						   VSTRING_LEN(lit), &pieces);
+		    VSTRING_RESET(lit);
+		    VSTRING_TERMINATE(lit);
+		}
+		mysql_stmt_append_expr_param(expr, param_formats, cp[1], &pieces);
+		has_param = 1;
+		cp += 1;
+	    } else {
+		msg_fatal("unexpected '%.2s' in mysql query template: %.*s",
+			  cp, (int) len, text);
+	    }
+	} else {
+	    VSTRING_ADDCH(lit, *cp);
+	}
+    }
+    if (VSTRING_LEN(lit) > 0 || pieces == 0) {
+	VSTRING_TERMINATE(lit);
+	mysql_stmt_append_expr_literal(expr, vstring_str(lit),
+				       VSTRING_LEN(lit), &pieces);
+    }
+
+    VSTRING_TERMINATE(expr);
+    if (has_param)
+	vstring_sprintf_append(sql, "CONCAT(%s)", vstring_str(expr));
+    else
+	vstring_strcat(sql, vstring_str(expr));
+    vstring_free(expr);
+    vstring_free(lit);
+}
+
+static MYSQL_STATEMENT *mysql_statement_alloc(const char *mapname,
+						      const char *query)
+{
+    MYSQL_STATEMENT *stmt;
+    VSTRING *sql;
+    ARGV   *param_formats;
+    const char *cp;
+    int     i;
+
+    stmt = (MYSQL_STATEMENT *) mymalloc(sizeof(*stmt));
+    sql = vstring_alloc(100);
+    param_formats = argv_alloc(1);
+
+    /*
+     * Parse once at open time. This keeps the legacy query template intact
+     * for users, while producing a MYSQL_STMT string with '?' markers.
+     */
+    for (cp = query; *cp; cp++) {
+	if (*cp == '\'') {
+	    const char *start;
+
+	    for (start = ++cp; *cp; cp++) {
+		if (*cp == '\'') {
+		    if (cp[1] == '\'')
+			cp += 1;
+		    else
+			break;
+		}
+	    }
+	    if (*cp == 0)
+		msg_fatal("%s: unterminated quote in query template: %s",
+			  mapname, query);
+	    mysql_stmt_append_quoted(sql, param_formats, start, cp - start);
+	} else if (*cp == '%') {
+	    if (cp[1] == 0) {
+		msg_fatal("%s: '%%' at end of query template: %s",
+			  mapname, query);
+	    } else if (cp[1] == '%') {
+		VSTRING_ADDCH(sql, '%');
+		cp += 1;
+	    } else if (mysql_stmt_param(cp[1])) {
+		char    format[] = {'%', cp[1], 0};
+
+		(void) mysql_stmt_param_slot(param_formats, format);
+		VSTRING_ADDCH(sql, '?');
+		cp += 1;
+	    } else {
+		msg_fatal("%s: unexpected '%.2s' in query template: %s",
+			  mapname, cp, query);
+	    }
+	} else {
+	    VSTRING_ADDCH(sql, *cp);
+	}
+    }
+    VSTRING_TERMINATE(sql);
+
+    stmt->sql = vstring_export(sql);
+    stmt->param_formats = param_formats;
+    /* No-placeholder templates avoid all per-parameter allocations. */
+    if (param_formats->argc > 0) {
+	stmt->param_bufs = (VSTRING **) mymalloc(param_formats->argc
+						 * sizeof(*stmt->param_bufs));
+	stmt->param_binds = (MYSQL_BIND *) mymalloc(param_formats->argc
+						    * sizeof(*stmt->param_binds));
+	stmt->param_lengths = (unsigned long *) mymalloc(param_formats->argc
+						* sizeof(*stmt->param_lengths));
+	for (i = 0; i < param_formats->argc; i++)
+	    stmt->param_bufs[i] = vstring_alloc(10);
+    } else {
+	stmt->param_bufs = 0;
+	stmt->param_binds = 0;
+	stmt->param_lengths = 0;
+    }
+    return (stmt);
+}
+
+static void mysql_statement_free(MYSQL_STATEMENT *stmt)
+{
+    int     i;
+
+    if (stmt->sql)
+	myfree(stmt->sql);
+    if (stmt->param_bufs) {
+	for (i = 0; i < stmt->param_formats->argc; i++)
+	    vstring_free(stmt->param_bufs[i]);
+	myfree((void *) stmt->param_bufs);
+    }
+    if (stmt->param_binds)
+	myfree((void *) stmt->param_binds);
+    if (stmt->param_lengths)
+	myfree((void *) stmt->param_lengths);
+    if (stmt->param_formats)
+	argv_free(stmt->param_formats);
+    myfree((void *) stmt);
+}
+
+static int mysql_stmt_bind_value(DICT_MYSQL *dict_mysql, const char *format,
+				         const char *name, VSTRING *buf)
+{
+    /* Re-expand this placeholder for the current lookup key into its slot. */
+    VSTRING_RESET(buf);
+    VSTRING_TERMINATE(buf);
+    return (db_common_expand(dict_mysql->ctx, format, name, 0, buf,
+			     (db_quote_callback_t) 0));
+}
+
+static int mysql_stmt_bind(DICT_MYSQL *dict_mysql, MYSQL_STMT *stmt,
+			           const char *name)
+{
+    MYSQL_STATEMENT *sql_stmt = dict_mysql->stmt;
+    VSTRING *param_buf;
+    int     i;
+    int     prev;
+
+    if (sql_stmt->param_formats->argc == 0)
+	return (1);
+
+    /*
+     * Match the legacy single-warning behaviour for an empty lookup key.
+     * Without this guard, db_common_expand() would emit the same "empty
+     * query string" warning once per placeholder slot.
+     */
+    if (*name == 0) {
+	msg_warn("table \"%s:%s\": empty query string -- ignored",
+		 dict_mysql->dict.type, dict_mysql->dict.name);
+	return (0);
+    }
+    /* Fill every MYSQL_BIND in the same order as the generated '?' markers. */
+    memset(sql_stmt->param_binds, 0,
+	   sql_stmt->param_formats->argc * sizeof(*sql_stmt->param_binds));
+    for (i = 0; i < sql_stmt->param_formats->argc; i++) {
+	/*
+	 * Repeated %u needs repeated MySQL bind slots, but it can reuse the
+	 * first expansion buffer for this lookup.
+	 */
+	for (prev = 0; prev < i; prev++)
+	    if (strcmp(sql_stmt->param_formats->argv[prev],
+		       sql_stmt->param_formats->argv[i]) == 0)
+		break;
+	if (prev == i) {
+	    if (!mysql_stmt_bind_value(dict_mysql,
+				       sql_stmt->param_formats->argv[i],
+				       name, sql_stmt->param_bufs[i]))
+		return (0);
+	    param_buf = sql_stmt->param_bufs[i];
+	} else {
+	    param_buf = sql_stmt->param_bufs[prev];
+	}
+	sql_stmt->param_lengths[i] = VSTRING_LEN(param_buf);
+	sql_stmt->param_binds[i].buffer_type = MYSQL_TYPE_STRING;
+	sql_stmt->param_binds[i].buffer = (char *) vstring_str(param_buf);
+	sql_stmt->param_binds[i].buffer_length = sql_stmt->param_lengths[i];
+	sql_stmt->param_binds[i].length = &sql_stmt->param_lengths[i];
+    }
+    if (mysql_stmt_bind_param(stmt, sql_stmt->param_binds) != 0) {
+	msg_warn("%s:%s: prepared query bind failed: %s",
+		 dict_mysql->dict.type, dict_mysql->dict.name,
+		 mysql_stmt_error(stmt));
+	return (-1);
+    }
+    return (1);
+}
+
+/* plmysql_prepare_stmt - run mysql_stmt_prepare on this host once per connection */
+
+static int plmysql_prepare_stmt(DICT_MYSQL *dict_mysql, HOST *host)
+{
+    if (host->stmt)
+	return (1);
+    if ((host->stmt = mysql_stmt_init(host->db)) == 0) {
+	msg_warn("%s:%s: prepared query init failed: %s",
+		 dict_mysql->dict.type, dict_mysql->dict.name,
+		 mysql_error(host->db));
+	return (0);
+    }
+    if (mysql_stmt_prepare(host->stmt, dict_mysql->stmt->sql,
+			   strlen(dict_mysql->stmt->sql)) != 0) {
+	msg_warn("%s:%s: prepared query failed: %s",
+		 dict_mysql->dict.type, dict_mysql->dict.name,
+		 mysql_stmt_error(host->stmt));
+	mysql_stmt_close(host->stmt);
+	host->stmt = 0;
+	return (0);
+    }
+    return (1);
+}
+
+/*
+ * plmysql_query_prepared - process a prepared MySQL query.  On success,
+ *			append result rows to result and set *found if at
+ *			least one row arrived. On failure, log and try other
+ *			db instances; on failure of all instances, return 0;
+ *			close unnecessary active connections.
+ */
+
+static int plmysql_query_prepared(DICT_MYSQL *dict_mysql, const char *name,
+				          VSTRING *result, int *found)
+{
+    HOST   *host;
+    MYSQL_RES *metadata;
+    MYSQL_BIND *result_binds;
+    MYSQL_BIND column_bind;
+    DICT_MYSQL_NULL *is_null;
+    unsigned long *lengths;
+    unsigned long column_length;
+    char   *dummy;
+    char   *column;
+    int     num_fields;
+    int     i;
+    int     status;
+    int     query_error = 1;
+    int     expansion = 0;
+
+    *found = 0;
+    errno = ENOTSUP;
+
+    while ((host = dict_mysql_get_active(dict_mysql)) != NULL) {
+	if (!plmysql_prepare_stmt(dict_mysql, host)) {
+	    plmysql_down_host(host, dict_mysql->retry_interval);
+	    continue;
+	}
+	status = mysql_stmt_bind(dict_mysql, host->stmt, name);
+	if (status == 0)
+	    return (1);
+	if (status < 0) {
+	    plmysql_down_host(host, dict_mysql->retry_interval);
+	    continue;
+	}
+
+	query_error = 0;
+	errno = 0;
+	if (mysql_stmt_execute(host->stmt) != 0) {
+	    query_error = 1;
+	    msg_warn("%s:%s: prepared query execute failed: %s",
+		     dict_mysql->dict.type, dict_mysql->dict.name,
+		     mysql_stmt_error(host->stmt));
+	}
+
+	metadata = 0;
+	result_binds = 0;
+	is_null = 0;
+	lengths = 0;
+	dummy = 0;
+	num_fields = 0;
+
+	if (query_error == 0) {
+	    metadata = mysql_stmt_result_metadata(host->stmt);
+	    if (metadata == 0) {
+		if (mysql_stmt_field_count(host->stmt) != 0) {
+		    query_error = 1;
+		    msg_warn("%s:%s: prepared query metadata failed: %s",
+			     dict_mysql->dict.type, dict_mysql->dict.name,
+			     mysql_stmt_error(host->stmt));
+		} else if (dict_mysql->require_result_set) {
+		    query_error = 1;
+		    msg_warn("%s:%s: prepared query returned no result set"
+			     "(require_result_set = yes)",
+			     dict_mysql->dict.type, dict_mysql->dict.name);
+		}
+	    }
+	}
+
+	if (query_error == 0 && metadata != 0) {
+	    if (mysql_stmt_store_result(host->stmt) != 0) {
+		query_error = 1;
+		msg_warn("%s:%s: prepared query store result failed: %s",
+			 dict_mysql->dict.type, dict_mysql->dict.name,
+			 mysql_stmt_error(host->stmt));
+	    } else {
+		num_fields = mysql_num_fields(metadata);
+
+		/*
+		 * mysql_stmt_fetch() with too-small per-column buffers
+		 * returns MYSQL_DATA_TRUNCATED but populates *length and
+		 * *is_null; the actual column data is then pulled with
+		 * mysql_stmt_fetch_column() below using a freshly-sized
+		 * buffer.
+		 */
+		result_binds = (MYSQL_BIND *) mymalloc(num_fields
+						       * sizeof(*result_binds));
+		is_null = (DICT_MYSQL_NULL *) mymalloc((num_fields > 0 ?
+							num_fields : 1)
+						       * sizeof(*is_null));
+		lengths = (unsigned long *) mymalloc(num_fields
+						     * sizeof(*lengths));
+		dummy = (char *) mymalloc(num_fields > 0 ? num_fields : 1);
+		memset(result_binds, 0, num_fields * sizeof(*result_binds));
+		for (i = 0; i < num_fields; i++) {
+		    result_binds[i].buffer_type = MYSQL_TYPE_STRING;
+		    result_binds[i].buffer = dummy + i;
+		    result_binds[i].buffer_length = 1;
+		    result_binds[i].length = lengths + i;
+		    result_binds[i].is_null = is_null + i;
+		}
+		if (mysql_stmt_bind_result(host->stmt, result_binds) != 0) {
+		    query_error = 1;
+		    msg_warn("%s:%s: prepared query bind result failed: %s",
+			     dict_mysql->dict.type, dict_mysql->dict.name,
+			     mysql_stmt_error(host->stmt));
+		}
+	    }
+	}
+
+	while (query_error == 0 && metadata != 0
+	       && (status = mysql_stmt_fetch(host->stmt)) != MYSQL_NO_DATA) {
+	    if (status != 0 && status != MYSQL_DATA_TRUNCATED) {
+		query_error = 1;
+		msg_warn("%s:%s: prepared query fetch failed: %s",
+			 dict_mysql->dict.type, dict_mysql->dict.name,
+			 mysql_stmt_error(host->stmt));
+		break;
+	    }
+	    *found = 1;
+	    for (i = 0; i < num_fields; i++) {
+
+		/*
+		 * Skip SQL NULL columns silently, matching legacy mode where
+		 * mysql_fetch_row() would have placed a NULL pointer in the
+		 * row and db_common_expand() would have short-circuited it.
+		 */
+		if (is_null[i])
+		    continue;
+		column = (char *) mymalloc(lengths[i] + 1);
+		memset(&column_bind, 0, sizeof(column_bind));
+		column_bind.buffer_type = MYSQL_TYPE_STRING;
+		column_bind.buffer = column;
+		column_bind.buffer_length = lengths[i] + 1;
+		column_bind.length = &column_length;
+		column_length = 0;
+		if (mysql_stmt_fetch_column(host->stmt, &column_bind, i, 0) != 0) {
+		    query_error = 1;
+		    msg_warn("%s:%s: prepared query fetch column failed: %s",
+			     dict_mysql->dict.type, dict_mysql->dict.name,
+			     mysql_stmt_error(host->stmt));
+		    myfree(column);
+		    break;
+		}
+		column[column_length] = 0;
+		if (db_common_expand(dict_mysql->ctx, dict_mysql->result_format,
+				     column, name, result, 0)
+		    && dict_mysql->expansion_limit > 0
+		    && ++expansion > dict_mysql->expansion_limit) {
+
+		    /*
+		     * Tag the warning with the user-facing dict_mysql_lookup_prepared
+		     * (rather than __func__) so it parallels the legacy path, which
+		     * emits the matching warning from dict_mysql_lookup_legacy.
+		     */
+		    msg_warn("dict_mysql_lookup_prepared: %s: Expansion limit "
+			     "exceeded for key: '%s'",
+			     dict_mysql->parser->name, name);
+		    dict_mysql->dict.error = DICT_ERR_RETRY;
+		    query_error = 1;
+		    myfree(column);
+		    break;
+		}
+		myfree(column);
+	    }
+	}
+
+	if (result_binds)
+	    myfree((void *) result_binds);
+	if (is_null)
+	    myfree((void *) is_null);
+	if (lengths)
+	    myfree((void *) lengths);
+	if (dummy)
+	    myfree(dummy);
+	if (metadata)
+	    mysql_free_result(metadata);
+	mysql_stmt_free_result(host->stmt);
+
+	if (dict_mysql->dict.error) {
+	    event_request_timer(dict_mysql_event, (void *) host,
+				dict_mysql->idle_interval);
+	    return (1);
+	}
+	if (query_error) {
+	    plmysql_down_host(host, dict_mysql->retry_interval);
+	    if (errno == 0)
+		errno = ENOTSUP;
+	} else {
+	    if (msg_verbose)
+		msg_info("%s:%s: successful prepared query result from host %s",
+			 dict_mysql->dict.type, dict_mysql->dict.name,
+			 host->hostname);
+	    event_request_timer(dict_mysql_event, (void *) host,
+				dict_mysql->idle_interval);
+	    break;
+	}
+    }
+    return (query_error == 0);
+}
+
+/* dict_mysql_lookup_prepared - find database entry, prepared-statement path */
+
+static const char *dict_mysql_lookup_prepared(DICT *dict, const char *name)
+{
+    DICT_MYSQL *dict_mysql = (DICT_MYSQL *) dict;
+    static VSTRING *result;
+    const char *r;
+    int     found;
+
+    INIT_VSTR(result, 10);
+    if (plmysql_query_prepared(dict_mysql, name, result, &found) == 0) {
+	dict->error = DICT_ERR_RETRY;
+	return (0);
+    }
+    r = vstring_str(result);
+    return ((dict->error == 0 && found && *r) ? r : 0);
+}
+
+ /*
+  * ====================================================================
+  * End prepared-statement code path.
+  * ====================================================================
+  */
 
 #endif

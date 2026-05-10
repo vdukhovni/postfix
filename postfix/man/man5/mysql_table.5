@@ -125,6 +125,24 @@ will reconnect immediately after a single failure. With Postfix
 versions 3.9 and earlier, specify the same server twice.
 
 This feature is available in Postfix 3.9 and later.
+.IP "\fBstatement_mode (default: legacy)\fR"
+How Postfix sends queries to MySQL or MariaDB. Specify one of:
+.RS
+.IP "\fBlegacy\fR"
+Substitute the lookup key into the query and send the
+resulting SQL text to the server. Special characters in the
+lookup key are quoted so they are not interpreted as SQL.
+This is the historical behavior, kept as the default for
+compatibility.
+.IP "\fBprepared\fR"
+Send the query and the lookup key to the server separately,
+with the query stored once per connection. The lookup key
+cannot become part of the SQL, regardless of what it contains.
+Prepared mode is faster than legacy mode and does not rely on
+quoting to be safe. Existing query templates work unchanged.
+.RE
+
+This feature is available in Postfix 3.12 and later.
 .IP "\fBquery\fR"
 The SQL query template used to search the database, where \fB%s\fR
 is a substitute for the address Postfix is trying to resolve,

@@ -31109,6 +31109,17 @@ Apologies for any names omitted.
 	(tls/tls_dane.c); race condition fix in a test script
 	(tls/dls_dane.sh). Viktor Dukhovni.
 
+	Work-in-progress: support to convert MySQL, PostgreSQL, and
+	SQLite queries into prepared or parameterized statements,
+	where each %letter sequence in a Postfix-configured query
+	is replaced with some kind of placeholder, and where each
+	placeholder is bound to Postfix's expansion of that %letter
+	sequence. Contributed by Ömer Güven. This does not necessarily
+	make queries faster, but does make them immune against SQL
+	injection. Files: global/dict_mysql.c, global/dict_pgsql.c,
+	global/dict_sqlite.c, proto/pgsql_table, proto/sqlite_table,
+	proto/mysql_table.
+
 20260510
 
 	Bugfix (defect introduced: 20260507): unterminated comment
@@ -31118,6 +31129,18 @@ Apologies for any names omitted.
 	Files: master/dgram_server.c, master/event_server.c,
 	master/multi_server.c, master/single_server.c,
 	src/master/trigger_server.c.
+
+	Work-in-progress: Viktor Dukhovni ran a Claude Code session
+	to rebase the SQL client patches to postfix-3.12-20260508
+	(restoring the dict_pgsql.c fixes that were made after a
+	Claude code review in April); made the code paths for legacy
+	queries distinct from code paths for non-legacy queries;
+	made some small corrections; and added tests to ensure that
+	legacy query results will continue to match non-legacy query
+	results: tests/mysql_prepared/run.sh, tests/pgsql_prepared/run.sh,
+	tests/sqlite_prepared/run.sh.
+
+	Baseline is postfix-3.12-20260510.
 
 TODO
 

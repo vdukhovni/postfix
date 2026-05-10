@@ -61,6 +61,9 @@
 /*	Joshua Marcus
 /*	IC Group, Inc.
 /*	josh@icgroup.com
+/*
+/*	Prepared statement support by
+/*	Ömer Güven
 /*--*/
 
 /* System library. */
@@ -91,6 +94,7 @@
 #include "split_at.h"
 #include "myrand.h"
 #include "events.h"
+#include "hash_fnv.h"
 #include "stringops.h"
 #include "valid_uri_scheme.h"
 
@@ -115,6 +119,12 @@
 #define DEF_RETRY_INTV			60	/* 1 minute */
 #define DEF_IDLE_INTV			60	/* 1 minute */
 
+#define PGSQL_STATEMENT_LEGACY		0
+#define PGSQL_STATEMENT_PARAMETERIZED	1
+#define PGSQL_STATEMENT_PREPARED	2
+
+typedef struct PGSQL_STATEMENT PGSQL_STATEMENT;	/* defined below */
+
 typedef struct {
     PGconn *db;
     char   *hostname;
@@ -123,6 +133,7 @@ typedef struct {
     unsigned type;			/* TYPEUNIX | TYPEINET | TYPECONNSTR */
     unsigned stat;			/* STATUNTRIED | STATFAIL | STATCUR */
     time_t  ts;				/* used for attempting reconnection */
+    int     stmt_ready;			/* prepared statement is ready */
 } HOST;
 
 typedef struct {
@@ -148,15 +159,24 @@ typedef struct {
     ARGV   *hosts;
     PLPGSQL *pldb;
     HOST   *active_host;
+    int     statement_mode;		/* PGSQL_STATEMENT_{LEGACY,...} */
+    PGSQL_STATEMENT *stmt;		/* compiled query, non-legacy modes */
 } DICT_PGSQL;
 
 
 /* Just makes things a little easier for me.. */
 #define PGSQL_RES PGresult
 
+#define INIT_VSTR(buf, len) do { \
+	if (buf == 0) \
+	    buf = vstring_alloc(len); \
+	VSTRING_RESET(buf); \
+	VSTRING_TERMINATE(buf); \
+    } while (0)
+
 /* internal function declarations */
 static PLPGSQL *plpgsql_init(ARGV *);
-static PGSQL_RES *plpgsql_query(DICT_PGSQL *, const char *, VSTRING *);
+static PGSQL_RES *plpgsql_query_legacy(DICT_PGSQL *, const char *, VSTRING *);
 static void plpgsql_dealloc(PLPGSQL *);
 static void plpgsql_close_host(HOST *);
 static void plpgsql_down_host(HOST *, int);
@@ -165,6 +185,20 @@ static const char *dict_pgsql_lookup(DICT *, const char *);
 DICT   *dict_pgsql_open(const char *, int, int);
 static void dict_pgsql_close(DICT *);
 static HOST *host_init(const char *);
+
+ /*
+  * Lookup variants. dict_pgsql_lookup() does the per-key checks shared
+  * between the modes (UTF-8, key folding, domain filter), then dispatches
+  * to one of the implementations below. The legacy and prepared
+  * implementations are at the bottom of this file, well separated, so a
+  * future cleanup that retires legacy support can delete the legacy
+  * block, the dispatcher branch that calls it, plpgsql_query_legacy(),
+  * dict_pgsql_quote(), and the statement_mode parameter handling.
+  */
+static const char *dict_pgsql_lookup_legacy(DICT *, const char *);
+static const char *dict_pgsql_lookup_prepared(DICT *, const char *);
+static PGSQL_STATEMENT *pgsql_statement_alloc(const char *, const char *);
+static void pgsql_statement_free(PGSQL_STATEMENT *);
 
 /* dict_pgsql_quote - escape SQL metacharacters in input string */
 
@@ -258,29 +292,8 @@ static void dict_pgsql_quote(DICT *dict, const char *name, VSTRING *result)
 static const char *dict_pgsql_lookup(DICT *dict, const char *name)
 {
     const char *myname = "dict_pgsql_lookup";
-    PGSQL_RES *query_res;
-    DICT_PGSQL *dict_pgsql;
-    static VSTRING *query;
-    static VSTRING *result;
-    int     i;
-    int     j;
-    int     numrows;
-    int     numcols;
-    int     expansion;
-    const char *r;
+    DICT_PGSQL *dict_pgsql = (DICT_PGSQL *) dict;
     int     domain_rc;
-
-    dict_pgsql = (DICT_PGSQL *) dict;
-
-#define INIT_VSTR(buf, len) do { \
-	if (buf == 0) \
-	    buf = vstring_alloc(len); \
-	VSTRING_RESET(buf); \
-	VSTRING_TERMINATE(buf); \
-    } while (0)
-
-    INIT_VSTR(query, 10);
-    INIT_VSTR(result, 10);
 
     dict->error = 0;
 
@@ -320,49 +333,10 @@ static const char *dict_pgsql_lookup(DICT *dict, const char *name)
     if (domain_rc < 0)
 	DICT_ERR_VAL_RETURN(dict, domain_rc, (char *) 0);
 
-    /*
-     * Suppress the actual lookup if the expansion is empty.
-     * 
-     * This initial expansion is outside the context of any specific host
-     * connection, we just want to check the key pre-requisites, so when
-     * quoting happens separately for each connection, we don't bother with
-     * quoting...
-     */
-    if (!db_common_expand(dict_pgsql->ctx, dict_pgsql->query,
-			  name, 0, query, 0))
-	return (0);
-
-    /* do the query - set dict->error & cleanup if there's an error */
-    if ((query_res = plpgsql_query(dict_pgsql, name, query)) == 0) {
-	dict->error = DICT_ERR_RETRY;
-	return 0;
-    }
-    numrows = PQntuples(query_res);
-    if (msg_verbose)
-	msg_info("%s: retrieved %d rows", myname, numrows);
-    if (numrows == 0) {
-	PQclear(query_res);
-	return 0;
-    }
-    numcols = PQnfields(query_res);
-
-    for (expansion = i = 0; i < numrows && dict->error == 0; i++) {
-	for (j = 0; j < numcols; j++) {
-	    r = PQgetvalue(query_res, i, j);
-	    if (db_common_expand(dict_pgsql->ctx, dict_pgsql->result_format,
-				 r, name, result, 0)
-		&& dict_pgsql->expansion_limit > 0
-		&& ++expansion > dict_pgsql->expansion_limit) {
-		msg_warn("%s: %s: Expansion limit exceeded for key: '%s'",
-			 myname, dict_pgsql->parser->name, name);
-		dict->error = DICT_ERR_RETRY;
-		break;
-	    }
-	}
-    }
-    PQclear(query_res);
-    r = vstring_str(result);
-    return ((dict->error == 0 && *r) ? r : 0);
+    /* Dispatch to the legacy or prepared implementation. */
+    return ((dict_pgsql->statement_mode == PGSQL_STATEMENT_LEGACY) ?
+	    dict_pgsql_lookup_legacy(dict, name) :
+	    dict_pgsql_lookup_prepared(dict, name));
 }
 
 /* dict_pgsql_check_stat - check the status of a host */
@@ -460,15 +434,15 @@ static void dict_pgsql_event(int unused_event, void *context)
 }
 
 /*
- * plpgsql_query - process a PostgreSQL query.  Return PGSQL_RES* on success.
- *			On failure, log failure and try other db instances.
- *			on failure of all db instances, return 0;
- *			close unnecessary active connections
+ * plpgsql_query_legacy - process a PostgreSQL query.  Return PGSQL_RES* on
+ *			success.  On failure, log failure and try other db
+ *			instances.  on failure of all db instances, return
+ *			0; close unnecessary active connections.
  */
 
-static PGSQL_RES *plpgsql_query(DICT_PGSQL *dict_pgsql,
-				        const char *name,
-				        VSTRING *query)
+static PGSQL_RES *plpgsql_query_legacy(DICT_PGSQL *dict_pgsql,
+				               const char *name,
+				               VSTRING *query)
 {
     PLPGSQL *PLDB = dict_pgsql->pldb;
     HOST   *host;
@@ -608,6 +582,7 @@ static void plpgsql_close_host(HOST *host)
 	PQfinish(host->db);
     host->db = 0;
     host->stat = STATUNTRIED;
+    host->stmt_ready = 0;
 }
 
 /*
@@ -621,6 +596,7 @@ static void plpgsql_down_host(HOST *host, int retry_interval)
     host->db = 0;
     host->ts = time((time_t *) 0) + retry_interval;
     host->stat = STATFAIL;
+    host->stmt_ready = 0;
     event_cancel_timer(dict_pgsql_event, (void *) host);
 }
 
@@ -633,6 +609,7 @@ static void pgsql_parse_config(DICT_PGSQL *dict_pgsql, const char *pgsqlcf)
     char   *hosts;
     VSTRING *query;
     char   *select_function;
+    char   *statement_mode;
 
     dict_pgsql->username = cfg_get_str(p, "user", "", 0, 0);
     dict_pgsql->password = cfg_get_str(p, "password", "", 0, 0);
@@ -643,6 +620,19 @@ static void pgsql_parse_config(DICT_PGSQL *dict_pgsql, const char *pgsqlcf)
     dict_pgsql->idle_interval = cfg_get_int(p, "idle_interval",
 					    DEF_IDLE_INTV, 1, 0);
     dict_pgsql->result_format = cfg_get_str(p, "result_format", "%s", 1, 0);
+    statement_mode = cfg_get_str(p, "statement_mode", "legacy", 1, 0);
+    if (strcasecmp(statement_mode, "legacy") == 0) {
+	dict_pgsql->statement_mode = PGSQL_STATEMENT_LEGACY;
+    } else if (strcasecmp(statement_mode, "parameterized") == 0) {
+	dict_pgsql->statement_mode = PGSQL_STATEMENT_PARAMETERIZED;
+    } else if (strcasecmp(statement_mode, "prepared") == 0) {
+	dict_pgsql->statement_mode = PGSQL_STATEMENT_PREPARED;
+    } else {
+	msg_fatal("%s: %s: bad statement_mode value '%s'; specify "
+		  "'legacy', 'parameterized', or 'prepared'",
+		  myname, pgsqlcf, statement_mode);
+    }
+    myfree(statement_mode);
 
     /*
      * XXX: The default should be non-zero for safety, but that is not
@@ -675,6 +665,16 @@ static void pgsql_parse_config(DICT_PGSQL *dict_pgsql, const char *pgsqlcf)
 			   dict_pgsql->query, 1);
     (void) db_common_parse(0, &dict_pgsql->ctx, dict_pgsql->result_format, 0);
     db_common_parse_domain(p, dict_pgsql->ctx);
+
+    /*
+     * In a non-legacy mode, parse the query template into a PGSQL_STATEMENT
+     * once at open time. The actual PQprepare() call (if any) is deferred
+     * to the first lookup against each host, so that the connection has
+     * been established first.
+     */
+    if (dict_pgsql->statement_mode != PGSQL_STATEMENT_LEGACY)
+	dict_pgsql->stmt = pgsql_statement_alloc(dict_pgsql->parser->name,
+						 dict_pgsql->query);
 
     /*
      * Maps that use substring keys should only be used with the full input
@@ -731,6 +731,8 @@ DICT   *dict_pgsql_open(const char *name, int open_flags, int dict_flags)
     dict_pgsql->dict.close = dict_pgsql_close;
     dict_pgsql->dict.flags = dict_flags;
     dict_pgsql->parser = parser;
+    dict_pgsql->statement_mode = PGSQL_STATEMENT_LEGACY;
+    dict_pgsql->stmt = 0;
     pgsql_parse_config(dict_pgsql, name);
     dict_pgsql->active_host = 0;
     dict_pgsql->pldb = plpgsql_init(dict_pgsql->hosts);
@@ -788,6 +790,7 @@ static HOST *host_init(const char *hostname)
     host->hostname = mystrdup(hostname);
     host->stat = STATUNTRIED;
     host->ts = 0;
+    host->stmt_ready = 0;
 
     /*
      * Modern syntax: connection URI.
@@ -838,6 +841,8 @@ static void dict_pgsql_close(DICT *dict)
     myfree(dict_pgsql->encoding);
     myfree(dict_pgsql->query);
     myfree(dict_pgsql->result_format);
+    if (dict_pgsql->stmt)
+	pgsql_statement_free(dict_pgsql->stmt);
     if (dict_pgsql->hosts)
 	argv_free(dict_pgsql->hosts);
     if (dict_pgsql->ctx)
@@ -864,5 +869,578 @@ static void plpgsql_dealloc(PLPGSQL *PLDB)
     myfree((void *) PLDB->db_hosts);
     myfree((void *) (PLDB));
 }
+
+ /*
+  * ====================================================================
+  * Begin legacy code path: manual %letter quoting via dict_pgsql_quote().
+  *
+  * The function below is reachable only when statement_mode ==
+  * PGSQL_STATEMENT_LEGACY. To retire legacy support, delete this
+  * section, the corresponding branch in dict_pgsql_lookup() above,
+  * dict_pgsql_quote(), plpgsql_query_legacy(), and the statement_mode
+  * parameter handling.
+  * ====================================================================
+  */
+
+/* dict_pgsql_lookup_legacy - find database entry, manual-quoting path */
+
+static const char *dict_pgsql_lookup_legacy(DICT *dict, const char *name)
+{
+    const char *myname = "dict_pgsql_lookup_legacy";
+    DICT_PGSQL *dict_pgsql = (DICT_PGSQL *) dict;
+    PGSQL_RES *query_res;
+    static VSTRING *query;
+    static VSTRING *result;
+    int     i;
+    int     j;
+    int     numrows;
+    int     numcols;
+    int     expansion;
+    const char *r;
+
+    INIT_VSTR(query, 10);
+    INIT_VSTR(result, 10);
+
+    /*
+     * Suppress the actual lookup if the expansion is empty.
+     *
+     * This initial expansion is outside the context of any specific host
+     * connection, we just want to check the key pre-requisites, so when
+     * quoting happens separately for each connection, we don't bother with
+     * quoting...
+     */
+    if (!db_common_expand(dict_pgsql->ctx, dict_pgsql->query,
+			  name, 0, query, 0))
+	return (0);
+
+    /* do the query - set dict->error & cleanup if there's an error */
+    if ((query_res = plpgsql_query_legacy(dict_pgsql, name, query)) == 0) {
+	dict->error = DICT_ERR_RETRY;
+	return 0;
+    }
+    numrows = PQntuples(query_res);
+    if (msg_verbose)
+	msg_info("%s: retrieved %d rows", myname, numrows);
+    if (numrows == 0) {
+	PQclear(query_res);
+	return 0;
+    }
+    numcols = PQnfields(query_res);
+
+    for (expansion = i = 0; i < numrows && dict->error == 0; i++) {
+	for (j = 0; j < numcols; j++) {
+	    r = PQgetvalue(query_res, i, j);
+	    if (db_common_expand(dict_pgsql->ctx, dict_pgsql->result_format,
+				 r, name, result, 0)
+		&& dict_pgsql->expansion_limit > 0
+		&& ++expansion > dict_pgsql->expansion_limit) {
+		msg_warn("%s: %s: Expansion limit exceeded for key: '%s'",
+			 myname, dict_pgsql->parser->name, name);
+		dict->error = DICT_ERR_RETRY;
+		break;
+	    }
+	}
+    }
+    PQclear(query_res);
+    r = vstring_str(result);
+    return ((dict->error == 0 && *r) ? r : 0);
+}
+
+ /*
+  * ====================================================================
+  * End legacy code path.
+  * ====================================================================
+  */
+
+ /*
+  * ====================================================================
+  * Begin prepared/parameterized code path.
+  *
+  * Each %letter in the configured query becomes a PostgreSQL $N
+  * parameter. The configured query is parsed once at open time
+  * (pgsql_statement_alloc), and the rewritten SQL is sent either via
+  * PQexecParams (parameterized mode -- no server-side prepare) or via
+  * a one-time PQprepare per host followed by PQexecPrepared (prepared
+  * mode). Existing query templates that quote substitutions ('%s',
+  * '%u', ...) work unchanged: the rewriter recognises and replaces
+  * the surrounding quotes.
+  * ====================================================================
+  */
+
+struct PGSQL_STATEMENT {
+    char   *sql;			/* normalised SQL with $N markers */
+    char   *name;			/* prepared statement name (PREPARED) */
+    ARGV   *param_formats;		/* %s, %u, ... in $1..$N order */
+    VSTRING **param_bufs;		/* per-parameter value storage */
+    const char **param_values;		/* PQexec*() argument vector */
+};
+
+static int pgsql_stmt_param(const char ch)
+{
+    return (strchr("sudSUD123456789", ch) != 0);
+}
+
+static int pgsql_stmt_param_index(ARGV *param_formats, const char *format)
+{
+    int     i;
+
+    for (i = 0; i < param_formats->argc; i++)
+	if (strcmp(param_formats->argv[i], format) == 0)
+	    return (i);
+    return (-1);
+}
+
+static int pgsql_stmt_param_slot(ARGV *param_formats, const char *format)
+{
+    int     param_index;
+
+    /* PostgreSQL $N can be referenced more than once; reuse the slot. */
+    param_index = pgsql_stmt_param_index(param_formats, format);
+    if (param_index < 0) {
+	argv_add(param_formats, format, ARGV_END);
+	param_index = param_formats->argc - 1;
+    }
+    return (param_index);
+}
+
+static void pgsql_stmt_append_param_ref(VSTRING *buf, int param_index,
+					        int *pieces)
+{
+    if ((*pieces)++ > 0)
+	vstring_strcat(buf, " || ");
+    vstring_sprintf_append(buf, "$%d", param_index + 1);
+}
+
+static void pgsql_stmt_append_literal(VSTRING *buf, const char *text,
+				              ssize_t len, int *pieces)
+{
+    if ((*pieces)++ > 0)
+	vstring_strcat(buf, " || ");
+    VSTRING_ADDCH(buf, '\'');
+    vstring_strncat(buf, text, len);
+    VSTRING_ADDCH(buf, '\'');
+}
+
+/* pgsql_stmt_append_quoted - parse quoted body, append to SQL query */
+
+static void pgsql_stmt_append_quoted(VSTRING *sql, ARGV *param_formats,
+				             const char *text, ssize_t len)
+{
+    int     param_index = -1;
+    VSTRING *lit;
+    const char *end = text + len;
+    const char *cp;
+    int     pieces = 0;			/* literal or $number instances */
+
+    /* Fast path for the short form: '%u', '%s' etc. */
+    if (len == 2 && text[0] == '%' && pgsql_stmt_param(text[1])) {
+	char    format[] = {'%', text[1], 0};
+
+	param_index = pgsql_stmt_param_slot(param_formats, format);
+	vstring_sprintf_append(sql, "$%d", param_index + 1);
+	return;
+    }
+    lit = vstring_alloc(10);
+
+    /*
+     * Separate literal text from placeholders and join them with ||, so
+     * that a single quoted string 'prefix-%u' becomes 'prefix-' || $1.
+     */
+    for (cp = text; cp < end; cp++) {
+	if (*cp == '\'' && cp + 1 < end && cp[1] == '\'') {
+	    VSTRING_ADDCH(lit, *cp);
+	    VSTRING_ADDCH(lit, *++cp);
+	} else if (*cp == '%' && cp + 1 < end) {
+	    if (cp[1] == '%') {
+		VSTRING_ADDCH(lit, '%');
+		cp += 1;
+	    } else if (pgsql_stmt_param(cp[1])) {
+		char    format[] = {'%', cp[1], 0};
+
+		if (VSTRING_LEN(lit) > 0) {
+		    VSTRING_TERMINATE(lit);
+		    pgsql_stmt_append_literal(sql, vstring_str(lit),
+					      VSTRING_LEN(lit), &pieces);
+		    VSTRING_RESET(lit);
+		    VSTRING_TERMINATE(lit);
+		}
+
+		param_index = pgsql_stmt_param_slot(param_formats, format);
+		pgsql_stmt_append_param_ref(sql, param_index, &pieces);
+		cp += 1;
+	    } else {
+		msg_fatal("unexpected '%.2s' in pgsql query template: %.*s",
+			  cp, (int) len, text);
+	    }
+	} else {
+	    VSTRING_ADDCH(lit, *cp);
+	}
+    }
+
+    /* Output at least one piece. */
+    if (VSTRING_LEN(lit) > 0 || pieces == 0) {
+	VSTRING_TERMINATE(lit);
+	pgsql_stmt_append_literal(sql, vstring_str(lit),
+				  VSTRING_LEN(lit), &pieces);
+    }
+    vstring_free(lit);
+}
+
+/* pgsql_statement_alloc - parse the configured query into a PGSQL_STATEMENT */
+
+static PGSQL_STATEMENT *pgsql_statement_alloc(const char *mapname,
+					              const char *query)
+{
+    PGSQL_STATEMENT *stmt;
+    VSTRING *sql;
+    VSTRING *name;
+    ARGV   *param_formats;
+    const char *cp;
+    int     param_index;
+    int     i;
+
+    stmt = (PGSQL_STATEMENT *) mymalloc(sizeof(*stmt));
+    sql = vstring_alloc(100);
+    name = vstring_alloc(32);
+    param_formats = argv_alloc(1);
+
+    /*
+     * Parse the map query once at open time and normalize it into the form
+     * PQprepare() expects. Plain %x placeholders become PostgreSQL $n
+     * parameters directly; quoted fragments are handled separately so
+     * placeholders inside SQL string literals can be rewritten without
+     * changing the literal quoting rules.
+     */
+    for (cp = query; *cp; cp++) {
+
+	/* Extract text between quotes. */
+	if (*cp == '\'') {
+	    const char *start;
+
+	    for (start = ++cp; *cp; cp++) {
+		if (*cp == '\'') {
+		    if (cp[1] == '\'') {
+			cp += 1;
+		    } else {
+			break;
+		    }
+		}
+	    }
+
+	    /*
+	     * A broken quote makes the generated SQL ambiguous, so fail
+	     * while loading the map instead of preparing or executing a
+	     * malformed statement later.
+	     */
+	    if (*cp == 0)
+		msg_fatal("%s: unterminated quote in query template: %s",
+			  mapname, query);
+	    pgsql_stmt_append_quoted(sql, param_formats, start, cp - start);
+	}
+
+	/*
+	 * Extract %letter from unquoted text. Such usage is safe only with
+	 * prepared-statement support.
+	 */
+	else if (*cp == '%') {
+	    if (cp[1] == 0) {
+		msg_fatal("%s: '%%' at end of query template: %s",
+			  mapname, query);
+	    } else if (cp[1] == '%') {
+		VSTRING_ADDCH(sql, '%');
+		cp += 1;
+	    } else if (pgsql_stmt_param(cp[1])) {
+		char    format[] = {'%', cp[1], 0};
+
+		param_index = pgsql_stmt_param_slot(param_formats, format);
+		vstring_sprintf_append(sql, "$%d", param_index + 1);
+		cp += 1;
+	    } else {
+		/* Avoid poor error message from db_common_expand(). */
+		msg_fatal("%s: unexpected '%.2s' in query template: %s",
+			  mapname, cp, query);
+	    }
+	}
+
+	/* Extract other unquoted text. */
+	else {
+	    VSTRING_ADDCH(sql, *cp);
+	}
+    }
+    VSTRING_TERMINATE(sql);
+    /* Hash the normalized SQL so equivalent templates share one stable name. */
+    vstring_sprintf(name, "dict_pgsql_%08lx",
+		    (unsigned long) hash_fnvz(vstring_str(sql)));
+
+    stmt->sql = vstring_export(sql);
+    stmt->name = vstring_export(name);
+    stmt->param_formats = param_formats;
+    /* One reusable buffer/value slot per distinct placeholder format. */
+    if (param_formats->argc > 0) {
+	stmt->param_bufs = (VSTRING **) mymalloc(param_formats->argc
+						 * sizeof(*stmt->param_bufs));
+	stmt->param_values = (const char **) mymalloc(param_formats->argc
+						 * sizeof(*stmt->param_values));
+	for (i = 0; i < param_formats->argc; i++) {
+	    stmt->param_bufs[i] = vstring_alloc(10);
+	    stmt->param_values[i] = 0;
+	}
+    } else {
+	stmt->param_bufs = 0;
+	stmt->param_values = 0;
+    }
+    if (msg_verbose) {
+	msg_info("%s: stmt sql = '%s'", __func__, stmt->sql);
+	msg_info("%s: stmt name = '%s'", __func__, stmt->name);
+	for (i = 0; i < param_formats->argc; i++) {
+	    msg_info("%s: stmt param formats[%d] = '%s'",
+		     __func__, i, stmt->param_formats->argv[i]);
+	}
+    }
+    return (stmt);
+}
+
+/* pgsql_statement_free - release the PGSQL_STATEMENT compiled at open time */
+
+static void pgsql_statement_free(PGSQL_STATEMENT *stmt)
+{
+    int     i;
+
+    if (stmt->sql)
+	myfree(stmt->sql);
+    if (stmt->name)
+	myfree(stmt->name);
+    if (stmt->param_bufs) {
+	for (i = 0; i < stmt->param_formats->argc; i++)
+	    vstring_free(stmt->param_bufs[i]);
+	myfree((void *) stmt->param_bufs);
+    }
+    if (stmt->param_values)
+	myfree((void *) stmt->param_values);
+    if (stmt->param_formats)
+	argv_free(stmt->param_formats);
+    myfree((void *) stmt);
+}
+
+static int pgsql_stmt_bind_value(DICT_PGSQL *dict_pgsql, const char *format,
+				         const char *name, VSTRING *buf)
+{
+    /* Re-expand this placeholder for the current lookup key into its slot. */
+    VSTRING_RESET(buf);
+    VSTRING_TERMINATE(buf);
+    return (db_common_expand(dict_pgsql->ctx, format, name, 0, buf,
+			     (db_quote_callback_t) 0));
+}
+
+static int pgsql_stmt_bind(DICT_PGSQL *dict_pgsql, const char *name)
+{
+    PGSQL_STATEMENT *stmt = dict_pgsql->stmt;
+    int     i;
+
+    if (stmt->param_formats->argc == 0)
+	return (1);
+
+    /*
+     * Match the legacy single-warning behaviour for an empty lookup key.
+     * Without this guard, db_common_expand() would emit the same "empty
+     * query string" warning once per placeholder slot.
+     */
+    if (*name == 0) {
+	msg_warn("table \"%s:%s\": empty query string -- ignored",
+		 dict_pgsql->dict.type, dict_pgsql->dict.name);
+	return (0);
+    }
+    /* Fill every prepared-statement argument in the slot order from alloc(). */
+    for (i = 0; i < stmt->param_formats->argc; i++) {
+	if (!pgsql_stmt_bind_value(dict_pgsql, stmt->param_formats->argv[i],
+				   name, stmt->param_bufs[i]))
+	    return (0);
+
+	/*
+	 * PQexecParams()/PQexecPrepared() read the NUL-terminated text
+	 * pointer for each arg.
+	 */
+	stmt->param_values[i] = vstring_str(stmt->param_bufs[i]);
+    }
+    return (1);
+}
+
+/* plpgsql_prepare_stmt - run PQprepare on this host once per connection */
+
+static int plpgsql_prepare_stmt(DICT_PGSQL *dict_pgsql, HOST *host)
+{
+    PGresult *res;
+    ExecStatusType status;
+
+    /*
+     * Prepared statements live on one PostgreSQL connection, so each host
+     * must prepare this compiled SQL once after connect/reconnect.
+     */
+    if (host->stmt_ready)
+	return (1);
+
+    res = PQprepare(host->db, dict_pgsql->stmt->name, dict_pgsql->stmt->sql,
+		    dict_pgsql->stmt->param_formats->argc, (const Oid *) 0);
+    if (res == 0) {
+	msg_warn("pgsql prepare failed: fatal error from host %s: %s",
+		 host->hostname, PQerrorMessage(host->db));
+	return (0);
+    }
+    status = PQresultStatus(res);
+    if (status != PGRES_COMMAND_OK) {
+	msg_warn("pgsql prepare failed: host %s: %s",
+		 host->hostname, PQresultErrorMessage(res));
+	PQclear(res);
+	return (0);
+    }
+    PQclear(res);
+    host->stmt_ready = 1;
+    return (1);
+}
+
+/*
+ * plpgsql_query_prepared - process a parameterized or prepared PostgreSQL
+ *			query.  Return PGSQL_RES* on success.  On failure,
+ *			log failure and try other db instances; on failure
+ *			of all db instances, return 0; close unnecessary
+ *			active connections.
+ */
+
+static PGSQL_RES *plpgsql_query_prepared(DICT_PGSQL *dict_pgsql)
+{
+    PLPGSQL *PLDB = dict_pgsql->pldb;
+    HOST   *host;
+    PGSQL_RES *res = 0;
+    ExecStatusType status;
+    int     param_count = dict_pgsql->stmt->param_formats->argc;
+
+    while ((host = dict_pgsql_get_active(dict_pgsql, PLDB)) != NULL) {
+
+	/*
+	 * In prepared mode, PQprepare() runs once per (host, statement)
+	 * pair after each connect/reconnect; in parameterized mode the SQL
+	 * is shipped along with the values on every call.
+	 */
+	if (dict_pgsql->statement_mode == PGSQL_STATEMENT_PREPARED
+	    && !plpgsql_prepare_stmt(dict_pgsql, host)) {
+	    plpgsql_down_host(host, dict_pgsql->retry_interval);
+	    continue;
+	}
+
+	if (dict_pgsql->statement_mode == PGSQL_STATEMENT_PARAMETERIZED) {
+	    res = PQexecParams(host->db, dict_pgsql->stmt->sql, param_count,
+			       (const Oid *) 0, dict_pgsql->stmt->param_values,
+			       (const int *) 0, (const int *) 0, 0);
+	} else {
+	    res = PQexecPrepared(host->db, dict_pgsql->stmt->name, param_count,
+				 dict_pgsql->stmt->param_values,
+				 (const int *) 0, (const int *) 0, 0);
+	}
+
+	if (res != 0) {
+
+	    /*
+	     * Same status-handling logic as plpgsql_query_legacy(), see
+	     * the long comment there.
+	     */
+	    switch ((status = PQresultStatus(res))) {
+	    case PGRES_TUPLES_OK:
+	    case PGRES_COMMAND_OK:
+		if (msg_verbose)
+		    msg_info("dict_pgsql: successful query from host %s",
+			     host->hostname);
+		event_request_timer(dict_pgsql_event, (void *) host,
+				    dict_pgsql->idle_interval);
+		return (res);
+	    case PGRES_FATAL_ERROR:
+		msg_warn("pgsql query failed: fatal error from host %s: %s",
+			 host->hostname, PQresultErrorMessage(res));
+		break;
+	    case PGRES_BAD_RESPONSE:
+		msg_warn("pgsql query failed: protocol error, host %s",
+			 host->hostname);
+		break;
+	    default:
+		msg_warn("pgsql query failed: unknown code 0x%lx from host %s",
+			 (unsigned long) status, host->hostname);
+		break;
+	    }
+	} else {
+	    msg_warn("pgsql query failed: fatal error from host %s: %s",
+		     host->hostname, PQerrorMessage(host->db));
+	}
+
+	/* Error: clean up and try the next host. */
+	if (res != 0)
+	    PQclear(res);
+	plpgsql_down_host(host, dict_pgsql->retry_interval);
+    }
+
+    return (0);
+}
+
+/* dict_pgsql_lookup_prepared - find database entry, prepared/parameterized path */
+
+static const char *dict_pgsql_lookup_prepared(DICT *dict, const char *name)
+{
+    const char *myname = "dict_pgsql_lookup_prepared";
+    DICT_PGSQL *dict_pgsql = (DICT_PGSQL *) dict;
+    PGSQL_RES *query_res;
+    static VSTRING *result;
+    int     i;
+    int     j;
+    int     numrows;
+    int     numcols;
+    int     expansion;
+    const char *r;
+
+    INIT_VSTR(result, 10);
+
+    /*
+     * Bind every placeholder once per lookup, before connecting to a host:
+     * the bound values are independent of which connection ends up running
+     * the query.
+     */
+    if (!pgsql_stmt_bind(dict_pgsql, name))
+	return (0);
+
+    /* do the query - set dict->error & cleanup if there's an error */
+    if ((query_res = plpgsql_query_prepared(dict_pgsql)) == 0) {
+	dict->error = DICT_ERR_RETRY;
+	return 0;
+    }
+    numrows = PQntuples(query_res);
+    if (msg_verbose)
+	msg_info("%s: retrieved %d rows", myname, numrows);
+    if (numrows == 0) {
+	PQclear(query_res);
+	return 0;
+    }
+    numcols = PQnfields(query_res);
+
+    for (expansion = i = 0; i < numrows && dict->error == 0; i++) {
+	for (j = 0; j < numcols; j++) {
+	    r = PQgetvalue(query_res, i, j);
+	    if (db_common_expand(dict_pgsql->ctx, dict_pgsql->result_format,
+				 r, name, result, 0)
+		&& dict_pgsql->expansion_limit > 0
+		&& ++expansion > dict_pgsql->expansion_limit) {
+		msg_warn("%s: %s: Expansion limit exceeded for key: '%s'",
+			 myname, dict_pgsql->parser->name, name);
+		dict->error = DICT_ERR_RETRY;
+		break;
+	    }
+	}
+    }
+    PQclear(query_res);
+    r = vstring_str(result);
+    return ((dict->error == 0 && *r) ? r : 0);
+}
+
+ /*
+  * ====================================================================
+  * End prepared/parameterized code path.
+  * ====================================================================
+  */
 
 #endif

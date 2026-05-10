@@ -91,6 +91,13 @@ where_field = alias
 # Don't forget the leading "AND"!
 additional_conditions = AND status = 'paid'
 
+See pgsql_table(5) for the ssttaatteemmeenntt__mmooddee setting, which controls how Postfix
+sends queries to PostgreSQL. The default (lleeggaaccyy) setting preserves the
+historical behaviour; the pprreeppaarreedd setting is faster and does not rely on
+quoting to be safe. The ppaarraammeetteerriizzeedd setting is provided for deployments where
+a connection pooler in front of PostgreSQL would otherwise interfere with
+prepared statements. Existing query templates work unchanged.
+
 UUssiinngg mmiirrrroorreedd ddaattaabbaasseess
 
 Sites that have a need for multiple mail exchangers may enjoy the convenience

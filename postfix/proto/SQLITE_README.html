@@ -99,6 +99,12 @@ dbpath = /some/path/to/sqlite_database
 query = SELECT forw_addr FROM mxaliases WHERE alias='%s' AND status='paid'
 </pre>
 
+<p> See sqlite_table(5) for the <b>statement_mode</b> setting,
+which controls how Postfix sends queries to SQLite. The default
+(<b>legacy</b>) setting preserves the historical behaviour; the
+<b>prepared</b> setting is faster and does not rely on quoting to
+be safe. Existing query templates work unchanged. </p>
+
 <h2>Credits</h2>
 
 <p> SQLite support was added with Postfix version 2.8. </p>

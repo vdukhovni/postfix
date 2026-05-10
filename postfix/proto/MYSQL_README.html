@@ -152,6 +152,12 @@ additional_conditions = AND status = 'paid'
 option_group = client
 </pre>
 
+<p> See mysql_table(5) for the <b>statement_mode</b> setting,
+which controls how Postfix sends queries to MySQL/MariaDB. The
+default (<b>legacy</b>) setting preserves the historical behaviour;
+the <b>prepared</b> setting is faster and does not rely on quoting
+to be safe. Existing query templates work unchanged. </p>
+
 <h2>Additional notes</h2>
 
 <p> Postfix 3.2 and later read <b>[client]</b> option group settings
