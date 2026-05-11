@@ -533,7 +533,7 @@ typedef struct STATE {
 static DNS_RR *host_addr(STATE *, const char *);
 
 #ifdef USE_TLS
-static BIO *posttls_trace_open(void *, SSL *);
+static BIO *posttls_trace_open(void *, const char *);
 #endif
 
 #define HNAME(addr) (addr->qname)
@@ -862,7 +862,8 @@ static int starttls(STATE *state)
 				     ffail_type = 0,
 				     dane = state->ddane ?
 				     state->ddane : state->dane,
-				     trace_size_limit = INT_MAX);
+				     trace_size_limit = INT_MAX,
+				     trace_peer = state->paddr);
 
 #define PROXY_OPEN_FLAGS \
 	(TLS_PROXY_FLAG_ROLE_CLIENT | TLS_PROXY_FLAG_SEND_CONTEXT)
@@ -972,8 +973,8 @@ static int starttls(STATE *state)
 			   dane = state->ddane ? state->ddane : state->dane,
 			     trace_size_limit = INT_MAX,
 			     trace_open = posttls_trace_open,
-			     trace_close = 0,
-			     trace_arg = (void *) state);
+			     trace_arg = (void *) state,
+			     trace_peer = state->paddr);
     }						/* tlsproxy_mode */
     vstring_free(cipher_exclusions);
     if (state->helo) {
@@ -1905,19 +1906,15 @@ static void usage(void)
 
 /* posttls_trace_open - open or reopen the SSL_trace destination file */
 
-static BIO *posttls_trace_open(void *arg, SSL *ssl)
+static BIO *posttls_trace_open(void *arg, const char *trace_peer)
 {
     STATE  *state = (STATE *) arg;
-    int     fd;
-    struct sockaddr_storage ss;
-    SOCKADDR_SIZE salen = sizeof(ss);
-    MAI_HOSTADDR_STR hostaddr;
     struct timeval tv;
     FILE   *fp;
     BIO    *bio;
 
     /*
-     * If the destination became unwritable on a previous attempt, do not
+     * If the destination became non-writable on a previous attempt, do not
      * keep retrying: the resulting trace file would silently miss the
      * earlier sessions.
      */
@@ -1934,27 +1931,12 @@ static BIO *posttls_trace_open(void *arg, SSL *ssl)
 	const char *prefix = get_mail_conf_str("tls_trace_file", "", 0, 0);
 	VSTRING *path = vstring_alloc(64);
 
-	if ((fd = SSL_get_fd(ssl)) < 0
-	    || getpeername(fd, (struct sockaddr *) &ss, &salen) < 0) {
-	    msg_warn("TLS trace: cannot determine peer address: %m");
-	    state->trace_failed = 1;
-	    vstring_free(path);
-	    return (0);
-	}
-	if (sockaddr_to_hostaddr((struct sockaddr *) &ss, salen,
-				 &hostaddr,
-				 (MAI_SERVPORT_STR *) 0, 0) != 0) {
-	    msg_warn("TLS trace: cannot format peer address");
-	    state->trace_failed = 1;
-	    vstring_free(path);
-	    return (0);
-	}
 	GETTIMEOFDAY(&tv);
 	if (*prefix == 0)
 	    prefix = "posttls-finger";
 	vstring_sprintf(path, "%s-%ld-%ld.%06ld-%s.txt",
 			prefix, (long) getpid(),
-			(long) tv.tv_sec, (long) tv.tv_usec, hostaddr.buf);
+			(long) tv.tv_sec, (long) tv.tv_usec, trace_peer);
 	state->trace_file = vstring_export(path);
     }
 

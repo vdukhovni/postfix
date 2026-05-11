@@ -943,14 +943,12 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
      */
     if ((log_mask & TLS_LOG_TRACE) && props->trace_size_limit > 0) {
 	BIO    *bio = props->trace_open != 0
-	? props->trace_open(props->trace_arg, TLScontext->con)
-	: tls_trace_create_qfile(TLScontext->con);
+	? props->trace_open(props->trace_arg, props->trace_peer)
+	: tls_trace_create_qfile(props->trace_peer);
 
 	if (bio != 0) {
 	    TLScontext->trace_bio = bio;
 	    TLScontext->trace_size_limit = props->trace_size_limit;
-	    TLScontext->trace_close = props->trace_close;
-	    TLScontext->trace_arg = props->trace_arg;
 	    SSL_set_msg_callback(TLScontext->con, tls_msg_callback);
 	    SSL_set_msg_callback_arg(TLScontext->con, TLScontext);
 	}

@@ -31149,6 +31149,24 @@ Apologies for any names omitted.
 	of the box). It is meant to set a clear boundary between
 	AI generated code and further human development.
 
+20260511
+
+	When generating a trace file name, use the peer IP address
+	supplied by the application, instead of looking up the
+	remote socket endpoint with getpeername(). The latter
+	information is incorrect when a connection is proxied. This
+	involved adding a trace_peer member to TLS_XXX_START_PROPS,
+	and updating some call-back APIs.
+
+	Deleted unused call-back function information from the
+	TLS_SESS_STATE and *START_PROPS data structures. This was
+	a remnant from a previous design iteration.
+
+	Initialized smtpd_tls_trace_size_limit before initializing
+	postscreen_tls_trace_size_limit.
+
+	Documented the "-DNO_TLS_TRACE" build option.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

@@ -294,8 +294,7 @@ typedef struct {
     /* SSL protocol trace; populated when log_mask has TLS_LOG_TRACE. */
     BIO    *trace_bio;			/* destination BIO, or NULL */
     int     trace_size_limit;		/* size cap; <= 0 means "stop now" */
-    void    (*trace_close) (BIO *, void *);	/* override close, or NULL */
-    void   *trace_arg;			/* opaque trace_close argument */
+    char   *trace_peer;			/* Printable peer IP address */
     /* End of Private members. */
 } TLS_SESS_STATE;
 
@@ -534,9 +533,9 @@ typedef struct {
     struct TLSRPT_WRAPPER *tlsrpt;	/* RFC 8460 reporting */
     char   *ffail_type;			/* Forced verification failure */
     int     trace_size_limit;		/* TLS protocol trace size limit */
-    BIO    *(*trace_open) (void *, SSL *); /* override trace destination */
-    void    (*trace_close) (BIO *, void *);	/* override trace close */
-    void   *trace_arg;			/* opaque trace_open/close argument */
+    BIO    *(*trace_open) (void *, const char *);	/* override dest */
+    void   *trace_arg;			/* opaque trace_open argument */
+    char   *trace_peer;			/* Printable peer IP address */
 } TLS_CLIENT_START_PROPS;
 
 extern TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *);
@@ -611,9 +610,9 @@ typedef struct {
     const char *cipher_exclusions;
     const char *mdalg;			/* default message digest algorithm */
     int     trace_size_limit;		/* TLS protocol trace size limit */
-    BIO    *(*trace_open) (void *, SSL *); /* override trace destination */
-    void    (*trace_close) (BIO *, void *);	/* override trace close */
-    void   *trace_arg;			/* opaque trace_open/close argument */
+    BIO    *(*trace_open) (void *, const char *); /* override dest */
+    void   *trace_arg;			/* opaque trace_open argument */
+    char   *trace_peer;			/* Printable peer IP address */
 } TLS_SERVER_START_PROPS;
 
 extern TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *);
@@ -781,7 +780,7 @@ extern void tls_msg_callback(int, int, int, const void *, size_t,
   * props->trace_open get this.
   */
 #define TLS_TRACE_QDIR	"tlstrace"
-extern BIO *tls_trace_create_qfile(SSL *);
+extern BIO *tls_trace_create_qfile(const char *);
 #endif
 
  /*

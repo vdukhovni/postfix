@@ -648,6 +648,7 @@ char   *var_smtpd_tls_proto;
 
 int     var_smtpd_tls_ccert_vd;
 int     var_smtpd_starttls_tmout;
+int     var_smtpd_tls_trace_size_limit;
 
 bool    var_psc_tls_ask_ccert;
 bool    var_psc_tls_enable_rpk;
@@ -1372,6 +1373,7 @@ int     main(int argc, char **argv)
 	VAR_PSC_CMD_COUNT, DEF_PSC_CMD_COUNT, &var_psc_cmd_count, 1, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
+	VAR_SMTPD_TLS_TRACE_SIZE_LIMIT, DEF_SMTPD_TLS_TRACE_SIZE_LIMIT, &var_smtpd_tls_trace_size_limit, 0, 0,
 	0,
     };
     static const CONFIG_NINT_TABLE nint_table[] = {

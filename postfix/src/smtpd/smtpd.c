@@ -5349,7 +5349,8 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 				 cipher_grade = cipher_grade,
 				 cipher_exclusions = STR(cipher_exclusions),
 				 mdalg = var_smtpd_tls_fpt_dgst,
-				 trace_size_limit = var_smtpd_tls_trace_size_limit);
+				 trace_size_limit = var_smtpd_tls_trace_size_limit,
+				 trace_peer = state->addr);
 
     /*
      * Note: state->tlsproxy is left open when smtp_flush() calls longjmp(),
@@ -5401,8 +5402,8 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 			 mdalg = var_smtpd_tls_fpt_dgst,
 			 trace_size_limit = var_smtpd_tls_trace_size_limit,
 			 trace_open = 0,
-			 trace_close = 0,
-			 trace_arg = 0);
+			 trace_arg = 0,
+			 trace->peer = state->addr);
 
 #endif						/* USE_TLSPROXY */
 

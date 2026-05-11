@@ -259,7 +259,6 @@
 #include <sys_defs.h>
 #include <ctype.h>
 #include <string.h>
-#include <sys/socket.h>			/* getpeername(2) */
 #include <fcntl.h>			/* O_WRONLY etc. */
 #include <unistd.h>			/* getpid(2) */
 
@@ -275,7 +274,6 @@
 #include <name_code.h>
 #include <dict.h>
 #include <valid_hostname.h>
-#include <myaddrinfo.h>			/* sockaddr_to_hostaddr() */
 
  /*
   * Global library.
@@ -626,12 +624,8 @@ void    tls_msg_callback(int write_p, int version, int content_type,
 
 /* tls_trace_create_qfile - default trace destination for daemons */
 
-BIO *tls_trace_create_qfile(SSL *ssl)
+BIO *tls_trace_create_qfile(const char *trace_peer)
 {
-    int     fd;
-    struct sockaddr_storage ss;
-    SOCKADDR_SIZE salen = sizeof(ss);
-    MAI_HOSTADDR_STR hostaddr;
     struct timeval tv;
     VSTRING *path;
     FILE   *fp;
@@ -652,21 +646,11 @@ BIO *tls_trace_create_qfile(SSL *ssl)
      * stdio, and BIO_new_fp() with BIO_CLOSE wraps the stream so that
      * BIO_free_all() at session teardown also fclose()s it.
      */
-    if ((fd = SSL_get_fd(ssl)) < 0
-	|| getpeername(fd, (struct sockaddr *) &ss, &salen) < 0) {
-	msg_warn("TLS trace: cannot determine peer address: %m");
-	return (0);
-    }
-    if (sockaddr_to_hostaddr((struct sockaddr *) &ss, salen,
-			     &hostaddr, (MAI_SERVPORT_STR *) 0, 0) != 0) {
-	msg_warn("TLS trace: cannot format peer address");
-	return (0);
-    }
     GETTIMEOFDAY(&tv);
     path = vstring_alloc(100);
     vstring_sprintf(path, TLS_TRACE_QDIR "/%s-%ld-%ld.%06ld-%s.txt",
 		    var_procname, (long) getpid(),
-		    (long) tv.tv_sec, (long) tv.tv_usec, hostaddr.buf);
+		    (long) tv.tv_sec, (long) tv.tv_usec, trace_peer);
     if ((newfd = open(vstring_str(path),
 		      O_WRONLY | O_CREAT | O_EXCL, 0600)) < 0) {
 	msg_warn("TLS trace: cannot open %s: %m", vstring_str(path));
@@ -686,7 +670,7 @@ BIO *tls_trace_create_qfile(SSL *ssl)
 	return (0);
     }
     msg_info("TLS protocol trace from %s saved to %s",
-	     hostaddr.buf, vstring_str(path));
+	     trace_peer, vstring_str(path));
     vstring_free(path);
     return (bio);
 }
@@ -1486,8 +1470,7 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->ffail_type = 0;
     TLScontext->trace_bio = 0;
     TLScontext->trace_size_limit = 0;
-    TLScontext->trace_close = 0;
-    TLScontext->trace_arg = 0;
+    TLScontext->trace_peer = 0;
 
     return (TLScontext);
 }
@@ -1519,11 +1502,7 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
      */
     if (TLScontext->trace_bio != 0) {
 	(void) BIO_flush(TLScontext->trace_bio);
-	if (TLScontext->trace_close != 0)
-	    TLScontext->trace_close(TLScontext->trace_bio,
-				    TLScontext->trace_arg);
-	else
-	    BIO_free_all(TLScontext->trace_bio);
+	BIO_free_all(TLScontext->trace_bio);
 	TLScontext->trace_bio = 0;
     }
 
