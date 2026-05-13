@@ -294,7 +294,6 @@ typedef struct {
     /* SSL protocol trace; populated when log_mask has TLS_LOG_TRACE. */
     BIO    *trace_bio;			/* destination BIO, or NULL */
     int     trace_size_limit;		/* size cap; <= 0 means "stop now" */
-    char   *trace_peer;			/* Printable peer IP address */
     /* End of Private members. */
 } TLS_SESS_STATE;
 
@@ -774,13 +773,20 @@ extern void tls_msg_callback(int, int, int, const void *, size_t,
 			             SSL *, void *);
 
  /*
-  * Default trace destination: a file under $queue_directory/tlstrace/
-  * named <appname>-<pid>-<sec>.<usec>-<peer>.txt, opened via stdio and
-  * wrapped in an OpenSSL file BIO.  Daemons that do not supply
-  * props->trace_open get this.
+  * Default trace destination: a file under tlstrace/. This is the default
+  * for daemon programs that do not supply start_props->trace_open. The real
+  * work is done in tls_trace_create_file().
   */
 #define TLS_TRACE_QDIR	"tlstrace"
 extern BIO *tls_trace_create_qfile(const char *);
+
+ /*
+  * Append <process_name>-<yyyymmddhhmmss>.<usec>-<peer>-XXXXXX to the path
+  * buffer, then create the named file with mkstemp() and wrap it in an
+  * OpenSSL file BIO.
+  */
+extern BIO *tls_trace_create_file(VSTRING *, const char *);
+
 #endif
 
  /*

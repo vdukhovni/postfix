@@ -676,7 +676,7 @@
 /*	Optional TLS loglevel override that depends on the remote peer
 /*	host name or IP address.
 /* .IP "\fBsmtp_tls_trace_size_limit (102400)\fR"
-/*	Size limit, in bytes, for the SSL_trace transcript that the
+/*	Size limit, in bytes, for the TLS protocol transcript that the
 /*	Postfix SMTP client writes when the "trace" keyword is included in
 /*	the TLS loglevel for a peer (smtp_tls_loglevel or
 /*	smtp_tls_loglevel_maps).

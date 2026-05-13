@@ -9906,10 +9906,11 @@ problems. Use of loglevel 4 is strongly discouraged.
 .PP
 With Postfix 3.12 and later, any of the levels above may be
 followed by ",trace" (for example "smtp_tls_loglevel = 1,trace").
-The "trace" keyword writes an SSL_trace transcript of the TLS
+The "trace" keyword writes a protocol message trace (this does not
+include the \fBcontent\fR of application data messages) of the TLS
 session to a per\-connection file under $queue_directory/tlstrace/,
 capped at smtp_tls_trace_size_limit bytes per file.  The path is
-logged via msg_info() at the start of each trace.  The "trace"
+written to the system log at the start of each trace.  The "trace"
 keyword is intended for occasional use via smtp_tls_loglevel_maps
 for a specific peer; setting it globally will produce a trace file
 for every TLS session.  Old trace files are not removed
@@ -10856,7 +10857,7 @@ The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtp_tls_trace_size_limit (default: 102400)
-Size limit, in bytes, for the SSL_trace transcript that the
+Size limit, in bytes, for the TLS protocol transcript that the
 Postfix SMTP client writes when the "trace" keyword is included in
 the TLS loglevel for a peer (smtp_tls_loglevel or
 smtp_tls_loglevel_maps).  The transcript is written to a per\-
@@ -14456,10 +14457,11 @@ of problems. Use of loglevel 4 is strongly discouraged.
 .PP
 With Postfix 3.12 and later, any of the levels above may be
 followed by ",trace" (for example "smtpd_tls_loglevel = 1,trace").
-The "trace" keyword writes an SSL_trace transcript of the TLS
+The "trace" keyword writes a protocol message trace (this does not
+include the \fBcontent\fR of application data messages) of the TLS
 session to a per\-connection file under $queue_directory/tlstrace/,
 capped at smtpd_tls_trace_size_limit bytes per file.  The path is
-logged via msg_info() at the start of each trace.  The "trace"
+written to the system log at the start of each trace.  The "trace"
 keyword is intended for occasional use via smtpd_tls_loglevel_maps
 for a specific peer; setting it globally will produce a trace file
 for every TLS session.  Old trace files are not removed

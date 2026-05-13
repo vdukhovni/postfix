@@ -31167,6 +31167,34 @@ Apologies for any names omitted.
 
 	Documented the "-DNO_TLS_TRACE" build option.
 
+20260512
+
+	Reused the same trace filename generating code in {Postfix
+	daemons and in the posttls-finger command-line tool.
+
+	Changed the TLS trace file name format to
+	<process_name>-<datetime>.<usec>-<trace_peer>-XXXXXX, where
+	XXXXXX is replaced with a unqique string so that the TLS
+	trace file name will not collide with an existing file.
+
+	Eliminated the tls_trace_file=prefix feature.
+
+	Eliminated the STATE.trace_started boolean in posttls-finger.
+
+	Replaced open(O_CREAT|O_EXCL) with mkstemp().
+
+	posttls-finger logged four times that TRACE is not supported.
+	Workaround: added a 'been here' check to tls_log_mask().
+
+	Deleted the unused TLS_SESS_STATE.trace_peer field.
+
+	Propagated the TLS_SESS_STATE.trace_size_limit field from
+	tlsproxy daemon to tlsproxy client, for completeness.
+
+20260513
+
+	Documentation updates by Viktor.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

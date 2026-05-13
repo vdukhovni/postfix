@@ -14,7 +14,7 @@
 /*	prefixed with \fBinet:\fR or a pathname prefixed with \fBunix:\fR.  If
 /*	Postfix is built without TLS support, the resulting \fBposttls-finger\fR(1)
 /*	program has very limited functionality, and only the \fB-a\fR, \fB-c\fR,
-/*	\fB-h\fR, \fB-o\fR, \fB-S\fR, \fB-t\fR, \fB-T\fR and \fB-v\fR options
+/*	\fB-h\fR, \fB-S\fR, \fB-t\fR, \fB-T\fR and \fB-v\fR options
 /*	are available.
 /*
 /*	Note: this is an unsupported test program. No attempt is made
@@ -183,17 +183,17 @@
 /*	to those who can debug SSL protocol problems from hex dumps.
 /* .IP "\fBtrace\fR"
 /*	Available with Postfix 3.12 and later. Write a human-readable
-/*	SSL_trace transcript of the TLS session to a file in the current
-/*	directory.  The file is named
-/*	\fIprefix\fR-\fIpid\fR-\fIsec\fR.\fIusec\fR-\fIpeer\fR.txt, with
-/*	\fIprefix\fR taken from the optional "-o tls_trace_file=\fIprefix\fR"
-/*	override (default "posttls-finger").  All reconnect attempts in
-/*	a single command-line run share the same trace file, separated
-/*	by "=== posttls-finger reconnect ===" lines.  When \fB-X\fR is
-/*	in effect tlsproxy(8) generates the trace under
-/*	\fI$queue_directory\fR/tlstrace/ instead, and the
-/*	tls_trace_file override is ignored.  The keyword is silently
-/*	ignored if Postfix or OpenSSL was built without SSL_trace support.
+/*	protocol transcript of the TLS session to a file in the current
+/*	directory. The file is named
+/*	\fIprocess_name\fR-\fIdate_time\fR.\fIusec\fR-\fIpeer\fR-\fIXXXXXX\fR,
+/*	where \fIXXXXXX\fR is replaced with a unique string to avoid
+/*	filename conflicts. All reconnect attempts in a single
+/*	command-line run share the same trace file, separated by "===
+/*	posttls-finger reconnect ===" lines. When \fB-X\fR is in effect,
+/*	tlsproxy(8) generates the trace file under
+/*	\fI$queue_directory\fR/tlstrace/ instead. The keyword is
+/*	ignored with a warning if Postfix or OpenSSL was built without
+/*	TLS trace support.
 /* .IP "\fBuntrusted\fR"
 /*	Logs trust chain verification problems.  This is turned on
 /*	automatically at security levels that use peer names signed
@@ -524,7 +524,6 @@ typedef struct STATE {
     int     mxinsec_level;		/* DANE for insecure MX RRs? */
     int     tlsproxy_mode;
     char   *trace_file;			/* full path; built once per run */
-    int     trace_started;		/* first open truncates, rest append */
     int     trace_failed;		/* give up after first open failure */
 #endif
     OPTIONS options;			/* JCL */
@@ -532,7 +531,7 @@ typedef struct STATE {
 
 static DNS_RR *host_addr(STATE *, const char *);
 
-#ifdef USE_TLS
+#if defined(USE_TLS) && defined(HAVE_SSL_TRACE)
 static BIO *posttls_trace_open(void *, const char *);
 #endif
 
@@ -972,7 +971,11 @@ static int starttls(STATE *state)
 			     ffail_type = 0,
 			   dane = state->ddane ? state->ddane : state->dane,
 			     trace_size_limit = INT_MAX,
+#ifdef HAVE_SSL_TRACE
 			     trace_open = posttls_trace_open,
+#else
+			     trace_open = 0,
+#endif
 			     trace_arg = (void *) state,
 			     trace_peer = state->paddr);
     }						/* tlsproxy_mode */
@@ -1902,7 +1905,7 @@ static void usage(void)
     exit(1);
 }
 
-#ifdef USE_TLS
+#if defined(USE_TLS) && defined(HAVE_SSL_TRACE)
 
 /* posttls_trace_open - open or reopen the SSL_trace destination file */
 
@@ -1922,61 +1925,42 @@ static BIO *posttls_trace_open(void *arg, const char *trace_peer)
 	return (0);
 
     /*
-     * Build the path lazily on the first connection of a posttls-finger
-     * run.  All subsequent reconnects (-r/-m) reuse the same file, so
-     * one CLI invocation produces one trace file with each handshake's
-     * transcript appended after a separator line.
+     * Build the path lazily on the first connection of a posttls-finger run.
+     * All subsequent reconnects (-r/-m) reuse the same file, so one CLI
+     * invocation produces one trace file with each handshake's transcript
+     * appended after a separator line.
      */
     if (state->trace_file == 0) {
-	const char *prefix = get_mail_conf_str("tls_trace_file", "", 0, 0);
 	VSTRING *path = vstring_alloc(64);
 
-	GETTIMEOFDAY(&tv);
-	if (*prefix == 0)
-	    prefix = "posttls-finger";
-	vstring_sprintf(path, "%s-%ld-%ld.%06ld-%s.txt",
-			prefix, (long) getpid(),
-			(long) tv.tv_sec, (long) tv.tv_usec, trace_peer);
+	bio = tls_trace_create_file(path, trace_peer);
 	state->trace_file = vstring_export(path);
+	if (bio == 0) {
+	    /* Warning is already logged. */
+	    state->trace_failed = 1;
+	    return (0);
+	}
+	msg_info("TLS protocol trace saved to %s", state->trace_file);
     }
 
     /*
-     * Truncate on the first connection so the file reflects only the
-     * current invocation; append on subsequent reconnects with a
-     * delimiter line in between.  Use open(2)+O_EXCL on the first
-     * call so a collision with an existing file at the constructed
-     * path produces a diagnostic instead of clobbering data.
+     * Truncate on the first connection so the file reflects only the current
+     * invocation; append on subsequent reconnects with a delimiter line in
+     * between.
      */
-    if (state->trace_started) {
+    else {
 	if ((fp = fopen(state->trace_file, "a")) == 0) {
 	    msg_warn("TLS trace: cannot open %s: %m", state->trace_file);
 	    state->trace_failed = 1;
 	    return (0);
 	}
+	if ((bio = BIO_new_fp(fp, BIO_CLOSE)) == 0) {
+	    msg_warn("TLS trace: BIO_new_fp() failed for %s", state->trace_file);
+	    (void) fclose(fp);
+	    state->trace_failed = 1;
+	    return (0);
+	}
 	(void) fputs("\n=== posttls-finger reconnect ===\n\n", fp);
-    } else {
-	int     newfd;
-
-	if ((newfd = open(state->trace_file,
-			  O_WRONLY | O_CREAT | O_EXCL, 0644)) < 0) {
-	    msg_warn("TLS trace: cannot open %s: %m", state->trace_file);
-	    state->trace_failed = 1;
-	    return (0);
-	}
-	if ((fp = fdopen(newfd, "w")) == 0) {
-	    msg_warn("TLS trace: fdopen(%s) failed: %m", state->trace_file);
-	    (void) close(newfd);
-	    state->trace_failed = 1;
-	    return (0);
-	}
-	msg_info("TLS protocol trace saved to %s", state->trace_file);
-	state->trace_started = 1;
-    }
-    if ((bio = BIO_new_fp(fp, BIO_CLOSE)) == 0) {
-	msg_warn("TLS trace: BIO_new_fp() failed for %s", state->trace_file);
-	(void) fclose(fp);
-	state->trace_failed = 1;
-	return (0);
     }
     return (bio);
 }

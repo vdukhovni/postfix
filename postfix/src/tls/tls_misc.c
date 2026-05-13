@@ -225,6 +225,18 @@
 /*
 /*	tls_enable_server_rpk() enables the use of raw public keys in the
 /*	server to client direction, if supported by the OpenSSL library.
+/*
+/*	tls_trace_create_file() fills in a TLS trace file name template
+/*	<process_name>-<date_time>.<usec>-<trace_peer>-XXXXXX, appends
+/*	the result to the path argument, opens the named file with
+/*	mkstemp(), and returns it as a file BIO with BIO_CLOSE
+/*	enabled. The result value is null in case of failure; all errors
+/*	are logged.
+/*
+/*	tls_trace_create_qfile() should be called when a daemon creates
+/*	a TLS trace file. This function initializes a path buffer with
+/*	"tlstrace/", and delegates the remainder of the work to
+/*	tls_trace_create_file().
 /* LICENSE
 /* .ad
 /* .fi
@@ -260,7 +272,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <fcntl.h>			/* O_WRONLY etc. */
-#include <unistd.h>			/* getpid(2) */
+#include <time.h>
 
 /* Utility library. */
 
@@ -278,6 +290,7 @@
  /*
   * Global library.
   */
+#include <been_here.h>
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <maps.h>
@@ -583,10 +596,16 @@ int     tls_log_mask(const char *log_param, const char *log_level)
 			 NAME_MASK_ANY_CASE | NAME_MASK_RETURN);
 #ifndef HAVE_SSL_TRACE
     if (mask & TLS_LOG_TRACE) {
-	msg_warn("%s: ignoring \"trace\" log level: "
-		 "SSL_trace() is not available in this build",
-		 log_param);
-	mask &= ~TLS_LOG_TRACE;
+	static BH_TABLE *log_spam_filter;
+
+	if (log_spam_filter == 0)
+	    log_spam_filter = been_here_init(BH_BOUND_NONE, BH_FLAG_NONE);
+	if (!been_here(log_spam_filter, "%s=%s", log_param, log_level)) {
+	    msg_warn("%s: ignoring \"trace\" log level: "
+		     "SSL_trace() is not available in this build",
+		     log_param);
+	    mask &= ~TLS_LOG_TRACE;
+	}
     }
 #endif
     return (mask);
@@ -624,54 +643,68 @@ void    tls_msg_callback(int write_p, int version, int content_type,
 
 /* tls_trace_create_qfile - default trace destination for daemons */
 
-BIO *tls_trace_create_qfile(const char *trace_peer)
+BIO    *tls_trace_create_qfile(const char *trace_peer)
+{
+    VSTRING *path;
+    BIO    *bio;
+
+    /*
+     * Create the file under "tlstrace/". The cwd of every Postfix daemon is
+     * $queue_directory, so the relative path resolves correctly with or
+     * without chroot. The directory itself is expected to exist;
+     * postfix-script and postfix-files arrange for it, and most Postfix
+     * daemons would not have sufficient privileges to create it.
+     */
+    path = vstring_alloc(100);
+    vstring_strcpy(path, TLS_TRACE_QDIR "/");
+    bio = tls_trace_create_file(path, trace_peer);
+    msg_info("TLS protocol trace for %s saved to %s",
+	     trace_peer, vstring_str(path));
+    vstring_free(path);
+    return (bio);
+}
+
+/* tls_trace_create_file - trace destination for CLI or daemon */
+
+BIO *tls_trace_create_file(VSTRING *path, const char *trace_peer)
 {
     struct timeval tv;
-    VSTRING *path;
+    struct tm *lt;
     FILE   *fp;
     BIO    *bio;
 
     int     newfd;
 
     /*
-     * Build "<queue>/tlstrace/<appname>-<pid>-<sec>.<usec>-<peer>.txt".
-     * The cwd of every Postfix daemon is $queue_directory, so the
-     * relative path resolves correctly with or without chroot.  The
-     * directory itself is expected to exist; postfix-script and
-     * postfix-files arrange for it.
-     *
-     * Open with open(2)+O_EXCL so two connections that race to the
-     * same file name (extremely unlikely given microsecond + pid) do
-     * not clobber each other; fdopen(3) hands the descriptor to
-     * stdio, and BIO_new_fp() with BIO_CLOSE wraps the stream so that
-     * BIO_free_all() at session teardown also fclose()s it.
+     * Append "<app>-<yyyymmddhhmmss>.<usec>-<peer>-XXXXXX" to the path. Open
+     * with mkstemp() so that this will never clobber an existing file;
+     * fdopen(3) hands the descriptor to stdio, and BIO_new_fp() with
+     * BIO_CLOSE() wraps the stream so that BIO_free_all() at session
+     * teardown also fclose()s it.
      */
+    vstring_sprintf_append(path, "%s-", var_procname);
     GETTIMEOFDAY(&tv);
-    path = vstring_alloc(100);
-    vstring_sprintf(path, TLS_TRACE_QDIR "/%s-%ld-%ld.%06ld-%s.txt",
-		    var_procname, (long) getpid(),
-		    (long) tv.tv_sec, (long) tv.tv_usec, trace_peer);
-    if ((newfd = open(vstring_str(path),
-		      O_WRONLY | O_CREAT | O_EXCL, 0600)) < 0) {
+    lt = localtime(&tv.tv_sec);
+    while (strftime(vstring_end(path), vstring_avail(path),
+		    "%Y%m%d%H%M%S", lt) == 0)
+	VSTRING_SPACE(path, vstring_avail(path) + 100);
+    VSTRING_SKIP(path);
+    vstring_sprintf_append(path, ".%06d-%s-XXXXXX",
+			   (int) tv.tv_usec, trace_peer);
+    if ((newfd = mkstemp(vstring_str(path))) < 0) {
 	msg_warn("TLS trace: cannot open %s: %m", vstring_str(path));
-	vstring_free(path);
 	return (0);
     }
     if ((fp = fdopen(newfd, "w")) == 0) {
 	msg_warn("TLS trace: fdopen(%s) failed: %m", vstring_str(path));
 	(void) close(newfd);
-	vstring_free(path);
 	return (0);
     }
     if ((bio = BIO_new_fp(fp, BIO_CLOSE)) == 0) {
 	msg_warn("TLS trace: BIO_new_fp() failed for %s", vstring_str(path));
 	(void) fclose(fp);
-	vstring_free(path);
 	return (0);
     }
-    msg_info("TLS protocol trace from %s saved to %s",
-	     trace_peer, vstring_str(path));
-    vstring_free(path);
     return (bio);
 }
 
@@ -1470,7 +1503,6 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->ffail_type = 0;
     TLScontext->trace_bio = 0;
     TLScontext->trace_size_limit = 0;
-    TLScontext->trace_peer = 0;
 
     return (TLScontext);
 }
