@@ -617,6 +617,14 @@ The following is an extensive list of names and values.
 ||-DNO_SNPRINTF                 |default, Postfix uses snprintf() except on   |
 ||                              |ancient systems.                             |
 |_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+||                              |Do not build with support for OpenSSL TLS    |
+||                              |traces. Some vendor OpenSSL runtime libraries|
+||                              |are built without support for tracing, and   |
+||-DNO_TLS_TRACE                |Postfix software built on a system with TLS  |
+||                              |trace support would not work when installed  |
+||                              |on one without. See smtp_tls_loglevel in the |
+||                              |postconf(5) manual.                          |
+|_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 |                               |Specifies a non-default compiler debugging   |
 |DEBUG=debug_level              |level. The default is "-g". Specify DEBUG= to|
 |                               |turn off debugging.                          |

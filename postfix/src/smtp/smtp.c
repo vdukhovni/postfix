@@ -675,6 +675,14 @@
 /* .IP "\fBsmtp_tls_loglevel_maps (empty)\fR"
 /*	Optional TLS loglevel override that depends on the remote peer
 /*	host name or IP address.
+/* .IP "\fBsmtp_tls_trace_size_limit (102400)\fR"
+/*	Size limit, in bytes, for the TLS protocol transcript that the
+/*	Postfix SMTP client writes when the "trace" keyword is included in
+/*	the TLS loglevel for a peer (smtp_tls_loglevel or
+/*	smtp_tls_loglevel_maps).
+/* .IP "\fBtls_trace_rate_limit (1)\fR"
+/*	The maximum number of TLS traces per anvil_rate_time_unit that
+/*	all Postfix daemons combined will create.
 /* OBSOLETE TLS CONTROLS
 /* .ad
 /* .fi
@@ -1143,6 +1151,7 @@ bool    var_smtp_tls_enforce_peername;
 char   *var_smtp_tls_key_file;
 char   *var_smtp_tls_loglevel;
 char   *var_smtp_tls_loglevel_maps;
+int     var_smtp_tls_trace_size_limit;
 bool    var_smtp_tls_note_starttls_offer;
 char   *var_smtp_tls_mand_proto;
 char   *var_smtp_tls_sec_cmatch;

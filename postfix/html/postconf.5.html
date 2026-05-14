@@ -6132,6 +6132,16 @@ configuration parameter.  See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_tls_trace_size_limit">lmtp_tls_trace_size_limit</a>
+(default: 102400)</b></DT><DD>
+
+<p> The <a href="lmtp.8.html">lmtp(8)</a> equivalent of <a href="postconf.5.html#smtp_tls_trace_size_limit">smtp_tls_trace_size_limit</a>. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_tls_trust_anchor_file">lmtp_tls_trust_anchor_file</a>
 (default: empty)</b></DT><DD>
 
@@ -9910,6 +9920,18 @@ a non-empty value is specified, this overrides the obsolete parameters
 for details. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_tls_trace_size_limit">postscreen_tls_trace_size_limit</a>
+(default: $<a href="postconf.5.html#smtpd_tls_trace_size_limit">smtpd_tls_trace_size_limit</a>)</b></DT><DD>
+
+<p> The <a href="postscreen.8.html">postscreen(8)</a> equivalent of <a href="postconf.5.html#smtpd_tls_trace_size_limit">smtpd_tls_trace_size_limit</a>.
+<a href="postscreen.8.html">postscreen(8)</a> generates the trace via <a href="tlsproxy.8.html">tlsproxy(8)</a>; the trace file
+name starts with "tlsproxy-".  </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
 
 
 </DD>
@@ -15005,6 +15027,19 @@ transmission after STARTTLS. </dd>
 <p> Do not use "<a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a> = 2" or higher except in case of
 problems. Use of loglevel 4 is strongly discouraged. </p>
 
+<p> With Postfix 3.12 and later, any of the levels above may be
+followed by ",trace" (for example "<a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a> = 1,trace").
+The "trace" keyword writes a protocol message trace (this does not
+include the <b>content</b> of application data messages) of the TLS
+session to a per-connection file under $<a href="postconf.5.html#queue_directory">queue_directory</a>/tlstrace/,
+capped at <a href="postconf.5.html#smtp_tls_trace_size_limit">smtp_tls_trace_size_limit</a> bytes per file.  The path is
+written to the system log at the start of each trace.  The "trace"
+keyword is intended for occasional use via <a href="postconf.5.html#smtp_tls_loglevel_maps">smtp_tls_loglevel_maps</a>
+for a specific peer; setting it globally will produce a trace file
+for every TLS session.  Old trace files are not removed
+automatically; operators who enable the feature should arrange
+periodic cleanup (find(1), logrotate(8), or similar).  </p>
+
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
 
@@ -16027,6 +16062,23 @@ one-letter suffix that specifies the time unit).  Time units: s
 The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tls_trace_size_limit">smtp_tls_trace_size_limit</a>
+(default: 102400)</b></DT><DD>
+
+<p> Size limit, in bytes, for the TLS protocol transcript that the
+Postfix SMTP client writes when the "trace" keyword is included in
+the TLS loglevel for a peer (<a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a> or
+<a href="postconf.5.html#smtp_tls_loglevel_maps">smtp_tls_loglevel_maps</a>).  The transcript is written to a per-
+connection file under $<a href="postconf.5.html#queue_directory">queue_directory</a>/tlstrace/, named
+smtp-pid-time-peer.txt.  Once the limit is reached the trace is
+truncated with a one-line note.  A value of 0 disables tracing.
+</p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
 
 
 </DD>
@@ -20600,6 +20652,19 @@ transmission after STARTTLS. </dd>
 <p> Do not use "<a href="postconf.5.html#smtpd_tls_loglevel">smtpd_tls_loglevel</a> = 2" or higher except in case
 of problems. Use of loglevel 4 is strongly discouraged. </p>
 
+<p> With Postfix 3.12 and later, any of the levels above may be
+followed by ",trace" (for example "<a href="postconf.5.html#smtpd_tls_loglevel">smtpd_tls_loglevel</a> = 1,trace").
+The "trace" keyword writes a protocol message trace (this does not
+include the <b>content</b> of application data messages) of the TLS
+session to a per-connection file under $<a href="postconf.5.html#queue_directory">queue_directory</a>/tlstrace/,
+capped at <a href="postconf.5.html#smtpd_tls_trace_size_limit">smtpd_tls_trace_size_limit</a> bytes per file.  The path is
+written to the system log at the start of each trace.  The "trace"
+keyword is intended for occasional use via <a href="postconf.5.html#smtpd_tls_loglevel_maps">smtpd_tls_loglevel_maps</a>
+for a specific peer; setting it globally will produce a trace file
+for every TLS session.  Old trace files are not removed
+automatically; operators who enable the feature should arrange
+periodic cleanup (find(1), logrotate(8), or similar).  </p>
+
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
 
@@ -20996,6 +21061,17 @@ The default time unit is s (seconds).  </p>
 
 <p> This feature is available in Postfix 2.2 and later, and updated
 for TLS session ticket support in Postfix 2.11. </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_tls_trace_size_limit">smtpd_tls_trace_size_limit</a>
+(default: 102400)</b></DT><DD>
+
+<p> The Postfix SMTP server equivalent of <a href="postconf.5.html#smtp_tls_trace_size_limit">smtp_tls_trace_size_limit</a>.
+File names start with "smtpd-" instead of "smtp-". </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
 
 
 </DD>
@@ -22449,6 +22525,18 @@ SSL_CTX_set_options(3).</dd>
 </dl>
 
 <p> This feature is available in Postfix 2.11 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="tls_trace_rate_limit">tls_trace_rate_limit</a>
+(default: 1)</b></DT><DD>
+
+<p> The maximum number of TLS traces per <a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a> that
+all Postfix daemons combined will create. Specify a value &le;0 to
+disable the limit. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
 
 
 </DD>

@@ -49,13 +49,20 @@
 /*	const char *addr;
 /*	int	*auths;
 /*
+/*	int	anvil_clnt_tlstr(anvil_clnt, service, addr, tlstrs)
+/*	ANVIL_CLNT *anvil_clnt;
+/*	const char *service;
+/*	const char *addr;
+/*	int	*tlstrs;
+/*
 /*	int	anvil_clnt_disconnect(anvil_clnt, service, addr)
 /*	ANVIL_CLNT *anvil_clnt;
 /*	const char *service;
 /*	const char *addr;
 /*
 /*	int	anvil_clnt_lookup(anvil_clnt, service, addr, count,
-/*					rate, msgs, rcpts, ntls, auths)
+/*					rate, msgs, rcpts, ntls, auths,
+/*					tlstrs)
 /*	ANVIL_CLNT *anvil_clnt;
 /*	const char *service;
 /*	const char *addr;
@@ -65,6 +72,7 @@
 /*	int	*rcpts;
 /*	int	*ntls;
 /*	int	*auths;
+/*	int	*tlstrs;
 /* DESCRIPTION
 /*	anvil_clnt_create() instantiates a local anvil service
 /*	client endpoint.
@@ -90,6 +98,9 @@
 /*
 /*	anvil_clnt_auth() registers an AUTH event and returns the
 /*	current AUTH event rate for the specified remote client.
+/*
+/*	anvil_clnt_tlstr() registers a TLS trace event and returns the
+/*	current TLS trace event rate for the specified service and peer.
 /*
 /*	anvil_clnt_disconnect() informs the anvil server that a remote
 /*	client has disconnected.
@@ -212,7 +223,8 @@ void    anvil_clnt_free(ANVIL_CLNT *anvil_clnt)
 
 int     anvil_clnt_lookup(ANVIL_CLNT *anvil_clnt, const char *service,
 			          const char *addr, int *count, int *rate,
-		             int *msgs, int *rcpts, int *newtls, int *auths)
+				  int *msgs, int *rcpts, int *newtls,
+				  int *auths, int *tlstrs)
 {
     char   *ident = ANVIL_IDENT(service, addr);
     int     status;
@@ -230,7 +242,8 @@ int     anvil_clnt_lookup(ANVIL_CLNT *anvil_clnt, const char *service,
 			  RECV_ATTR_INT(ANVIL_ATTR_RCPT, rcpts),
 			  RECV_ATTR_INT(ANVIL_ATTR_NTLS, newtls),
 			  RECV_ATTR_INT(ANVIL_ATTR_AUTH, auths),
-			  ATTR_TYPE_END) != 7)
+			  RECV_ATTR_INT(ANVIL_ATTR_TLSTR, tlstrs),
+			  ATTR_TYPE_END) != 8)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
 	status = ANVIL_STAT_FAIL;
@@ -375,6 +388,30 @@ int     anvil_clnt_auth(ANVIL_CLNT *anvil_clnt, const char *service,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
 			  RECV_ATTR_INT(ANVIL_ATTR_STATUS, &status),
 			  RECV_ATTR_INT(ANVIL_ATTR_RATE, auths),
+			  ATTR_TYPE_END) != 2)
+	status = ANVIL_STAT_FAIL;
+    else if (status != ANVIL_STAT_OK)
+	status = ANVIL_STAT_FAIL;
+    myfree(ident);
+    return (status);
+}
+
+/* anvil_clnt_tlstr - heads-up and status query */
+
+int     anvil_clnt_tlstr(ANVIL_CLNT *anvil_clnt, const char *service,
+			         const char *addr, int *tlstrs)
+{
+    char   *ident = ANVIL_IDENT(service, addr);
+    int     status;
+
+    if (attr_clnt_request((ATTR_CLNT *) anvil_clnt,
+			  ATTR_FLAG_NONE,	/* Query attributes. */
+			  SEND_ATTR_STR(ANVIL_ATTR_REQ, ANVIL_REQ_TLSTR),
+			  SEND_ATTR_STR(ANVIL_ATTR_IDENT, ident),
+			  ATTR_TYPE_END,
+			  ATTR_FLAG_MISSING,	/* Reply attributes. */
+			  RECV_ATTR_INT(ANVIL_ATTR_STATUS, &status),
+			  RECV_ATTR_INT(ANVIL_ATTR_RATE, tlstrs),
 			  ATTR_TYPE_END) != 2)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)

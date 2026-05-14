@@ -118,6 +118,10 @@ int     tls_proxy_server_start_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 				 STRING_OR_EMPTY(props->cipher_exclusions)),
 		   SEND_ATTR_STR(TLS_ATTR_MDALG,
 				 STRING_OR_EMPTY(props->mdalg)),
+		   SEND_ATTR_INT(TLS_ATTR_TRACE_SIZE_LIMIT,
+				 props->trace_size_limit),
+		   SEND_ATTR_STR(TLS_ATTR_TRACE_PEER,
+				 STRING_OR_EMPTY(props->trace_peer)),
 		   ATTR_TYPE_END);
     /* Do not flush the stream. */
     return (ret);
@@ -138,6 +142,7 @@ int     tls_proxy_server_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     VSTRING *cipher_grade = vstring_alloc(25);
     VSTRING *cipher_exclusions = vstring_alloc(25);
     VSTRING *mdalg = vstring_alloc(25);
+    VSTRING *trace_peer = vstring_alloc(25);
 
     /*
      * Note: memset() is not a portable way to initialize non-integer types.
@@ -158,6 +163,9 @@ int     tls_proxy_server_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 		  RECV_ATTR_STR(TLS_ATTR_CIPHER_EXCLUSIONS,
 				cipher_exclusions),
 		  RECV_ATTR_STR(TLS_ATTR_MDALG, mdalg),
+		  RECV_ATTR_INT(TLS_ATTR_TRACE_SIZE_LIMIT,
+				&props->trace_size_limit),
+		  RECV_ATTR_STR(TLS_ATTR_TRACE_PEER, trace_peer),
 		  ATTR_TYPE_END);
     /* Always construct a well-formed structure. */
     props->log_param = vstring_export(log_param);
@@ -167,7 +175,10 @@ int     tls_proxy_server_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     props->cipher_grade = vstring_export(cipher_grade);
     props->cipher_exclusions = vstring_export(cipher_exclusions);
     props->mdalg = vstring_export(mdalg);
-    ret = (ret == 10 ? 1 : -1);
+    props->trace_open = 0;
+    props->trace_arg = 0;
+    props->trace_peer = vstring_export(trace_peer);
+    ret = (ret == 12 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_server_start_free(props);
 	props = 0;
@@ -188,6 +199,7 @@ void    tls_proxy_server_start_free(TLS_SERVER_START_PROPS *props)
     myfree((void *) props->cipher_grade);
     myfree((void *) props->cipher_exclusions);
     myfree((void *) props->mdalg);
+    myfree((void *) props->trace_peer);
     myfree((void *) props);
 }
 

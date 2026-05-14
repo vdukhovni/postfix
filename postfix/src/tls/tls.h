@@ -144,6 +144,16 @@ extern const char *str_tls_level(int);
 #endif
 
  /*
+  * SSL_trace() is built into OpenSSL only when the library is configured
+  * with "enable-ssl-trace". This is the upstream default, but some
+  * distributions disable it. Postfix can also opt out at build time with
+  * CCARGS=-DNO_TLS_TRACE.
+  */
+#if !defined(OPENSSL_NO_SSL_TRACE) && !defined(NO_TLS_TRACE)
+#define HAVE_SSL_TRACE
+#endif
+
+ /*
   * Utility library.
   */
 #include <vstream.h>
@@ -281,6 +291,9 @@ typedef struct {
     int     errorcode;			/* First error at error depth */
     int     must_fail;			/* Failed to load trust settings */
     char   *ffail_type;			/* Forced verification failure */
+    /* SSL protocol trace; populated when log_mask has TLS_LOG_TRACE. */
+    BIO    *trace_bio;			/* destination BIO, or NULL */
+    int     trace_size_limit;		/* size cap; <= 0 means "stop now" */
     /* End of Private members. */
 } TLS_SESS_STATE;
 
@@ -330,6 +343,7 @@ extern int tls_log_mask(const char *, const char *);
 #define TLS_LOG_TLSPKTS			(1<<8)
 #define TLS_LOG_ALLPKTS			(1<<9)
 #define TLS_LOG_DANE			(1<<10)
+#define TLS_LOG_TRACE			(1<<11)
 
  /*
   * Client and Server application contexts
@@ -517,6 +531,10 @@ typedef struct {
     const TLS_DANE *dane;		/* DANE TLSA verification */
     struct TLSRPT_WRAPPER *tlsrpt;	/* RFC 8460 reporting */
     char   *ffail_type;			/* Forced verification failure */
+    int     trace_size_limit;		/* TLS protocol trace size limit */
+    BIO    *(*trace_open) (void *, const char *);	/* override dest */
+    void   *trace_arg;			/* opaque trace_open argument */
+    char   *trace_peer;			/* Printable peer IP address */
 } TLS_CLIENT_START_PROPS;
 
 extern TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *);
@@ -540,13 +558,15 @@ extern TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *,
     a6, a7, a8, a9, a10, a11, a12, a13, a14))
 
 #define TLS_CLIENT_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22) \
+    a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, \
+    a23, a24, a25, a26) \
     tls_client_start((((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
     ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
     ((props)->a16), ((props)->a17), ((props)->a18), ((props)->a19), \
-    ((props)->a20), ((props)->a21), ((props)->a22), (props)))
+    ((props)->a20), ((props)->a21), ((props)->a22), ((props)->a23), \
+    ((props)->a24), ((props)->a25), ((props)->a26), (props)))
 
  /*
   * tls_server.c
@@ -588,6 +608,10 @@ typedef struct {
     const char *cipher_grade;
     const char *cipher_exclusions;
     const char *mdalg;			/* default message digest algorithm */
+    int     trace_size_limit;		/* TLS protocol trace size limit */
+    BIO    *(*trace_open) (void *, const char *); /* override dest */
+    void   *trace_arg;			/* opaque trace_open argument */
+    char   *trace_peer;			/* Printable peer IP address */
 } TLS_SERVER_START_PROPS;
 
 extern TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *);
@@ -612,11 +636,12 @@ extern TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *);
     a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20))
 
 #define TLS_SERVER_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13) \
+    a10, a11, a12, a13, a14, a15, a16, a17) \
     tls_server_start((((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), (props)))
+    ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
+    ((props)->a16), ((props)->a17), (props)))
 
  /*
   * tls_session.c
@@ -742,6 +767,28 @@ extern long tls_bio_dump_cb(BIO *, int, const char *, int, long, long);
 extern const EVP_MD *tls_validate_digest(const char *);
 extern void tls_enable_client_rpk(SSL_CTX *, SSL *);
 extern void tls_enable_server_rpk(SSL_CTX *, SSL *);
+
+#ifdef HAVE_SSL_TRACE
+extern void tls_msg_callback(int, int, int, const void *, size_t,
+			             SSL *, void *);
+
+ /*
+  * Default trace destination: a file under tlstrace/. This is the default
+  * for daemon programs that do not supply start_props->trace_open. The real
+  * work is done in tls_trace_create_file().
+  */
+#define TLS_TRACE_QDIR	"tlstrace"
+extern bool tls_trace_rate_ok(int);
+extern BIO *tls_trace_create_qfile(const char *);
+
+ /*
+  * Append <process_name>-<yyyymmddhhmmss>.<usec>-<peer>-XXXXXX to the path
+  * buffer, then create the named file with mkstemp() and wrap it in an
+  * OpenSSL file BIO.
+  */
+extern BIO *tls_trace_create_file(VSTRING *, const char *);
+
+#endif
 
  /*
   * tls_seed.c

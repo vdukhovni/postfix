@@ -891,6 +891,12 @@ they are known to be available. </td> </tr>
 instead of <tt>snprintf()</tt>.  By default, Postfix uses
 <tt>snprintf()</tt> except on ancient systems. </td> </tr>
 
+<tr> <td> </td> <td> -DNO_TLS_TRACE </td> <td> Do not build with support
+for OpenSSL TLS traces.  Some vendor OpenSSL runtime libraries are built
+without support for tracing, and Postfix software built on a system with
+TLS trace support would not work when installed on one without.  See
+<tt>smtp_tls_loglevel</tt> in the postconf(5) manual. </td> </tr>
+
 <tr> <td colspan="2"> DEBUG=debug_level </td> <td> Specifies a
 non-default compiler debugging level. The default is "<tt>-g</tt>".
 Specify DEBUG= to turn off debugging. </td> </tr>

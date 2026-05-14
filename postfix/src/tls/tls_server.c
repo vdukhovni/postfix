@@ -931,6 +931,38 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
     if (log_mask & TLS_LOG_TLSPKTS)
 	tls_set_bio_callback(SSL_get_rbio(TLScontext->con), tls_bio_dump_cb);
 
+#ifdef HAVE_SSL_TRACE
+
+    /*
+     * If "trace" is included in the TLS loglevel, open a destination BIO
+     * (either the application's override or the libtls default file under
+     * $queue_directory/tlstrace/) and install the SSL message callback.
+     * SSL_trace() writes records straight into the BIO; the budget is
+     * enforced via BIO_tell() in tls_msg_callback(). Enforce a global trace
+     * creation rate limit for requests from a daemon process.
+     */
+    if ((log_mask & TLS_LOG_TRACE) && props->trace_size_limit > 0) {
+	BIO    *bio;
+
+	if (props->trace_open != 0) {
+	    bio = props->trace_open(props->trace_arg, props->trace_peer);
+	} else if (tls_trace_rate_ok(var_tls_trace_anvil_rate)) {
+	    bio = tls_trace_create_qfile(props->trace_peer);
+	} else {
+	    msg_info("skipping TLS trace output - rate limit (%d) exceeded",
+		     var_tls_trace_anvil_rate);
+	    bio = 0;
+	}
+
+	if (bio != 0) {
+	    TLScontext->trace_bio = bio;
+	    TLScontext->trace_size_limit = props->trace_size_limit;
+	    SSL_set_msg_callback(TLScontext->con, tls_msg_callback);
+	    SSL_set_msg_callback_arg(TLScontext->con, TLScontext);
+	}
+    }
+#endif
+
     /*
      * If we don't trigger the handshake in the library, leave control over
      * SSL_accept/read/write/etc with the application.

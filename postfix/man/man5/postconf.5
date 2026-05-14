@@ -3702,6 +3702,10 @@ The LMTP\-specific version of the smtp_tls_session_cache_timeout
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_trace_size_limit (default: 102400)
+The \fBlmtp\fR(8) equivalent of smtp_tls_trace_size_limit.
+.PP
+This feature is available in Postfix 3.12 and later.
 .SH lmtp_tls_trust_anchor_file (default: empty)
 The LMTP\-specific version of the smtp_tls_trust_anchor_file
 configuration parameter.  See there for details.
@@ -6143,6 +6147,12 @@ postscreen_use_tls and postscreen_enforce_tls. See smtpd_tls_security_level
 for details.
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH postscreen_tls_trace_size_limit (default: $smtpd_tls_trace_size_limit)
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_trace_size_limit.
+\fBpostscreen\fR(8) generates the trace via \fBtlsproxy\fR(8); the trace file
+name starts with "tlsproxy\-".
+.PP
+This feature is available in Postfix 3.12 and later.
 .SH postscreen_upstream_proxy_protocol (default: empty)
 The name of the proxy protocol used by an optional before\-postscreen
 proxy agent. When a proxy agent is used, this protocol conveys local
@@ -9894,6 +9904,19 @@ transmission after STARTTLS.
 Do not use "smtp_tls_loglevel = 2" or higher except in case of
 problems. Use of loglevel 4 is strongly discouraged.
 .PP
+With Postfix 3.12 and later, any of the levels above may be
+followed by ",trace" (for example "smtp_tls_loglevel = 1,trace").
+The "trace" keyword writes a protocol message trace (this does not
+include the \fBcontent\fR of application data messages) of the TLS
+session to a per\-connection file under $queue_directory/tlstrace/,
+capped at smtp_tls_trace_size_limit bytes per file.  The path is
+written to the system log at the start of each trace.  The "trace"
+keyword is intended for occasional use via smtp_tls_loglevel_maps
+for a specific peer; setting it globally will produce a trace file
+for every TLS session.  Old trace files are not removed
+automatically; operators who enable the feature should arrange
+periodic cleanup (\fBfind\fR(1), \fBlogrotate\fR(8), or similar).
+.PP
 This feature is available in Postfix 2.2 and later.
 .SH smtp_tls_loglevel_maps (default: empty)
 Optional TLS loglevel override that depends on the remote peer
@@ -10833,6 +10856,16 @@ one\-letter suffix that specifies the time unit).  Time units: s
 The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtp_tls_trace_size_limit (default: 102400)
+Size limit, in bytes, for the TLS protocol transcript that the
+Postfix SMTP client writes when the "trace" keyword is included in
+the TLS loglevel for a peer (smtp_tls_loglevel or
+smtp_tls_loglevel_maps).  The transcript is written to a per\-
+connection file under $queue_directory/tlstrace/, named
+smtp\-pid\-time\-peer.txt.  Once the limit is reached the trace is
+truncated with a one\-line note.  A value of 0 disables tracing.
+.PP
+This feature is available in Postfix 3.12 and later.
 .SH smtp_tls_trust_anchor_file (default: empty)
 Zero or more PEM\-format files with trust\-anchor certificates
 and/or public keys.  If the parameter is not empty the root CAs in
@@ -14422,6 +14455,19 @@ transmission after STARTTLS.
 Do not use "smtpd_tls_loglevel = 2" or higher except in case
 of problems. Use of loglevel 4 is strongly discouraged.
 .PP
+With Postfix 3.12 and later, any of the levels above may be
+followed by ",trace" (for example "smtpd_tls_loglevel = 1,trace").
+The "trace" keyword writes a protocol message trace (this does not
+include the \fBcontent\fR of application data messages) of the TLS
+session to a per\-connection file under $queue_directory/tlstrace/,
+capped at smtpd_tls_trace_size_limit bytes per file.  The path is
+written to the system log at the start of each trace.  The "trace"
+keyword is intended for occasional use via smtpd_tls_loglevel_maps
+for a specific peer; setting it globally will produce a trace file
+for every TLS session.  Old trace files are not removed
+automatically; operators who enable the feature should arrange
+periodic cleanup (\fBfind\fR(1), \fBlogrotate\fR(8), or similar).
+.PP
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_tls_loglevel_maps (default: empty)
 Optional TLS loglevel override that depends on the remote peer
@@ -14768,6 +14814,11 @@ The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.2 and later, and updated
 for TLS session ticket support in Postfix 2.11.
+.SH smtpd_tls_trace_size_limit (default: 102400)
+The Postfix SMTP server equivalent of smtp_tls_trace_size_limit.
+File names start with "smtpd\-" instead of "smtp\-".
+.PP
+This feature is available in Postfix 3.12 and later.
 .SH smtpd_tls_wrappermode (default: no)
 Run the Postfix SMTP server in TLS "wrapper" mode,
 instead of using the STARTTLS command.
@@ -15894,6 +15945,12 @@ Postfix >= 3.4. See \fBSSL_CTX_set_options\fR(3).
 .br
 .PP
 This feature is available in Postfix 2.11 and later.
+.SH tls_trace_rate_limit (default: 1)
+The maximum number of TLS traces per anvil_rate_time_unit that
+all Postfix daemons combined will create. Specify a value <=0 to
+disable the limit.
+.PP
+This feature is available in Postfix 3.12 and later.
 .SH tls_trust_server_ccerts (default: no)
 Whether to trust client certificates whose extended key usage (EKU) lists
 only \fBserverAuth\fR and not \fBclientAuth\fR as valid TLS client

@@ -26,6 +26,44 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Major changes with snapshot 20260514
+====================================
+
+Support for per-session TLS traces with detailed TLS protocol
+information but without any plaintext SMTP content. This feature
+can be enabled by appending ",trace" to a TLS loglevel.
+
+Postfix daemons will record one trace per TLS session under
+$queue_directory/tlstrace. A trace file name is the concatenation
+of the application name ("smtpd", "smtp", etc.), a time stamp
+formatted as yyyymmddhhmmss, the microsecond portion of system time,
+the peer IP address, and a six-character unique string to avoid
+file name collisions.
+
+Safety measures: the size of each trace file is limited with {lmtp,
+postscreen, smtp_, smtpd}_tls_trace_size_limit (default: 102400),
+and all Postfix daemons combined will create no more than
+tls_trace_rate_limit trace files (default: 1) per anvil_rate_time_unit
+interval (default: 60s).
+
+The posttls-finger command will create trace files (using the same
+name format as daemons) in the current directory, for example:
+"posttls-finger -L 1,trace example.com". It is not subject to the
+tls_trace_rate_limit or trace file size constraints.
+
+This feature is based on a design by Wietse and Viktor, initially
+implemented by Claude Code, then simplified and completed by Wietse
+and Viktor.
+
+Incompatible changes with snapshot 20260514
+===========================================
+
+The internal protocol between tlsproxy(8) and its clients (smtp(8),
+postscreen(8), smtpd(8) in tlsproxy mode, and "posttls-finger -X")
+gained a new attribute. Run "postfix reload" after the upgrade. If
+this step is skipped, TLS sessions through tlsproxy(8) will fail,
+because the old and new processes disagree on the protocol shape.
+
 Incompatible changes with snapshot 20260312
 ===========================================
 

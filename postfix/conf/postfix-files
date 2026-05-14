@@ -65,6 +65,7 @@ $queue_directory/maildrop:d:$mail_owner:$setgid_group:730:uc
 $queue_directory/public:d:$mail_owner:$setgid_group:710:uc
 $queue_directory/pid:d:root:-:755:uc
 $queue_directory/saved:d:$mail_owner:-:700:ucr
+$queue_directory/tlstrace:d:$mail_owner:-:700:ucr
 $queue_directory/trace:d:$mail_owner:-:700:ucr
 # Update shared libraries and plugins before daemon or command-line programs.
 $shlib_directory/lib${LIB_PREFIX}util${LIB_SUFFIX}:f:root:-:755

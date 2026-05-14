@@ -109,6 +109,8 @@
 #	uses snprintf() except on ancient systems.
 # .IP \fB-DNO_STDBOOL\fR
 #	Don't use <stdbool.h>. This is usually auto-detected.
+# .IP \fB-DNO_TLS_TRACE\fR
+#	Build without OpenSSL 3 (and later) debug trace support.
 # .RE
 # .IP \fBDEBUG=\fIdebug_level\fR
 #	Specifies a non-default debugging level. The default is \fB-g\fR.
@@ -885,7 +887,7 @@ CCARGS="$CCARGS -DSNAPSHOT"
 
 # Non-production: needs thorough testing, or major changes are still
 # needed before the code stabilizes.
-#CCARGS="$CCARGS -DNONPROD"
+#CCARGS="$CCARGS -DNONPROD='\"featurename-nonprod\"'"
 
 # Workaround: prepend Postfix include files before other include files.
 CCARGS="-I. -I../../include $CCARGS"

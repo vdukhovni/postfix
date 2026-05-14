@@ -20,7 +20,7 @@ destination is a domainname; with LMTP it is either a domainname
 prefixed with \fBinet:\fR or a pathname prefixed with \fBunix:\fR.  If
 Postfix is built without TLS support, the resulting \fBposttls\-finger\fR(1)
 program has very limited functionality, and only the \fB\-a\fR, \fB\-c\fR,
-\fB\-h\fR, \fB\-o\fR, \fB\-S\fR, \fB\-t\fR, \fB\-T\fR and \fB\-v\fR options
+\fB\-h\fR, \fB\-S\fR, \fB\-t\fR, \fB\-T\fR and \fB\-v\fR options
 are available.
 
 Note: this is an unsupported test program. No attempt is made
@@ -187,6 +187,19 @@ Log hexadecimal packet dumps of the SSL handshake; for experts only.
 .IP "\fBssl\-session\-packet\-dump\fR"
 Log hexadecimal packet dumps of the entire SSL session; only useful
 to those who can debug SSL protocol problems from hex dumps.
+.IP "\fBtrace\fR"
+Available with Postfix 3.12 and later. Write a human\-readable
+protocol transcript of the TLS session to a file in the current
+directory. The file is named
+\fIprocess_name\fR\-\fIdate_time\fR.\fIusec\fR\-\fIpeer\fR\-\fIXXXXXX\fR,
+where \fIXXXXXX\fR is replaced with a unique string to avoid
+filename conflicts. All reconnect attempts in a single
+command\-line run share the same trace file, separated by "===
+posttls\-finger reconnect ===" lines. When \fB\-X\fR is in effect,
+tlsproxy(8) generates the trace file under
+\fI$queue_directory\fR/tlstrace/ instead. The keyword is
+ignored with a warning if Postfix or OpenSSL was built without
+TLS trace support.
 .IP "\fBuntrusted\fR"
 Logs trust chain verification problems.  This is turned on
 automatically at security levels that use peer names signed

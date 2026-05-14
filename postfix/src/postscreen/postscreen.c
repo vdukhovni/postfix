@@ -398,6 +398,8 @@
 /* .IP "\fBpostscreen_tls_loglevel_maps ($smtpd_tls_loglevel_maps)\fR"
 /*	Optional TLS loglevel override that depends on the remote peer
 /*	host name or IP address.
+/* .IP "\fBpostscreen_tls_trace_size_limit ($smtpd_tls_trace_size_limit)\fR"
+/*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_trace_size_limit.
 /* .IP "\fBpostscreen_tls_mandatory_ciphers ($smtpd_tls_mandatory_ciphers)\fR"
 /*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_mandatory_ciphers.
 /* .IP "\fBpostscreen_tls_mandatory_exclude_ciphers ($smtpd_tls_mandatory_exclude_ciphers)\fR"
@@ -408,6 +410,9 @@
 /*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_protocols.
 /* .IP "\fBpostscreen_tls_req_ccert ($smtpd_tls_req_ccert)\fR"
 /*	The \fBpostscreen\fR(8) equivalent of smtpd_tls_req_ccert.
+/* .IP "\fBtls_trace_rate_limit (1)\fR"
+/*	The maximum number of TLS traces per anvil_rate_time_unit that
+/*	all Postfix daemons combined will create.
 /* OBSOLETE STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -646,6 +651,7 @@ char   *var_smtpd_tls_proto;
 
 int     var_smtpd_tls_ccert_vd;
 int     var_smtpd_starttls_tmout;
+int     var_smtpd_tls_trace_size_limit;
 
 bool    var_psc_tls_ask_ccert;
 bool    var_psc_tls_enable_rpk;
@@ -676,6 +682,7 @@ char   *var_psc_tls_proto;
 
 int     var_psc_tls_ccert_vd;
 int     var_psc_starttls_tmout;
+int     var_psc_tls_trace_size_limit;
 
  /*
   * Global variables.
@@ -1369,6 +1376,7 @@ int     main(int argc, char **argv)
 	VAR_PSC_CMD_COUNT, DEF_PSC_CMD_COUNT, &var_psc_cmd_count, 1, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
+	VAR_SMTPD_TLS_TRACE_SIZE_LIMIT, DEF_SMTPD_TLS_TRACE_SIZE_LIMIT, &var_smtpd_tls_trace_size_limit, 0, 0,
 	0,
     };
     static const CONFIG_NINT_TABLE nint_table[] = {
@@ -1377,6 +1385,7 @@ int     main(int argc, char **argv)
 	VAR_PSC_CCONN_LIMIT, DEF_PSC_CCONN_LIMIT, &var_psc_cconn_limit, 0, 0,
 	VAR_PSC_DNSBL_ALTHRESH, DEF_PSC_DNSBL_ALTHRESH, &var_psc_dnsbl_althresh, 0, 0,
 	VAR_PSC_TLS_CCERT_VD, DEF_PSC_TLS_CCERT_VD, &var_psc_tls_ccert_vd, 0, 0,
+	VAR_PSC_TLS_TRACE_SIZE_LIMIT, DEF_PSC_TLS_TRACE_SIZE_LIMIT, &var_psc_tls_trace_size_limit, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {

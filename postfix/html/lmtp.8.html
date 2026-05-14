@@ -794,6 +794,16 @@ SMTP(8)                                                                SMTP(8)
               Optional TLS loglevel override that depends on the  remote  peer
               host name or IP address.
 
+       <b><a href="postconf.5.html#smtp_tls_trace_size_limit">smtp_tls_trace_size_limit</a> (102400)</b>
+              Size  limit,  in bytes, for the TLS protocol transcript that the
+              Postfix SMTP client writes when the "trace" keyword is  included
+              in   the   TLS   loglevel   for  a  peer  (<a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a>  or
+              <a href="postconf.5.html#smtp_tls_loglevel_maps">smtp_tls_loglevel_maps</a>).
+
+       <b><a href="postconf.5.html#tls_trace_rate_limit">tls_trace_rate_limit</a> (1)</b>
+              The maximum number of TLS traces per  <a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a>  that
+              all Postfix daemons combined will create.
+
 <b><a name="obsolete_tls_controls">OBSOLETE TLS CONTROLS</a></b>
        The  following  configuration  parameters  exist for compatibility with
        Postfix versions before 2.3. Support for these will  be  removed  in  a

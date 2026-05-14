@@ -122,6 +122,14 @@
 /*	void tls_enable_server_rpk(ctx, ssl)
 /*	SSL_CTX *ctx;
 /*	SSL     *ssl;
+/*
+/*	bool	tls_trace_rate_ok(int tls_trace_rate_limit)
+/*
+/*	BIO	*tls_trace_create_file(
+/*	VSTRING *path,
+/*	const char *trace_peer)
+/*
+/*	BIO	*tls_trace_create_qfile(const char *trace_peer)
 /* DESCRIPTION
 /*	This module implements public and internal routines that
 /*	support the TLS client and server.
@@ -225,6 +233,20 @@
 /*
 /*	tls_enable_server_rpk() enables the use of raw public keys in the
 /*	server to client direction, if supported by the OpenSSL library.
+/*
+/*	tls_trace_create_file() fills in a TLS trace file name template
+/*	<process_name>-<date_time>.<usec>-<trace_peer>-XXXXXX, appends
+/*	the result to the path argument, opens the named file with
+/*	mkstemp(), and returns it as a file BIO with BIO_CLOSE
+/*	enabled. The result value is null in case of failure; all errors
+/*	are logged.
+/*
+/*	tls_trace_rate_ok() queries the anvil(8) service and enforces the
+/*	tls_trace_rate_limit value.
+/*
+/*	tls_trace_create_qfile() creates a TLS trace file for a daemon
+/*	process. This function initializes a path buffer with "tlstrace/",
+/*	and delegates the remaining work to tls_trace_create_file().
 /* LICENSE
 /* .ad
 /* .fi
@@ -259,6 +281,8 @@
 #include <sys_defs.h>
 #include <ctype.h>
 #include <string.h>
+#include <fcntl.h>			/* O_WRONLY etc. */
+#include <time.h>
 
 /* Utility library. */
 
@@ -276,6 +300,8 @@
  /*
   * Global library.
   */
+#include <anvil_clnt.h>
+#include <been_here.h>
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <maps.h>
@@ -299,6 +325,7 @@ char   *var_tls_low_ignored;
 char   *var_tls_export_ignored;
 char   *var_tls_null_clist;
 int     var_tls_daemon_rand_bytes;
+int     var_tls_trace_anvil_rate;
 char   *var_tls_eecdh_auto;
 char   *var_tls_eecdh_strong;
 char   *var_tls_eecdh_ultra;
@@ -556,6 +583,7 @@ static const NAME_MASK tls_log_table[] = {
     "ssl-debug", TLS_LOG_DEBUG,		/* SSL library debug/verbose */
     "ssl-handshake-packet-dump", TLS_LOG_TLSPKTS,
     "ssl-session-packet-dump", TLS_LOG_TLSPKTS | TLS_LOG_ALLPKTS,
+    "trace", TLS_LOG_TRACE,		/* SSL_trace() to a file or email */
     0, 0,
 };
 
@@ -578,8 +606,143 @@ int     tls_log_mask(const char *log_param, const char *log_level)
 
     mask = name_mask_opt(log_param, tls_log_table, log_level,
 			 NAME_MASK_ANY_CASE | NAME_MASK_RETURN);
+#ifndef HAVE_SSL_TRACE
+    if (mask & TLS_LOG_TRACE) {
+	static BH_TABLE *log_spam_filter;
+
+	if (log_spam_filter == 0)
+	    log_spam_filter = been_here_init(BH_BOUND_NONE, BH_FLAG_NONE);
+	if (!been_here(log_spam_filter, "%s=%s", log_param, log_level)) {
+	    msg_warn("%s: ignoring \"trace\" log level: "
+		     "SSL_trace() is not available in this build",
+		     log_param);
+	    mask &= ~TLS_LOG_TRACE;
+	}
+    }
+#endif
     return (mask);
 }
+
+#ifdef HAVE_SSL_TRACE
+
+/* tls_msg_callback - SSL message callback for TLS_LOG_TRACE */
+
+void    tls_msg_callback(int write_p, int version, int content_type,
+			         const void *buf, size_t msglen,
+			         SSL *ssl, void *arg)
+{
+    TLS_SESS_STATE *TLScontext = (TLS_SESS_STATE *) arg;
+    BIO    *bio = TLScontext->trace_bio;
+
+    /*
+     * trace_size_limit <= 0 means either tracing is off (never started)
+     * or we already crossed the budget and emitted the truncation marker.
+     * Either way, do not write further.
+     */
+    if (bio == 0 || TLScontext->trace_size_limit <= 0)
+	return;
+
+    SSL_trace(write_p, version, content_type, buf, msglen, ssl, bio);
+
+    if (BIO_tell(bio) >= TLScontext->trace_size_limit) {
+	static const char trailer[] =
+	"\n[TLS trace truncated: size limit reached]\n";
+
+	(void) BIO_write(bio, trailer, sizeof(trailer) - 1);
+	TLScontext->trace_size_limit = -1;
+    }
+}
+
+/* tls_trace_rate_ok - enforce tls_trace_rate_limit */
+
+bool    tls_trace_rate_ok(int tls_trace_rate_limit)
+{
+    ANVIL_CLNT *client;
+    int     rate;
+    int     ret;
+
+    if (tls_trace_rate_limit > 0) {
+	client = anvil_clnt_create();
+	if (anvil_clnt_tlstr(client, "any", "any", &rate) == ANVIL_STAT_OK) {
+	    ret = rate <= tls_trace_rate_limit;
+	} else {
+	    ret = true;
+	}
+	anvil_clnt_free(client);
+    } else {
+	ret = true;
+    }
+    return (ret);
+} 
+
+/* tls_trace_create_qfile - default trace destination for daemons */
+
+BIO    *tls_trace_create_qfile(const char *trace_peer)
+{
+    VSTRING *path;
+    BIO    *bio;
+
+    /*
+     * Create the file under "tlstrace/". The cwd of every Postfix daemon is
+     * $queue_directory, so the relative path resolves correctly with or
+     * without chroot. The directory itself is expected to exist;
+     * postfix-script and postfix-files arrange for it, and most Postfix
+     * daemons would not have sufficient privileges to create it.
+     */
+    path = vstring_alloc(100);
+    vstring_strcpy(path, TLS_TRACE_QDIR "/");
+    bio = tls_trace_create_file(path, trace_peer);
+    msg_info("TLS protocol trace for %s saved to %s",
+	     trace_peer, vstring_str(path));
+    vstring_free(path);
+    return (bio);
+}
+
+/* tls_trace_create_file - trace destination for CLI or daemon */
+
+BIO *tls_trace_create_file(VSTRING *path, const char *trace_peer)
+{
+    struct timeval tv;
+    struct tm *lt;
+    FILE   *fp;
+    BIO    *bio;
+
+    int     newfd;
+
+    /*
+     * Append "<app>-<yyyymmddhhmmss>.<usec>-<peer>-XXXXXX" to the path. Open
+     * with mkstemp() so that this will never clobber an existing file;
+     * fdopen(3) hands the descriptor to stdio, and BIO_new_fp() with
+     * BIO_CLOSE() wraps the stream so that BIO_free_all() at session
+     * teardown also fclose()s it.
+     */
+    vstring_sprintf_append(path, "%s-", var_procname);
+    GETTIMEOFDAY(&tv);
+    lt = localtime(&tv.tv_sec);
+    while (strftime(vstring_end(path), vstring_avail(path),
+		    "%Y%m%d%H%M%S", lt) == 0)
+	VSTRING_SPACE(path, vstring_avail(path) + 100);
+    VSTRING_SKIP(path);
+    vstring_sprintf_append(path, ".%06d-%s-XXXXXX",
+			   (int) tv.tv_usec, trace_peer);
+    if ((newfd = mkstemp(vstring_str(path))) < 0) {
+	msg_warn("TLS trace: cannot open %s: %m", vstring_str(path));
+	return (0);
+    }
+    if ((fp = fdopen(newfd, "w")) == 0) {
+	msg_warn("TLS trace: fdopen(%s) failed: %m", vstring_str(path));
+	(void) close(newfd);
+	return (0);
+    }
+    if ((bio = BIO_new_fp(fp, BIO_CLOSE)) == 0) {
+	msg_warn("TLS trace: BIO_new_fp() failed for %s", vstring_str(path));
+	(void) fclose(fp);
+	return (0);
+    }
+    return (bio);
+}
+
+#endif					/* HAVE_SSL_TRACE */
 
 /* tls_update_app_logmask - update log level after init */
 
@@ -685,6 +848,7 @@ void    tls_param_init(void)
     /* If this changes, update TLS_*_PARAMS* in tls_*.h. */
     static const CONFIG_INT_TABLE int_table[] = {
 	VAR_TLS_DAEMON_RAND_BYTES, DEF_TLS_DAEMON_RAND_BYTES, &var_tls_daemon_rand_bytes, 1, 0,
+	VAR_TLS_TRACE_ANVIL_RATE, DEF_TLS_TRACE_ANVIL_RATE, &var_tls_trace_anvil_rate, 0, 0,
 	0,
     };
 
@@ -1372,6 +1536,8 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->errorcert = 0;
     TLScontext->rpt_reported = 0;
     TLScontext->ffail_type = 0;
+    TLScontext->trace_bio = 0;
+    TLScontext->trace_size_limit = 0;
 
     return (TLScontext);
 }
@@ -1388,6 +1554,24 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
      */
     if (TLScontext->con != 0)
 	SSL_free(TLScontext->con);
+
+    /*
+     * Release the protocol trace, if one was opened.  Order matters:
+     * SSL_free() above can still drive the message callback during
+     * teardown (close-notify processing in particular), so trace_bio
+     * must stay valid until after SSL_free() returns.  Closing it
+     * first would let tls_msg_callback() write through a freed BIO.
+     *
+     * Always BIO_flush() before close, so any stdio buffering inside
+     * BIO_new_fp() lands on disk before the FILE * is fclose()d.  An
+     * application override may release the BIO; otherwise BIO_free_all
+     * walks the chain and (with BIO_CLOSE) closes the underlying file.
+     */
+    if (TLScontext->trace_bio != 0) {
+	(void) BIO_flush(TLScontext->trace_bio);
+	BIO_free_all(TLScontext->trace_bio);
+	TLScontext->trace_bio = 0;
+    }
 
     if (TLScontext->namaddr)
 	myfree(TLScontext->namaddr);

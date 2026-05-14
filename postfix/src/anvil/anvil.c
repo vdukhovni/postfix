@@ -149,6 +149,25 @@
 /*	    \fBstatus=0\fR
 /*	    \fBrate=\fInumber\fR
 /* .fi
+/* TLS TRACE RATE CONTROL
+/* .ad
+/* .fi
+/*	To register a TLS trace event send the following request
+/*	to the \fBanvil\fR(8) server:
+/*
+/* .nf
+/*	    \fBrequest=tlstr\fR
+/*	    \fBident=\fIstring\fR
+/* .fi
+/*
+/*	The \fBanvil\fR(8) server answers with the number of TLS trace
+/*	requests per unit time for the (service, client) combination
+/*	specified with \fBident\fR:
+/*
+/* .nf
+/*	    \fBstatus=0\fR
+/*	    \fBrate=\fInumber\fR
+/* .fi
 /* SECURITY
 /* .ad
 /* .fi
@@ -318,6 +337,7 @@ typedef struct {
     int     rcpt;			/* recipient rate */
     int     ntls;			/* new TLS session rate */
     int     auth;			/* AUTH request rate */
+    int     tlstr;			/* TLS trace event rate */
     time_t  start;			/* time of first rate sample */
 } ANVIL_REMOTE;
 
@@ -349,6 +369,7 @@ typedef struct {
 	(remote)->rcpt = 0; \
 	(remote)->ntls = 0; \
 	(remote)->auth = 0; \
+	(remote)->tlstr = 0; \
 	(remote)->start = event_time(); \
     } while(0)
 
@@ -369,6 +390,7 @@ typedef struct {
 	(remote)->rcpt = 0; \
 	(remote)->ntls = 0; \
 	(remote)->auth = 0; \
+	(remote)->tlstr = 0; \
 	(remote)->start = _start; \
     } while(0)
 
@@ -398,6 +420,8 @@ typedef struct {
 #define ANVIL_REMOTE_INCR_NTLS(remote)	ANVIL_REMOTE_INCR_RATE((remote), ntls)
 
 #define ANVIL_REMOTE_INCR_AUTH(remote)	ANVIL_REMOTE_INCR_RATE((remote), auth)
+
+#define ANVIL_REMOTE_INCR_TLSTR(remote)	ANVIL_REMOTE_INCR_RATE((remote), tlstr)
 
 /* Drop connection from (service, client) state. */
 
@@ -476,6 +500,7 @@ static ANVIL_MAX max_mail_rate;		/* peak message rate */
 static ANVIL_MAX max_rcpt_rate;		/* peak recipient rate */
 static ANVIL_MAX max_ntls_rate;		/* peak new TLS session rate */
 static ANVIL_MAX max_auth_rate;		/* peak AUTH request rate */
+static ANVIL_MAX max_tlstr_rate;	/* peak TLS trace request rate */
 
 static int max_cache_size;		/* peak cache size */
 static time_t max_cache_time;		/* time of peak size */
@@ -584,6 +609,7 @@ static void anvil_remote_lookup(VSTREAM *client_stream, const char *ident)
 			 SEND_ATTR_INT(ANVIL_ATTR_RCPT, anvil_remote->rcpt),
 			 SEND_ATTR_INT(ANVIL_ATTR_NTLS, anvil_remote->ntls),
 			 SEND_ATTR_INT(ANVIL_ATTR_AUTH, anvil_remote->auth),
+			 SEND_ATTR_INT(ANVIL_ATTR_AUTH, anvil_remote->tlstr),
 			 ATTR_TYPE_END);
     }
 }
@@ -755,6 +781,35 @@ static void anvil_remote_auth(VSTREAM *client_stream, const char *ident)
 	ANVIL_MAX_UPDATE(max_auth_rate, anvil_remote->auth, anvil_remote->ident);
 }
 
+/* anvil_remote_tlstr - register TLS trace request event */
+
+static void anvil_remote_tlstr(VSTREAM *client_stream, const char *ident)
+{
+    ANVIL_REMOTE *anvil_remote;
+
+    /*
+     * Be prepared for "postfix reload" after "connect".
+     */
+    if ((anvil_remote =
+	 (ANVIL_REMOTE *) htable_find(anvil_remote_map, ident)) == 0)
+	anvil_remote = anvil_remote_conn_update(client_stream, ident);
+
+    /*
+     * Update TLS trace request rate and respond to requesting server.
+     */
+    ANVIL_REMOTE_INCR_TLSTR(anvil_remote);
+    attr_print_plain(client_stream, ATTR_FLAG_NONE,
+		     SEND_ATTR_INT(ANVIL_ATTR_STATUS, ANVIL_STAT_OK),
+		     SEND_ATTR_INT(ANVIL_ATTR_RATE, anvil_remote->tlstr),
+		     ATTR_TYPE_END);
+
+    /*
+     * Update peak statistics.
+     */
+    if (anvil_remote->tlstr > max_tlstr_rate.value)
+	ANVIL_MAX_UPDATE(max_tlstr_rate, anvil_remote->tlstr, anvil_remote->ident);
+}
+
 /* anvil_remote_newtls - register newtls event */
 
 static void anvil_remote_newtls(VSTREAM *client_stream, const char *ident)
@@ -893,6 +948,7 @@ static void anvil_status_dump(char *unused_name, char **unused_argv)
     ANVIL_MAX_RATE_REPORT(max_rcpt_rate, "recipient");
     ANVIL_MAX_RATE_REPORT(max_ntls_rate, "newtls");
     ANVIL_MAX_RATE_REPORT(max_auth_rate, "auth");
+    ANVIL_MAX_RATE_REPORT(max_tlstr_rate, "tlstrace");
 
     if (max_cache_size > 0) {
 	msg_info("statistics: max cache size %d at %.15s",
@@ -923,6 +979,7 @@ static void anvil_service(VSTREAM *client_stream, char *unused_service, char **a
 	ANVIL_REQ_DISC, anvil_remote_disconnect,
 	ANVIL_REQ_NTLS_STAT, anvil_remote_newtls_stat,
 	ANVIL_REQ_AUTH, anvil_remote_auth,
+	ANVIL_REQ_TLSTR, anvil_remote_tlstr,
 	ANVIL_REQ_LOOKUP, anvil_remote_lookup,
 	0, 0,
     };

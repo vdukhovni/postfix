@@ -104,6 +104,7 @@
 	VAR_SMTP_REUSE_COUNT, DEF_SMTP_REUSE_COUNT, &var_smtp_reuse_count, 0, 0,
 #ifdef USE_TLS
 	VAR_SMTP_TLS_SCERT_VD, DEF_SMTP_TLS_SCERT_VD, &var_smtp_tls_scert_vd, 0, 0,
+	VAR_SMTP_TLS_TRACE_SIZE_LIMIT, DEF_SMTP_TLS_TRACE_SIZE_LIMIT, &var_smtp_tls_trace_size_limit, 0, 0,
 #endif
 	VAR_SMTP_MIN_DATA_RATE, DEF_SMTP_MIN_DATA_RATE, &var_smtp_min_data_rate, 1, 0,
 	0,

@@ -820,6 +820,12 @@ while (<>) {
     s;\btls_fast_shutdown_enable\b;<a href="postconf.5.html#tls_fast_shutdown_enable">$&</a>;g;
     s;\btls_trust_server_ccerts\b;<a href="postconf.5.html#tls_trust_server_ccerts">$&</a>;g;
 
+    s;\blmtp_tls_trace_size_limit\b;<a href="postconf.5.html#lmtp_tls_trace_size_limit">$&</a>;g;
+    s;\bpostscreen_tls_trace_size_limit\b;<a href="postconf.5.html#postscreen_tls_trace_size_limit">$&</a>;g;
+    s;\bsmtp_tls_trace_size_limit\b;<a href="postconf.5.html#smtp_tls_trace_size_limit">$&</a>;g;
+    s;\bsmtpd_tls_trace_size_limit\b;<a href="postconf.5.html#smtpd_tls_trace_size_limit">$&</a>;g;
+    s;\btls_trace_rate_limit\b;<a href="postconf.5.html#tls_trace_rate_limit">$&</a>;g;
+
     s;\bfrozen_delivered_to\b;<a href="postconf.5.html#frozen_delivered_to">$&</a>;g;
     s;\breset_owner_alias\b;<a href="postconf.5.html#reset_owner_alias">$&</a>;g;
     s;\benable_long_queue_ids\b;<a href="postconf.5.html#enable_long_queue_ids">$&</a>;g;

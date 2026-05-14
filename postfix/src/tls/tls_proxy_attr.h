@@ -59,6 +59,7 @@
 #define TLS_ATTR_SRVR_SIG_DGST	"srvr_signature_digest"
 #define TLS_ATTR_NAMADDR	"namaddr"
 #define TLS_ATTR_RPT_REPORTED	"rpt_reported"
+#define TLS_ATTR_TRACE_PEER	"trace_peer"
 
  /*
   * TLS_SERVER_INIT_PROPS attributes.
@@ -95,6 +96,7 @@
 #define TLS_ATTR_CIPHER_GRADE	"cipher_grade"
 #define TLS_ATTR_CIPHER_EXCLUSIONS "cipher_exclusions"
 #define TLS_ATTR_MDALG		"mdalg"
+#define TLS_ATTR_TRACE_PEER	"trace_peer"
 
  /*
   * TLS_CLIENT_INIT_PROPS attributes.
@@ -136,6 +138,8 @@
 #define TLS_ATTR_DANE		"dane"
 #define TLS_ATTR_TLSRPT		"tlsrpt"
 #define TLS_ATTR_FFAIL_TYPE	"forced_failure_type"
+#define TLS_ATTR_TRACE_SIZE_LIMIT "trace_size_limit"
+#define TLS_ATTR_TRACE_PEER	"trace_peer"
 
  /*
   * TLS_TLSA attributes.

@@ -1445,6 +1445,10 @@ extern char *var_smtpd_tls_loglevel;
 #define DEF_SMTPD_TLS_LOGLEVEL_MAPS	""
 extern char *var_smtpd_tls_loglevel_maps;
 
+#define VAR_SMTPD_TLS_TRACE_SIZE_LIMIT	"smtpd_tls_trace_size_limit"
+#define DEF_SMTPD_TLS_TRACE_SIZE_LIMIT	102400
+extern int var_smtpd_tls_trace_size_limit;
+
 #define VAR_SMTPD_TLS_RECHEAD	"smtpd_tls_received_header"
 #define DEF_SMTPD_TLS_RECHEAD	0
 extern bool var_smtpd_tls_received_header;
@@ -1625,6 +1629,12 @@ extern char *var_lmtp_tls_loglevel;	/* In tlsmgr(8) */
 #define DEF_LMTP_TLS_LOGLEVEL_MAPS	""
 extern char *var_smtp_tls_loglevel_maps;
 extern char *var_lmtp_tls_loglevel_maps;
+
+#define VAR_SMTP_TLS_TRACE_SIZE_LIMIT	"smtp_tls_trace_size_limit"
+#define DEF_SMTP_TLS_TRACE_SIZE_LIMIT	102400
+#define VAR_LMTP_TLS_TRACE_SIZE_LIMIT	"lmtp_tls_trace_size_limit"
+#define DEF_LMTP_TLS_TRACE_SIZE_LIMIT	102400
+extern int var_smtp_tls_trace_size_limit;
 
 #define VAR_SMTP_TLS_NOTEOFFER	"smtp_tls_note_starttls_offer"
 #define DEF_SMTP_TLS_NOTEOFFER	0
@@ -4757,6 +4767,10 @@ extern char *var_psc_tls_loglevel;
 #define DEF_PSC_TLS_LOGLEVEL_MAPS "$" VAR_SMTPD_TLS_LOGLEVEL_MAPS
 extern char *var_psc_tls_loglevel_maps;
 
+#define VAR_PSC_TLS_TRACE_SIZE_LIMIT "postscreen_tls_trace_size_limit"
+#define DEF_PSC_TLS_TRACE_SIZE_LIMIT "$" VAR_SMTPD_TLS_TRACE_SIZE_LIMIT
+extern int var_psc_tls_trace_size_limit;
+
 #define VAR_PSC_TLS_MAND_CIPH	"postscreen_tls_mandatory_ciphers"
 #define DEF_PSC_TLS_MAND_CIPH	"$" VAR_SMTPD_TLS_MAND_CIPH
 extern char *var_psc_tls_mand_ciph;
@@ -4780,6 +4794,13 @@ extern int var_psc_tls_ccert_vd;
 #define VAR_PSC_STARTTLS_TMOUT "postscreen_starttls_timeout"
 #define DEF_PSC_STARTTLS_TMOUT "$" VAR_SMTPD_STARTTLS_TMOUT
 extern int var_psc_starttls_tmout;
+
+ /*
+  * How many TLS traces per anvil(8) time unit.
+  */
+#define VAR_TLS_TRACE_ANVIL_RATE	"tls_trace_rate_limit"
+#define DEF_TLS_TRACE_ANVIL_RATE	1
+extern int var_tls_trace_anvil_rate;
 
 /* LICENSE
 /* .ad

@@ -254,3 +254,8 @@ proto  proto stop proto stop double cc
  postfix postfix c postmap postmap c postmulti postmulti c 
  stutter File postmulti postmulti c 
  with other command line tools File postlog postlog c 
+ auxiliary collate collate pl 
+ global mail_params h postscreen postscreen c 
+ smtpd smtpd c tls tls h tls tls_client c tls tls_misc c 
+ smtp smtp c smtp smtp_params c smtp smtp_proto c 
+ tlsproxy tlsproxy c tlsproxy tlsproxy_client c 

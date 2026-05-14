@@ -596,6 +596,11 @@ Available in Postfix version 3.12 and later:
 .IP "\fBsmtpd_tls_loglevel_maps (empty)\fR"
 Optional TLS loglevel override that depends on the remote peer
 host name or IP address.
+.IP "\fBsmtpd_tls_trace_size_limit (102400)\fR"
+The Postfix SMTP server equivalent of smtp_tls_trace_size_limit.
+.IP "\fBtls_trace_rate_limit (1)\fR"
+The maximum number of TLS traces per anvil_rate_time_unit that
+all Postfix daemons combined will create.
 .SH "OBSOLETE TLS CONTROLS"
 .na
 .nf

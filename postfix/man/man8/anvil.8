@@ -165,6 +165,27 @@ specified with \fBident\fR:
     \fBstatus=0\fR
     \fBrate=\fInumber\fR
 .fi
+.SH "TLS TRACE RATE CONTROL"
+.na
+.nf
+.ad
+.fi
+To register a TLS trace event send the following request
+to the \fBanvil\fR(8) server:
+
+.nf
+    \fBrequest=tlstr\fR
+    \fBident=\fIstring\fR
+.fi
+
+The \fBanvil\fR(8) server answers with the number of TLS trace
+requests per unit time for the (service, client) combination
+specified with \fBident\fR:
+
+.nf
+    \fBstatus=0\fR
+    \fBrate=\fInumber\fR
+.fi
 .SH "SECURITY"
 .na
 .nf

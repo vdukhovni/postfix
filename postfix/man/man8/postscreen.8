@@ -434,6 +434,8 @@ The \fBpostscreen\fR(8) equivalent of smtpd_tls_loglevel.
 .IP "\fBpostscreen_tls_loglevel_maps ($smtpd_tls_loglevel_maps)\fR"
 Optional TLS loglevel override that depends on the remote peer
 host name or IP address.
+.IP "\fBpostscreen_tls_trace_size_limit ($smtpd_tls_trace_size_limit)\fR"
+The \fBpostscreen\fR(8) equivalent of smtpd_tls_trace_size_limit.
 .IP "\fBpostscreen_tls_mandatory_ciphers ($smtpd_tls_mandatory_ciphers)\fR"
 The \fBpostscreen\fR(8) equivalent of smtpd_tls_mandatory_ciphers.
 .IP "\fBpostscreen_tls_mandatory_exclude_ciphers ($smtpd_tls_mandatory_exclude_ciphers)\fR"
@@ -444,6 +446,9 @@ The \fBpostscreen\fR(8) equivalent of smtpd_tls_mandatory_protocols.
 The \fBpostscreen\fR(8) equivalent of smtpd_tls_protocols.
 .IP "\fBpostscreen_tls_req_ccert ($smtpd_tls_req_ccert)\fR"
 The \fBpostscreen\fR(8) equivalent of smtpd_tls_req_ccert.
+.IP "\fBtls_trace_rate_limit (1)\fR"
+The maximum number of TLS traces per anvil_rate_time_unit that
+all Postfix daemons combined will create.
 .SH "OBSOLETE STARTTLS SUPPORT CONTROLS"
 .na
 .nf

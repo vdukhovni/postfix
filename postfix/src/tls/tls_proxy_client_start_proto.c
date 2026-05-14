@@ -267,6 +267,9 @@ int     tls_proxy_client_start_print(ATTR_PRINT_COMMON_FN print_fn,
 #endif
 		   SEND_ATTR_STR(TLS_ATTR_FFAIL_TYPE,
 				 STRING_OR_EMPTY(props->ffail_type)),
+		   SEND_ATTR_INT(TLS_ATTR_TRACE_SIZE_LIMIT,
+				 props->trace_size_limit),
+		   SEND_ATTR_STR(TLS_ATTR_TRACE_PEER, props->trace_peer),
 		   ATTR_TYPE_END);
     /* Do not flush the stream. */
     if (msg_verbose)
@@ -289,6 +292,7 @@ void    tls_proxy_client_start_free(TLS_CLIENT_START_PROPS *props)
     myfree((void *) props->protocols);
     myfree((void *) props->cipher_grade);
     myfree((void *) props->cipher_exclusions);
+    myfree((void *) props->trace_peer);
     if (props->matchargv)
 	argv_free((ARGV *) props->matchargv);
     myfree((void *) props->mdalg);
@@ -497,11 +501,12 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     VSTRING *cipher_exclusions = vstring_alloc(25);
     VSTRING *mdalg = vstring_alloc(25);
     VSTRING *ffail_type = vstring_alloc(25);
+    VSTRING *trace_peer = vstring_alloc(25);
 
 #ifdef USE_TLSRPT
-#define EXPECT_START_SCAN_RETURN	19
+#define EXPECT_START_SCAN_RETURN	21
 #else
-#define EXPECT_START_SCAN_RETURN	18
+#define EXPECT_START_SCAN_RETURN	20
 #endif
 
     if (msg_verbose)
@@ -540,6 +545,9 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 				 &props->tlsrpt),
 #endif
 		  RECV_ATTR_STR(TLS_ATTR_FFAIL_TYPE, ffail_type),
+		  RECV_ATTR_INT(TLS_ATTR_TRACE_SIZE_LIMIT,
+				&props->trace_size_limit),
+		  RECV_ATTR_STR(TLS_ATTR_TRACE_PEER, trace_peer),
 		  ATTR_TYPE_END);
     /* Always construct a well-formed structure. */
     props->log_param = vstring_export(log_param);
@@ -555,6 +563,9 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
     props->cipher_exclusions = vstring_export(cipher_exclusions);
     props->mdalg = vstring_export(mdalg);
     EXPORT_OR_NULL(props->ffail_type, ffail_type);
+    props->trace_open = 0;
+    props->trace_arg = 0;
+    props->trace_peer = vstring_export(trace_peer);
     ret = (ret == EXPECT_START_SCAN_RETURN ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_client_start_free(props);

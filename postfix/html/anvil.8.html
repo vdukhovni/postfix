@@ -120,6 +120,19 @@ ANVIL(8)                                                              ANVIL(8)
            <b>status=0</b>
            <b>rate=</b><i>number</i>
 
+<b><a name="tls_trace_rate_control">TLS TRACE RATE CONTROL</a></b>
+       To register a TLS  trace  event  send  the  following  request  to  the
+       <a href="anvil.8.html"><b>anvil</b>(8)</a> server:
+
+           <b>request=tlstr</b>
+           <b>ident=</b><i>string</i>
+
+       The  <a href="anvil.8.html"><b>anvil</b>(8)</a>  server answers with the number of TLS trace requests per
+       unit time for the (service, client) combination specified with <b>ident</b>:
+
+           <b>status=0</b>
+           <b>rate=</b><i>number</i>
+
 <b><a name="security">SECURITY</a></b>
        The <a href="anvil.8.html"><b>anvil</b>(8)</a> server does not talk to the network or to local users, and
        can run chrooted at fixed low privilege.

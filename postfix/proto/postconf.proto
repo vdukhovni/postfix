@@ -10102,6 +10102,19 @@ transmission after STARTTLS. </dd>
 <p> Do not use "smtpd_tls_loglevel = 2" or higher except in case
 of problems. Use of loglevel 4 is strongly discouraged. </p>
 
+<p> With Postfix 3.12 and later, any of the levels above may be
+followed by ",trace" (for example "smtpd_tls_loglevel = 1,trace").
+The "trace" keyword writes a protocol message trace (this does not
+include the <b>content</b> of application data messages) of the TLS
+session to a per-connection file under $queue_directory/tlstrace/,
+capped at smtpd_tls_trace_size_limit bytes per file.  The path is
+written to the system log at the start of each trace.  The "trace"
+keyword is intended for occasional use via smtpd_tls_loglevel_maps
+for a specific peer; setting it globally will produce a trace file
+for every TLS session.  Old trace files are not removed
+automatically; operators who enable the feature should arrange
+periodic cleanup (find(1), logrotate(8), or similar).  </p>
+
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
 %PARAM smtpd_tls_received_header no
@@ -10609,6 +10622,19 @@ transmission after STARTTLS. </dd>
 
 <p> Do not use "smtp_tls_loglevel = 2" or higher except in case of
 problems. Use of loglevel 4 is strongly discouraged. </p>
+
+<p> With Postfix 3.12 and later, any of the levels above may be
+followed by ",trace" (for example "smtp_tls_loglevel = 1,trace").
+The "trace" keyword writes a protocol message trace (this does not
+include the <b>content</b> of application data messages) of the TLS
+session to a per-connection file under $queue_directory/tlstrace/,
+capped at smtp_tls_trace_size_limit bytes per file.  The path is
+written to the system log at the start of each trace.  The "trace"
+keyword is intended for occasional use via smtp_tls_loglevel_maps
+for a specific peer; setting it globally will produce a trace file
+for every TLS session.  Old trace files are not removed
+automatically; operators who enable the feature should arrange
+periodic cleanup (find(1), logrotate(8), or similar).  </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -20954,5 +20980,47 @@ until a match is found or until all subnetworks have been tried.
 %PARAM lmtp_tls_loglevel_maps $smtp_tls_loglevel_maps
 
 <p> The lmtp(8) equivalent of smtp_tls_loglevel_maps. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM smtp_tls_trace_size_limit 102400
+
+<p> Size limit, in bytes, for the TLS protocol transcript that the
+Postfix SMTP client writes when the "trace" keyword is included in
+the TLS loglevel for a peer (smtp_tls_loglevel or
+smtp_tls_loglevel_maps).  The transcript is written to a per-
+connection file under $queue_directory/tlstrace/, named
+smtp-pid-time-peer.txt.  Once the limit is reached the trace is
+truncated with a one-line note.  A value of 0 disables tracing.
+</p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM lmtp_tls_trace_size_limit 102400
+
+<p> The lmtp(8) equivalent of smtp_tls_trace_size_limit. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM smtpd_tls_trace_size_limit 102400
+
+<p> The Postfix SMTP server equivalent of smtp_tls_trace_size_limit.
+File names start with "smtpd-" instead of "smtp-". </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postscreen_tls_trace_size_limit $smtpd_tls_trace_size_limit
+
+<p> The postscreen(8) equivalent of smtpd_tls_trace_size_limit.
+postscreen(8) generates the trace via tlsproxy(8); the trace file
+name starts with "tlsproxy-".  </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM tls_trace_rate_limit 1
+
+<p> The maximum number of TLS traces per anvil_rate_time_unit that
+all Postfix daemons combined will create. Specify a value &le;0 to
+disable the limit. </p>
 
 <p> This feature is available in Postfix 3.12 and later. </p>
