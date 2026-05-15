@@ -73,6 +73,7 @@
   * System library.
   */
 #include <sys_defs.h>
+#include <string.h>
 
  /*
   * OpenSSL library.
@@ -123,7 +124,13 @@ struct OSSL_DGST {
 
 OSSL_DGST *ossl_digest_new(const char *alg_name)
 {
-    OSSL_DGST *dgst = (OSSL_DGST *) mymalloc(sizeof(*dgst));
+    OSSL_DGST *dgst;
+
+    /* Reject known weak digest algorithms (MD5, SHA1). */
+    if (strcasecmp(alg_name, "md5") == 0 || strcasecmp(alg_name, "sha1") == 0)
+	return (0);
+
+    dgst = (OSSL_DGST *) mymalloc(sizeof(*dgst));
 
     /*
      * https://docs.openssl.org/3.3/man7/ossl-guide-libcrypto-introduction
