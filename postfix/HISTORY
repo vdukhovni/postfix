@@ -30661,3 +30661,37 @@ Apologies for any names omitted.
 	Missing or incomplete guards for ssize_t or int overflow,
 	found by Claude Opus 4.6. Files: util/argv.c, util/netstring.c,
 	util/vbuf_print.c.
+
+20260507
+
+	Fix for 'uninitialized value' error. Viktor Dukhovni. File:
+	auxiliary/collate/collate.pl.
+ 
+20260508
+
+	Claude AI finding: signed integer overshift (util/vstring.h).
+	Brought to our attention by Robert Sayre.
+
+20260509
+
+	Bitrot fixes: deprecation warning with OpenSSL 4.0
+	(tls/tls_dane.c); race condition fix in a test script
+	(tls/tls_dane.sh). Viktor Dukhovni.
+
+20260513
+
+	Bitrot: builds with musl libc were using the obsolete
+	NO_SNPRINTF code path in vbuf_print.c. File: util/sys_defs.h.
+
+20260514
+
+	Bitrot: the obsolete NO_SNPRINTF code path in vbuf_print.c
+	wasn't updated for Claude Code findings. File: util/vbuf_print.c.
+
+20250515
+
+	Portability: The __MAXINT__(T) macro, to determine the
+	maximal signed value for objects of type T, was using
+	implementation-defined behavior (shift one bit into the
+	sign position). This works today but may break later.
+	Reported by Kamil Frankowicz. File: util/sys_defs.h.

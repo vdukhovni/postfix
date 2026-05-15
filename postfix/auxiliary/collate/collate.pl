@@ -122,8 +122,7 @@ while (<>) {
 			if (defined($transaction{$qid})) {
 				$transaction{$qid} .= $_;
 			}
-			$transaction{$newid} =
-				$_ . $transaction{$newid};
+			$transaction{$newid} = $_ . ($transaction{$newid} // "");
 			$seqno{$newid} = ++$i if (! exists $seqno{$newid});
 		}
 		next;

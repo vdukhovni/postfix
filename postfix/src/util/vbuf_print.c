@@ -129,8 +129,11 @@
 	VBUF_SKIP(bp); \
     } while (0)
 #else
-#define VBUF_SNPRINTF(bp, sz, fmt, arg) do { \
-	if (VBUF_SPACE((bp), (sz)) != 0) \
+#define VBUF_SNPRINTF(bp, width_or_prec, type_space, fmt, arg) do { \
+	if ((width_or_prec) > INT_MAX - (type_space)) \
+	    msg_panic("vbuf_print: field width (%d + %lu) > INT_MAX", \
+		(width_or_prec), (unsigned long) (type_space)); \
+	if (VBUF_SPACE((bp), (width_or_prec) + (type_space)) != 0) \
 	    return (bp); \
 	sprintf((char *) (bp)->ptr, (fmt), (arg)); \
 	VBUF_SKIP(bp); \
