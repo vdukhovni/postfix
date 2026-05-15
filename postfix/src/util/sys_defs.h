@@ -797,8 +797,6 @@ extern int initgroups(const char *, int);
 #if HAVE_GLIBC_API_VERSION_SUPPORT(2, 1)
 #define SOCKADDR_SIZE	socklen_t
 #define SOCKOPT_SIZE	socklen_t
-#else
-#define NO_SNPRINTF
 #endif
 #ifndef NO_IPV6
 #define HAS_IPV6
@@ -1690,13 +1688,15 @@ typedef int pid_t;
 
  /*
   * Bit banging!! There is no official constant that defines the INT_MAX
-  * equivalent for off_t, ssize_t, etc. Wietse came up with the following
-  * macro that works as long as off_t, ssize_t, etc. use one's or two's
-  * complement logic (that is, the maximum value is binary 01...1). Don't use
-  * right-shift for signed types: the result is implementation-defined.
+  * equivalent for off_t, ssize_t, etc. Decades ago, Wietse came up with a
+  * macro that worked on one's or two's complement logic (that is, the
+  * maximum value is binary 01...1). As Kamil Frankowicz pointed out, that
+  * code relied on shifting into the sign bit, which is not defined in the
+  * language standard. The current version still works on one's and two's
+  * complement logic, but avoids the undefined behavior.
   */
 #include <limits.h>
-#define __MAXINT__(T) ((T) ~(((T) 1) << ((sizeof(T) * CHAR_BIT) - 1)))
+#define __MAXINT__(T) ((((T) 1 << (sizeof(T) * CHAR_BIT - 2)) - 1) * 2 + 1)
 #ifndef OFF_T_MAX
 #define OFF_T_MAX __MAXINT__(off_t)
 #endif
