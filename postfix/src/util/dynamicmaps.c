@@ -149,7 +149,7 @@ static const DICT_OPEN_INFO *dymap_dict_lookup(const char *dict_type)
 		 dict_type, dict_type);
 	return (0);
     }
-    if (stat (dp->soname, &st) < 0) {
+    if (stat(dp->soname, &st) < 0) {
 	msg_warn("unsupported dictionary type: %s (%s: %m)",
 		 dict_type, dp->soname);
 	return (0);

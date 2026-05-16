@@ -417,7 +417,7 @@ void    argv_delete(ARGV *argvp, ssize_t first, ssize_t how_many)
     /*
      * Sanity check. 202604 Claude: avoid expression 'first + how_many'.
      */
-    if (first < 0 || how_many < 0 || first > argvp->argc 
+    if (first < 0 || how_many < 0 || first > argvp->argc
 	|| how_many > argvp->argc - first)
 	msg_panic("argv_delete bad range: (start=%ld count=%ld)",
 		  (long) first, (long) how_many);

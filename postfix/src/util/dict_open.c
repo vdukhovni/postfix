@@ -485,7 +485,7 @@ DICT   *dict_open(const char *dict_spec, int open_flags, int dict_flags)
     char   *dict_name;
     DICT   *dict;
 
-    if ((dict_name = split_at(saved_dict_spec, ':')) == 0 
+    if ((dict_name = split_at(saved_dict_spec, ':')) == 0
 	|| *saved_dict_spec == 0 || *dict_name == 0) {
 	dict = dict_surrogate(dict_spec, "", open_flags, dict_flags,
 	  "open dictionary: expecting \"type:name\" form instead of \"%s\"",
@@ -695,8 +695,8 @@ static void init_dynamic_maps(void)
     if (dict_load_file_xt(TEST_DICT, TEST_CONF_PATH) == 0)
 	msg_fatal("open %s: %m", TEST_CONF_PATH);
     if ((meta_dir = dict_lookup(TEST_DICT, META_DIR_KEY)) == 0
-	 || (shlib_dir = dict_lookup(TEST_DICT, SHLIB_DIR_KEY)) == 0)
-	 msg_fatal("unusable file: %s", TEST_CONF_PATH);
+	|| (shlib_dir = dict_lookup(TEST_DICT, SHLIB_DIR_KEY)) == 0)
+	msg_fatal("unusable file: %s", TEST_CONF_PATH);
     path = concatenate(meta_dir, "/", "dynamicmaps.cf",
 #ifdef SHLIB_VERSION
 		       ".", SHLIB_VERSION,

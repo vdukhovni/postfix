@@ -48,7 +48,7 @@ extern void _expect_endservent(const char *, int, int);
   */
 #define eq_servent(...) _eq_servent(__FILE__, __LINE__, __VA_ARGS__)
 
-extern int _eq_servent(const char *, int,PTEST_CTX *, 
+extern int _eq_servent(const char *, int, PTEST_CTX *,
 		               const char *, struct servent *,
 		               struct servent *);
 

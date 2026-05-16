@@ -187,13 +187,13 @@ int     _eq_str(const char *file, int line, PTEST_CTX *t,
 		        const char *what, const char *got, const char *want)
 {
     if (got == 0 && want == 0) {
-        return (1);
+	return (1);
     } else if (got == 0 || want == 0) {
-        if (t)
-            ptest_error(t, "%s:%d: %s: got '%s', want '%s'",
-                        file, line, what, STR_OR_NULL(got),
-                        STR_OR_NULL(want));
-        return (0);
+	if (t)
+	    ptest_error(t, "%s:%d: %s: got '%s', want '%s'",
+			file, line, what, STR_OR_NULL(got),
+			STR_OR_NULL(want));
+	return (0);
     }
     if (strcmp(got, want) != 0) {
 	if (t)

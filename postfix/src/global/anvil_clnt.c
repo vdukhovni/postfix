@@ -223,8 +223,8 @@ void    anvil_clnt_free(ANVIL_CLNT *anvil_clnt)
 
 int     anvil_clnt_lookup(ANVIL_CLNT *anvil_clnt, const char *service,
 			          const char *addr, int *count, int *rate,
-				  int *msgs, int *rcpts, int *newtls,
-				  int *auths, int *tlstrs)
+			          int *msgs, int *rcpts, int *newtls,
+			          int *auths, int *tlstrs)
 {
     char   *ident = ANVIL_IDENT(service, addr);
     int     status;

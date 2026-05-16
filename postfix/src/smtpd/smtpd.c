@@ -5352,7 +5352,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 				 cipher_grade = cipher_grade,
 				 cipher_exclusions = STR(cipher_exclusions),
 				 mdalg = var_smtpd_tls_fpt_dgst,
-				 trace_size_limit = var_smtpd_tls_trace_size_limit,
+			  trace_size_limit = var_smtpd_tls_trace_size_limit,
 				 trace_peer = state->addr);
 
     /*

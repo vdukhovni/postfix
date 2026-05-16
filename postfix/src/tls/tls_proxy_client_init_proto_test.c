@@ -175,7 +175,7 @@ static void test_tls_proxy_client_init_serialize(PTEST_CTX *t,
     (void) eq_attr(t, "tls_proxy_client_init_serialize",
 		   got_serialized_init_props, ref_serialized_init_props);
 #else
-    ptest_skip(t);
+            ptest_skip(t);
 #endif
 }
 
@@ -212,7 +212,7 @@ static void test_tls_proxy_client_init_from_string(PTEST_CTX *t,
     vstring_free(ref_serialized_init_props);
     vstring_free(got_serialized_init_props);
 #else
-    ptest_skip(t);
+            ptest_skip(t);
 #endif
 }
 

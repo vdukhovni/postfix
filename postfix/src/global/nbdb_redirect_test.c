@@ -169,7 +169,7 @@ static int redirects_dict_open_btree_to_def_cache_db_type(const TEST_CASE *tp)
 	setup_common_mock_open_info();
 	var_cache_db_type = "lmdb";
 	capture = msg_capt_create(100);
-        var_nbdb_log_redirect = want_logging != 0;
+	var_nbdb_log_redirect = want_logging != 0;
 
 	/*
 	 * Verify that 'btree' redirects to $default_cache_db_type ('lmdb').

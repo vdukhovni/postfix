@@ -301,7 +301,7 @@ static int find_service(const char *service, int socktype)
 
 int     hostname_to_sockaddr_pf(const char *hostname, int pf,
 				        const char *service, int socktype,
-				        struct addrinfo ** res)
+				        struct addrinfo **res)
 {
 #ifdef EMULATE_IPV4_ADDRINFO
 
@@ -475,7 +475,7 @@ int     hostname_to_sockaddr_pf(const char *hostname, int pf,
 /* hostaddr_to_sockaddr - printable address to binary address form */
 
 int     hostaddr_to_sockaddr(const char *hostaddr, const char *service,
-			             int socktype, struct addrinfo **  res)
+			             int socktype, struct addrinfo **res)
 {
 #ifdef EMULATE_IPV4_ADDRINFO
 
@@ -757,7 +757,7 @@ void    myaddrinfo_control(int name,...)
 
 /* freeaddrinfo - release storage */
 
-void    freeaddrinfo(struct addrinfo * ai)
+void    freeaddrinfo(struct addrinfo *ai)
 {
     struct addrinfo *ap;
     struct addrinfo *next;

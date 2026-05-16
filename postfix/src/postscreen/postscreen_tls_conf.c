@@ -91,6 +91,7 @@ bool    psc_tls_ready;
 #ifdef USE_TLS
 TLS_SERVER_PARAMS psc_tls_params;
 TLS_SERVER_INIT_PROPS psc_init_props;
+
 #endif
 
  /*
@@ -311,7 +312,7 @@ bool    psc_tls_pre_start(const PSC_STATE *state,
 				 cipher_grade = cipher_grade,
 				 cipher_exclusions = STR(cipher_exclusions),
 				 mdalg = var_psc_tls_fpt_dgst,
-				 trace_size_limit = var_psc_tls_trace_size_limit,
+			    trace_size_limit = var_psc_tls_trace_size_limit,
 				 trace_peer = state->smtp_client_addr);
     return (true);
 }

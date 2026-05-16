@@ -22,11 +22,11 @@
   */
 #ifndef NO_MOCK_WRAPPERS
 extern int wrap_getaddrinfo(const char *, const char *,
-				             const struct addrinfo *,
-				             struct addrinfo **);
+			            const struct addrinfo *,
+			            struct addrinfo **);
 extern void wrap_freeaddrinfo(struct addrinfo *);
 extern int wrap_getnameinfo(const struct sockaddr *, socklen_t, char *,
-				             size_t, char *, size_t, int);
+			            size_t, char *, size_t, int);
 
 #define	getaddrinfo     wrap_getaddrinfo
 #define	freeaddrinfo    wrap_freeaddrinfo

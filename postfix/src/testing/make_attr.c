@@ -44,7 +44,7 @@
 
 /* make_attr - serialize attribute list */
 
-VSTRING *make_attr(ATTR_VPRINT_COMMON_FN vprint_fn, int flags, ...)
+VSTRING *make_attr(ATTR_VPRINT_COMMON_FN vprint_fn, int flags,...)
 {
     static const char myname[] = "make_attr";
     VSTRING *res = vstring_alloc(100);

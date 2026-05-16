@@ -158,13 +158,13 @@ static VSTRING *setup_reference_serialized_params(TLS_CLIENT_PARAMS *params)
 		      SEND_ATTR_INT(VAR_TLS_DAEMON_RAND_BYTES,
 				    params->tls_daemon_rand_bytes),
 		      SEND_ATTR_INT(VAR_TLS_APPEND_DEF_CA,
-				     params->tls_append_def_CA),
+				    params->tls_append_def_CA),
 		      SEND_ATTR_INT(VAR_TLS_PREEMPT_CLIST,
-				     params->tls_preempt_clist),
+				    params->tls_preempt_clist),
 		      SEND_ATTR_INT(VAR_TLS_MULTI_WILDCARD,
-				     params->tls_multi_wildcard),
+				    params->tls_multi_wildcard),
 		      SEND_ATTR_INT(VAR_TLS_FAST_SHUTDOWN,
-				     params->tls_fast_shutdown),
+				    params->tls_fast_shutdown),
 		      ATTR_TYPE_END));
 }
 
@@ -194,7 +194,7 @@ static void test_tls_proxy_client_param_serialize(PTEST_CTX *t,
     (void) eq_attr(t, "tls_proxy_client_param_serialize",
 		   got_serialized_params, ref_serialized_params);
 #else
-    ptest_skip(t);
+            ptest_skip(t);
 #endif
 }
 
@@ -233,7 +233,7 @@ static void test_tls_proxy_client_param_from_config(PTEST_CTX *t,
     vstring_free(want_client_params_serialized);
     vstring_free(got_client_params_serialized);
 #else
-    ptest_skip(t);
+            ptest_skip(t);
 #endif
 }
 
@@ -270,7 +270,7 @@ static void test_tls_proxy_client_param_from_string(PTEST_CTX *t,
     vstring_free(ref_serialized_params);
     vstring_free(got_serialized_params);
 #else
-    ptest_skip(t);
+            ptest_skip(t);
 #endif
 }
 

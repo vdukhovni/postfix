@@ -62,7 +62,7 @@ static void test_mystrtok(PTEST_CTX *t, const PTEST_CASE *unused)
 	    char   *cp = saved_input;
 	    int     n;
 
-	    for (n = 0; /* See below */; n++) {
+	    for (n = 0; /* See below */ ; n++) {
 		got = mystrtok(&cp, CHARS_SPACE);
 		if (!match_one(t, got, tp->want[n]) || got == 0)
 		    break;
@@ -94,7 +94,7 @@ static void test_mystrtokq(PTEST_CTX *t, const PTEST_CASE *unused)
 	    char   *cp = saved_input;
 	    int     n;
 
-	    for (n = 0; /* See below */; n++) {
+	    for (n = 0; /* See below */ ; n++) {
 		got = mystrtokq(&cp, CHARS_SPACE, CHARS_BRACE);
 		if (!match_one(t, got, tp->want[n]) || got == 0)
 		    break;
@@ -126,7 +126,7 @@ static void test_mystrtokdq(PTEST_CTX *t, const PTEST_CASE *unused)
 	    char   *cp = saved_input;
 	    int     n;
 
-	    for (n = 0; /* See below */; n++) {
+	    for (n = 0; /* See below */ ; n++) {
 		got = mystrtokdq(&cp, CHARS_SPACE);
 		if (!match_one(t, got, tp->want[n]) || got == 0)
 		    break;
@@ -157,7 +157,7 @@ static void test_mystrtok_cw(PTEST_CTX *t, const PTEST_CASE *unused)
 	    expect_ptest_log_event(t,
 				"#comment after other text is not allowed");
 
-	    for (n = 0; /* See below */; n++) {
+	    for (n = 0; /* See below */ ; n++) {
 		got = mystrtok_cw(&cp, CHARS_SPACE, "test");
 		if (!match_one(t, got, tp->want[n]) || got == 0)
 		    break;
@@ -188,7 +188,7 @@ static void test_mystrtokq_cw(PTEST_CTX *t, const PTEST_CASE *unused)
 	    expect_ptest_log_event(t,
 				"#comment after other text is not allowed");
 
-	    for (n = 0; /* See below */; n++) {
+	    for (n = 0; /* See below */ ; n++) {
 		got = mystrtokq_cw(&cp, CHARS_SPACE, CHARS_BRACE, "test");
 		if (!match_one(t, got, tp->want[n]) || got == 0)
 		    break;
@@ -219,7 +219,7 @@ static void test_mystrtokdq_cw(PTEST_CTX *t, const PTEST_CASE *unused)
 	    expect_ptest_log_event(t,
 				"#comment after other text is not allowed");
 
-	    for (n = 0; /* See below */; n++) {
+	    for (n = 0; /* See below */ ; n++) {
 		got = mystrtokdq_cw(&cp, CHARS_SPACE, "test");
 		if (!match_one(t, got, tp->want[n]) || got == 0)
 		    break;

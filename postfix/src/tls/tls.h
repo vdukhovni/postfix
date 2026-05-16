@@ -609,7 +609,7 @@ typedef struct {
     const char *cipher_exclusions;
     const char *mdalg;			/* default message digest algorithm */
     int     trace_size_limit;		/* TLS protocol trace size limit */
-    BIO    *(*trace_open) (void *, const char *); /* override dest */
+    BIO    *(*trace_open) (void *, const char *);	/* override dest */
     void   *trace_arg;			/* opaque trace_open argument */
     char   *trace_peer;			/* Printable peer IP address */
 } TLS_SERVER_START_PROPS;

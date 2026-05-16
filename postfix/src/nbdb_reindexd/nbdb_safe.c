@@ -76,7 +76,7 @@
 
 /* nbdb_safe_for_uid - owned by the user or root, not group or other writable */
 
-bool    nbdb_safe_for_uid(uid_t uid, const struct stat *st)
+bool    nbdb_safe_for_uid(uid_t uid, const struct stat * st)
 {
 
     /*
@@ -93,9 +93,9 @@ bool    nbdb_safe_for_uid(uid_t uid, const struct stat *st)
 /* nbdb_safe_to_index_as_legacy_index_owner - OK to run postmap/postalias */
 
 bool    nbdb_safe_to_index_as_legacy_index_owner(
-	              const char *source_path, const struct stat *source_st,
-	            const char *leg_idx_path, const struct stat *leg_idx_st,
-	           const char *parent_dir, const struct stat *parent_dir_st,
+	             const char *source_path, const struct stat * source_st,
+	           const char *leg_idx_path, const struct stat * leg_idx_st,
+	          const char *parent_dir, const struct stat * parent_dir_st,
 						         VSTRING *why)
 {
     uid_t   runas_uid;

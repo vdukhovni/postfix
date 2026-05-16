@@ -260,12 +260,12 @@ static int converts_good_u_label_query(const TEST_CASE *tp)
 {
     const char *ext_policy = "inline:{{foo.xn--1xa.example = opportunistic}} enforce";
     const struct QUERY_REPLY qr[] = {
-        {"foo.xn--1xa.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
-        {"foo.\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
-        {"x.foo.xn--1xa.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
-        {"x.foo.\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
-        {"example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
-        {0},
+	{"foo.xn--1xa.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
+	{"foo.\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
+	{"x.foo.xn--1xa.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+	{"x.foo.\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+	{"example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+	{0},
     };
     SMTP_REQTLS_POLICY *int_policy;
     const struct QUERY_REPLY *qp;
@@ -275,11 +275,11 @@ static int converts_good_u_label_query(const TEST_CASE *tp)
 
     int_policy = smtp_reqtls_policy_parse(test_origin, ext_policy);
     for (qp = qr; qp->query; qp++) {
-        got = smtp_reqtls_policy_eval(int_policy, qp->query);
-        if (got != qp->reply) {
-            msg_warn("got result '%d', want: '%d'", got, qp->reply);
-            errors++;
-        }
+	got = smtp_reqtls_policy_eval(int_policy, qp->query);
+	if (got != qp->reply) {
+	    msg_warn("got result '%d', want: '%d'", got, qp->reply);
+	    errors++;
+	}
     }
     smtp_reqtls_policy_free(int_policy);
     return (errors == 0);
@@ -289,10 +289,10 @@ static int fails_bad_u_label_query(const TEST_CASE *tp)
 {
     const char *ext_policy = "inline:{{foo.xn--1xa.example = opportunistic}} disable";
     const struct QUERY_REPLY qr[] = {
-        {"foo.\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
-        {"foo.-\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
-        {"example", SMTP_REQTLS_POLICY_ACT_DISABLE},
-        {0},
+	{"foo.\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_OPPORTUNISTIC},
+	{"foo.-\xcf\x80.example", SMTP_REQTLS_POLICY_ACT_ENFORCE},
+	{"example", SMTP_REQTLS_POLICY_ACT_DISABLE},
+	{0},
     };
     SMTP_REQTLS_POLICY *int_policy;
     const struct QUERY_REPLY *qp;
@@ -302,11 +302,11 @@ static int fails_bad_u_label_query(const TEST_CASE *tp)
 
     int_policy = smtp_reqtls_policy_parse(test_origin, ext_policy);
     for (qp = qr; qp->query; qp++) {
-        got = smtp_reqtls_policy_eval(int_policy, qp->query);
-        if (got != qp->reply) {
-            msg_warn("got result '%d', want: '%d'", got, qp->reply);
-            errors++;
-        }
+	got = smtp_reqtls_policy_eval(int_policy, qp->query);
+	if (got != qp->reply) {
+	    msg_warn("got result '%d', want: '%d'", got, qp->reply);
+	    errors++;
+	}
     }
     smtp_reqtls_policy_free(int_policy);
     return (errors == 0);

@@ -125,20 +125,20 @@ char   *tls_proxy_server_init_serialize(ATTR_PRINT_COMMON_FN print_fn,
 /* tls_proxy_server_init_from_string - deserialize TLS_SERVER_INIT_PROPS */
 
 TLS_SERVER_INIT_PROPS *tls_proxy_server_init_from_string(
-                                                ATTR_SCAN_COMMON_FN scan_fn,
-                                                             VSTRING *buf)
+					        ATTR_SCAN_COMMON_FN scan_fn,
+						               VSTRING *buf)
 {
     const char myname[] = "tls_proxy_server_init_from_string";
     TLS_SERVER_INIT_PROPS *props = 0;
     VSTREAM *mp;
 
     if ((mp = vstream_memopen(buf, O_RDONLY)) == 0
-        || scan_fn(mp, ATTR_FLAG_NONE,
-                   RECV_ATTR_FUNC(tls_proxy_server_init_scan,
-                                  (void *) &props),
-                   ATTR_TYPE_END) != 1
-        || vstream_fclose(mp) != 0)
-        msg_fatal("%s: can't deserialize properties: %m", myname);
+	|| scan_fn(mp, ATTR_FLAG_NONE,
+		   RECV_ATTR_FUNC(tls_proxy_server_init_scan,
+				  (void *) &props),
+		   ATTR_TYPE_END) != 1
+	|| vstream_fclose(mp) != 0)
+	msg_fatal("%s: can't deserialize properties: %m", myname);
     return (props);
 }
 

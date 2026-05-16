@@ -223,7 +223,7 @@ static void test_map_search(PTEST_CTX *t, const struct PTEST_CASE *unused)
 			    escape_order(got_escaped,
 		      string_or_null(map_search_from_create->search_order)),
 			    escape_order(want_escaped,
-				     string_or_null(tp->want_search_order)));
+				    string_or_null(tp->want_search_order)));
 	    }
 	});
     }

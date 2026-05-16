@@ -251,8 +251,8 @@ static void mock_server_read_event(int event, void *context)
 /* mock_server_interact - set up request and/or response */
 
 void    mock_server_interact(MOCK_SERVER *mp,
-				          const VSTRING *req,
-				          const VSTRING *resp)
+			             const VSTRING *req,
+			             const VSTRING *resp)
 {
     const char myname[] = "mock_server_interact";
 

@@ -75,7 +75,7 @@ static void test_hostname_to_sockaddr_failure(PTEST_CTX *t,
      * The missing expectation is intentional. Do not count this as an error.
      */
     expect_ptest_error(t, "unexpected call: "
-	    "hostname_to_sockaddr_pf(\"notexist\", 0, \"smtp\", ");
+		     "hostname_to_sockaddr_pf(\"notexist\", 0, \"smtp\", ");
 
     /*
      * Invoke the mock and verify results.

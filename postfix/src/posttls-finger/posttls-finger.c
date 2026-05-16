@@ -533,6 +533,7 @@ static DNS_RR *host_addr(STATE *, const char *);
 
 #if defined(USE_TLS) && defined(HAVE_SSL_TRACE)
 static BIO *posttls_trace_open(void *, const char *);
+
 #endif
 
 #define HNAME(addr) (addr->qname)
@@ -1933,6 +1934,8 @@ static BIO *posttls_trace_open(void *arg, const char *trace_peer)
     if (state->trace_file == 0) {
 	VSTRING *path = vstring_alloc(64);
 
+	/* Cheap defense against future change to reuse the path buffer. */
+	VSTRING_RESET(path);
 	bio = tls_trace_create_file(path, trace_peer);
 	state->trace_file = vstring_export(path);
 	if (bio == 0) {
@@ -2047,7 +2050,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
     state->level = TLS_LEV_DANE;
     state->mxinsec_level = TLS_LEV_DANE;
     state->tlsproxy_mode = 0;
-    state->trace_file = 0;		/* lazily constructed at trace_open */
+    state->trace_file = 0;			/* lazily constructed */
 #else
 #define TLSOPTS ""
     state->level = TLS_LEV_NONE;

@@ -616,8 +616,8 @@ int     tls_log_mask(const char *log_param, const char *log_level)
 	    msg_warn("%s: ignoring \"trace\" log level: "
 		     "SSL_trace() is not available in this build",
 		     log_param);
-	    mask &= ~TLS_LOG_TRACE;
 	}
+	mask &= ~TLS_LOG_TRACE;			/* Never used */
     }
 #endif
     return (mask);
@@ -635,8 +635,8 @@ void    tls_msg_callback(int write_p, int version, int content_type,
     BIO    *bio = TLScontext->trace_bio;
 
     /*
-     * trace_size_limit <= 0 means either tracing is off (never started)
-     * or we already crossed the budget and emitted the truncation marker.
+     * trace_size_limit <= 0 means either tracing is off (never started) or
+     * we already crossed the budget and emitted the truncation marker.
      * Either way, do not write further.
      */
     if (bio == 0 || TLScontext->trace_size_limit <= 0)
@@ -666,14 +666,14 @@ bool    tls_trace_rate_ok(int tls_trace_rate_limit)
 	if (anvil_clnt_tlstr(client, "any", "any", &rate) == ANVIL_STAT_OK) {
 	    ret = rate <= tls_trace_rate_limit;
 	} else {
-	    ret = true;
+	    ret = false;
 	}
 	anvil_clnt_free(client);
     } else {
 	ret = true;
     }
     return (ret);
-} 
+}
 
 /* tls_trace_create_qfile - default trace destination for daemons */
 
@@ -700,7 +700,7 @@ BIO    *tls_trace_create_qfile(const char *trace_peer)
 
 /* tls_trace_create_file - trace destination for CLI or daemon */
 
-BIO *tls_trace_create_file(VSTRING *path, const char *trace_peer)
+BIO    *tls_trace_create_file(VSTRING *path, const char *trace_peer)
 {
     struct timeval tv;
     struct tm *lt;
@@ -1557,22 +1557,21 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 
     /*
      * Release the protocol trace, if one was opened.  Order matters:
-     * SSL_free() above can still drive the message callback during
-     * teardown (close-notify processing in particular), so trace_bio
-     * must stay valid until after SSL_free() returns.  Closing it
-     * first would let tls_msg_callback() write through a freed BIO.
-     *
+     * SSL_free() above can still drive the message callback during teardown
+     * (close-notify processing in particular), so trace_bio must stay valid
+     * until after SSL_free() returns.  Closing it first would let
+     * tls_msg_callback() write through a freed BIO.
+     * 
      * Always BIO_flush() before close, so any stdio buffering inside
      * BIO_new_fp() lands on disk before the FILE * is fclose()d.  An
-     * application override may release the BIO; otherwise BIO_free_all
-     * walks the chain and (with BIO_CLOSE) closes the underlying file.
+     * application override may release the BIO; otherwise BIO_free_all walks
+     * the chain and (with BIO_CLOSE) closes the underlying file.
      */
     if (TLScontext->trace_bio != 0) {
 	(void) BIO_flush(TLScontext->trace_bio);
 	BIO_free_all(TLScontext->trace_bio);
 	TLScontext->trace_bio = 0;
     }
-
     if (TLScontext->namaddr)
 	myfree(TLScontext->namaddr);
     if (TLScontext->serverid)

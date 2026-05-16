@@ -81,7 +81,7 @@ ALLOWED_PREFIX *allowed_prefix_create(const char *prefixes)
     tp = argv_alloc(5);
     while ((prefix = mystrtok(&bp, CHARS_COMMA_SP)) != 0) {
 	if (*prefix != '/') {
-	    (void) decline_request_with("relative pathname",prefix);
+	    (void) decline_request_with("relative pathname", prefix);
 	    continue;
 	}
 	/* Trim trailing '/'. */

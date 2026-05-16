@@ -23,7 +23,7 @@
 #include <ptest.h>
 
 typedef struct PTEST_CASE {
-    const char *testname;               /* Human-readable description */
+    const char *testname;		/* Human-readable description */
     void    (*action) (PTEST_CTX *t, const struct PTEST_CASE *);
 } PTEST_CASE;
 
@@ -68,8 +68,8 @@ static const char *flags_to_string(VSTRING *buf, int flags)
 
 static void test_eq_flags(PTEST_CTX *t, const PTEST_CASE *unused)
 {
-int got = FLAG_ONE;
-int want = FLAG_ONE | FLAG_TWO;
+    int     got = FLAG_ONE;
+    int     want = FLAG_ONE | FLAG_TWO;
 
     expect_ptest_error(t, "got 'one', want 'one|two'");
     if (eq_flags(t, "flags", got, want, flags_to_string)

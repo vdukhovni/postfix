@@ -102,8 +102,8 @@
 
  /*
   * What ASCII characters are allowed in the 'charset' or 'encoding' tokens
-  * of an encoded-word. 202604 Claude: in the macro expansion replace
-  * several instances of 'ch' with 'c'.
+  * of an encoded-word. 202604 Claude: in the macro expansion replace several
+  * instances of 'ch' with 'c'.
   */
 #define RFC2047_ESPECIALS_STR	"()<>@,;:\\\"/[]?.="
 #define RFC2047_ALLOWED_TOKEN_CHAR(c) \
@@ -659,7 +659,7 @@ static const TEST_CASE test_cases[] = {
 	"encoder called with empty charset name\n"
     },
     {"validates_charset_length", test_rfc2047_encode,
-	RFC2047_HEADER_CONTEXT_COMMENT, /* charset= */ 
+	RFC2047_HEADER_CONTEXT_COMMENT,	/* charset= */
 	"1234567890123456789012345678901234567890",
 	"testme", 0, " ", NO_OUTPUT, "rfc2047_code: warning: rfc2047_encode: "
 	"unreasonable charset name: "

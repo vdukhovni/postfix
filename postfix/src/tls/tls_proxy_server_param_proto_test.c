@@ -198,7 +198,7 @@ static void test_tls_proxy_server_param_serialize(PTEST_CTX *t,
     (void) eq_attr(t, "tls_proxy_server_param_serialize",
 		   got_serialized_params, ref_serialized_params);
 #else
-    ptest_skip(t);
+            ptest_skip(t);
 #endif
 }
 
@@ -237,7 +237,7 @@ static void test_tls_proxy_server_param_from_config(PTEST_CTX *t,
     vstring_free(want_server_params_serialized);
     vstring_free(got_server_params_serialized);
 #else
-    ptest_skip(t);
+            ptest_skip(t);
 #endif
 }
 
@@ -274,7 +274,7 @@ static void test_tls_proxy_server_param_from_string(PTEST_CTX *t,
     vstring_free(ref_serialized_params);
     vstring_free(got_serialized_params);
 #else
-    ptest_skip(t);
+            ptest_skip(t);
 #endif
 }
 

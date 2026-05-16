@@ -1098,7 +1098,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 #endif
 				     ffail_type = 0,
 				     dane = state->tls->dane,
-				     trace_size_limit = var_smtp_tls_trace_size_limit,
+			   trace_size_limit = var_smtp_tls_trace_size_limit,
 				     trace_peer = STR(iter->addr));
 
 	/*
@@ -1231,7 +1231,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 #endif
 			     ffail_type = state->tls->ext_policy_failure,
 			     dane = state->tls->dane,
-			     trace_size_limit = var_smtp_tls_trace_size_limit,
+			   trace_size_limit = var_smtp_tls_trace_size_limit,
 			     trace_open = 0,
 			     trace_arg = 0,
 			     trace_peer = STR(iter->addr));

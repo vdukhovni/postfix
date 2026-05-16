@@ -73,8 +73,8 @@ static void test_hfrom_format_parse(PTEST_CTX *t, const PTEST_CASE *tp)
 	    if (*np->want_log == 0) {
 		if (got_code != np->want_code) {
 		    ptest_error(t, "got code \"%d\", want \"%d\"(%s)",
-			       got_code, np->want_code,
-			       str_hfrom_format_code(np->want_code));
+				got_code, np->want_code,
+				str_hfrom_format_code(np->want_code));
 		}
 	    }
 	});
@@ -121,7 +121,7 @@ static void test_str_hfrom_format_code(PTEST_CTX *t, const PTEST_CASE *tp)
 	    if (*cp->want_log == 0) {
 		if (strcmp(got_name, cp->want_name) != 0) {
 		    ptest_error(t, "got name: \"%s\", want: \"%s\"",
-			       got_name, cp->want_name);
+				got_name, cp->want_name);
 		}
 	    }
 	});

@@ -129,7 +129,7 @@ int     nbdb_process(const char *leg_type, const char *source_path,
      * the client may have connected to this service before the file was
      * indexed.
      */
-    if (stat (STR(new_idx_path), &new_idx_st) == 0 && new_idx_st.st_size > 0) {
+    if (stat(STR(new_idx_path), &new_idx_st) == 0 && new_idx_st.st_size > 0) {
 	msg_info("target file '%s' already exists, skipping this request",
 		 STR(new_idx_path));
 	return (NBDB_STAT_OK);
@@ -140,7 +140,7 @@ int     nbdb_process(const char *leg_type, const char *source_path,
      * the owner's (uid, gid) to run the postmap or postalias command with.
      */
     vstring_sprintf(leg_idx_path, "%s%s", source_path, NBDB_LEGACY_SUFFIX);
-    if (stat (STR(leg_idx_path), &leg_idx_st) < 0) {
+    if (stat(STR(leg_idx_path), &leg_idx_st) < 0) {
 	vstring_sprintf(why, "look up status for legacy indexed file '%s': %m",
 			STR(leg_idx_path));
 	return (NBDB_STAT_ERROR);
@@ -151,7 +151,7 @@ int     nbdb_process(const char *leg_type, const char *source_path,
      * and will reject the request if the source has unsafe permissions for
      * the uid that we would run postmap or postalias with.
      */
-    if (stat (source_path, &source_st) < 0) {
+    if (stat(source_path, &source_st) < 0) {
 	vstring_sprintf(why, "look up status for source file '%s': %m",
 			source_path);
 	return (NBDB_STAT_ERROR);
@@ -164,7 +164,7 @@ int     nbdb_process(const char *leg_type, const char *source_path,
      */
     vstring_strcpy(parent_dir_buf, source_path);
     parent_dir = dirname(STR(parent_dir_buf));
-    if (stat (parent_dir, &parent_dir_st) < 0) {
+    if (stat(parent_dir, &parent_dir_st) < 0) {
 	vstring_sprintf(why, "look up status for parent directory '%s': %m",
 			parent_dir);
 	return (NBDB_STAT_ERROR);

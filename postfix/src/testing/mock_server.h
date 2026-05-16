@@ -27,15 +27,15 @@ typedef struct MOCK_SERVER {
     VSTRING *want_req;			/* serialized request, may be null */
     VSTRING *resp;			/* serialized response, may be null */
     VSTRING *iobuf;			/* I/O buffer */
-    struct MOCK_SERVER *next;	/* chain of unconnected servers */
-    struct MOCK_SERVER *prev;	/* chain of unconnected servers */
+    struct MOCK_SERVER *next;		/* chain of unconnected servers */
+    struct MOCK_SERVER *prev;		/* chain of unconnected servers */
 } MOCK_SERVER;
 
 #define MOCK_SERVER_FLAG_CONNECTED	(1<<0)
 
 extern MOCK_SERVER *mock_unix_server_create(const char *);
 extern void mock_server_interact(MOCK_SERVER *, const VSTRING *,
-				              const VSTRING *);
+				         const VSTRING *);
 extern void mock_server_free(MOCK_SERVER *);
 extern void mock_server_free_void_ptr(void *);
 

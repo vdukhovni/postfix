@@ -44,15 +44,15 @@
 
 /* wrap_stat - mockable wrapper */
 
-int     wrap_stat(const char *path, struct stat *st)
+int     wrap_stat(const char *path, struct stat * st)
 {
 #undef stat
-    return (stat (path, st));
+    return (stat(path, st));
 }
 
 /* wrap_lstat - mockable wrapper */
 
-int     wrap_lstat(const char *path, struct stat *st)
+int     wrap_lstat(const char *path, struct stat * st)
 {
 #undef lstat
     return (lstat(path, st));

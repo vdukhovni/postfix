@@ -185,7 +185,7 @@ static DICT *nbdb_dict_open(const char *leg_type, const char *name,
 				   "known pathname suffix", non_leg_type));
 	}
 	non_leg_index_path = concatenate(name, non_leg_suffix, (char *) 0);
-	stat_res = stat (non_leg_index_path, &st);
+	stat_res = stat(non_leg_index_path, &st);
 
 	saved_errno = errno;
 	myfree(non_leg_index_path);

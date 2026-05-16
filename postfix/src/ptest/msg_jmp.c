@@ -60,8 +60,8 @@
 #include <msg_jmp.h>
 
  /*
-  * Private state. But it has to be caller-visible
-because msg_setjmp() cannot be a function.
+  * Private state. But it has to be caller-visible because msg_setjmp()
+  * cannot be a function.
   */
 MSG_JMP_BUF *msg_jmp_bufp;
 

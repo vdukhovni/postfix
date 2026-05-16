@@ -31161,6 +31161,17 @@ Apologies for any names omitted.
 	anvil/anvil.c, global/anvil_clnt.[hc], proto/postconf.proto,
 	mantools/postlink.
 
+20260516
+
+	Cleanup: moved a "mask &= ~TLS_LOG_TRACE" statement whose effect
+	was never used. File:tls/tls_misc.c.
+
+	Safety: future-proofing (posttls-finger.c) and fail-closed
+	(tls_misc.c).
+
+	Re-indented the source code after deleting 'stat' and adding
+	missing types to .indent.pro.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

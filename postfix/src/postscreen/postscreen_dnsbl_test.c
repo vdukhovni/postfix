@@ -343,7 +343,7 @@ struct multi_dnsbl_data {
     const char *dnsbl_sites;		/* postscreen_dnsbl_sites */
     const char *req_addr;		/* in dnsblog request */
     struct dnsbl_data dnsbl_data[MAX_DNSBL_SITES];
-    int	    want_ttl;			/* effective TTL */
+    int     want_ttl;			/* effective TTL */
     int     want_score;			/* sum of weights */
 };
 
@@ -500,7 +500,7 @@ static void test_multi_dnsbl(PTEST_CTX *t, const PTEST_CASE *tp)
 					    dp[n].res_ttl),
 			      ATTR_TYPE_END);
 		mock_server_interact(mp[n], serialized_req,
-					  serialized_resp);
+				     serialized_resp);
 		vstring_free(serialized_req);
 		vstring_free(serialized_resp);
 	    }

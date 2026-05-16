@@ -97,7 +97,8 @@ void    teardown_mock_stat(void)
 
 /* stat - mock stat() implementation */
 
-int stat(const char *path, struct stat *st) {
+int     stat(const char *path, struct stat * st)
+{
     MOCK_STAT_REQ *mock_info;
 
     if ((mock_info = (MOCK_STAT_REQ *) htable_find(mock_stat_table, path)) == 0)

@@ -121,7 +121,7 @@
 /* update_error_state - safely stash away error state */
 
 static void update_error_state(X509_STORE_CTX *ctx, TLS_SESS_STATE *TLScontext,
-			          int depth, const X509 *errorcert, int errorcode)
+		            int depth, const X509 *errorcert, int errorcode)
 {
 
     /*
@@ -150,7 +150,7 @@ static void update_error_state(X509_STORE_CTX *ctx, TLS_SESS_STATE *TLScontext,
     if (TLScontext->errorcert != 0)
 	X509_free((X509 *) TLScontext->errorcert);
     if (errorcert != 0)
-        X509_up_ref((X509 *) errorcert);
+	X509_up_ref((X509 *) errorcert);
     TLScontext->errorcert = errorcert;
     TLScontext->errorcode = errorcode;
     TLScontext->errordepth = depth;

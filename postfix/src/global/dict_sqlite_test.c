@@ -159,7 +159,7 @@ static void test_flag_non_recommended_query(PTEST_CTX *t, const PTEST_CASE *tp)
     if (unlink(cfpath) < 0)
 	ptest_error(t, "unlink %s: %m", cfpath);
 #else
-    ptest_skip(t);
+            ptest_skip(t);
 #endif
 }
 

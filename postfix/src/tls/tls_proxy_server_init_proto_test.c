@@ -61,7 +61,7 @@ typedef struct PTEST_CASE {
 char   *var_smtpd_tls_loglevel;
 int     var_smtpd_tls_ccert_vd;
 static char *cache_type;
-bool     var_smtpd_tls_set_sessid;
+bool    var_smtpd_tls_set_sessid;
 char   *var_smtpd_tls_chain_files;
 char   *var_smtpd_tls_cert_file;
 char   *var_smtpd_tls_key_file;
@@ -98,7 +98,7 @@ static void init_global_params(void)
     var_smtpd_tls_eecdh = DEF_SMTPD_TLS_EECDH;
     var_smtpd_tls_proto = DEF_SMTPD_TLS_PROTO;
     ask_ccert = 1,
-    var_smtpd_tls_fpt_dgst = DEF_SMTPD_TLS_FPT_DGST;
+	var_smtpd_tls_fpt_dgst = DEF_SMTPD_TLS_FPT_DGST;
 }
 
 static void setup_reference_unserialized_init_props(TLS_SERVER_INIT_PROPS *props)
@@ -205,7 +205,7 @@ static void test_tls_proxy_server_init_serialize(PTEST_CTX *t,
     (void) eq_attr(t, "tls_proxy_server_init_serialize",
 		   got_serialized_init_props, ref_serialized_init_props);
 #else
-    ptest_skip(t);
+            ptest_skip(t);
 #endif
 }
 
@@ -242,7 +242,7 @@ static void test_tls_proxy_server_init_from_string(PTEST_CTX *t,
     vstring_free(ref_serialized_init_props);
     vstring_free(got_serialized_init_props);
 #else
-    ptest_skip(t);
+            ptest_skip(t);
 #endif
 }
 

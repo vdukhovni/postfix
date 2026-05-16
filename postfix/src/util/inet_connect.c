@@ -143,7 +143,7 @@ int     inet_connect(const char *addr, int block_mode, int timeout)
 
 /* inet_connect_one - try to connect to one address */
 
-static int inet_connect_one(struct addrinfo * res, int block_mode, int timeout)
+static int inet_connect_one(struct addrinfo *res, int block_mode, int timeout)
 {
     int     sock;
 

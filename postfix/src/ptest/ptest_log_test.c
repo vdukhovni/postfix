@@ -43,7 +43,7 @@ static void ptest_log_flags_missing_message(PTEST_CTX *t, const PTEST_CASE *unus
     expect_ptest_log_event(t, "this is a forced 'Missing log event' error");
 }
 
-static void ptest_nested_logging(PTEST_CTX * t, const PTEST_CASE * unused)
+static void ptest_nested_logging(PTEST_CTX *t, const PTEST_CASE *unused)
 {
     expect_ptest_log_event(t, "top-level");
     msg_warn("this is a top-level event");

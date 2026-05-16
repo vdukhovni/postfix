@@ -226,17 +226,17 @@ static void test_request_mismatch(PTEST_CTX *t, const PTEST_CASE *tp)
     REQUEST_READ_EVENT(session_state.fd, read_event, &session_state, 1);
     event_loop(1);
     if (session_state.error != 0) {
-        /* already reported */
+	/* already reported */
     } else if (VSTRING_LEN(session_state.resp_buf) != strlen(REQUEST_VAL)) {
-        ptest_error(t, "got resp_buf length %ld, want %ld",
-                    (long) VSTRING_LEN(session_state.resp_buf),
-                    (long) strlen(REQUEST_VAL));
+	ptest_error(t, "got resp_buf length %ld, want %ld",
+		    (long) VSTRING_LEN(session_state.resp_buf),
+		    (long) strlen(REQUEST_VAL));
     } else if (session_state.resp_len != strlen(REQUEST_VAL)) {
-        ptest_error(t, "got resp_len %d, want %ld",
-                    session_state.resp_len, (long) strlen(REQUEST_VAL));
+	ptest_error(t, "got resp_len %d, want %ld",
+		    session_state.resp_len, (long) strlen(REQUEST_VAL));
     } else if (strcmp(vstring_str(session_state.resp_buf), REQUEST_VAL) != 0) {
-        ptest_error(t, "got resp_buf '%s', want '%s'",
-                    vstring_str(session_state.resp_buf), REQUEST_VAL);
+	ptest_error(t, "got resp_buf '%s', want '%s'",
+		    vstring_str(session_state.resp_buf), REQUEST_VAL);
     }
 
     /*
@@ -318,17 +318,17 @@ static void test_server_speaks_only(PTEST_CTX *t, const PTEST_CASE *tp)
     REQUEST_READ_EVENT(session_state.fd, read_event, &session_state, 1);
     event_loop(1);
     if (session_state.error != 0) {
-        /* already reported */
+	/* already reported */
     } else if (VSTRING_LEN(session_state.resp_buf) != strlen(REQUEST_VAL)) {
-        ptest_error(t, "got resp_buf length %ld, want %ld",
-                    (long) VSTRING_LEN(session_state.resp_buf),
-                    (long) strlen(REQUEST_VAL));
+	ptest_error(t, "got resp_buf length %ld, want %ld",
+		    (long) VSTRING_LEN(session_state.resp_buf),
+		    (long) strlen(REQUEST_VAL));
     } else if (session_state.resp_len != strlen(REQUEST_VAL)) {
-        ptest_error(t, "got resp_len %d, want %ld",
-                    session_state.resp_len, (long) strlen(REQUEST_VAL));
+	ptest_error(t, "got resp_len %d, want %ld",
+		    session_state.resp_len, (long) strlen(REQUEST_VAL));
     } else if (strcmp(vstring_str(session_state.resp_buf), REQUEST_VAL) != 0) {
-        ptest_error(t, "got resp_buf '%s', wamt '%s'",
-                    vstring_str(session_state.resp_buf), REQUEST_VAL);
+	ptest_error(t, "got resp_buf '%s', wamt '%s'",
+		    vstring_str(session_state.resp_buf), REQUEST_VAL);
     }
 
     /*

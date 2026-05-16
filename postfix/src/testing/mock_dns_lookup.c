@@ -189,7 +189,7 @@ static DNS_RR *full_copy_dns_rrlist(DNS_RR *list)
 DNS_RR *make_dns_rr(const char *qname, const char *rname, unsigned type,
 		            unsigned class, unsigned ttl,
 		            unsigned dnssec_valid, unsigned pref,
-			    unsigned weight, unsigned port,
+		            unsigned weight, unsigned port,
 		            void *data, size_t data_len)
 {
     DNS_RR *rr;

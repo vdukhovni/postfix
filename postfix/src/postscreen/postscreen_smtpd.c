@@ -1243,14 +1243,15 @@ void    psc_smtpd_init(void)
     psc_smtpd_helo_reply = mystrdup(STR(psc_temp));
 
     /*
-     * STARTTLS support. This affects the EHLO greeting. */
+     * STARTTLS support. This affects the EHLO greeting.
+     */
     psc_tls_pre_jail();
 
     /*
      * Initialize the EHLO reply. Once for plaintext sessions, and once for
      * TLS sessions.
      */
-    psc_smtpd_format_ehlo_reply(psc_temp, psc_ehlo_discard_mask 
+    psc_smtpd_format_ehlo_reply(psc_temp, psc_ehlo_discard_mask
 				| (psc_tls_ready ? 0 : EHLO_MASK_STARTTLS));
     psc_smtpd_ehlo_reply_plain = mystrdup(STR(psc_temp));
 
