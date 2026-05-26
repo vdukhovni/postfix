@@ -13,7 +13,7 @@
 /*	SMTPD_STATE *state;
 /*	int limit;
 /*
-/*	void	smtpd_chat_query(state)
+/*	int	smtpd_chat_query(state)
 /*	SMTPD_STATE *state;
 /*
 /*	void	smtpd_chat_reply(state, format, ...)
@@ -32,12 +32,15 @@
 /*	smtpd_chat_pre_jail_init() performs one-time initialization.
 /*
 /*	smtpd_chat_query_limit() reads a line from the client that is
-/*	at most "limit" bytes long.  A copy is appended to the SMTP
-/*	transaction log.  The return value is non-zero for a complete
-/*	line or else zero if the length limit was exceeded.
+/*	at most "limit" bytes long, and skips over excess input.
+/*	A copy is appended to the SMTP transaction log.  The return
+/*	value is non-zero for a complete line or else zero if the
+/*	length limit was exceeded.
 /*
 /*	smtpd_chat_query() receives a client request and appends a copy
-/*	to the SMTP transaction log.
+/*	to the SMTP transaction log. It does not skip over excess input.
+/*	The return value is non-zero for a complete line or else zero
+/*	if the length limit was exceeded.
 /*
 /*	smtpd_chat_reply() formats a server reply, sends it to the
 /*	client, and appends a copy to the SMTP transaction log.
@@ -173,18 +176,13 @@ static void smtp_chat_append(SMTPD_STATE *state, char *direction,
     myfree(line);
 }
 
-/* smtpd_chat_query - receive and record an SMTP request */
+/* smtpd_chat_query_limit_flags - receive and record an SMTP request */
 
-int     smtpd_chat_query_limit(SMTPD_STATE *state, int limit)
+static int smtpd_chat_query_limit_flags(SMTPD_STATE *state, int limit, int flags)
 {
     int     last_char;
 
-    /*
-     * We can't parse or store input that exceeds var_line_limit, so we skip
-     * over it to avoid loss of synchronization.
-     */
-    last_char = smtp_get(state->buffer, state->client, limit,
-			 SMTP_GET_FLAG_SKIP);
+    last_char = smtp_get(state->buffer, state->client, limit, flags);
     smtp_chat_append(state, "In:  ", STR(state->buffer));
     if (last_char != '\n')
 	msg_warn("%s: request longer than %d: %.30s...",
@@ -194,6 +192,32 @@ int     smtpd_chat_query_limit(SMTPD_STATE *state, int limit)
     if (msg_verbose)
 	msg_info("< %s: %s", state->namaddr, STR(state->buffer));
     return (last_char == '\n');
+}
+
+/* smtpd_chat_query_limit - receive and record a limited SMTP request */
+
+int     smtpd_chat_query_limit(SMTPD_STATE *state, int limit)
+{
+
+    /*
+     * SASL continuation lines use a caller-specific limit. Skip excess input
+     * so that a recoverable AUTH failure does not desynchronize the session.
+     */
+    return (smtpd_chat_query_limit_flags(state, limit, SMTP_GET_FLAG_SKIP));
+}
+
+/* smtpd_chat_query - receive and record an SMTP request */
+
+int     smtpd_chat_query(SMTPD_STATE *state)
+{
+
+    /*
+     * We can't parse or store input that exceeds var_line_limit. Leave excess
+     * input unread so that the command loop can reject and disconnect instead
+     * of spending more time draining a malformed command.
+     */
+    return (smtpd_chat_query_limit_flags(state, var_line_limit,
+					 SMTP_GET_FLAG_NONE));
 }
 
 /* smtpd_chat_reply - format, send and record an SMTP response */

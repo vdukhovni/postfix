@@ -6098,7 +6098,12 @@ static void smtpd_proto(SMTPD_STATE *state)
 		break;
 	    }
 	    watchdog_pat();
-	    smtpd_chat_query(state);
+	    if (!smtpd_chat_query(state)) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state,
+				 "500 5.5.2 Error: command line too long");
+		break;
+	    }
 	    if (IS_BARE_LF_REPLY_REJECT(smtp_got_bare_lf)) {
 		log_whatsup(state, "reject", "bare <LF> received");
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
