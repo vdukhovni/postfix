@@ -261,3 +261,4 @@ proto  proto stop proto stop double cc
  tlsproxy tlsproxy c tlsproxy tlsproxy_client c 
  postscreen postscreen c postscreen postscreen_tls_conf c 
  anvil anvil c global anvil_clnt hc proto postconf proto 
+ global smtp_stream c smtpd smtpd c smtpd smtpd_chat h 

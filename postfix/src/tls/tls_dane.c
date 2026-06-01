@@ -57,9 +57,6 @@
 /*	void    tls_dane_log(TLScontext)
 /*	TLS_SESS_STATE *TLScontext;
 /*
-/*	int	tls_dane_unusable(dane)
-/*	const TLS_DANE *dane;
-/*
 /*	int	tls_dane_notfound(dane)
 /*	const TLS_DANE *dane;
 /* DESCRIPTION
@@ -115,11 +112,6 @@
 /*
 /*	tls_dane_log() logs successful verification via DNS-based or
 /*	synthetic DANE TLSA RRs (fingerprint or "tafile").
-/*
-/*	tls_dane_unusable() checks whether a cached TLS_DANE record is
-/*	the result of a validated RRset, with no usable elements.  In
-/*	this case, TLS is mandatory, but certificate verification is
-/*	not DANE-based.
 /*
 /*	tls_dane_notfound() checks whether a cached TLS_DANE record is
 /*	the result of a validated DNS lookup returning NODATA. In
@@ -518,7 +510,7 @@ static int parse_tlsa_rr(TLS_DANE *dane, DNS_RR *rr)
 		  q, a, r, rr->type);
 
     /* Drop truncated records */
-    if ((dlen = rr->data_len - 3) < 0) {
+    if ((dlen = rr->data_len - 3) <= 0) {
 	msg_warn("%s%s%s: truncated TLSA RR length == %u",
 		 q, a, r, (unsigned) rr->data_len);
 	return (0);

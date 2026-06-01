@@ -26,7 +26,7 @@ extern void vsmtpd_chat_reply(SMTPD_STATE *, const char *, va_list);
 extern void smtpd_chat_notify(SMTPD_STATE *);
 
 #define smtpd_chat_query(state) \
-	((void) smtpd_chat_query_limit((state), var_line_limit))
+	smtpd_chat_query_limit((state), var_line_limit)
 
 /* LICENSE
 /* .ad

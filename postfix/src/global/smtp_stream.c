@@ -457,8 +457,12 @@ int     smtp_get_noexcept(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags
 	&& vstream_feof(stream) == 0 && vstream_ferror(stream) == 0)
 	while ((next_char = VSTREAM_GETC(stream)) != VSTREAM_EOF
 	       && next_char != '\n')
-	     /* void */ ;
-
+	    if (--bound <= 0) {
+		msg_warn("disabling input from %s", VSTREAM_PATH(stream));
+		vstream_fpurge(stream, VSTREAM_PURGE_READ);
+		shutdown(vstream_fileno(stream), SHUT_RD);
+		break;
+	    }
     return (last_char);
 }
 

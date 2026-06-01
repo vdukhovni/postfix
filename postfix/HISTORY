@@ -31172,6 +31172,76 @@ Apologies for any names omitted.
 	Re-indented the source code after deleting 'stat' and adding
 	missing types to .indent.pro.
 
+20260524
+
+	Bugfix (defect introduced: Postfix 3.1, date 20150607):
+	null pointer dereference and heap data overread in the
+	Postfix SMTP client's smtp_dns_reply_filter (this is disabled
+	by default), when the Postfix SMTP client is configured to
+	use opportunistic or mandatory DANE authentication (this
+	is disabled by default); and the destination domain publishes
+	a TLSA record that is empty or shorter than 20 bytes; and
+	the OS is configured to use a resolver that passes such a
+	TLSA record. For example, a zero-length TLSA record is
+	blocked by BIND, Google DNS, OpenDNS, and by configurations
+	that use systemd-resolved (the default on many LINUX systems);
+	it is passed by Cloudflare, Quad9 DNS, and unbound, if these
+	resolvers are used without systemd-resolved.
+
+	The root cause is a missing 'break' statement after the
+	code that converts a TLSA record to string, resulting in a
+	null pointer crash when the record length is zero; or a
+	data overread (or rarely, a segfault) with 0 < record length
+	< 20 bytes. The overread content is not disclosed.
+
+	The impact of crashes is easily overstated. That said,
+	crashes must be eliminated regardless of their impact.
+
+	On systems that deliver fewer than one message per minute,
+	a null pointer or other segfault crash can result in a delay
+	of up to one minute for email delivery to other destination
+	domains.
+
+	On systems with a larger traffic volume, the impact of a
+	null pointer or other segfault crash on deliveries to other
+	destination domains is minor because Postfix reuses SMTP
+	client processes and replaces a failed process within seconds
+	(self-healing); the practical impact is believed to be no
+	worse than that of an uncooperative receiver that tarpits
+	SMTP connections from Postfix to one or more destination
+	domains under their control (by replying within Postfix
+	SMTP client read time limits which are several minutes by
+	default).
+
+	Problem reported by TristanInSec, found with ASAN. Also
+	reported by other people. Reproduction and real-world impact
+	researched by Wietse. File: dns/dns_strrecord.c.
+
+20260529
+
+	Robustness: Postfix SMTP server will no longer receive (and
+	discard) an unlimited amount of text while receiving a long
+	SMTP command line. Problem introduced: Postfix 2.9, date:
+	20110205; reported by Michael Wollner. Under high load
+	conditions, the amount of text was already limited by a
+	10-second deadline to receive an SMTP command. Files:
+	global/smtp_stream.c, smtpd/smtpd.c, smtpd/smtpd_chat.h.
+
+	Robustness: with the above change the Postfix SMTP client
+	will no longer receive (and discard) an unlimited amount
+	of text while receiving a long SMTP response line.
+
+	Robustness: do not receive (and discard) unlimited amounts
+	of data with BDAT commands. Problem introduced: Postfix
+	3.4, date: 20180825; found during code maintenance. File:
+	smtpd/smtpd.c.
+
+20260531
+
+	Bugfix: (defect introduced: Postfix 3.6, date: 20200710):
+	panic() while parsing a TLSA record with length 3. Found
+	during code maintenance. File: tls/tls_dane.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.
