@@ -2790,7 +2790,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    }
 	    if (dsn_envid
 		|| xtext_unquote(state->dsn_buf, arg + 6) == 0
-		|| !allprint(STR(state->dsn_buf))) {
+		|| !all_isprint_tab(STR(state->dsn_buf))
+		|| strlen(STR(state->dsn_buf)) != LEN(state->dsn_buf)) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state, "501 5.5.4 Bad ENVID parameter syntax");
 		return (-1);
@@ -3137,7 +3138,9 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		|| *(dsn_orcpt_type = STR(state->dsn_orcpt_buf)) == 0
 		|| (strcasecmp(dsn_orcpt_type, "utf-8") == 0 ?
 		    uxtext_unquote(state->dsn_buf, coded_addr) == 0 :
-		    xtext_unquote(state->dsn_buf, coded_addr) == 0)) {
+		    xtext_unquote(state->dsn_buf, coded_addr) == 0)
+		|| !all_isprint_tab(STR(state->dsn_buf))
+		|| strlen(STR(state->dsn_buf)) != LEN(state->dsn_buf)) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state,
 			     "501 5.5.4 Error: Bad ORCPT parameter syntax");

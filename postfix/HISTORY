@@ -31242,6 +31242,18 @@ Apologies for any names omitted.
 	panic() while parsing a TLSA record with length 3. Found
 	during code maintenance. File: tls/tls_dane.c.
 
+20260602
+
+	Incompatibility: the Postfix SMTP server now rejects ENVID
+	and ORCPT parameters with an encoded null (+00) sequence.
+	Problem introduced: Postfix 2.3, date: 20050507; reported
+	by Michael Wollner. File: smtpd/smtpd.c.
+
+	Incompatibility: the Postfix SMTP server now rejects ORCPT
+	parameters with encoded characters that are not printable
+	or whitespace. Files: smtpd/smtpd.c, util/allprint.c,
+	util/allprint_test.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

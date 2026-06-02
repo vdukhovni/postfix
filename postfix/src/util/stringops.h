@@ -56,6 +56,8 @@ extern int alldig(const char *);
 extern int allalnum(const char *);
 extern int allalnumus(const char *);
 extern int allprint(const char *);
+extern int all_isprint(const char *);
+extern int all_isprint_tab(const char *);
 extern int allspace(const char *);
 extern int allascii_len(const char *, ssize_t);
 extern const char *WARN_UNUSED_RESULT split_nameval(char *, char **, char **);
@@ -96,6 +98,11 @@ extern char *normalize_ws(char *);
     strcasecmp_utf8x(util_utf8_enable ? CASEF_FLAG_UTF8 : 0, (s1), (s2))
 #define strncasecmp_utf8(s1, s2, l) \
     strncasecmp_utf8x(util_utf8_enable ? CASEF_FLAG_UTF8 : 0, (s1), (s2), (l))
+
+ /*
+  * API compatibility wrappers.
+  */
+#define allprint all_isprint
 
  /*
   * Use STRREF(x) instead of x, to shut up compiler warnings when the operand

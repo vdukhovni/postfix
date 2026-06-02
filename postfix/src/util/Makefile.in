@@ -139,7 +139,7 @@ TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	dict_stream_test.c dict_cli.c dict_union_test.c \
 	find_inet_service_test.c hash_fnv_test.c known_tcp_ports_test.c \
 	msg_output_test.c myaddrinfo_test.c mymalloc_test.c mystrtok_test.c \
-	unescape_test.c
+	unescape_test.c allprint_test.c
 DEFS	= -I. -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 FILES	= Makefile $(SRCS) $(HDRS)
@@ -163,7 +163,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	dict_union_test dict_pipe_test myaddrinfo_test \
 	clean_env inet_prefix_top printable readlline quote_for_json \
 	normalize_ws valid_uri_scheme clean_ascii_cntrl_space \
-	normalize_v4mapped_addr_test ossl_digest_test
+	normalize_v4mapped_addr_test ossl_digest_test allprint_test
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX) \
 	$(LIB_PREFIX)db$(LIB_SUFFIX)
@@ -462,6 +462,9 @@ binhash: $(LIB)
 hash_fnv_test: $(LIB) $(TESTLIBS) update
 	$(CC) $(CFLAGS) -o $@ $@.c $(LIB) $(TESTLIBS) $(SYSLIBS)
 
+allprint_test: $(LIB) $(TESTLIBS) update
+	$(CC) $(CFLAGS) -o $@ $@.c $(LIB) $(TESTLIBS) $(SYSLIBS)
+
 unix_recv_fd:  $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
@@ -662,7 +665,7 @@ tests: update valid_hostname_test mac_expand_test dict_test test_unescape \
 	valid_utf8_string_test readlline_test quote_for_json_test \
 	normalize_ws_test valid_uri_scheme_test clean_ascii_cntrl_space_test \
 	test_normalize_v4mapped_addr test_ossl_digest test_dict_pipe \
-	test_dict_union test_hash_fnv
+	test_dict_union test_hash_fnv test_allprint
  
 dict_tests: dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
@@ -836,6 +839,9 @@ binhash_test: binhash /usr/share/dict/words
 
 test_hash_fnv: hash_fnv_test
 	$(SHLIB_ENV) ${VALGRIND} ./hash_fnv_test
+
+test_allprint: allprint_test
+	$(SHLIB_ENV) ${VALGRIND} ./allprint_test
 
 hex_code_test: hex_code
 	$(SHLIB_ENV) ${VALGRIND} ./hex_code
@@ -1195,6 +1201,22 @@ allprint.o: stringops.h
 allprint.o: sys_defs.h
 allprint.o: vbuf.h
 allprint.o: vstring.h
+allprint_test.o: ../../include/msg_jmp.h
+allprint_test.o: ../../include/pmock_expect.h
+allprint_test.o: ../../include/ptest.h
+allprint_test.o: ../../include/ptest_main.h
+allprint_test.o: allprint_test.c
+allprint_test.o: argv.h
+allprint_test.o: check_arg.h
+allprint_test.o: msg.h
+allprint_test.o: msg_output.h
+allprint_test.o: msg_vstream.h
+allprint_test.o: myrand.h
+allprint_test.o: stringops.h
+allprint_test.o: sys_defs.h
+allprint_test.o: vbuf.h
+allprint_test.o: vstream.h
+allprint_test.o: vstring.h
 allspace.o: allspace.c
 allspace.o: check_arg.h
 allspace.o: stringops.h
