@@ -31249,10 +31249,16 @@ Apologies for any names omitted.
 	Problem introduced: Postfix 2.3, date: 20050507; reported
 	by Michael Wollner. File: smtpd/smtpd.c.
 
-	Incompatibility: the Postfix SMTP server now rejects ORCPT
-	parameters with encoded characters that are not printable
-	or whitespace. Files: smtpd/smtpd.c, util/allprint.c,
-	util/allprint_test.c.
+	(Change reverted) Incompatibility: the Postfix SMTP server
+	now rejects ORCPT parameters with encoded characters that
+	are not printable or whitespace. Files: smtpd/smtpd.c,
+	util/allprint.c, util/allprint_test.c.
+
+20260604
+
+	Bugfix: reverted the 20260602 Postfix SMTP server ORCPT
+	parameter syntax check change. It would break SMTPUTF8
+	support. File: smtpd/smtpd.c.
 
 TODO
 
