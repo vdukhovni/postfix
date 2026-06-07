@@ -2,7 +2,7 @@
 /* NAME
 /*	uxtext 3
 /* SUMMARY
-/*	quote/unquote text, xtext style.
+/*	quote/unquote text, RFC 6533 style.
 /* SYNOPSIS
 /*	#include <uxtext.h>
 /*
@@ -16,6 +16,16 @@
 /*	const char *quoted;
 /*	const char *special;
 /*
+/*	VSTRING	*unitext_quote(quoted, unquoted, special)
+/*	VSTRING	*quoted;
+/*	const char *unquoted;
+/*	const char *special;
+/*
+/*	VSTRING	*unitext_quote_append(unquoted, quoted, special)
+/*	VSTRING	*unquoted;
+/*	const char *quoted;
+/*	const char *special;
+/*
 /*	VSTRING	*uxtext_unquote(unquoted, quoted)
 /*	VSTRING	*unquoted;
 /*	const char *quoted;
@@ -24,13 +34,24 @@
 /*	VSTRING	*unquoted;
 /*	const char *quoted;
 /* DESCRIPTION
-/*	uxtext_quote() takes a null-terminated UTF8 string and
-/*	replaces characters \, <33(10) and >126(10), as well as
-/*	characters specified with "special" with \x{XX}, XX being
-/*	a 2-6-digit uppercase hexadecimal equivalent.
+/*	unitext_quote() takes a null-terminated UTF8 string and encodes
+/*	it with the RFC 6533 utf-8-addr-unitext format. This replaces
+/*	specific ASCII characters with \x{XX}, where XX is a 2-6-digit
+/*	uppercase hexadecimal equivalent. The ASCII characters to be
+/*	encoded are: controls, space, '\', and any characters
+/*	specified with the "special" argument (usually, "+="). The
+/*	result is suitable for environments that support 8-bit text.
 /*
-/*	uxtext_quote_append() is like uxtext_quote(), but appends
-/*	the conversion result to the result buffer.
+/*	unitext_quote_append() is like unitext_quote(), but appends the
+/*	conversion result to the result buffer.
+/*
+/*	uxtext_quote() takes a null-terminated UTF8 string and encodes
+/*	it with the RFC 6533 utf-8-addr-xtext format.  This is like
+/*	unitext_quote() but also encodes all non-ASCII UTF8 characters.
+/*	The result is suitable for environments that require 7-bit text.
+/*
+/*	uxtext_quote_append() is like uxtext_quote(), but appends the
+/*	conversion result to the result buffer.
 /*
 /*	uxtext_unquote() performs the opposite transformation. This
 /*	function understands lowercase, uppercase, and mixed case
@@ -57,6 +78,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -70,26 +94,54 @@
 #include "msg.h"
 #include "vstring.h"
 #include "uxtext.h"
+#include "parse_utf8_char.h"
 
 /* Application-specific. */
 
 #define STR(x)	vstring_str(x)
 #define LEN(x)	VSTRING_LEN(x)
 
-/* uxtext_quote_append - append unquoted data to quoted data */
+ /*
+  * ABI compatibility.
+  */
+#undef uxtext_quote_append
+#undef uxtext_quote
 
 VSTRING *uxtext_quote_append(VSTRING *quoted, const char *unquoted,
 			             const char *special)
 {
+    return (uxtext_quote_opt_append(quoted, unquoted, special,
+				    UXTEXT_QUOTE_OPT_7BIT));
+}
+
+VSTRING *uxtext_quote(VSTRING *quoted, const char *unquoted,
+		              const char *special)
+{
+    return (uxtext_quote_opt(quoted, unquoted, special,
+			     UXTEXT_QUOTE_OPT_7BIT));
+}
+
+/* uxtext_quote_opt_append - append unquoted data */
+
+VSTRING *uxtext_quote_opt_append(VSTRING *quoted, const char *unquoted,
+				         const char *special, int opt)
+{
     unsigned const char *cp;
+    unsigned const char *last;
+    unsigned const char *end;
     int     ch;
+
+    if ((opt & UXTEXT_QUOTE_OPT_7BIT) == 0)
+	end = (unsigned const char *) unquoted + strlen(unquoted);
+    else
+	end = 0;
 
     for (cp = (unsigned const char *) unquoted; (ch = *cp) != 0; cp++) {
 	/* Fix 20140709: the '\' character must always be quoted. */
 	if (ch != '\\' && ch > 32 && ch < 127
 	    && (*special == 0 || strchr(special, ch) == 0)) {
 	    VSTRING_ADDCH(quoted, ch);
-	} else {
+	} else if (ch < 128 || (opt & UXTEXT_QUOTE_OPT_7BIT)) {
 
 	    /*
 	     * had RFC6533 been written like 6531 and 6532, this else clause
@@ -132,18 +184,30 @@ VSTRING *uxtext_quote_append(VSTRING *quoted, const char *unquoted,
 		pick--;
 	    }
 	    vstring_sprintf_append(quoted, "\\x{%02X}", unicode);
+	} else {
+	    /* Fix 202606: RFC 6533 utf-8-addr-unitext support. */
+	    if ((last = (const unsigned char *)
+		 parse_utf8_char((char *) cp, (char *) end)) == 0)
+		return (0);
+	    ch = *cp;
+	    VSTRING_ADDCH(quoted, ch);
+	    while (cp < last) {
+		ch = *++cp;
+		VSTRING_ADDCH(quoted, ch);
+	    }
 	}
     }
     VSTRING_TERMINATE(quoted);
     return (quoted);
 }
 
-/* uxtext_quote - unquoted data to quoted */
+/* uxtext_quote_opt - unquoted data to quoted */
 
-VSTRING *uxtext_quote(VSTRING *quoted, const char *unquoted, const char *special)
+VSTRING *uxtext_quote_opt(VSTRING *quoted, const char *unquoted,
+			          const char *special, int opt)
 {
     VSTRING_RESET(quoted);
-    uxtext_quote_append(quoted, unquoted, special);
+    uxtext_quote_opt_append(quoted, unquoted, special, opt);
     return (quoted);
 }
 
@@ -221,58 +285,3 @@ VSTRING *uxtext_unquote(VSTRING *unquoted, const char *quoted)
     VSTRING_RESET(unquoted);
     return (uxtext_unquote_append(unquoted, quoted) ? unquoted : 0);
 }
-
-#ifdef TEST
-
- /*
-  * Proof-of-concept test program: convert to quoted and back.
-  */
-#include <vstream.h>
-
-#define BUFLEN 1024
-
-static ssize_t read_buf(VSTREAM *fp, VSTRING *buf)
-{
-    ssize_t len;
-
-    len = vstream_fread_buf(fp, buf, BUFLEN);
-    VSTRING_TERMINATE(buf);
-    return (len);
-}
-
-int     main(int unused_argc, char **unused_argv)
-{
-    VSTRING *unquoted = vstring_alloc(BUFLEN);
-    VSTRING *quoted = vstring_alloc(100);
-    ssize_t len;
-
-    /*
-     * Negative tests.
-     */
-    if (uxtext_unquote(unquoted, "\\x{x1}") != 0)
-	msg_warn("undetected error pattern 1");
-    if (uxtext_unquote(unquoted, "\\x{2x}") != 0)
-	msg_warn("undetected error pattern 2");
-    if (uxtext_unquote(unquoted, "\\x{33") != 0)
-	msg_warn("undetected error pattern 3");
-
-    /*
-     * Positive tests.
-     */
-    while ((len = read_buf(VSTREAM_IN, unquoted)) > 0) {
-	uxtext_quote(quoted, STR(unquoted), "+=");
-	if (uxtext_unquote(unquoted, STR(quoted)) == 0)
-	    msg_fatal("bad input: %.100s", STR(quoted));
-	if (LEN(unquoted) != len)
-	    msg_fatal("len %ld != unquoted len %ld",
-		      (long) len, (long) LEN(unquoted));
-	if (vstream_fwrite(VSTREAM_OUT, STR(unquoted), LEN(unquoted)) != LEN(unquoted))
-	    msg_fatal("write error: %m");
-    }
-    vstream_fflush(VSTREAM_OUT);
-    vstring_free(unquoted);
-    vstring_free(quoted);
-    return (0);
-}
-
-#endif

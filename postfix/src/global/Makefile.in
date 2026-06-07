@@ -137,7 +137,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	verify_clnt xtext anvil_clnt scache ehlo_mask_test \
 	valid_mailhost_addr own_inet_addr header_body_checks \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
-	mail_dict server_acl uxtext mail_parm_split \
+	mail_dict server_acl uxtext_test mail_parm_split \
 	fold_addr smtp_reply_footer_test mail_addr_map \
 	normalize_mailhost_addr_test haproxy_srvr_test map_search_test \
 	delivered_hdr_test login_sender_match_test compat_level \
@@ -329,11 +329,6 @@ strip_addr: $(LIB) $(LIBS)
 	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
-uxtext: $(LIB) $(LIBS)
-	mv $@.o junk
-	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
-	mv junk $@.o
-
 verify_clnt: $(LIB) $(LIBS)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
@@ -426,6 +421,9 @@ nbdb_surrogate_test: nbdb_surrogate_test.o $(TESTLIB) $(LIB) $(LIBS)
 yana_policy_test: yana_policy_test.o $(PTEST_LIB) $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -o $@ $@.o $(PTEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
 
+uxtext_test: uxtext_test.o $(PTEST_LIB) $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $@.o $(PTEST_LIB) $(LIB) $(LIBS) $(SYSLIBS)
+
 tests: update tok822_test mime_tests strip_addr_test tok822_limit_test \
 	xtext_test scache_multi_test test_ehlo_mask \
 	namadr_list_test mail_conf_time_test header_body_checks_tests \
@@ -437,7 +435,7 @@ tests: update tok822_test mime_tests strip_addr_test tok822_limit_test \
 	delivered_hdr_test test_login_sender_match compat_level_test \
 	test_config_known_tcp_ports test_hfrom_format rfc2047_code_test \
 	ascii_header_text_test test_sendopts test_dict_sqlite test_pol_stats \
-	test_allowed_prefix nbdb_tests test_yana_policy
+	test_allowed_prefix nbdb_tests test_yana_policy test_uxtext
 
 nbdb_tests: test_nbdb_util test_nbdb_redirect test_nbdb_surrogate
 
@@ -838,6 +836,9 @@ test_nbdb_surrogate: update nbdb_surrogate_test
 
 test_yana_policy: update yana_policy_test
 	$(SHLIB_ENV) $(VALGRIND) ./yana_policy_test
+
+test_uxtext: update uxtext_test
+	$(SHLIB_ENV) $(VALGRIND) ./uxtext_test
 
 clean:
 	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAPS)
@@ -3342,11 +3343,29 @@ user_acl.o: user_acl.c
 user_acl.o: user_acl.h
 uxtext.o: ../../include/check_arg.h
 uxtext.o: ../../include/msg.h
+uxtext.o: ../../include/parse_utf8_char.h
 uxtext.o: ../../include/sys_defs.h
 uxtext.o: ../../include/vbuf.h
 uxtext.o: ../../include/vstring.h
 uxtext.o: uxtext.c
 uxtext.o: uxtext.h
+uxtext_test.o: ../../include/argv.h
+uxtext_test.o: ../../include/check_arg.h
+uxtext_test.o: ../../include/msg.h
+uxtext_test.o: ../../include/msg_jmp.h
+uxtext_test.o: ../../include/msg_output.h
+uxtext_test.o: ../../include/msg_vstream.h
+uxtext_test.o: ../../include/myrand.h
+uxtext_test.o: ../../include/pmock_expect.h
+uxtext_test.o: ../../include/ptest.h
+uxtext_test.o: ../../include/ptest_main.h
+uxtext_test.o: ../../include/stringops.h
+uxtext_test.o: ../../include/sys_defs.h
+uxtext_test.o: ../../include/vbuf.h
+uxtext_test.o: ../../include/vstream.h
+uxtext_test.o: ../../include/vstring.h
+uxtext_test.o: uxtext.h
+uxtext_test.o: uxtext_test.c
 valid_mailhost_addr.o: ../../include/msg.h
 valid_mailhost_addr.o: ../../include/myaddrinfo.h
 valid_mailhost_addr.o: ../../include/sys_defs.h

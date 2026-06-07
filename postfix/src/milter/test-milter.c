@@ -20,7 +20,7 @@
 /*	Specifies a non-default reply for the MTA command specified
 /*	with \fB-c\fR. The default is \fBtempfail\fR. The \fItext\fR
 /*	is repeated once, to produce multi-line reply text.
-/* .IP "\fB-A address\fR"
+/* .IP "\fB-A address\fR [\fBesmtpargs\fR]"
 /*	Add the specified recipient address (specify ESMTP parameters
 /*	separated by space). Multiple -A options are supported.
 /* .IP "\fB-b pathname\fR"
@@ -35,7 +35,7 @@
 /* .IP "\fB-D\fI address\fR"
 /*	Delete the specified recipient address. Multiple -D options
 /*	are supported.
-/* .IP "\fB-f \fIsender\fR"
+/* .IP "\fB-f \fIsender\fR [\fBesmtpargs\fR]"
 /*	Replace the sender by the specified address.
 /* .IP "\fB-h \fI'index header-label header-value'\fR"
 /*	Replace the message header at the specified position.
@@ -148,6 +148,7 @@ static char *reply_message;
 
 #ifdef SMFIR_CHGFROM
 static char *chg_from;
+static char *chg_from_args;
 
 #endif
 
@@ -173,6 +174,7 @@ static char *body_file;
 #define MAX_RCPT	10
 int     add_rcpt_count = 0;
 char   *add_rcpt[MAX_RCPT];
+char   *add_rcpt_args[MAX_RCPT];
 int     del_rcpt_count = 0;
 char   *del_rcpt[MAX_RCPT];
 
@@ -356,7 +358,7 @@ static sfsistat test_eom(SMFICTX *ctx)
     }
 #endif
 #ifdef SMFIR_CHGFROM
-    if (chg_from != 0 && smfi_chgfrom(ctx, chg_from, "whatever") == MI_FAILURE)
+    if (chg_from != 0 && smfi_chgfrom(ctx, chg_from, chg_from_args) == MI_FAILURE)
 	fprintf(stderr, "smfi_chgfrom failed\n");
 #endif
 #ifdef SMFIR_INSHEADER
@@ -371,18 +373,11 @@ static sfsistat test_eom(SMFICTX *ctx)
 	int     count;
 	char   *args;
 
-	for (count = 0; count < add_rcpt_count; count++) {
-	    if ((args = strchr(add_rcpt[count], ' ')) != 0) {
-		*args++ = 0;
-		if (smfi_addrcpt_par(ctx, add_rcpt[count], args) == MI_FAILURE)
-		    fprintf(stderr, "smfi_addrcpt_par `%s' `%s' failed\n",
-			    add_rcpt[count], args);
-	    } else {
-		if (smfi_addrcpt(ctx, add_rcpt[count]) == MI_FAILURE)
-		    fprintf(stderr, "smfi_addrcpt `%s' failed\n",
-			    add_rcpt[count]);
-	    }
-	}
+	for (count = 0; count < add_rcpt_count; count++)
+	    if (smfi_addrcpt_par(ctx, add_rcpt[count],
+				 add_rcpt_args[count]) == MI_FAILURE)
+		fprintf(stderr, "smfi_addrcpt_par `%s' `%s' failed\n",
+			add_rcpt[count], add_rcpt_args[count]);
 
 	for (count = 0; count < del_rcpt_count; count++)
 	    if (smfi_delrcpt(ctx, del_rcpt[count]) == MI_FAILURE)
@@ -588,7 +583,13 @@ int     main(int argc, char **argv)
 		fprintf(stderr, "too many -A options\n");
 		exit(1);
 	    }
-	    add_rcpt[add_rcpt_count++] = optarg;
+	    add_rcpt[add_rcpt_count] = optarg;
+	    if ((add_rcpt_args[add_rcpt_count]
+		 = strchr(add_rcpt[add_rcpt_count], ' ')) != 0)
+		*(add_rcpt_args[add_rcpt_count]++) = 0;
+	    else
+		add_rcpt_args[add_rcpt_count] = "";
+	    add_rcpt_count += 1;
 	    break;
 	case 'b':
 #ifdef SMFIR_REPLBODY
@@ -624,6 +625,10 @@ int     main(int argc, char **argv)
 		exit(1);
 	    }
 	    chg_from = optarg;
+	    if ((chg_from_args = strchr(chg_from, ' ')) != 0)
+		*chg_from_args++ = 0;
+	    else
+		chg_from_args = "";
 #else
 	    fprintf(stderr, "no libmilter support to change sender\n");
 	    exit(1);

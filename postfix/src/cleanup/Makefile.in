@@ -85,6 +85,8 @@ milter_tests: cleanup_milter_test bug_tests \
 	cleanup_milter_test13a cleanup_milter_test13b cleanup_milter_test13c \
 	cleanup_milter_test13d cleanup_milter_test13e cleanup_milter_test13f \
 	cleanup_milter_test13g cleanup_milter_test13h cleanup_milter_test13i \
+	cleanup_milter_test13j cleanup_milter_test13k cleanup_milter_test13l \
+	cleanup_milter_test13m \
 	cleanup_milter_test14a cleanup_milter_test14b cleanup_milter_test14c \
 	cleanup_milter_test14d cleanup_milter_test14e cleanup_milter_test14f \
 	cleanup_milter_test14g \
@@ -402,6 +404,42 @@ cleanup_milter_test13i: cleanup_milter test-queue-file13i cleanup_milter.in13i \
 	$(SHLIB_ENV) $(VALGRIND) ../postcat/postcat -ov test-queue-file13i.tmp 2>/dev/null >cleanup_milter.tmp
 	diff cleanup_milter.ref13i cleanup_milter.tmp
 	rm -f test-queue-file13i.tmp cleanup_milter.tmp
+
+cleanup_milter_test13j: cleanup_milter test-queue-file13 cleanup_milter.in13j \
+	cleanup_milter.ref13j ../postcat/postcat
+	cp test-queue-file13 test-queue-file13j.tmp
+	chmod u+w test-queue-file13j.tmp
+	$(SHLIB_ENV) $(VALGRIND) ./cleanup_milter <cleanup_milter.in13j
+	$(SHLIB_ENV) $(VALGRIND) ../postcat/postcat -ov test-queue-file13j.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref13j cleanup_milter.tmp
+	rm -f test-queue-file13j.tmp cleanup_milter.tmp
+
+cleanup_milter_test13k: cleanup_milter test-queue-file13 cleanup_milter.in13k \
+	cleanup_milter.ref13k ../postcat/postcat
+	cp test-queue-file13 test-queue-file13k.tmp
+	chmod u+w test-queue-file13k.tmp
+	$(SHLIB_ENV) $(VALGRIND) ./cleanup_milter <cleanup_milter.in13k
+	$(SHLIB_ENV) $(VALGRIND) ../postcat/postcat -ov test-queue-file13k.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref13k cleanup_milter.tmp
+	rm -f test-queue-file13k.tmp cleanup_milter.tmp
+
+cleanup_milter_test13l: cleanup_milter test-queue-file13 cleanup_milter.in13l \
+	cleanup_milter.ref13l ../postcat/postcat
+	cp test-queue-file13 test-queue-file13l.tmp
+	chmod u+w test-queue-file13l.tmp
+	$(SHLIB_ENV) $(VALGRIND) ./cleanup_milter <cleanup_milter.in13l
+	$(SHLIB_ENV) $(VALGRIND) ../postcat/postcat test-queue-file13l.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref13l cleanup_milter.tmp
+	rm -f test-queue-file13l.tmp cleanup_milter.tmp
+
+cleanup_milter_test13m: cleanup_milter test-queue-file13 cleanup_milter.in13m \
+	cleanup_milter.ref13m ../postcat/postcat
+	cp test-queue-file13 test-queue-file13m.tmp
+	chmod u+w test-queue-file13m.tmp
+	$(SHLIB_ENV) $(VALGRIND) ./cleanup_milter <cleanup_milter.in13m
+	$(SHLIB_ENV) $(VALGRIND) ../postcat/postcat test-queue-file13m.tmp 2>/dev/null >cleanup_milter.tmp
+	diff cleanup_milter.ref13m cleanup_milter.tmp
+	rm -f test-queue-file13m.tmp cleanup_milter.tmp
 
 cleanup_milter_test13f: cleanup_milter test-queue-file13f cleanup_milter.in13f \
 	cleanup_milter.ref13f ../postcat/postcat
@@ -1339,6 +1377,7 @@ cleanup_milter.o: ../../include/string_list.h
 cleanup_milter.o: ../../include/stringops.h
 cleanup_milter.o: ../../include/sys_defs.h
 cleanup_milter.o: ../../include/tok822.h
+cleanup_milter.o: ../../include/uxtext.h
 cleanup_milter.o: ../../include/vbuf.h
 cleanup_milter.o: ../../include/vstream.h
 cleanup_milter.o: ../../include/vstring.h

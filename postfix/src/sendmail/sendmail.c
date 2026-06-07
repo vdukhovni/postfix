@@ -1330,7 +1330,7 @@ int     main(int argc, char **argv)
 	case 'V':				/* DSN, was: VERP */
 	    if (strlen(optarg) > 100)
 		msg_warn("too long -V option value -- ignored");
-	    else if (!allprint(optarg))
+	    else if (!all_isprint_tab(optarg))
 		msg_warn("bad syntax in -V option value -- ignored");
 	    else
 		dsn_envid = optarg;

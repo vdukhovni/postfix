@@ -1,0 +1,10 @@
+# Test Milter chg_from with envid using xtext encoding.
+
+#verbose on
+open test-queue-file13k.tmp
+
+# Change the sender. Allow embedded tab.
+
+chg_from m@porcupine.org { ret=hdrs envid=env-+09-m }
+
+close

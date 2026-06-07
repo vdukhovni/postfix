@@ -31260,6 +31260,41 @@ Apologies for any names omitted.
 	parameter syntax check change. It would break SMTPUTF8
 	support. File: smtpd/smtpd.c.
 
+20260605
+
+	Tech debt: the cleanup daemon now allows TAB characters in an
+	unencoded ENVID received in the message input stream. File:
+	cleanup/cleanup_envelope.c.
+
+	Tech debt: the Milter client CHGFROM handler now allows
+	encoded TAB characters in ENVID parameters, and disallows
+	encoded null characters in ENVID parameters. Files:
+	cleanup/cleanup_milter.c, cleanup_milter.in13[jk],
+	cleanup_milter.ref13[jk].
+
+	Tech debt: the Milter client ADDRCPT_PAR handler now enforces
+	that a DSN ORCPT parameter value contains no encoded null
+	characters; and it now supports DSN ORCPT parameter encodings
+	for address type 'utf-8', instead of logging a warning.
+	Files: cleanup/cleanup_milter.c, milter/test-milter.c,
+	cleanup_milter.in13[lm], cleanup_milter.ref13[lm].
+
+	Tech debt: the Postfix sendmail "-V" command flag now
+	supports TAB characters in a DSN ENVID parameter. File:
+	sendmail/sendmail.c.
+
+	Remaining tech debt: in cleanup_envelope.c, cleanup_milter.c,
+	smtpd.c validate the syntax of an unencoded DSN ORCPT
+	parameter; in smtp_proto.c when sending a DSN ORCPT parameter
+	with type 'utf-8', do not encode non-ASCII UTF8 characters
+	when the remote SMTP server supports SMTPUTF8.
+
+	Technical debt: added uxtext_quote(3) support to encode
+	only ASCII character values (i.e. utf-8-addr-unitext as
+	defined in RFC 6533). Also added unit tests. This code
+	will be used only in SMTP RCPT TO commands. Files:
+	global/uxtext_quote.[hc], global/uxtext_quote_test.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

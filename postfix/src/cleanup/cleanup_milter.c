@@ -118,6 +118,7 @@
 #include <quote_821_local.h>
 #include <dsn_util.h>
 #include <xtext.h>
+#include <uxtext.h>
 #include <info_log_addr_form.h>
 #include <header_opts.h>
 
@@ -1415,7 +1416,9 @@ static const char *cleanup_chg_from(void *context, const char *ext_from,
 		if (state->milter_dsn_buf == 0)
 		    state->milter_dsn_buf = vstring_alloc(20);
 		dsn_envid = (xtext_unquote(state->milter_dsn_buf, arg + 6)
-			     && allprint(STR(state->milter_dsn_buf)));
+			     && strlen(STR(state->milter_dsn_buf))
+			     == LEN(state->milter_dsn_buf)
+			     && all_isprint_tab(STR(state->milter_dsn_buf)));
 		if (!dsn_envid) {
 		    msg_warn("Ignoring bad ESMTP parameter \"%s\" in "
 			     "SMFI_CHGFROM request", arg);
@@ -1595,10 +1598,15 @@ static const char *cleanup_add_rcpt_par(void *context, const char *ext_rcpt,
 		if (dsn_orcpt_info
 		    || (type_len = strcspn(arg_val = arg + 6, ";")) == 0
 		    || (arg_val)[type_len] != ';'
-		    || xtext_unquote_append(vstring_sprintf(orcpt_buf,
-						    "%.*s;", (int) type_len,
-							    arg_val),
-					    arg_val + type_len + 1) == 0) {
+		    || (vstring_sprintf(orcpt_buf, "%.*s;",
+					(int) type_len, arg_val),
+			strncasecmp(arg_val, "utf-8;", type_len + 1) == 0 ?
+			uxtext_unquote_append(orcpt_buf,
+					      arg_val + type_len + 1) == 0 :
+			xtext_unquote_append(orcpt_buf,
+					     arg_val + type_len + 1) == 0)
+		    || strlen(STR(orcpt_buf)) != LEN(orcpt_buf)
+		     /* || TODO: uncoded syntax check */ ) {
 		    msg_warn("%s: Bad ORCPT parameter from Milter or "
 			     "header/body_checks: \"%.100s\"",
 			     state->queue_id, arg);

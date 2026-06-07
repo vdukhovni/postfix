@@ -416,7 +416,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
     }
     if (mapped_type == REC_TYPE_DSN_ENVID) {
 	/* Don't break "postsuper -r" after Milter overrides ENVID. */
-	if (!allprint(mapped_buf)) {
+	if (!all_isprint_tab(mapped_buf)) {
 	    msg_warn("%s: message rejected: bad DSN envelope ID record",
 		     state->queue_id);
 	    state->errs |= CLEANUP_STAT_BAD;

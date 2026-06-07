@@ -1,0 +1,15 @@
+# Test Milter add_rcpt_par with ORCPT using utf-8-addr-xtext encoding.
+
+#verbose on
+open test-queue-file13m.tmp
+
+# Reject an orcpt with an encoded null.
+add_rcpt_par one@porcupine.org orcpt=utf-8;one\x{00}bb
+
+# Accept an orcpt with an embedded tab.
+add_rcpt_par two@porcupine.org orcpt=utf-8;two\x{09}bb
+
+# Accept an orcpt with an embedded space.
+add_rcpt_par three@porcupine.org orcpt=utf-8;three\x{20}bb
+
+close
