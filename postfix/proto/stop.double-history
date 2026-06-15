@@ -262,3 +262,7 @@ proto  proto stop proto stop double cc
  postscreen postscreen c postscreen postscreen_tls_conf c 
  anvil anvil c global anvil_clnt hc proto postconf proto 
  global smtp_stream c smtpd smtpd c smtpd smtpd_chat h 
+ by Michael Wollner File smtpd smtpd c 
+ are not printable or whitespace Files smtpd smtpd c 
+ support File smtpd smtpd c 
+ sendmail sendmail c 

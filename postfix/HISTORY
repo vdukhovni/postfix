@@ -31175,32 +31175,47 @@ Apologies for any names omitted.
 20260524
 
 	Bugfix (defect introduced: Postfix 3.1, date 20150607):
-	null pointer dereference and heap data overread in the
-	Postfix SMTP client's smtp_dns_reply_filter (this is disabled
-	by default), when the Postfix SMTP client is configured to
-	use opportunistic or mandatory DANE authentication (this
-	is disabled by default); and the destination domain publishes
-	a TLSA record that is empty or shorter than 20 bytes; and
-	the OS is configured to use a resolver that passes such a
-	TLSA record. For example, a zero-length TLSA record is
-	blocked by BIND, Google DNS, OpenDNS, and by configurations
-	that use systemd-resolved (the default on many LINUX systems);
-	it is passed by Cloudflare, Quad9 DNS, and unbound, if these
-	resolvers are used without systemd-resolved.
+	null pointer read and heap data overread in the Postfix
+	SMTP client's smtp_dns_reply_filter. Problem reported by
+	TristanInSec, found with ASAN. Also reported by other people.
+	Reproduction and real-world impact researched by Wietse.
+	File: dns/dns_strrecord.c.
 
 	The root cause is a missing 'break' statement after the
-	code that converts a TLSA record to string, resulting in a
-	null pointer crash when the record length is zero; or a
-	data overread (or rarely, a segfault) with 0 < record length
-	< 20 bytes. The overread content is not disclosed.
+	code that converts a TLSA record to string.
 
-	The impact of crashes is easily overstated. That said,
-	crashes must be eliminated regardless of their impact.
+	Reproduction:
+	=============
+
+	The problem happens when smtp_dns_reply_filter is configured
+	(this is disabled by default); the Postfix SMTP client is
+	configured to use opportunistic or mandatory DANE authentication
+	(this is disabled by default); the destination domain
+	publishes a TLSA record that is empty or shorter than 20
+	bytes; and the OS is configured to use a resolver that
+	passes such a TLSA record. For example, a zero-length TLSA
+	record is blocked by BIND, Google DNS, OpenDNS, and by
+	configurations that use systemd-resolved (the default on
+	many LINUX systems); it is passed by Cloudflare, Quad9 DNS,
+	and unbound, as long as these resolvers are used without
+	systemd-resolved.
+
+	Impact statement:
+	=================
+
+	SMTP client termination with a null pointer read crash when
+	the TLSA record length is zero; or an SMTP client data
+	overread (or rarely, SMTP client termination with a read
+	segfault crash) when 0 < record length < 20 bytes. The
+	overread content is not disclosed.
+
+	The impact of SMTP client crashes is easily overstated.
+	That said, crashes must be eliminated regardless of their
+	impact.
 
 	On systems that deliver fewer than one message per minute,
-	a null pointer or other segfault crash can result in a delay
-	of up to one minute for email delivery to other destination
-	domains.
+	an SMTP client crash can result in a delay of up to one
+	minute for email delivery to other destination domains.
 
 	On systems with a larger traffic volume, the impact of a
 	null pointer or other segfault crash on deliveries to other
@@ -31212,10 +31227,6 @@ Apologies for any names omitted.
 	domains under their control (by replying within Postfix
 	SMTP client read time limits which are several minutes by
 	default).
-
-	Problem reported by TristanInSec, found with ASAN. Also
-	reported by other people. Reproduction and real-world impact
-	researched by Wietse. File: dns/dns_strrecord.c.
 
 20260529
 
@@ -31232,15 +31243,87 @@ Apologies for any names omitted.
 	of text while receiving a long SMTP response line.
 
 	Robustness: do not receive (and discard) unlimited amounts
-	of data with BDAT commands. Problem introduced: Postfix
+	of input with BDAT commands. Problem introduced: Postfix
 	3.4, date: 20180825; found during code maintenance. File:
 	smtpd/smtpd.c.
+
+	Impact statement: 
+	=================
+
+	Postfix should not receive and discard unlimited amounts
+	of input in SMTP or BDAT commands, but fixing that will not
+	fundamentally change the situation.
+
+	By design, any SMTP client can force a server to receive
+	(and discard) an unlimited amount of text.
+
+	For example, an attacker can repeatedly send messages that
+	are a little under the server's message size limit and abort
+	each transaction a before reaching the message end. When
+	sending a message with the "DATA" command, an attacker would
+	disconnect instead of sending <CR><LF>.<CR><LF>; and when
+	sending a message with the "BDAT" command, an attacker would
+	send "RSET" instead of "BDAT LAST".
+
+	To mitigate such abuse, Postfix can rate-limit the number
+	of message transactions from the same IP address or address
+	range (see smtpd_client_message_rate_limit and *prefix_length
+	parameters). Such a defense is ineffective when faced with
+	a distributed attack (botnet); for that, postscreen combined
+	with an IP reputation service (DNSBL) may be more effective.
 
 20260531
 
 	Bugfix: (defect introduced: Postfix 3.6, date: 20200710):
-	panic() while parsing a TLSA record with length 3. Found
-	during code maintenance. File: tls/tls_dane.c.
+	panic (assertion failure and voluntary crash) while parsing
+	a TLSA reply with length 3. Found during code maintenance.
+	File: tls/tls_dane.c.
+
+        Reproduction:
+        =============
+
+	The problem happens when the Postfix SMTP client is configured
+	to use opportunistic or mandatory DANE authentication (this
+	is disabled by default); a destination domain publishes a
+	TLSA record with a length of three bytes; and the OS is
+	configured to use a resolver that passes such a TLSA record.
+	For example, a length-three TLSA record is blocked by BIND,
+	and by configurations that use systemd-resolved (the default
+	on many LINUX systems). It is passed by many other resolvers.
+
+	This bug enables an attack that is more potent than an
+	older Postfix 3.1 bug in TLSA reply handling (null pointer
+	read with zero-length TLSA, or undisclosed memory overread).
+
+	- An attack with a length-three TLSA reply does not depend
+	on smtp_dns_reply_filter configuration.
+
+	- An attack with a length-three TLSA reply propagates through
+	more resolvers than an attack with a length-zero TLSA reply.
+
+	Impact statement:
+	=================
+
+	SMTP client voluntary termination (crash) after an assertion
+	failure. This is a fail-safe mechanism.
+
+	The impact of crashes (voluntary or not) is easily overstated.
+	That said, crashes must be eliminated regardless of their
+	impact.
+
+	On systems that deliver fewer than one message per minute,
+	an SMTP client crash can result in a delay of up to one
+	minute for email delivery to other destination domains.
+
+	On systems with a larger traffic volume, the impact of an
+	SMTP client crash on deliveries to other destination domains
+	is minor because Postfix reuses SMTP client processes and
+	replaces a failed process within seconds (self-healing);
+	the practical impact is believed to be no worse than that
+	of an uncooperative receiver that tarpits SMTP connections
+	from Postfix to one or more destination domains under their
+	control (by replying within Postfix SMTP client read time
+	limits which are several minutes by default).
 
 20260602
 
@@ -31262,9 +31345,9 @@ Apologies for any names omitted.
 
 20260605
 
-	Tech debt: the cleanup daemon now allows TAB characters in an
-	unencoded ENVID received in the message input stream. File:
-	cleanup/cleanup_envelope.c.
+	Tech debt: the cleanup daemon now allows TAB characters in
+	an unencoded ENVID received in the message input stream.
+	File: cleanup/cleanup_envelope.c.
 
 	Tech debt: the Milter client CHGFROM handler now allows
 	encoded TAB characters in ENVID parameters, and disallows
@@ -31291,9 +31374,16 @@ Apologies for any names omitted.
 
 	Technical debt: added uxtext_quote(3) support to encode
 	only ASCII character values (i.e. utf-8-addr-unitext as
-	defined in RFC 6533). Also added unit tests. This code
-	will be used only in SMTP RCPT TO commands. Files:
+	defined in RFC 6533). Also added unit tests. This code will
+	be used only in SMTP RCPT TO commands. Files:
 	global/uxtext_quote.[hc], global/uxtext_quote_test.c.
+
+20260608
+
+	Bugfix (defect introduced: Postfix 3.0, date: 20140708):
+	the SMTP client did not xtext_quote a '+' character in a
+	DSN ORCPT parameter value. Found during code maintenance.
+	File: smtp_proto.c.
 
 TODO
 

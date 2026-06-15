@@ -2048,7 +2048,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 			    vstring_sprintf_append(next_command, " ORCPT=%s",
 					     vstring_str(session->scratch));
 		    } else {
-			xtext_quote(session->scratch, orcpt_type_addr, "=");
+			xtext_quote(session->scratch, orcpt_type_addr, "+=");
 			vstring_sprintf_append(next_command, " ORCPT=%s",
 					     vstring_str(session->scratch));
 		    }
