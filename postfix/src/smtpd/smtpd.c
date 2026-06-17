@@ -233,7 +233,7 @@
 /*	The mail filter protocol version and optional protocol extensions
 /*	for communication with a Milter application; prior to Postfix 2.6
 /*	the default protocol is 2.
-/* .IP "\fBmilter_default_action (tempfail)\fR"
+/* .IP "\fBmilter_default_action (see 'postconf -d milter_default_action' output)\fR"
 /*	The default action when a Milter (mail filter) response is
 /*	unavailable (for example, bad Postfix configuration or Milter
 /*	failure).
@@ -3910,6 +3910,21 @@ static int skip_bdat(SMTPD_STATE *state, off_t chunk_size,
     off_t   len;
 
     /*
+     * Skip inputs below 1.5 times the message size limit, staying in sync
+     * with the remote SMTP client. Otherwise, force a negative chunk_size
+     * value to disable reading and discarding input here, and to force a
+     * "lost connection" condition upon a later read operation.
+     */
+    if (ENFORCING_SIZE_LIMIT(var_message_limit)
+	&& state->act_size / 1.5 > var_message_limit - chunk_size / 1.5) {
+	chunk_size = -1;
+    } else if (state->act_size > OFF_T_MAX - chunk_size) {
+	state->act_size = OFF_T_MAX;
+    } else {
+	state->act_size += chunk_size;
+    }
+
+    /*
      * Read and discard content from the remote SMTP client. TODO: drop the
      * connection in case of overload.
      */
@@ -3925,6 +3940,16 @@ static int skip_bdat(SMTPD_STATE *state, off_t chunk_size,
     va_start(ap, format);
     vsmtpd_chat_reply(state, format, ap);
     va_end(ap);
+
+    /*
+     * Force a "lost connection" condition upon the next read operation.
+     */
+    if (chunk_size < 0) {
+	msg_warn("%s: too much BDAT content -- disabling further input from %s",
+		 state->queue_id ? state->queue_id : "NOQUEUE",
+		 state->namaddr);
+	shutdown(vstream_fileno(state->client), SHUT_RD);
+    }
 
     /*
      * Reset state, or drop subsequent BDAT payloads until BDAT LAST or RSET.
