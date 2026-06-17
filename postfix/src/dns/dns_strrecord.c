@@ -99,6 +99,8 @@ char   *dns_strrecord(VSTRING *buf, DNS_RR *rr)
 	} else {
 	    vstring_sprintf_append(buf, "[truncated record]");
 	}
+	/* 202605 Missing break found by TristanInSec using ASAN. */
+	break;
 
 	/*
 	 * We use the SOA record TTL to determine the negative reply TTL. We
