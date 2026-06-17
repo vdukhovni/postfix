@@ -518,7 +518,7 @@ static int parse_tlsa_rr(TLS_DANE *dane, DNS_RR *rr)
 		  q, a, r, rr->type);
 
     /* Drop truncated records */
-    if ((dlen = rr->data_len - 3) < 0) {
+    if ((dlen = rr->data_len - 3) <= 0) {
 	msg_warn("%s%s%s: truncated TLSA RR length == %u",
 		 q, a, r, (unsigned) rr->data_len);
 	return (0);
