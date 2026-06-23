@@ -31385,6 +31385,67 @@ Apologies for any names omitted.
 	DSN ORCPT parameter value. Found during code maintenance.
 	File: smtp_proto.c.
 
+20260618
+
+	Hardening: make sure that optimizers will not delete a
+	memset() call in myfree() that wipes memory. Files: mymalloc.c,
+	mymalloc_test.c.
+
+	Bug (defect introduced: Postfix 2.8, date: 20100914):
+	read-after-free in the PSC_CALL_BACK_NOTIFY() macro. This
+	had no effect on program execution, because myfree() wiped
+	memory. Problem reported by Qualys, assisted by Claude
+	Mythos Preview. File: postscreen_dnsbl.c.
+
+	Bug (defect introduced: Postfix 3.11, date: 20251025): a
+	missing return statement in the SHOWQ_CLEANUP_AND_RETURN()
+	macro. A local user could submit a crafted message that
+	triggered a read-after-free and panic() in the unprivileged
+	showq daemon (which scans the mail queue for the 'postqueue
+	-f' and 'mailq' commands). This could happen only before a
+	message had been picked up by the pickup(8) daemon. Problem
+	reported by Qualys, assisted by Claude Mythos Preview. File:
+	showq.c.
+
+20260619
+
+	Bug (defect introduced: Postfix 3.4, date: 20190121): missing
+	null termination in a postlogd process that was started
+	with an EMPTY maillog_file setting, while receiving a message
+	from a postlog command that was started with a NON-EMPTY
+	maillog_file setting. Under these contradicting conditions,
+	an unprivileged attacker could cause postlogd to write null
+	bytes to stack memory as it tokenized text outside the
+	receive buffer, and possibly gain 'postfix' privilege.
+	Problem reported by Qualys, assisted by Claude Mythos
+	Preview. File: postlogd.c.
+
+20260621
+
+	Bug (defect introduced: Postfix 2.3, date: 20051112): "read"
+	after realloc while parsing a malformed bounce template.
+	This cannot be triggered by an unprivileged user (templates
+	are owned by root). Problem reported by Qualys, assisted
+	by Claude Mythos Preview. File: bounce_templates.c.
+
+	Bug (defect introduced: postfix-3.11.0-RC1, date: 20251222):
+	heap memory over-read in the cleanup daemon as it handled
+	a milter "shutdown" reply. The over-read memory was logged
+	after masking unprintable content. Problem reported by
+	Qualys, assisted by Claude Mythos Preview. File: cleanup_milter.c.
+
+	Bug (defect introduced: Postfix 2.3, date: 20050526): limited
+	(<= 11 byte) heap over-read in the cleanup daemon. This
+	could be triggered by local user with a crafted queue file,
+	but the over-read content was not disclosed and there was
+	no other impact. Problem reported by Qualys, assisted by
+	Claude Mythos Preview. File: cleanup_extracted.c.
+
+	Maintainer future proofing: allow zero-length memory
+	allocation requests. Many people have experience with systems
+	that allow this, therefore it should not trigger a panic
+	in Postfix. Files: mymalloc.c, mymalloc_test.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

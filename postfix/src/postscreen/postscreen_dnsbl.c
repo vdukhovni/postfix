@@ -203,7 +203,8 @@ typedef struct {
 
 #define PSC_CALL_BACK_NOTIFY(sp, ev) do { \
 	PSC_CALL_BACK_ENTRY *_cb_; \
-	for (_cb_ = (sp)->table; _cb_ < (sp)->table + (sp)->index; _cb_++) \
+	PSC_CALL_BACK_ENTRY *_end_ = (sp)->table + (sp)->index; \
+	for (_cb_ = (sp)->table; _cb_ < _end_; _cb_++) \
 	    if (_cb_->callback != 0) \
 		_cb_->callback((ev), _cb_->context); \
     } while (0)

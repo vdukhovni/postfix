@@ -21,6 +21,22 @@
 #include <ptest.h>
 
  /*
+  * Scafffolding.
+  */
+static bool memset_was_called;
+
+void   *memset(void *dst, int bval, size_t len)
+{
+    size_t  n;
+    char   *cp;
+
+    memset_was_called = true;
+    for (cp = dst, n = 0; n < len; n++)
+	*cp++ = bval;
+    return (dst);
+}
+
+ /*
   * See <ptest_main.h>
   */
 typedef struct PTEST_CASE {
@@ -38,11 +54,32 @@ static void test_mymalloc_normal(PTEST_CTX *t, const PTEST_CASE *tp)
     myfree(ptr);
 }
 
+static void test_mymalloc_static_empty(PTEST_CTX *t, const PTEST_CASE *tp)
+{
+    void   *want;
+    void   *got;
+
+    /*
+     * Repeated mymalloc(0) produce the same result.
+     */
+    want = mymalloc(0);
+    got = mymalloc(0);
+    if (got != want)
+	ptest_error(t, "mymalloc: zero length results differ: got %p, want %p",
+		    got, want);
+
+    /*
+     * myfree() is a NOOP.
+     */
+    myfree(want);
+    myfree(got);
+}
+
 static void test_mymalloc_panic_too_small(PTEST_CTX *t, const PTEST_CASE *tp)
 {
-    expect_ptest_log_event(t, "panic: mymalloc: requested length 0");
-    (void) mymalloc(0);
-    ptest_fatal(t, "mymalloc(0) returned");
+    expect_ptest_log_event(t, "panic: mymalloc: requested length -1");
+    (void) mymalloc(-1);
+    ptest_fatal(t, "mymalloc(-1) returned");
 }
 
 static void test_mymalloc_fatal_out_of_mem(PTEST_CTX *t, const PTEST_CASE *tp)
@@ -52,6 +89,17 @@ static void test_mymalloc_fatal_out_of_mem(PTEST_CTX *t, const PTEST_CASE *tp)
     expect_ptest_log_event(t, "fatal: mymalloc: insufficient memory for");
     (void) mymalloc(SSIZE_T_MAX - 100);
     ptest_fatal(t, "mymalloc(SSIZE_T_MAX-100) returned");
+}
+
+static void test_myfree_calls_memset(PTEST_CTX *t, const PTEST_CASE *tp)
+{
+    void   *ptr;
+
+    ptr = mymalloc(100);
+    memset_was_called = false;
+    myfree(ptr);
+    if (!memset_was_called)
+	ptest_fatal(t, "myfree did not call memset!");
 }
 
 static void test_myfree_panic_double_free(PTEST_CTX *t, const PTEST_CASE *tp)
@@ -234,6 +282,27 @@ static void test_mymemdup_normal(PTEST_CTX *t, const PTEST_CASE *tp)
     myfree(ptr);
 }
 
+static void test_mymemdup_static_empty(PTEST_CTX *t, const PTEST_CASE *tp)
+{
+    void   *want;
+    void   *got;
+
+    /*
+     * Repeated mymemdup(_, 0) produce the same result.
+     */
+    want = mymemdup("", 0);
+    got = mymemdup("", 0);
+    if (got != want)
+	ptest_error(t, "mymemdup: zero length results differ: got %p, want %p",
+		    got, want);
+
+    /*
+     * myfree() is a NOOP.
+     */
+    myfree(want);
+    myfree(got);
+}
+
 static void test_mymemdup_panic_null(PTEST_CTX *t, const PTEST_CASE *tp)
 {
     expect_ptest_log_event(t, "panic: mymemdup: null pointer argument");
@@ -243,9 +312,9 @@ static void test_mymemdup_panic_null(PTEST_CTX *t, const PTEST_CASE *tp)
 
 static void test_mymemdup_panic_too_small(PTEST_CTX *t, const PTEST_CASE *tp)
 {
-    expect_ptest_log_event(t, "panic: mymalloc: requested length 0");
-    (void) mymemdup("abcdef", 0);
-    ptest_fatal(t, "mymemdup(_, 0) returned");
+    expect_ptest_log_event(t, "panic: mymalloc: requested length -1");
+    (void) mymemdup("abcdef", -1);
+    ptest_fatal(t, "mymemdup(_, -1) returned");
 }
 
 static void test_mymemdup_fatal_out_of_mem(PTEST_CTX *t, const PTEST_CASE *tp)
@@ -260,9 +329,13 @@ static void test_mymemdup_fatal_out_of_mem(PTEST_CTX *t, const PTEST_CASE *tp)
 static const PTEST_CASE ptestcases[] = {
     {"mymalloc + myfree normal case", test_mymalloc_normal,
     },
+    {"mymalloc static result for empty request", test_mymalloc_static_empty,
+    },
     {"mymalloc panic for too small request", test_mymalloc_panic_too_small,
     },
     {"mymalloc fatal for out of memory", test_mymalloc_fatal_out_of_mem,
+    },
+    {"myfree calls memset", test_myfree_calls_memset,
     },
     {"myfree panic for double free", test_myfree_panic_double_free,
     },
@@ -295,6 +368,8 @@ static const PTEST_CASE ptestcases[] = {
     {"mystrndup static result for empty string", test_mystrndup_static_empty,
     },
     {"mymemdup normal case", test_mymemdup_normal,
+    },
+    {"mymemdup static result for empty request", test_mymemdup_static_empty,
     },
     {"mymemdup panic for null input", test_mymemdup_panic_null,
     },

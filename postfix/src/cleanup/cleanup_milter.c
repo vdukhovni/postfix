@@ -2085,15 +2085,9 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
 	text = "milter triggers DISCARD action";
 	break;
     case 'S':
-	if (state->flags & CLEANUP_STAT_CONT)
-	    return (0);
-	/* Shutdown' may be the default action for an I/O error. */
-	CLEANUP_MILTER_SET_SMTP_REPLY(state, resp);
-	ret = state->reason;
-	state->errs |= CLEANUP_STAT_WRITE;
-	action = "milter-reject";
-	text = resp + 4;
-	break;
+	/* 202606 Qualys+Mythos found heap over-read at "S" + 4. */
+	resp = "421 4.7.0 Service unavailable";	/* See also smtpd.c. */
+	/* FALLTHROUGH */
 
 	/*
 	 * Override permanent reject with temporary reject. This happens when

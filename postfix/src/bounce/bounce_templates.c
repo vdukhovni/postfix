@@ -307,7 +307,7 @@ void    bounce_templates_load(VSTREAM *fp, BOUNCE_TEMPLATES *ts)
 	    }
 	    if (vstream_feof(fp))
 		msg_warn("%s, line %d: missing \"%s\" end marker",
-			 VSTREAM_PATH(fp), lineno, value);
+			 VSTREAM_PATH(fp), lineno, STR(saved_end_marker));
 	    member_name = STR(saved_member_name);
 	    value = STR(multi_line_buf);
 	}
