@@ -21,7 +21,7 @@
 #include <ptest.h>
 
  /*
-  * Scafffolding.
+  * Scaffolding.
   */
 static bool memset_was_called;
 

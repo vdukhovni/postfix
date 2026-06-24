@@ -31446,6 +31446,57 @@ Apologies for any names omitted.
 	that allow this, therefore it should not trigger a panic
 	in Postfix. Files: mymalloc.c, mymalloc_test.c.
 
+20260623
+
+	Bug (defect introduced: before Postfix alpha, date 19970424):
+	the DNS client could read up to two bytes past the end of
+	an MX record, before discovering that the record was too
+	short. This behavior was later copied with SRV records,
+	potentially over-reading up to six bytes. Problem reported
+	by Qualys, assisted by Claude Mythos Preview. File:
+	dns_lookup.c.
+
+	Non-bug: tighten a bound on the size of a TXT record fragment.
+	Suggested by Qualys, assisted by Claude Mythos Preview. File:
+	dns_lookup.c.
+
+	Non-bug: timer leak in a short-lived test program. Reported
+	by Qualys, assisted by Claude Mythos Preview. File:
+	scache_single.c.
+
+	Future proofing: destroy objects after logging. Suggested
+	by Qualys, assisted by Claude Mythos Preview. File:
+	mail_addr_map.c.
+
+	Bug (defect introduced: Postfix 1.0, date: 20001028): double
+	ldap_msgfree(resloop) call when special_result_attribute
+	is configured, and an attacker controls LDAP server or can
+	play attacker-in-the-middle. Reported by Qualys, assisted
+	by Claude Mythos Preview. File: dict_ldap.c.
+
+	Bug (defect introduced: before Postfix alpha, date: 19971106):
+	'int' over-shift, in the queue file record-length parser.
+	Postfix programs do not generate such records, but an
+	attacker could cause postdrop to reject input or panic().
+	Reported by Qualys, assisted by Claude Mythos Preview. File:
+	record.c.
+
+	Contract violation (defect introduced: Postfix 1.1, date:
+	20020518): rec_streamlf_get() did not null-terminate all
+	results. No existing code was affected by this. Found by
+	Qualys, assisted by Claude Mythos Preview. File: rec_streamlf.c.
+
+20260624:
+
+	Bug (defect introduced: Postfix < alpha, date: < 1998):
+	missing recursion guard while processing :include: files
+	that directly :include: other files in local(8) aliases or
+	.forward files. This could result in exhausting stack space
+	(segfault) or file handles (fatal error). Reported by Qualys,
+	assisted by Claude Mythos Preview. File: local/include.c.
+
+	Safety: added a global nesting guard. File: local/recipient.c. 
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

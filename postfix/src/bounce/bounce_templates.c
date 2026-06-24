@@ -306,6 +306,7 @@ void    bounce_templates_load(VSTREAM *fp, BOUNCE_TEMPLATES *ts)
 		vstring_strcat(multi_line_buf, STR(line_buf));
 	    }
 	    if (vstream_feof(fp))
+		/* 202606 Qualys+Mythos: log the saved end marker. */
 		msg_warn("%s, line %d: missing \"%s\" end marker",
 			 VSTREAM_PATH(fp), lineno, STR(saved_end_marker));
 	    member_name = STR(saved_member_name);

@@ -85,8 +85,10 @@ int     rec_streamlf_get(VSTREAM *stream, VSTRING *buf, int maxlen)
      */
     VSTRING_RESET(buf);
     while (n-- > 0) {
-	if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF)
+	if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
+	    VSTRING_TERMINATE(buf);
 	    return (VSTRING_LEN(buf) > 0 ? REC_TYPE_CONT : REC_TYPE_EOF);
+	}
 	if (ch == '\n') {
 	    VSTRING_TERMINATE(buf);
 	    return (REC_TYPE_NORM);

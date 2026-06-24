@@ -238,7 +238,7 @@ int     rec_get_raw(VSTREAM *stream, VSTRING *buf, ssize_t maxsize, int flags)
     const char *myname = "rec_get";
     int     type;
     ssize_t len;
-    int     len_byte;
+    ssize_t len_byte;
     unsigned shift;
 
     /*
@@ -261,7 +261,7 @@ int     rec_get_raw(VSTREAM *stream, VSTRING *buf, ssize_t maxsize, int flags)
 	 * limit.
 	 */
 	for (len = 0, shift = 0; /* void */ ; shift += 7) {
-	    if (shift >= (int) (NBBY * sizeof(int))) {
+	    if (shift +7 >= (int) (NBBY * sizeof(int))) {
 		msg_warn("%s: too many length bits, record type %d",
 			 VSTREAM_PATH(stream), type);
 		return (REC_TYPE_ERROR);

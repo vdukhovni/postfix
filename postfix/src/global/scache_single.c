@@ -275,6 +275,11 @@ static void scache_single_free(SCACHE *scache)
 {
     SCACHE_SINGLE *sp = (SCACHE_SINGLE *) scache;
 
+    if (SCACHE_SINGLE_ENDP_BUSY(sp))
+        scache_single_free_endp(sp);
+    if (SCACHE_SINGLE_DEST_BUSY(sp))
+        scache_single_free_dest(sp);
+
     vstring_free(sp->endp.endp_label);
     vstring_free(sp->endp.endp_prop);
     if (sp->endp.fd >= 0)

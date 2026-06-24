@@ -761,6 +761,8 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
     int     frag_len;
     int     ch;
 
+    /* At this point, (pos + fixed.length <= reply->end) */
+
 #define MIN2(a, b)	((unsigned)(a) < (unsigned)(b) ? (a) : (b))
 
     *list = 0;
@@ -783,6 +785,8 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	data_len = strlen(temp) + 1;
 	break;
     case T_SRV:
+        if (fixed->length < 3 * NS_INT16SZ)
+            return (DNS_RETRY);
 	GETSHORT(pref, pos);
 	GETSHORT(weight, pos);
 	GETSHORT(port, pos);
@@ -795,6 +799,8 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	data_len = strlen(temp) + 1;
 	break;
     case T_MX:
+        if (fixed->length < NS_INT16SZ)
+            return (DNS_RETRY);
 	GETSHORT(pref, pos);
 	if (dn_expand(reply->buf, reply->end, pos, temp, sizeof(temp)) < 0)
 	    return (DNS_RETRY);
@@ -838,7 +844,8 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	     src < pos + fixed->length; /* */ ) {
 	    frag_len = *src++;
 	    /* 202604 Claude: move debug logging after the frag_len check. */
-	    if (frag_len > reply->end - src
+	    /* 202606 Qualys+Mythos: tighter bound for fragment size. */
+	    if (frag_len > pos + fixed->length - src
 	    || frag_len >= ((unsigned char *) ltemp + sizeof(ltemp)) - dst) {
 		msg_warn("extract_answer: bad TXT string length: %d", frag_len);
 		return (DNS_RETRY);
