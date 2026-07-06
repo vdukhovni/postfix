@@ -486,6 +486,7 @@ static const NAME_CODE milter8_versions[] = {
 
 #define STR(x) vstring_str(x)
 #define LEN(x) VSTRING_LEN(x)
+#define END(x) vstring_end(x)
 
 /* milter8_def_reply - set persistent response */
 
@@ -674,6 +675,8 @@ static int vmilter8_read_data(MILTER8 *milter, ssize_t *data_len, va_list ap)
 		return (milter8_comm_error(milter));
 	    }
 	    *data_len = 0;
+	    /* Qualys+Mythos: terminate string data before stale data. */
+	    VSTRING_TERMINATE(buf);
 	    break;
 
 	    /*
@@ -1300,10 +1303,11 @@ static const char *milter8_event(MILTER8 *milter, int event,
 		}
 	    }
 	    if (var_soft_bounce) {
-		for (cp = STR(milter->buf); /* void */ ; cp = next) {
+		for (cp = STR(milter->buf); cp < END(milter->buf) ; cp = next) {
 		    if (cp[0] == '5') {
 			cp[0] = '4';
-			if (cp[4] == '5')
+			/* Qualys+Mythos: add missing guard. */
+			if (cp + 4 < END(milter->buf) && cp[4] == '5')
 			    cp[4] = '4';
 		    }
 		    if ((next = strstr(cp, "\r\n")) == 0)

@@ -283,7 +283,7 @@ static TLS_PRNG_SRC *rand_source_file;
   */
 #define DEV_PREF "dev:"
 #define DEV_PREF_LEN (sizeof((DEV_PREF)) - 1)
-#define DEV_PATH(dev) ((dev) + EGD_PREF_LEN)
+#define DEV_PATH(dev) ((dev) + DEV_PREF_LEN)
 
 #define EGD_PREF "egd:"
 #define EGD_PREF_LEN (sizeof((EGD_PREF)) - 1)
@@ -353,7 +353,8 @@ static void tlsmgr_prng_exch_event(int unused_event, void *dummy)
      * Make prediction difficult for outsiders and calculate the time for the
      * next execution randomly.
      */
-    RAND_bytes(&randbyte, 1);
+    if (RAND_bytes(&randbyte, 1) < 0)
+	randbyte = getpid() & 0xff;
     next_period = (var_tls_prng_exch_period * randbyte) / UCHAR_MAX;
     event_request_timer(tlsmgr_prng_exch_event, dummy, next_period);
 }
@@ -758,9 +759,12 @@ static void tlsmgr_service(VSTREAM *client_stream, char *unused_service,
 			     len, TLS_MGR_REQ_SEED);
 		} else {
 		    VSTRING_SPACE(buffer, len);
-		    RAND_bytes((unsigned char *) STR(buffer), len);
-		    vstring_set_payload_size(buffer, len);
-		    status = TLS_MGR_STAT_OK;
+		    if (RAND_bytes((unsigned char *) STR(buffer), len) < 0) {
+			status = TLS_MGR_STAT_ERR;
+		    } else {
+			vstring_set_payload_size(buffer, len);
+			status = TLS_MGR_STAT_OK;
+		    }
 		}
 	    }
 	    attr_print(client_stream, ATTR_FLAG_NONE,

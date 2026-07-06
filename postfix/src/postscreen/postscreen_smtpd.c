@@ -839,9 +839,10 @@ static void psc_smtpd_read_event(int event, void *context)
 
 	    /*
 	     * Sanity check. We don't want to store infinitely long commands.
+	     * 
+	     * Qualys+Mythos: make the VSTRING_LEN test unconditional.
 	     */
-	    if (state->read_state == PSC_SMTPD_CMD_ST_ANY
-		&& VSTRING_LEN(state->cmd_buffer) >= var_line_limit) {
+	    if (VSTRING_LEN(state->cmd_buffer) >= var_line_limit) {
 		msg_info("COMMAND LENGTH LIMIT from [%s]:%s after %s",
 			 PSC_CLIENT_ADDR_PORT(state), state->where);
 		PSC_CLEAR_EVENT_DROP_SESSION_STATE(state, psc_smtpd_time_event,
