@@ -1183,8 +1183,10 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
 			break;
 		    }
 
-		    if (resloop != 0)
+		    if (resloop != 0) {
 			ldap_msgfree(resloop);
+			resloop = 0;
+		    }
 
 		    if (dict_ldap->dict.error != 0)
 			break;

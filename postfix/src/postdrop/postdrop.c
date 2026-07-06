@@ -503,8 +503,10 @@ int     main(int argc, char **argv)
 		msg_warn("uid=%ld: remove %s: %m", (long) uid, postdrop_path);
 	    else if (msg_verbose)
 		msg_info("remove %s", postdrop_path);
-	    myfree(postdrop_path);
+	    /* Qualys+Mythos: avoid read-after-free in signal handler. */
+	    junk = postdrop_path;
 	    postdrop_path = 0;
+	    myfree(junk);
 	    exit(0);
 	}
 	if (rec_type == REC_TYPE_ERROR)

@@ -582,7 +582,8 @@ int     trw_report_failure(TLSRPT_WRAPPER *trw,
     /* Give the local admin a clue. */
     msg_info("TLSRPT: status=failure, domain=%s, receiving_mx=%s[%s],"
 	     " failure_type=%s%s%s",
-	     trw->rpt_policy_domain, trw->rcv_mta_name, trw->rcv_mta_addr,
+	     trw->rpt_policy_domain, STR_OR_NULL(trw->rcv_mta_name),
+	     STR_OR_NULL(trw->rcv_mta_addr),
 	     trw_failure_type_to_string(failure_type),
 	     failure_reason ? ", failure_reason=" : "",
 	     failure_reason ? failure_reason : "");

@@ -29526,3 +29526,129 @@ Apologies for any names omitted.
 	could reject or discard the parameter value, but this has
 	never been reported to happen. Found during code maintenance.
 	File: smtp_proto.c.
+
+20260618
+
+	Hardening: make sure that optimizers will not delete a
+	memset() call in myfree() that wipes memory. File: mymalloc.c.
+
+	Bug (defect introduced: Postfix 3.1, date: 20151129): a
+	missing return statement in the SHOWQ_CLEANUP_AND_RETURN()
+	macro. A local user could submit a crafted message that
+	triggered a read-after-free and panic() in the unprivileged
+	showq daemon (which scans the mail queue for the 'postqueue
+	-f' and 'mailq' commands). This could happen only before a
+	message had been picked up by the pickup(8) daemon. Problem
+	reported by Qualys, assisted by Claude Mythos Preview. File:
+	showq.c.
+
+20260619
+
+	Bug (defect introduced: Postfix 3.4, date: 20190121): missing
+	null termination in a postlogd process that was started
+	with an EMPTY maillog_file setting, while receiving a message
+	from a postlog command that was started with a NON-EMPTY
+	maillog_file setting. Under these contradicting conditions,
+	an unprivileged attacker could cause postlogd to write null
+	bytes to stack memory as it tokenized text outside the
+	receive buffer, and possibly gain 'postfix' privilege.
+	Problem reported by Qualys, assisted by Claude Mythos
+	Preview. File: postlogd.c.
+
+20260621
+
+	Bug (defect introduced: Postfix 2.3, date: 20050526): limited
+	(<= 11 byte) heap over-read in the cleanup daemon. This
+	could be triggered by local user with a crafted queue file,
+	but the over-read content was not disclosed and there was
+	no other impact. Problem reported by Qualys, assisted by
+	Claude Mythos Preview. File: cleanup_extracted.c.
+
+	Maintainer future proofing: allow zero-length memory
+	allocation requests. Many people have experience with systems
+	that allow this, therefore it should not trigger a panic
+	in Postfix. File: mymalloc.c.
+
+20260623
+
+	Bug (defect introduced: Postfix 2.3, date: 20060611): double
+	ldap_msgfree(resloop) call during error handling when
+	special_result_attribute is configured. An attacker who
+	controls the LDAP server or can play attacker-in-the-middle
+	could corrupt heap memory. Reported by Qualys, assisted by
+	Claude Mythos Preview. File: dict_ldap.c.
+
+20260624
+
+	Bug (defect introduced: Postfix < alpha, date: 1997): missing
+	recursion guard while processing :include: files that
+	directly include other :include: files in local(8) aliases
+	or .forward files. This could result in exhausting stack
+	space (segfault) or file handles (fatal error). This is not
+	a global DOS; it affected at most two parallel delivery
+	processes for the local recipient who created the condition.
+	Reported by Qualys, assisted by Claude Mythos Preview. File:
+	local/include.c.
+
+	Safety: added a global nesting guard. File: local/recipient.c.
+
+20260625
+
+	Bug (defect introduced: Postfix 2.7, date: 20090617):
+	out-of-memory condition with remote input in the postscreen
+	dummy SMTP engine. This dummy engine is used after PREGREET
+	or DNSBL checks fail, or when "after 220" protocol checks
+	are enabled. Reported by Qualys, assisted by Claude Mythos
+	Preview. File: postscreen_smtpd.c.
+
+	Bug (defect introduced: Postfix 2.0, date: 20030619): file
+	system DOS: with smtpd_proxy_filter enabled, the before-filter
+	SMTP server did not enforce the message size limit for
+	mailbox From_ lines at the beginning of a message. With
+	smtpd_proxy_filter disabled, the file size limit was still
+	enforced by the cleanup daemon. Reported by Qualys, assisted
+	by Claude Mythos Preview. File: smtpd.c.
+
+	Bug (defect introduced: Postfix 2.1, date: 20030619): SMTP
+	server panic() in smtpd_proxy_filter when handling long
+	mailbox From_ lines at the beginning of a message. Reported
+	by Qualys, assisted by Claude Mythos Preview. File: smtpd.c.
+
+	Bug: (defect introduced: Postfix 3.10, date: 20240925):
+	NULL pointer read in the TLSRPT client, caused by missing
+	STR_OR_NULL() wrappers. Reported by Qualys, assisted by
+	Claude Mythos Preview. File: tlsrpt_wrapper.c.
+
+20260627
+
+	Future proofing: use the correct device name in DEV_PATH()
+	macro. Reported by Qualys, assisted by Claude Mythos Preview.
+	File: tlsmgr.c.
+
+	Bug (defect introduced: Postfix 2.2. date: 20040829): after
+	a RAND_bytes() call failure, do not rely on stack-based
+	pseudo-randomness for tlsmgr seed generation, and for timing
+	jitter of tlsmgr seed refresh intervals. Reported by Qualys,
+	assisted by Claude Mythos Preview. File: tlsmgr.c.
+
+	Bug (defect introduced: Postfix 2.3, date: 20060711): In
+	the Milter client, null-terminate the SMFIR_REPLYCODE
+	response data to exclude stale data when processing the
+	result as a C string. Reported by Qualys, assisted by Claude
+	Mythos Preview. File: milter8.c.
+
+	Bug (defect introduced: Postfix 2.3, date: 20060711):
+	one-byte heap over-write in the Milter client with
+	soft_bounce=yes while processing a malformed SMFIR_REPLYCODE
+	Milter response. An attacker who controls the Milter or who
+	can play attacker-in-the-middle could corrupt heap memory.
+	Reported by Qualys, assisted by Claude Mythos Preview. File:
+	milter8.c.
+
+20260628
+
+	Bug (defect introduced: Postfix < alpha, date: 19971221):
+	a signal handler in the postdrop command could call unlink()
+	with a pathname that was already wiped and free()d, but not
+	yet reused. Reported by Qualys, assisted by Claude Mythos
+	Preview. File: postdrop.c.
