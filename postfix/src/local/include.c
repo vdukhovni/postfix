@@ -93,6 +93,15 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     if (msg_verbose)
 	MSG_LOG_STATE(myname, state);
 
+    /* 202606 Qualys+Mythos: add missing nesting limit. */
+    if (state.level > 100) {
+	msg_warn(":include: nesting limit exceeded for %s", path);
+	dsb_simple(state.msg_attr.why, "5.4.6",
+		   ":include: nesting limit exceeded");
+	return (bounce_append(BOUNCE_FLAGS(state.request),
+			      BOUNCE_ATTR(state.msg_attr)));
+    }
+
     /*
      * DUPLICATE ELIMINATION
      * 
