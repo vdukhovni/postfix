@@ -133,7 +133,7 @@ extern void dict_free(DICT *);
 #define DICT_FLAG_UTF8_ACTIVE	(1<<20)	/* UTF-8 proxy layer is present */
 #define DICT_FLAG_SRC_RHS_IS_FILE \
 				(1<<21)	/* Map source RHS is a file */
-#define DICT_FLAG_SURROGATE	(1<22)	/* This is a surrogate dictionary */
+#define DICT_FLAG_SURROGATE	(1<<22)	/* This is a surrogate dictionary */
 
 #define DICT_FLAG_UTF8_MASK	(DICT_FLAG_UTF8_REQUEST)
 

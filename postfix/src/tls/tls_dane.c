@@ -447,7 +447,8 @@ void    tls_dane_add_fpt_digests(TLS_DANE *dane, int pkey_only,
 	}
 	raw = vstring_alloc(ilen / 2);
 	if (hex_decode_opt(raw, cp, ilen, HEX_DECODE_FLAG_ALLOW_COLON) == 0) {
-	    myfree(raw);
+	    /* 202606 Qualys+Mythos: vstring_free(), not myfree(). */
+	    vstring_free(raw);
 	    msg_warn("malformed fingerprint value: %.384s", values->argv[i]);
 	    continue;
 	}

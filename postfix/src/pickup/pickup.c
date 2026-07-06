@@ -247,7 +247,8 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
      * We must allow PTR records here because of "postsuper -r".
      */
     for (;;) {
-	if ((type = rec_get(qfile, buf, var_line_limit)) < 0
+	/* 202606 Qualys+Mythos: don't allow type-0 records. */
+	if ((type = rec_get(qfile, buf, var_line_limit)) <= 0
 	    || strchr(expected, type) == 0)
 	    return (file_read_error(info, type));
 	if (msg_verbose)

@@ -64,6 +64,8 @@ void    smtpd_xforward_init(SMTPD_STATE *state)
     state->xforward.helo_name = 0;
     state->xforward.ident = 0;
     state->xforward.domain = 0;
+    /* 202606 Qualys+Mythos: future proofing. */
+    state->xforward.rfc_addr = 0;
 }
 
 /* smtpd_xforward_preset - set xforward attributes to "unknown" */

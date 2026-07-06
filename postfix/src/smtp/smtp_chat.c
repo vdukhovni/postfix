@@ -413,7 +413,8 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
     if (three_digs != 0) {
 	rdata.code = atoi(STR(session->buffer));
 	if (strchr("245", STR(session->buffer)[0]) != 0) {
-	    for (cp = STR(session->buffer) + 4; *cp == ' '; cp++)
+	    /* 202606 Qualys+Mythos: start loop immediately after 'ddd'. */
+	    for (cp = STR(session->buffer) + 3; *cp == ' '; cp++)
 		 /* void */ ;
 	    if ((len = dsn_valid(cp)) > 0 && *cp == *STR(session->buffer)) {
 		vstring_strncpy(rdata.dsn_buf, cp, len);

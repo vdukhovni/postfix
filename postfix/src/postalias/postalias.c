@@ -398,9 +398,10 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
      * recoverable error.
      */
     for (;;) {
+	/* 202606 Qualys+Mythos: don't swap 'offset' and 'whence'. */
 	if (dict_isjmp(mkmap->dict) != 0
 	    && dict_setjmp(mkmap->dict) != 0
-	    && vstream_fseek(source_fp, SEEK_SET, 0) < 0)
+	    && vstream_fseek(source_fp, 0, SEEK_SET) < 0)
 	    msg_fatal("seek %s: %m", VSTREAM_PATH(source_fp));
 
 	/*

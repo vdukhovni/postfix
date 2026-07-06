@@ -31599,6 +31599,60 @@ Apologies for any names omitted.
 	yet reused. Reported by Qualys, assisted by Claude Mythos
 	Preview. File: postdrop.c.
 
+20260708
+
+	Bug (defect introduced: Postfix 3.0, date: 20141117): don't
+	free() text before logging a fatal error message. Reported
+	by Qualys, assisted by Claude Mythos Preview. File:
+	postqueue/postqueue.c.
+
+	Code hygiene: swap the 'offset' and 'whence' arguments in
+	vstream_fseek() calls. Reported by Qualys, assisted by
+	Claude Mythos Preview. Files: postmap.c, postalias.c.
+
+	Bug (defect introduced: before Postfix alpha, date: 19971029):
+	don't allow type-0 records. Reported by Qualys, assisted
+	by Claude Mythos Preview. File: pickup.c.
+
+	Code hygiene: don't allow type-0 records. File: postdrop.c.
+
+	Bug (defect introduced: Postfix 2.3, date: 20050323): the
+	SMTP client enhanced status code parser could process stale
+	data. Reported by Qualys, assisted by Claude Mythos Preview.
+	File: smtp_chat.c.
+
+20260709
+
+	Future proofing in smtpd_xforward_init(). Suggested by
+	Qualys, assisted by Claude Mythos Preview. File: smtpd_xforward.c.
+
+	Bug (defect introduced: Postfix 3.6, date: 20200710): memory
+	leak in tls_dane_add_fpt_digests(), triggered by local
+	configuration error. Reported by Qualys, assisted by Claude
+	Mythos Preview. File: tls_dane.c.
+
+	Bug (defect introduced: before Postfix alpha, date: 19970323):
+	the strerror() emulation function used the wrong indexing
+	variable. This function is used on systems from the previous
+	century. Reported by Qualys, assisted by Claude Mythos
+	Preview. File: sys_compat.c.
+
+	Bug (defect introduced: before Postfix alpha, date: 19970411):
+	the unused vstring_import() function did not respect a
+	VSTRING invariant. Reported by Qualys, assisted by Claude
+	Mythos Preview. File: vstring.c.
+
+	Latent bug (defect introduced: Postfix 3.6, date: 20200710): in
+	tls_scache_decode(), enforce a minimum length invariant by
+	disallowing ':' in hex-encoded TLS session cache entries.
+	Reported by Qualys, assisted by Claude Mythos Preview. File:
+	tls_scache.c.
+
+	Latent bug (defect introduced: Postfix 3.11, date: 20260219):
+	The DICT_FLAG_SURROGATE flag was mis-implemented. This flag
+	was used in test code. Reported by Qualys, assisted by
+	Claude Mythos Preview. Files: dict.h, dict.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

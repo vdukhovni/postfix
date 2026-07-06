@@ -512,7 +512,7 @@ int     main(int argc, char **argv)
 	}
 	if (rec_type == REC_TYPE_ERROR)
 	    msg_fatal("uid=%ld: malformed input", (long) uid);
-	if (strchr(*expected, rec_type) == 0)
+	if (rec_type == 0 || strchr(*expected, rec_type) == 0)
 	    msg_fatal("uid=%ld: unexpected record type: %d", (long) uid, rec_type);
 	if (rec_type == **expected)
 	    expected++;

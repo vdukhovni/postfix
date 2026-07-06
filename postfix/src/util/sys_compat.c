@@ -95,7 +95,8 @@ const char *strerror(int err)
 	vstring_sprintf(buf, "Unknown error %d", err);
 	return (vstring_str(buf));
     } else {
-	return (sys_errlist[errno]);
+	/* 202606 Qualys+Mythos: use err, not errno. */
+	return (sys_errlist[err]);
     }
 }
 

@@ -688,6 +688,7 @@ static const NAME_MASK dict_mask[] = {
     "utf8_request", DICT_FLAG_UTF8_REQUEST,	/* request UTF-8 activation */
     "utf8_active", DICT_FLAG_UTF8_ACTIVE,	/* UTF-8 is activated */
     "src_rhs_is_file", DICT_FLAG_SRC_RHS_IS_FILE,	/* value from file */
+    "surrogate", DICT_FLAG_SURROGATE,	/* surrogate dictionary */
     0,
 };
 
