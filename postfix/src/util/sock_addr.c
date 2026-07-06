@@ -120,7 +120,10 @@ int     sock_addr_cmp_addr(const struct sockaddr *sa,
      * sequence would invalidate the use of memcmp().
      */
     if (sa->sa_family == AF_INET) {
-	return (SOCK_ADDR_IN_ADDR(sa).s_addr - SOCK_ADDR_IN_ADDR(sb).s_addr);
+	/* Qualys+Mythos 202606: (int=unsigned-unsigned) is non-transitive. */
+	return (memcmp((void *) &SOCK_ADDR_IN_ADDR(sa).s_addr,
+		       (void *) &SOCK_ADDR_IN_ADDR(sb).s_addr,
+		       sizeof(SOCK_ADDR_IN_ADDR(sa).s_addr)));
 #ifdef HAS_IPV6
     } else if (sa->sa_family == AF_INET6) {
 	return (memcmp((void *) &(SOCK_ADDR_IN6_ADDR(sa)),

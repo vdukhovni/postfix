@@ -317,7 +317,8 @@ static int psc_dnsbl_match(const char *filter, ARGV *reply)
 	if (inet_pton(AF_INET, *cpp, addr_buf) != 1)
 	    msg_warn("address conversion error for %s -- ignoring this reply",
 		     *cpp);
-	if (ip_match_execute(filter, addr_buf))
+	/* Qualys+Mythos: skip ip_match_execute() after inet_pton() failure. */
+	else if (ip_match_execute(filter, addr_buf))
 	    return (1);
     }
     return (0);

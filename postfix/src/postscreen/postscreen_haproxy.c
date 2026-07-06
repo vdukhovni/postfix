@@ -87,6 +87,11 @@ static void psc_endpt_haproxy_event(int event, void *context)
     int     non_proxy = 0;
 
     switch (event) {
+    /* Qualys+Mythos: handle I/O exception as error. */
+    default:
+	msg_warn("haproxy read: unexpected event %d", event);
+	status = -1;
+	break;
     case EVENT_TIME:
 	msg_warn("haproxy read: time limit exceeded");
 	status = -1;

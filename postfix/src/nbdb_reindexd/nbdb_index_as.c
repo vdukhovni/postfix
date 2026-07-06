@@ -160,7 +160,7 @@ int     nbdb_index_as(const char *command, const char *new_type,
 	    /* Apply some basic hygiene. */
 	    vstring_set_payload_size(why, count);
 	    VSTRING_TERMINATE(why);
-	    (void) translit(STR(why), "\b\r\n", "__");
+	    (void) translit(STR(why), "\b\r\n", "___");
 	}
     }
     close(cmd_out[0]);				/* us */

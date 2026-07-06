@@ -259,7 +259,7 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 		for (res = res0; /* void */ ; res = res->ai_next) {
 		    if (res == 0) {
 			msg_warn("hostname %s does not resolve to address %s",
-				 state->addr, state->name);
+				 state->name, state->addr);
 			REJECT_PEER_NAME(state);
 			break;
 		    }

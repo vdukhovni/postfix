@@ -242,6 +242,9 @@ MILTER_MACROS *milter_macros_alloc(int mode)
 
     /*
      * This macro was originally in milter.h, but no-one else needed it.
+     * 
+     * Note: expr is evaluated once. This is OK only because zero and
+     * mystrdup("") are constants.
      */
 #define milter_macros_init(mp, expr) do { \
 	MILTER_MACROS *__mp = (mp); \

@@ -317,7 +317,9 @@ int     main(int argc, char **argv)
 	    unsanitized_tag = optarg;
 	    break;
 	case 'v':
-	    msg_verbose++;
+	    /* Qualys+Mythos: add guard as in postdrop/postqueue. */
+	    if (geteuid() == 0)
+		msg_verbose++;
 	    break;
 	}
     }

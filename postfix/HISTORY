@@ -31394,10 +31394,11 @@ Apologies for any names omitted.
 	Bug (defect introduced: Postfix 2.8, date: 20100914):
 	read-after-free in the PSC_CALL_BACK_NOTIFY() macro. This
 	had no effect on program execution, because myfree() wiped
-	memory. Problem reported by Qualys, assisted by Claude
-	Mythos Preview. File: postscreen_dnsbl.c.
+	memory, and that memory was not yet reused. Problem reported
+	by Qualys, assisted by Claude Mythos Preview. File:
+	postscreen_dnsbl.c.
 
-	Bug (defect introduced: Postfix 3.11, date: 20251025): a
+	Bug (defect introduced: Postfix 3.1, date: 20151129): a
 	missing return statement in the SHOWQ_CLEANUP_AND_RETURN()
 	macro. A local user could submit a crafted message that
 	triggered a read-after-free and panic() in the unprivileged
@@ -31468,11 +31469,12 @@ Apologies for any names omitted.
 	by Qualys, assisted by Claude Mythos Preview. File:
 	mail_addr_map.c.
 
-	Bug (defect introduced: Postfix 1.0, date: 20001028): double
-	ldap_msgfree(resloop) call when special_result_attribute
-	is configured, and an attacker controls LDAP server or can
-	play attacker-in-the-middle. Reported by Qualys, assisted
-	by Claude Mythos Preview. File: dict_ldap.c.
+	Bug (defect introduced: Postfix 2.3, date: 20060611): double
+	ldap_msgfree(resloop) call during error handling when
+	special_result_attribute is configured. An attacker who
+	controls the LDAP server or can play attacker-in-the-middle
+	could corrupt heap memory. Reported by Qualys, assisted by
+	Claude Mythos Preview. File: dict_ldap.c.
 
 	Bug (defect introduced: before Postfix alpha, date: 19971106):
 	'int' over-shift, in the queue file record-length parser.
@@ -31486,16 +31488,116 @@ Apologies for any names omitted.
 	results. No existing code was affected by this. Found by
 	Qualys, assisted by Claude Mythos Preview. File: rec_streamlf.c.
 
-20260624:
+20260624
 
-	Bug (defect introduced: Postfix < alpha, date: < 1998):
-	missing recursion guard while processing :include: files
-	that directly :include: other files in local(8) aliases or
-	.forward files. This could result in exhausting stack space
-	(segfault) or file handles (fatal error). Reported by Qualys,
-	assisted by Claude Mythos Preview. File: local/include.c.
+	Bug (defect introduced: Postfix < alpha, date: 1997): missing
+	recursion guard while processing :include: files that
+	directly include other :include: files in local(8) aliases
+	or .forward files. This could result in exhausting stack
+	space (segfault) or file handles (fatal error). This is not
+	a global DOS; it affected at most two parallel delivery
+	processes for the local recipient who created the condition.
+	Reported by Qualys, assisted by Claude Mythos Preview. File:
+	local/include.c.
 
-	Safety: added a global nesting guard. File: local/recipient.c. 
+	Safety: added a global nesting guard. File: local/recipient.c.
+
+20260625
+
+	Hardening: make the handling of the '-v' command-line option
+	consistent with postqueue(1) and postdrop(1). Suggested by
+	Qualys, assisted by Claude Mythos Preview. File: postlog.c.
+
+	Bug (defect introduced: Postfix 2.7, date: 20090617):
+	out-of-memory condition with remote input in the postscreen
+	dummy SMTP engine. This dummy engine is used after PREGREET
+	or DNSBL checks fail, or when "after 220" protocol checks
+	are enabled. Reported by Qualys, assisted by Claude Mythos
+	Preview. File: postscreen_smtpd.c.
+
+	Bug (defect introduced: Postfix 2.10, date: 20120617):
+	uninitialized memory read in postscreen HaProxy client after
+	remote I/O exception, causing garbage to be logged. Reported
+	by Qualys, assisted by Claude Mythos Preview. File:
+	postscreen_haproxy.c.
+
+	Latent bug (defect introduced: Postfix 2.7, date: 20090618):
+	uninitialized memory read after dnsblog(8) returns a string
+	that is not an IPv4 address. Reported by Qualys, assisted
+	by Claude Mythos Preview. File: postscreen_dnsbl.c.
+
+	Bug (defect introduced: Postfix 2.0, date: 20030619): file
+	system DOS: with smtpd_proxy_filter enabled, the before-filter
+	SMTP server did not enforce the message size limit for
+	mailbox From_ lines at the beginning of a message. With
+	smtpd_proxy_filter disabled, the file size limit was still
+	enforced by the cleanup daemon. Reported by Qualys, assisted
+	by Claude Mythos Preview. File: smtpd.c.
+
+	Bug (defect introduced: Postfix 2.1, date: 20030619): SMTP
+	server panic() in smtpd_proxy_filter when handling long
+	mailbox From_ lines at the beginning of a message. Reported
+	by Qualys, assisted by Claude Mythos Preview. File: smtpd.c.
+
+	Bug: (defect introduced: Postfix 3.10, date: 20240925):
+	NULL pointer read in the TLSRPT client, caused by missing
+	STR_OR_NULL() wrappers. Reported by Qualys, assisted by
+	Claude Mythos Preview. File: tlsrpt_wrapper.c.
+
+	Bug (defect introduced: Postfix 3.11, date: 20260219): In
+	the non-BerkeleyDB re-indexing server, vstream_fopen_as()
+	ignored the uid and gid arguments and opened a database
+	source file read-only as the 'postfix' user instead of the
+	file owner. Reported by Qualys, assisted by Claude Mythos
+	Preview. File: open_as.c.
+
+20260627
+
+	Future proofing: use the correct device name in DEV_PATH()
+	macro. Reported by Qualys, assisted by Claude Mythos Preview.
+	File: tlsmgr.c.
+
+	Bug (defect introduced: Postfix 2.2. date: 20040829): after
+	a RAND_bytes() call failure, do not rely on stack-based
+	pseudo-randomness for tlsmgr seed generation, and for timing
+	jitter of tlsmgr seed refresh intervals. Reported by Qualys,
+	assisted by Claude Mythos Preview. File: tlsmgr.c.
+
+	Logging: the qmqpd server logging sometimes swapped the
+	client address and the client name. Reported by Qualys,
+	assisted by Claude Mythos Preview. File: qmqpd.c.
+
+	Bug (defect introduced: Postfix 2.2, date: 20050117):
+	non-transitive comparison of IPv4 addresses. Reported by
+	Qualys, assisted by Claude Mythos Preview. File: sock_addr.c.
+
+	Low (defect introduced: Postfix 3.11, date: 20260219): the
+	non-BerkeleyDB re-indexing server logged only the first
+	line of error output from a failed postmap or postalias
+	process. Reported by Qualys, assisted by Claude Mythos
+	Preview. File: nbdb_index_as.c.
+
+	Bug (defect introduced: Postfix 2.3, date: 20060711): In
+	the Milter client, null-terminate the SMFIR_REPLYCODE
+	response data to exclude stale data when processing the
+	result as a C string. Reported by Qualys, assisted by Claude
+	Mythos Preview. File: milter8.c.
+
+	Bug (defect introduced: Postfix 2.3, date: 20060711):
+	one-byte heap over-write in the Milter client with
+	soft_bounce=yes while processing a malformed SMFIR_REPLYCODE
+	Milter response. An attacker who controls the Milter or who
+	can play attacker-in-the-middle could corrupt heap memory.
+	Reported by Qualys, assisted by Claude Mythos Preview. File:
+	milter8.c.
+
+20260628
+
+	Bug (defect introduced: Postfix < alpha, date: 19971221):
+	a signal handler in the postdrop command could call unlink()
+	with a pathname that was already wiped and free()d, but not
+	yet reused. Reported by Qualys, assisted by Claude Mythos
+	Preview. File: postdrop.c.
 
 TODO
 
