@@ -3636,10 +3636,11 @@ static void receive_data_message(SMTPD_STATE *state,
 	start = vstring_str(state->buffer);
 	len = VSTRING_LEN(state->buffer);
 	if (first) {
+	    /* Qualys+Mythos: DOS in mbox line reading loop. */
 	    if (strncmp(start + strspn(start, ">"), "From ", 5) == 0) {
-		out_fprintf(out_stream, curr_rec_type,
-			    "X-Mailbox-Line: %s", start);
-		continue;
+		/* Qualys+Mythos: panic in smtpd_proxy*rec_fprintf(). */
+		out_record(out_stream, REC_TYPE_CONT, "X-Mailbox-Line: ", 16);
+		state->act_size += 16;
 	    }
 	    first = 0;
 	    if (len > 0 && IS_SPACE_TAB(start[0]))

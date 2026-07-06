@@ -217,6 +217,20 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
 	MSG_LOG_STATE(myname, state);
 
     /*
+     * Global recursion safety check for loops that are not already broken
+     * locally, such as :include: files that directly :include: another
+     * file).
+     */
+    if (state.level > 100) {
+	msg_warn("recipient nesting limit exceeded for %s",
+		 state.msg_attr.rcpt.address);
+	dsb_simple(state.msg_attr.why, "5.4.6",
+		   "recipient nesting limit exceeded");
+	return (bounce_append(BOUNCE_FLAGS(state.request),
+			      BOUNCE_ATTR(state.msg_attr)));
+    }
+
+    /*
      * Duplicate filter.
      */
     if (been_here(state.dup_filter, "recipient %d %s",

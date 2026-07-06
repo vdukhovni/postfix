@@ -269,7 +269,7 @@ static void dgram_server_wakeup(int fd)
 	 /* void */ ;
     if (dgram_server_in_flow_delay && mail_flow_get(1) < 0)
 	doze(var_in_flow_delay * 1000000);
-    if ((len = recv(fd, buf, sizeof(buf), 0)) >= 0)
+    if ((len = recv(fd, buf, sizeof(buf) - 1, 0)) >= 0)
 	dgram_server_service(buf, len, dgram_server_name, dgram_server_argv);
     if (master_notify(var_pid, dgram_server_generation, MASTER_STAT_AVAIL) < 0)
 	dgram_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);

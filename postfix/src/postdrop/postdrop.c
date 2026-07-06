@@ -64,7 +64,7 @@
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a privileged Postfix
+/*	The list of environment variables that a privileged Postfix
 /*	process will import from a non-Postfix parent process, or name=value
 /*	environment overrides.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
@@ -503,8 +503,10 @@ int     main(int argc, char **argv)
 		msg_warn("uid=%ld: remove %s: %m", (long) uid, postdrop_path);
 	    else if (msg_verbose)
 		msg_info("remove %s", postdrop_path);
-	    myfree(postdrop_path);
+	    /* Qualys+Mythos: avoid read-after-free in signal handler. */
+	    junk = postdrop_path;
 	    postdrop_path = 0;
+	    myfree(junk);
 	    exit(0);
 	}
 	if (rec_type == REC_TYPE_ERROR)

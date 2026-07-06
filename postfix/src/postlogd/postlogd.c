@@ -152,6 +152,9 @@ static void postlogd_service(char *buf, ssize_t len, char *unused_service,
 	char   *bp = buf;
 	char   *progname_pid;
 
+	/* 202606 Qualys+Mythos: null-terminate the buffer. */
+	buf[len] = 0;
+
 	/*
 	 * Avoid surprises: strip off the date, time, host, and program[pid]:
 	 * prefix that were prepended by msg_logger(3). Then, hope that the
