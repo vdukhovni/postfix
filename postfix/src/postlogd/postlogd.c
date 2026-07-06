@@ -152,10 +152,10 @@ static void postlogd_fallback(const char *buf)
 static void postlogd_service(int sock, char *unused_service,
 			             char **unused_argv)
 {
-    char    buf[DGRAM_BUF_SIZE];
+    char    buf[DGRAM_BUF_SIZE + 1];
     ssize_t len;
 
-    if ((len = recv(sock, buf, sizeof(buf), 0)) < 0) {
+    if ((len = recv(sock, buf, sizeof(buf) - 1, 0)) < 0) {
 	msg_warn("failed to receive message with recv: %m");
 	return;
     }
@@ -172,6 +172,9 @@ static void postlogd_service(int sock, char *unused_service,
     else {
 	char   *bp = buf;
 	char   *progname_pid;
+
+	/* 202606 Qualys+Mythos: null-terminate the buffer. */
+	buf[len] = 0;
 
 	/*
 	 * Avoid surprises: strip off the date, time, host, and program[pid]:

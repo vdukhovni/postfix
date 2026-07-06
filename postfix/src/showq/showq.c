@@ -180,8 +180,10 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 
     /*
      * Let the optimizer worry about eliminating duplicate code.
+     * 
+     * 202606 Qualys+Mythos: add missing return statement.
      */
-#define SHOWQ_CLEANUP_AND_RETURN { \
+#define SHOWQ_CLEANUP_AND_RETURN do { \
 	if (sender_seen > 0) \
 	    attr_print(client, ATTR_FLAG_NONE, ATTR_TYPE_END); \
 	vstring_free(buf); \
@@ -193,7 +195,8 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	    dsb_free(dsn_buf); \
 	if (dup_filter) \
 	    htable_free(dup_filter, (void (*) (void *)) 0); \
-    }
+	return; \
+    } while (0)
 
     /*
      * XXX addresses in defer logfiles are in printable quoted form, while

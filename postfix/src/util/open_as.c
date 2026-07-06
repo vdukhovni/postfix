@@ -89,7 +89,7 @@ VSTREAM *vstream_fopen_as(const char *path, int flags, mode_t mode,
 {
     int     fd;
 
-    if ((fd = open(path, flags, mode)) < 0)
+    if ((fd = open_as(path, flags, mode, euid, egid)) < 0)
 	return (0);
     return (vstream_fdopen(fd, flags));
 }
