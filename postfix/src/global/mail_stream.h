@@ -72,6 +72,9 @@ CHECK_CPTR_HELPER_DCL(MAIL_STREAM, char);
 extern MAIL_STREAM *mail_stream_file(const char *, const char *, const char *, int);
 extern MAIL_STREAM *mail_stream_service(const char *, const char *);
 extern MAIL_STREAM *mail_stream_command(const char *);
+#ifndef NO_SYSTEMD_SOCKET
+extern MAIL_STREAM *mail_stream_socket(VSTREAM *);
+#endif
 extern void mail_stream_cleanup(MAIL_STREAM *);
 extern int mail_stream_finish(MAIL_STREAM *, VSTRING *);
 extern void mail_stream_ctl(MAIL_STREAM *, int,...);

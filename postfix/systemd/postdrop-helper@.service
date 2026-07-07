@@ -1,0 +1,45 @@
+[Unit]
+Description=Postfix Mail Drop Helper (connection %i)
+Documentation=man:postdrop(1)
+
+[Service]
+Type=simple
+User=postfix
+SupplementaryGroups=maildrop
+
+ExecStart=/usr/sbin/postdrop
+
+# Socket handles stdin and stdout for bidirectional communication
+StandardInput=socket
+StandardOutput=socket
+# Only stderr goes to journal for logging
+StandardError=journal
+SyslogFacility=mail
+# Security hardening
+DeviceAllow=/dev/null rw
+DevicePolicy=strict
+LimitMEMLOCK=0
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateNetwork=yes
+PrivateTmp=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectKernelTunables=yes
+ProtectSystem=strict
+ProtectClock=yes
+ProtectHostname=yes
+RemoveIPC=yes
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+UMask=0077
+# Need write access to queue directory
+ReadWritePaths=/var/spool/postfix/maildrop

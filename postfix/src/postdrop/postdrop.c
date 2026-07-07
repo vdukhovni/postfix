@@ -120,6 +120,10 @@
 
 /* System library. */
 
+#ifndef NO_SYSTEMD_SOCKET
+#define _GNU_SOURCE
+#include <sys/socket.h>
+#endif
 #include <sys_defs.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -325,7 +329,7 @@ int     main(int argc, char **argv)
 	REC_TYPE_POST_ENVELOPE, REC_TYPE_POST_CONTENT, REC_TYPE_POST_EXTRACT, ""
     };
     char  **expected;
-    uid_t   uid = getuid();
+    uid_t   uid;
     ARGV   *import_env;
     const char *error_text;
     char   *attr_name;
@@ -337,6 +341,29 @@ int     main(int argc, char **argv)
     int     from_count = 0;
     int     rcpt_count = 0;
     int     validate_input = 1;
+
+#ifndef NO_SYSTEMD_SOCKET
+    /*
+     * Get the real user UID. When invoked via systemd socket activation,
+     * we need to use SO_PEERCRED to get the actual client's UID instead
+     * of the service user's UID (which getuid() would return).
+     */
+    struct ucred cred;
+    socklen_t len = sizeof(cred);
+
+    if (getsockopt(STDIN_FILENO, SOL_SOCKET, SO_PEERCRED, &cred, &len) == 0) {
+	uid = cred.uid;
+	if (msg_verbose)
+	    msg_info("socket-activated: using peer credentials uid=%ld", (long) uid);
+    } else {
+	/* Not a socket or SO_PEERCRED not available, use getuid() */
+	uid = getuid();
+	if (msg_verbose)
+	    msg_info("direct invocation: using getuid() uid=%ld", (long) uid);
+    }
+#else
+    uid = getuid();
+#endif
 
     /*
      * Fingerprint executables and core dumps.

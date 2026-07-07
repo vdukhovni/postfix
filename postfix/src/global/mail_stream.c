@@ -518,6 +518,40 @@ MAIL_STREAM *mail_stream_command(const char *command)
     }
 }
 
+#ifndef NO_SYSTEMD_SOCKET
+/* mail_stream_socket - wrap a connected socket as a mail stream */
+
+MAIL_STREAM *mail_stream_socket(VSTREAM *stream)
+{
+    MAIL_STREAM *info;
+
+    if (id_buf == 0)
+	id_buf = vstring_alloc(10);
+
+    /*
+     * Read the initial handshake from postdrop, same as mail_stream_command().
+     * The socket is already connected, so we just need to receive the protocol
+     * and queue ID.
+     */
+    if (attr_scan(stream, ATTR_FLAG_STRICT,
+		  RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_POSTDROP),
+		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, id_buf), 0) != 1) {
+	vstream_fclose(stream);
+	return (0);
+    } else {
+	info = (MAIL_STREAM *) mymalloc(sizeof(*info));
+	info->stream = stream;
+	info->finish = mail_stream_finish_ipc;
+	info->close = vstream_fclose;
+	info->queue = 0;
+	info->id = mystrdup(vstring_str(id_buf));
+	info->class = 0;
+	info->service = 0;
+	return (info);
+    }
+}
+#endif
+
 /* mail_stream_ctl - update file-based mail stream properties */
 
 void    mail_stream_ctl(MAIL_STREAM *info, int op,...)

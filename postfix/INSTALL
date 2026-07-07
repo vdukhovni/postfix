@@ -617,6 +617,9 @@ The following is an extensive list of names and values.
 ||-DNO_SNPRINTF 		|default, Postfix uses snprintf() except on   |
 ||				|ancient systems.			      |
 ||______________________________|_____________________________________________|
+||                              |Do not build with systemd socket activation  |
+||-DNO_SYSTEMD_SOCKET           |support.                                     |
+||______________________________|_____________________________________________|
 ||				|Do not build with support for OpenSSL TLS    |
 ||				|traces. Some vendor OpenSSL runtime libraries|
 ||				|are built without support for tracing, and   |

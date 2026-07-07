@@ -1,0 +1,15 @@
+[Unit]
+Description=Postfix Mail Drop Socket
+Documentation=man:postdrop(1)
+
+[Socket]
+Accept=yes
+RemoveOnStop=yes
+ListenStream=/run/postfix/postdrop.socket
+Accept=yes
+PassCredentials=yes
+# Limit concurrent connections to prevent DoS
+MaxConnections=100
+
+[Install]
+WantedBy=sockets.target

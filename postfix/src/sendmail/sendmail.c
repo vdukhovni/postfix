@@ -622,6 +622,67 @@ static int sm_sendopts;
   */
 #define STR	vstring_str
 
+#ifndef NO_SYSTEMD_SOCKET
+/*
+ * Socket path for postdrop helper service
+ */
+#define POSTDROP_SOCKET_PATH "/run/postfix/postdrop.socket"
+
+/* open_postdrop_socket - attempt to connect to postdrop socket */
+
+static MAIL_STREAM *open_postdrop_socket(void)
+{
+    const char  *myname = "open_postdrop_socket";
+    int          fd;
+    VSTREAM     *stream;
+    MAIL_STREAM *info;
+    struct stat  st;
+
+    /*
+     * Check if socket exists and is a socket
+     */
+    if (stat(POSTDROP_SOCKET_PATH, &st) < 0) {
+        if (msg_verbose)
+	    msg_info("%s: socket %s not available: %m", myname, POSTDROP_SOCKET_PATH);
+	return (0);
+    }
+    if (!S_ISSOCK(st.st_mode)) {
+       if (msg_verbose)
+           msg_info("%s: %s exists but is not a socket", myname, POSTDROP_SOCKET_PATH);
+       return (0);
+    }
+
+    /*
+     * Create socket and connect
+     */
+    if ((fd = unix_connect(POSTDROP_SOCKET_PATH, BLOCKING, 1)) < 0) {
+       if (msg_verbose)
+           msg_warn("%s: socket creation failed: %m", myname);
+       return (0);
+    }
+
+    /*
+     * Wrap the socket in a VSTREAM for use with mail_stream protocol
+     * The socket now behaves like a pipe to postdrop
+     */
+    stream = vstream_fdopen(fd, O_RDWR);
+    vstream_control(stream,
+		    CA_VSTREAM_CTL_PATH(POSTDROP_SOCKET_PATH),
+		    CA_VSTREAM_CTL_END);
+
+    if (msg_verbose)
+        msg_info("%s: connected to socket-activated postdrop at %s",
+		 myname, POSTDROP_SOCKET_PATH);
+
+    /*
+     * Create MAIL_STREAM from VSTREAM
+     */
+    info = mail_stream_socket(stream);
+
+    return (info);
+}
+#endif
+
 /* output_text - output partial or complete text line */
 
 static void output_text(void *context, int rec_type, const char *buf, ssize_t len,
@@ -785,19 +846,31 @@ static void enqueue(const int flags, const char *encoding,
 	saved_sender = mystrdup(sender);
     }
 
+ #ifndef NO_SYSTEMD_SOCKET
     /*
-     * Let the postdrop command open the queue file for us, and sanity check
-     * the content. XXX Make postdrop a manifest constant.
+     * Try to use socket-activated postdrop first.
+     * Fall back to postdrop command if socket not available.
      */
-    errno = 0;
-    postdrop_command = vstring_alloc(1000);
-    vstring_sprintf(postdrop_command, "%s/postdrop -r", var_command_dir);
-    for (level = 0; level < msg_verbose; level++)
-	vstring_strcat(postdrop_command, " -v");
-    if ((handle = mail_stream_command(STR(postdrop_command))) == 0)
-	msg_fatal_status(EX_UNAVAILABLE, "%s(%ld): unable to execute %s: %m",
+    if ((handle = open_postdrop_socket()) != 0) {
+      if (msg_verbose)
+          msg_info("using socket-activated postdrop");
+    } else 
+#endif
+    {
+      /*
+       * Let the postdrop command open the queue file for us, and sanity check
+       * the content. XXX Make postdrop a manifest constant.
+       */
+      errno = 0;
+      postdrop_command = vstring_alloc(1000);
+      vstring_sprintf(postdrop_command, "%s/postdrop -r", var_command_dir);
+      for (level = 0; level < msg_verbose; level++)
+	  vstring_strcat(postdrop_command, " -v");
+      if ((handle = mail_stream_command(STR(postdrop_command))) == 0)
+	  msg_fatal_status(EX_UNAVAILABLE, "%s(%ld): unable to execute %s: %m",
 			 saved_sender, (long) uid, STR(postdrop_command));
-    vstring_free(postdrop_command);
+      vstring_free(postdrop_command);
+    }
     dst = handle->stream;
 
     /*
