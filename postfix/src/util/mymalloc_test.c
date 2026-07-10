@@ -130,15 +130,35 @@ static void test_myrealloc_normal(PTEST_CTX *t, const PTEST_CASE *tp)
     myfree(ptr);
 }
 
+static void test_myrealloc_zero(PTEST_CTX *t, const PTEST_CASE *tp)
+{
+    void   *ptr;
+    void *got;
+    void *want;
+
+    ptr = mymalloc(100);
+    got = myrealloc(ptr, 0);
+    want = mymalloc(0);
+    if (got != want)
+	ptest_error(t, "myrealloc: zero length result: got %p, want %p",
+		    got, want);
+
+    /*
+     * myfree() is a NOOP.
+     */
+    myfree(want);
+    myfree(got);
+}
+
 static void test_myrealloc_panic_too_small(PTEST_CTX *t, const PTEST_CASE *tp)
 {
     void   *ptr;
 
-    expect_ptest_log_event(t, "panic: myrealloc: requested length 0");
+    expect_ptest_log_event(t, "panic: myrealloc: requested length -1");
     ptr = mymalloc(100);
     ptest_defer(t, myfree, ptr);
-    (void) myrealloc(ptr, 0);
-    ptest_fatal(t, "myrealloc(_, 0) returned");
+    (void) myrealloc(ptr, -1);
+    ptest_fatal(t, "myrealloc(_, -1) returned");
 }
 
 static void test_myrealloc_fatal_out_of_mem(PTEST_CTX *t, const PTEST_CASE *tp)
@@ -342,6 +362,8 @@ static const PTEST_CASE ptestcases[] = {
     {"myfree panic for null input", test_myfree_panic_null,
     },
     {"myrealloc + myfree normal case", test_myrealloc_normal,
+    },
+    {"myrealloc static result for zero length", test_myrealloc_zero,
     },
     {"myrealloc panic for too small request", test_myrealloc_panic_too_small,
     },

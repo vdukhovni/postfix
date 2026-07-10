@@ -493,7 +493,10 @@ static void qmqpd_write_content(QMQPD_STATE *state)
      * 
      * XXX Deal with UNIX-style From_ lines at the start of message content just
      * in case.
+     * 
+     * 202607 Qualys+Mythos: strncmp() requires null-terminated input.
      */
+    VSTRING_TERMINATE(state->message);
     for (next = STR(state->message); /* void */ ; /* void */ ) {
 	if ((ch = qmqpd_next_line(state->message, &start, &len, &next)) < 0)
 	    break;

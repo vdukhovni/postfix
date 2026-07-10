@@ -639,6 +639,7 @@ static void tlsmgr_service(VSTREAM *client_stream, char *unused_service,
 	 * Load session from cache.
 	 */
 	if (STREQ(STR(request), TLS_MGR_REQ_LOOKUP)) {
+	    VSTRING_RESET(buffer);
 	    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 			  RECV_ATTR_STR(TLS_MGR_ATTR_CACHE_TYPE, cache_type),
 			  RECV_ATTR_STR(TLS_MGR_ATTR_CACHE_ID, cache_id),
@@ -649,13 +650,12 @@ static void tlsmgr_service(VSTREAM *client_stream, char *unused_service,
 		if (ent->cache_label == 0) {
 		    msg_warn("bogus cache type \"%s\" in \"%s\" request",
 			     STR(cache_type), TLS_MGR_REQ_LOOKUP);
-		    VSTRING_RESET(buffer);
 		} else if (ent->cache_info == 0) {
 
 		    /*
 		     * Cache type valid, but not enabled
 		     */
-		    VSTRING_RESET(buffer);
+		     /* void */ ;
 		} else {
 		    status = tls_scache_lookup(ent->cache_info,
 					       STR(cache_id), buffer) ?
@@ -725,16 +725,15 @@ static void tlsmgr_service(VSTREAM *client_stream, char *unused_service,
 	 * RFC 5077 TLS session ticket keys
 	 */
 	else if (STREQ(STR(request), TLS_MGR_REQ_TKTKEY)) {
+	    VSTRING_RESET(buffer);
 	    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 			  RECV_ATTR_DATA(TLS_MGR_ATTR_KEYNAME, buffer),
 			  ATTR_TYPE_END) == 1) {
 		if (LEN(buffer) != 0 && LEN(buffer) != TLS_TICKET_NAMELEN) {
 		    msg_warn("invalid session ticket key name length: %ld",
 			     (long) LEN(buffer));
-		    VSTRING_RESET(buffer);
 		} else if (*smtpd_cache.cache_timeout <= 0) {
 		    status = TLS_MGR_STAT_ERR;
-		    VSTRING_RESET(buffer);
 		} else {
 		    status = tlsmgr_key(buffer, *smtpd_cache.cache_timeout);
 		}
@@ -750,10 +749,10 @@ static void tlsmgr_service(VSTREAM *client_stream, char *unused_service,
 	 * Entropy request.
 	 */
 	else if (STREQ(STR(request), TLS_MGR_REQ_SEED)) {
+	    VSTRING_RESET(buffer);
 	    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 			  RECV_ATTR_INT(TLS_MGR_ATTR_SIZE, &len),
 			  ATTR_TYPE_END) == 1) {
-		VSTRING_RESET(buffer);
 		if (len <= 0 || len > 255) {
 		    msg_warn("bogus seed length \"%d\" in \"%s\" request",
 			     len, TLS_MGR_REQ_SEED);

@@ -31653,6 +31653,41 @@ Apologies for any names omitted.
 	was used in test code. Reported by Qualys, assisted by
 	Claude Mythos Preview. Files: dict.h, dict.c.
 
+20260710
+
+	Code hygiene: the unsafe macro VSTRING_AT_OFFSET() was
+	called with an argument containing the unsafe macro
+	VSTRING_LEN(). This under-estimated the amount of available
+	buffer space (no harm done). Reported by Qualys (not assisted
+	by AI). Files: vstream.c, vstring.h.
+
+	Code hygiene: do not reply with stale data after an error
+	receiving a tlsmgr(8) request. Reported by Qualys, assisted
+	by Claude Mythos Preview. File: tlsmgr.c.
+
+	Code hygiene: in the SMTP client protocol engine, evaluate
+	the RETURN() macro argument before freeing resources.
+	Reported by Qualys, assisted by Claude Mythos Preview. File:
+	smtp_proto.c.
+
+	Code hygiene: myrealloc(ptr, 0) still resulted in a panic.
+	Reported by Qualys, assisted by Claude Mythos Preview.
+	Files: mymalloc.c, mymalloc_test.c.
+
+	Code hygiene: worst-case memory allocation for the
+	smtp_sasl_auth_cache reader. Suggested by Qualys, assisted
+	by Claude Mythos Preview. File: smtp_sasl_auth_cache.c.
+
+	Bug (defect introduced: Postfix 2.4, date: 20051222): null
+	pointer read crash while parsing a malformed Dovecot AUTH
+	server response. Reported by Qualys, assisted by Claude
+	Mythos Preview. File: xsasl_dovecot_server.c.
+
+	Code hygiene: in the qmqpd daemon, explicitly null-terminate
+	message content to prevent strncmp() from reading up to 5
+	bytes of unused VSTRING buffer space. Suggested by Qualys,
+	assisted by Claude Mythos Preview. File: qmqpd.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

@@ -199,7 +199,8 @@ static int smtp_sasl_auth_cache_valid_value(SMTP_SASL_AUTH_CACHE *auth_cache,
 					            const char *entry,
 					            const char *password)
 {
-    ssize_t len = strlen(entry);
+    /* 202607 Qualys+Mythos: reserve space for whole entry incl. terminator. */
+    ssize_t len = strlen(entry + 1);
     char   *cache_hash = mymalloc(len);
     char   *curr_hash;
     unsigned long now = (unsigned long) time((time_t *) 0);

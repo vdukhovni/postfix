@@ -313,7 +313,7 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
 	cmd = line;
 	line = split_at(line, '\t');
 
-	if (strcmp(cmd, "VERSION") == 0) {
+	if (strcmp(cmd, "VERSION") == 0 && line != NULL) {
 	    if (sscanf(line, "%u\t%u", &major_version, &minor_version) != 2) {
 		msg_warn("SASL: Protocol version error");
 		break;

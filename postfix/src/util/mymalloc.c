@@ -197,6 +197,10 @@ void   *myrealloc(void *ptr, ssize_t len)
 #ifndef NO_SHARED_EMPTY_STRINGS
     if (ptr == empty_string)
 	return (mymalloc(len));
+    if (len == 0) {
+	myfree(ptr);
+	return (mymalloc(0));
+    }
 #endif
 
     /*
@@ -204,7 +208,7 @@ void   *myrealloc(void *ptr, ssize_t len)
      * allows us to catch integer overflow problems that weren't already
      * caught up-stream.
      */
-    if (len < 1)
+    if (len < 0)
 	msg_panic("myrealloc: requested length %ld", (long) len);
 #ifdef MYMALLOC_FUZZ
     len += MYMALLOC_FUZZ;

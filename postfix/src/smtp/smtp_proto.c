@@ -1730,7 +1730,10 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 
     /* Caution: changes to RETURN() also affect code outside the main loop. */
 
+    /* 202607 Qualys+Mythos: evaluate argument before freeing resources. */
+
 #define RETURN(x) do { \
+	int _rv = (x); \
 	if (recv_state != SMTP_STATE_LAST) \
 	    DONT_CACHE_THIS_SESSION; \
 	vstring_free(next_command); \
@@ -1738,7 +1741,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    myfree((void *) survivors); \
 	if (session->mime_state) \
 	    session->mime_state = mime_state_free(session->mime_state); \
-	return (x); \
+	return (_rv); \
     } while (0)
 
 #define SENDER_IS_AHEAD \

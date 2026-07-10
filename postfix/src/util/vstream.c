@@ -541,8 +541,6 @@
 
 /* Utility library. */
 
-#define VSTRING_INTERNAL
-
 #include "mymalloc.h"
 #include "msg.h"
 #include "vbuf_print.h"
@@ -1588,7 +1586,7 @@ ssize_t vstream_fread_buf(VSTREAM *fp, VSTRING *vp, ssize_t len)
     VSTRING_SPACE(vp, len);
     ret = vstream_fread(fp, vstring_str(vp), len);
     if (ret > 0)
-	VSTRING_AT_OFFSET(vp, ret);
+	vstring_set_payload_size(vp, ret);
     return (ret);
 }
 
@@ -1601,7 +1599,7 @@ ssize_t vstream_fread_app(VSTREAM *fp, VSTRING *vp, ssize_t len)
     VSTRING_SPACE(vp, len);
     ret = vstream_fread(fp, vstring_end(vp), len);
     if (ret > 0)
-	VSTRING_AT_OFFSET(vp, VSTRING_LEN(vp) + ret);
+	vstring_set_payload_size(vp, VSTRING_LEN(vp) + ret);
     return (ret);
 }
 
