@@ -41,6 +41,7 @@ typedef struct {
 #define NBBIO_FLAG_EOF		(1<<2)
 #define NBBIO_FLAG_ERROR	(1<<3)
 #define NBBIO_FLAG_TIMEOUT	(1<<4)
+#define NBBIO_FLAG_OWN_FD	(1<<5)
 
 #define NBBIO_OP_NAME(np) \
 	(((np)->flags & NBBIO_FLAG_READ) ? "read" : \
@@ -63,6 +64,8 @@ typedef struct {
 
 #define NBBIO_ACTIVE_FLAGS(np)		((np)->flags & NBBIO_MASK_ACTIVE)
 #define NBBIO_ERROR_FLAGS(np)		((np)->flags & NBBIO_MASK_ERROR)
+
+#define nbbio_own_fd(np)		((np)->flags |= NBBIO_FLAG_OWN_FD)
 
 extern NBBIO *nbbio_create(int, ssize_t, const char *, NBBIO_ACTION, void *);
 extern void nbbio_free(NBBIO *);

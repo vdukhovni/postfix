@@ -31688,6 +31688,35 @@ Apologies for any names omitted.
 	bytes of unused VSTRING buffer space. Suggested by Qualys,
 	assisted by Claude Mythos Preview. File: qmqpd.c.
 
+20260713
+
+	Read after free (no privilege escalation) in debug logging
+	in dict_tcp.c, xsasl_dovecot_server.c, master_wakeup.c
+	(defect introduced: Postfix 2.2, date: 20050117). Reported
+	by Qualys, assisted by Claude Mythos Preview. File:
+	util/inet_connect.c.
+
+	Code hygiene: in a NIS+ lookup table name, enforce the '%s'
+	substitution syntax (defect introduced: Postfix 2.2, date:
+	20041018). NIS+ support was removed with Solaris 10.
+	Suggested by Qualys, assisted by Claude Mythos Preview.
+	File: dict_nisplus.c.
+
+	Code hygiene: in clean_ascii_cntrl_space(), don't assume
+	that input will always be null-terminated. Reported by
+	Qualys, assisted by Claude Mythos Preview. File:
+	clean_ascii_cntrl_space.c.
+
+	Code hygiene: in tlsproxy(8), initialize state->ssl_last_err
+	as SSL_ERROR_NONE, instead of the mymalloc() default value
+	(-1). Suggested by Qualys, assisted by Claude Mythos
+	Preview. File: tlsproxy_state.c.
+
+	Bug (defect introduced: Postfix 2.8, date: 20110102): while
+	tearing down a TLS session, tlsproxy(8) closed the same
+	file descriptor twice (without any adverse effect). Files:
+	nbbio.[hc].
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

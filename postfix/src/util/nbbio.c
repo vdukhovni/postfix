@@ -31,6 +31,9 @@
 /*	NBBIO	*np;
 /*	int	timeout;
 /*
+/*	void	nbbio_own_fd(np)
+/*	NBBIO	*np;
+/*
 /*	int	NBBIO_ACTIVE_FLAGS(np)
 /*	NBBIO	*np;
 /*
@@ -71,8 +74,8 @@
 /*	with the application-specified context.
 /*
 /*	nbbio_free() terminates any pseudothreads associated with
-/*	the named buffer pair, closes the stream, and destroys the
-/*	buffer pair.
+/*	the named buffer pair, closes the stream if it is owned, and
+/*	destroys the buffer pair.
 /*
 /*	nbbio_enable_read() enables a read pseudothread (if one
 /*	does not already exist) for the named buffer pair, and
@@ -96,6 +99,8 @@
 /*	the named buffer pair, but keeps the timer active to ensure
 /*	buffer liveness. It is no error to call this function while
 /*	no read/write pseudothread is enabled.
+/*
+/*	nbbio_own_fd() makes the NBBIO owner of the file descriptor.
 /*
 /*	NBBIO_ERROR_FLAGS() returns the error flags for the named buffer
 /*	pair: zero or more of NBBIO_FLAG_EOF (read EOF), NBBIO_FLAG_ERROR
@@ -374,7 +379,9 @@ NBBIO  *nbbio_create(int fd, ssize_t bufsize, const char *label,
 void    nbbio_free(NBBIO *np)
 {
     nbbio_disable_readwrite(np);
-    (void) close(np->fd);
+    /* 202606 Qualys+Mythos: close decriptor only if owner. */
+    if (np->flags & NBBIO_FLAG_OWN_FD)
+	(void) close(np->fd);
     myfree(np->label);
     myfree(np->read_buf);
     myfree(np->write_buf);

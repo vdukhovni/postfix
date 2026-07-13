@@ -124,6 +124,8 @@ TLSP_STATE *tlsp_state_create(const char *service,
     state->client_params = 0;
     state->client_init_props = 0;
     state->client_start_props = 0;
+    /* 200606 Qualys+Mythos: explicit initialization. */
+    state->ssl_last_err = SSL_ERROR_NONE;
 
     return (state);
 }

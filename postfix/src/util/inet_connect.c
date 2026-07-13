@@ -115,8 +115,9 @@ int     inet_connect(const char *addr, int block_mode, int timeout)
 	 * Safety net.
 	 */
 	if (strchr((char *) proto_info->sa_family_list, res->ai_family) == 0) {
+	    /* 202606 Qualys+Mythos: myfree() above frees 'host' and 'port'. */
 	    msg_info("skipping address family %d for host %s",
-		     res->ai_family, host);
+		     res->ai_family, addr);
 	    continue;
 	}
 	found++;

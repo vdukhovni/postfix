@@ -71,7 +71,8 @@ char   *clean_ascii_cntrl_space(VSTRING *result, const char *str, ssize_t len)
 	ch = *(unsigned char *) cp;
 	if (ISCNTRL(ch))
 	    ch = ' ';
-	if (ch == ' ' && (prev_ch == ' ' || cp[1] == 0))
+	/* 202606 Qualys_Mythos: don't assume input is null-terminated. */
+	if (ch == ' ' && (prev_ch == ' ' || cp >= str_end - 1))
 	    continue;
 	VSTRING_ADDCH(result, ch);
 	prev_ch = ch;
