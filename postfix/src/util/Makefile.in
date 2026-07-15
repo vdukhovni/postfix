@@ -48,7 +48,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	inet_addr_sizes.c quote_for_json.c mystrerror.c \
 	sane_sockaddr_to_hostaddr.c normalize_ws.c valid_uri_scheme.c \
 	clean_ascii_cntrl_space.c normalize_v4mapped_addr.c ossl_digest.c \
-	mac_midna.c wrap_stat.c dynamicmaps.c find_inet_service.c wrap_netdb.c
+	mac_midna.c wrap_stat.c dynamicmaps.c find_inet_service.c wrap_netdb.c \
+	wrap_fcntl.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -98,7 +99,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	quote_for_json.o mystrerror.o sane_sockaddr_to_hostaddr.o \
 	normalize_ws.o valid_uri_scheme.o clean_ascii_cntrl_space.o \
 	normalize_v4mapped_addr.o ossl_digest.o mac_midna.o wrap_stat.o \
-	dynamicmaps.o find_inet_service.o wrap_netdb.o
+	dynamicmaps.o find_inet_service.o wrap_netdb.o wrap_fcntl.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -133,13 +134,14 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	known_tcp_ports.h sane_strtol.h hash_fnv.h ldseed.h mkmap.h \
 	inet_prefix_top.h inet_addr_sizes.h valid_uri_scheme.h \
 	clean_ascii_cntrl_space.h normalize_v4mapped_addr.h ossl_digest.h \
-	mac_midna.h wrap_stat.h dynamicmaps.h find_inet_service.h wrap_netdb.h
+	mac_midna.h wrap_stat.h dynamicmaps.h find_inet_service.h wrap_netdb.h \
+	wrap_fcntl.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	sunos5_stream_test.c dup2_pass_on_exec.c argv_test.c dict_pipe_test.c \
 	dict_stream_test.c dict_cli.c dict_union_test.c \
 	find_inet_service_test.c hash_fnv_test.c known_tcp_ports_test.c \
 	msg_output_test.c myaddrinfo_test.c mymalloc_test.c mystrtok_test.c \
-	unescape_test.c allprint_test.c
+	unescape_test.c allprint_test.c myflock_test.c
 DEFS	= -I. -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 FILES	= Makefile $(SRCS) $(HDRS)
@@ -163,7 +165,8 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	dict_union_test dict_pipe_test myaddrinfo_test \
 	clean_env inet_prefix_top printable readlline quote_for_json \
 	normalize_ws valid_uri_scheme clean_ascii_cntrl_space \
-	normalize_v4mapped_addr_test ossl_digest_test allprint_test
+	normalize_v4mapped_addr_test ossl_digest_test allprint_test \
+	myflock_test
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX) \
 	$(LIB_PREFIX)db$(LIB_SUFFIX)
@@ -463,6 +466,9 @@ hash_fnv_test: $(LIB) $(TESTLIBS) update
 	$(CC) $(CFLAGS) -o $@ $@.c $(LIB) $(TESTLIBS) $(SYSLIBS)
 
 allprint_test: $(LIB) $(TESTLIBS) update
+	$(CC) $(CFLAGS) -o $@ $@.c $(LIB) $(TESTLIBS) $(SYSLIBS)
+
+myflock_test: $(LIB) $(TESTLIBS) update
 	$(CC) $(CFLAGS) -o $@ $@.c $(LIB) $(TESTLIBS) $(SYSLIBS)
 
 unix_recv_fd:  $(LIB)
@@ -842,6 +848,9 @@ test_hash_fnv: hash_fnv_test
 
 test_allprint: allprint_test
 	$(SHLIB_ENV) ${VALGRIND} ./allprint_test
+
+test_myflock: myflock_test
+	$(SHLIB_ENV) ${VALGRIND} ./myflock_test
 
 hex_code_test: hex_code
 	$(SHLIB_ENV) ${VALGRIND} ./hex_code
@@ -2750,7 +2759,7 @@ myflock.o: check_arg.h
 myflock.o: msg.h
 myflock.o: myflock.c
 myflock.o: myflock.h
-myflock.o: name_mask.h
+myflock.o: name_code.h
 myflock.o: sys_defs.h
 myflock.o: vbuf.h
 myflock.o: vstring.h
@@ -3387,6 +3396,10 @@ watchdog.o: posix_signals.h
 watchdog.o: sys_defs.h
 watchdog.o: watchdog.c
 watchdog.o: watchdog.h
+wrap_fcntl.o: msg.h
+wrap_fcntl.o: sys_defs.h
+wrap_fcntl.o: wrap_fcntl.c
+wrap_fcntl.o: wrap_fcntl.h
 wrap_netdb.o: sys_defs.h
 wrap_netdb.o: wrap_netdb.c
 wrap_netdb.o: wrap_netdb.h

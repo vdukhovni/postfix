@@ -30,9 +30,6 @@ extern int WARN_UNUSED_RESULT myflock(int, int, int);
 #define MYFLOCK_OP_EXCLUSIVE	2
 #define MYFLOCK_OP_NOWAIT	4
 
-#define MYFLOCK_OP_BITS \
-	(MYFLOCK_OP_SHARED | MYFLOCK_OP_EXCLUSIVE | MYFLOCK_OP_NOWAIT)
-
 /* LICENSE
 /* .ad
 /* .fi
@@ -47,6 +44,9 @@ extern int WARN_UNUSED_RESULT myflock(int, int, int);
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 #endif

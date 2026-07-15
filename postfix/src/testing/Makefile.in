@@ -3,11 +3,11 @@ SRCS	= mock_myaddrinfo.c mock_dns_lookup.c mock_servent.c \
 	mock_getaddrinfo.c match_basic.c match_addr.c make_addr.c \
 	addrinfo_to_string.c make_attr.c match_attr.c \
 	nosleep.c dict_test_helper.c mock_open_as.c mock_spawn_command.c \
-	mock_stat.c msg_capture.c mock_dict.c
+	mock_stat.c msg_capture.c mock_dict.c mock_fcntl.c
 LIB_OBJ	= match_basic.o match_addr.o make_addr.o addrinfo_to_string.o \
 	make_attr.o match_attr.o \
 	dict_test_helper.o mock_open_as.o mock_spawn_command.o \
-	mock_stat.o msg_capture.o mock_dict.o
+	mock_stat.o msg_capture.o mock_dict.o mock_fcntl.o
 MOCK_OBJ= mock_myaddrinfo.o mock_dns_lookup.o mock_servent.o \
 	mock_getaddrinfo.o mock_server.o
 TEST_OBJ = mock_dns_lookup_test.o mock_getaddrinfo_test.o \
@@ -17,7 +17,7 @@ HDRS	= mock_myaddrinfo.h mock_dns.h mock_servent.h mock_getaddrinfo.h \
 	match_basic.h match_addr.h make_addr.h addrinfo_to_string.h \
 	mock_server.h make_attr.h match_attr.h \
 	dict_test_helper.h mock_open_as.h mock_spawn_command.h \
-	mock_stat.h msg_capture.h mock_dict.h
+	mock_stat.h msg_capture.h mock_dict.h mock_fcntl.h
 TESTSRC	=
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -340,6 +340,18 @@ mock_dns_lookup_test.o: ../../include/vstream.h
 mock_dns_lookup_test.o: ../../include/vstring.h
 mock_dns_lookup_test.o: mock_dns.h
 mock_dns_lookup_test.o: mock_dns_lookup_test.c
+mock_fcntl.o: ../../include/argv.h
+mock_fcntl.o: ../../include/binhash.h
+mock_fcntl.o: ../../include/check_arg.h
+mock_fcntl.o: ../../include/msg.h
+mock_fcntl.o: ../../include/msg_jmp.h
+mock_fcntl.o: ../../include/ptest.h
+mock_fcntl.o: ../../include/sys_defs.h
+mock_fcntl.o: ../../include/vbuf.h
+mock_fcntl.o: ../../include/vstream.h
+mock_fcntl.o: ../../include/vstring.h
+mock_fcntl.o: mock_fcntl.c
+mock_fcntl.o: mock_fcntl.h
 mock_getaddrinfo.o: ../../include/argv.h
 mock_getaddrinfo.o: ../../include/check_arg.h
 mock_getaddrinfo.o: ../../include/msg.h

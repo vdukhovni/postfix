@@ -60,6 +60,9 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -81,61 +84,55 @@
 
 #include "msg.h"
 #include "myflock.h"
-#include "name_mask.h"
+#include "name_code.h"
 #include "vstring.h"
+#include <wrap_fcntl.h>
 
 /* myflock - lock/unlock entire open file */
 
 int     myflock(int fd, int lock_style, int operation)
 {
     int     status;
-    const static NAME_MASK lock_masks[] = {
+    const static NAME_CODE lock_style_ux[] = {
 	"MYFLOCK_STYLE_FLOCK", MYFLOCK_STYLE_FLOCK,
 	"MYFLOCK_STYLE_FCNTL", MYFLOCK_STYLE_FCNTL,
 	0,
     };
-    const static NAME_MASK op_masks[] = {
+    const static NAME_CODE lock_req_ux[] = {
+	"MYFLOCK_OP_NONE", MYFLOCK_OP_NONE,
 	"MYFLOCK_OP_SHARED", MYFLOCK_OP_SHARED,
 	"MYFLOCK_OP_EXCLUSIVE", MYFLOCK_OP_EXCLUSIVE,
-	"MYFLOCK_OP_NOWAIT", MYFLOCK_OP_NOWAIT,
 	0,
     };
-
-    if (msg_verbose) {
-	VSTRING *style_buf = vstring_alloc(100);
-	VSTRING *op_buf = vstring_alloc(100);
-
-	msg_info("myflock(%d, %s, %s)", fd,
-		 str_name_mask_opt(style_buf, "lock_style", lock_masks,
-			     lock_style, NAME_MASK_PIPE | NAME_MASK_NUMBER),
-		 operation == MYFLOCK_OP_NONE ? "MYFLOCK_OP_NONE" :
-		 str_name_mask_opt(op_buf, "operation", op_masks,
-			     operation, NAME_MASK_PIPE | NAME_MASK_NUMBER));
-	vstring_free(style_buf);
-	vstring_free(op_buf);
-    }
+    int     nowait_req = (operation & MYFLOCK_OP_NOWAIT);
+    int     lock_req = (operation & ~MYFLOCK_OP_NOWAIT);
 
     /*
      * Sanity check.
      */
-    if ((operation & (MYFLOCK_OP_BITS)) != operation)
+    if (lock_style < MYFLOCK_STYLE_FLOCK || lock_style > MYFLOCK_STYLE_FCNTL)
+	msg_panic("myflock: unsupported lock style: 0x%x", lock_style);
+    if (lock_req < MYFLOCK_OP_NONE || lock_req > MYFLOCK_OP_EXCLUSIVE)
 	msg_panic("myflock: improper operation type: 0x%x", operation);
 
+    if (msg_verbose) {
+	msg_info("myflock(%d, %s, %s%s)", fd,
+		 str_name_code(lock_style_ux, lock_style),
+		 str_name_code(lock_req_ux, lock_req),
+		 nowait_req ? " | MYFLOCK_OP_NOWAIT" : "");
+    }
     switch (lock_style) {
 
 	/*
 	 * flock() does exactly what we need. Too bad it is not standard.
 	 */
 #ifdef HAS_FLOCK_LOCK
-    case MYFLOCK_STYLE_FLOCK:
-	{
-	    static int lock_ops[] = {
-		LOCK_UN, LOCK_SH, LOCK_EX, -1,
-		-1, LOCK_SH | LOCK_NB, LOCK_EX | LOCK_NB, -1
-	    };
+    case MYFLOCK_STYLE_FLOCK:{
+	    static int flock_reqs[] = {LOCK_UN, LOCK_SH, LOCK_EX,};
+	    int     flock_req = flock_reqs[lock_req]
+	    | (nowait_req ? LOCK_NB : 0);
 
-	    while ((status = flock(fd, lock_ops[operation])) < 0
-		   && errno == EINTR)
+	    while ((status = flock(fd, flock_req)) < 0 && errno == EINTR)
 		sleep(1);
 	    break;
 	}
@@ -146,19 +143,15 @@ int     myflock(int fd, int lock_style, int operation)
 	 * it.
 	 */
 #ifdef HAS_FCNTL_LOCK
-    case MYFLOCK_STYLE_FCNTL:
-	{
+    case MYFLOCK_STYLE_FCNTL:{
 	    struct flock lock;
-	    int     request;
-	    static int lock_ops[] = {
-		F_UNLCK, F_RDLCK, F_WRLCK
-	    };
+	    static int fcntl_lock_reqs[] = {F_UNLCK, F_RDLCK, F_WRLCK,};
+	    int     fcntl_req = (nowait_req ? F_SETLK : F_SETLKW);
 
 	    memset((void *) &lock, 0, sizeof(lock));
-	    lock.l_type = lock_ops[operation & ~MYFLOCK_OP_NOWAIT];
-	    request = (operation & MYFLOCK_OP_NOWAIT) ? F_SETLK : F_SETLKW;
-	    while ((status = fcntl(fd, request, &lock)) < 0
-		   && errno == EINTR)
+	    lock.l_type = fcntl_lock_reqs[lock_req];
+
+	    while ((status = fcntl(fd, fcntl_req, &lock)) < 0 && errno == EINTR)
 		sleep(1);
 	    break;
 	}
@@ -173,7 +166,7 @@ int     myflock(int fd, int lock_style, int operation)
      * Return a consistent result. Some systems return EACCES when a lock is
      * taken by someone else, and that would complicate error processing.
      */
-    if (status < 0 && (operation & MYFLOCK_OP_NOWAIT) != 0)
+    if (status < 0 && nowait_req)
 	if (errno == EWOULDBLOCK || errno == EACCES)
 	    errno = EAGAIN;
 

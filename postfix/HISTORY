@@ -31717,6 +31717,13 @@ Apologies for any names omitted.
 	file descriptor twice (without any adverse effect). Files:
 	nbbio.[hc].
 
+20260715
+
+	Code hygiene: myflock() did not reject all invalid requests.
+	Reported by Qualys, assisted by Claude Mythos Preview. Also
+	added proper unit tests. Files: myflock.[hc], myflock_test.c,
+	wrap_fcntl.[hc], mock_fcntl.[hc].
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.
