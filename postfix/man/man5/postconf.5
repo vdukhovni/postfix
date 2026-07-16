@@ -14931,6 +14931,12 @@ in RFC 6531, RFC 6532, and RFC 6533. This requires that Postfix is
 built to support these protocols.
 .PP
 This feature is available in Postfix 3.0 and later.
+.SH socketmap_max_query_size (default: 10000)
+The maximum allowed query size for a socketmap client, not
+including the socketmap and netstring encapsulation. A request that
+exceeds the limit generates a warning and a 'not found' result.
+.PP
+This feature is available in Postfix >= 3.12.
 .SH socketmap_max_reply_size (default: 100000)
 The maximum allowed reply size from a socketmap server, not
 including the netstring encapsulation.

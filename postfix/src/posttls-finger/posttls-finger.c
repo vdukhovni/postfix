@@ -1913,7 +1913,6 @@ static void usage(void)
 static BIO *posttls_trace_open(void *arg, const char *trace_peer)
 {
     STATE  *state = (STATE *) arg;
-    struct timeval tv;
     FILE   *fp;
     BIO    *bio;
 

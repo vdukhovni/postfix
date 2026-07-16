@@ -4138,6 +4138,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			 IF_ENCRYPTED(state->tls_context->cipher_name, "")),
 			  SEND_ATTR_INT(MAIL_ATTR_CRYPTO_KEYSIZE,
 		       IF_ENCRYPTED(state->tls_context->cipher_usebits, 0)),
+			  SEND_ATTR_STR(MAIL_ATTR_TLS_SNI,
+			    IF_ENCRYPTED(state->tls_context->peer_sni, "")),
 #endif
 			  SEND_ATTR_STR(MAIL_ATTR_POL_CONTEXT,
 					policy_clnt->policy_context),

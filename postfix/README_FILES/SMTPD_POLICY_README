@@ -88,6 +88,8 @@ a delegated SMTPD access policy request:
     PPoossttffiixx vveerrssiioonn 33..88 aanndd llaatteerr::
     compatibility_level=major.minor.patch
     mail_version=3.8.0
+    PPoossttffiixx vveerrssiioonn 33..1122 aanndd llaatteerr::
+    tls_sni=mail.example.com
     [empty line]
 
 Notes:
@@ -157,6 +159,11 @@ Notes:
   * The "encryption_*" attributes (Postfix 2.3 and later) specify information
     about how the connection is encrypted. With plaintext connections the
     protocol and cipher attributes are empty and the keysize is zero.
+
+  * The "tls_sni" attribute (Postfix 3.12 and later) specifies the server name
+    indication that the remote SMTP client sent in the TLS handshake. This
+    attribute is empty for plaintext connections and when the remote SMTP
+    client sends no SNI.
 
   * The "etrn_domain" attribute is defined only in the context of the ETRN
     command, and specifies the ETRN command parameter.

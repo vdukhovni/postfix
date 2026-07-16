@@ -19947,6 +19947,15 @@ including the netstring encapsulation. </p>
 
 <p> This feature is available in Postfix &ge; 3.10. </p>
 
+%PARAM socketmap_max_query_size 10000
+
+<p> The maximum allowed query size for a socketmap client, not
+including the socketmap and netstring encapsulation. A request that
+exceeds the limit generates a warning and a 'not found' result.
+</p>
+
+<p> This feature is available in Postfix &ge; 3.12. </p>
+
 %PARAM tls_required_enable yes
 
 <p> Enable support for the "TLS-Required: no" message header, defined

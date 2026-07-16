@@ -186,6 +186,7 @@ extern void milter_free(MILTERS *);
 #define S8_MAC_TLS_VERSION	"{tls_version}"
 #define S8_MAC_CIPHER		"{cipher}"
 #define S8_MAC_CIPHER_BITS	"{cipher_bits}"
+#define S8_MAC_TLS_SNI		"{tls_sni}"
 #define S8_MAC_CERT_SUBJECT	"{cert_subject}"
 #define S8_MAC_CERT_ISSUER	"{cert_issuer}"
 

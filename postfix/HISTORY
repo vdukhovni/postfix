@@ -31724,6 +31724,28 @@ Apologies for any names omitted.
 	added proper unit tests. Files: myflock.[hc], myflock_test.c,
 	wrap_fcntl.[hc], mock_fcntl.[hc].
 
+20260716
+
+	Feature: support for the "tls_sni" attribute in the SMTP
+	server policy delegation protocol, and for the "{tls_sni}"
+	macro in the Milter protocol. This also corrects a MILTER_README
+	table with macro availability (TLS-related macros are not
+	available in the EOH and EOM Milter protocol stages).
+	Contributed by Steve Short (fortra.com). Files:
+	MILTER_README.html, SMTPD_POLICY_README.html, mail_proto.h,
+	milter.h, test-milter.c, smtpd_check.c, smtpd_milter.c.
+
+	Cleanup: removed unused variables. Viktor Dukhovni. Files:
+	posttls-finger.c, tls_server.c.
+
+	Typofixes. Files: proto/stop, nbbio.c, dict_nisplus.c.
+
+	Feature: socketmap_max_query_size (default: 10000) limits
+	the length in bytes for a socketmap search key. A request
+	that exceeds the limit produces a warning and a 'not found'
+	result. Files: postlink, socketmap_table, dict_sockmap.[hc],
+	global/mail_params.[hc].
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

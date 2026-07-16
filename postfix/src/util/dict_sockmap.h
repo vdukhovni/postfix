@@ -23,6 +23,7 @@
 
 extern DICT *dict_sockmap_open(const char *, int, int);
 extern int dict_sockmap_max_reply;
+extern int dict_sockmap_max_query;
 
 /* LICENSE
 /* .ad

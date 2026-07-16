@@ -208,6 +208,7 @@ static const char *macro_names[] = {
     "{rcpt_host}",
     "{rcpt_mailer}",
     "{tls_version}",
+    "{tls_sni}",
     0,
 };
 

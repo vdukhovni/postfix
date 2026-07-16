@@ -379,7 +379,7 @@ NBBIO  *nbbio_create(int fd, ssize_t bufsize, const char *label,
 void    nbbio_free(NBBIO *np)
 {
     nbbio_disable_readwrite(np);
-    /* 202606 Qualys+Mythos: close decriptor only if owner. */
+    /* 202606 Qualys+Mythos: close descriptor only if owner. */
     if (np->flags & NBBIO_FLAG_OWN_FD)
 	(void) close(np->fd);
     myfree(np->label);

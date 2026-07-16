@@ -112,6 +112,7 @@ typedef struct {
   */
 #define DICT_SOCKMAP_DEF_TIMEOUT	100	/* connect/read/write timeout */
 #define DICT_SOCKMAP_DEF_MAX_REPLY	100000	/* reply size limit */
+#define DICT_SOCKMAP_DEF_MAX_QUERY	10000	/* query size limit */
 #define DICT_SOCKMAP_DEF_MAX_IDLE	10	/* close idle socket */
 #define DICT_SOCKMAP_DEF_MAX_TTL	100	/* close old socket */
 
@@ -120,6 +121,7 @@ typedef struct {
   */
 static int dict_sockmap_timeout = DICT_SOCKMAP_DEF_TIMEOUT;
 int     dict_sockmap_max_reply = DICT_SOCKMAP_DEF_MAX_REPLY;
+int     dict_sockmap_max_query = DICT_SOCKMAP_DEF_MAX_QUERY;
 static int dict_sockmap_max_idle = DICT_SOCKMAP_DEF_MAX_IDLE;
 static int dict_sockmap_max_ttl = DICT_SOCKMAP_DEF_MAX_TTL;
 
@@ -171,6 +173,17 @@ static const char *dict_sockmap_lookup(DICT *dict, const char *key)
 
     if (msg_verbose)
 	msg_info("%s: key %s", myname, key);
+
+    /*
+     * Enforce the query size limit. As with UTF-8, an invalid key "does not
+     * exist".
+     */
+    if (dict_sockmap_max_query > 0 && strlen(key) > dict_sockmap_max_query) {
+	msg_warn("table %s:%s query too large: '%.100s', returning 'not found'",
+		 dict->type, dict->name, key);
+	dict->error = 0;
+	return (0);
+    }
 
     /*
      * Optionally fold the key.

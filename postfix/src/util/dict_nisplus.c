@@ -286,7 +286,7 @@ DICT   *dict_nisplus_open(const char *map, int open_flags, int dict_flags)
      * is that the comma character is special in main.cf. When no column
      * number is given at the end of the map name, we use a default column.
      * 
-     * 2026506 Qualys+Mythos: enforce template substution syntax.
+     * 2026506 Qualys+Mythos: enforce template substitution syntax.
      */
     if ((cp = strchr(map, '%')) == 0 || strncmp(cp, "%s", 2) != 0
 	|| strchr(cp + 2, '%') != 0)

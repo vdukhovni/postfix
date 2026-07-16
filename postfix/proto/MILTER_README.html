@@ -704,16 +704,16 @@ verification fails: "unknown" </td> </tr>
 <td> Client name from address &rarr; name lookup <br> When address
 &rarr; name lookup fails: "unknown" </td> </tr>
 
-<tr> <td> {cert_issuer} </td> <td> HELO, MAIL, DATA, EOH, EOM </td> <td>
+<tr> <td> {cert_issuer} </td> <td> HELO, MAIL, DATA </td> <td>
 TLS client certificate issuer </td> </tr>
 
-<tr> <td> {cert_subject} </td> <td> HELO, MAIL, DATA, EOH, EOM </td>
+<tr> <td> {cert_subject} </td> <td> HELO, MAIL, DATA </td>
 <td> TLS client certificate subject </td> </tr>
 
-<tr> <td> {cipher_bits} </td> <td> HELO, MAIL, DATA, EOH, EOM </td> <td>
+<tr> <td> {cipher_bits} </td> <td> HELO, MAIL, DATA </td> <td>
 TLS session key size </td> </tr>
 
-<tr> <td> {cipher} </td> <td> HELO, MAIL, DATA, EOH, EOM </td> <td> TLS
+<tr> <td> {cipher} </td> <td> HELO, MAIL, DATA </td> <td> TLS
 cipher </td> </tr>
 
 <tr> <td> {daemon_addr} </td> <td> Always (Postfix &ge;3.2) </td>
@@ -745,7 +745,10 @@ rejected recipient: enhanced status code </td> </tr>
 smtpd_milters) </td> <td> Recipient mail delivery transport <br>
 With rejected recipient: "error" </td> </tr>
 
-<tr> <td> {tls_version} </td> <td> HELO, MAIL, DATA, EOH, EOM </td>
+<tr> <td> {tls_sni} </td> <td> HELO, MAIL, DATA (Postfix &ge;3.12)
+</td> <td> TLS server name indication </td> </tr>
+
+<tr> <td> {tls_version} </td> <td> HELO, MAIL, DATA </td>
 <td> TLS protocol version </td> </tr>
 
 <tr> <td> v </td> <td> Always </td> <td> value of milter_macro_v

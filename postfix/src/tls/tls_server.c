@@ -425,7 +425,6 @@ static int trust_server_ccerts(X509_STORE_CTX *ctx, void *unused)
 TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 {
     SSL_CTX *server_ctx;
-    X509_STORE *cert_store;
     long    off = 0;
     int     verify_flags = SSL_VERIFY_NONE;
     int     cachable;

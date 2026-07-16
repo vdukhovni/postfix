@@ -136,6 +136,8 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
 			IF_ENCRYPTED(state->tls_context->cipher_usebits));
 	return (STR(state->expand_buf));
     }
+    if (strcmp(name, S8_MAC_TLS_SNI) == 0)
+	return (IF_ENCRYPTED(state->tls_context->peer_sni));
     if (strcmp(name, S8_MAC_CERT_SUBJECT) == 0)
 	return (IF_TRUSTED(state->tls_context->peer_CN));
     if (strcmp(name, S8_MAC_CERT_ISSUER) == 0)

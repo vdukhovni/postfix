@@ -4634,6 +4634,10 @@ extern char *var_full_name_encoding_charset;
 #define DEF_SOCKMAP_MAX_REPLY  100000	/* reply size limit */
 extern int var_sockmap_max_reply;
 
+#define VAR_SOCKMAP_MAX_QUERY  "socketmap_max_query_size"
+#define DEF_SOCKMAP_MAX_QUERY  10000	/* query size limit */
+extern int var_sockmap_max_query;
+
  /*
   * Client privacy.
   */

@@ -368,6 +368,7 @@ bool    var_verify_neg_cache;
 bool    var_oldlog_compat;
 int     var_delay_max_res;
 int     var_sockmap_max_reply;
+int     var_sockmap_max_query;
 char   *var_int_filt_classes;
 bool    var_cyrus_sasl_authzid;
 
@@ -903,6 +904,7 @@ void    mail_params_init()
 	VAR_DELAY_MAX_RES, DEF_DELAY_MAX_RES, &var_delay_max_res, MIN_DELAY_MAX_RES, MAX_DELAY_MAX_RES,
 	VAR_INET_WINDOW, DEF_INET_WINDOW, &var_inet_windowsize, 0, 0,
 	VAR_SOCKMAP_MAX_REPLY, DEF_SOCKMAP_MAX_REPLY, &var_sockmap_max_reply, 1, 0,
+	VAR_SOCKMAP_MAX_QUERY, DEF_SOCKMAP_MAX_QUERY, &var_sockmap_max_query, 1, 0,
 	0,
     };
     static const CONFIG_LONG_TABLE long_defaults[] = {
@@ -1057,6 +1059,7 @@ void    mail_params_init()
     dict_db_cache_size = var_db_read_buf;
     dict_lmdb_map_size = var_lmdb_map_size;
     dict_sockmap_max_reply = var_sockmap_max_reply;
+    dict_sockmap_max_query = var_sockmap_max_query;
     inet_windowsize = var_inet_windowsize;
     if (set_logwriter_create_perms(var_maillog_file_perms) < 0)
 	msg_warn("ignoring bad permissions: %s = %s",

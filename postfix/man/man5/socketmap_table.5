@@ -78,6 +78,11 @@ encapsulation). This limit can be changed with the
 socketmap_max_reply_size configuration parameter (Postfix 3.10
 and later).
 
+The Postfix socketmap client requires that queries are no longer
+than 10000 bytes (not including the netstring encapsulation). This
+limit can be changed with the socketmap_max_query_size
+configuration parameter (Postfix 3.12 and later).
+
 The Postfix socketmap client enforces a 100s time limit to
 connect to a socketmap server, to send a request, and to receive
 a reply. It closes an idle connection after 10s, and closes

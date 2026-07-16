@@ -207,6 +207,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_CRYPTO_PROTOCOL "encryption_protocol"
 #define MAIL_ATTR_CRYPTO_CIPHER	"encryption_cipher"
 #define MAIL_ATTR_CRYPTO_KEYSIZE "encryption_keysize"
+#define MAIL_ATTR_TLS_SNI	"tls_sni"
 #define MAIL_ATTR_COMPAT_LEVEL	"compatibility_level"
 #define MAIL_ATTR_MAIL_VERSION	"mail_version"
 
