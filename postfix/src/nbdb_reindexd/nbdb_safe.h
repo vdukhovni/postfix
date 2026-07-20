@@ -25,6 +25,7 @@
   * Internal API.
   */
 extern bool nbdb_safe_for_uid(uid_t, const struct stat *);
+extern bool nbdb_safe_parent_for_uid(uid_t, const char *, const struct stat *);
 extern bool nbdb_safe_to_index_as_legacy_index_owner(
 				          const char *, const struct stat *,
 				          const char *, const struct stat *,

@@ -365,3 +365,5 @@ application  application specific
 void  void defer_ctx 
  To undo a ptest_defer call call the function with a
 charset  charset 
+nbdb_safe_for_uid  nbdb_safe_for_uid owned by the user or root not group or other writable 
+ Qualys Mythos 202606 int unsigned unsigned is non transitive 

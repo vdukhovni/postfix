@@ -139,6 +139,10 @@ int     nbdb_clnt_request(const char *type, const char *path,
     int     status;
     int     count;
 
+    /* 202607 Qualys+Mythos: try at least once. */
+    if (max_try < 1)
+	msg_panic("%s: bad max_try: %d", __func__, max_try);
+
     /*
      * A custom client endpoint that tries only a few times and that may be
      * called by:

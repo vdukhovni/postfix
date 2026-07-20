@@ -303,7 +303,8 @@
 /*	(these don't support \fBdane\fR or \fBdane-only\fR as no DNSSEC
 /*	validation information is available via \fBnative\fR lookups).
 /* .IP "\fBunix:\fIpathname\fR"
-/*	Connect to the UNIX-domain socket at \fIpathname\fR. LMTP only.
+/*	Connect to the UNIX-domain socket at \fIpathname\fR. This feature
+/*	requires "\fB-S\fR".
 /* .IP "\fBmatch ...\fR"
 /*	With no match arguments specified, certificate peername matching uses
 /*	the compiled-in default strategies for each security level.  If you
@@ -1715,11 +1716,15 @@ static int connect_dest(STATE *state)
      */
     if (state->smtp == 0) {
 	if (strncmp(dest, "unix:", 5) == 0) {
+	    /* 202607 Qualys+Mythos: handle unix-domain success. */
 	    state->stream = connect_unix(state, dest + 5);
-	    if (!state->stream)
+	    if (state->stream) {
+		return (0);
+	    } else {
 		msg_info("Failed to establish session to %s: %s",
 			 dest, vstring_str(state->why->reason));
-	    return (1);
+		return (1);
+	    }
 	}
 	if (strncmp(dest, "inet:", 5) == 0)
 	    dest += 5;

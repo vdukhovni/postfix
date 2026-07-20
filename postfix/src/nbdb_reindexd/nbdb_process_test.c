@@ -102,6 +102,8 @@ typedef struct TEST_CASE {
     MOCK_STAT_REQ mock_stat_source;
     MOCK_STAT_REQ mock_stat_leg_idx;
     MOCK_STAT_REQ mock_stat_parent;
+    MOCK_STAT_REQ mock_stat_slash_path;	/* "/path" */
+    MOCK_STAT_REQ mock_stat_slash;	/* "/" */
     MOCK_STAT_REQ mock_stat_new_idx;
     MOCK_OPEN_AS_REQ mock_open;
     MOCK_SPAWN_CMD_REQ mock_spawn;
@@ -143,6 +145,7 @@ static int test_nbdb_process(const TEST_CASE *tp)
     nbdb_util_init(tp->params.migr_level);
     setup_mock_cdb("{{x = x}}");
     setup_mock_lmdb("{{x = x}}");
+    teardown_mock_stat();
     if (nbdb_level >= NBDB_LEV_CODE_REINDEX) {
 	var_nbdb_allow_root_pfxs = (char *) tp->params.allow_root_pfxs;
 	var_nbdb_allow_user_pfxs = (char *) tp->params.allow_user_pfxs;
@@ -154,6 +157,8 @@ static int test_nbdb_process(const TEST_CASE *tp)
 	setup_mock_stat(&tp->mock_stat_leg_idx);
 	setup_mock_stat(&tp->mock_stat_parent);
 	setup_mock_stat(&tp->mock_stat_new_idx);
+	setup_mock_stat(&tp->mock_stat_slash_path);
+	setup_mock_stat(&tp->mock_stat_slash);
 	setup_mock_vstream_fopen_as(&tp->mock_open);
 	setup_mock_spawn_command(&tp->mock_spawn);
     }
@@ -222,6 +227,16 @@ static const TEST_CASE test_cases[] = {
 	    .out_errno = 0,
 	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
 	},
+	.mock_stat_slash_path = {
+	    .want_path = "/path",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
+	.mock_stat_slash = {
+	    .want_path = "/",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
 	.mock_stat_new_idx = {
 	    .want_path = "/path/to/file.cdb",
 	    .out_errno = ENOENT,
@@ -286,6 +301,16 @@ static const TEST_CASE test_cases[] = {
 	    .out_errno = 0,
 	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
 	},
+	.mock_stat_slash_path = {
+	    .want_path = "/path",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
+	.mock_stat_slash = {
+	    .want_path = "/",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
 	.mock_stat_new_idx = {
 	    .want_path = "/path/to/file.cdb",
 	    .out_errno = ENOENT,
@@ -338,6 +363,16 @@ static const TEST_CASE test_cases[] = {
 	    .out_errno = 0,
 	    .out_st = {.st_mode = S_IWGRP,.st_uid = 0,.st_gid = 0,},
 	},
+	.mock_stat_slash_path = {
+	    .want_path = "/path",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
+	.mock_stat_slash = {
+	    .want_path = "/",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
 	.mock_stat_new_idx = {
 	    .want_path = "/path/to/file.cdb",
 	    .out_errno = ENOENT,
@@ -376,6 +411,16 @@ static const TEST_CASE test_cases[] = {
 	},
 	.mock_stat_parent = {
 	    .want_path = "/path/to",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
+	.mock_stat_slash_path = {
+	    .want_path = "/path",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
+	.mock_stat_slash = {
+	    .want_path = "/",
 	    .out_errno = 0,
 	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
 	},
@@ -430,6 +475,16 @@ static const TEST_CASE test_cases[] = {
 		.st_mode = S_IRWXU,.st_uid = 1,.st_gid = 0,
 	    },
 	},
+	.mock_stat_slash_path = {
+	    .want_path = "/path",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
+	.mock_stat_slash = {
+	    .want_path = "/",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
 	.mock_stat_new_idx = {
 	    .want_path = "/path/to/file.cdb",
 	    .out_errno = ENOENT,
@@ -470,6 +525,16 @@ static const TEST_CASE test_cases[] = {
 	    .want_path = "/path/to",
 	    .out_errno = 0,
 	    .out_st = {.st_mode = S_IRWXU,.st_uid = 1,.st_gid = 0,},
+	},
+	.mock_stat_slash_path = {
+	    .want_path = "/path",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
+	.mock_stat_slash = {
+	    .want_path = "/",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
 	},
 	.mock_stat_new_idx = {
 	    .want_path = "/path/to/file.cdb",
@@ -524,13 +589,23 @@ static const TEST_CASE test_cases[] = {
 	    .out_errno = 0,
 	    .out_st = {.st_mode = S_IRWXU,.st_uid = 1,.st_gid = 0,},
 	},
+	.mock_stat_slash_path = {
+	    .want_path = "/path",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
+	.mock_stat_slash = {
+	    .want_path = "/",
+	    .out_errno = 0,
+	    .out_st = {.st_mode = S_IRWXU,.st_uid = 0,.st_gid = 0,},
+	},
 	.mock_stat_new_idx = {
 	    .want_path = "/path/to/file.cdb",
 	    .out_errno = ENOENT,
 	},
 	.mock_open = {
 	    .want_path = "/path/to/file",
-	    .want_uid = 0,
+	    .want_uid = 1,
 	    .want_gid = 0,
 	    .out_errno = 0,
 	    .out_data = "foo bar\nfoo :bar",

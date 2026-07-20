@@ -81,13 +81,13 @@ VSTREAM *vstream_fopen_as(const char *path, int flags, mode_t mode,
 
     /* TODO(wietse) replace with match_str() and match_decimal(). */
     if (strcmp(path, mock_req.want_path) != 0)
-	msg_fatal("vstream_fopen: got path '%s', want '%s'",
+	msg_fatal("vstream_fopen_as: got path '%s', want '%s'",
 		  path, mock_req.want_path);
     if (uid != mock_req.want_uid)
-	msg_fatal("vstream_fopen: got uid '%d', want '%d'",
+	msg_fatal("vstream_fopen_as: got uid '%d', want '%d'",
 		  (int) uid, (int) mock_req.want_uid);
     if (gid != mock_req.want_gid)
-	msg_fatal("vstream_fopen: got gid '%d', want '%d'",
+	msg_fatal("vstream_fopen_as: got gid '%d', want '%d'",
 		  (int) gid, (int) mock_req.want_gid);
 
     if (mock_req.out_errno != 0) {

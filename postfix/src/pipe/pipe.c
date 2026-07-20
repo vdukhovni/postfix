@@ -765,12 +765,6 @@ static ARGV *expand_argv(const char *service, char **argv,
 		 * Either anything to the left of the extension delimiter or,
 		 * in absence of the latter, anything to the left of the
 		 * rightmost @.
-		 * 
-		 * Beware: if the user name is blank (e.g. +user@host), the
-		 * argument is suppressed. This is necessary to allow for
-		 * cyrus bulletin-board (global mailbox) delivery. XXX But,
-		 * skipping empty user parts will also prevent other
-		 * expansions of this specific command-line argument.
 		 */
 		if (state.expand_flag & PIPE_FLAG_USER) {
 		    morph_recipient(buf, rcpt_list->info[i].address,
@@ -780,8 +774,7 @@ static ARGV *expand_argv(const char *service, char **argv,
 				 rcpt_list->info[i].address);
 		    if (*var_rcpt_delim)
 			split_addr(STR(buf), var_rcpt_delim);
-		    if (*STR(buf) == 0)
-			continue;
+		    /* 202607 Qualys+Mythos: don't skip arg if $user is "".*/
 		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_USER, STR(buf));
 		}
 

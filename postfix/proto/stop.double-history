@@ -266,3 +266,4 @@ proto  proto stop proto stop double cc
  are not printable or whitespace Files smtpd smtpd c 
  support File smtpd smtpd c 
  sendmail sendmail c 
+ postqueue postqueue c 

@@ -415,7 +415,7 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     struct stat st;
     DBM    *dbm;
     char   *dbm_path = 0;
-    int     lock_fd;
+    int     lock_fd = -1;
 
     /*
      * Let the optimizer worry about eliminating redundant code.
@@ -424,6 +424,8 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
 	DICT *__d = (d); \
 	if (dbm_path != 0) \
 	    myfree(dbm_path); \
+	if (lock_fd >= 0) \
+	    (void) close(lock_fd); \
 	return (__d); \
     } while (0)
 
@@ -459,6 +461,7 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
 	    msg_fatal("unlock database %s for open: %m", dbm_path);
 	if (close(lock_fd) < 0)
 	    msg_fatal("close database %s: %m", dbm_path);
+	lock_fd = -1;
     }
     dict_dbm = (DICT_DBM *) dict_alloc(DICT_TYPE_DBM, path, sizeof(*dict_dbm));
     dict_dbm->dict.lookup = dict_dbm_lookup;

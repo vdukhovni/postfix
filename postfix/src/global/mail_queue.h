@@ -110,7 +110,9 @@ extern int mail_queue_id_ok(const char *);
 	if (((long_form) = MQID_FIND_LG_INUM_SEPARATOR(_cp, (path))) != 0) { \
 	    MQID_LG_DECODE_INUM(_cp + 1, (inum), (error)); \
 	} else { \
-	    MQID_SH_DECODE_INUM((path) + MQID_SH_USEC_PAD, (inum), (error)); \
+	    if (strlen(path) > MQID_SH_USEC_PAD) \
+	      MQID_SH_DECODE_INUM((path) + MQID_SH_USEC_PAD, (inum), (error)); \
+	    else { (errno) = EINVAL; error = 1; } \
 	} \
     } while (0)
 

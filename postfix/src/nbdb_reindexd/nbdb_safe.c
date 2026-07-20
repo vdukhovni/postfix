@@ -10,6 +10,11 @@
 /*	uid_t	uid,
 /*	const struct stat *st)
 /*
+/*	bool    nbdb_safe_parent_for_uid(
+/*	uid_t	uid,
+/*	const char *parent_dir,
+/*	const struct stat *parent_dir_st)
+/*
 /*	bool    nbdb_safe_to_index_as_legacy_index_owner(
 /*	const char *source_path,
 /*	const struct stat *source_st,
@@ -25,6 +30,11 @@
 /*	allow 'group' or 'other' write access.	This predicate ignores
 /*	the safety of other pathname components. It is a good idea to
 /*	trust only a limited number of pathname prefixes.
+/*
+/*	nbdb_safe_parent_for_uid() implements nbdb_safe_for_uid()
+/*	for the directories in the specified pathname. When a pathname
+/*	element contains a symlink, this function will examine the
+/*	symlink target but not the target's parent directories.
 /*
 /*	nbdb_safe_to_index_as_legacy_index_owner() determines
 /*	if a Berkeley DB source file and parent directory are 'safe'
@@ -55,6 +65,8 @@
   */
 #include <sys_defs.h>
 #include <sys/stat.h>
+#include <string.h>
+#include <libgen.h>
 
  /*
   * Utility library.
@@ -67,12 +79,45 @@
 #include <allowed_prefix.h>
 #include <mail_conf.h>
 #include <mail_params.h>
+#include <msg.h>
+#include <mymalloc.h>
+#include <wrap_stat.h>
 
  /*
   * Application-specific.
   */
 #include <nbdb_safe.h>
 #include <nbdb_reindexd.h>
+
+/* nbdb_safe_parent_for_uid - simple pathname safety */
+
+bool    nbdb_safe_parent_for_uid(uid_t uid, const char *path,
+			               const struct stat * path_st)
+{
+    bool    ret;
+
+    /*
+     * See also the comment in nbdb_safe_for_uid().
+     */
+    if (!nbdb_safe_for_uid(uid, path_st)) {
+	ret = false;
+    } else if (strcmp(path, "/") == 0) {
+	ret = true;
+    } else {
+	char   *saved_path = mystrdup(path);
+	char   *parent = dirname(saved_path);
+	struct stat parent_st;
+
+	if (stat(parent, &parent_st) < 0) {
+	    ret = false;
+	    msg_warn("look up status for directory '%s': %m", parent);
+	} else {
+	    ret = nbdb_safe_parent_for_uid(uid, parent, &parent_st);
+	}
+	myfree(saved_path);
+    }
+    return (ret);
+}
 
 /* nbdb_safe_for_uid - owned by the user or root, not group or other writable */
 
@@ -147,7 +192,7 @@ bool    nbdb_safe_to_index_as_legacy_index_owner(
 			leg_idx_path, (int) runas_uid, source_path);
 	return (false);
     }
-    if (!nbdb_safe_for_uid(runas_uid, parent_dir_st)) {
+    if (!nbdb_safe_parent_for_uid(runas_uid, parent_dir, parent_dir_st)) {
 	vstring_sprintf(why, "legacy indexed file '%s' is owned by "
 			"uid '%d', but parent directory '%s' is "
 			"owned or writable by other user; to allow "

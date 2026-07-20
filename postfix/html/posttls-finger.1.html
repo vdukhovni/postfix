@@ -343,13 +343,14 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               able via <b>native</b> lookups).
 
        <b>unix:</b><i>pathname</i>
-              Connect to the UNIX-domain socket at <i>pathname</i>. LMTP only.
+              Connect  to  the  UNIX-domain  socket  at <i>pathname</i>. This feature
+              requires "<b>-S</b>".
 
        <b>match ...</b>
               With no match arguments specified, certificate peername matching
               uses the compiled-in default strategies for each security level.
-              If  you specify one or more arguments, these will be used as the
-              list of certificate or public-key digests to match for the  <b>fin-</b>
+              If you specify one or more arguments, these will be used as  the
+              list  of certificate or public-key digests to match for the <b>fin-</b>
               <b>gerprint</b> level, or as the list of DNS names to match in the cer-
               tificate at the <b>verify</b> and <b>secure</b> levels.  If the security level
               is <b>dane</b>, or <b>dane-only</b> the match names are ignored, and <b>hostname,</b>

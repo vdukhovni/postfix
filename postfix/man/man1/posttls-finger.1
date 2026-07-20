@@ -309,7 +309,8 @@ fully\-qualified names or also enable \fBnative\fR host lookups
 (these don't support \fBdane\fR or \fBdane\-only\fR as no DNSSEC
 validation information is available via \fBnative\fR lookups).
 .IP "\fBunix:\fIpathname\fR"
-Connect to the UNIX\-domain socket at \fIpathname\fR. LMTP only.
+Connect to the UNIX\-domain socket at \fIpathname\fR. This feature
+requires "\fB\-S\fR".
 .IP "\fBmatch ...\fR"
 With no match arguments specified, certificate peername matching uses
 the compiled\-in default strategies for each security level.  If you

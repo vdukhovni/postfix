@@ -31746,6 +31746,64 @@ Apologies for any names omitted.
 	result. Files: postlink, socketmap_table, dict_sockmap.[hc],
 	global/mail_params.[hc].
 
+20260716
+
+	Documentation for the new socketmap_max_query_size feature.
+	File: socketmap_table.
+
+	Bug (defect introduced: Postfix 1,1, date: 20010524): the
+	postsuper command under-read a very short queue filename. No
+	crash, information leak, or privilege escalation. Reported by
+	Qualys, assisted by Claude Mythos Preview. File: postsuper.c.
+
+20260717
+
+	Bug (defect introduced: Postfix 2.9, date: 20120114): a
+	lock file descriptor was not closed after failure to open a
+	DBM database. Reported by Qualys, assisted by Claude Mythos
+	Preview. File: dict_dbm.c.
+
+	Bug (defect introduced: Postfix-beta, date: 19990119): the
+	pipe(8) delivery agent deleted a command-line argument if
+	the argument contained $user AND $user expanded to an empty
+	string, breaking the positional order of arguments. This
+	was a workaround for a problem that hopefully no longer
+	exists. Reported by Qualys, assisted by Claude Mythos
+	Preview. File: pipe.c.
+
+20260720:
+
+	Bug (defect introduced: Postfix 1,1, date: 20010524): the
+	postsuper command over-read a very short queue filename.
+	No crash, information leak, or privilege escalation. Reported
+	by Qualys, assisted by Claude Mythos Preview. File:
+	mail_queue.h.
+
+	Code health: In the non-Berkeley DB migration client, connect
+	at least once. Qualys, assisted by Mythos Preview. File:
+	nbdb_clnt.c.
+
+	Bug (defect introduced: Postfix 1.0, date: 20000928): the
+	fast flush server, used by the SMTP command "ETRN", and by
+	the commands "postqueue -s site" and "postqueue -i queue_id"
+	(and their sendmail(1) equivalents), used the wrong duplicate
+	suppression API, resulting in too many queue scans by the
+	queue manager. Reported by Qualys, assisted by Claude Mythos
+	Preview. File: flush.c.
+
+	Fixed a mock vstream_fopen_as() error message. File:
+	mock_open_as.c.
+
+	Bug (introduced: Postfix 2.11, date: 20130422): the
+	posttls-finger test program falsely reported failure to
+	make a UNIX_domain connection. Reported by Qualys, assisted
+	by Claude Mythos Preview. File: posttls-finger.c.
+
+	Hardened the database parent directory permission checks
+	for automatic re-indexing with the non-Berkeley-DB migration
+	service. Files: nbdb_safe.c, nbdb_safe.h, nbdb_safe_test.c,
+	nbdb_process_test.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

@@ -82,6 +82,9 @@
 # CONFIGURATION PARAMETERS
 # .ad
 # .fi
+# .IP "\fBsocketmap_max_query_size (10000)\fR"
+#	The maximum allowed query size for a socketmap client, not
+#	including the socketmap and netstring encapsulation.
 # .IP "\fBsocketmap_max_reply_size (100000)\fR"
 #	The maximum allowed reply size from a socketmap server, not
 #	including the netstring encapsulation.

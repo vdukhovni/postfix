@@ -1053,6 +1053,8 @@ static void super(const char **queues, int action)
 	     * number.
 	     */
 	    if ((action & ACTION_STRUCT)
+	    /* 202607 Qualys+Mythos: skip short paths. */
+		&& strlen(path) > SUFFIX_LEN
 		&& strcmp(path + (strlen(path) - SUFFIX_LEN), SUFFIX) == 0) {
 		path[strlen(path) - SUFFIX_LEN] = 0;	/* XXX */
 		if (!mail_queue_id_ok(path)) {
