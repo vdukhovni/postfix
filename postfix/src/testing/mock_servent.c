@@ -96,6 +96,7 @@
   * System library.
   */
 #include <sys_defs.h>
+#include <arpa/inet.h>
 #include <wrap_netdb.h>
 #include <string.h>
 

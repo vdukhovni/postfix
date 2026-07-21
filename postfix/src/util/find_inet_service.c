@@ -32,6 +32,7 @@
 /* System libraries. */
 
 #include <sys_defs.h>
+#include <arpa/inet.h>
 #include <wrap_netdb.h>
 #include <stdlib.h>
 #include <string.h>

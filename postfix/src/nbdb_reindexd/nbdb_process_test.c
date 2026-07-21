@@ -505,7 +505,7 @@ static const TEST_CASE test_cases[] = {
 	    .in_new_type = "hash",
 	    .in_source_path = "/path/to/file",
 	    .want_status = NBDB_STAT_ERROR,
-	    .want_why = "could not execute command 'postmap cdb:/path/to/file': table /path/to/file has an unexpected pathname",
+	    .want_why = "table /path/to/file has an unexpected pathname",
 	},
     },
 

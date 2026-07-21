@@ -31771,7 +31771,7 @@ Apologies for any names omitted.
 	exists. Reported by Qualys, assisted by Claude Mythos
 	Preview. File: pipe.c.
 
-20260720:
+20260720
 
 	Bug (defect introduced: Postfix 1,1, date: 20010524): the
 	postsuper command over-read a very short queue filename.
@@ -31803,6 +31803,25 @@ Apologies for any names omitted.
 	for automatic re-indexing with the non-Berkeley-DB migration
 	service. Files: nbdb_safe.c, nbdb_safe.h, nbdb_safe_test.c,
 	nbdb_process_test.c.
+
+20260721
+
+	Hardening: in the non-BerkeleyDB migration service, delay
+	the decision between running postmap or postalias until
+	after the database file/directory owner/permission checks.
+	The benefit from making the decision early (better error
+	messages) was not worth the risk. Qualys, assisted by Claude
+	Mythos Preview. Files: nbdb_process.c, nbdb_process_test.c.
+
+	Back-port htable fixes to binhash tables: 1) segfault in
+	the binhash first/next iterator when a table contains one
+	element; 2) technical debt: allow an element to be deleted
+	after the binhash table's first/next iterator has started,
+	but before it has visited the element; 3) don't free null
+	data pointers. File: util/binhash.c.
+
+	Code health: missing <arpa/inet> includes. Files:
+	testing/mock_servent.c, util/find_inet_service.c.
 
 TODO
 

@@ -100,8 +100,7 @@
 /*	depending on the value of the "how" argument. Specify
 /*	BINHASH_SEQ_FIRST to start a new sequence, BINHASH_SEQ_NEXT
 /*	to continue, and BINHASH_SEQ_STOP to terminate a sequence
-/*	early. The caller must not delete an element before it is
-/*	visited.
+/*	early.
 /* RESTRICTIONS
 /*	A callback function should not modify the hash table that is
 /*	specified to its caller.
@@ -278,7 +277,7 @@ BINHASH_INFO *binhash_locate(BINHASH *table, const void *key, ssize_t key_len)
 void    binhash_delete(BINHASH *table, const void *key, ssize_t key_len, void (*free_fn) (void *))
 {
     if (table != 0) {
-	BINHASH_INFO *ht;
+	BINHASH_INFO *ht, **sp;
 	BINHASH_INFO **h = table->data + binhash_hash(key, key_len, table->size);
 
 	for (ht = *h; ht; ht = ht->next) {
@@ -291,9 +290,17 @@ void    binhash_delete(BINHASH *table, const void *key, ssize_t key_len, void (*
 		    *h = ht->next;
 		table->used--;
 		myfree(ht->key);
-		if (free_fn)
+		if (free_fn && ht->value)
 		    (*free_fn) (ht->value);
 		myfree((void *) ht);
+		/* In case the first/next iterator has not yet visited it */
+		for (sp = table->seq_element; sp && *sp; sp++) {
+		    if (*sp == ht) {
+			while ((*sp = sp[1]) != 0)
+			    sp += 1;
+			break;
+		    }
+		}
 		return;
 	    }
 	}
@@ -315,7 +322,7 @@ void    binhash_free(BINHASH *table, void (*free_fn) (void *))
 	    for (ht = *h++; ht; ht = next) {
 		next = ht->next;
 		myfree(ht->key);
-		if (free_fn)
+		if (free_fn && ht->value)
 		    (*free_fn) (ht->value);
 		myfree((void *) ht);
 	    }
@@ -378,7 +385,7 @@ BINHASH_INFO *binhash_sequence(BINHASH *table, int how)
 	    myfree((void *) table->seq_bucket);
 	table->seq_bucket = binhash_list(table);
 	table->seq_element = table->seq_bucket;
-	return (*(table->seq_element)++);
+	/* FALLTHROUGH */
     case BINHASH_SEQ_NEXT:			/* next element */
 	if (table->seq_element && *table->seq_element)
 	    return (*(table->seq_element)++);
@@ -439,6 +446,18 @@ int     main(int unused_argc, char **unused_argv)
 	msg_panic("%ld entries not deleted", (long) hash->used);
     myfree((void *) ht_info);
     binhash_free(hash, (void (*) (void *)) 0);
+
+    /* Iterate one-element table. */
+    hash = binhash_create(10);
+	binhash_enter(hash, "one", 4, "one");
+    if( binhash_sequence(hash,BINHASH_SEQ_FIRST) == 0)
+	msg_panic("one-element iterator BINHASH_SEQ_FIRST");
+    if (binhash_sequence(hash,BINHASH_SEQ_NEXT) != 0)
+	msg_panic("one-element iterator	BINHASH_SEQ_NEXT");
+    binhash_free(hash, (void (*) (void *)) 0);
+
+    /* TODO: Delete element before it is visited by iterator. */
+
     vstring_free(buf);
     return (0);
 }
