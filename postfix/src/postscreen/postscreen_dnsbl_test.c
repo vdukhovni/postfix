@@ -555,6 +555,155 @@ static void test_multi_dnsbl(PTEST_CTX *t, const PTEST_CASE *tp)
     }
 }
 
+static void test_parallel_client_early_disc(PTEST_CTX *t, const PTEST_CASE *tp)
+{
+    MOCK_SERVER *mp;
+
+#define CONN_COUNT 3				/* must be odd and > 1 */
+
+    struct session_state session_state[CONN_COUNT];
+    const char *dnsblog_path = "private/dnsblog";
+    VSTRING *serialized_req;
+    VSTRING *serialized_resp;
+    const int request_id = 0;
+    const struct single_dnsbl_data dnsbl_data = {
+	"not used",
+	 /* dnsbl_sites */ "zen.spamhaus.org",
+	 /* req_dnsbl */ "zen.spamhaus.org",
+	 /* req_addr */ "127.0.0.2",
+	 /* res_addr */ "127.0.0.2 127.0.0.4 127.0.0.10",
+	 /* res_ttl */ 60,
+	 /* want_score */ 1,
+    };
+    struct session_state init_session = {
+	.req_addr = dnsbl_data.req_addr,
+	.got_dnsbl = 0,
+	.got_ttl = INT_MAX,
+	.got_score = INT_MAX,
+    };
+    int     idx;
+    int     want_score;
+    int     got_score;
+    const char *got_dnsbl_name;
+    int     got_dnsbl_ttl;
+
+    /*
+     * The plan: simulate CONN_COUNT connections {0, 1, 2} from the same
+     * client IP address, simulate disconnecting connections {0, 2} before
+     * receiving the dnsblog(8) response, and collect the scores for
+     * connection {1}. The session at the highest index (2) needs to
+     * disconnect early to detect a crash that was introduced 20260618.
+     */
+
+    /*
+     * Reset global state and parameters used by postscreen_dnsbl.c.
+     */
+    init_psc_globals(dnsbl_data.dnsbl_sites);
+
+    /*
+     * Instantiate a mock dnsblog server.
+     */
+    mp = mock_unix_server_create(dnsblog_path);
+
+    /*
+     * Set up the expected dnsblog request, and the corresponding response.
+     * The mock dnsblog server immediately generates a read event request, so
+     * we should send something soon.
+     */
+    serialized_req =
+	make_attr(attr_vprint, ATTR_FLAG_NONE,
+		  SEND_ATTR_STR(MAIL_ATTR_RBL_DOMAIN, dnsbl_data.req_dnsbl),
+		  SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR,
+				dnsbl_data.req_addr),
+		  SEND_ATTR_INT(MAIL_ATTR_LABEL, request_id),
+		  ATTR_TYPE_END);
+    serialized_resp =
+	make_attr(attr_vprint, ATTR_FLAG_NONE,
+		  SEND_ATTR_STR(MAIL_ATTR_RBL_DOMAIN, dnsbl_data.req_dnsbl),
+		  SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR,
+				dnsbl_data.req_addr),
+		  SEND_ATTR_INT(MAIL_ATTR_LABEL, request_id),
+		  SEND_ATTR_STR(MAIL_ATTR_RBL_ADDR, dnsbl_data.res_addr),
+		  SEND_ATTR_INT(MAIL_ATTR_TTL, dnsbl_data.res_ttl),
+		  ATTR_TYPE_END);
+    mock_server_interact(mp, serialized_req, serialized_resp);
+
+    /*
+     * Simulate a connection by calling psc_dnsbl_request(), and run the
+     * event loop once to notify the mock dnsblog server that a request is
+     * pending. The mock dnsblog server will receive the request, and if it
+     * matches the expected request, the mock dnsblog server will immediately
+     * send the prepared response.
+     */
+
+    for (idx = 0; idx < CONN_COUNT; idx++) {
+	session_state[idx] = init_session;
+	msg_info("creating connection %d", idx);
+	session_state[idx].req_idx = psc_dnsbl_request(dnsbl_data.req_addr,
+						       psc_dnsbl_callback,
+						       &session_state[idx]);
+	if (session_state[idx].req_idx != idx)
+	    ptest_fatal(t, "psc_dnsbl_request index: got %d, want %d",
+			session_state[idx].req_idx, idx);
+    }
+    event_loop(2);
+
+    /*
+     * Simulate disconneting the connections with index {0, 2} by calling
+     * psc_dnsbl_retrieve() before receiving the DNSBL response. Their dnsbl
+     * scores should be zero.
+     */
+    want_score = 0;
+    for (idx = 0; idx < CONN_COUNT; idx++) {
+	if ((idx % 2) != 0)
+	    continue;
+	msg_info("closing connection %d", idx);
+	got_score = psc_dnsbl_retrieve(dnsbl_data.req_addr, &got_dnsbl_name,
+				       session_state[idx].req_idx,
+				       &got_dnsbl_ttl);
+	if (got_score != want_score)
+	    ptest_error(t, "psc_dnsbl_retrieve index %d score: got %d, want %d",
+			idx, got_score, want_score);
+    }
+
+    /*
+     * Run the event loop another time to wake up psc_dnsbl_receive(). That
+     * function will deserialize the mock dnsblog server's response, and will
+     * immediately call our psc_dnsbl_callback() function to store the result
+     * into the session_state objects for the connection with index {1}.
+     */
+    event_loop(2);
+
+    /*
+     * Validate the response.
+     */
+    for (idx = 0; idx < CONN_COUNT; idx++) {
+	if ((idx % 2) == 0)
+	    continue;
+	msg_info("retrieving connection %d", idx);
+	if (session_state[idx].got_ttl == INT_MAX) {
+	    ptest_error(t, "psc_dnsbl_callback() was not called, "
+			"or did not update the session_state[%d]", idx);
+	} else {
+	    if (session_state[idx].got_ttl != dnsbl_data.res_ttl)
+		ptest_error(t, "index %d: unexpected ttl: got %d, want %d",
+		       idx, session_state[idx].got_ttl, dnsbl_data.res_ttl);
+	    if (session_state[idx].got_score != dnsbl_data.want_score)
+		ptest_error(t, "index %d: unexpected score: got %d, want %d",
+			    idx, session_state[idx].got_score,
+			    dnsbl_data.want_score);
+	}
+    }
+
+    /*
+     * Clean up.
+     */
+    vstring_free(serialized_req);
+    vstring_free(serialized_resp);
+    mock_server_free(mp);
+    deinit_psc_globals();
+}
+
  /*
   * Test cases.
   */
@@ -564,6 +713,9 @@ const PTEST_CASE ptestcases[] = {
     },
     {
 	"multi dnsbl", test_multi_dnsbl,
+    },
+    {
+	"parallel client early disconnect", test_parallel_client_early_disc,
     },
 };
 

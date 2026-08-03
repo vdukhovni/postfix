@@ -31823,6 +31823,44 @@ Apologies for any names omitted.
 	Code health: missing <arpa/inet> includes. Files:
 	testing/mock_servent.c, util/find_inet_service.c.
 
+20260724
+
+	Bug (defect introduced: Postfix 3.4, date: 20180805): missing
+	RCPT TO state reset after a BDAT command error. The Postfix
+	SMTP server then accepted a DATA command and crashed with
+	a null pointer read error. Reported by OpenAI Security.
+	File: smtpd/smtpd.c.
+
+20260802
+
+	Bugfix (defect introduced: 20260618): the postscreen fix
+	for the PSC_CALL_BACK_NOTIFY() macro introduced a regression
+	(0xffffffff pointer dereference). Reported by OpenAI
+	Security. Files: postscreen_dnsbl.c, postscreen_dnsbl_test.c.
+
+20260803
+
+	Bug (introduced: Postfix 2.2, date: 20041102): missing
+	resets of MAIL FROM and RCPT TO command state, after
+	smtpd_end_of_data_restrictions processing rejected a message.
+
+	The Postfix SMTP server then accepted RCPT TO and DATA
+	without MAIL FROM, and skipped smtpd_end_of_data_restrictions
+	for the second message (smtpd_end_of_data_restrictions is
+	always skipped when a recipient counter is > 1). Reported
+	by OpenAI Security. File: smtpd/smtpd.c.
+
+	As reported by OpenAI Security, the failure to reset MAIL
+	FROM and RCPT TO state also affected Milter support (added
+	in Postfix 2.3). Here, after a Milter replied with "accept
+	this message" based on the message envelope, and
+	smtpd_end_of_data_restrictions rejected the message, the
+	Postfix SMTP server as before accepted RCPT TO and DATA
+	without MAIL FROM and skipped smtpd_end_of_data_restrictions
+	for the second message. But in this case, the Postfix Milter
+	client was still in the "accept this message" state, skipping
+	Milter policy enforcement for the second message.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

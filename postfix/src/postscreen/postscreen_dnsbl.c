@@ -201,12 +201,15 @@ typedef struct {
 	_cb_->context = (ctx); \
     } while (0)
 
+/* 20260606 Qualys+Mythos: read after free, neutralized by memset(0xff). */
+/* 20260607 OpenAI Security: the 20260606 fix introduced a regression. */
 #define PSC_CALL_BACK_NOTIFY(sp, ev) do { \
 	PSC_CALL_BACK_ENTRY *_cb_; \
 	PSC_CALL_BACK_ENTRY *_end_ = (sp)->table + (sp)->index; \
-	for (_cb_ = (sp)->table; _cb_ < _end_; _cb_++) \
+	int _todo_ = (sp)->refcount; \
+	for (_cb_ = (sp)->table; _todo_ > 0 && _cb_ < _end_; _cb_++) \
 	    if (_cb_->callback != 0) \
-		_cb_->callback((ev), _cb_->context); \
+		{ _cb_->callback((ev), _cb_->context); _todo_ -= 1; } \
     } while (0)
 
 #define PSC_NULL_EVENT	(0)

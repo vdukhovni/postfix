@@ -3831,13 +3831,10 @@ static int common_post_message_handling(SMTPD_STATE *state)
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& (err = smtpd_check_eod(state)) != 0) {
 	smtpd_chat_reply(state, "%s", err);
-	if (proxy) {
-	    smtpd_proxy_close(state);
-	} else {
-	    mail_stream_cleanup(state->dest);
-	    state->dest = 0;
-	    state->cleanup = 0;
-	}
+	/* 202607 OpenAI: reset state like normal end-of-data. */
+	chat_reset(state, var_smtpd_hist_thrsh);
+	mail_reset(state);
+	rcpt_reset(state);
 	return (-1);
     }
 
@@ -4082,9 +4079,11 @@ static int skip_bdat(SMTPD_STATE *state, off_t chunk_size,
     /*
      * Reset state, or drop subsequent BDAT payloads until BDAT LAST or RSET.
      */
-    if (final_chunk)
+    if (final_chunk) {
 	mail_reset(state);
-    else
+	/* 202607 OpenAI: also reset recipient state. */
+	rcpt_reset(state);
+    } else
 	state->bdat_state = SMTPD_BDAT_STAT_ERROR;
     return (-1);
 }
