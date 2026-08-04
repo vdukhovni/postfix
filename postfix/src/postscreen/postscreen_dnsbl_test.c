@@ -649,7 +649,7 @@ static void test_parallel_client_early_disc(PTEST_CTX *t, const PTEST_CASE *tp)
     event_loop(2);
 
     /*
-     * Simulate disconneting the connections with index {0, 2} by calling
+     * Simulate disconnecting the connections with index {0, 2} by calling
      * psc_dnsbl_retrieve() before receiving the DNSBL response. Their dnsbl
      * scores should be zero.
      */

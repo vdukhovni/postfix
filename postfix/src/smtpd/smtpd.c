@@ -4080,6 +4080,7 @@ static int skip_bdat(SMTPD_STATE *state, off_t chunk_size,
      * Reset state, or drop subsequent BDAT payloads until BDAT LAST or RSET.
      */
     if (final_chunk) {
+	chat_reset(state, var_smtpd_hist_thrsh);
 	mail_reset(state);
 	/* 202607 OpenAI: also reset recipient state. */
 	rcpt_reset(state);

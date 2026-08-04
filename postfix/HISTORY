@@ -31826,10 +31826,11 @@ Apologies for any names omitted.
 20260724
 
 	Bug (defect introduced: Postfix 3.4, date: 20180805): missing
-	RCPT TO state reset after a BDAT command error. The Postfix
-	SMTP server then accepted a DATA command and crashed with
-	a null pointer read error. Reported by OpenAI Security.
-	File: smtpd/smtpd.c.
+	SMTP server reset of RCPT TO state after a BDAT command
+	error. A crafted remote SMTP client could then send a DATA
+	command without MAIL FROM or RCPT TO, and crash the Postfix
+	SMTP server with a null pointer read error. Reported by
+	OpenAI Security. File: smtpd/smtpd.c.
 
 20260802
 
@@ -31840,14 +31841,16 @@ Apologies for any names omitted.
 
 20260803
 
-	Bug (introduced: Postfix 2.2, date: 20041102): missing
-	resets of MAIL FROM and RCPT TO command state, after
-	smtpd_end_of_data_restrictions processing rejected a message.
+	Bug (introduced: Postfix 2.2, date: 20041102): missing SMTP
+	server resets of MAIL FROM and RCPT TO command state after
+	smtpd_end_of_data_restrictions rejected a message. This
+	resulted in SMTP protocol state desynchronization between
+	the remote SMTP client and the Postfix SMTP server.
 
-	The Postfix SMTP server then accepted RCPT TO and DATA
-	without MAIL FROM, and skipped smtpd_end_of_data_restrictions
-	for the second message (smtpd_end_of_data_restrictions is
-	always skipped when a recipient counter is > 1). Reported
+	A crafted remote SMTP client could then send RCPT TO and
+	DATA without MAIL FROM, and deliver a second message. Then,
+	smtpd_end_of_data_restrictions skipped check_recipient_access
+	constraints, because a recipient counter was > 1. Reported
 	by OpenAI Security. File: smtpd/smtpd.c.
 
 	As reported by OpenAI Security, the failure to reset MAIL
@@ -31856,9 +31859,10 @@ Apologies for any names omitted.
 	this message" based on the message envelope, and
 	smtpd_end_of_data_restrictions rejected the message, the
 	Postfix SMTP server as before accepted RCPT TO and DATA
-	without MAIL FROM and skipped smtpd_end_of_data_restrictions
-	for the second message. But in this case, the Postfix Milter
-	client was still in the "accept this message" state, skipping
+	without MAIL FROM, and smtpd_end_of_data_restrictions as
+	before skipped check_recipient_access constraints for the
+	second message. Under these conditions, the Postfix Milter
+	client remained in the "accept this message" state, skipping
 	Milter policy enforcement for the second message.
 
 TODO
