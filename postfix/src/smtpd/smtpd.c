@@ -6116,6 +6116,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 	for (;;) {
 	    if (state->flags & SMTPD_FLAG_HANGUP)
 		break;
+	    /* Flush the command history if it becomes large. */
+	    chat_reset(state, var_smtpd_hist_thrsh);
 	    smtp_stream_setup(state->client, var_smtpd_tmout,
 			      var_smtpd_req_deadline, 0);
 	    if (state->error_count >= var_smtpd_hard_erlim) {

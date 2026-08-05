@@ -118,7 +118,8 @@
 #if defined(MARIADB_BASE_VERSION) && MYSQL_VERSION_ID >= 50023
 #define DICT_MYSQL_SSL_VERIFY_SERVER_CERT MYSQL_OPT_SSL_VERIFY_SERVER_CERT
 #elif MYSQL_VERSION_ID >= 80000
-#define DICT_MYSQL_SSL_VERIFY_SERVER_CERT MYSQL_OPT_SSL_MODE
+/* 202607 OpenAI: MYSQL_OPT_SSL_MODE is an enum, not a bool. */
+#define DICT_MYSQL_SSL_MODE MYSQL_OPT_SSL_MODE
 #endif
 
  /*
@@ -172,7 +173,7 @@ typedef struct {
     char   *tls_CAfile;
     char   *tls_CApath;
     char   *tls_ciphers;
-#if defined(DICT_MYSQL_SSL_VERIFY_SERVER_CERT)
+#if defined(DICT_MYSQL_SSL_VERIFY_SERVER_CERT) || defined(DICT_MYSQL_SSL_MODE)
     int     tls_verify_cert;
 #endif
     int     require_result_set;
@@ -602,6 +603,11 @@ static int plmysql_query(DICT_MYSQL *dict_mysql,
  */
 static void plmysql_connect_single(DICT_MYSQL *dict_mysql, HOST *host)
 {
+#if defined(DICT_MYSQL_SSL_MODE)
+    enum mysql_ssl_mode ssl_mode;
+
+#endif
+
     if ((host->db = mysql_init(NULL)) == NULL)
 	msg_fatal("dict_mysql: insufficient memory");
     if (dict_mysql->option_file)
@@ -629,7 +635,19 @@ static void plmysql_connect_single(DICT_MYSQL *dict_mysql, HOST *host)
 		      dict_mysql->tls_CAfile, dict_mysql->tls_CApath,
 		      dict_mysql->tls_ciphers);
 #endif
-#if defined(DICT_MYSQL_SSL_VERIFY_SERVER_CERT)
+#if defined(DICT_MYSQL_SSL_MODE)
+    if (dict_mysql->tls_verify_cert != -1) {
+	/* MYSQL_OPT_SSL_MODE enum values are not Boolean values. */
+	ssl_mode = dict_mysql->tls_verify_cert ? SSL_MODE_VERIFY_IDENTITY :
+	    SSL_MODE_PREFERRED;
+	if (mysql_options(host->db, DICT_MYSQL_SSL_MODE, &ssl_mode) != 0) {
+	    msg_warn("dict_mysql: could not set TLS mode for host %s: %s",
+		     host->hostname, mysql_error(host->db));
+	    plmysql_down_host(host, dict_mysql->retry_interval);
+	    return;
+	}
+    }
+#elif defined(DICT_MYSQL_SSL_VERIFY_SERVER_CERT)
     if (dict_mysql->tls_verify_cert != -1)
 	mysql_options(host->db, DICT_MYSQL_SSL_VERIFY_SERVER_CERT,
 		      &dict_mysql->tls_verify_cert);
@@ -705,7 +723,7 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     dict_mysql->tls_CAfile = cfg_get_str(p, "tls_CAfile", NULL, 0, 0);
     dict_mysql->tls_CApath = cfg_get_str(p, "tls_CApath", NULL, 0, 0);
     dict_mysql->tls_ciphers = cfg_get_str(p, "tls_ciphers", NULL, 0, 0);
-#if defined(DICT_MYSQL_SSL_VERIFY_SERVER_CERT)
+#if defined(DICT_MYSQL_SSL_VERIFY_SERVER_CERT) || defined(DICT_MYSQL_SSL_MODE)
     dict_mysql->tls_verify_cert = cfg_get_bool(p, "tls_verify_cert", -1);
 #endif
     dict_mysql->require_result_set = cfg_get_bool(p, "require_result_set", 1);

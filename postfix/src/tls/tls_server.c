@@ -819,6 +819,11 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
     const char *cipher_list;
     TLS_APPL_STATE *app_ctx = props->ctx;
     int     log_mask;
+    /* 202607 OpenAI: isolate session tickets by master.cf service name. */ 
+    EVP_MD_CTX *sessid_ctx_md = 0;
+    unsigned char sessid_ctx[EVP_MAX_MD_SIZE];
+    unsigned int sessid_ctx_len;
+    static const char sessid_ctx_label[] = "Postfix/TLS serverid";
 
     /*
      * Convert user loglevel to internal logmask.
@@ -875,6 +880,29 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
     TLScontext->am_server = 1;
     TLScontext->stream = props->stream;
     TLScontext->mdalg = props->mdalg;
+
+    /*
+     * The serverid already partitions stateful sessions in the tlsmgr
+     * session cache. Apply the same partition to stateless sessions; all
+     * services in one Postfix instance share the tlsmgr ticket keys.
+     */
+    if (tls_digest_byname(LN_sha256, &sessid_ctx_md) == 0
+	|| EVP_DigestUpdate(sessid_ctx_md, sessid_ctx_label,
+			    sizeof(sessid_ctx_label)) != 1
+	|| EVP_DigestUpdate(sessid_ctx_md, props->serverid,
+			    strlen(props->serverid) + 1) != 1
+	|| EVP_DigestFinal_ex(sessid_ctx_md, sessid_ctx, &sessid_ctx_len) != 1
+	|| sessid_ctx_len > SSL_MAX_SID_CTX_LENGTH
+	|| SSL_set_session_id_context(TLScontext->con, sessid_ctx,
+				      sessid_ctx_len) != 1) {
+	msg_warn("Could not set TLS session ID context");
+	tls_print_errors();
+	if (sessid_ctx_md)
+	    EVP_MD_CTX_destroy(sessid_ctx_md);
+	tls_free_context(TLScontext);
+	return (0);
+    }
+    EVP_MD_CTX_destroy(sessid_ctx_md);
 
     if (!SSL_set_ex_data(TLScontext->con, TLScontext_index, TLScontext)) {
 	msg_warn("Could not set application data for 'TLScontext->con'");

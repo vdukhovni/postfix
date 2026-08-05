@@ -18037,7 +18037,11 @@ requirements. </p>
 
 <p>
 The maximal number of lines in the Postfix SMTP server command history
-before it is flushed upon receipt of EHLO, RSET, or end of DATA.
+before it is flushed upon receipt of EHLO, RSET, or end of DATA. With
+Postfix &ge; 3.4 releases after 20260805, the history is flushed
+whenever it reaches the threshold. The <a href="postconf.5.html#notify_classes">notify_classes</a> parameter
+controls what command history may be reported in postmaster
+notification email.
 </p>
 
 

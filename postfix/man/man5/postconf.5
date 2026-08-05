@@ -12373,7 +12373,11 @@ requirements.
 This feature is available in Postfix >= 3.10.
 .SH smtpd_history_flush_threshold (default: 100)
 The maximal number of lines in the Postfix SMTP server command history
-before it is flushed upon receipt of EHLO, RSET, or end of DATA.
+before it is flushed upon receipt of EHLO, RSET, or end of DATA. With
+Postfix >= 3.4 releases after 20260805, the history is flushed
+whenever it reaches the threshold. The notify_classes parameter
+controls what command history may be reported in postmaster
+notification email.
 .SH smtpd_junk_command_limit (default: normal: 100, overload: 1)
 The number of junk commands (NOOP, VRFY, ETRN or RSET) that a remote
 SMTP client can send before the Postfix SMTP server starts to
