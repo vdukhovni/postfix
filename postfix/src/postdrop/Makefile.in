@@ -63,6 +63,8 @@ postdrop.o: ../../include/attr.h
 postdrop.o: ../../include/check_arg.h
 postdrop.o: ../../include/clean_env.h
 postdrop.o: ../../include/cleanup_user.h
+postdrop.o: ../../include/deliver_request.h
+postdrop.o: ../../include/dsn.h
 postdrop.o: ../../include/htable.h
 postdrop.o: ../../include/iostuff.h
 postdrop.o: ../../include/mail_conf.h
@@ -76,11 +78,13 @@ postdrop.o: ../../include/mail_task.h
 postdrop.o: ../../include/mail_version.h
 postdrop.o: ../../include/maillog_client.h
 postdrop.o: ../../include/msg.h
+postdrop.o: ../../include/msg_stats.h
 postdrop.o: ../../include/msg_vstream.h
 postdrop.o: ../../include/mymalloc.h
 postdrop.o: ../../include/nvtable.h
 postdrop.o: ../../include/rec_attr_map.h
 postdrop.o: ../../include/rec_type.h
+postdrop.o: ../../include/recipient_list.h
 postdrop.o: ../../include/record.h
 postdrop.o: ../../include/stringops.h
 postdrop.o: ../../include/sys_defs.h
