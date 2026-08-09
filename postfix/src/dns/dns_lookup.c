@@ -778,6 +778,8 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	data_len = strlen(temp) + 1;
 	break;
     case T_SRV:
+        if (fixed->length < 3 * NS_INT16SZ)
+            return (DNS_RETRY);
 	GETSHORT(pref, pos);
 	GETSHORT(weight, pos);
 	GETSHORT(port, pos);
@@ -790,6 +792,8 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	data_len = strlen(temp) + 1;
 	break;
     case T_MX:
+        if (fixed->length < NS_INT16SZ)
+            return (DNS_RETRY);
 	GETSHORT(pref, pos);
 	if (dn_expand(reply->buf, reply->end, pos, temp, sizeof(temp)) < 0)
 	    return (DNS_RETRY);
