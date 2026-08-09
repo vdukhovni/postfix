@@ -57,6 +57,7 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <set_eugid.h>
+#include <sane_strtol.h>
 
 /* Global library. */
 
@@ -176,7 +177,8 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     const char *uid_res;
     const char *gid_res;
     DSN_BUF *why = state.msg_attr.why;
-    long    n;
+    char   *end;
+    unsigned long n;
 
     /*
      * Make verbose logging easier to understand.
@@ -215,6 +217,15 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 
 #define RETURN(res) { myfree(usr_attr.mailbox); return (res); }
 
+    if (strstr(usr_attr.mailbox + strlen(var_virt_mailbox_base), "/../")) {
+	msg_warn("recipient %s: bad mailbox path %s in %s",
+	     state.msg_attr.user, mailbox_res, virtual_mailbox_maps->title);
+	dsb_simple(why, "4.3.5", "mail system configuration error");
+	*statusp = defer_append(BOUNCE_FLAGS(state.request),
+				BOUNCE_ATTR(state.msg_attr));
+	RETURN(YES);
+    }
+
     /*
      * Look up the mailbox owner rights. Defer in case of trouble.
      */
@@ -228,7 +239,10 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 				BOUNCE_ATTR(state.msg_attr));
 	RETURN(YES);
     }
-    if ((n = atol(uid_res)) < var_virt_minimum_uid) {
+    usr_attr.uid = (uid_t) (n = sane_strtoul(uid_res, &end, 10));
+    if (*end != 0 || errno != 0 || usr_attr.uid != n
+	|| usr_attr.uid == (uid_t) - 1		/* Special for safe_open()) */
+	|| usr_attr.uid < var_virt_minimum_uid) {
 	msg_warn("recipient %s: bad uid %s in %s",
 		 state.msg_attr.user, uid_res, virtual_uid_maps->title);
 	dsb_simple(why, "4.3.5", "mail system configuration error");
@@ -236,7 +250,6 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 				BOUNCE_ATTR(state.msg_attr));
 	RETURN(YES);
     }
-    usr_attr.uid = (uid_t) n;
 
     /*
      * Look up the mailbox group rights. Defer in case of trouble.
@@ -251,7 +264,9 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 				BOUNCE_ATTR(state.msg_attr));
 	RETURN(YES);
     }
-    if ((n = atol(gid_res)) <= 0) {
+    usr_attr.gid = (gid_t) (n = sane_strtoul(gid_res, &end, 10));
+    if (*end != 0 || errno != 0 || usr_attr.gid !=n
+	|| usr_attr.gid == (gid_t) - 1) {	/* Special for safe_open()) */
 	msg_warn("recipient %s: bad gid %s in %s",
 		 state.msg_attr.user, gid_res, virtual_gid_maps->title);
 	dsb_simple(why, "4.3.5", "mail system configuration error");
@@ -259,12 +274,10 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 				BOUNCE_ATTR(state.msg_attr));
 	RETURN(YES);
     }
-    usr_attr.gid = (gid_t) n;
-
     if (msg_verbose)
-	msg_info("%s[%d]: set user_attr: %s, uid = %u, gid = %u",
+	msg_info("%s[%d]: set user_attr: %s, uid = %lu, gid = %lu",
 		 myname, state.level, usr_attr.mailbox,
-		 (unsigned) usr_attr.uid, (unsigned) usr_attr.gid);
+		 (unsigned long) usr_attr.uid, (unsigned long) usr_attr.gid);
 
     /*
      * Deliver to mailbox or to maildir.

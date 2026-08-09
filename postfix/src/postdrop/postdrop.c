@@ -145,6 +145,7 @@
 
 /* Global library. */
 
+#include <deliver_request.h>
 #include <mail_proto.h>
 #include <mail_queue.h>
 #include <mail_params.h>
@@ -514,6 +515,11 @@ int     main(int argc, char **argv)
 	    msg_fatal("uid=%ld: malformed input", (long) uid);
 	if (rec_type == 0 || strchr(*expected, rec_type) == 0)
 	    msg_fatal("uid=%ld: unexpected record type: %d", (long) uid, rec_type);
+	/* 2092607 OpenAI: reject line breaks and nulls in envelope content. */
+	if (rec_type != REC_TYPE_NORM && rec_type != REC_TYPE_CONT
+	    && strcspn(vstring_str(buf), "\r\n") != VSTRING_LEN(buf))
+	    msg_fatal("uid=%ld: null or line break in '%s' record type: %.200s",
+		      (long) uid, rec_type_name(rec_type), vstring_str(buf));
 	if (rec_type == **expected)
 	    expected++;
 	/* Override time information from the untrusted caller. */
@@ -536,6 +542,19 @@ int     main(int argc, char **argv)
 	    }
 #define STREQ(x,y) (strcmp(x,y) == 0)
 
+	    /* 202607 OpenAI: allow only sendmail '-v' and '-bv' tracing. */
+	    if (STREQ(attr_name, MAIL_ATTR_TRACE_FLAGS)) {
+		int     tflags = atoi(attr_value);
+
+		if (tflags == DEL_REQ_FLAG_USR_VRFY
+		    || tflags == DEL_REQ_FLAG_RECORD)
+		    rec_fprintf(dst->stream, REC_TYPE_ATTR, "%s=%d",
+				attr_name, tflags);
+		else
+		    msg_warn("uid=%ld: ignoring unexpected trace flags: %.200s",
+			     (long) uid, attr_value);
+		continue;
+	    }
 	    if ((STREQ(attr_name, MAIL_ATTR_ENCODING)
 		 && (STREQ(attr_value, MAIL_ATTR_ENC_7BIT)
 		     || STREQ(attr_value, MAIL_ATTR_ENC_8BIT)
@@ -545,8 +564,7 @@ int     main(int argc, char **argv)
 		|| rec_attr_map(attr_name)
 		|| (STREQ(attr_name, MAIL_ATTR_RWR_CONTEXT)
 		    && (STREQ(attr_value, MAIL_ATTR_RWR_LOCAL)
-			|| STREQ(attr_value, MAIL_ATTR_RWR_REMOTE)))
-		|| STREQ(attr_name, MAIL_ATTR_TRACE_FLAGS)) {	/* XXX */
+			|| STREQ(attr_value, MAIL_ATTR_RWR_REMOTE)))) {
 		rec_fprintf(dst->stream, REC_TYPE_ATTR, "%s=%s",
 			    attr_name, attr_value);
 	    } else {

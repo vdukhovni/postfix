@@ -31883,6 +31883,37 @@ Apologies for any names omitted.
 	with Oracle MySQL 8 and later. Report and fix by OpenAI
 	Security. File: dict_mysql.c.
 
+20250807
+
+	Hardening command-line email submission: the postdrop
+	command now disallows null and line-break characters in
+	queue file envelope records (line-break characters in other
+	queue file records are already neutralized by default with
+	"cleanup_replace_stray_cr_lf = yes").
+
+	The new constraint not only eliminates line-break injection
+	into local mailbox files as reported by OpenAI Security,
+	but also prevents other forms of misuse. Later, this
+	constraint may be moved into the Postfix core. Fix by Wietse.
+	File: postdrop.c.
+
+20260806
+
+	Shut up nagging from multiple AIs and harden the virtual
+	delivery agent against an evil SQL database. Files:
+	virtual/mailbox.c, virtual/mailbox_test.c.
+
+	Bug (defect introduced: Postfix 1.1, date: 20021116): address
+	verification cache poisoning. A local user could use the
+	postdrop command to submit an address verification probe
+	with envelope or message content that Postfix will reject
+	later, resulting in a negative address verification cache
+	entry for that address. On systems that enable address
+	verification, the negative address verification cache entry
+	would force the Postfix SMTP server to reject a message
+	that it should accept (denial of service). Problem reported
+	by OpenAI Security. File: postdrop.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.
