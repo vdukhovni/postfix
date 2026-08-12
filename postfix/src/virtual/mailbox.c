@@ -266,6 +266,7 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     }
     usr_attr.gid = (gid_t) (n = sane_strtoul(gid_res, &end, 10));
     if (*end != 0 || errno != 0 || usr_attr.gid !=n
+	|| usr_attr.gid == 0			/* Backwards compatibility */
 	|| usr_attr.gid == (gid_t) - 1) {	/* Special for safe_open()) */
 	msg_warn("recipient %s: bad gid %s in %s",
 		 state.msg_attr.user, gid_res, virtual_gid_maps->title);

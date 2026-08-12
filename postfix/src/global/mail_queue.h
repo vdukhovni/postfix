@@ -105,6 +105,7 @@ extern int mail_queue_id_ok(const char *);
 	(((cp) = strrchr((path), MQID_LG_INUM_SEP)) != 0 \
 	    && ((cp) - (path) >= MQID_LG_TIME_PAD))
 
+/* 202607 Qualys+Mythos: skip short paths. */
 #define MQID_GET_INUM(path, inum, long_form, error) do { \
 	char *_cp; \
 	if (((long_form) = MQID_FIND_LG_INUM_SEPARATOR(_cp, (path))) != 0) { \

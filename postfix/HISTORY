@@ -31691,7 +31691,6 @@ Apologies for any names omitted.
 20260713
 
 	Read after free (no privilege escalation) in debug logging
-	in dict_tcp.c, xsasl_dovecot_server.c, master_wakeup.c
 	(defect introduced: Postfix 2.2, date: 20050117). Reported
 	by Qualys, assisted by Claude Mythos Preview. File:
 	util/inet_connect.c.
@@ -31774,9 +31773,9 @@ Apologies for any names omitted.
 20260720
 
 	Bug (defect introduced: Postfix 1,1, date: 20010524): the
-	postsuper command over-read a very short queue filename.
-	No crash, information leak, or privilege escalation. Reported
-	by Qualys, assisted by Claude Mythos Preview. File:
+	postsuper command over-read or under-read a very short queue
+	filename. No crash, information leak, or privilege escalation.
+	Reported by Qualys, assisted by Claude Mythos Preview. File:
 	mail_queue.h.
 
 	Code health: In the non-Berkeley DB migration client, connect
@@ -31828,9 +31827,9 @@ Apologies for any names omitted.
 	Bug (defect introduced: Postfix 3.4, date: 20180805): missing
 	SMTP server reset of RCPT TO state after a BDAT command
 	error. A crafted remote SMTP client could then send a DATA
-	command without MAIL FROM or RCPT TO, and crash the Postfix
-	SMTP server with a null pointer read error. Reported by
-	OpenAI Security. File: smtpd/smtpd.c.
+	command without MAIL FROM or RCPT TO, and crash a Postfix
+	SMTP daemon process with a null pointer read error. Reported
+	by OpenAI Security. File: smtpd/smtpd.c.
 
 20260802
 
@@ -31906,13 +31905,37 @@ Apologies for any names omitted.
 	Bug (defect introduced: Postfix 1.1, date: 20021116): address
 	verification cache poisoning. A local user could use the
 	postdrop command to submit an address verification probe
-	with envelope or message content that Postfix will reject
+	with envelope or message content that Postfix rejected
 	later, resulting in a negative address verification cache
 	entry for that address. On systems that enable address
 	verification, the negative address verification cache entry
 	would force the Postfix SMTP server to reject a message
 	that it should accept (denial of service). Problem reported
 	by OpenAI Security. File: postdrop.c.
+
+20260810
+
+	Shut up nagging about allowing gid==0 in database responses.
+	Files: virtual/mailbox.c, virtual/mailbox_test.c.
+
+20260812
+
+	No code change: typofixes, documentation, and missing
+	attributions in various files.
+
+	Portability: OpenBSD does not define NS_INT16SZ. Brad Smith.
+	File: dns.h.
+
+	Bug (defect introduced: Postfix 3.0, date: 20140707): null
+	pointer read error after receiving MAIL FROM, RCPT TO, and
+	VRFY with an UTF8 address but no SMTPUTF8 parameter. This
+	requires "smtputf8_enable = yes" (the default) and
+	"strict_smtputf8 = yes" (not default). With this, the SMTP
+	server did an unnecessary MAIL FROM reset without RCPT TO
+	reset. A crafted remote SMTP client could then send a DATA
+	command and crash the Postfix SMTP server with a null pointer
+	read error. Reported by Wonyoung Jung (정원영). File:
+	smtpd/smtpd.c.
 
 TODO
 

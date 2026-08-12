@@ -785,6 +785,7 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	data_len = strlen(temp) + 1;
 	break;
     case T_SRV:
+        /* 202606 Qualys+Mythos: avoid over-reading short record. */
         if (fixed->length < 3 * NS_INT16SZ)
             return (DNS_RETRY);
 	GETSHORT(pref, pos);
@@ -799,6 +800,7 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	data_len = strlen(temp) + 1;
 	break;
     case T_MX:
+        /* 202606 Qualys+Mythos: avoid over-reading short record. */
         if (fixed->length < NS_INT16SZ)
             return (DNS_RETRY);
 	GETSHORT(pref, pos);

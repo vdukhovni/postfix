@@ -571,6 +571,7 @@ static int flush_send_path(const char *path, int how)
 		     STR(queue_id), path);
 	    continue;
 	}
+	/* 202606 Qualys+Mythos: use htable_locate(), not htable_find(). */
 	if (dup_filter->used >= FLUSH_DUP_FILTER_SIZE
 	    || htable_locate(dup_filter, STR(queue_id)) == 0) {
 	    if (msg_verbose)

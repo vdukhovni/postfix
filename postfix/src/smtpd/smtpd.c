@@ -4520,7 +4520,7 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /* Fix 20140707: Check the VRFY command. */
     if (smtputf8 == 0 && var_strict_smtputf8) {
 	if (*STR(state->addr_buf) && !allascii(STR(state->addr_buf))) {
-	    mail_reset(state);
+	    /* Wonyoung.Jung 20260811: don't reset SMTP state. */
 	    smtpd_chat_reply(state, "553 5.6.7 Must declare SMTPUTF8 to send unicode address");
 	    return (-1);
 	}

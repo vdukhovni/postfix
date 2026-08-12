@@ -48,7 +48,7 @@ typedef struct PTEST_CASE {
 #define USER_UNKNOWN	0
 #define USER_KNOWN	1
  /*
-  * Surriogate parameter dependencies.
+  * Surrogate parameter dependencies.
   */
 int     var_virt_minimum_uid;
 char   *var_virt_mailbox_maps;
@@ -354,6 +354,22 @@ const PTEST_CASE ptestcases[] = {
 	.mailbox_base = "/base",
 	.want_log = (char *[]) {
 	    "bad uid 0 in virtual_uid_maps", 
+	    "dsn=4.3.5 reason=mail system configuration error",
+	    0,
+	},
+	.want_known = USER_KNOWN,
+	.want_status = STATUS_DEFER,
+    },{
+	.testname = "gid too small",
+	.action = test_deliver_mailbox,
+	.user = "example-user",
+	.minimum_uid = 1,
+	.mailbox_maps = "static:user-1-1/",
+	.uid_maps = "static:1",
+	.gid_maps = "static:0",
+	.mailbox_base = "/base",
+	.want_log = (char *[]) {
+	    "bad gid 0 in virtual_gid_maps", 
 	    "dsn=4.3.5 reason=mail system configuration error",
 	    0,
 	},
