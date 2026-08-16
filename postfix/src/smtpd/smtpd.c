@@ -4335,8 +4335,8 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		    state->act_size += len + 2;
 		    if (*start == '.' && proxy != 0
 			&& state->bdat_prev_rec_type != REC_TYPE_CONT)
-			if (out_record(out_stream, REC_TYPE_CONT, ".", 1) < 0)
-			    state->err = out_error;
+			/* 202507 OpenAI: more robust dot-stuffing. */
+			vstring_prepend(state->bdat_get_buffer, ".", 1);
 		    if (state->err == CLEANUP_STAT_OK
 			&& out_record(out_stream, curr_rec_type,
 				      vstring_str(state->bdat_get_buffer),

@@ -889,6 +889,7 @@ static int smtpd_proxy_rec_put(VSTREAM *stream, int rec_type,
 			               const char *data, ssize_t len)
 {
     const char *myname = "smtpd_proxy_rec_put";
+    SMTPD_PROXY *proxy = VSTREAM_TO_SMTPD_STATE(stream)->proxy;
     int     err = 0;
 
     /*
@@ -899,20 +900,29 @@ static int smtpd_proxy_rec_put(VSTREAM *stream, int rec_type,
 	(void) smtpd_proxy_rdwr_error(VSTREAM_TO_SMTPD_STATE(stream), err);
 	return (REC_TYPE_ERROR);
     }
+    /* 202608 OpenAI: fixed guard against header prepend edge cases. */
+    if ((rec_type == REC_TYPE_CONT || rec_type == REC_TYPE_NORM)
+	&& proxy->last_text_rec != REC_TYPE_CONT) {
+	if (proxy->flags & SMTPD_PROXY_FLAG_REQTLS_HDR)
+	    smtpd_proxy_handle_reqtls(proxy, stream, data, len);
+	/* 202607 OpenAI: leading '.' may be followed by line-break crud. */
+	if (data[0] == '.' && (len == 1 || data[1] != '.')) {
+	    msg_warn("prepending '.' to malformed line: '%.*s'",
+		     len > 10 ? 10 : (int) len, data);
+	    smtp_fwrite(".", 1, stream);
+	}
+    }
 
     /*
      * Send one content record. Errors and results must be as with rec_put().
      */
     if (rec_type == REC_TYPE_NORM) {
-	SMTPD_PROXY *proxy = VSTREAM_TO_SMTPD_STATE(stream)->proxy;
-
-	if (proxy->flags & SMTPD_PROXY_FLAG_REQTLS_HDR)
-	    smtpd_proxy_handle_reqtls(proxy, stream, data, len);
 	smtp_fputs(data, len, stream);
     } else if (rec_type == REC_TYPE_CONT)
 	smtp_fwrite(data, len, stream);
     else
 	msg_panic("%s: need REC_TYPE_NORM or REC_TYPE_CONT", myname);
+    proxy->last_text_rec = rec_type;
     return (rec_type);
 }
 
@@ -1053,10 +1063,10 @@ int     smtpd_proxy_create(SMTPD_STATE *state, int flags, const char *service,
      * parameters, and have the compiler enforce the argument count.
      */
 #define SMTPD_PROXY_ALLOC(p, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, \
-	a12, a13) \
+	a12, a13, a14) \
 	((p) = (SMTPD_PROXY *) mymalloc(sizeof(*(p))), (p)->a1, (p)->a2, \
 	 (p)->a3, (p)->a4, (p)->a5, (p)->a6, (p)->a7, (p)->a8, (p)->a9, \
-	 (p)->a10, (p)->a11, (p)->a12, (p)->a13, (p))
+	 (p)->a10, (p)->a11, (p)->a12, (p)->a13, (p)->a14, (p))
 
     /*
      * Sanity check.
@@ -1077,7 +1087,7 @@ int     smtpd_proxy_create(SMTPD_STATE *state, int flags, const char *service,
 			      flags = flags, service_stream = 0,
 			      service_name = service, timeout = timeout,
 			      ehlo_name = ehlo_name, mail_from = mail_from,
-			      reqtls_esmtp_hdr_seen = 0);
+			      reqtls_esmtp_hdr_seen = 0, last_text_rec = 0);
 	if (smtpd_proxy_connect(state) < 0) {
 	    /* NOT: smtpd_proxy_free(state); we still need proxy->reply. */
 	    return (-1);
@@ -1108,7 +1118,7 @@ int     smtpd_proxy_create(SMTPD_STATE *state, int flags, const char *service,
 			      flags = flags, service_stream = 0,
 			      service_name = service, timeout = timeout,
 			      ehlo_name = ehlo_name, mail_from = mail_from,
-			      reqtls_esmtp_hdr_seen = 0);
+			      reqtls_esmtp_hdr_seen = 0, last_text_rec = 0);
 	return (0);
 #endif
     }

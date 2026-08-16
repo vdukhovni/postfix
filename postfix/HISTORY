@@ -31930,12 +31930,30 @@ Apologies for any names omitted.
 	pointer read error after receiving MAIL FROM, RCPT TO, and
 	VRFY with an UTF8 address but no SMTPUTF8 parameter. This
 	requires "smtputf8_enable = yes" (the default) and
-	"strict_smtputf8 = yes" (not default). With this, the SMTP
-	server did an unnecessary MAIL FROM reset without RCPT TO
-	reset. A crafted remote SMTP client could then send a DATA
-	command and crash the Postfix SMTP server with a null pointer
-	read error. Reported by Wonyoung Jung (정원영). File:
-	smtpd/smtpd.c.
+	"disable_vrfy_command = no" (not default). With this, the
+	SMTP server did an unnecessary MAIL FROM reset without RCPT
+	TO reset. A crafted remote SMTP client could then send a
+	DATA command and crash the Postfix SMTP server with a null
+	pointer read error. Reported by Wonyoung Jung (정원영).
+	File: smtpd/smtpd.c.
+
+20260816
+
+	Bug (introduced: Postfix 3.9, date: 20240106) SMTP smuggling
+	was still possible with smtpd_proxy_filter (disabled by
+	default) when the after-filter SMTP server used the default
+	policy settings "smtpd_forbid_bare_newline_exclusions =
+	$mynetworks" and "smtpd_forbid_bare_newline = normalize".
+	Reported by OpenAI Security. Fix by Wietse. Files:
+	smtpd_proxy.[hc].
+
+	Bug (introduced: Postfix 3.11, date: 20250917): SMTP smuggling
+	was possible with smtpd_proxy_filter (disabled by default)
+	when the before-filter SMTP server added a "Require-TLS-ESMTP:
+	yes" message header, due to implementation edge cases.
+	Adding this header is enabled with the "requiretls_esmtp_header
+	= yes" default setting. Reported by OpenAI Security. Fix
+	by Wietse. Files: smtpd_proxy.[hc].
 
 TODO
 
