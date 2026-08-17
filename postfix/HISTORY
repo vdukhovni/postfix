@@ -31952,9 +31952,16 @@ Apologies for any names omitted.
 	when the before-filter SMTP server added a "Require-TLS-ESMTP:
 	yes" message header, due to implementation edge cases.
 	Adding this header is enabled with the "requiretls_esmtp_header
-	= yes" default setting. Reported by OpenAI Security. Fix
-	by Wietse. Files: smtpd_proxy.[hc].
+	= yes" default setting. Reported by OpenAI Security. Files:
+	smtpd_proxy.[hc].
 
+20260817
+
+	Cleanup: as suggested by OpenAI Security, eliminate stray
+	CR characters from the smtpd_proxy_filter input stream.
+	The before-proxy-filter SMTP server already eliminated stray
+	LF. File: smtpd/smtpd_proxy.[hc].
+	
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

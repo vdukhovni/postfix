@@ -39,6 +39,7 @@ typedef struct SMTPD_PROXY {
     const char *mail_from;
     int     reqtls_esmtp_hdr_seen;
     int     last_text_rec;
+    VSTRING *data_buf;
 } SMTPD_PROXY;
 
 #define SMTPD_PROXY_FLAG_SPEED_ADJUST	(1<<0)
