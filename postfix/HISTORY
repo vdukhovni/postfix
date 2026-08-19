@@ -31961,7 +31961,15 @@ Apologies for any names omitted.
 	CR characters from the smtpd_proxy_filter input stream.
 	The before-proxy-filter SMTP server already eliminated stray
 	LF. File: smtpd/smtpd_proxy.[hc].
-	
+
+20260819
+
+	Bug (introduced: Postfix 2.3, date: 20060629): a malicious
+	Milter or attacker-in-the-middle could trigger a null-terminated
+	heap memory overread in the SMTP daemon while formatting a
+	malformed multiline response. Fix from OpenAI Security
+	adopted with minor changes. Files: milter8.c, smtpd_chat.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.
