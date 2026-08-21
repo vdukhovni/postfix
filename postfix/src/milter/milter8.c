@@ -1679,8 +1679,11 @@ static const char *milter8_event(MILTER8 *milter, int event,
     /*
      * Clean up after aborted message body replacement.
      */
-    if (body_line_buf)
+    if (body_line_buf) {
+	 if (edit_resp == 0 && (retval == 0 || strchr("DS45", retval[0]) == 0))
+	    retval = "421 4.7.0 Service unavailable";
 	vstring_free(body_line_buf);
+    }
 
     /*
      * XXX Some cleanup clients ask the cleanup server to bounce mail for

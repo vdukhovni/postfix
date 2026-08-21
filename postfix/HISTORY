@@ -31970,6 +31970,24 @@ Apologies for any names omitted.
 	malformed multiline response. Fix from OpenAI Security
 	adopted with minor changes. Files: milter8.c, smtpd_chat.c.
 
+20260820
+
+	The postmap and postalias commands now log a warning when
+	creating a root-owned database file in a directory that is
+	not owned by root. They log that the database source file,
+	indexed file(s), and parent directory should have the same
+	owner, to prevent a privilege-escalation attack. Problem
+	reported by OpenAI Security, remediation strategy (don't
+	break PROD) by Wietse. Files: postalias.c, postmap.c.
+
+20260821
+
+	When "milter_default_action = accept", and a Milter connection
+	was lost while a "replace body" request was in progress,
+	the Postfix cleanup daemon committed a queue file with
+	pre-replacement body content. Reported by OpenAI Security.
+	Fix by Wietse (don't accept). File: milter8.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

@@ -445,11 +445,30 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
     /*
      * If running as root, run as the owner of the source file, so that the
      * result shows proper ownership, and so that a bug in postmap does not
-     * allow privilege escalation.
+     * allow privilege escalation. If the source file is owned by root, but
+     * the parent directory is not, log a warning with suggestions.
      */
-    if ((postmap_flags & POSTMAP_FLAG_AS_OWNER) && getuid() == 0
-	&& (st.st_uid != geteuid() || st.st_gid != getegid()))
-	set_eugid(st.st_uid, st.st_gid);
+    if ((postmap_flags & POSTMAP_FLAG_AS_OWNER) && getuid() == 0) {
+	if (st.st_uid != 0) {
+	    set_eugid(st.st_uid, st.st_gid);
+	} else {
+	    char   *parent_dir;
+	    struct stat parent_st;
+
+	    parent_dir = sane_dirname((VSTRING *) 0, path_name);
+	    if (stat(parent_dir, &parent_st) < 0)
+		msg_fatal("stat %s: %m", parent_dir);
+	    if (parent_st.st_uid != 0) {
+		msg_warn("Creating root-owned database file(s) %s.* "
+			 "in non-root-owned directory %s. Files "
+			 "%s, %s.*, and directory %s should have "
+			 "the same owner. Please fix ownership "
+			 "to avoid a privilege-escalation attack.",
+			 path_name, parent_dir, VSTREAM_PATH(source_fp),
+			 path_name, parent_dir);
+	    }
+	}
+    }
 
     /*
      * Override the default per-table cache size for DB map (re)builds. We
