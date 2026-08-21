@@ -1999,3 +1999,10 @@ esmtpargs
 uncoded
 desynchronization
 xffffffff
+Wonyoung
+getgid
+getgroups
+gidset
+initgroups
+ngroups
+strchr

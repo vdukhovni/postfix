@@ -445,6 +445,7 @@
 #include <clean_env.h>
 #include <argv.h>
 #include <safe.h>
+#include <set_ugid.h>
 #include <warn_stat.h>
 
 /* Global library. */
@@ -499,6 +500,7 @@ int     main(int argc, char **argv)
     };
     int     force_single_instance;
     ARGV   *my_argv;
+    const char *preload_inherited = getenv("LD_PRELOAD");
 
     /*
      * Fingerprint executables and core dumps.
@@ -536,15 +538,6 @@ int     main(int argc, char **argv)
      */
     MAIL_VERSION_CHECK;
 
-    /*
-     * The mail system must be run by the superuser so it can revoke
-     * privileges for selected operations. That's right - it takes privileges
-     * to toss privileges.
-     */
-    if (getuid() != 0) {
-	msg_error("to submit mail, use the Postfix sendmail command");
-	msg_fatal("the postfix command is reserved for the superuser");
-    }
     if (unsafe() != 0)
 	msg_fatal("the postfix command must not run as a set-uid process");
 
@@ -595,6 +588,16 @@ int     main(int argc, char **argv)
     maillog_client_init(argv[0], MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 
     /*
+     * The mail system must be run by the superuser so it can revoke
+     * privileges for selected operations. That's right - it takes privileges
+     * to toss privileges.
+     */
+    if (getuid() != 0 && getuid() != var_owner_uid) {
+	msg_error("to submit mail, use the Postfix sendmail command");
+	msg_fatal("the postfix command is reserved for the superuser");
+    }
+
+    /*
      * Alert the sysadmin that the backwards-compatible settings are still in
      * effect.
      */
@@ -643,12 +646,21 @@ int     main(int argc, char **argv)
 
     /*
      * Run the management script.
+     * 
+     * Drop root privileges if: this is a 'start' command; and LD_PRELOAD was
+     * added by import_environment, so that we have been using the real
+     * getuid(); and the real getuid() returned the "root" uid.
      */
     if (force_single_instance
 	|| argv_split(var_multi_conf_dirs, CHARS_COMMA_SP)->argc == 0) {
 	script = concatenate(var_daemon_dir, "/postfix-script", (char *) 0);
 	if (optind < 1)
 	    msg_panic("bad optind value");
+	if (strstr(argv[optind], "start") != 0
+	    && preload_inherited == 0
+	    && getenv("LD_PRELOAD") != 0
+	    && getuid() == 0)
+	    set_ugid(var_owner_uid, var_owner_gid);
 	argv[optind - 1] = script;
 	execvp(script, argv + optind - 1);
 	msg_fatal("%s: %m", script);

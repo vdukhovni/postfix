@@ -68,6 +68,7 @@ $queue_directory/saved:d:$mail_owner:-:700:ucr
 $queue_directory/tlstrace:d:$mail_owner:-:700:ucr
 $queue_directory/trace:d:$mail_owner:-:700:ucr
 # Update shared libraries and plugins before daemon or command-line programs.
+$shlib_directory/fake_eugid.so:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}util${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}global${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}dns${LIB_SUFFIX}:f:root:-:755

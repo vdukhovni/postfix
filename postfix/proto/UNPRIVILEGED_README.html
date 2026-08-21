@@ -1,0 +1,369 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"https://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+
+<title> Postfix unprivileged master(8) operation </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel='stylesheet' type='text/css' href='postfix-doc.css'>
+
+</head>
+
+<body>
+
+<h1> Postfix unprivileged master(8) operation </h1>
+
+<h2> Summary </h2>
+
+<p> This document describes a proof of concept that may be used for
+experiments to run the Postfix master(8) daemon without "root" privileges
+(and consequently, all Postfix daemon processes). As discussed below,
+this will make Postfix less secure. </p>
+
+<ul>
+
+<li> <p> Feasible for production with some weakened security:
+unprivileged master(8) deployments that forward all messages with
+SMTP or LMTP. </p>
+
+<li> <p> MUST NOT BE USED FOR PRODUCTION: unprivileged master(8)
+deployments that can execute non-Postfix programs (with local(8),
+pipe(8) or spawn(8)) or that deliver to files (with local(8) or
+virtual(8). </p>
+
+</ul>
+
+<p> The remainder of this document is organized as follows: </p>
+
+<ul>
+
+<li> <a href="#security-model"> Postfix privileged security
+model, and impact from unprivileged operation </a> 
+
+<li> <a href="#lifecycle"> Routine Postfix management: start,
+stop, reload, configuration </a>
+
+<li> <a href="#credits"> Credits </a>
+
+<li> <a href="#appendix"> Appendix </a>
+
+</ul>
+
+<h2> <a name="security-model"> Postfix privileged security model,
+and impact from unprivileged operation </a>  </h2>
+
+<p> This section summarizes the Postfix security model for privileged
+master(8) operation, and how it is weakened with an unprivileged
+master(8). </p>
+
+<ul>
+
+<li> <p> Over-all Postfix architecture: </p>
+
+<p> Postfix consists of a) service daemons that receive and deliver
+email messages in the background, b) client commands that are invoked
+by users, and c) commands for system administrators. The privileged
+master(8) daemon runs all service daemons in a controlled environment.
+Postfix has no set-uid program files, eliminating a large class of
+attacks. </p>
+
+<blockquote> <i>Impact of unprivileged master(8) operation:</i> the
+master(8) daemon runs with fixed "postfix" privilege. This affects all
+Postfix service daemon processes as discussed next. </blockquote>
+
+<li> <p> Postfix service daemon processes: </p>
+
+<p> When launched by a privileged master(8) daemon, a Postfix service
+daemon can revoke "root" privileges <i>after</i> initialization,
+<i>before</i> it handles any requests. This allows each service process
+to read sensitive files (e.g. TLS private keys) and to open sensitive
+databases or logfiles for writing. When a service process becomes
+compromised, it no longer has that level of access. </p>
+
+<p> All but four Postfix service daemons irrevocably release root
+privileges, and therefore do not in any sense run as "root" once
+they're handling service requests. Here, "root" privilege is used
+to separate privileges within Postfix (<i>internal privilege
+separation</i>). </p>
+
+<p> The only exceptions are local(8), pipe(8), spawn(8) and virtual(8)
+which run as "postfix" most of the time, but retain a saved effective
+uid of "root" so that they can temporarily run as the target user
+(the user that owns the target mailbox or maildir file, or that is
+configured to execute the given command). Here, root privilege is
+used to select different privileges for Postfix and non-Postfix
+resources (<i>"postfix" privilege confinement</i>). </p>
+
+<p> If the Postfix service daemons in question do not access
+non-Postfix files and if they do not execute non-Postfix commands,
+then all the services launched by the master(8) daemon will irrevocably
+run unprivileged after initialization. </p>
+
+<blockquote> <i>Impact of unprivileged master(8) operation:</i>
+Postfix cannot maintain <i>internal privilege separation</i> (service
+daemons must use the same Postfix privileges while initializing and
+while handling requests), and it cannot maintain <i>"postfix"
+privilege confinement</i> (service daemons must use the same "postfix"
+privileges to execute non-Postfix programs or to access non-Postfix
+files). Examples of how this makes the mail system more vulnerable:
+</p>
+
+<ul>
+
+<li> <p> The local(8) deliver agent will execute "<tt>|command</tt>"
+etc. instructions in a user's ".forward" file with "postfix"
+privileges, allowing the user to take control of the Postfix mail
+system. </p>
+
+<li> <p> All local(8) and virtual(8) mailbox and maildir files will
+be owned by the "postfix" user. If a user can read one mailbox and
+maildir file, they can read, write, and delete all such files;
+additionally they can read, write, and delete all messages in the
+Postfix queue. </p>
+
+<li> <p> The local(8), pipe(8) or spawn(8) daemons will execute
+non-Postfix commands with "postfix" privileges; if the command has
+a vulnerability, then an attacker can take over the Postfix mail
+system. </p>
+
+<li> <p> The weaker protection of secret-key files and the optional
+Postfix "maillog_file" logging are discussed under the next item.
+</p>
+
+</ul>
+
+</blockquote>
+
+<li> <p> Postfix configuration, secrets, and logs: </p>
+
+<p> Postfix configuration files and "maillog_file" logfiles are
+owned by the "root" user. Additionally, secret key files are
+readable only by "root". This protects secret keys, configuration
+files, and Postfix logging, after someone compromises an unprivileged
+Postfix service daemon process. </p>
+
+<blockquote> <i>Impact of an unprivileged master(8) operation:</i>
+configuration files including secret keys will still be owned by
+"root", but keys will need to be readable by the "postfix" user,
+and optional Postfix "maillog_file" logfiles will need to be owned
+by "postfix". After someone compromises an unprivileged Postfix
+service daemon process, they will be able to read all Postfix secret
+key files, and will be able to read, write, or delete the optional
+Postfix "maillog_file". </blockquote>
+
+<li> <p> Handling requests from local users: </p>
+
+<p> Postfix uses the set-gid postdrop(1) command to submit messages
+into the mail queue; uses the set-gid postqueue(1) command to list
+or mail queue, or to request delivery; and uses the set-gid postlog(1)
+command to report events to the optional Postfix "maillog_file".
+Postfix provides sendmail-compatible helper programs sendmail(1)
+and mailq(1) that invoke postdrop(1) or postqueue(1). </p>
+
+<blockquote> <i>Impact of an unprivileged master(8) operation:</i>
+the optional Postfix "maillog_file" will be owned by the "postfix"
+user; a compromised service daemon process will be able to read,
+write, or delete Postfix logging. </blockquote>
+
+<li> <p> Postfix queue files and directories: </p>
+
+<p> The "postfix" user owns all Postfix queue directories and queue
+files, except for local submissions created with the postdrop(1)
+command. Those queue files are owned by the originating user, and
+are stored in the "maildrop" queue directory, from where they are
+ingested into Postfix by the pickup(8) service daemon. The Postfix
+queue is not directly accessible by users. </p>
+
+<blockquote> <i>Impact of an unprivileged master(8) operation:</i>
+none.
+</blockquote>
+
+</ul>
+
+<h2> <a name="lifecycle"> Routine Postfix management: start, stop,
+reload, configuration </a> </h2>
+
+<p> The following instructions assume that the steps in the "<a
+href="#appendix"> Appendix </a> have already been implemented. </p>
+
+<ul>
+
+<li> <p> To start, reload or stop Postfix, execute as the "root"
+or "postfix" user: </p>
+
+<pre>postfix start </pre>
+
+<pre>postfix reload </pre>
+
+<pre>postfix stop </pre>
+
+<li> <p> Commands that change Postfix permissions or configuration
+files must be executed as the "root" user:
+
+<pre>postfix set-permissions </pre>
+
+<pre>postconf "<i>parameter = value</i>" </pre>
+
+<pre>postmap "<i>maptype:mapname...</i>" </pre>
+
+<pre>postalias "<i>maptype:mapname...</i>" </pre>
+
+</ul>
+
+<p> Postfix configurations MUST NOT be owned by the <tt>postfix</tt>
+user: that would be too convenient for someone who compromises a Postfix
+daemon process. </p>
+
+<h2> <a name="credits"> Credits </a> </h2>
+
+<ul>
+
+<li> <p> Wietse Venema originally implemented unprivileged master(8)
+operation, for integration tests. </p>
+
+<li> <p> Viktor Dukhovni contributed background on the postfix-users
+mailing list. </p>
+
+</ul>
+
+<h2> <a name="appendix"> Appendix </a> </h2>
+
+<h3> <a name="appendix-build"> Build requirements </a> </h3>
+
+<p> Unprivileged master(8) operation requires that Postfix is built
+with dynamically-linked libraries, that is, with "<tt>shared=yes</tt>"
+on the "<tt>make makefiles</tt>" command line. </p>
+
+<h3> <a name="appendix-config"> One-time changes required after
+initial Postfix installation </a> </h3>
+
+<p> After installing Postfix from a standard pre-compiled package
+or from source code, a few tweaks are needed to make unprivileged
+operation possible. These changes should persist after subsequent
+Postfix updates. </p>
+
+<p> To revert to the privileged Postfix operation, stop Postfix and
+undo the changes described in the subsections that follow. </p>
+
+<h3> Update maillog_file permissions </h3>
+
+<ul>
+
+<li> <p> If you configure a non-default "maillog_file"
+setting, then Postfix will create that file with user "postfix"
+privileges (instead of "root"). The parent directory and logfile
+will need to be writable by the "postfix" user. Example: </p>
+
+<pre>
+postconf maillog_file=/var/log/postfix/maillog
+mkdir -p /var/log/postfix
+touch /var/log/postfix/maillog
+chown postfix /var/log/postfix /var/log/postfix/maillog
+</pre>
+
+<li> <p> To revert to privileged Postfix master(8) operation, make the
+parent directory (in the example: /var/log/postfix) writable by "root"
+only. </p>
+
+</ul>
+
+<h3> Update the import_environment parameter setting </h3>
+
+<ul>
+
+<li> <p> As user "root", update the file "main.cf"
+with the following command: </p>
+
+<pre>
+postconf "import_environment = $(postconf -dh import_environment) \
+    LD_PRELOAD=\$shlib_directory/fake_eugid.so"
+</pre>
+
+<p> Do not omit the "<tt>\</tt>" in "<tt>\$shlib_directory</tt>". <p>
+
+<p> The result is an <tt>import_environment</tt> setting that contains
+both the default import_environment value plus the literal string
+<tt>LD_PRELOAD=$shlib_directory/fake_eugid.so</tt>. With Postfix
+3.12 the result looks like: </p>
+
+<pre>
+import_environment = MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY
+    DISPLAY LANG=C POSTLOG_SERVICE POSTLOG_HOSTNAME XDG_RUNTIME_DIR
+    LD_PRELOAD=$shlib_directory/fake_eugid.so
+</pre>
+
+<p> (it will be all on one long line). </p>
+
+<li> <p> To revert to privileged Postfix master(8) operation, execute as
+the "root" user: </p>
+
+<pre>
+postconf -X import_environment
+</pre>
+
+</ul>
+
+<h3> Change the "<tt>pid</tt>" lockfile directory ownership </h3>
+
+<ul>
+
+<li> <p> As root, execute the following command: </p>
+
+<pre>
+echo '$queue_directory/pid:d:$mail_owner:-:755:uc' \
+    > $(postconf -xh meta_directory)/postfix-files.d/unprivileged
+</pre>
+
+<p> NOTE: use single quotes (<tt>'</tt>) not double quotes (<tt>"</tt>).
+</p>
+
+<p> This adds add a file "<tt>unprivileged</tt>" in a subdirectory
+"<tt>postfix-files.d</tt>" under the Postfix directory configured
+with "<tt>meta_directory</tt>". The result should look like this: </p>
+
+<pre>$queue_directory/pid:d:$mail_owner:-:755:uc </pre>
+
+<li> <p> Execute as the "root" user: </p>
+
+<pre>postfix set-permissions </pre>
+
+<li> <p> To revert to privileged Postfix master(8) operation, delete the
+file "<tt>unprivileged</tt>" that was created above, and execute as the
+"root" user: </p>
+
+<pre>rm $(postconf -xh meta_directory)/postfix-files.d/unprivileged </pre>
+
+<pre>postfix set-permissions </pre>
+
+</ul>
+
+<h3> Make TLS secret key files world-readable </h3>
+
+<p> Normally, Postfix daemons open secret key files before dropping
+"root" privileges. With unprivileged Postfix that is no longer
+possible. </p>
+
+<ul>
+
+<li> <p> Execute the following command as "root" for each such file: </p>
+
+<pre>chmod 644 <i>/path/to/secret-key-file.pem</i> </pre>
+
+<p> You may need to update Let'sEncrypt etc. key management automation
+to ensure correct file permissions after a future key update. </p>
+
+<li> <p> To revert to privileged Postfix master(8) operation, execute
+the following command as "root" for each of the above files: </p>
+
+<pre>chmod 600 <i>/path/to/secret-key-file.pem</i> </pre>
+
+<p> and revert the above changes to Let'sEncrypt etc. key management
+automation. </p>
+
+</ul>
+
+</body>
+
+</html>

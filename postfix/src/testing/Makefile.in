@@ -23,7 +23,7 @@ DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 INCL	=
 LIB	= libtesting.a
-LIB_SO	= nosleep.so
+LIB_SO	= nosleep.so fake_eugid.so
 TESTPROG= mock_dns_lookup_test mock_getaddrinfo_test \
 	mock_myaddrinfo_test mock_servent_test match_addr_test \
 	match_attr_test match_basic_test mock_server_test
@@ -56,6 +56,9 @@ $(LIB_DIR)/$(LIB): $(LIB)
 	$(_RANLIB) $(LIB_DIR)/$(LIB)
 
 nosleep.so: nosleep.c
+	$(CC) $(CFLAGS) -fPIC -shared -o $@ $?
+
+fake_eugid.so: fake_eugid.c
 	$(CC) $(CFLAGS) -fPIC -shared -o $@ $?
 
 update: lib_so_update lib_update

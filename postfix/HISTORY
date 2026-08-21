@@ -31988,6 +31988,17 @@ Apologies for any names omitted.
 	pre-replacement body content. Reported by OpenAI Security.
 	Fix by Wietse (don't accept). File: milter8.c.
 
+20260823
+
+	Preliminary support to run Postfix with an unprivileged master
+	daemon. This is feasible (with some weakened security) for
+	deployments that forward all messages via SMTP or LMTP. It
+	MUST NOT BE USED IN PRODUCTION deployments that execute
+	non-Postfix programs (for example with local(8), pipe(8),
+	or spawn(8)) or that deliver mail to files (with local(8)
+	or virtual(8)). Files: conf/postfix-files, proto/index.html,
+	proto/UNPRIVILEGED_README.html, postfix.c, fake_eugid.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.
