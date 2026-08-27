@@ -78,9 +78,9 @@
 /* .IP 2)
 /*	New mail arrives, and the new message is given the same queue ID
 /*	as the message that \fBpostsuper\fR(1) is supposed to delete.
-/*	The probability for reusing a deleted queue ID is about 1 in 2**15
-/*	(the number of different microsecond values that the system clock
-/*	can distinguish within a second).
+/*	The probability for reusing a short queue ID depends on
+/*	the number of distinct microsecond values that the system clock
+/*	can distinguish within a second.
 /* .IP 3)
 /*	\fBpostsuper\fR(1) deletes the new message, instead of the old
 /*	message that it should have deleted.
@@ -1343,8 +1343,6 @@ int     main(int argc, char **argv)
      */
     if (unsafe() != 0)
 	msg_fatal("this postfix command must not run as a set-uid process");
-    if (getuid())
-	msg_fatal("use of this command is reserved for the superuser");
 
     /*
      * Parse JCL.
@@ -1439,7 +1437,11 @@ int     main(int argc, char **argv)
      * a non-root user limits the damage to the already compromised mail
      * owner.
      */
-    set_ugid(var_owner_uid, var_owner_gid);
+    if (getuid() == 0) {
+	set_ugid(var_owner_uid, var_owner_gid);
+    } else if (getuid() != var_owner_uid) {
+	msg_fatal("use of this command is reserved for the superuser");
+    }
 
     /*
      * Be sure to log a warning if we do not finish structural repair. Maybe

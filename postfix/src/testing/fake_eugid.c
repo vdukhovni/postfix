@@ -44,6 +44,7 @@
 /*	porcupine.org
 /*--*/
 
+#include <sys_defs.h>
 #include <sys/param.h>
 #include <unistd.h>
 #include <grp.h>
@@ -102,7 +103,7 @@ gid_t   getegid(void) {
     return (fake_egid);
 }
 
-int     setgroups(size_t size, const gid_t * gidset)
+int     setgroups(SETGRPS_NUM_TYPE size, const gid_t * gidset)
 {
     int     n;
 
@@ -112,7 +113,7 @@ int     setgroups(size_t size, const gid_t * gidset)
     return (0);
 }
 
-int     initgroups(const char *user, gid_t group)
+int     initgroups(const char *user, INITGRPS_ARG_TYPE group)
 {
     return (0);
 }

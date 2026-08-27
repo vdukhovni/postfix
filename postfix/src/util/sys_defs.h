@@ -126,6 +126,11 @@
 #define HAS_CLOSEFROM
 #endif
 
+#if defined(__FreeBSD_version) && __FreeBSD_version < 500000
+#define SETGRPS_NUM_TYPE int
+#define INITGRPS_ARG_TYPE int
+#endif
+
 /* OpenBSD version is year+month */
 
 #if OpenBSD >= 199805			/* XXX */
@@ -226,6 +231,8 @@
 #define SUPPORTED
 #define UINT32_TYPE	unsigned int
 #define UINT16_TYPE	unsigned short
+#define SETGRPS_NUM_TYPE int
+#define INITGRPS_ARG_TYPE int
 #define USE_PATHS_H
 #define HAS_FLOCK_LOCK
 #define HAS_FCNTL_LOCK
@@ -371,6 +378,8 @@ extern int opterr;			/* XXX use <getopt.h> */
 #include <memory.h>
 #define UINT32_TYPE	unsigned int
 #define UINT16_TYPE	unsigned short
+#define SETGRPS_NUM_TYPE int
+#define INITGRPS_ARG_TYPE int
 #define UNSAFE_CTYPE
 #define fpos_t	long
 #define MISSING_SETENV
@@ -765,9 +774,12 @@ extern int initgroups(const char *, int);
   */
 #if defined(LINUX2) || defined(LINUX3) || defined(LINUX4) || defined(LINUX5) \
 	|| defined(LINUX6) || defined(LINUX7)
+
 #define SUPPORTED
 #define UINT32_TYPE	unsigned int
 #define UINT16_TYPE	unsigned short
+#define SETGRPS_NUM_TYPE size_t
+#define INITGRPS_ARG_TYPE gid_t
 #include <features.h>
 #define USE_PATHS_H
 #define HAS_FLOCK_LOCK
@@ -1722,6 +1734,14 @@ typedef int pid_t;
 
 #ifndef SSIZE_T_MAX
 #define SSIZE_T_MAX __MAXINT__(ssize_t)
+#endif
+
+#ifndef SETGRPS_NUM_TYPE
+#define SETGRPS_NUM_TYPE int
+#endif
+
+#ifndef INITGRPS_ARG_TYPE
+#define INITGRPS_ARG_TYPE gid_t
 #endif
 
  /*

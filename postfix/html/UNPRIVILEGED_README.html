@@ -18,20 +18,37 @@
 <h2> Summary </h2>
 
 <p> This document describes a proof of concept that may be used for
-experiments to run the Postfix <a href="master.8.html">master(8)</a> daemon without "root" privileges
-(and consequently, all Postfix daemon processes). As discussed below,
-this will make Postfix less secure. </p>
+experiments to run the Postfix <a href="master.8.html">master(8)</a> daemon without "root"
+privileges (and consequently, all Postfix daemon processes). As
+discussed below, this will make Postfix less secure. </p>
+
+<p> This is where "unprivileged" Postfix can or must not be used:
+</p>
 
 <ul>
 
-<li> <p> Feasible for production with some weakened security:
-unprivileged <a href="master.8.html">master(8)</a> deployments that forward all messages with
-SMTP or LMTP. </p>
+<li> <p> Feasible for production use, with some weakened security:</p>
 
-<li> <p> MUST NOT BE USED FOR PRODUCTION: unprivileged <a href="master.8.html">master(8)</a>
-deployments that can execute non-Postfix programs (with <a href="local.8.html">local(8)</a>,
-<a href="pipe.8.html">pipe(8)</a> or <a href="spawn.8.html">spawn(8)</a>) or that deliver to files (with <a href="local.8.html">local(8)</a> or
-<a href="virtual.8.html">virtual(8)</a>. </p>
+<ul>
+
+<li> <p> Unprivileged <a href="master.8.html">master(8)</a> deployments that forward all messages
+with SMTP or LMTP. </p>
+
+<li> <p> This does not make Postfix less secure than <i>other</i>
+mail systems. It just makes Postfix less secure than it could be.
+</p>
+
+</ul>
+
+<li> <p> MUST NOT BE USED FOR PRODUCTION: </p>
+
+<ul>
+
+<li> <p> Unprivileged <a href="master.8.html">master(8)</a> deployments that can execute
+non-Postfix programs (with <a href="local.8.html">local(8)</a>, <a href="pipe.8.html">pipe(8)</a> or <a href="spawn.8.html">spawn(8)</a>) or that
+deliver to files (with <a href="local.8.html">local(8)</a> or <a href="virtual.8.html">virtual(8)</a>). </p>
+
+</ul>
 
 </ul>
 
@@ -39,11 +56,11 @@ deployments that can execute non-Postfix programs (with <a href="local.8.html">l
 
 <ul>
 
-<li> <a href="#security-model"> Postfix privileged security
-model, and impact from unprivileged operation </a> 
+<li> <a href="#security-model"> Postfix privileged security model,
+and what changes with unprivileged operation </a>
 
-<li> <a href="#lifecycle"> Routine Postfix management: start,
-stop, reload, configuration </a>
+<li> <a href="#management"> Unprivileged Postfix management: start,
+stop, reload, queue, and configuration </a>
 
 <li> <a href="#credits"> Credits </a>
 
@@ -52,7 +69,7 @@ stop, reload, configuration </a>
 </ul>
 
 <h2> <a name="security-model"> Postfix privileged security model,
-and impact from unprivileged operation </a>  </h2>
+and what changes with unprivileged operation </a> </h2>
 
 <p> This section summarizes the Postfix security model for privileged
 <a href="master.8.html">master(8)</a> operation, and how it is weakened with an unprivileged
@@ -69,18 +86,23 @@ by users, and c) commands for system administrators. The privileged
 Postfix has no set-uid program files, eliminating a large class of
 attacks. </p>
 
-<blockquote> <i>Impact of unprivileged <a href="master.8.html">master(8)</a> operation:</i> the
-<a href="master.8.html">master(8)</a> daemon runs with fixed "postfix" privilege. This affects all
-Postfix service daemon processes as discussed next. </blockquote>
+<blockquote> <p> <i>What changes with unprivileged <a href="master.8.html">master(8)</a>
+operation:</i> </p>
+
+<p> The <a href="master.8.html">master(8)</a> daemon runs with fixed "postfix" privilege instead
+of "root". This affects all Postfix service daemon processes as
+discussed next. </p> </blockquote>
 
 <li> <p> Postfix service daemon processes: </p>
 
 <p> When launched by a privileged <a href="master.8.html">master(8)</a> daemon, a Postfix service
 daemon can revoke "root" privileges <i>after</i> initialization,
-<i>before</i> it handles any requests. This allows each service process
-to read sensitive files (e.g. TLS private keys) and to open sensitive
-databases or logfiles for writing. When a service process becomes
-compromised, it no longer has that level of access. </p>
+<i>before</i> it handles any requests. This allows each service
+process to open and read sensitive files (e.g. TLS private keys or
+database passwords) and to open and modify sensitive databases or
+logfiles. When a service process becomes compromised after it drops
+root privileges, it can no longer open sensitive files, databases
+or logfiles. </p>
 
 <p> All but four Postfix service daemons irrevocably release root
 privileges, and therefore do not in any sense run as "root" once
@@ -101,32 +123,40 @@ non-Postfix files and if they do not execute non-Postfix commands,
 then all the services launched by the <a href="master.8.html">master(8)</a> daemon will irrevocably
 run unprivileged after initialization. </p>
 
-<blockquote> <i>Impact of unprivileged <a href="master.8.html">master(8)</a> operation:</i>
-Postfix cannot maintain <i>internal privilege separation</i> (service
-daemons must use the same Postfix privileges while initializing and
-while handling requests), and it cannot maintain <i>"postfix"
-privilege confinement</i> (service daemons must use the same "postfix"
-privileges to execute non-Postfix programs or to access non-Postfix
-files). Examples of how this makes the mail system more vulnerable:
-</p>
+<blockquote> <p> <i>What changes with unprivileged <a href="master.8.html">master(8)</a>
+operation:</i> </p>
+
+<p> Postfix cannot maintain <i>internal privilege separation</i>
+(service daemons must use the same Postfix privileges while
+initializing and while handling requests), and it cannot maintain
+<i>"postfix" privilege confinement</i> (service daemons must use
+the same "postfix" privileges to execute non-Postfix programs, to
+deliver to mailbox or maildir files, or to access non-Postfix files).
+Specifically: </p>
+
+<ul>
+
+<li> <p> <strong>These MUST NOT be used in production: </strong> </p>
 
 <ul>
 
 <li> <p> The <a href="local.8.html">local(8)</a> deliver agent will execute "<tt>|command</tt>"
 etc. instructions in a user's ".forward" file with "postfix"
-privileges, allowing the user to take control of the Postfix mail
-system. </p>
+privileges instead of the target user's privileges, allowing the
+user to take control of the Postfix mail system. </p>
 
 <li> <p> All <a href="local.8.html">local(8)</a> and <a href="virtual.8.html">virtual(8)</a> mailbox and maildir files will
-be owned by the "postfix" user. If a user can read one mailbox and
-maildir file, they can read, write, and delete all such files;
-additionally they can read, write, and delete all messages in the
-Postfix queue. </p>
+be owned by the "postfix" user instead of the receiving user. If a
+user can read one mailbox and maildir file, they can read, write,
+and delete all such files; additionally they can read, write, and
+delete all messages in the Postfix queue. </p>
 
 <li> <p> The <a href="local.8.html">local(8)</a>, <a href="pipe.8.html">pipe(8)</a> or <a href="spawn.8.html">spawn(8)</a> daemons will execute
-non-Postfix commands with "postfix" privileges; if the command has
-a vulnerability, then an attacker can take over the Postfix mail
-system. </p>
+non-Postfix commands with "postfix" privileges instead of the target
+user's privileges; if the command has a vulnerability, then an
+attacker can take over the Postfix mail system. </p>
+
+</ul>
 
 <li> <p> The weaker protection of secret-key files and the optional
 Postfix "<a href="postconf.5.html#maillog_file">maillog_file</a>" logging are discussed under the next item.
@@ -139,33 +169,47 @@ Postfix "<a href="postconf.5.html#maillog_file">maillog_file</a>" logging are di
 <li> <p> Postfix configuration, secrets, and logs: </p>
 
 <p> Postfix configuration files and "<a href="postconf.5.html#maillog_file">maillog_file</a>" logfiles are
-owned by the "root" user. Additionally, secret key files are
-readable only by "root". This protects secret keys, configuration
-files, and Postfix logging, after someone compromises an unprivileged
-Postfix service daemon process. </p>
+owned by the "root" user. Additionally, secret key files are readable
+only by "root". This protects secret keys, configuration files, and
+Postfix logging, after someone compromises an unprivileged Postfix
+service daemon process. </p>
 
-<blockquote> <i>Impact of an unprivileged <a href="master.8.html">master(8)</a> operation:</i>
-configuration files including secret keys will still be owned by
-"root", but keys will need to be readable by the "postfix" user,
-and optional Postfix "<a href="postconf.5.html#maillog_file">maillog_file</a>" logfiles will need to be owned
-by "postfix". After someone compromises an unprivileged Postfix
-service daemon process, they will be able to read all Postfix secret
-key files, and will be able to read, write, or delete the optional
-Postfix "<a href="postconf.5.html#maillog_file">maillog_file</a>". </blockquote>
+<blockquote> <p> <i>What changes with unprivileged <a href="master.8.html">master(8)</a>
+operation:</i> </p>
+
+<ul>
+
+<li> <p> Configuration files including secret keys will still be
+owned by "root", but keys will need to be readable by the "postfix"
+user. After someone compromises an unprivileged Postfix service
+daemon process, they will be able to read all Postfix secret key
+files. </p>
+
+<li> <p> The optional Postfix "<a href="postconf.5.html#maillog_file">maillog_file</a>" logfiles will need to
+be owned by "postfix" instead of "root". After someone compromises
+an unprivileged Postfix service daemon process, they will be able
+to read, write, or delete Postfix "<a href="postconf.5.html#maillog_file">maillog_file</a>" records. </p>
+
+<li> <p> This does not make Postfix less secure than other mail
+systems. It just makes Postfix less secure than it could be. </p>
+
+</blockquote>
 
 <li> <p> Handling requests from local users: </p>
 
-<p> Postfix uses the set-gid <a href="postdrop.1.html">postdrop(1)</a> command to submit messages
-into the mail queue; uses the set-gid <a href="postqueue.1.html">postqueue(1)</a> command to list
-or mail queue, or to request delivery; and uses the set-gid <a href="postlog.1.html">postlog(1)</a>
-command to report events to the optional Postfix "<a href="postconf.5.html#maillog_file">maillog_file</a>".
-Postfix provides sendmail-compatible helper programs <a href="sendmail.1.html">sendmail(1)</a>
-and <a href="mailq.1.html">mailq(1)</a> that invoke <a href="postdrop.1.html">postdrop(1)</a> or <a href="postqueue.1.html">postqueue(1)</a>. </p>
+<p> Postfix uses the set-gid <a href="postdrop.1.html">postdrop(1)</a> client command to submit
+messages into the mail queue; uses the set-gid <a href="postqueue.1.html">postqueue(1)</a> client
+command to list or mail queue, or to request delivery; and uses the
+set-gid <a href="postlog.1.html">postlog(1)</a> client command to report events to the optional
+Postfix "<a href="postconf.5.html#maillog_file">maillog_file</a>". Postfix provides sendmail-compatible helper
+programs <a href="sendmail.1.html">sendmail(1)</a> and <a href="mailq.1.html">mailq(1)</a> that invoke <a href="postdrop.1.html">postdrop(1)</a> or
+<a href="postqueue.1.html">postqueue(1)</a>. </p>
 
-<blockquote> <i>Impact of an unprivileged <a href="master.8.html">master(8)</a> operation:</i>
-the optional Postfix "<a href="postconf.5.html#maillog_file">maillog_file</a>" will be owned by the "postfix"
-user; a compromised service daemon process will be able to read,
-write, or delete Postfix logging. </blockquote>
+<blockquote> <p> <i>What changes with unprivileged <a href="master.8.html">master(8)</a>
+operation:</i> </p>
+
+<p> No change. The set-gid client programs are still needed. </p>
+</blockquote>
 
 <li> <p> Postfix queue files and directories: </p>
 
@@ -176,14 +220,23 @@ are stored in the "<a href="QSHAPE_README.html#maildrop_queue">maildrop" queue</
 ingested into Postfix by the <a href="pickup.8.html">pickup(8)</a> service daemon. The Postfix
 queue is not directly accessible by users. </p>
 
-<blockquote> <i>Impact of an unprivileged <a href="master.8.html">master(8)</a> operation:</i>
-none.
-</blockquote>
+<li> <p> Commands for system administrators: </p>
+
+<p> The <a href="postfix.1.html">postfix(1)</a>, <a href="postmulti.1.html">postmulti(1)</a>, and <a href="postsuper.1.html">postsuper(1)</a> commands are
+reserved for the "root" user; these commands require "root" privileges
+to make configuration changes.
+
+<blockquote> <p> <i>What changes with unprivileged <a href="master.8.html">master(8)</a>
+operation:</i> </p>
+
+<p> As detailed in the next section, many commands may also be
+invoked by the "postfix" user, but "root" is still required for
+commands that make configuration changes. </p> </blockquote>
 
 </ul>
 
-<h2> <a name="lifecycle"> Routine Postfix management: start, stop,
-reload, configuration </a> </h2>
+<h2> <a name="management"> Unprivileged Postfix management: start,
+stop, reload, queue , and configuration </a> </h2>
 
 <p> The following instructions assume that the steps in the "<a
 href="#appendix"> Appendix </a> have already been implemented. </p>
@@ -199,12 +252,32 @@ or "postfix" user: </p>
 
 <pre>postfix stop </pre>
 
+<li> <p> Commands that do not change configuration may be executed as
+the "root" or "postfix" user: </p>
+
+<pre>postfix status </pre>
+
+<pre><a href="postfix-non-bdb.1.html">postfix non-bdb</a> status </pre>
+
+<pre><a href="postfix-tls.1.html">postfix tls</a> output-server-csr (or output-server-tlsa) </pre>
+
+<li> The <a href="postsuper.1.html">postsuper(1)</a> queue management command may be executed as
+the "root" or "postfix" user: </p>
+
+<pre>postsuper <i>options... arguments...</i> </pre>
+
 <li> <p> Commands that change Postfix permissions or configuration
-files must be executed as the "root" user:
+must be executed as the "root" user:
 
 <pre>postfix set-permissions </pre>
 
-<pre>postconf "<i>parameter = value</i>" </pre>
+<pre><a href="postfix-tls.1.html">postfix tls</a> <i>subcommand</i> </pre>
+
+<pre><a href="postfix-non-bdb.1.html">postfix non-bdb</a> <i>subcommand</i> </pre>
+
+<pre>postmulti -e <i>command</i> </pre>
+
+<pre>postconf "<i>key = value</i>" </pre>
 
 <pre>postmap "<i>maptype:mapname...</i>" </pre>
 
@@ -213,15 +286,15 @@ files must be executed as the "root" user:
 </ul>
 
 <p> Postfix configurations MUST NOT be owned by the <tt>postfix</tt>
-user: that would be too convenient for someone who compromises a Postfix
-daemon process. </p>
+user: that would be too convenient for someone who compromises a
+Postfix daemon process. </p>
 
 <h2> <a name="credits"> Credits </a> </h2>
 
 <ul>
 
 <li> <p> Wietse Venema originally implemented unprivileged <a href="master.8.html">master(8)</a>
-operation, for integration tests. </p>
+operation for integration tests. </p>
 
 <li> <p> Viktor Dukhovni contributed background on the postfix-users
 mailing list. </p>

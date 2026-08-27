@@ -31999,6 +31999,29 @@ Apologies for any names omitted.
 	or virtual(8)). Files: conf/postfix-files, proto/index.html,
 	proto/UNPRIVILEGED_README.html, postfix.c, fake_eugid.c.
 
+20260827
+
+	Unprivileged mode patches from Viktor to make fake_eugid.c
+	compile on other systems. There is some variation in the
+	library APIs of setgroups() and initgroups(). With some
+	additional background search it should now build with the
+	last few decades of Linux, FreeBSD, NetBSD, OpenBSD, Solaris,
+	and HP-UX. Files: sys_defs.h, sys_compat.c, fake_eugid.c.
+
+	Unprivileged mode still requires that Postfix is built with
+	"shared=yes". Otherwise, the fake_eugid preload module has
+	no place to go to.
+
+	Added postsuper support for running as user "postfix".
+	File: postsuper.c.
+
+	TODO: For MacOS, need to replace LD_PRELOAD=/path with
+	DYLD_INSERT_LIBRARIES=/path and DYLD_FORCE_FLAT_NAMESPACE=1.
+
+	TODO: additional sanity checks on unprivileged mode?
+
+	Production baseline is postfix-3.12-20260821.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

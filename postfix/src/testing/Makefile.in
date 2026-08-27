@@ -168,6 +168,8 @@ dict_test_helper.o: ../../include/vstream.h
 dict_test_helper.o: ../../include/vstring.h
 dict_test_helper.o: dict_test_helper.c
 dict_test_helper.o: dict_test_helper.h
+fake_eugid.o: ../../include/sys_defs.h
+fake_eugid.o: fake_eugid.c
 make_addr.o: ../../include/msg.h
 make_addr.o: ../../include/mymalloc.h
 make_addr.o: ../../include/sys_defs.h

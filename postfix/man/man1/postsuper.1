@@ -84,9 +84,9 @@ message (it is delivered, or it is returned to the sender).
 .IP 2)
 New mail arrives, and the new message is given the same queue ID
 as the message that \fBpostsuper\fR(1) is supposed to delete.
-The probability for reusing a deleted queue ID is about 1 in 2**15
-(the number of different microsecond values that the system clock
-can distinguish within a second).
+The probability for reusing a short queue ID depends on
+the number of distinct microsecond values that the system clock
+can distinguish within a second.
 .IP 3)
 \fBpostsuper\fR(1) deletes the new message, instead of the old
 message that it should have deleted.
