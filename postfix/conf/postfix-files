@@ -63,7 +63,7 @@ $queue_directory/incoming:d:$mail_owner:-:700:ucr
 $queue_directory/private:d:$mail_owner:-:700:uc
 $queue_directory/maildrop:d:$mail_owner:$setgid_group:730:uc
 $queue_directory/public:d:$mail_owner:$setgid_group:710:uc
-$queue_directory/pid:d:root:-:755:uc
+$queue_directory/pid:d:root:-:755:ucr
 $queue_directory/saved:d:$mail_owner:-:700:ucr
 $queue_directory/tlstrace:d:$mail_owner:-:700:ucr
 $queue_directory/trace:d:$mail_owner:-:700:ucr

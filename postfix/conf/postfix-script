@@ -111,6 +111,27 @@ do
     esac
 done
 
+# The MacOS shell does not export DYLD_* settings to child processes,
+# so we must re-export them again.
+case "$($command_directory/postconf -nh import_environment)" in
+*DYLD_*=*)
+    # TODO(wietse) This would break with DYLD_* settings that contain space.
+    for tok in $($command_directory/postconf -nh import_environment \
+	    | tr ',' ' ')
+    do
+	# Strip one leading "{" and one trailing "}". Requires POSIX sh.
+	case $tok in
+	\{*\}) tok=${tok#\{} && tok=${tok%\}} || exit 1;;
+	esac
+	# Re-export DYLD_*. Use export_environment as scratchpad.
+	case $tok in
+	DYLD_*=*) export $($command_directory/postconf \
+		-o "export_environment=$tok" \
+		-xh export_environment) || exit 1;;
+	esac
+    done
+esac
+
 #
 # Parse JCL
 #
@@ -423,7 +444,7 @@ check-warn)
 		-f /usr/lib/sendmail && {
 	    cmp -s /usr/sbin/sendmail /usr/lib/sendmail || {
 		$WARN /usr/lib/sendmail and /usr/sbin/sendmail differ
-		$WARN Replace one by a symbolic link to the other
+		$WARN Replace one with a symbolic link to the other
 	    }
 	}
 	exit 0

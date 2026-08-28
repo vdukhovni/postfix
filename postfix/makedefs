@@ -650,11 +650,10 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		# Use the native compiler by default
 		: ${CC=cc}
 		CCARGS="$CCARGS"
-		# Darwin > 1.3 uses awk and flat_namespace
+		# Darwin > 1.3 uses awk
 		case $RELEASE in
 		 1.[0-3]) AWK=gawk;;
-		       *) AWK=awk
-			  SYSLIBS="$SYSLIBS -flat_namespace";;
+		       *) AWK=awk;;
 		esac
 		# Darwin 7 adds IPv6 support, BIND_8_COMPAT, NO_NETINFO
 		case $RELEASE in
@@ -688,12 +687,12 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		esac
 		: ${SHLIB_CFLAGS=-fPIC}
 		: ${SHLIB_SUFFIX=.dylib}
-		: ${SHLIB_LD="cc -shared -Wl,-flat_namespace ${NOFIXUP}-Wl,-undefined,dynamic_lookup "'-Wl,-install_name,@rpath/${LIB}'}
+		: ${SHLIB_LD="cc -shared ${NOFIXUP}-Wl,-undefined,dynamic_lookup "'-Wl,-install_name,@rpath/${LIB}'}
 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
                 # In MacOS/X 10.11.x /bin/sh unsets DYLD_LIBRARY_PATH, so we
                 # have export it into postfix-install indirectly!
 		: ${SHLIB_ENV="DYLD_LIBRARY_PATH=`pwd`/lib SHLIB_ENV_VAR=DYLD_LIBRARY_PATH SHLIB_ENV_VAL=`pwd`/lib"}
-		: ${PLUGIN_LD="cc -shared -Wl,-flat_namespace ${NOFIXUP}-Wl,-undefined,dynamic_lookup"}
+		: ${PLUGIN_LD="cc -shared ${NOFIXUP}-Wl,-undefined,dynamic_lookup"}
 		;;
     dcosx.1*)	SYSTYPE=DCOSX1
 		RANLIB=echo
@@ -1044,6 +1043,14 @@ case "$dynamicmaps" in
     *) error "Specify \"dynamicmaps=yes\" or \"dynamicmaps=no\"";;
 esac
 
+# For dynamic-only targets
+DYLIB_CFLAGS=$SHLIB_CFLAGS
+DYLIB_ENV=$SHLIB_ENV
+DYLIB_LD=$SHLIB_LD
+DYLIB_SYSLIBS=$SHLIB_SYSLIBS
+DYLIB_RPATH=$SHLIB_RPATH
+DYLIB_SUFFIX=$SHLIB_SUFFIX
+
 case "$shared" in
 yes)
     if [ -z "$SHLIB_SUFFIX" ]
@@ -1336,6 +1343,13 @@ SHLIB_ENV = $SHLIB_ENV
 SHLIB_LD = $SHLIB_LD
 SHLIB_SYSLIBS = $SHLIB_SYSLIBS
 SHLIB_RPATH = $SHLIB_RPATH
+# For dynamic-only targets
+DYLIB_CFLAGS = $DYLIB_CFLAGS
+DYLIB_ENV = $DYLIB_ENV
+DYLIB_LD = $DYLIB_LD
+DYLIB_SYSLIBS = $DYLIB_SYSLIBS
+DYLIB_RPATH = $DYLIB_RPATH
+DYLIB_SUFFIX = $DYLIB_SUFFIX
 # Switch between dynamicmaps.cf plugins and hard-linked databases.
 NON_PLUGIN_MAP_OBJ = $NON_PLUGIN_MAP_OBJ
 PLUGIN_MAP_OBJ = $PLUGIN_MAP_OBJ

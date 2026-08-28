@@ -32015,10 +32015,31 @@ Apologies for any names omitted.
 	Added postsuper support for running as user "postfix".
 	File: postsuper.c.
 
-	TODO: For MacOS, need to replace LD_PRELOAD=/path with
-	DYLD_INSERT_LIBRARIES=/path and DYLD_FORCE_FLAT_NAMESPACE=1.
-
 	TODO: additional sanity checks on unprivileged mode?
+
+20260828
+
+	With MacOS, re-export DYLD_WHATEVER in shell scripts;
+	parameterize system-dependent shared object name suffixes
+	(.so or .dylib) and environment variable names (LD_PRELOAD
+	or DYLD_INSERT_LIBRARIES); deleted flat_namespace cruft.
+	Viktor Dukhovni. This still requires fixing some hard-coded
+	LD_PRELOAD and .so occurrences in shell command lines
+	(including Makefiles).
+
+	Corrected the UNPRIVILEGED_README Appendix to make the
+	$queue_id/pid permission changes recursive.
+
+	TODO(wietse) postfix start/check/etc. still complain that
+	$queue_directory/pid is owned by "postfix", but we don't
+	want to allow non-root pid directory for normal operation.
+
+	TODO(wietse) need to restrict possible damage when
+	postfix-script takes action as root, based on files that
+	are no longer owned by root. Maybe this needs "master -k
+	signal" instead of "kill -signal `sed 1q pid/master.pid`".
+	Or maybe make "postfix reload/stop/drain/abort" run as
+	non-root.
 
 	Production baseline is postfix-3.12-20260821.
 

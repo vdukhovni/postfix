@@ -500,7 +500,7 @@ int     main(int argc, char **argv)
     };
     int     force_single_instance;
     ARGV   *my_argv;
-    const char *preload_inherited = getenv("LD_PRELOAD");
+    const char *preload_inherited = getenv(PRELOAD_ENVIRON);
 
     /*
      * Fingerprint executables and core dumps.
@@ -658,7 +658,7 @@ int     main(int argc, char **argv)
 	    msg_panic("bad optind value");
 	if (strstr(argv[optind], "start") != 0
 	    && preload_inherited == 0
-	    && getenv("LD_PRELOAD") != 0
+	    && getenv(PRELOAD_ENVIRON) != 0
 	    && getuid() == 0)
 	    set_ugid(var_owner_uid, var_owner_gid);
 	argv[optind - 1] = script;

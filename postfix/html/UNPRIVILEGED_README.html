@@ -356,6 +356,15 @@ postconf "<a href="postconf.5.html#import_environment">import_environment</a> = 
 
 <p> Do not omit the "<tt>\</tt>" in "<tt>\$<a href="postconf.5.html#shlib_directory">shlib_directory</a></tt>". <p>
 
+<p> For MacOS that should instead be:
+
+<pre>
+postconf "<a href="postconf.5.html#import_environment">import_environment</a> = $(postconf -dh <a href="postconf.5.html#import_environment">import_environment</a>) \
+    DYLD_INSERT_LIBRARIES=\$<a href="postconf.5.html#shlib_directory">shlib_directory</a>/fake_eugid.dylib"
+</pre>
+
+<p> Do not omit the "<tt>\</tt>" in "<tt>\$<a href="postconf.5.html#shlib_directory">shlib_directory</a></tt>". <p>
+
 <p> The result is an <tt><a href="postconf.5.html#import_environment">import_environment</a></tt> setting that contains
 both the default <a href="postconf.5.html#import_environment">import_environment</a> value plus the literal string
 <tt>LD_PRELOAD=$<a href="postconf.5.html#shlib_directory">shlib_directory</a>/fake_eugid.so</tt>. With Postfix
@@ -368,6 +377,14 @@ both the default <a href="postconf.5.html#import_environment">import_environment
 </pre>
 
 <p> (it will be all on one long line). </p>
+
+<p> With MacOS and Postfix 3.12 the result looks like: </p>
+
+<pre>
+<a href="postconf.5.html#import_environment">import_environment</a> = MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY
+    DISPLAY LANG=C POSTLOG_SERVICE POSTLOG_HOSTNAME XDG_RUNTIME_DIR
+    DYLD_INSERT_LIBRARIES=$<a href="postconf.5.html#shlib_directory">shlib_directory</a>/fake_eugid.dylib
+</pre>
 
 <li> <p> To revert to privileged Postfix <a href="master.8.html">master(8)</a> operation, execute as
 the "root" user: </p>
@@ -385,7 +402,7 @@ postconf -X <a href="postconf.5.html#import_environment">import_environment</a>
 <li> <p> As root, execute the following command: </p>
 
 <pre>
-echo '$<a href="postconf.5.html#queue_directory">queue_directory</a>/pid:d:$<a href="postconf.5.html#mail_owner">mail_owner</a>:-:755:uc' \
+echo '$<a href="postconf.5.html#queue_directory">queue_directory</a>/pid:d:$<a href="postconf.5.html#mail_owner">mail_owner</a>:-:755:ucr' \
     > $(postconf -xh <a href="postconf.5.html#meta_directory">meta_directory</a>)/postfix-files.d/unprivileged
 </pre>
 
@@ -396,7 +413,7 @@ echo '$<a href="postconf.5.html#queue_directory">queue_directory</a>/pid:d:$<a h
 "<tt>postfix-files.d</tt>" under the Postfix directory configured
 with "<tt><a href="postconf.5.html#meta_directory">meta_directory</a></tt>". The result should look like this: </p>
 
-<pre>$<a href="postconf.5.html#queue_directory">queue_directory</a>/pid:d:$<a href="postconf.5.html#mail_owner">mail_owner</a>:-:755:uc </pre>
+<pre>$<a href="postconf.5.html#queue_directory">queue_directory</a>/pid:d:$<a href="postconf.5.html#mail_owner">mail_owner</a>:-:755:ucr </pre>
 
 <li> <p> Execute as the "root" user: </p>
 

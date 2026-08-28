@@ -233,6 +233,7 @@
 #define UINT16_TYPE	unsigned short
 #define SETGRPS_NUM_TYPE int
 #define INITGRPS_ARG_TYPE int
+#define PRELOAD_ENVIRON "DYLD_INSERT_LIBRARIES"
 #define USE_PATHS_H
 #define HAS_FLOCK_LOCK
 #define HAS_FCNTL_LOCK
@@ -1742,6 +1743,10 @@ typedef int pid_t;
 
 #ifndef INITGRPS_ARG_TYPE
 #define INITGRPS_ARG_TYPE gid_t
+#endif
+
+#ifndef PRELOAD_ENVIRON
+#define PRELOAD_ENVIRON "LD_PRELOAD"
 #endif
 
  /*

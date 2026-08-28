@@ -260,6 +260,13 @@ UUppddaattee tthhee iimmppoorrtt__eennvviirroonnmmeenn
 
     Do not omit the "\" in "\$shlib_directory".
 
+    For MacOS that should instead be:
+
+    postconf "import_environment = $(postconf -dh import_environment) \
+        DYLD_INSERT_LIBRARIES=\$shlib_directory/fake_eugid.dylib"
+
+    Do not omit the "\" in "\$shlib_directory".
+
     The result is an import_environment setting that contains both the default
     import_environment value plus the literal string
     LD_PRELOAD=$shlib_directory/fake_eugid.so. With Postfix 3.12 the result
@@ -271,6 +278,12 @@ UUppddaattee tthhee iimmppoorrtt__eennvviirroonnmmeenn
 
     (it will be all on one long line).
 
+    With MacOS and Postfix 3.12 the result looks like:
+
+    import_environment = MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY
+        DISPLAY LANG=C POSTLOG_SERVICE POSTLOG_HOSTNAME XDG_RUNTIME_DIR
+        DYLD_INSERT_LIBRARIES=$shlib_directory/fake_eugid.dylib
+
   * To revert to privileged Postfix master(8) operation, execute as the "root"
     user:
 
@@ -280,7 +293,7 @@ CChhaannggee tthhee ""ppiidd"" lloocckkffiillee ddiirre
 
   * As root, execute the following command:
 
-    echo '$queue_directory/pid:d:$mail_owner:-:755:uc' \
+    echo '$queue_directory/pid:d:$mail_owner:-:755:ucr' \
         > $(postconf -xh meta_directory)/postfix-files.d/unprivileged
 
     NOTE: use single quotes (') not double quotes (").
@@ -289,7 +302,7 @@ CChhaannggee tthhee ""ppiidd"" lloocckkffiillee ddiirre
     under the Postfix directory configured with "meta_directory". The result
     should look like this:
 
-    $queue_directory/pid:d:$mail_owner:-:755:uc
+    $queue_directory/pid:d:$mail_owner:-:755:ucr
 
   * Execute as the "root" user:
 
