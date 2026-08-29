@@ -32034,12 +32034,18 @@ Apologies for any names omitted.
 	$queue_directory/pid is owned by "postfix", but we don't
 	want to allow non-root pid directory for normal operation.
 
-	TODO(wietse) need to restrict possible damage when
-	postfix-script takes action as root, based on files that
-	are no longer owned by root. Maybe this needs "master -k
-	signal" instead of "kill -signal `sed 1q pid/master.pid`".
-	Or maybe make "postfix reload/stop/drain/abort" run as
-	non-root.
+20280829
+
+	Cleaned up the interposition code for unprivileged master(8)
+	operation. Viktor Dukhovni. File: fake_ugid.c.
+
+	Least privilege: with unprivileged master(8) operation, the
+	postfix(1) command permanently drops root privilege unless
+	the command to execute really requires root privilege (i.e.
+	only commands that change configuration run as root). For
+	example, with life-cycle commands such as postfix start,
+	stop, etc., this limits the impact from malicious content
+	in a non-root master.pid file.
 
 	Production baseline is postfix-3.12-20260821.
 

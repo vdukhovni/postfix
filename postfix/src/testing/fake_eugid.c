@@ -7,21 +7,21 @@
 /*	LD_PRELOAD="/path/to/fake_eugid.so ..." command....	(ELF)
 /*
 /*	DYLD_INSERT_LIBRARIES=/path/to/fake_eugid.dylib command....	(MacOS)
-/*	
+/*
 /*	uid_t	getuid(void)
-/*	
+/*
 /*	uid_t	geteuid(void)
-/*	
+/*
 /*	gid_t	getgid(void)
-/*	
+/*
 /*	gid_t	getegid(void)
 /*
 /*	int	setuid(uid_t uid)
-/*	
+/*
 /*	int	seteuid(uid_t euid)
-/*	
+/*
 /*	int	setgid(gid_t gid)
-/*	
+/*
 /*	int	setegid(gid_t egid)
 /*
 /*	int	setgroups(int ngroups, const gid_t *gidset)
@@ -63,10 +63,11 @@
 #if defined(MACOSX)
 
  /*
-  * MacOS: define distinctly-named replacements and register interpose tuples.
-  * The replacements must not be static (the address is taken here, but keeping
-  * external linkage matches the ELF path and avoids surprises). dyld rewrites
-  * every bound reference to 'name' so that it calls 'fake_name' instead.
+  * MacOS: define distinctly-named replacements and register interpose
+  * tuples. The replacements must not be static (the address is taken here,
+  * but keeping external linkage matches the ELF path and avoids surprises).
+  * dyld rewrites every bound reference to 'name' so that it calls
+  * 'fake_name' instead.
   */
 #define FAKE(name)	fake_##name
 #define INTERPOSE(name) \
@@ -76,6 +77,18 @@
     } _interpose_##name __attribute__((section("__DATA,__interpose"))) = { \
 	(const void *) &fake_##name, (const void *) &name \
     }
+
+ /* Renamed externals need prototypes */
+extern int FAKE(setuid) (uid_t uid);
+extern int FAKE(setgid) (gid_t gid);
+extern int FAKE(seteuid) (uid_t euid);
+extern int FAKE(setegid) (gid_t egid);
+extern uid_t FAKE(getuid) (void);
+extern uid_t FAKE(geteuid) (void);
+extern gid_t FAKE(getgid) (void);
+extern gid_t FAKE(getegid) (void);
+extern int FAKE(setgroups) (SETGRPS_NUM_TYPE size, const gid_t * gidset);
+extern int FAKE(initgroups) (const char *user, INITGRPS_ARG_TYPE group);
 
 #else					/* ELF: preloading overrides by name */
 
@@ -103,6 +116,7 @@ int     FAKE(setuid) (uid_t uid)
     fake_ruid = fake_euid = uid;
     return (0);
 }
+
 INTERPOSE(setuid);
 
 int     FAKE(setgid) (gid_t gid)
@@ -110,6 +124,7 @@ int     FAKE(setgid) (gid_t gid)
     fake_rgid = fake_egid = gid;
     return (0);
 }
+
 INTERPOSE(setgid);
 
 int     FAKE(seteuid) (uid_t euid)
@@ -117,6 +132,7 @@ int     FAKE(seteuid) (uid_t euid)
     fake_euid = euid;
     return (0);
 }
+
 INTERPOSE(seteuid);
 
 int     FAKE(setegid) (gid_t egid)
@@ -124,30 +140,35 @@ int     FAKE(setegid) (gid_t egid)
     fake_egid = egid;
     return (0);
 }
+
 INTERPOSE(setegid);
 
 uid_t   FAKE(getuid) (void)
 {
     return (fake_ruid);
 }
+
 INTERPOSE(getuid);
 
 uid_t   FAKE(geteuid) (void)
 {
     return (fake_euid);
 }
+
 INTERPOSE(geteuid);
 
 gid_t   FAKE(getgid) (void)
 {
     return (fake_rgid);
 }
+
 INTERPOSE(getgid);
 
 gid_t   FAKE(getegid) (void)
 {
     return (fake_egid);
 }
+
 INTERPOSE(getegid);
 
 int     FAKE(setgroups) (SETGRPS_NUM_TYPE size, const gid_t * gidset)
@@ -159,10 +180,12 @@ int     FAKE(setgroups) (SETGRPS_NUM_TYPE size, const gid_t * gidset)
     fake_ngroups = n;
     return (0);
 }
+
 INTERPOSE(setgroups);
 
 int     FAKE(initgroups) (const char *user, INITGRPS_ARG_TYPE group)
 {
     return (0);
 }
+
 INTERPOSE(initgroups);

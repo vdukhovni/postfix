@@ -125,9 +125,9 @@ case "$($command_directory/postconf -nh import_environment)" in
 	esac
 	# Re-export DYLD_*. Use export_environment as scratchpad.
 	case $tok in
-	DYLD_*=*) export $($command_directory/postconf \
+	DYLD_*=*) export "$($command_directory/postconf \
 		-o "export_environment=$tok" \
-		-xh export_environment) || exit 1;;
+		-xh export_environment)" || exit 1;;
 	esac
     done
 esac

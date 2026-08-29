@@ -478,6 +478,17 @@ static void check_setenv(char *name, char *value)
 
 MAIL_VERSION_STAMP_DECLARE;
 
+/* needs_real_root_privs - command really needs root privs */
+
+static int needs_real_root_privs(const char *arg)
+{
+    return (strstr(arg, "set-permissions") != 0
+	    || strstr(arg, "non-bdb") != 0
+	    || strstr(arg, "tls") != 0
+	    || strstr(arg, "post-install") != 0
+	    || strstr(arg, "upgrade-configuration") != 0);
+}
+
 /* main - run administrative script from controlled environment */
 
 int     main(int argc, char **argv)
@@ -582,6 +593,19 @@ int     main(int argc, char **argv)
     argv_free(import_env);
 
     /*
+     * If we run with real root privileges, and the command to execute really
+     * needs real root privileges, get rid of the preload environment from
+     * import_environment, because it would interfere with their ability to
+     * drop privileges when they need to.
+     */
+    if (preload_inherited == 0
+	&& getuid() == 0			/* this is real getuid() */
+	&& needs_real_root_privs(argv[optind])
+	&& getenv(PRELOAD_ENVIRON) != 0
+	&& unsetenv(PRELOAD_ENVIRON) < 0)
+	msg_fatal("unsetenv(\"%s\"): %m", PRELOAD_ENVIRON);
+
+    /*
      * This is after calling clean_env(), to ensure that POSTLOG_XXX exports
      * will work, even if import_environment would remove them.
      */
@@ -647,16 +671,17 @@ int     main(int argc, char **argv)
     /*
      * Run the management script.
      * 
-     * Drop root privileges if: this is a 'start' command; and LD_PRELOAD was
-     * added by import_environment, so that we have been using the real
-     * getuid(); and the real getuid() returned the "root" uid.
+     * Drop root privileges if: this command does not require real root
+     * privileges; and LD_PRELOAD was added by import_environment, so that we
+     * have been using the real getuid(); and the real getuid() returned the
+     * "root" uid.
      */
     if (force_single_instance
 	|| argv_split(var_multi_conf_dirs, CHARS_COMMA_SP)->argc == 0) {
 	script = concatenate(var_daemon_dir, "/postfix-script", (char *) 0);
 	if (optind < 1)
 	    msg_panic("bad optind value");
-	if (strstr(argv[optind], "start") != 0
+	if (!needs_real_root_privs(argv[optind])
 	    && preload_inherited == 0
 	    && getenv(PRELOAD_ENVIRON) != 0
 	    && getuid() == 0)
