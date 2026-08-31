@@ -478,9 +478,9 @@ static void check_setenv(char *name, char *value)
 
 MAIL_VERSION_STAMP_DECLARE;
 
-/* needs_real_root_privs - command really needs root privs */
+/* needs_non_fake_root_privs - command really needs root privs */
 
-static int needs_real_root_privs(const char *arg)
+static int needs_non_fake_root_privs(const char *arg)
 {
     return (strstr(arg, "set-permissions") != 0
 	    || strstr(arg, "non-bdb") != 0
@@ -593,19 +593,6 @@ int     main(int argc, char **argv)
     argv_free(import_env);
 
     /*
-     * If we run with real root privileges, and the command to execute really
-     * needs real root privileges, get rid of the preload environment from
-     * import_environment, because it would interfere with their ability to
-     * drop privileges when they need to.
-     */
-    if (preload_inherited == 0
-	&& getuid() == 0			/* this is real getuid() */
-	&& needs_real_root_privs(argv[optind])
-	&& getenv(PRELOAD_ENVIRON) != 0
-	&& unsetenv(PRELOAD_ENVIRON) < 0)
-	msg_fatal("unsetenv(\"%s\"): %m", PRELOAD_ENVIRON);
-
-    /*
      * This is after calling clean_env(), to ensure that POSTLOG_XXX exports
      * will work, even if import_environment would remove them.
      */
@@ -669,23 +656,44 @@ int     main(int argc, char **argv)
 	msg_fatal("chdir(%s): %m", var_queue_dir);
 
     /*
+     * We run with non-fake root privileges 1) if LD_PRELOAD etc. was not
+     * inherited so that we call the non-fake getuid(), and 2) if the
+     * non-fake getuid() returns zero.
+     */
+    if (preload_inherited == 0 && getuid() == 0) {	/* non-fake getuid() */
+
+	/*
+	 * We run with non-fake root privileges, and the command to execute
+	 * requires non-fake root privileges: do not drop root privileges and
+	 * do not propagate LD_PRELOAD etc.. to that command. Propagating
+	 * LD_PRELOAD etc. would interfere with that command's ability to
+	 * drop privileges when they need to.
+	 */
+	if (optind < 1)
+	    msg_panic("bad optind value");
+	if (needs_non_fake_root_privs(argv[optind])) {
+	    if (getenv(PRELOAD_ENVIRON) && unsetenv(PRELOAD_ENVIRON) < 0)
+		msg_fatal("unsetenv(\"%s\"): %m", PRELOAD_ENVIRON);
+	}
+
+	/*
+	 * We run with non-fake root privileges, the command to execute may
+	 * run with fake root privileges, and LD_PRELOAD etc. is configured
+	 * to run commands with fake root privileges: drop non-fake root
+	 * privileges and propagate LD_PRELOAD etc..
+	 */
+	else {
+	    if (getenv(PRELOAD_ENVIRON))
+		set_ugid(var_owner_uid, var_owner_gid);
+	}
+    }
+
+    /*
      * Run the management script.
-     * 
-     * Drop root privileges if: this command does not require real root
-     * privileges; and LD_PRELOAD was added by import_environment, so that we
-     * have been using the real getuid(); and the real getuid() returned the
-     * "root" uid.
      */
     if (force_single_instance
 	|| argv_split(var_multi_conf_dirs, CHARS_COMMA_SP)->argc == 0) {
 	script = concatenate(var_daemon_dir, "/postfix-script", (char *) 0);
-	if (optind < 1)
-	    msg_panic("bad optind value");
-	if (!needs_real_root_privs(argv[optind])
-	    && preload_inherited == 0
-	    && getenv(PRELOAD_ENVIRON) != 0
-	    && getuid() == 0)
-	    set_ugid(var_owner_uid, var_owner_gid);
 	argv[optind - 1] = script;
 	execvp(script, argv + optind - 1);
 	msg_fatal("%s: %m", script);

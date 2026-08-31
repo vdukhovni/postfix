@@ -111,26 +111,34 @@ do
     esac
 done
 
-# The MacOS shell does not export DYLD_* settings to child processes,
-# so we must re-export them again.
-case "$($command_directory/postconf -nh import_environment)" in
-*DYLD_*=*)
-    # TODO(wietse) This would break with DYLD_* settings that contain space.
-    for tok in $($command_directory/postconf -nh import_environment \
-	    | tr ',' ' ')
+# The MacOS shell does not export DYLD_INSERT_LIBRARIES to child processes,
+# so we must re-export them again when running as a non-root user.
+# Compatibility baseline: Solaris 11.4 has $(command) but no "grep -q".
+if env -i id -u | grep '^[1-9]' >/dev/null && 
+    $command_directory/postconf -nh import_environment | 
+    grep 'DYLD_INSERT_LIBRARIES=' >/dev/null
+then
+    # No globbing while splitting import_environment
+    set -f
+
+    # TODO(wietse) This would break with DYLD_INSERT_LIBRARIES settings
+    # that contain comma or space.
+    for tok in $($command_directory/postconf -nh import_environment | 
+	tr ',' ' ')
     do
 	# Strip one leading "{" and one trailing "}". Requires POSIX sh.
 	case $tok in
 	\{*\}) tok=${tok#\{} && tok=${tok%\}} || exit 1;;
 	esac
-	# Re-export DYLD_*. Use export_environment as scratchpad.
+	# Re-export DYLD_INSERT_LIBRARIES. Use export_environment as scratchpad.
 	case $tok in
-	DYLD_*=*) export "$($command_directory/postconf \
-		-o "export_environment=$tok" \
-		-xh export_environment)" || exit 1;;
+	DYLD_INSERT_LIBRARIES=*) export "$($command_directory/postconf \
+	    -o "export_environment=$tok" \
+	    -xh export_environment)" || exit 1;;
 	esac
     done
-esac
+    set +f
+fi
 
 #
 # Parse JCL

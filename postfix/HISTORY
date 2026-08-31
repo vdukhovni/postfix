@@ -32047,6 +32047,14 @@ Apologies for any names omitted.
 	stop, etc., this limits the impact from malicious content
 	in a non-root master.pid file.
 
+20260831
+
+	Fixed loose ends for privilege management and multi-instance
+	support. Files: proto/UNPRIVILEGED_README.html, postfix.c,
+	postmulti.c.
+
+	Improved MacOS support. Viktor Dukhovni. File: postfix-script.
+
 	Production baseline is postfix-3.12-20260821.
 
 TODO

@@ -1264,6 +1264,7 @@ static void export_helper_environment(INSTANCE *target, int export_flags)
     VSTRING *multi_dirs;
     const SHARED_PATH *sp;
     RING   *entry;
+    const char *preload_imported = getenv(PRELOAD_ENVIRON);
 
     /*
      * Environment import filter, to enforce consistent behavior whether this
@@ -1274,6 +1275,16 @@ static void export_helper_environment(INSTANCE *target, int export_flags)
     import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
     clean_env(import_env->argv);
     argv_free(import_env);
+
+    /*
+     * If running with non-fake root privileges, not propagate LD_PRELOAD
+     * etc.. to other commands. Propagating LD_PRELOAD etc. would interfere
+     * with the other command's ability to drop privileges when they need to.
+     */
+    if (preload_imported == 0 && getuid() == 0	/* non-fake getuid() */
+	&& getenv(PRELOAD_ENVIRON)
+	&& unsetenv(PRELOAD_ENVIRON) < 0)
+	msg_fatal("unsetenv(\"%s\"): %m", PRELOAD_ENVIRON);
 
     /*
      * Prepend $command_directory: to PATH. This supposedly ensures that

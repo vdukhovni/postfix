@@ -172,42 +172,42 @@ been implemented.
 
   * To start, reload or stop Postfix, execute as the "root" or "postfix" user:
 
-    postfix start
+        postfix start
 
-    postfix reload
+        postfix reload
 
-    postfix stop
+        postfix stop
 
   * Commands that do not change configuration may be executed as the "root" or
     "postfix" user:
 
-    postfix status
+        postfix status
 
-    postfix non-bdb status
+        postfix non-bdb status
 
-    postfix tls output-server-csr (or output-server-tlsa)
+        postfix tls output-server-csr (or output-server-tlsa)
 
   * The postsuper(1) queue management command may be executed as the "root" or
     "postfix" user:
 
-postsuper options... arguments...
+    postsuper options... arguments...
 
 Commands that change Postfix permissions or configuration must be executed as
 the "root" user:
 
-postfix set-permissions
+    postfix set-permissions
 
-postfix tls subcommand
+    postfix tls subcommand
 
-postfix non-bdb subcommand
+    postfix non-bdb subcommand
 
-postmulti -e command
+    postmulti -e command
 
-postconf "key = value"
+    postconf "key = value"
 
-postmap "maptype:mapname..."
+    postmap "maptype:mapname..."
 
-postalias "maptype:mapname..."
+    postalias "maptype:mapname..."
 
 Postfix configurations MUST NOT be owned by the postfix user: that would be too
 convenient for someone who compromises a Postfix daemon process.
@@ -215,9 +215,12 @@ convenient for someone who compromises a Postfix daemon process.
 CCrreeddiittss
 
   * Wietse Venema originally implemented unprivileged master(8) operation for
-    integration tests.
+    unreleased integration tests in 2025. After a customer inquiry in 2026,
+    Wietse made the implementation suitable for limited production deployment,
+    and added documentation.
 
-  * Viktor Dukhovni contributed background on the postfix-users mailing list.
+  * Viktor Dukhovni contributed background (adopted in the documentation) and
+    MacOS support (code).
 
 AAppppeennddiixx
 
@@ -233,6 +236,10 @@ After installing Postfix from a standard pre-compiled package or from source
 code, a few tweaks are needed to make unprivileged operation possible. These
 changes should persist after subsequent Postfix updates.
 
+    NNoottee:: wwiitthh mmuullttii--iinnssttaannccee ccoonnffiigguurraattiioonn,, aallll PPoossttffiixx iinnssttaanncceess mmuusstt uussee
+    pprriivviilleeggeedd mmaasstteerr((88)) ooppeerraattiioonn,, oorr aallll iinnssttaanncceess mmuusstt uussee uunnpprriivviilleeggeedd
+    mmaasstteerr((88)) ooppeerraattiioonn.. YYoouu ccaannnnoott hhaavvee aa mmiixx ooff pprriivviilleeggeedd aanndd uunnpprriivviilleeggeedd..
+
 To revert to the privileged Postfix operation, stop Postfix and undo the
 changes described in the subsections that follow.
 
@@ -243,27 +250,33 @@ UUppddaattee mmaaiilllloogg__ffiillee ppeerrmmiissssii
     parent directory and logfile will need to be writable by the "postfix"
     user. Example:
 
-    postconf maillog_file=/var/log/postfix/maillog
-    mkdir -p /var/log/postfix
-    touch /var/log/postfix/maillog
-    chown postfix /var/log/postfix /var/log/postfix/maillog
+        postconf maillog_file=/var/log/postfix/maillog
+        mkdir -p /var/log/postfix
+        touch /var/log/postfix/maillog
+        chown postfix /var/log/postfix /var/log/postfix/maillog
+
+  * In a multi-instance configuration, each Postfix instance has its own
+    maillog_file setting.
 
   * To revert to privileged Postfix master(8) operation, make the parent
     directory (in the example: /var/log/postfix) writable by "root" only.
+
+  * In a multi-instance configuration, you need to revert this for each Postfix
+    instance.
 
 UUppddaattee tthhee iimmppoorrtt__eennvviirroonnmmeenntt ppaarraammeetteerr sseettttiinngg
 
   * As user "root", update the file "main.cf" with the following command:
 
-    postconf "import_environment = $(postconf -dh import_environment) \
-        LD_PRELOAD=\$shlib_directory/fake_eugid.so"
+        postconf "import_environment = $(postconf -dh import_environment) \
+            LD_PRELOAD=\$shlib_directory/fake_eugid.so"
 
     Do not omit the "\" in "\$shlib_directory".
 
     For MacOS that should instead be:
 
-    postconf "import_environment = $(postconf -dh import_environment) \
-        DYLD_INSERT_LIBRARIES=\$shlib_directory/fake_eugid.dylib"
+        postconf "import_environment = $(postconf -dh import_environment) \
+            DYLD_INSERT_LIBRARIES=\$shlib_directory/fake_eugid.dylib"
 
     Do not omit the "\" in "\$shlib_directory".
 
@@ -272,29 +285,35 @@ UUppddaattee tthhee iimmppoorrtt__eennvviirroonnmmeenn
     LD_PRELOAD=$shlib_directory/fake_eugid.so. With Postfix 3.12 the result
     looks like:
 
-    import_environment = MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY
-        DISPLAY LANG=C POSTLOG_SERVICE POSTLOG_HOSTNAME XDG_RUNTIME_DIR
-        LD_PRELOAD=$shlib_directory/fake_eugid.so
+        import_environment = MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY
+            DISPLAY LANG=C POSTLOG_SERVICE POSTLOG_HOSTNAME XDG_RUNTIME_DIR
+            LD_PRELOAD=$shlib_directory/fake_eugid.so
 
     (it will be all on one long line).
 
     With MacOS and Postfix 3.12 the result looks like:
 
-    import_environment = MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY
-        DISPLAY LANG=C POSTLOG_SERVICE POSTLOG_HOSTNAME XDG_RUNTIME_DIR
-        DYLD_INSERT_LIBRARIES=$shlib_directory/fake_eugid.dylib
+        import_environment = MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY
+            DISPLAY LANG=C POSTLOG_SERVICE POSTLOG_HOSTNAME XDG_RUNTIME_DIR
+            DYLD_INSERT_LIBRARIES=$shlib_directory/fake_eugid.dylib
+
+  * In a multi-instance configuration, you need to repeat this step for each
+    Postfix instance.
 
   * To revert to privileged Postfix master(8) operation, execute as the "root"
     user:
 
-    postconf -X import_environment
+        postconf -X import_environment
+
+  * In a multi-instance configuration, you need to revert this for each Postfix
+    instance.
 
 CChhaannggee tthhee ""ppiidd"" lloocckkffiillee ddiirreeccttoorryy oowwnneerrsshhiipp
 
   * As root, execute the following command:
 
-    echo '$queue_directory/pid:d:$mail_owner:-:755:ucr' \
-        > $(postconf -xh meta_directory)/postfix-files.d/unprivileged
+        echo '$queue_directory/pid:d:$mail_owner:-:755:ucr' \
+            > $(postconf -xh meta_directory)/postfix-files.d/unprivileged
 
     NOTE: use single quotes (') not double quotes (").
 
@@ -302,18 +321,24 @@ CChhaannggee tthhee ""ppiidd"" lloocckkffiillee ddiirre
     under the Postfix directory configured with "meta_directory". The result
     should look like this:
 
-    $queue_directory/pid:d:$mail_owner:-:755:ucr
+        $queue_directory/pid:d:$mail_owner:-:755:ucr
 
   * Execute as the "root" user:
 
-    postfix set-permissions
+        postfix set-permissions
+
+  * In a multi-instance configuration, this setting is used by every Postfix
+    instance.
 
   * To revert to privileged Postfix master(8) operation, delete the file
     "unprivileged" that was created above, and execute as the "root" user:
 
-    rm $(postconf -xh meta_directory)/postfix-files.d/unprivileged
+        rm $(postconf -xh meta_directory)/postfix-files.d/unprivileged
 
-    postfix set-permissions
+        postfix set-permissions
+
+  * In a multi-instance configuration, this reverts the "pid" directory
+    ownership for every Postfix instance.
 
 MMaakkee TTLLSS sseeccrreett kkeeyy ffiilleess wwoorrlldd--rreeaaddaabbllee
 
@@ -322,16 +347,22 @@ privileges. With unprivileged Postfix that is no longer possible.
 
   * Execute the following command as "root" for each such file:
 
-    chmod 644 /path/to/secret-key-file.pem
+        chmod 644 /path/to/secret-key-file.pem
 
     You may need to update Let'sEncrypt etc. key management automation to
     ensure correct file permissions after a future key update.
 
-  * To revert to privileged Postfix master(8) operation, execute the following
-    command as "root" for each of the above files:
+  * In a multi-instance configuration, you need to repeat this step for each
+    Postfix instance.
 
-    chmod 600 /path/to/secret-key-file.pem
+  * To revert to privileged Postfix master(8) operation, execute the following
+    command as "root" for each of the above secret files:
+
+        chmod 600 /path/to/secret-key-file.pem
 
     and revert the above changes to Let'sEncrypt etc. key management
     automation.
+
+  * In a multi-instance configuration, you need to revert this for each Postfix
+    instance.
 
