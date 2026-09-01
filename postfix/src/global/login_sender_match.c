@@ -209,7 +209,8 @@ int     login_sender_match(LOGIN_SENDER_MATCH *lsm, const char *login_name,
 		    found_or_error = LSM_STAT_FOUND;
 	    }
 	    /* Special pattern: wildcard. */
-	    else if (strcasecmp(sender_pattern, lsm->wildcard) == 0) {
+	    else if (lsm->wildcard != 0		/* 202606 Qualys+Mythos */
+		     && strcasecmp(sender_pattern, lsm->wildcard) == 0) {
 		found_or_error = LSM_STAT_FOUND;
 	    }
 	    /* Special pattern: empty sender. */

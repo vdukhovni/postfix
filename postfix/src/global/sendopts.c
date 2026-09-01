@@ -84,8 +84,8 @@ const char *sendopts_strflags(unsigned flags, int delim)
     else
 	VSTRING_RESET(result);
 
-    if ((cp = strchr(delims, delim)) == 0)
-	msg_panic("%s: bad delimiter: '%c'", myname, delim);
+    if (delim == 0 || (cp = strchr(delims, delim)) == 0)
+	msg_panic("%s: bad delimiter: '0x%x'", myname, delim);
 
     return (str_name_mask_opt(result, "sendopts_strflags", sendopts_flag_map,
 			      flags, NAME_MASK_FATAL | dflags[cp - delims]));

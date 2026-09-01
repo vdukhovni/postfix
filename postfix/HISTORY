@@ -31988,6 +31988,49 @@ Apologies for any names omitted.
 	pre-replacement body content. Reported by OpenAI Security.
 	Fix by Wietse (don't accept). File: milter8.c.
 
+20260901
+
+	Future proofing: in a binhash(3) panic message, do not rely
+	on key null termination. This code is currently unreachable.
+	Qualys, assisted by Claude Mythos Preview. File: binhash.c.
+
+	Future proofing: the URI validator (used by the pgsql:
+	client) did not permit '.' in an URI scheme. This is not a
+	problem with postgresql URIs but may break future callers.
+	Qualys, assisted by Claude Mythos Preview. File:
+	valid_uri_scheme.c.
+
+	Hardening: in spawn(8) daemon configuration, disallow a
+	child process to run with setgid_group privileges, just
+	like it has always been disallowed in pipe(8) daemon
+	configuration. Qualys, assisted by Claude Mythos Preview.
+	File: spawn.c.
+
+	Quality of implementation: handle integer overflow in the
+	mask portion of a net/mask CIDR pattern. Problem reported
+	by Qualys, assisted by Claude Mythos Preview. File:
+	dict_cidr.c.
+
+	Future proofing: off-by-one error in unused code (the address
+	to A-label conversion function midna_adomain_to_ascii()).
+	Problem reported by Qualys, assisted by Claude Mythos
+	Preview. File: midna_adomain.c.
+
+	Future proofing: null pointer read in unused code path in
+	login_sender_match(). Problem reported by Qualys, assisted
+	by Claude Mythos Preview. File: login_sender_match.c.
+
+	Future proofing: reject null delimiter in sendopts_strflags().
+	Qualys, assisted by Claude Mythos Preview. File: sendopts.c.
+
+	Hardening: don't log uninitialized stack memory when a
+	service daemon process sends a short status. Qualys, assisted
+	by Claude Mythos Preview. File: master_status.c.
+
+	Hardening: don't panic the master(8) daemon when a service
+	daemon process sends a forged status. Qualys, assisted by
+	Claude Mythos Preview. File: master_status.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

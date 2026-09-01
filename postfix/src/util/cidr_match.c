@@ -221,18 +221,24 @@ VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, int match,
      */
     if ((mask = split_at(mask_search, '/')) != 0) {
 	const char *parse_error;
+	long    mask_shift;
 
+	/* Clip conversion results to [LONG_MIN, LONG_MAX]. */
+#define clipping_atol(str) strtol(str, (char **) 0, 10)
+
+	/* 202606 Qualys+Mythos enforce range check before 8-bit truncation. */
 	ip->addr_family = CIDR_MATCH_ADDR_FAMILY(pattern);
 	ip->addr_bit_count = CIDR_MATCH_ADDR_BIT_COUNT(ip->addr_family);
 	ip->addr_byte_count = CIDR_MATCH_ADDR_BYTE_COUNT(ip->addr_family);
 	if (!alldig(mask)) {
 	    parse_error = "bad mask value";
-	} else if ((ip->mask_shift = atoi(mask)) > ip->addr_bit_count) {
+	} else if ((mask_shift = clipping_atol(mask)) > ip->addr_bit_count) {
 	    parse_error = "bad mask length";
 	} else if (inet_pton(ip->addr_family, pattern, ip->net_bytes) != 1) {
 	    parse_error = "bad network value";
 	} else {
 	    parse_error = 0;
+	    ip->mask_shift = mask_shift;
 	}
 	if (parse_error != 0) {
 	    vstring_sprintf(why ? why : (why = vstring_alloc(20)),

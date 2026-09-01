@@ -304,7 +304,9 @@ void    binhash_delete(BINHASH *table, const void *key, ssize_t key_len, void (*
 		return;
 	    }
 	}
-	msg_panic("binhash_delete: unknown_key: \"%s\"", (char *) key);
+	/* 202606 Qualys+Mythos: key is not null-terminated. */
+	msg_panic("binhash_delete: unknown_key: \"%.*s\"",
+		  (int) key_len, (char *) key);
     }
 }
 

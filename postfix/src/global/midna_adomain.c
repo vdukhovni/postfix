@@ -106,7 +106,8 @@ char   *midna_adomain_to_ascii(VSTRING *dest, const char *src)
 	if (*(cp += 1)) {
 	    if (allascii(cp)) {
 		vstring_strcat(dest, cp);
-	    } else if ((domain_ascii = midna_domain_to_ascii(cp + 1)) == 0) {
+		/* 20206 Qualys+Mythos: cp, not cp+1 (in unused code). */
+	    } else if ((domain_ascii = midna_domain_to_ascii(cp)) == 0) {
 		return (0);
 	    } else {
 		vstring_strcat(dest, domain_ascii);

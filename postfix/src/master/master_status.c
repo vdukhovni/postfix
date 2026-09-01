@@ -42,6 +42,7 @@
 
 #include <sys_defs.h>
 #include <unistd.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -78,6 +79,7 @@ static void master_status_event(int event, void *context)
      * We use a global child process status table because when a child dies
      * only its pid is known - we do not know what service it came from.
      */
+    memset((void *) &stat, 0, sizeof(stat));
     switch (n = read(serv->status_fd[0], (void *) &stat, sizeof(stat))) {
 
     case -1:
@@ -118,9 +120,12 @@ static void master_status_event(int event, void *context)
 		 pid, stat.gen);
 	return;
     }
-    if (proc->serv != serv)
-	msg_panic("%s: pointer corruption: %p != %p",
-		  myname, (void *) proc->serv, (void *) serv);
+    if (proc->serv != serv) {
+	msg_info("ignoring status update for service %s that claims to "
+		 "be from child pid %d generation %u service %s",
+		 serv->ext_name, pid, stat.gen, proc->serv->ext_name);
+	return;
+    }
 
     /*
      * Update our idea of the child process status. Allow redundant status
