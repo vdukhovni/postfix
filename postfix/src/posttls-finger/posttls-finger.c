@@ -504,6 +504,7 @@ typedef struct STATE {
     VSTRING *buffer;			/* Response buffer */
     VSTREAM *stream;			/* Open connection */
     int     level;			/* TLS security level */
+    int     host_level;			/* Effective for current host */
     int     wrapper_mode;		/* SMTPS support */
 #ifdef USE_TLS
     char   *mdalg;			/* fingerprint digest algorithm */
@@ -514,6 +515,7 @@ typedef struct STATE {
     char   *keyfile;			/* TLS client key file */
     char   *sni;			/* Server SNI name */
     ARGV   *match;			/* match arguments */
+    ARGV   *host_match;			/* Effective for current host */
     int     print_trust;		/* -C option */
     BIO    *tls_bio;			/* BIO wrapper for stdout */
     TLS_APPL_STATE *tls_ctx;		/* Application TLS context */
@@ -807,14 +809,14 @@ static int starttls(STATE *state)
 
     cipher_exclusions = vstring_alloc(10);
     ADD_EXCLUDE(cipher_exclusions, DEF_SMTP_TLS_EXCL_CIPH);
-    if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->level))
+    if (TLS_REQUIRED_BY_SECURITY_LEVEL(state->host_level))
 	ADD_EXCLUDE(cipher_exclusions, DEF_SMTP_TLS_MAND_EXCL);
 
     /*
      * If we're authenticating suppress anonymous ciphersuites, otherwise at
      * least encrypt, not much point in doing neither.
      */
-    if (TLS_MUST_MATCH(state->level))
+    if (TLS_MUST_MATCH(state->host_level))
 	ADD_EXCLUDE(cipher_exclusions, "aNULL");
     else
 	ADD_EXCLUDE(cipher_exclusions, "eNULL");
@@ -846,7 +848,7 @@ static int starttls(STATE *state)
 				     log_level = state->options.logopts,
 				     timeout = smtp_tmout,
 				     enable_rpk = state->options.enable_rpk,
-				     tls_level = state->level,
+				     tls_level = state->host_level,
 				     nexthop = state->nexthop,
 				     host = state->hostname,
 				     namaddr = state->namaddrport,
@@ -857,7 +859,7 @@ static int starttls(STATE *state)
 				     cipher_grade = state->grade,
 				     cipher_exclusions
 				     = vstring_str(cipher_exclusions),
-				     matchargv = state->match,
+				     matchargv = state->host_match,
 				     mdalg = state->mdalg,
 				     tlsrpt = 0,
 				     ffail_type = 0,
@@ -956,7 +958,7 @@ static int starttls(STATE *state)
 			     fd = -1,
 			     timeout = smtp_tmout,
 			     enable_rpk = state->options.enable_rpk,
-			     tls_level = state->level,
+			     tls_level = state->host_level,
 			     nexthop = state->nexthop,
 			     host = state->hostname,
 			     namaddr = state->namaddrport,
@@ -967,7 +969,7 @@ static int starttls(STATE *state)
 			     cipher_grade = state->grade,
 			     cipher_exclusions
 			     = vstring_str(cipher_exclusions),
-			     matchargv = state->match,
+			     matchargv = state->host_match,
 			     mdalg = state->mdalg,
 			     tlsrpt = 0,
 			     ffail_type = 0,
@@ -1541,6 +1543,9 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
     int     level = state->level;
 
 #ifdef USE_TLS
+    if (state->host_match && state->host_match != state->match)
+	argv_free(state->host_match);
+    state->host_match = state->match;
     if (TLS_DANE_BASED(level)) {
 	if (state->mx == 0 || state->mx->dnssec_valid ||
 	    state->mxinsec_level > TLS_LEV_MAY) {
@@ -1577,9 +1582,7 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 		state->ddane = 0;
 		level = TLS_LEV_ENCRYPT;
 	    } else {
-		if (state->match)
-		    argv_free(state->match);
-		argv_add(state->match = argv_alloc(2),
+		argv_add(state->host_match = argv_alloc(2),
 			 state->ddane->base_domain, ARGV_END);
 		if (state->mx) {
 		    if (!state->mx->dnssec_valid) {
@@ -1587,9 +1590,9 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 			level = TLS_LEV_HALF_DANE;
 		    }
 		    if (strcmp(state->mx->qname, state->mx->rname) == 0)
-			argv_add(state->match, state->mx->qname, ARGV_END);
+			argv_add(state->host_match, state->mx->qname, ARGV_END);
 		    else
-			argv_add(state->match, state->mx->rname,
+			argv_add(state->host_match, state->mx->rname,
 				 state->mx->qname, ARGV_END);
 		}
 	    }
@@ -1693,7 +1696,7 @@ static void connect_remote(STATE *state, char *dest)
 	    continue;
 	}
 	/* We have a connection */
-	state->level = level;
+	state->host_level = level;
 	state->hostname = mystrdup(HNAME(addr));
 
 	/* We use the same address when reconnecting, so flush the rest. */
@@ -1872,6 +1875,8 @@ static void cleanup(STATE *state)
     if (state->options.level)
 	myfree(state->options.level);
     myfree(state->options.logopts);
+    if (state->host_match && state->host_match != state->match)
+	argv_free(state->host_match);
     if (state->match)
 	argv_free(state->match);
     if (state->options.tas)
@@ -2059,6 +2064,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
 #define TLSOPTS ""
     state->level = TLS_LEV_NONE;
 #endif
+    state->host_level = state->level;
 
     while ((c = GETOPT(argc, argv, OPTS TLSOPTS)) > 0) {
 	switch (c) {
@@ -2232,6 +2238,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
 
     if (state->options.level) {
 	state->level = tls_level_lookup(state->options.level);
+	state->host_level = state->level;
 
 	switch (state->level) {
 	case TLS_LEV_NONE:
@@ -2286,6 +2293,7 @@ static void parse_match(STATE *state, int argc, char *argv[])
 				     *argv++, "", smtp_mode);
 	break;
     }
+    state->host_match = state->match;
 #endif
 }
 

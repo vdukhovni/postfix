@@ -32031,6 +32031,17 @@ Apologies for any names omitted.
 	daemon process sends a forged status. Qualys, assisted by
 	Claude Mythos Preview. File: master_status.c.
 
+20260902
+
+	Bug in unsupported finger(1) test program: the match arguments
+	for a connection could be stale remnants from a prior failed
+	connection. Reported by Qualys, assisted by Claude Mythos
+	Preview. Fix by Viktor Dukhovni. File: posttls-finger.c.
+
+	Code clennup: better spawn(8) daemon error messages for
+	incorrect "user=..." command-line attribute values. File:
+	spawn.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

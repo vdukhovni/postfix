@@ -268,21 +268,23 @@ static void get_service_attr(SPAWN_ATTR *attr, char *service, char **argv)
     if (attr->argv == 0)
 	msg_fatal("missing argv= attribute");
     if (attr->uid == 0)
-	msg_fatal("request to deliver as root");
+	msg_fatal("user= command-line attribute specifies root user id 0");
     if (attr->uid == var_owner_uid)
-	msg_fatal("request to deliver as mail system owner");
+	msg_fatal("user= command-line attribute specifies mail system owner user id %ld",
+		  (long) attr->uid);
     if (attr->gid == 0)
-	msg_fatal("request to use privileged group id %ld", (long) attr->gid);
+	msg_fatal("user= command-line attribute specifies privileged group id 0");
     if (attr->gid == var_owner_gid)
-	msg_fatal("request to use mail system owner group id %ld", (long) attr->gid);
-    /* 202606 Qualys+Mythos: enforce setgid_group constraint as in pipe.c. */
+	msg_fatal("user= command-line attribute specifies mail system owner group id %ld",
+		  (long) attr->gid);
+    /* 202607 Qualys+Mythos: enforce setgid_group constraint as in pipe.c. */
     if (attr->gid == var_sgid_gid)
-	msg_fatal("request to use mail system %s group id %ld",
-		  var_sgid_group, (long) attr->gid);
+	msg_fatal("user= command-line attribute specifies mail system %s id %ld",
+		  VAR_SGID_GROUP, (long) attr->gid);
     if (attr->uid == (uid_t) (-1))
-	msg_fatal("user must not have user ID -1");
+	msg_fatal("user= command-line attribute specifies user id -1");
     if (attr->gid == (gid_t) (-1))
-	msg_fatal("user must not have group ID -1");
+	msg_fatal("user= command-line attribute specifies group id -1");
 
     /*
      * Give the poor tester a clue of what is going on.
