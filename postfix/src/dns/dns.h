@@ -54,6 +54,10 @@
 
 #endif
 
+#ifndef NS_INT16SZ
+#define NS_INT16SZ	2
+#endif
+
 /*
  * Disable DNSSEC at compile-time even if RES_USE_DNSSEC is available
  */
