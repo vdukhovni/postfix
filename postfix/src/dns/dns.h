@@ -54,6 +54,10 @@
 
 #endif
 
+#ifndef NS_INT16SZ
+#define NS_INT16SZ	2
+#endif
+
  /*
   * Provide API compatibility for systems without res_nxxx() API. Also
   * require calling dns_get_h_errno() instead of directly accessing the

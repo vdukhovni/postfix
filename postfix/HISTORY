@@ -27289,3 +27289,103 @@ Apologies for any names omitted.
 	Queue hygiene: the postdrop command accepted the null record
 	type which the rest of Postfix ingnores. Reported by OpenAI
 	Security. File: postdrop.c.
+
+20260903
+
+	Bug (defect introduced: Postfix 2.3, date: 20050323): the
+	SMTP client enhanced status code parser could process stale
+	data. Reported by Qualys, assisted by Claude Mythos Preview.
+	File: smtp_chat.c.
+
+	Bug (defect introduced: Postfix 3.0, date: 20141117): don't
+	free() text before logging a fatal error message. Reported
+	by Qualys, assisted by Claude Mythos Preview. File:
+	postqueue.c.
+
+	Bug (defect introduced: Postfix-beta, date: 19990119): the
+	pipe(8) delivery agent deleted a command-line argument if
+	the argument contained $user AND $user expanded to an empty
+	string, breaking the positional order of arguments. This
+	was a workaround for a problem that hopefully no longer
+	exists. Reported by Qualys, assisted by Claude Mythos
+	Preview. File: pipe/pipe.c.
+
+	Code hygiene: in the SMTP client protocol engine, evaluate
+	the RETURN() macro argument before freeing resources.
+	Reported by Qualys, assisted by Claude Mythos Preview. File:
+	smtp_proto.c.
+
+	Code hygiene: myrealloc(ptr, 0) still resulted in a panic.
+	Reported by Qualys, assisted by Claude Mythos Preview. Also
+	adopt a mystrndup() fix from Postfix 3.12. File: mymalloc.c.
+
+	The postmap and postalias commands now log a warning when
+	creating a root-owned database file in a directory that is
+	not owned by root. They log that the database source file,
+	indexed file(s), and parent directory should have the same
+	owner, to prevent a privilege-escalation attack. Problem
+	reported by OpenAI Security, remediation strategy (don't
+	break PROD) by Wietse. Files: postalias.c, postmap.c.
+
+	Hardening command-line email submission: the postdrop
+	command now disallows null and line-break characters in
+	queue file envelope records (line-break characters in other
+	queue file records are already neutralized by default with
+	"cleanup_replace_stray_cr_lf = yes").
+
+	The new constraint not only eliminates line-break injection
+	into local mailbox files as reported by OpenAI Security,
+	but also prevents other forms of misuse. Later, this
+	constraint may be moved into the Postfix core. Fix by Wietse.
+	File: postdrop.c.
+
+	Shut up nagging from multiple AIs and harden the virtual
+	delivery agent against an evil SQL database. File:
+	virtual/mailbox.c.
+
+	Bug (defect introduced: Postfix 3.4, date: 20180303): the
+	MySQL client setting "tls_verify_cert = yes" had no effect
+	with Oracle MySQL 8 and later. Report and fix by OpenAI
+	Security. File: dict_mysql.c.
+
+	Isolation: stamp Postfix SMTP server TLS session tickets
+	with their master.cf service name. With this, an SMTP server
+	defined in master.cf will no longer accept tickets issued
+	by a different SMTP server defined in the same master.cf
+	file. Fix by OpenAI security. File: tls_server.c.
+
+	Bug (introduced: Postfix 2.3, date: 20060629): a malicious
+	Milter or attacker-in-the-middle could trigger a null-terminated
+	heap memory overread in the SMTP daemon while formatting a
+	malformed multiline response. Fix from OpenAI Security
+	adopted with minor changes. Files: milter8.c, smtpd_chat.c.
+
+	Bug (introduced: Postfix 3.9, date: 20240106) SMTP smuggling
+	was still possible with smtpd_proxy_filter (disabled by
+	default) when the after-filter SMTP server used the default
+	policy settings "smtpd_forbid_bare_newline_exclusions =
+	$mynetworks" and "smtpd_forbid_bare_newline = normalize".
+	Reported by OpenAI Security. Fix by Wietse. Files:
+	smtpd_proxy.[hc].
+ 
+	Cleanup: as suggested by OpenAI Security, eliminate stray
+	CR characters from the smtpd_proxy_filter input stream.
+	The before-proxy-filter SMTP server already eliminated stray
+	LF. File: smtpd/smtpd_proxy.[hc].
+
+	Portability: OpenBSD does not define NS_INT16SZ. Brad Smith.
+	File: dns.h.
+
+	Shut up nagging about allowing gid==0 in database responses.
+	File: virtual/mailbox.c.
+
+	Bug (defect introduced: Postfix 3.0, date: 20140707): null
+	pointer read error after receiving MAIL FROM, RCPT TO, and
+	VRFY with an UTF8 address but no SMTPUTF8 parameter. This
+	requires "smtputf8_enable = yes" (the default) and
+	"strict_smtputf8 = yes" (not default). With this, the SMTP
+	server did an unnecessary MAIL FROM reset without RCPT TO
+	reset. A crafted remote SMTP client could then send a DATA
+	command and crash the Postfix SMTP server with a null pointer
+	read error. Reported by Wonyoung Jung (정원영). File:
+	smtpd/smtpd.c.

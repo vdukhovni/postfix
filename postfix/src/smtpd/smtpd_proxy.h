@@ -37,6 +37,8 @@ typedef struct SMTPD_PROXY {
     int     timeout;
     const char *ehlo_name;
     const char *mail_from;
+    int     last_text_rec;
+    VSTRING *data_buf;
 } SMTPD_PROXY;
 
 #define SMTPD_PROXY_FLAG_SPEED_ADJUST	(1<<0)
