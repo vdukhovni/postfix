@@ -21,6 +21,7 @@
   * System library.
   */
 #include <sys_defs.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,6 +40,11 @@
 #include <allowed_prefix.h>
 #include <mail_conf.h>
 #include <mail_params.h>
+
+ /*
+  * Test library.
+  */
+#include <mock_stat.h>
 
  /*
   * Application-specific.
@@ -72,8 +78,11 @@ typedef struct TEST_CASE {
     struct stat source_st;
     const char *leg_idx_path;
     struct stat leg_idx_st;
-    const char *parent_dir;
+    const char *parent_dir;	/* "/etc/postfix" */
     struct stat parent_dir_st;
+    MOCK_STAT_REQ slash_etc_dir;	/* "/etc" */
+    MOCK_STAT_REQ slash_dir;	/* "/" */
+    struct stat slash_dir_st;
     const char *allow_root_pfxs;
     const char *allow_user_pfxs;
     const char *want_why;
@@ -118,6 +127,9 @@ static int test_nbdb_safe_to_index_as_legacy_index_owner(const TEST_CASE *tp)
     var_nbdb_allow_user_pfxs = (char *) tp->allow_user_pfxs;
     parsed_allow_root_pfxs = allowed_prefix_create(var_nbdb_allow_root_pfxs);
     parsed_allow_user_pfxs = allowed_prefix_create(var_nbdb_allow_user_pfxs);
+    teardown_mock_stat();
+    setup_mock_stat(&tp->slash_etc_dir);
+    setup_mock_stat(&tp->slash_dir);
     got_bool = nbdb_safe_to_index_as_legacy_index_owner(
 					    tp->source_path, &tp->source_st,
 					  tp->leg_idx_path, &tp->leg_idx_st,
@@ -231,6 +243,8 @@ static const TEST_CASE test_cases[] = {
 	.leg_idx_st = {.st_uid = 0,},
 	.parent_dir = "/etc/postfix",
 	.parent_dir_st = {.st_uid = 0,.st_mode = S_IRWXU,},
+	.slash_etc_dir = {"/etc", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
+	.slash_dir = {"/", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
 	.allow_root_pfxs = "/etc/postfix",
 	.allow_user_pfxs = "",
 	.want_bool = true,
@@ -244,6 +258,8 @@ static const TEST_CASE test_cases[] = {
 	.leg_idx_st = {.st_uid = 0,},
 	.parent_dir = "/etc/postfix",
 	.parent_dir_st = {.st_uid = 0,.st_mode = S_IRWXU,},
+	.slash_etc_dir = {"/etc", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
+	.slash_dir = {"/", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
 	.allow_root_pfxs = "/etc/posttfix",
 	.allow_user_pfxs = "",
 	.want_bool = false,
@@ -257,6 +273,8 @@ static const TEST_CASE test_cases[] = {
 	.leg_idx_st = {.st_uid = 0,},
 	.parent_dir = "/etc/postfix",
 	.parent_dir_st = {.st_uid = 0,.st_mode = S_IRWXU,},
+	.slash_etc_dir = {"/etc", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
+	.slash_dir = {"/", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
 	.allow_root_pfxs = "/etc/postfix",
 	.allow_user_pfxs = "",
 	.want_bool = false,
@@ -270,6 +288,8 @@ static const TEST_CASE test_cases[] = {
 	.leg_idx_st = {.st_uid = 0,},
 	.parent_dir = "/etc/postfix",
 	.parent_dir_st = {.st_uid = 0,.st_mode = S_IRWXU,},
+	.slash_etc_dir = {"/etc", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
+	.slash_dir = {"/", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
 	.allow_root_pfxs = "/etc/postfix",
 	.allow_user_pfxs = "",
 	.want_bool = false,
@@ -283,10 +303,42 @@ static const TEST_CASE test_cases[] = {
 	.leg_idx_st = {.st_uid = 0,},
 	.parent_dir = "/etc/postfix",
 	.parent_dir_st = {.st_uid = 0,.st_mode = S_IRWXU,},
+	.slash_etc_dir = {"/etc", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
+	.slash_dir = {"/", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
 	.allow_root_pfxs = "/etc/postfix",
 	.allow_user_pfxs = "",
 	.want_bool = false,
 	.want_why = "'/etc/postfix/access' is owned or writable by other user",
+    },
+    {.label = "safe_to_index_as_root:bad_root_owner",
+	.action = test_nbdb_safe_to_index_as_legacy_index_owner,
+	.source_path = "/etc/postfix/access",
+	.source_st = {.st_uid = 0,.st_mode = S_IRWXU,},
+	.leg_idx_path = "/etc/postfix/access.db",
+	.leg_idx_st = {.st_uid = 0,},
+	.parent_dir = "/etc/postfix",
+	.parent_dir_st = {.st_uid = 0,.st_mode = S_IRWXU,},
+	.slash_etc_dir = {"/etc", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
+	.slash_dir = {"/", {.st_uid = 1,.st_mode = S_IRWXU,}, 0,},
+	.allow_root_pfxs = "/etc/postfix",
+	.allow_user_pfxs = "",
+	.want_bool = false,
+	.want_why = "",
+    },
+    {.label = "safe_to_index_as_root:bad_root_perms",
+	.action = test_nbdb_safe_to_index_as_legacy_index_owner,
+	.source_path = "/etc/postfix/access",
+	.source_st = {.st_uid = 0,.st_mode = S_IRWXU,},
+	.leg_idx_path = "/etc/postfix/access.db",
+	.leg_idx_st = {.st_uid = 0,},
+	.parent_dir = "/etc/postfix",
+	.parent_dir_st = {.st_uid = 0,.st_mode = S_IRWXU,},
+	.slash_etc_dir = {"/etc", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
+	.slash_dir = {"/", {.st_uid = 0,.st_mode = S_IWOTH,}, 0,},
+	.allow_root_pfxs = "/etc/postfix",
+	.allow_user_pfxs = "",
+	.want_bool = false,
+	.want_why = "",
     },
     {.label = "safe_to_index_as_root:bad_parent_owner",
 	.action = test_nbdb_safe_to_index_as_legacy_index_owner,
@@ -296,6 +348,8 @@ static const TEST_CASE test_cases[] = {
 	.leg_idx_st = {.st_uid = 0,},
 	.parent_dir = "/etc/postfix",
 	.parent_dir_st = {.st_uid = 1,.st_mode = S_IRWXU,},
+	.slash_etc_dir = {"/etc", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
+	.slash_dir = {"/", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
 	.allow_root_pfxs = "/etc/postfix",
 	.allow_user_pfxs = "",
 	.want_bool = false,
@@ -309,6 +363,8 @@ static const TEST_CASE test_cases[] = {
 	.leg_idx_st = {.st_uid = 0,},
 	.parent_dir = "/etc/postfix",
 	.parent_dir_st = {.st_uid = 0,.st_mode = S_IWGRP,},
+	.slash_etc_dir = {"/etc", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
+	.slash_dir = {"/", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
 	.allow_root_pfxs = "/etc/postfix",
 	.allow_user_pfxs = "",
 	.want_bool = false,
@@ -322,6 +378,8 @@ static const TEST_CASE test_cases[] = {
 	.leg_idx_st = {.st_uid = 0,},
 	.parent_dir = "/etc/postfix",
 	.parent_dir_st = {.st_uid = 0,.st_mode = S_IWOTH,},
+	.slash_etc_dir = {"/etc", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
+	.slash_dir = {"/", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
 	.allow_root_pfxs = "/etc/postfix",
 	.allow_user_pfxs = "",
 	.want_bool = false,

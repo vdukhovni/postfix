@@ -96,6 +96,7 @@ mailbox.o: ../../include/nvtable.h
 mailbox.o: ../../include/pol_stats.h
 mailbox.o: ../../include/recipient_list.h
 mailbox.o: ../../include/safe_open.h
+mailbox.o: ../../include/sane_strtol.h
 mailbox.o: ../../include/sent.h
 mailbox.o: ../../include/set_eugid.h
 mailbox.o: ../../include/stringops.h

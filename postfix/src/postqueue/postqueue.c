@@ -431,10 +431,11 @@ static void show_queue(int mode)
 	    stat = vstream_pclose(showq);
 	}
 	argv_free(argv);
-	myfree(showq_path);
+	/* 202606 Qualys+Mythos: don't free() text before logging. */
 	if (stat != 0)
 	    msg_fatal_status(stat < 0 ? EX_OSERR : EX_SOFTWARE,
 			     "Error running %s", showq_path);
+	myfree(showq_path);
     }
 
     /*

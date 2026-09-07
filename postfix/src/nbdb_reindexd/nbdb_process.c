@@ -171,26 +171,24 @@ int     nbdb_process(const char *leg_type, const char *source_path,
     }
 
     /*
-     * Should we run postmap or postalias? Open the source file with the same
-     * (uid, gid) as the postmap or postalias commands would, so that we can
-     * detect permission errors quickly.
-     * 
-     * Note: we do this before the file allowlist/owner/permission safety
-     * checks, so that we can log the concrete postmap or postalias command
-     * if a safety check fails.
-     */
-    if ((index_cmd = nbdb_get_index_cmd_as(source_path, leg_idx_st.st_uid,
-					   leg_idx_st.st_gid, why)) == 0)
-	return (NBDB_STAT_ERROR);
-
-    /*
      * Allow indexing as the legacy indexed file owner if it is considered
      * "safe".
      */
     if (!nbdb_safe_to_index_as_legacy_index_owner(source_path, &source_st,
 					     STR(leg_idx_path), &leg_idx_st,
 					 parent_dir, &parent_dir_st, why)) {
-	status = NBDB_STAT_ERROR;
+	return (NBDB_STAT_ERROR);
+    }
+
+    /*
+     * Should we run postmap or postalias? Open the source file with the same
+     * (uid, gid) as the postmap or postalias commands would, so that we can
+     * detect permission errors quickly. 202607 Qualys+Mythos: move this
+     * after the safety checks.
+     */
+    if ((index_cmd = nbdb_get_index_cmd_as(source_path, leg_idx_st.st_uid,
+					   leg_idx_st.st_gid, why)) == 0) {
+	return (NBDB_STAT_ERROR);
     }
 
     /*

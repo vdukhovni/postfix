@@ -515,6 +515,11 @@ int     main(int argc, char **argv)
 	    msg_fatal("uid=%ld: malformed input", (long) uid);
 	if (rec_type == 0 || strchr(*expected, rec_type) == 0)
 	    msg_fatal("uid=%ld: unexpected record type: %d", (long) uid, rec_type);
+	/* 202607 OpenAI: reject line breaks and nulls in envelope content. */
+	if (rec_type != REC_TYPE_NORM && rec_type != REC_TYPE_CONT
+	    && strcspn(vstring_str(buf), "\r\n") != VSTRING_LEN(buf))
+	    msg_fatal("uid=%ld: null or line break in '%s' record type: %.200s",
+		      (long) uid, rec_type_name(rec_type), vstring_str(buf));
 	if (rec_type == **expected)
 	    expected++;
 	/* Override time information from the untrusted caller. */

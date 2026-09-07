@@ -217,6 +217,7 @@ void    vsmtpd_chat_reply(SMTPD_STATE *state, const char *format, va_list ap)
     char   *end;
     const char *alt_reply;
     const char *footer;
+    ssize_t line_len;			/* 202607 OpenAI line length checks */
 
     /*
      * Slow down clients that make errors. Sleep-on-anything slows down
@@ -258,20 +259,26 @@ void    vsmtpd_chat_reply(SMTPD_STATE *state, const char *format, va_list ap)
 
     /* All 5xx replies must have a 5.xx.xx detail code. */
     for (cp = STR(state->buffer), end = cp + strlen(STR(state->buffer));;) {
+	if ((next = strstr(cp, "\r\n")) != 0)
+	    line_len = next - cp;
+	else
+	    line_len = end - cp;
 	if (var_soft_bounce) {
-	    if (cp[0] == '5') {
+	    if (line_len > 0 && cp[0] == '5') {
 		cp[0] = '4';
-		if (cp[4] == '5')
+		if (line_len > 4 && cp[4] == '5')
 		    cp[4] = '4';
 	    }
 	}
 	/* This is why we use strlen() above instead of VSTRING_LEN(). */
-	if ((next = strstr(cp, "\r\n")) != 0) {
+	if (next != 0) {
 	    *next = 0;
-	    if (next[2] != 0)
-		cp[3] = '-';			/* contact footer kludge */
-	    else
+	    if (next[2] != 0) {
+		if (line_len > 3)
+		    cp[3] = '-';		/* contact footer kludge */
+	    } else {
 		next = end;			/* strip trailing \r\n */
+	    }
 	} else {
 	    next = end;
 	}
@@ -280,7 +287,7 @@ void    vsmtpd_chat_reply(SMTPD_STATE *state, const char *format, va_list ap)
 	if (msg_verbose)
 	    msg_info("> %s: %s", state->namaddr, cp);
 
-	smtp_fputs(cp, next - cp, state->client);
+	smtp_fputs(cp, line_len, state->client);
 	if (next < end)
 	    cp = next + 2;
 	else
