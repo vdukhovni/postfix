@@ -4117,8 +4117,8 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		    state->act_size += len + 2;
 		    if (*start == '.' && proxy != 0
 			&& state->bdat_prev_rec_type != REC_TYPE_CONT)
-			if (out_record(out_stream, REC_TYPE_CONT, ".", 1) < 0)
-			    state->err = out_error;
+			/* 202507 OpenAI: more robust dot-stuffing. */
+			vstring_prepend(state->bdat_get_buffer, ".", 1);
 		    if (state->err == CLEANUP_STAT_OK
 			&& out_record(out_stream, curr_rec_type,
 				      vstring_str(state->bdat_get_buffer),
@@ -4302,7 +4302,7 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /* Fix 20140707: Check the VRFY command. */
     if (smtputf8 == 0 && var_strict_smtputf8) {
 	if (*STR(state->addr_buf) && !allascii(STR(state->addr_buf))) {
-	    mail_reset(state);
+	    /* Wonyoung.Jung 20260811: don't reset SMTP state. */
 	    smtpd_chat_reply(state, "553 5.6.7 Must declare SMTPUTF8 to send unicode address");
 	    return (-1);
 	}
