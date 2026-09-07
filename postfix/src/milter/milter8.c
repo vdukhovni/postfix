@@ -955,6 +955,64 @@ static int milter8_write_cmd(MILTER8 *milter, int command,...)
     return (err);
 }
 
+/* milter8_valid_smtp_reply - validate SMTP reply (after 202607 OpenAI) */
+
+static int milter8_valid_smtp_reply(VSTRING *buf)
+{
+    const unsigned char *cp = (unsigned char *) STR(buf);
+    const unsigned char *buf_end = cp + LEN(buf);
+
+    /* Exclude one terminal Milter protocol null from the reply text. */
+    if (buf_end > cp && buf_end[-1] == 0)
+	buf_end -= 1;
+
+    if (memchr(cp, 0, buf_end - cp) != 0)
+	return (0);
+
+    while (cp < buf_end) {
+	const unsigned char *line_end;
+	ssize_t line_len;
+	int     final;
+
+	/* Part of a breaking change, not allowed in stable release. */
+#ifdef SNAPSHOT
+	unsigned char code[3];
+	int     first = 1;
+
+#endif
+
+	/* A final line must not end in a line terminator. */
+	line_len = strcspn((const char *) cp, "\r\n");
+	line_end = cp + line_len;
+	final = (line_end == buf_end);
+
+	/* Each line must match /^ddd(-| )d?/. */
+	if (line_len < 4 || (cp[0] != '4' && cp[0] != '5') || !ISDIGIT(cp[1])
+	    || !ISDIGIT(cp[2]) || (cp[3] != (final ? ' ' : '-'))
+	    || (line_len > 4 && ISDIGIT(cp[4]) && cp[4] != cp[0]))
+	    return (0);
+
+	/* Part of a breaking change, not allowed in stable release. */
+#ifdef SNAPSHOT
+	if (first) {
+	    code[0] = cp[0];
+	    code[1] = cp[1];
+	    code[2] = cp[2];
+	    first = 0;
+	} else if (cp[0] != code[0] || cp[1] != code[1] || cp[2] != code[2]) {
+	    return (0);
+	}
+#endif
+	/* A non-final line must end in a line terminator. */
+	if (final)
+	    return (1);
+	if (line_end > buf_end - 2 || *line_end != '\r' || line_end[1] != '\n')
+	    return (0);
+	cp = line_end + 2;
+    }
+    return (0);
+}
+
 /* milter8_event - report event and receive reply */
 
 static const char *milter8_event(MILTER8 *milter, int event,
@@ -1290,13 +1348,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 				  MILTER8_DATA_BUFFER, milter->buf,
 				  MILTER8_DATA_END) != 0)
 		MILTER8_EVENT_BREAK(milter->def_reply);
-	    /* XXX Enforce this for each line of a multi-line reply. */
-	    if ((STR(milter->buf)[0] != '4' && STR(milter->buf)[0] != '5')
-		|| !ISDIGIT(STR(milter->buf)[1])
-		|| !ISDIGIT(STR(milter->buf)[2])
-		|| (STR(milter->buf)[3] != ' ' && STR(milter->buf)[3] != '-')
-		|| (ISDIGIT(STR(milter->buf)[4])
-		    && (STR(milter->buf)[4] != STR(milter->buf)[0]))) {
+	    if (!milter8_valid_smtp_reply(milter->buf)) {
 		msg_warn("milter %s: malformed reply: %s",
 			 milter->m.name, STR(milter->buf));
 		milter8_conf_error(milter);
