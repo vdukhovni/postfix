@@ -204,6 +204,7 @@ static const char *macro_names[] = {
     "{mail_addr}",
     "{mail_host}",
     "{mail_mailer}",
+    "{postfix_internal_origin}",
     "{rcpt_addr}",
     "{rcpt_host}",
     "{rcpt_mailer}",

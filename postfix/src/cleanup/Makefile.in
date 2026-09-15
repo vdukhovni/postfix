@@ -97,9 +97,16 @@ milter_tests: cleanup_milter_test bug_tests \
 	cleanup_milter_test17b cleanup_milter_test17c cleanup_milter_test17d \
 	cleanup_milter_test17e cleanup_milter_test17f cleanup_milter_test17g \
 	cleanup_milter_test18a cleanup_milter_test18b cleanup_milter_test18c \
-	cleanup_milter_test18d
+	cleanup_milter_test18d cleanup_milter_origin_test
 
 root_tests:
+
+cleanup_milter_origin_test: cleanup_milter \
+	cleanup_milter_origin.in cleanup_milter_origin.ref
+	$(SHLIB_ENV) $(VALGRIND) ./cleanup_milter \
+	    <cleanup_milter_origin.in >cleanup_milter_origin.tmp 2>&1
+	diff cleanup_milter_origin.ref cleanup_milter_origin.tmp
+	rm -f cleanup_milter_origin.tmp
 
 cleanup_masquerade_test: cleanup_masquerade cleanup_masq.ref
 	rm -f cleanup_masq.tmp

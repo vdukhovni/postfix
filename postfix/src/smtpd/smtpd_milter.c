@@ -13,6 +13,9 @@
 /* DESCRIPTION
 /*	smtpd_milter_eval() is a milter(3) call-back routine to
 /*	expand Sendmail macros before they are sent to filters.
+/* BUGS
+/*	smtpd_milter_eval() returns a volatile result. The caller should
+/*	make a copy.
 /* DIAGNOSTICS
 /*	Panic: interface violations. Fatal errors: out of memory.
 /*	internal protocol errors.

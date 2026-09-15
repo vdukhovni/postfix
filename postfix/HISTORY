@@ -32038,9 +32038,36 @@ Apologies for any names omitted.
 	connection. Reported by Qualys, assisted by Claude Mythos
 	Preview. Fix by Viktor Dukhovni. File: posttls-finger.c.
 
-	Code clennup: better spawn(8) daemon error messages for
+	Code cleanup: better spawn(8) daemon error messages for
 	incorrect "user=..." command-line attribute values. File:
 	spawn.c.
+
+20260903
+
+	Error propagation: hard fail the build when the m4 command
+	is unavailable, and remove broken output files. File:
+	postconf/Makefile.in.
+
+20260914
+
+	Feature: expose the origin of internally-generated messages
+	(such as delivery status notifications) so that they can
+	be signed without the risk of signing a forged message.
+	Based on an initial design and implementation by Christian
+	Roessner(Rößner). Files: MILTER_README.html, cleanup_milter.c,
+	cleanup_milter_origin.in, cleanup_milter_origin.ref,
+	cleanup_org_flag.c, cleanup_user.h, mail_proto.h, post_mail.c,
+	test-milter.c.
+
+20260915
+
+	Technical debt: add the Milter macro '{client_connections}'
+	to the default export list in milter_connect_macros, and
+	update the documentation of the macro's availability. Files:
+	mail_params.h, MILTER_README.html.
+
+	Technical debt: document life cycle constraints for Milter
+	macro lookup results. Files: smtpd_milter.c, milter.c.
 
 TODO
 

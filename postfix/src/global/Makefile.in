@@ -39,7 +39,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	test_server_main.c compat_level.c config_known_tcp_ports.c \
 	hfrom_format.c rfc2047_code.c ascii_header_text.c sendopts.c \
 	pol_stats.c nbdb_clnt.c nbdb_util.c allowed_prefix.c \
-	nbdb_redirect.c nbdb_surrogate.c yana_policy.c
+	nbdb_redirect.c nbdb_surrogate.c yana_policy.c cleanup_org_flag.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -80,7 +80,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	test_server_main.o compat_level.o config_known_tcp_ports.o \
 	hfrom_format.o rfc2047_code.o ascii_header_text.o sendopts.o \
 	pol_stats.o nbdb_clnt.o nbdb_util.o allowed_prefix.o \
-	nbdb_redirect.o nbdb_surrogate.o yana_policy.o
+	nbdb_redirect.o nbdb_surrogate.o yana_policy.o cleanup_org_flag.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -1038,6 +1038,20 @@ cfg_parser.o: ../../include/vstring.h
 cfg_parser.o: cfg_parser.c
 cfg_parser.o: cfg_parser.h
 cfg_parser.o: mail_conf.h
+cleanup_org_flag.o: ../../include/attr.h
+cleanup_org_flag.o: ../../include/check_arg.h
+cleanup_org_flag.o: ../../include/htable.h
+cleanup_org_flag.o: ../../include/iostuff.h
+cleanup_org_flag.o: ../../include/mymalloc.h
+cleanup_org_flag.o: ../../include/name_code.h
+cleanup_org_flag.o: ../../include/nvtable.h
+cleanup_org_flag.o: ../../include/sys_defs.h
+cleanup_org_flag.o: ../../include/vbuf.h
+cleanup_org_flag.o: ../../include/vstream.h
+cleanup_org_flag.o: ../../include/vstring.h
+cleanup_org_flag.o: cleanup_org_flag.c
+cleanup_org_flag.o: cleanup_user.h
+cleanup_org_flag.o: mail_proto.h
 cleanup_strerror.o: ../../include/check_arg.h
 cleanup_strerror.o: ../../include/msg.h
 cleanup_strerror.o: ../../include/sys_defs.h

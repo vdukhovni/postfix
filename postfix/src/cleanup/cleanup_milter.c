@@ -82,6 +82,11 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
+/*
+/*	Christian Roessner
 /*--*/
 
 /* System library. */
@@ -236,6 +241,8 @@ static const char *cleanup_add_rcpt_par(void *, const char *, const char *);
 
 #define STR(x)		vstring_str(x)
 #define LEN(x)		VSTRING_LEN(x)
+
+#define PFX_MAC_ORIGIN	"{postfix_internal_origin}"
 
 /* cleanup_milter_hbc_log - log post-milter header/body_checks action */
 
@@ -1940,6 +1947,8 @@ static const char *cleanup_milter_eval(const char *name, void *ptr)
 	return (var_milt_daemon_name);
     if (strcmp(name, S8_MAC_V) == 0)
 	return (var_milt_v);
+    if (strcmp(name, PFX_MAC_ORIGIN) == 0)
+	return (cleanup_org_flag_to_name(state->flags));
 
     /*
      * Connect macros.
@@ -2411,6 +2420,7 @@ static void usage(void)
 {
     msg_warn("usage:");
     msg_warn("    verbose on|off");
+    msg_warn("    origin bounce|notify|verify");
     msg_warn("    open pathname");
     msg_warn("    close");
     msg_warn("    add_header index name [value]");
@@ -2619,6 +2629,24 @@ int     main(int unused_argc, char **argv)
 			 (long) argv->argc);
 	    } else if ((var_line_limit = atoi(argv->argv[1])) < DEF_LINE_LIMIT) {
 		msg_warn("bad line_length_limit argument");
+	    }
+	} else if (strcmp(argv->argv[0], "origin") == 0) {
+	    int     org_flag;
+	    const char *org_name;
+
+	    state->flags &= ~CLEANUP_FLAG_ORG_ALL;
+	    if (argv->argc != 2) {
+		msg_warn("bad dsn_origin argument count: %ld",
+			 (long) argv->argc);
+	    } else if ((org_flag =
+			cleanup_org_flag_from_name(argv->argv[1])) != 0) {
+		state->flags |= org_flag;
+		org_name = cleanup_milter_eval(PFX_MAC_ORIGIN, (void *) state);
+		vstream_printf("%s=%s\n", PFX_MAC_ORIGIN, org_name ?
+			       org_name : "");
+		vstream_fflush(VSTREAM_OUT);
+	    } else {
+		msg_warn("bad origin value: %s", argv->argv[1]);
 	    }
 	} else if (strcmp(argv->argv[0], "open") == 0) {
 	    if (state->dst != 0) {

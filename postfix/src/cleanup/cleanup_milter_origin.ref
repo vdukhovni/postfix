@@ -1,0 +1,10 @@
+> origin bounce
+{postfix_internal_origin}=bounce
+> origin notify
+{postfix_internal_origin}=notify
+> origin bounce
+{postfix_internal_origin}=bounce
+> origin verify
+{postfix_internal_origin}=verify
+> origin whatever
+./cleanup_milter: warning: bad origin value: whatever

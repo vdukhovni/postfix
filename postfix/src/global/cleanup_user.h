@@ -14,6 +14,7 @@
  /*
   * Client processing options. Flags 16- are reserved for cleanup.h.
   */
+/* LINT.IfChange(cleanup_flag_defs) */
 #define CLEANUP_FLAG_NONE	0	/* No special features */
 #define CLEANUP_FLAG_BOUNCE	(1<<0)	/* Bounce bad messages */
 #define CLEANUP_FLAG_FILTER	(1<<1)	/* Enable header/body checks */
@@ -47,6 +48,23 @@
   */
 #define CLEANUP_FLAG_MASK_EXTRA \
 	(CLEANUP_FLAG_HOLD | CLEANUP_FLAG_DISCARD)
+
+ /*
+  * Internal origin flags and names.
+  */
+#define CLEANUP_FLAG_ORG_BOUNCE	(1<<11)	/* bounce(8) */
+#define CLEANUP_FLAG_ORG_NOTIFY	(1<<12)	/* smtpd_chat, smtp_chat */
+#define CLEANUP_FLAG_ORG_VERIFY	(1<<13)	/* verify(8) */
+
+#define CLEANUP_FLAG_ORG_ALL \
+	( CLEANUP_FLAG_ORG_BOUNCE | CLEANUP_FLAG_ORG_NOTIFY \
+	| CLEANUP_FLAG_ORG_VERIFY)
+
+#define CLEANUP_NAME_ORG_BOUNCE	"bounce"
+#define CLEANUP_NAME_ORG_NOTIFY	"notify"
+#define CLEANUP_NAME_ORG_VERIFY	"verify"
+
+/* LINT.ThenChange(cleanup_strflags.c:cleanup_flag_map) */
 
  /*
   * Diagnostics.
@@ -99,6 +117,9 @@ typedef struct {
 extern const char *cleanup_strerror(unsigned);
 extern const CLEANUP_STAT_DETAIL *cleanup_stat_detail(unsigned);
 extern const char *cleanup_strflags(unsigned);
+extern int cleanup_org_flag_from_source_flag(int);
+extern const char *cleanup_org_flag_to_name(int);
+extern int cleanup_org_flag_from_name(const char *);
 
 /* LICENSE
 /* .ad
@@ -114,6 +135,9 @@ extern const char *cleanup_strflags(unsigned);
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 #endif

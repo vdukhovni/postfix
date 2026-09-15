@@ -140,7 +140,8 @@
 /*
 /*	milter_macro_callback() specifies a call-back function and
 /*	context for macro lookup. This function must be called
-/*	before milter_conn_event().
+/*	before milter_conn_event(). It always copies the lookup result,
+/*	so that it is OK if the result is volatile.
 /*
 /*	milter_edit_callback() specifies call-back functions and
 /*	context for editing the queue file after the end-of-data

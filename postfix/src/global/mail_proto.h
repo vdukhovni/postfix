@@ -82,6 +82,7 @@
 #define MAIL_SRC_NAME_VERIFY	"verify"/* protocol etc. errors */
 #define MAIL_SRC_NAME_ALL	"all"	/* all sources */
 
+/* LINT.IfChange(source_class) */
 #define MAIL_SRC_MASK_SENDMAIL	(1<<0)	/* sendmail(1) */
 #define MAIL_SRC_MASK_SMTPD	(1<<1)	/* smtpd(8) */
 #define MAIL_SRC_MASK_QMQPD	(1<<2)	/* qmqpd(8) */
@@ -95,6 +96,7 @@
 	| MAIL_SRC_MASK_QMQPD |  MAIL_SRC_MASK_FORWARD \
 	| MAIL_SRC_MASK_BOUNCE | MAIL_SRC_MASK_NOTIFY \
 	| MAIL_SRC_MASK_VERIFY)
+/* LINT.ThenChange(cleanup_user.h:cleanup_flag_defs) */
 
  /*
   * Well-known socket or FIFO directories. The main difference is in file

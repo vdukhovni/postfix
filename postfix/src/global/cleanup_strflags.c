@@ -44,6 +44,7 @@ struct cleanup_flag_map {
     const char *text;
 };
 
+/* LINT.IfChange(cleanup_flag_map) */
 static struct cleanup_flag_map cleanup_flag_map[] = {
     CLEANUP_FLAG_BOUNCE, "enable_bad_mail_bounce",
     CLEANUP_FLAG_FILTER, "enable_header_body_filter",
@@ -56,7 +57,11 @@ static struct cleanup_flag_map cleanup_flag_map[] = {
     CLEANUP_FLAG_SMTPUTF8, "smtputf8_requested",
     CLEANUP_FLAG_AUTOUTF8, "smtputf8_autodetect",
     CLEANUP_FLAG_REQTLS, "requiretls_requested",
+    CLEANUP_FLAG_ORG_BOUNCE, CLEANUP_NAME_ORG_BOUNCE,
+    CLEANUP_FLAG_ORG_NOTIFY, CLEANUP_NAME_ORG_NOTIFY,
+    CLEANUP_FLAG_ORG_VERIFY, CLEANUP_NAME_ORG_VERIFY,
 };
+/* LINT.ThenChange(cleanup_user.h:cleanup_flag_defs) */
 
 /* cleanup_strflags - map flags code to printable string */
 

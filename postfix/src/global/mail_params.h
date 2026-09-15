@@ -3622,7 +3622,9 @@ extern char *var_cleanup_milters;
 extern char *var_milt_def_action;
 
 #define VAR_MILT_CONN_MACROS		"milter_connect_macros"
-#define DEF_MILT_CONN_MACROS		"j {daemon_name} {daemon_addr} v _"
+#define DEF_MILT_CONN_MACROS		"j {daemon_name} {daemon_addr} v _ " \
+					"{client_connections} " \
+					"{postfix_internal_origin}"
 extern char *var_milt_conn_macros;
 
 #define VAR_MILT_HELO_MACROS		"milter_helo_macros"
