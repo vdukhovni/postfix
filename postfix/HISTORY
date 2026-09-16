@@ -32069,6 +32069,14 @@ Apologies for any names omitted.
 	Technical debt: document life cycle constraints for Milter
 	macro lookup results. Files: smtpd_milter.c, milter.c.
 
+20260916
+
+	Code health: enforce a sanity constraint on cleanup flags
+	received from a client. Files: cleanup_api.c, cleanup_user.h.
+
+	One-time memory leak in the LDAP client. Fix by Pourya Adeli.
+	File: dict_ldap.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

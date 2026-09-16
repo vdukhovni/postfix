@@ -203,6 +203,13 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
      * discard input after any lethal error. See the CLEANUP_OUT_OK() macro
      * definition.
      */
+#define BAD_USER_FLAGS(f) ((f) & ~CLEANUP_FLAG_USER_ALL)
+
+    if (BAD_USER_FLAGS(flags)) {
+	msg_warn("%s: ignoring user flags 0x%x",
+		 __func__, BAD_USER_FLAGS(flags));
+	flags &= CLEANUP_FLAG_USER_ALL;
+    }
     if (msg_verbose)
 	msg_info("client flags = %s", cleanup_strflags(flags));
     if ((state->flags = flags) & CLEANUP_FLAG_BOUNCE) {

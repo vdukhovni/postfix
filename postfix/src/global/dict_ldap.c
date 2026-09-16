@@ -229,6 +229,7 @@ static int dict_ldap_vendor_version(void)
 {
     const char *myname = "dict_ldap_api_info";
     LDAPAPIInfo api;
+    int     vendor_version;
 
     /*
      * We tell the library our version, and it tells us its version and/or
@@ -247,7 +248,11 @@ static int dict_ldap_vendor_version(void)
 	msg_fatal("%s: run-time API vendor: %s, compiled with: %s",
 		  myname, api.ldapai_vendor_name, LDAP_VENDOR_NAME);
 
-    return (api.ldapai_vendor_version);
+    vendor_version = api.ldapai_vendor_version;
+    ldap_memfree(api.ldapai_vendor_name);
+    ldap_memvfree((void **) api.ldapai_extensions);
+
+    return (vendor_version);
 }
 
 /*
@@ -1187,7 +1192,6 @@ static void dict_ldap_get_values(DICT_LDAP *dict_ldap, LDAPMessage *res,
 			ldap_msgfree(resloop);
 			resloop = 0;
 		    }
-
 		    if (dict_ldap->dict.error != 0)
 			break;
 		}

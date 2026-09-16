@@ -64,7 +64,20 @@
 #define CLEANUP_NAME_ORG_NOTIFY	"notify"
 #define CLEANUP_NAME_ORG_VERIFY	"verify"
 
+/* Space for adding new user flags starts here. */
+
+/* Space for adding new user flags ends here. */
+
+#define CLEANUP_FLAG_USER_MAX	(1<<13)	/* See below */
+
 /* LINT.ThenChange(cleanup_strflags.c:cleanup_flag_map) */
+
+ /*
+  * Flags that a cleanup service client may send. Like the __MAXINT__() macro
+  * in <sys_defs.h>, this macro assumes one's or two's complement integers.
+  */
+#define CLEANUP_FLAG_USER_ALL \
+	(CLEANUP_FLAG_USER_MAX | (CLEANUP_FLAG_USER_MAX - 1))
 
  /*
   * Diagnostics.
