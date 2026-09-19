@@ -130,6 +130,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <defs_for_main.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>

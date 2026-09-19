@@ -178,6 +178,7 @@ bounce.o: ../../include/attr.h
 bounce.o: ../../include/bounce.h
 bounce.o: ../../include/bounce_log.h
 bounce.o: ../../include/check_arg.h
+bounce.o: ../../include/defs_for_main.h
 bounce.o: ../../include/deliver_request.h
 bounce.o: ../../include/dsb_scan.h
 bounce.o: ../../include/dsn.h
@@ -204,6 +205,7 @@ bounce.o: ../../include/recipient_list.h
 bounce.o: ../../include/sendopts.h
 bounce.o: ../../include/stringops.h
 bounce.o: ../../include/sys_defs.h
+bounce.o: ../../include/ubsan_logger.h
 bounce.o: ../../include/vbuf.h
 bounce.o: ../../include/vstream.h
 bounce.o: ../../include/vstring.h

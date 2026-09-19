@@ -95,6 +95,7 @@ pmock_expect.o: pmock_expect.h
 pmock_expect.o: ptest.h
 pmock_expect_test.o: ../../include/argv.h
 pmock_expect_test.o: ../../include/check_arg.h
+pmock_expect_test.o: ../../include/defs_for_main.h
 pmock_expect_test.o: ../../include/msg.h
 pmock_expect_test.o: ../../include/msg_output.h
 pmock_expect_test.o: ../../include/msg_vstream.h
@@ -102,6 +103,7 @@ pmock_expect_test.o: ../../include/mymalloc.h
 pmock_expect_test.o: ../../include/myrand.h
 pmock_expect_test.o: ../../include/stringops.h
 pmock_expect_test.o: ../../include/sys_defs.h
+pmock_expect_test.o: ../../include/ubsan_logger.h
 pmock_expect_test.o: ../../include/vbuf.h
 pmock_expect_test.o: ../../include/vstream.h
 pmock_expect_test.o: ../../include/vstring.h
@@ -146,12 +148,14 @@ ptest_log.o: ptest.h
 ptest_log.o: ptest_log.c
 ptest_log_test.o: ../../include/argv.h
 ptest_log_test.o: ../../include/check_arg.h
+ptest_log_test.o: ../../include/defs_for_main.h
 ptest_log_test.o: ../../include/msg.h
 ptest_log_test.o: ../../include/msg_output.h
 ptest_log_test.o: ../../include/msg_vstream.h
 ptest_log_test.o: ../../include/myrand.h
 ptest_log_test.o: ../../include/stringops.h
 ptest_log_test.o: ../../include/sys_defs.h
+ptest_log_test.o: ../../include/ubsan_logger.h
 ptest_log_test.o: ../../include/vbuf.h
 ptest_log_test.o: ../../include/vstream.h
 ptest_log_test.o: ../../include/vstring.h

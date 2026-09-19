@@ -263,6 +263,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <inttypes.h>
+#include <defs_for_main.h>
 
 /* Utility library. */
 

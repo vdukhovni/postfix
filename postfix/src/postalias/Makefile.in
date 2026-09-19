@@ -148,6 +148,7 @@ depend: $(MAKES)
 postalias.o: ../../include/argv.h
 postalias.o: ../../include/check_arg.h
 postalias.o: ../../include/clean_env.h
+postalias.o: ../../include/defs_for_main.h
 postalias.o: ../../include/dict.h
 postalias.o: ../../include/dict_db.h
 postalias.o: ../../include/dict_proxy.h
@@ -170,6 +171,7 @@ postalias.o: ../../include/split_at.h
 postalias.o: ../../include/stringops.h
 postalias.o: ../../include/sys_defs.h
 postalias.o: ../../include/tok822.h
+postalias.o: ../../include/ubsan_logger.h
 postalias.o: ../../include/vbuf.h
 postalias.o: ../../include/vstream.h
 postalias.o: ../../include/vstring.h

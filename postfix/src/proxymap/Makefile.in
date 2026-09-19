@@ -158,6 +158,7 @@ depend: $(MAKES)
 proxymap.o: ../../include/argv.h
 proxymap.o: ../../include/attr.h
 proxymap.o: ../../include/check_arg.h
+proxymap.o: ../../include/defs_for_main.h
 proxymap.o: ../../include/dict.h
 proxymap.o: ../../include/dict_pipe.h
 proxymap.o: ../../include/dict_proxy.h
@@ -177,6 +178,7 @@ proxymap.o: ../../include/nvtable.h
 proxymap.o: ../../include/readlline.h
 proxymap.o: ../../include/stringops.h
 proxymap.o: ../../include/sys_defs.h
+proxymap.o: ../../include/ubsan_logger.h
 proxymap.o: ../../include/vbuf.h
 proxymap.o: ../../include/vstream.h
 proxymap.o: ../../include/vstring.h

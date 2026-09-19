@@ -202,6 +202,7 @@ match_addr.o: match_addr.h
 match_addr.o: match_basic.h
 match_addr_test.o: ../../include/argv.h
 match_addr_test.o: ../../include/check_arg.h
+match_addr_test.o: ../../include/defs_for_main.h
 match_addr_test.o: ../../include/msg.h
 match_addr_test.o: ../../include/msg_jmp.h
 match_addr_test.o: ../../include/msg_output.h
@@ -212,6 +213,7 @@ match_addr_test.o: ../../include/ptest.h
 match_addr_test.o: ../../include/ptest_main.h
 match_addr_test.o: ../../include/stringops.h
 match_addr_test.o: ../../include/sys_defs.h
+match_addr_test.o: ../../include/ubsan_logger.h
 match_addr_test.o: ../../include/vbuf.h
 match_addr_test.o: ../../include/vstream.h
 match_addr_test.o: ../../include/vstring.h
@@ -237,6 +239,7 @@ match_attr.o: match_attr.h
 match_attr_test.o: ../../include/argv.h
 match_attr_test.o: ../../include/attr.h
 match_attr_test.o: ../../include/check_arg.h
+match_attr_test.o: ../../include/defs_for_main.h
 match_attr_test.o: ../../include/htable.h
 match_attr_test.o: ../../include/msg.h
 match_attr_test.o: ../../include/msg_jmp.h
@@ -250,6 +253,7 @@ match_attr_test.o: ../../include/ptest.h
 match_attr_test.o: ../../include/ptest_main.h
 match_attr_test.o: ../../include/stringops.h
 match_attr_test.o: ../../include/sys_defs.h
+match_attr_test.o: ../../include/ubsan_logger.h
 match_attr_test.o: ../../include/vbuf.h
 match_attr_test.o: ../../include/vstream.h
 match_attr_test.o: ../../include/vstring.h
@@ -269,6 +273,7 @@ match_basic.o: match_basic.c
 match_basic.o: match_basic.h
 match_basic_test.o: ../../include/argv.h
 match_basic_test.o: ../../include/check_arg.h
+match_basic_test.o: ../../include/defs_for_main.h
 match_basic_test.o: ../../include/msg.h
 match_basic_test.o: ../../include/msg_jmp.h
 match_basic_test.o: ../../include/msg_output.h
@@ -281,6 +286,7 @@ match_basic_test.o: ../../include/ptest.h
 match_basic_test.o: ../../include/ptest_main.h
 match_basic_test.o: ../../include/stringops.h
 match_basic_test.o: ../../include/sys_defs.h
+match_basic_test.o: ../../include/ubsan_logger.h
 match_basic_test.o: ../../include/vbuf.h
 match_basic_test.o: ../../include/vstream.h
 match_basic_test.o: ../../include/vstring.h
@@ -322,6 +328,7 @@ mock_dns_lookup.o: mock_dns.h
 mock_dns_lookup.o: mock_dns_lookup.c
 mock_dns_lookup_test.o: ../../include/argv.h
 mock_dns_lookup_test.o: ../../include/check_arg.h
+mock_dns_lookup_test.o: ../../include/defs_for_main.h
 mock_dns_lookup_test.o: ../../include/dns.h
 mock_dns_lookup_test.o: ../../include/msg.h
 mock_dns_lookup_test.o: ../../include/msg_jmp.h
@@ -335,6 +342,7 @@ mock_dns_lookup_test.o: ../../include/ptest_main.h
 mock_dns_lookup_test.o: ../../include/sock_addr.h
 mock_dns_lookup_test.o: ../../include/stringops.h
 mock_dns_lookup_test.o: ../../include/sys_defs.h
+mock_dns_lookup_test.o: ../../include/ubsan_logger.h
 mock_dns_lookup_test.o: ../../include/vbuf.h
 mock_dns_lookup_test.o: ../../include/vstream.h
 mock_dns_lookup_test.o: ../../include/vstring.h
@@ -350,6 +358,7 @@ mock_fcntl.o: ../../include/sys_defs.h
 mock_fcntl.o: ../../include/vbuf.h
 mock_fcntl.o: ../../include/vstream.h
 mock_fcntl.o: ../../include/vstring.h
+mock_fcntl.o: ../../include/wrap_fcntl.h
 mock_fcntl.o: mock_fcntl.c
 mock_fcntl.o: mock_fcntl.h
 mock_getaddrinfo.o: ../../include/argv.h
@@ -373,6 +382,7 @@ mock_getaddrinfo.o: mock_getaddrinfo.c
 mock_getaddrinfo.o: mock_getaddrinfo.h
 mock_getaddrinfo_test.o: ../../include/argv.h
 mock_getaddrinfo_test.o: ../../include/check_arg.h
+mock_getaddrinfo_test.o: ../../include/defs_for_main.h
 mock_getaddrinfo_test.o: ../../include/msg.h
 mock_getaddrinfo_test.o: ../../include/msg_jmp.h
 mock_getaddrinfo_test.o: ../../include/msg_output.h
@@ -384,6 +394,7 @@ mock_getaddrinfo_test.o: ../../include/ptest.h
 mock_getaddrinfo_test.o: ../../include/ptest_main.h
 mock_getaddrinfo_test.o: ../../include/stringops.h
 mock_getaddrinfo_test.o: ../../include/sys_defs.h
+mock_getaddrinfo_test.o: ../../include/ubsan_logger.h
 mock_getaddrinfo_test.o: ../../include/vbuf.h
 mock_getaddrinfo_test.o: ../../include/vstream.h
 mock_getaddrinfo_test.o: ../../include/vstring.h
@@ -415,6 +426,7 @@ mock_myaddrinfo.o: mock_myaddrinfo.c
 mock_myaddrinfo.o: mock_myaddrinfo.h
 mock_myaddrinfo_test.o: ../../include/argv.h
 mock_myaddrinfo_test.o: ../../include/check_arg.h
+mock_myaddrinfo_test.o: ../../include/defs_for_main.h
 mock_myaddrinfo_test.o: ../../include/msg.h
 mock_myaddrinfo_test.o: ../../include/msg_jmp.h
 mock_myaddrinfo_test.o: ../../include/msg_output.h
@@ -426,6 +438,7 @@ mock_myaddrinfo_test.o: ../../include/ptest.h
 mock_myaddrinfo_test.o: ../../include/ptest_main.h
 mock_myaddrinfo_test.o: ../../include/stringops.h
 mock_myaddrinfo_test.o: ../../include/sys_defs.h
+mock_myaddrinfo_test.o: ../../include/ubsan_logger.h
 mock_myaddrinfo_test.o: ../../include/vbuf.h
 mock_myaddrinfo_test.o: ../../include/vstream.h
 mock_myaddrinfo_test.o: ../../include/vstring.h
@@ -461,6 +474,7 @@ mock_servent.o: mock_servent.c
 mock_servent.o: mock_servent.h
 mock_servent_test.o: ../../include/argv.h
 mock_servent_test.o: ../../include/check_arg.h
+mock_servent_test.o: ../../include/defs_for_main.h
 mock_servent_test.o: ../../include/msg.h
 mock_servent_test.o: ../../include/msg_jmp.h
 mock_servent_test.o: ../../include/msg_output.h
@@ -471,6 +485,7 @@ mock_servent_test.o: ../../include/ptest.h
 mock_servent_test.o: ../../include/ptest_main.h
 mock_servent_test.o: ../../include/stringops.h
 mock_servent_test.o: ../../include/sys_defs.h
+mock_servent_test.o: ../../include/ubsan_logger.h
 mock_servent_test.o: ../../include/vbuf.h
 mock_servent_test.o: ../../include/vstream.h
 mock_servent_test.o: ../../include/vstring.h
@@ -497,6 +512,7 @@ mock_server_test.o: ../../include/argv.h
 mock_server_test.o: ../../include/attr.h
 mock_server_test.o: ../../include/check_arg.h
 mock_server_test.o: ../../include/connect.h
+mock_server_test.o: ../../include/defs_for_main.h
 mock_server_test.o: ../../include/events.h
 mock_server_test.o: ../../include/htable.h
 mock_server_test.o: ../../include/iostuff.h
@@ -513,6 +529,7 @@ mock_server_test.o: ../../include/ptest.h
 mock_server_test.o: ../../include/ptest_main.h
 mock_server_test.o: ../../include/stringops.h
 mock_server_test.o: ../../include/sys_defs.h
+mock_server_test.o: ../../include/ubsan_logger.h
 mock_server_test.o: ../../include/vbuf.h
 mock_server_test.o: ../../include/vstream.h
 mock_server_test.o: ../../include/vstring.h

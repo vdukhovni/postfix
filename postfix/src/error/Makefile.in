@@ -52,6 +52,7 @@ error.o: ../../include/attr.h
 error.o: ../../include/bounce.h
 error.o: ../../include/check_arg.h
 error.o: ../../include/defer.h
+error.o: ../../include/defs_for_main.h
 error.o: ../../include/deliver_completed.h
 error.o: ../../include/deliver_request.h
 error.o: ../../include/dsn.h
@@ -73,6 +74,7 @@ error.o: ../../include/pol_stats.h
 error.o: ../../include/recipient_list.h
 error.o: ../../include/sys_defs.h
 error.o: ../../include/sys_exits.h
+error.o: ../../include/ubsan_logger.h
 error.o: ../../include/vbuf.h
 error.o: ../../include/vstream.h
 error.o: ../../include/vstring.h

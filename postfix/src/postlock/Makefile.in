@@ -50,6 +50,7 @@ depend: $(MAKES)
 postlock.o: ../../include/argv.h
 postlock.o: ../../include/check_arg.h
 postlock.o: ../../include/clean_env.h
+postlock.o: ../../include/defs_for_main.h
 postlock.o: ../../include/deliver_flock.h
 postlock.o: ../../include/dot_lockfile.h
 postlock.o: ../../include/dsn.h
@@ -68,6 +69,7 @@ postlock.o: ../../include/myflock.h
 postlock.o: ../../include/safe_open.h
 postlock.o: ../../include/sys_defs.h
 postlock.o: ../../include/sys_exits.h
+postlock.o: ../../include/ubsan_logger.h
 postlock.o: ../../include/vbuf.h
 postlock.o: ../../include/vstream.h
 postlock.o: ../../include/vstring.h

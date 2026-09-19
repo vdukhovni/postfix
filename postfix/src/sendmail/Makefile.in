@@ -54,6 +54,7 @@ sendmail.o: ../../include/clean_env.h
 sendmail.o: ../../include/cleanup_user.h
 sendmail.o: ../../include/connect.h
 sendmail.o: ../../include/debug_process.h
+sendmail.o: ../../include/defs_for_main.h
 sendmail.o: ../../include/deliver_request.h
 sendmail.o: ../../include/dsn.h
 sendmail.o: ../../include/dsn_mask.h
@@ -92,6 +93,7 @@ sendmail.o: ../../include/split_at.h
 sendmail.o: ../../include/stringops.h
 sendmail.o: ../../include/sys_defs.h
 sendmail.o: ../../include/tok822.h
+sendmail.o: ../../include/ubsan_logger.h
 sendmail.o: ../../include/user_acl.h
 sendmail.o: ../../include/username.h
 sendmail.o: ../../include/vbuf.h

@@ -110,7 +110,7 @@ PTEST_CTX *ptest_ctx_create(const char *name, TEST_JMP_BUF *jbuf)
 
 /* ptest_ctx_current - return current context or die */
 
-PTEST_CTX *ptest_ctx_current()
+PTEST_CTX *ptest_ctx_current(void)
 {
     if (ptest_ctx_head == 0)
 	msg_panic("ptest_ctx_current: no test context");

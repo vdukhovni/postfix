@@ -778,6 +778,7 @@ cleanup.o: ../../include/attr.h
 cleanup.o: ../../include/been_here.h
 cleanup.o: ../../include/check_arg.h
 cleanup.o: ../../include/cleanup_user.h
+cleanup.o: ../../include/defs_for_main.h
 cleanup.o: ../../include/dict.h
 cleanup.o: ../../include/dsn_mask.h
 cleanup.o: ../../include/header_body_checks.h
@@ -804,6 +805,7 @@ cleanup.o: ../../include/resolve_clnt.h
 cleanup.o: ../../include/string_list.h
 cleanup.o: ../../include/sys_defs.h
 cleanup.o: ../../include/tok822.h
+cleanup.o: ../../include/ubsan_logger.h
 cleanup.o: ../../include/vbuf.h
 cleanup.o: ../../include/vstream.h
 cleanup.o: ../../include/vstring.h

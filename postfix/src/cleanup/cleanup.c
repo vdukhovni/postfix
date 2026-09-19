@@ -514,6 +514,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <defs_for_main.h>
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>

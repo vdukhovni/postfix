@@ -435,6 +435,7 @@
 #ifdef USE_PATHS_H
 #include <paths.h>
 #endif
+#include <defs_for_main.h>
 
 /* Utility library. */
 

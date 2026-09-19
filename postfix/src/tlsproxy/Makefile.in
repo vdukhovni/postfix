@@ -56,6 +56,7 @@ tlsproxy.o: ../../include/argv.h
 tlsproxy.o: ../../include/attr.h
 tlsproxy.o: ../../include/been_here.h
 tlsproxy.o: ../../include/check_arg.h
+tlsproxy.o: ../../include/defs_for_main.h
 tlsproxy.o: ../../include/dns.h
 tlsproxy.o: ../../include/events.h
 tlsproxy.o: ../../include/htable.h
@@ -85,6 +86,7 @@ tlsproxy.o: ../../include/tls_proxy_server_init_proto.h
 tlsproxy.o: ../../include/tls_proxy_server_param_proto.h
 tlsproxy.o: ../../include/tls_proxy_server_start_proto.h
 tlsproxy.o: ../../include/tlsrpt_wrapper.h
+tlsproxy.o: ../../include/ubsan_logger.h
 tlsproxy.o: ../../include/vbuf.h
 tlsproxy.o: ../../include/vstream.h
 tlsproxy.o: ../../include/vstring.h

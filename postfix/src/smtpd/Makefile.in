@@ -242,6 +242,7 @@ smtpd.o: ../../include/attr_clnt.h
 smtpd.o: ../../include/check_arg.h
 smtpd.o: ../../include/cleanup_user.h
 smtpd.o: ../../include/debug_peer.h
+smtpd.o: ../../include/defs_for_main.h
 smtpd.o: ../../include/dict.h
 smtpd.o: ../../include/dns.h
 smtpd.o: ../../include/dsn_mask.h
@@ -305,6 +306,7 @@ smtpd.o: ../../include/tls_proxy_server_init_proto.h
 smtpd.o: ../../include/tls_proxy_server_param_proto.h
 smtpd.o: ../../include/tls_proxy_server_start_proto.h
 smtpd.o: ../../include/tok822.h
+smtpd.o: ../../include/ubsan_logger.h
 smtpd.o: ../../include/uxtext.h
 smtpd.o: ../../include/valid_hostname.h
 smtpd.o: ../../include/valid_mailhost_addr.h

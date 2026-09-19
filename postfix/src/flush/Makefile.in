@@ -51,6 +51,7 @@ depend: $(MAKES)
 flush.o: ../../include/argv.h
 flush.o: ../../include/attr.h
 flush.o: ../../include/check_arg.h
+flush.o: ../../include/defs_for_main.h
 flush.o: ../../include/dict.h
 flush.o: ../../include/domain_list.h
 flush.o: ../../include/events.h
@@ -77,6 +78,7 @@ flush.o: ../../include/safe_open.h
 flush.o: ../../include/scan_dir.h
 flush.o: ../../include/stringops.h
 flush.o: ../../include/sys_defs.h
+flush.o: ../../include/ubsan_logger.h
 flush.o: ../../include/vbuf.h
 flush.o: ../../include/vstream.h
 flush.o: ../../include/vstring.h

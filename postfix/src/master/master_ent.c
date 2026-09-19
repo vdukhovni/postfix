@@ -128,7 +128,7 @@ void    fset_master_ent(char *path)
 
 /* set_master_ent - open configuration file */
 
-void    set_master_ent()
+void    set_master_ent(void)
 {
     const char *myname = "set_master_ent";
     char   *disable;
@@ -156,7 +156,7 @@ void    set_master_ent()
 
 /* end_master_ent - close configuration file */
 
-void    end_master_ent()
+void    end_master_ent(void)
 {
     const char *myname = "end_master_ent";
 
@@ -259,7 +259,7 @@ static int get_int_ent(char **bufp, char *name, char *def_val, int min_val)
 
 /* get_master_ent - read entry from configuration file */
 
-MASTER_SERV *get_master_ent()
+MASTER_SERV *get_master_ent(void)
 {
     VSTRING *buf = vstring_alloc(100);
     VSTRING *junk = vstring_alloc(100);

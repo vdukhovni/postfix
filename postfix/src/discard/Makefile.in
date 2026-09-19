@@ -51,6 +51,7 @@ depend: $(MAKES)
 discard.o: ../../include/attr.h
 discard.o: ../../include/bounce.h
 discard.o: ../../include/check_arg.h
+discard.o: ../../include/defs_for_main.h
 discard.o: ../../include/deliver_completed.h
 discard.o: ../../include/deliver_request.h
 discard.o: ../../include/dsn.h
@@ -70,6 +71,7 @@ discard.o: ../../include/pol_stats.h
 discard.o: ../../include/recipient_list.h
 discard.o: ../../include/sent.h
 discard.o: ../../include/sys_defs.h
+discard.o: ../../include/ubsan_logger.h
 discard.o: ../../include/vbuf.h
 discard.o: ../../include/vstream.h
 discard.o: ../../include/vstring.h

@@ -145,6 +145,7 @@
   * System library.
   */
 #include <sys_defs.h>
+#include <defs_for_main.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 

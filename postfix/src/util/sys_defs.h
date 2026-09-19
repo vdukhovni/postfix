@@ -1705,6 +1705,25 @@ typedef int pid_t;
 #define NOCLOBBER volatile
 #endif
 
+#if !defined(__has_feature)		/* Clang */
+#define __has_feature(name) 0
+#endif
+
+#if __has_feature(undefined_behavior_sanitizer)
+#define HAS_UBSAN 1
+#elif defined(__UBSAN__)		/* GCC */
+#define HAS_UBSAN 1
+#endif
+
+ /*
+  * Array bounds annotation, enabled with -fsanitize=bounds or equivalent.
+  */
+#if __has_attribute(__counted_by__)
+#define __counted_by(member)  __attribute__((__counted_by__(member)))
+#else
+#define __counted_by(member)
+#endif
+
  /*
   * Bit banging!! There is no official constant that defines the INT_MAX
   * equivalent for off_t, ssize_t, etc. Decades ago, Wietse came up with a

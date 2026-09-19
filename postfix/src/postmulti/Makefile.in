@@ -109,6 +109,7 @@ fake_strcmp.o: fake_strcmp.c
 postmulti.o: ../../include/argv.h
 postmulti.o: ../../include/check_arg.h
 postmulti.o: ../../include/clean_env.h
+postmulti.o: ../../include/defs_for_main.h
 postmulti.o: ../../include/htable.h
 postmulti.o: ../../include/mail_conf.h
 postmulti.o: ../../include/mail_params.h
@@ -124,6 +125,7 @@ postmulti.o: ../../include/ring.h
 postmulti.o: ../../include/safe.h
 postmulti.o: ../../include/stringops.h
 postmulti.o: ../../include/sys_defs.h
+postmulti.o: ../../include/ubsan_logger.h
 postmulti.o: ../../include/vbuf.h
 postmulti.o: ../../include/vstream.h
 postmulti.o: ../../include/vstring.h

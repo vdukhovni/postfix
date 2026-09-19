@@ -54,6 +54,7 @@ pipe.o: ../../include/bounce.h
 pipe.o: ../../include/canon_addr.h
 pipe.o: ../../include/check_arg.h
 pipe.o: ../../include/defer.h
+pipe.o: ../../include/defs_for_main.h
 pipe.o: ../../include/deliver_completed.h
 pipe.o: ../../include/deliver_request.h
 pipe.o: ../../include/delivered_hdr.h
@@ -91,6 +92,7 @@ pipe.o: ../../include/split_at.h
 pipe.o: ../../include/stringops.h
 pipe.o: ../../include/sys_defs.h
 pipe.o: ../../include/sys_exits.h
+pipe.o: ../../include/ubsan_logger.h
 pipe.o: ../../include/vbuf.h
 pipe.o: ../../include/vstream.h
 pipe.o: ../../include/vstring.h

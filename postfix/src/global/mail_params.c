@@ -775,7 +775,7 @@ static void check_legacy_defaults(void)
 
 /* mail_params_init - configure built-in parameters */
 
-void    mail_params_init()
+void    mail_params_init(void)
 {
     static const CONFIG_STR_TABLE compat_level_defaults[] = {
 	VAR_COMPAT_LEVEL, DEF_COMPAT_LEVEL, &var_compatibility_level, 0, 0,

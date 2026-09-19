@@ -233,6 +233,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <defs_for_main.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>

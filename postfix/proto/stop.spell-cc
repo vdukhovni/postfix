@@ -2003,3 +2003,9 @@ Wonyoung
 strchr
 Bitflags
 Roessner
+MAXINT
+UBSAN
+Ubsan
+fsanitize
+libubsan
+ubsan

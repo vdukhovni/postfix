@@ -171,6 +171,7 @@ master.o: ../../include/argv.h
 master.o: ../../include/check_arg.h
 master.o: ../../include/clean_env.h
 master.o: ../../include/debug_process.h
+master.o: ../../include/defs_for_main.h
 master.o: ../../include/events.h
 master.o: ../../include/inet_proto.h
 master.o: ../../include/iostuff.h
@@ -189,6 +190,7 @@ master.o: ../../include/set_eugid.h
 master.o: ../../include/set_ugid.h
 master.o: ../../include/stringops.h
 master.o: ../../include/sys_defs.h
+master.o: ../../include/ubsan_logger.h
 master.o: ../../include/vbuf.h
 master.o: ../../include/vstream.h
 master.o: ../../include/vstring.h

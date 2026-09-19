@@ -116,6 +116,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>			/* sscanf() */
+#include <defs_for_main.h>
 
 /* Utility library. */
 

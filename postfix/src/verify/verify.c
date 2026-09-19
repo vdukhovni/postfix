@@ -93,7 +93,7 @@
 /* CACHE CONTROLS
 /* .ad
 /* .fi
-/* .IP "\fBaddress_verify_map (see 'postconf -d' output)\fR"
+/* .IP "\fBaddress_verify_map (Postfix >= 3.11: $default_cache_db_type:$data_directory/verify_cache; Postfix < 3.11: btree:$data_directory/verify_cache)\fR"
 /*	Lookup table for persistent address verification status
 /*	storage.
 /* .IP "\fBaddress_verify_positive_expire_time (31d)\fR"
@@ -226,6 +226,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <defs_for_main.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <string.h>

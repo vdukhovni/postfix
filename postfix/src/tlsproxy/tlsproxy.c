@@ -389,6 +389,7 @@
   * System library.
   */
 #include <sys_defs.h>
+#include <defs_for_main.h>
 #include <errno.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H

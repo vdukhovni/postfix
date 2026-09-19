@@ -109,6 +109,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <defs_for_main.h>
 
 /* Utility library. */
 

@@ -315,6 +315,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <defs_for_main.h>
 #include <stdlib.h>
 #ifdef USE_PATHS_H
 #include <paths.h>			/* XXX mail_spool_dir dependency */

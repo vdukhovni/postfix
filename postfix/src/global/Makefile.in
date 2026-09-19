@@ -1105,6 +1105,7 @@ config_known_tcp_ports.o: config_known_tcp_ports.c
 config_known_tcp_ports.o: config_known_tcp_ports.h
 config_known_tcp_ports_test.o: ../../include/argv.h
 config_known_tcp_ports_test.o: ../../include/check_arg.h
+config_known_tcp_ports_test.o: ../../include/defs_for_main.h
 config_known_tcp_ports_test.o: ../../include/known_tcp_ports.h
 config_known_tcp_ports_test.o: ../../include/msg.h
 config_known_tcp_ports_test.o: ../../include/msg_jmp.h
@@ -1116,6 +1117,7 @@ config_known_tcp_ports_test.o: ../../include/ptest.h
 config_known_tcp_ports_test.o: ../../include/ptest_main.h
 config_known_tcp_ports_test.o: ../../include/stringops.h
 config_known_tcp_ports_test.o: ../../include/sys_defs.h
+config_known_tcp_ports_test.o: ../../include/ubsan_logger.h
 config_known_tcp_ports_test.o: ../../include/vbuf.h
 config_known_tcp_ports_test.o: ../../include/vstream.h
 config_known_tcp_ports_test.o: ../../include/vstring.h
@@ -1300,6 +1302,7 @@ delivered_hdr.o: rec_type.h
 delivered_hdr.o: record.h
 delivered_hdr_test.o: ../../include/argv.h
 delivered_hdr_test.o: ../../include/check_arg.h
+delivered_hdr_test.o: ../../include/defs_for_main.h
 delivered_hdr_test.o: ../../include/msg.h
 delivered_hdr_test.o: ../../include/msg_jmp.h
 delivered_hdr_test.o: ../../include/msg_output.h
@@ -1311,6 +1314,7 @@ delivered_hdr_test.o: ../../include/ptest.h
 delivered_hdr_test.o: ../../include/ptest_main.h
 delivered_hdr_test.o: ../../include/stringops.h
 delivered_hdr_test.o: ../../include/sys_defs.h
+delivered_hdr_test.o: ../../include/ubsan_logger.h
 delivered_hdr_test.o: ../../include/vbuf.h
 delivered_hdr_test.o: ../../include/vstream.h
 delivered_hdr_test.o: ../../include/vstring.h
@@ -1461,6 +1465,7 @@ dict_sqlite.o: dict_sqlite.h
 dict_sqlite.o: string_list.h
 dict_sqlite_test.o: ../../include/argv.h
 dict_sqlite_test.o: ../../include/check_arg.h
+dict_sqlite_test.o: ../../include/defs_for_main.h
 dict_sqlite_test.o: ../../include/dict.h
 dict_sqlite_test.o: ../../include/msg.h
 dict_sqlite_test.o: ../../include/msg_jmp.h
@@ -1473,6 +1478,7 @@ dict_sqlite_test.o: ../../include/ptest.h
 dict_sqlite_test.o: ../../include/ptest_main.h
 dict_sqlite_test.o: ../../include/stringops.h
 dict_sqlite_test.o: ../../include/sys_defs.h
+dict_sqlite_test.o: ../../include/ubsan_logger.h
 dict_sqlite_test.o: ../../include/vbuf.h
 dict_sqlite_test.o: ../../include/vstream.h
 dict_sqlite_test.o: ../../include/vstring.h
@@ -1662,6 +1668,7 @@ haproxy_srvr.o: haproxy_srvr.c
 haproxy_srvr.o: haproxy_srvr.h
 haproxy_srvr_test.o: ../../include/argv.h
 haproxy_srvr_test.o: ../../include/check_arg.h
+haproxy_srvr_test.o: ../../include/defs_for_main.h
 haproxy_srvr_test.o: ../../include/msg.h
 haproxy_srvr_test.o: ../../include/msg_jmp.h
 haproxy_srvr_test.o: ../../include/msg_output.h
@@ -1674,6 +1681,7 @@ haproxy_srvr_test.o: ../../include/ptest_main.h
 haproxy_srvr_test.o: ../../include/sock_addr.h
 haproxy_srvr_test.o: ../../include/stringops.h
 haproxy_srvr_test.o: ../../include/sys_defs.h
+haproxy_srvr_test.o: ../../include/ubsan_logger.h
 haproxy_srvr_test.o: ../../include/vbuf.h
 haproxy_srvr_test.o: ../../include/vstream.h
 haproxy_srvr_test.o: ../../include/vstring.h
@@ -1726,6 +1734,7 @@ hfrom_format.o: hfrom_format.h
 hfrom_format.o: mail_params.h
 hfrom_format_test.o: ../../include/argv.h
 hfrom_format_test.o: ../../include/check_arg.h
+hfrom_format_test.o: ../../include/defs_for_main.h
 hfrom_format_test.o: ../../include/msg.h
 hfrom_format_test.o: ../../include/msg_jmp.h
 hfrom_format_test.o: ../../include/msg_output.h
@@ -1736,6 +1745,7 @@ hfrom_format_test.o: ../../include/ptest.h
 hfrom_format_test.o: ../../include/ptest_main.h
 hfrom_format_test.o: ../../include/stringops.h
 hfrom_format_test.o: ../../include/sys_defs.h
+hfrom_format_test.o: ../../include/ubsan_logger.h
 hfrom_format_test.o: ../../include/vbuf.h
 hfrom_format_test.o: ../../include/vstream.h
 hfrom_format_test.o: ../../include/vstring.h
@@ -1824,6 +1834,7 @@ login_sender_match.o: quote_flags.h
 login_sender_match.o: strip_addr.h
 login_sender_match_test.o: ../../include/argv.h
 login_sender_match_test.o: ../../include/check_arg.h
+login_sender_match_test.o: ../../include/defs_for_main.h
 login_sender_match_test.o: ../../include/dict.h
 login_sender_match_test.o: ../../include/msg.h
 login_sender_match_test.o: ../../include/msg_jmp.h
@@ -1836,6 +1847,7 @@ login_sender_match_test.o: ../../include/ptest.h
 login_sender_match_test.o: ../../include/ptest_main.h
 login_sender_match_test.o: ../../include/stringops.h
 login_sender_match_test.o: ../../include/sys_defs.h
+login_sender_match_test.o: ../../include/ubsan_logger.h
 login_sender_match_test.o: ../../include/vbuf.h
 login_sender_match_test.o: ../../include/vstream.h
 login_sender_match_test.o: ../../include/vstring.h
@@ -2331,6 +2343,7 @@ map_search.o: map_search.c
 map_search.o: map_search.h
 map_search_test.o: ../../include/argv.h
 map_search_test.o: ../../include/check_arg.h
+map_search_test.o: ../../include/defs_for_main.h
 map_search_test.o: ../../include/msg.h
 map_search_test.o: ../../include/msg_jmp.h
 map_search_test.o: ../../include/msg_output.h
@@ -2342,6 +2355,7 @@ map_search_test.o: ../../include/ptest.h
 map_search_test.o: ../../include/ptest_main.h
 map_search_test.o: ../../include/stringops.h
 map_search_test.o: ../../include/sys_defs.h
+map_search_test.o: ../../include/ubsan_logger.h
 map_search_test.o: ../../include/vbuf.h
 map_search_test.o: ../../include/vstream.h
 map_search_test.o: ../../include/vstring.h
@@ -2683,6 +2697,7 @@ normalize_mailhost_addr.o: normalize_mailhost_addr.h
 normalize_mailhost_addr.o: valid_mailhost_addr.h
 normalize_mailhost_addr_test.o: ../../include/argv.h
 normalize_mailhost_addr_test.o: ../../include/check_arg.h
+normalize_mailhost_addr_test.o: ../../include/defs_for_main.h
 normalize_mailhost_addr_test.o: ../../include/inet_proto.h
 normalize_mailhost_addr_test.o: ../../include/msg.h
 normalize_mailhost_addr_test.o: ../../include/msg_jmp.h
@@ -2695,6 +2710,7 @@ normalize_mailhost_addr_test.o: ../../include/ptest.h
 normalize_mailhost_addr_test.o: ../../include/ptest_main.h
 normalize_mailhost_addr_test.o: ../../include/stringops.h
 normalize_mailhost_addr_test.o: ../../include/sys_defs.h
+normalize_mailhost_addr_test.o: ../../include/ubsan_logger.h
 normalize_mailhost_addr_test.o: ../../include/vbuf.h
 normalize_mailhost_addr_test.o: ../../include/vstream.h
 normalize_mailhost_addr_test.o: ../../include/vstring.h
@@ -3145,6 +3161,7 @@ smtp_reply_footer.o: smtp_reply_footer.c
 smtp_reply_footer.o: smtp_reply_footer.h
 smtp_reply_footer_test.o: ../../include/argv.h
 smtp_reply_footer_test.o: ../../include/check_arg.h
+smtp_reply_footer_test.o: ../../include/defs_for_main.h
 smtp_reply_footer_test.o: ../../include/mac_expand.h
 smtp_reply_footer_test.o: ../../include/mac_parse.h
 smtp_reply_footer_test.o: ../../include/msg.h
@@ -3157,6 +3174,7 @@ smtp_reply_footer_test.o: ../../include/ptest.h
 smtp_reply_footer_test.o: ../../include/ptest_main.h
 smtp_reply_footer_test.o: ../../include/stringops.h
 smtp_reply_footer_test.o: ../../include/sys_defs.h
+smtp_reply_footer_test.o: ../../include/ubsan_logger.h
 smtp_reply_footer_test.o: ../../include/vbuf.h
 smtp_reply_footer_test.o: ../../include/vstream.h
 smtp_reply_footer_test.o: ../../include/vstring.h
@@ -3365,6 +3383,7 @@ uxtext.o: uxtext.c
 uxtext.o: uxtext.h
 uxtext_test.o: ../../include/argv.h
 uxtext_test.o: ../../include/check_arg.h
+uxtext_test.o: ../../include/defs_for_main.h
 uxtext_test.o: ../../include/msg.h
 uxtext_test.o: ../../include/msg_jmp.h
 uxtext_test.o: ../../include/msg_output.h
@@ -3375,6 +3394,7 @@ uxtext_test.o: ../../include/ptest.h
 uxtext_test.o: ../../include/ptest_main.h
 uxtext_test.o: ../../include/stringops.h
 uxtext_test.o: ../../include/sys_defs.h
+uxtext_test.o: ../../include/ubsan_logger.h
 uxtext_test.o: ../../include/vbuf.h
 uxtext_test.o: ../../include/vstream.h
 uxtext_test.o: ../../include/vstring.h
@@ -3489,6 +3509,7 @@ yana_policy.o: yana_policy.c
 yana_policy.o: yana_policy.h
 yana_policy_test.o: ../../include/argv.h
 yana_policy_test.o: ../../include/check_arg.h
+yana_policy_test.o: ../../include/defs_for_main.h
 yana_policy_test.o: ../../include/dict.h
 yana_policy_test.o: ../../include/msg.h
 yana_policy_test.o: ../../include/msg_jmp.h
@@ -3501,6 +3522,7 @@ yana_policy_test.o: ../../include/ptest.h
 yana_policy_test.o: ../../include/ptest_main.h
 yana_policy_test.o: ../../include/stringops.h
 yana_policy_test.o: ../../include/sys_defs.h
+yana_policy_test.o: ../../include/ubsan_logger.h
 yana_policy_test.o: ../../include/vbuf.h
 yana_policy_test.o: ../../include/vstream.h
 yana_policy_test.o: ../../include/vstring.h

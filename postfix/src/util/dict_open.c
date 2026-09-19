@@ -619,7 +619,7 @@ DICT_OPEN_EXTEND_FN dict_open_extend(DICT_OPEN_EXTEND_FN new_cb)
 
 /* dict_mapnames - return an ARGV of available map_names */
 
-ARGV   *dict_mapnames()
+ARGV   *dict_mapnames(void)
 {
     HTABLE_INFO **ht_info;
     HTABLE_INFO **ht;

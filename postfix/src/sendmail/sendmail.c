@@ -512,6 +512,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <sysexits.h>
+#include <defs_for_main.h>
 
 /* Utility library. */
 

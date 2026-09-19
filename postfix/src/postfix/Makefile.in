@@ -52,6 +52,7 @@ postfix.o: ../../include/argv.h
 postfix.o: ../../include/check_arg.h
 postfix.o: ../../include/clean_env.h
 postfix.o: ../../include/compat_level.h
+postfix.o: ../../include/defs_for_main.h
 postfix.o: ../../include/mail_conf.h
 postfix.o: ../../include/mail_params.h
 postfix.o: ../../include/mail_parm_split.h
@@ -59,9 +60,11 @@ postfix.o: ../../include/mail_version.h
 postfix.o: ../../include/maillog_client.h
 postfix.o: ../../include/msg.h
 postfix.o: ../../include/msg_vstream.h
+postfix.o: ../../include/mymalloc.h
 postfix.o: ../../include/safe.h
 postfix.o: ../../include/stringops.h
 postfix.o: ../../include/sys_defs.h
+postfix.o: ../../include/ubsan_logger.h
 postfix.o: ../../include/vbuf.h
 postfix.o: ../../include/vstream.h
 postfix.o: ../../include/vstring.h

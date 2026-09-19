@@ -90,6 +90,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <defs_for_main.h>
 
 /* Utility library. */
 

@@ -334,6 +334,7 @@
 #include <signal.h>
 #include <stdio.h>			/* remove() */
 #include <utime.h>
+#include <defs_for_main.h>
 
 /* Utility library. */
 

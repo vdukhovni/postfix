@@ -32077,6 +32077,37 @@ Apologies for any names omitted.
 	One-time memory leak in the LDAP client. Fix by Pourya Adeli.
 	File: dict_ldap.c.
 
+20260918
+
+	Code health: updated some obsolete function definitions
+	('foo()' should be 'foo(void)'). Files: mail_params.c,
+	master_ent.c, ptest_ctx.c, dict_open.c.
+
+20260919
+
+	Support for UBSAN counted_by() annotations for arrays, and
+	for logging bound errors, plus a unit test that an array
+	bound error is logged (UBSAN = Undefined Behavior Sanitizer).
+	To enable counted_by() support, use "make makefiles
+	CCARGS="-fsanitize=bounds..." SYSLIBS="-lubsan...". NOTE:
+	This provides only bounds checking infrastructure: actual
+	counted_by() annotations are still to be added. Files:
+	sys_defs.h, ubsan-logger.h, ubsan_logger_test.c, ptest_main.h.
+
+	Support for logging UBSAN errors in Postfix daemons,
+	command-line programs, and unit tests. NOTE: This provides
+	only logging infrastructure: actual annotations are still
+	to be added. Files: anvil.c, bounce.c, cleanup.c, discard.c,
+	dnsblog.c, error.c, flush.c, local.c, master.c, nbdb_reindexd.c,
+	pickup.c, pipe.c, postalias.c, postcat.c, postconf.c,
+	postdrop.c, postfix.c, postkick.c, postlock.c, postlog.c,
+	postlogd.c, postmap.c, postmulti.c, postqueue.c, postscreen.c,
+	postsuper.c, posttls-finger.c, proxymap.c, ptest_main.h,
+	qmgr.c, qmqpd.c, scache.c, sendmail.c, showq.c, smtp.c,
+	smtpd.c, spawn.c, sys_defs.h, test_dns_lookup.c, tlsmgr.c,
+	tlsproxy.c, trivial-rewrite.c, verify.c, virtual.c, and
+	Makefile.in files.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

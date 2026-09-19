@@ -51,6 +51,7 @@ depend: $(MAKES)
 showq.o: ../../include/attr.h
 showq.o: ../../include/bounce_log.h
 showq.o: ../../include/check_arg.h
+showq.o: ../../include/defs_for_main.h
 showq.o: ../../include/dsn.h
 showq.o: ../../include/dsn_buf.h
 showq.o: ../../include/htable.h
@@ -77,6 +78,7 @@ showq.o: ../../include/record.h
 showq.o: ../../include/scan_dir.h
 showq.o: ../../include/stringops.h
 showq.o: ../../include/sys_defs.h
+showq.o: ../../include/ubsan_logger.h
 showq.o: ../../include/vbuf.h
 showq.o: ../../include/vstream.h
 showq.o: ../../include/vstring.h

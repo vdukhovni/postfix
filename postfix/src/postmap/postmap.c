@@ -337,6 +337,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <string.h>
+#include <defs_for_main.h>
 
 /* Utility library. */
 

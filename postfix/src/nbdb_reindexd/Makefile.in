@@ -173,6 +173,7 @@ nbdb_reindexd.o: ../../include/allowed_prefix.h
 nbdb_reindexd.o: ../../include/argv.h
 nbdb_reindexd.o: ../../include/attr.h
 nbdb_reindexd.o: ../../include/check_arg.h
+nbdb_reindexd.o: ../../include/defs_for_main.h
 nbdb_reindexd.o: ../../include/dict.h
 nbdb_reindexd.o: ../../include/htable.h
 nbdb_reindexd.o: ../../include/iostuff.h
@@ -191,6 +192,7 @@ nbdb_reindexd.o: ../../include/nvtable.h
 nbdb_reindexd.o: ../../include/set_eugid.h
 nbdb_reindexd.o: ../../include/split_at.h
 nbdb_reindexd.o: ../../include/sys_defs.h
+nbdb_reindexd.o: ../../include/ubsan_logger.h
 nbdb_reindexd.o: ../../include/vbuf.h
 nbdb_reindexd.o: ../../include/vstream.h
 nbdb_reindexd.o: ../../include/vstring.h

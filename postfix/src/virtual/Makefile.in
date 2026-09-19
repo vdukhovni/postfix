@@ -120,6 +120,7 @@ mailbox_test.o: ../../include/attr.h
 mailbox_test.o: ../../include/bounce.h
 mailbox_test.o: ../../include/check_arg.h
 mailbox_test.o: ../../include/defer.h
+mailbox_test.o: ../../include/defs_for_main.h
 mailbox_test.o: ../../include/deliver_request.h
 mailbox_test.o: ../../include/dict.h
 mailbox_test.o: ../../include/dsn.h
@@ -144,6 +145,7 @@ mailbox_test.o: ../../include/ptest_main.h
 mailbox_test.o: ../../include/recipient_list.h
 mailbox_test.o: ../../include/stringops.h
 mailbox_test.o: ../../include/sys_defs.h
+mailbox_test.o: ../../include/ubsan_logger.h
 mailbox_test.o: ../../include/vbuf.h
 mailbox_test.o: ../../include/vstream.h
 mailbox_test.o: ../../include/vstring.h
@@ -238,6 +240,7 @@ unknown.o: virtual.h
 virtual.o: ../../include/argv.h
 virtual.o: ../../include/attr.h
 virtual.o: ../../include/check_arg.h
+virtual.o: ../../include/defs_for_main.h
 virtual.o: ../../include/deliver_completed.h
 virtual.o: ../../include/deliver_request.h
 virtual.o: ../../include/dict.h
@@ -263,6 +266,7 @@ virtual.o: ../../include/nvtable.h
 virtual.o: ../../include/recipient_list.h
 virtual.o: ../../include/set_eugid.h
 virtual.o: ../../include/sys_defs.h
+virtual.o: ../../include/ubsan_logger.h
 virtual.o: ../../include/vbuf.h
 virtual.o: ../../include/vstream.h
 virtual.o: ../../include/vstring.h

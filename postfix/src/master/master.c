@@ -204,6 +204,7 @@
 /* System libraries. */
 
 #include <sys_defs.h>
+#include <defs_for_main.h>
 #include <sys/stat.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -211,6 +212,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <defs_for_main.h>
 
 /* Utility library. */
 

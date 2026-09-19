@@ -469,6 +469,7 @@
 #include <paths.h>
 #endif
 #include <stddef.h>
+#include <defs_for_main.h>
 
 /* Utility library. */
 

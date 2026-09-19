@@ -54,6 +54,7 @@ tlsmgr.o: ../../include/argv.h
 tlsmgr.o: ../../include/attr.h
 tlsmgr.o: ../../include/check_arg.h
 tlsmgr.o: ../../include/data_redirect.h
+tlsmgr.o: ../../include/defs_for_main.h
 tlsmgr.o: ../../include/dict.h
 tlsmgr.o: ../../include/dns.h
 tlsmgr.o: ../../include/events.h
@@ -80,6 +81,7 @@ tlsmgr.o: ../../include/tls.h
 tlsmgr.o: ../../include/tls_mgr.h
 tlsmgr.o: ../../include/tls_prng.h
 tlsmgr.o: ../../include/tls_scache.h
+tlsmgr.o: ../../include/ubsan_logger.h
 tlsmgr.o: ../../include/vbuf.h
 tlsmgr.o: ../../include/vstream.h
 tlsmgr.o: ../../include/vstring.h

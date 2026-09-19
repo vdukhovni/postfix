@@ -50,6 +50,7 @@ depend: $(MAKES)
 postsuper.o: ../../include/argv.h
 postsuper.o: ../../include/check_arg.h
 postsuper.o: ../../include/clean_env.h
+postsuper.o: ../../include/defs_for_main.h
 postsuper.o: ../../include/file_id.h
 postsuper.o: ../../include/mail_conf.h
 postsuper.o: ../../include/mail_open_ok.h
@@ -71,6 +72,7 @@ postsuper.o: ../../include/sane_fsops.h
 postsuper.o: ../../include/scan_dir.h
 postsuper.o: ../../include/set_ugid.h
 postsuper.o: ../../include/sys_defs.h
+postsuper.o: ../../include/ubsan_logger.h
 postsuper.o: ../../include/vbuf.h
 postsuper.o: ../../include/vstream.h
 postsuper.o: ../../include/vstring.h

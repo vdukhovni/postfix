@@ -397,6 +397,7 @@ local.o: ../../include/argv.h
 local.o: ../../include/attr.h
 local.o: ../../include/been_here.h
 local.o: ../../include/check_arg.h
+local.o: ../../include/defs_for_main.h
 local.o: ../../include/deliver_completed.h
 local.o: ../../include/deliver_request.h
 local.o: ../../include/delivered_hdr.h
@@ -426,6 +427,7 @@ local.o: ../../include/resolve_clnt.h
 local.o: ../../include/set_eugid.h
 local.o: ../../include/sys_defs.h
 local.o: ../../include/tok822.h
+local.o: ../../include/ubsan_logger.h
 local.o: ../../include/vbuf.h
 local.o: ../../include/vstream.h
 local.o: ../../include/vstring.h

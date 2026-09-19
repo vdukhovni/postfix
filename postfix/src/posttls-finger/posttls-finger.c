@@ -371,6 +371,7 @@
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <defs_for_main.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>

@@ -57,6 +57,7 @@ depend: $(MAKES)
 qmgr.o: ../../include/argv.h
 qmgr.o: ../../include/attr.h
 qmgr.o: ../../include/check_arg.h
+qmgr.o: ../../include/defs_for_main.h
 qmgr.o: ../../include/dict.h
 qmgr.o: ../../include/dsn.h
 qmgr.o: ../../include/events.h
@@ -78,6 +79,7 @@ qmgr.o: ../../include/nvtable.h
 qmgr.o: ../../include/recipient_list.h
 qmgr.o: ../../include/scan_dir.h
 qmgr.o: ../../include/sys_defs.h
+qmgr.o: ../../include/ubsan_logger.h
 qmgr.o: ../../include/vbuf.h
 qmgr.o: ../../include/vstream.h
 qmgr.o: ../../include/vstring.h

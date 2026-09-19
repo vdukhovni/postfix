@@ -257,6 +257,7 @@ depend: $(MAKES)
 postmap.o: ../../include/argv.h
 postmap.o: ../../include/check_arg.h
 postmap.o: ../../include/clean_env.h
+postmap.o: ../../include/defs_for_main.h
 postmap.o: ../../include/dict.h
 postmap.o: ../../include/dict_db.h
 postmap.o: ../../include/dict_proxy.h
@@ -280,6 +281,7 @@ postmap.o: ../../include/set_eugid.h
 postmap.o: ../../include/split_at.h
 postmap.o: ../../include/stringops.h
 postmap.o: ../../include/sys_defs.h
+postmap.o: ../../include/ubsan_logger.h
 postmap.o: ../../include/vbuf.h
 postmap.o: ../../include/vstream.h
 postmap.o: ../../include/vstring.h

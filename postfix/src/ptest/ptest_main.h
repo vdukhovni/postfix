@@ -125,6 +125,11 @@
 #include <pmock_expect.h>
 #include <ptest.h>
 
+ /*
+  * Included with main programs only.
+  */
+#include <defs_for_main.h>
+
 /* main - test driver */
 
 int     main(int argc, char **argv)
