@@ -1275,6 +1275,10 @@ int     main(int argc, char **argv)
     ARGV   *import_env;
     int     saved_optind;
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * Defaults. The structural checks must fix the directory levels of "log
      * file" directories (bounce, defer) before doing structural checks on

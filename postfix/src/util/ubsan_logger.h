@@ -1,3 +1,6 @@
+#ifndef _UBSAN_LOGGER_H_INCLUDED_
+#define _UBSAN_LOGGER_H_INCLUDED_
+
 /*++
 /* NAME
 /*	ubsan_logger 3h
@@ -53,7 +56,6 @@
   * System library.
   */
 #include <sys_defs.h>
-#include <stdlib.h>
 
  /*
   * Utility library.
@@ -86,8 +88,10 @@ void    __ubsan_on_report(void)
 				    &OutCol, &OutMemoryAddr);
 
     msg_warn("%s:%u:%u: %s: %s",
-	      OutFilename, OutLine, OutCol, __STR_OR_NULL(OutIssueKind),
-	      __STR_OR_NULL(OutMessage));
+	     OutFilename, OutLine, OutCol, __STR_OR_NULL(OutIssueKind),
+	     __STR_OR_NULL(OutMessage));
 }
 
 #endif
+#define INIT_UBSAN_LOGGER()		/* unconditional, empty */
+#endif					/* _UBSAN_LOGGER_H_INCLUDED_ */

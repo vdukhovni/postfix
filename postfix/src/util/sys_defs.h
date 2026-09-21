@@ -1709,10 +1709,22 @@ typedef int pid_t;
 #define __has_feature(name) 0
 #endif
 
-#if __has_feature(undefined_behavior_sanitizer)
+ /*
+  * Undefined Behavior Sanitizer support.
+  */
+#if __has_feature(undefined_behavior_sanitizer)	/* Clang */
 #define HAS_UBSAN 1
 #elif defined(__UBSAN__)		/* GCC */
 #define HAS_UBSAN 1
+#endif
+
+ /*
+  * Address sanitizer support.
+  */
+#if __has_feature(address_sanitizer)	/* Clang */
+#define HAS_ASAN
+#elif defined(__SANITIZE_ADDRESS__)	/* GCC */
+#define	HAS_ASAN
 #endif
 
  /*

@@ -340,6 +340,10 @@ int     main(int argc, char **argv)
     int     rcpt_count = 0;
     int     validate_input = 1;
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * Fingerprint executables and core dumps.
      */

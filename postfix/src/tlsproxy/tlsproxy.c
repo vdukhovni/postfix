@@ -1317,6 +1317,10 @@ MAIL_VERSION_STAMP_DECLARE;
 int     main(int argc, char **argv)
 {
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * Each table below initializes the named variables to their implicit
      * default value, or to the explicit value in main.cf or master.cf. Here,
@@ -1478,6 +1482,10 @@ static void tlsp_service(VSTREAM *stream, char *unused_service,
 
 int     main(int argc, char **argv)
 {
+
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
 
     /*
      * We can't simply use msg_fatal() here, because the logging hasn't been

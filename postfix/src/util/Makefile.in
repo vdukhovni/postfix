@@ -135,7 +135,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	inet_prefix_top.h inet_addr_sizes.h valid_uri_scheme.h \
 	clean_ascii_cntrl_space.h normalize_v4mapped_addr.h ossl_digest.h \
 	mac_midna.h wrap_stat.h dynamicmaps.h find_inet_service.h wrap_netdb.h \
-	wrap_fcntl.h ubsan_logger.h defs_for_main.h
+	wrap_fcntl.h ubsan_logger.h defs_for_main.h asan_logger.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	sunos5_stream_test.c dup2_pass_on_exec.c argv_test.c dict_pipe_test.c \
 	dict_stream_test.c dict_cli.c dict_union_test.c \
@@ -166,7 +166,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	clean_env inet_prefix_top printable readlline quote_for_json \
 	normalize_ws valid_uri_scheme clean_ascii_cntrl_space \
 	normalize_v4mapped_addr_test ossl_digest_test allprint_test \
-	myflock_test ubsan_logger_test
+	myflock_test ubsan_logger_test asan_logger_test
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX) $(LIB_PREFIX)lmdb$(LIB_SUFFIX) \
 	$(LIB_PREFIX)cdb$(LIB_SUFFIX) $(LIB_PREFIX)sdbm$(LIB_SUFFIX) \
 	$(LIB_PREFIX)db$(LIB_SUFFIX)
@@ -474,6 +474,9 @@ myflock_test: $(LIB) $(TESTLIBS) update
 ubsan_logger_test: $(LIB) $(TESTLIBS) update
 	$(CC) $(CFLAGS) -o $@ $@.c $(LIB) $(TESTLIBS) $(SYSLIBS)
 
+asan_logger_test: $(LIB) $(TESTLIBS) update
+	$(CC) $(CFLAGS) -o $@ $@.c $(LIB) $(TESTLIBS) $(SYSLIBS)
+
 unix_recv_fd:  $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
@@ -674,7 +677,8 @@ tests: update valid_hostname_test mac_expand_test dict_test test_unescape \
 	valid_utf8_string_test readlline_test quote_for_json_test \
 	normalize_ws_test valid_uri_scheme_test clean_ascii_cntrl_space_test \
 	test_normalize_v4mapped_addr test_ossl_digest test_dict_pipe \
-	test_dict_union test_hash_fnv test_allprint test_ubsan_logger
+	test_dict_union test_hash_fnv test_allprint test_ubsan_logger \
+	asan_logger
  
 dict_tests: dict_test \
 	dict_pcre_tests dict_cidr_test dict_thash_test dict_static_test \
@@ -857,6 +861,10 @@ test_myflock: myflock_test
 
 test_ubsan_logger: ubsan_logger_test
 	$(SHLIB_ENV) ${VALGRIND} ./ubsan_logger_test
+
+test_asan_logger: asan_logger_test
+	$(SHLIB_ENV) ${VALGRIND} ASAN_OPTIONS=halt_on_error=false \
+	    ./asan_logger_test
 
 hex_code_test: hex_code
 	$(SHLIB_ENV) ${VALGRIND} ./hex_code
@@ -1222,6 +1230,7 @@ allprint_test.o: ../../include/ptest.h
 allprint_test.o: ../../include/ptest_main.h
 allprint_test.o: allprint_test.c
 allprint_test.o: argv.h
+allprint_test.o: asan_logger.h
 allprint_test.o: check_arg.h
 allprint_test.o: defs_for_main.h
 allprint_test.o: msg.h
@@ -1308,6 +1317,7 @@ argv_test.o: ../../include/ptest.h
 argv_test.o: ../../include/ptest_main.h
 argv_test.o: argv.h
 argv_test.o: argv_test.c
+argv_test.o: asan_logger.h
 argv_test.o: check_arg.h
 argv_test.o: defs_for_main.h
 argv_test.o: msg.h
@@ -1320,6 +1330,26 @@ argv_test.o: ubsan_logger.h
 argv_test.o: vbuf.h
 argv_test.o: vstream.h
 argv_test.o: vstring.h
+asan_logger_test.o: ../../include/msg_jmp.h
+asan_logger_test.o: ../../include/pmock_expect.h
+asan_logger_test.o: ../../include/ptest.h
+asan_logger_test.o: ../../include/ptest_main.h
+asan_logger_test.o: argv.h
+asan_logger_test.o: asan_logger.h
+asan_logger_test.o: asan_logger_test.c
+asan_logger_test.o: check_arg.h
+asan_logger_test.o: defs_for_main.h
+asan_logger_test.o: msg.h
+asan_logger_test.o: msg_output.h
+asan_logger_test.o: msg_vstream.h
+asan_logger_test.o: mymalloc.h
+asan_logger_test.o: myrand.h
+asan_logger_test.o: stringops.h
+asan_logger_test.o: sys_defs.h
+asan_logger_test.o: ubsan_logger.h
+asan_logger_test.o: vbuf.h
+asan_logger_test.o: vstream.h
+asan_logger_test.o: vstring.h
 attr_clnt.o: attr.h
 attr_clnt.o: attr_clnt.c
 attr_clnt.o: attr_clnt.h
@@ -1841,6 +1871,7 @@ dict_pipe_test.o: ../../include/pmock_expect.h
 dict_pipe_test.o: ../../include/ptest.h
 dict_pipe_test.o: ../../include/ptest_main.h
 dict_pipe_test.o: argv.h
+dict_pipe_test.o: asan_logger.h
 dict_pipe_test.o: check_arg.h
 dict_pipe_test.o: defs_for_main.h
 dict_pipe_test.o: dict.h
@@ -1953,6 +1984,7 @@ dict_stream_test.o: ../../include/pmock_expect.h
 dict_stream_test.o: ../../include/ptest.h
 dict_stream_test.o: ../../include/ptest_main.h
 dict_stream_test.o: argv.h
+dict_stream_test.o: asan_logger.h
 dict_stream_test.o: check_arg.h
 dict_stream_test.o: defs_for_main.h
 dict_stream_test.o: dict.h
@@ -2034,6 +2066,7 @@ dict_union_test.o: ../../include/pmock_expect.h
 dict_union_test.o: ../../include/ptest.h
 dict_union_test.o: ../../include/ptest_main.h
 dict_union_test.o: argv.h
+dict_union_test.o: asan_logger.h
 dict_union_test.o: check_arg.h
 dict_union_test.o: defs_for_main.h
 dict_union_test.o: dict.h
@@ -2202,6 +2235,7 @@ find_inet_service_test.o: ../../include/pmock_expect.h
 find_inet_service_test.o: ../../include/ptest.h
 find_inet_service_test.o: ../../include/ptest_main.h
 find_inet_service_test.o: argv.h
+find_inet_service_test.o: asan_logger.h
 find_inet_service_test.o: check_arg.h
 find_inet_service_test.o: defs_for_main.h
 find_inet_service_test.o: find_inet_service.h
@@ -2258,6 +2292,7 @@ hash_fnv_test.o: ../../include/pmock_expect.h
 hash_fnv_test.o: ../../include/ptest.h
 hash_fnv_test.o: ../../include/ptest_main.h
 hash_fnv_test.o: argv.h
+hash_fnv_test.o: asan_logger.h
 hash_fnv_test.o: check_arg.h
 hash_fnv_test.o: defs_for_main.h
 hash_fnv_test.o: hash_fnv.h
@@ -2418,6 +2453,7 @@ known_tcp_ports_test.o: ../../include/pmock_expect.h
 known_tcp_ports_test.o: ../../include/ptest.h
 known_tcp_ports_test.o: ../../include/ptest_main.h
 known_tcp_ports_test.o: argv.h
+known_tcp_ports_test.o: asan_logger.h
 known_tcp_ports_test.o: check_arg.h
 known_tcp_ports_test.o: defs_for_main.h
 known_tcp_ports_test.o: known_tcp_ports.h
@@ -2696,6 +2732,7 @@ msg_output_test.o: ../../include/pmock_expect.h
 msg_output_test.o: ../../include/ptest.h
 msg_output_test.o: ../../include/ptest_main.h
 msg_output_test.o: argv.h
+msg_output_test.o: asan_logger.h
 msg_output_test.o: check_arg.h
 msg_output_test.o: defs_for_main.h
 msg_output_test.o: msg.h
@@ -2765,6 +2802,7 @@ myaddrinfo_test.o: ../../include/pmock_expect.h
 myaddrinfo_test.o: ../../include/ptest.h
 myaddrinfo_test.o: ../../include/ptest_main.h
 myaddrinfo_test.o: argv.h
+myaddrinfo_test.o: asan_logger.h
 myaddrinfo_test.o: check_arg.h
 myaddrinfo_test.o: defs_for_main.h
 myaddrinfo_test.o: inet_proto.h
@@ -2796,6 +2834,7 @@ myflock_test.o: ../../include/pmock_expect.h
 myflock_test.o: ../../include/ptest.h
 myflock_test.o: ../../include/ptest_main.h
 myflock_test.o: argv.h
+myflock_test.o: asan_logger.h
 myflock_test.o: check_arg.h
 myflock_test.o: defs_for_main.h
 myflock_test.o: msg.h
@@ -2820,6 +2859,7 @@ mymalloc_test.o: ../../include/pmock_expect.h
 mymalloc_test.o: ../../include/ptest.h
 mymalloc_test.o: ../../include/ptest_main.h
 mymalloc_test.o: argv.h
+mymalloc_test.o: asan_logger.h
 mymalloc_test.o: check_arg.h
 mymalloc_test.o: defs_for_main.h
 mymalloc_test.o: msg.h
@@ -2855,6 +2895,7 @@ mystrtok_test.o: ../../include/pmock_expect.h
 mystrtok_test.o: ../../include/ptest.h
 mystrtok_test.o: ../../include/ptest_main.h
 mystrtok_test.o: argv.h
+mystrtok_test.o: asan_logger.h
 mystrtok_test.o: check_arg.h
 mystrtok_test.o: defs_for_main.h
 mystrtok_test.o: msg.h
@@ -3266,6 +3307,7 @@ ubsan_logger_test.o: ../../include/pmock_expect.h
 ubsan_logger_test.o: ../../include/ptest.h
 ubsan_logger_test.o: ../../include/ptest_main.h
 ubsan_logger_test.o: argv.h
+ubsan_logger_test.o: asan_logger.h
 ubsan_logger_test.o: check_arg.h
 ubsan_logger_test.o: defs_for_main.h
 ubsan_logger_test.o: msg.h
@@ -3291,6 +3333,7 @@ unescape_test.o: ../../include/pmock_expect.h
 unescape_test.o: ../../include/ptest.h
 unescape_test.o: ../../include/ptest_main.h
 unescape_test.o: argv.h
+unescape_test.o: asan_logger.h
 unescape_test.o: check_arg.h
 unescape_test.o: defs_for_main.h
 unescape_test.o: msg.h

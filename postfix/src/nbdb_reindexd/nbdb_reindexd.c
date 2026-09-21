@@ -283,6 +283,10 @@ MAIL_VERSION_STAMP_DECLARE;
 int     main(int argc, char **argv)
 {
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * var_nbdb_enable and var_nbdb_cust_map are used in many programs,
      * therefore they are managed by mail_params.c.

@@ -23,6 +23,22 @@
   */
 #include <ubsan_logger.h>
 
+ /*
+  * Optionally, log ASAN findings.
+  */
+#include <asan_logger.h>
+
+ /*
+  * Code to be called from main().
+  */
+#if defined(HAS_UBSAN) || defined(HAS_ASAN)
+#define CODE_FOR_MAIN() do { \
+	INIT_UBSAN_LOGGER(); \
+	INIT_ASAN_LOGGER(); \
+    } while (0)
+
+#endif					/* HAS_UBSAN || HAS_ASAN */
+
 /* LICENSE
 /* .ad
 /* .fi

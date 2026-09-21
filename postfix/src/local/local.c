@@ -970,6 +970,10 @@ int     main(int argc, char **argv)
 	0,
     };
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /* Suppress $name expansion upon loading. */
     static const CONFIG_RAW_TABLE raw_table[] = {
 	VAR_EXEC_DIRECTORY, DEF_EXEC_DIRECTORY, &var_exec_directory, 0, 0,

@@ -288,6 +288,10 @@ int     main(int argc, char **argv)
     int     wait_flag = 0;
     int     monitor_fd = -1;
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * Fingerprint executables and core dumps.
      */

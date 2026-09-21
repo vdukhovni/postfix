@@ -1295,6 +1295,10 @@ MAIL_VERSION_STAMP_DECLARE;
 int     main(int argc, char **argv)
 {
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * List smtpd(8) parameters before any postscreen(8) parameters that have
      * defaults dependencies on them.

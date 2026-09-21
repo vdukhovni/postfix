@@ -138,6 +138,10 @@ int     main(int argc, char **argv)
     const PTEST_CASE *tp;
     int     fail;
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
 #ifndef DORANDOMIZE
 
     /*

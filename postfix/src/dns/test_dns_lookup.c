@@ -78,6 +78,10 @@ int     main(int argc, char **argv)
     int     ch;
     int     lflags = DNS_REQ_FLAG_NONE;
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     var_dnssec_probe = "";
 
     msg_vstream_init(argv[0], VSTREAM_ERR);

@@ -1,5 +1,5 @@
  /*
-  * Test program to exercise ubsan_logger.h. See PTEST_README for documentation.
+  * Test program to exercise asan_logger.h. See PTEST_README for documentation.
   */
 
  /*
@@ -23,33 +23,30 @@ typedef struct PTEST_CASE {
     void    (*action) (PTEST_CTX *, const struct PTEST_CASE *);
 } PTEST_CASE;
 
-static void test_counted_by(PTEST_CTX *t, const PTEST_CASE *tp)
+static void test_oob_write(PTEST_CTX *t, const PTEST_CASE *tp)
 {
-#if defined(HAS_UBSAN) && __has_attribute(__counted_by__)
+#if defined(HAS_ASAN)
     struct foo {
 	size_t  len;
-	int    *data __counted_by(len);
+	int    *data;
     };
     struct foo *pfoo = mymalloc(sizeof(*pfoo));
     int     len = 2;
 
     pfoo->data = (int *) mymalloc(len * sizeof(pfoo->data[0]));
     pfoo->len = len;
-    expect_ptest_log_event(t, "warning: ubsan_logger_test.c:");
-#ifdef HAS_ASAN
     expect_ptest_log_event(t, "AddressSanitizer: heap-buffer-overflow");
-#endif
     pfoo->data[2] = 0;
     myfree((void *) pfoo->data);
     myfree((void *) pfoo);
 #else
-    msg_info("Skipping this test: no UBSAN or no __counted_by__");
+    msg_info("Skipping this test: no ASAN");
     ptest_skip(t);
 #endif
 }
 
 static const PTEST_CASE ptestcases[] = {
-    {"test __counted_by__ support", test_counted_by,},
+    {"test out-of-bounds write", test_oob_write,},
 };
 
 #include <ptest_main.h>

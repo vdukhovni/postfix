@@ -501,6 +501,10 @@ int     main(int argc, char **argv)
     int     force_single_instance;
     ARGV   *my_argv;
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * Fingerprint executables and core dumps.
      */

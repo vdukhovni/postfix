@@ -1083,6 +1083,10 @@ int     main(int argc, char **argv)
 	0,
     };
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * Fingerprint executables and core dumps.
      */
@@ -1119,6 +1123,10 @@ static void tlsmgr_service(VSTREAM *unused_stream, char *unused_service,
 
 int     main(int argc, char **argv)
 {
+
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
 
     /*
      * 200411 We can't simply use msg_fatal() here, because the logging

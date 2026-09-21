@@ -1021,6 +1021,10 @@ int     main(int argc, char **argv)
     int     force_utf8 = 0;
     ARGV   *import_env;
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * Fingerprint executables and core dumps.
      */

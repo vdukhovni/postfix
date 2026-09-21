@@ -1730,6 +1730,10 @@ int     main(int argc, char **argv)
     int     cmd_mode = 0;
     int     code;
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     selection.type = INST_SEL_NONE;
     assignment.name = assignment.gname = 0;
 

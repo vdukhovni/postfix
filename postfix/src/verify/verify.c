@@ -754,7 +754,6 @@ int     main(int argc, char **argv)
 {
     static const CONFIG_STR_TABLE str_table[] = {
 	VAR_VERIFY_MAP, DEF_VERIFY_MAP, &var_verify_map, 0, 0,
-	VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {
@@ -763,9 +762,12 @@ int     main(int argc, char **argv)
 	VAR_VERIFY_NEG_EXP, DEF_VERIFY_NEG_EXP, &var_verify_neg_exp, 1, 0,
 	VAR_VERIFY_NEG_TRY, DEF_VERIFY_NEG_TRY, &var_verify_neg_try, 1, 0,
 	VAR_VERIFY_SCAN_CACHE, DEF_VERIFY_SCAN_CACHE, &var_verify_scan_cache, 0, 0,
-	VAR_VERIFY_SENDER_TTL, DEF_VERIFY_SENDER_TTL, &var_verify_sender_ttl, 0, 0,
 	0,
     };
+
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
 
     /*
      * Fingerprint executables and core dumps.

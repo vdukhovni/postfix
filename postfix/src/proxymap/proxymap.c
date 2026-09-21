@@ -973,6 +973,10 @@ MAIL_VERSION_STAMP_DECLARE;
 int     main(int argc, char **argv)
 {
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * Respect the proxy_read_maps and proxy_write_maps dependency graphs.
      * First, initialize the parameters that specify tables in their

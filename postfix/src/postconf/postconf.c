@@ -856,6 +856,10 @@ int     main(int argc, char **argv)
     ARGV   *override_params = 0;
     const char *pcf_tls_arg = 0;
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * Fingerprint executables and core dumps.
      */

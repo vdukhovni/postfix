@@ -1785,6 +1785,10 @@ int     main(int argc, char **argv)
 {
     char   *sane_procname;
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
 #include "smtp_params.c"
 #include "lmtp_params.c"
 

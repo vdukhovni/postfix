@@ -32088,25 +32088,64 @@ Apologies for any names omitted.
 	Support for UBSAN counted_by() annotations for arrays, and
 	for logging bound errors, plus a unit test that an array
 	bound error is logged (UBSAN = Undefined Behavior Sanitizer).
-	To enable counted_by() support, use "make makefiles
-	CCARGS="-fsanitize=bounds..." SYSLIBS="-lubsan...". NOTE:
-	This provides only bounds checking infrastructure: actual
-	counted_by() annotations are still to be added. Files:
-	sys_defs.h, ubsan-logger.h, ubsan_logger_test.c, ptest_main.h.
+	This requires GCC 16 or Clang 18. To enable counted_by()
+	support, use "make makefiles CCARGS="-fsanitize=bounds..."
+	SYSLIBS="-lubsan...". NOTE: This provides only bounds
+	checking infrastructure: actual counted_by() annotations
+	are still to be added. Files: sys_defs.h, ubsan-logger.h,
+	ubsan_logger_test.c, ptest_main.h.
 
-	Support for logging UBSAN errors in Postfix daemons,
-	command-line programs, and unit tests. NOTE: This provides
-	only logging infrastructure: actual annotations are still
-	to be added. Files: anvil.c, bounce.c, cleanup.c, discard.c,
-	dnsblog.c, error.c, flush.c, local.c, master.c, nbdb_reindexd.c,
-	pickup.c, pipe.c, postalias.c, postcat.c, postconf.c,
-	postdrop.c, postfix.c, postkick.c, postlock.c, postlog.c,
-	postlogd.c, postmap.c, postmulti.c, postqueue.c, postscreen.c,
-	postsuper.c, posttls-finger.c, proxymap.c, ptest_main.h,
-	qmgr.c, qmqpd.c, scache.c, sendmail.c, showq.c, smtp.c,
-	smtpd.c, spawn.c, sys_defs.h, test_dns_lookup.c, tlsmgr.c,
-	tlsproxy.c, trivial-rewrite.c, verify.c, virtual.c, and
-	Makefile.in files.
+	Support for detecting and logging UBSAN errors in Postfix
+	daemons, command-line programs, and unit tests. NOTE: This
+	provides only infrastructure: actual annotations are still
+	to be added. Files: anvil.c, bounce.c, cleanup.c,
+	defs_for_main.h, discard.c, dnsblog.c, error.c, flush.c,
+	local.c, master.c, nbdb_reindexd.c, pickup.c, pipe.c,
+	postalias.c, postcat.c, postconf.c, postdrop.c, postfix.c,
+	postkick.c, postlock.c, postlog.c, postlogd.c, postmap.c,
+	postmulti.c, postqueue.c, postscreen.c, postsuper.c,
+	posttls-finger.c, proxymap.c, ptest_main.h, qmgr.c, qmqpd.c,
+	scache.c, sendmail.c, showq.c, smtp.c, smtpd.c, spawn.c,
+	sys_defs.h, test_dns_lookup.c, tlsmgr.c, tlsproxy.c,
+	trivial-rewrite.c, verify.c, virtual.c, and Makefile.in
+	files.
+
+20260920
+
+	UBSAN logging support: documented prerequisites and made
+	the test leak-free. FIles: HISTORY, ubsan_logger_test.c.
+
+	Support for logging ASAN (Address Sanitizer) errors. Files:
+	anvil.c, asan_logger.h, asan_logger_test.c, bounce.c,
+	cleanup.c, defs_for_main.h, discard.c, dnsblog.c, error.c,
+	flush.c, local.c, mail_params.c, Makefile.in, master.c,
+	nbdb_reindexd.c, oqmgr/qmgr.c, pickup.c, pipe.c, postalias.c,
+	postcat.c, postconf.c, postdrop.c, postfix.c, postkick.c,
+	postlock.c, postlog.c, postlogd.c, postmap.c, postmulti.c,
+	postqueue.c, postscreen.c, postsuper.c, posttls-finger.c,
+	proxymap.c, ptest_main.h, qmgr.c, qmqpd.c, scache.c,
+	sendmail.c, showq.c, smtp.c, smtpd.c, spawn.c, sys_defs.h,
+	test_dns_lookup.c, tlsmgr.c, tlsproxy.c, trivial-rewrite.c,
+	ubsan_logger.h, ubsan_logger_test.c, verify.c, virtual.c.
+
+	To enable, use "make makefiles CCARGS="-fsanitize=address
+	-fsanitize-recover=address..." SYSLIBS="-lasan...".  This
+	will allow unit tests to complete. Without the
+	"-fsanitize-recover=address..." any violation would abort
+	a unit test program without completing other tests.
+
+	It is possible to combine UBSAN and ASAN checks.
+
+	libasan outputs dozens of lines that appear in Postfix
+	logging as one long string, newlines replaced with '?'. To
+	view the result, pipe it through "tr '?' '\12'".
+
+20260921
+
+	Code health: fixed an ASAN-reported ODR violation in
+	postconf(1) with var_verify_sender and var_verify_sender_ttl.
+	Moved ownership and initialization of these two variables
+	to mail_params.c.  Files: smtpd.c, verify.c, mail_params.c.
 
 TODO
 

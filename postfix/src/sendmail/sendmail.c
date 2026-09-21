@@ -1093,6 +1093,10 @@ int     main(int argc, char **argv)
     char   *alias_map_from_args = 0;
     const char *oval;
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * Fingerprint executables and core dumps.
      */

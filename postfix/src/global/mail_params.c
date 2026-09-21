@@ -408,6 +408,9 @@ char   *var_nbdb_service;
 char   *var_nbdb_cust_map;
 bool    var_nbdb_log_redirect;
 
+char   *var_verify_sender;
+int     var_verify_sender_ttl;
+
 const char null_format_string[1] = "";
 
  /*
@@ -879,6 +882,7 @@ void    mail_params_init(void)
 	VAR_NBDB_LEVEL, DEF_NBDB_LEVEL, &var_nbdb_level, 1, 0,
 	VAR_NBDB_SERVICE, DEF_NBDB_SERVICE, &var_nbdb_service, 0, 0,
 	VAR_NBDB_CUST_MAP, DEF_NBDB_CUST_MAP, &var_nbdb_cust_map, 0, 0,
+	VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender, 0, 0,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
@@ -924,6 +928,7 @@ void    mail_params_init(void)
 	VAR_FLOCK_STALE, DEF_FLOCK_STALE, &var_flock_stale, 1, 0,
 	VAR_DAEMON_TIMEOUT, DEF_DAEMON_TIMEOUT, &var_daemon_timeout, 1, 0,
 	VAR_IN_FLOW_DELAY, DEF_IN_FLOW_DELAY, &var_in_flow_delay, 0, 10,
+	VAR_VERIFY_SENDER_TTL, DEF_VERIFY_SENDER_TTL, &var_verify_sender_ttl, 0, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_defaults[] = {

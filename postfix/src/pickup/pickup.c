@@ -610,6 +610,10 @@ int     main(int argc, char **argv)
 	0,
     };
 
+#if defined(CODE_FOR_MAIN)
+    CODE_FOR_MAIN();
+#endif						/* CODE_FOR_MAIN */
+
     /*
      * Fingerprint executables and core dumps.
      */
