@@ -93,7 +93,7 @@
   * during address canonicalization. The variable part of the address changes
   * every var_verify_sender_ttl seconds.
   * 
-  * 2026092: Moved ownership amd initialization to mail_params.c.
+  * 2026092: Moved ownership ad initialization to mail_params.c.
   */
 #if 0
 char   *var_verify_sender;		/* "bare" probe sender address */

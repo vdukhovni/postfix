@@ -26,6 +26,28 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Major changes with snapshot 20260925
+====================================
+
+Support to convert MySQL, PostgreSQL, and SQLite queries into
+prepared statements. This takes a Postfix-configured query and
+internally replaces each %letter sequence with a numeric index,
+where each index is bound to Postfix's expansion of that %letter
+sequence. The result is that potentially-hostile inputs are no
+longer interpolated into the text of a query.
+
+Prepared statements do not necessarily make queries faster, but
+they do make them immune against SQL injection.
+
+This introduces a new setting in mysql:, pgsql: or sqlite:
+configurations. The default is "statement_mode = legacy".  Users
+are invited to evaluate "statement_mode = prepared" which is expected
+to become the default in a future Postfix version.
+
+Ömer Güven was the main contributor, in a hybrid human and AI
+collaboration with Viktor Dukhovni, Claude Code (mainly for
+code refactoring), and Wietse.
+
 Major changes with snapshot 20260514
 ====================================
 
