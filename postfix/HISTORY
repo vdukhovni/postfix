@@ -32113,7 +32113,7 @@ Apologies for any names omitted.
 20260920
 
 	UBSAN logging support: documented prerequisites and made
-	the test leak-free. FIles: HISTORY, ubsan_logger_test.c.
+	the test leak-free. Files: HISTORY, ubsan_logger_test.c.
 
 	Support for logging ASAN (Address Sanitizer) errors. Files:
 	anvil.c, asan_logger.h, asan_logger_test.c, bounce.c,
@@ -32187,6 +32187,14 @@ Apologies for any names omitted.
 	proto/MYSQL_README.html, proto/PGSQL_README.html,
 	proto/SQLITE_README.html, tests/mysql_prepared/run.sh,
 	tests/pgsql_prepared/run.sh, tests/sqlite_prepared/run.sh.
+
+20260925
+
+	Minor manpage formatting fixes. Files: proto/*sql*.
+
+20261015
+
+	Re-ran "make depend" to pick up ASAN support dependencies.
 
 TODO
 

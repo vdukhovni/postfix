@@ -107,6 +107,7 @@ fake_strcmp.o: ../../include/msg.h
 fake_strcmp.o: ../../include/sys_defs.h
 fake_strcmp.o: fake_strcmp.c
 postmulti.o: ../../include/argv.h
+postmulti.o: ../../include/asan_logger.h
 postmulti.o: ../../include/check_arg.h
 postmulti.o: ../../include/clean_env.h
 postmulti.o: ../../include/defs_for_main.h

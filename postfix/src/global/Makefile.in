@@ -1104,6 +1104,7 @@ config_known_tcp_ports.o: ../../include/vstring.h
 config_known_tcp_ports.o: config_known_tcp_ports.c
 config_known_tcp_ports.o: config_known_tcp_ports.h
 config_known_tcp_ports_test.o: ../../include/argv.h
+config_known_tcp_ports_test.o: ../../include/asan_logger.h
 config_known_tcp_ports_test.o: ../../include/check_arg.h
 config_known_tcp_ports_test.o: ../../include/defs_for_main.h
 config_known_tcp_ports_test.o: ../../include/known_tcp_ports.h
@@ -1301,6 +1302,7 @@ delivered_hdr.o: quote_flags.h
 delivered_hdr.o: rec_type.h
 delivered_hdr.o: record.h
 delivered_hdr_test.o: ../../include/argv.h
+delivered_hdr_test.o: ../../include/asan_logger.h
 delivered_hdr_test.o: ../../include/check_arg.h
 delivered_hdr_test.o: ../../include/defs_for_main.h
 delivered_hdr_test.o: ../../include/msg.h
@@ -1408,6 +1410,7 @@ dict_pgsql.o: ../../include/argv.h
 dict_pgsql.o: ../../include/check_arg.h
 dict_pgsql.o: ../../include/dict.h
 dict_pgsql.o: ../../include/events.h
+dict_pgsql.o: ../../include/hash_fnv.h
 dict_pgsql.o: ../../include/match_list.h
 dict_pgsql.o: ../../include/msg.h
 dict_pgsql.o: ../../include/myflock.h
@@ -1464,6 +1467,7 @@ dict_sqlite.o: dict_sqlite.c
 dict_sqlite.o: dict_sqlite.h
 dict_sqlite.o: string_list.h
 dict_sqlite_test.o: ../../include/argv.h
+dict_sqlite_test.o: ../../include/asan_logger.h
 dict_sqlite_test.o: ../../include/check_arg.h
 dict_sqlite_test.o: ../../include/defs_for_main.h
 dict_sqlite_test.o: ../../include/dict.h
@@ -1667,6 +1671,7 @@ haproxy_srvr.o: ../../include/vstring.h
 haproxy_srvr.o: haproxy_srvr.c
 haproxy_srvr.o: haproxy_srvr.h
 haproxy_srvr_test.o: ../../include/argv.h
+haproxy_srvr_test.o: ../../include/asan_logger.h
 haproxy_srvr_test.o: ../../include/check_arg.h
 haproxy_srvr_test.o: ../../include/defs_for_main.h
 haproxy_srvr_test.o: ../../include/msg.h
@@ -1733,6 +1738,7 @@ hfrom_format.o: hfrom_format.c
 hfrom_format.o: hfrom_format.h
 hfrom_format.o: mail_params.h
 hfrom_format_test.o: ../../include/argv.h
+hfrom_format_test.o: ../../include/asan_logger.h
 hfrom_format_test.o: ../../include/check_arg.h
 hfrom_format_test.o: ../../include/defs_for_main.h
 hfrom_format_test.o: ../../include/msg.h
@@ -1833,6 +1839,7 @@ login_sender_match.o: quote_822_local.h
 login_sender_match.o: quote_flags.h
 login_sender_match.o: strip_addr.h
 login_sender_match_test.o: ../../include/argv.h
+login_sender_match_test.o: ../../include/asan_logger.h
 login_sender_match_test.o: ../../include/check_arg.h
 login_sender_match_test.o: ../../include/defs_for_main.h
 login_sender_match_test.o: ../../include/dict.h
@@ -2342,6 +2349,7 @@ map_search.o: ../../include/vstring.h
 map_search.o: map_search.c
 map_search.o: map_search.h
 map_search_test.o: ../../include/argv.h
+map_search_test.o: ../../include/asan_logger.h
 map_search_test.o: ../../include/check_arg.h
 map_search_test.o: ../../include/defs_for_main.h
 map_search_test.o: ../../include/msg.h
@@ -2696,6 +2704,7 @@ normalize_mailhost_addr.o: normalize_mailhost_addr.c
 normalize_mailhost_addr.o: normalize_mailhost_addr.h
 normalize_mailhost_addr.o: valid_mailhost_addr.h
 normalize_mailhost_addr_test.o: ../../include/argv.h
+normalize_mailhost_addr_test.o: ../../include/asan_logger.h
 normalize_mailhost_addr_test.o: ../../include/check_arg.h
 normalize_mailhost_addr_test.o: ../../include/defs_for_main.h
 normalize_mailhost_addr_test.o: ../../include/inet_proto.h
@@ -3160,6 +3169,7 @@ smtp_reply_footer.o: dsn_util.h
 smtp_reply_footer.o: smtp_reply_footer.c
 smtp_reply_footer.o: smtp_reply_footer.h
 smtp_reply_footer_test.o: ../../include/argv.h
+smtp_reply_footer_test.o: ../../include/asan_logger.h
 smtp_reply_footer_test.o: ../../include/check_arg.h
 smtp_reply_footer_test.o: ../../include/defs_for_main.h
 smtp_reply_footer_test.o: ../../include/mac_expand.h
@@ -3382,6 +3392,7 @@ uxtext.o: ../../include/vstring.h
 uxtext.o: uxtext.c
 uxtext.o: uxtext.h
 uxtext_test.o: ../../include/argv.h
+uxtext_test.o: ../../include/asan_logger.h
 uxtext_test.o: ../../include/check_arg.h
 uxtext_test.o: ../../include/defs_for_main.h
 uxtext_test.o: ../../include/msg.h
@@ -3508,6 +3519,7 @@ yana_policy.o: maps.h
 yana_policy.o: yana_policy.c
 yana_policy.o: yana_policy.h
 yana_policy_test.o: ../../include/argv.h
+yana_policy_test.o: ../../include/asan_logger.h
 yana_policy_test.o: ../../include/check_arg.h
 yana_policy_test.o: ../../include/defs_for_main.h
 yana_policy_test.o: ../../include/dict.h

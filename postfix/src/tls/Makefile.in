@@ -408,6 +408,7 @@ tls_proxy_client_init_proto.o: tls_proxy_client_init_proto.c
 tls_proxy_client_init_proto.o: tls_proxy_client_init_proto.h
 tls_proxy_client_init_proto.o: tlsrpt_wrapper.h
 tls_proxy_client_init_proto_test.o: ../../include/argv.h
+tls_proxy_client_init_proto_test.o: ../../include/asan_logger.h
 tls_proxy_client_init_proto_test.o: ../../include/attr.h
 tls_proxy_client_init_proto_test.o: ../../include/check_arg.h
 tls_proxy_client_init_proto_test.o: ../../include/defs_for_main.h
@@ -462,6 +463,7 @@ tls_proxy_client_param_proto.o: tls_proxy_attr.h
 tls_proxy_client_param_proto.o: tls_proxy_client_param_proto.c
 tls_proxy_client_param_proto.o: tls_proxy_client_param_proto.h
 tls_proxy_client_param_proto_test.o: ../../include/argv.h
+tls_proxy_client_param_proto_test.o: ../../include/asan_logger.h
 tls_proxy_client_param_proto_test.o: ../../include/attr.h
 tls_proxy_client_param_proto_test.o: ../../include/check_arg.h
 tls_proxy_client_param_proto_test.o: ../../include/defs_for_main.h
@@ -621,6 +623,7 @@ tls_proxy_server_init_proto.o: tls_proxy_attr.h
 tls_proxy_server_init_proto.o: tls_proxy_server_init_proto.c
 tls_proxy_server_init_proto.o: tls_proxy_server_init_proto.h
 tls_proxy_server_init_proto_test.o: ../../include/argv.h
+tls_proxy_server_init_proto_test.o: ../../include/asan_logger.h
 tls_proxy_server_init_proto_test.o: ../../include/attr.h
 tls_proxy_server_init_proto_test.o: ../../include/check_arg.h
 tls_proxy_server_init_proto_test.o: ../../include/defs_for_main.h
@@ -675,6 +678,7 @@ tls_proxy_server_param_proto.o: tls_proxy_attr.h
 tls_proxy_server_param_proto.o: tls_proxy_server_param_proto.c
 tls_proxy_server_param_proto.o: tls_proxy_server_param_proto.h
 tls_proxy_server_param_proto_test.o: ../../include/argv.h
+tls_proxy_server_param_proto_test.o: ../../include/asan_logger.h
 tls_proxy_server_param_proto_test.o: ../../include/attr.h
 tls_proxy_server_param_proto_test.o: ../../include/check_arg.h
 tls_proxy_server_param_proto_test.o: ../../include/defs_for_main.h

@@ -171,6 +171,7 @@ nbdb_process_test.o: nbdb_process_test.c
 nbdb_process_test.o: nbdb_safe.h
 nbdb_reindexd.o: ../../include/allowed_prefix.h
 nbdb_reindexd.o: ../../include/argv.h
+nbdb_reindexd.o: ../../include/asan_logger.h
 nbdb_reindexd.o: ../../include/attr.h
 nbdb_reindexd.o: ../../include/check_arg.h
 nbdb_reindexd.o: ../../include/defs_for_main.h

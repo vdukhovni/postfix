@@ -144,13 +144,11 @@ PGSQL_TABLE(5)                                                  PGSQL_TABLE(5)
                      Send  the  query  and  the lookup key to PostgreSQL sepa-
                      rately, with the query stored once  per  connection.  The
                      lookup  key  cannot become part of the SQL, regardless of
-                     what it contains.  This mode is  faster  than  legacy  or
-                     parameterized  mode  and  does  not rely on quoting to be
-                     safe.
+                     what it contains.  Prepared mode is  faster  than  legacy
+                     mode  and  does  not rely on quoting to be safe. Existing
+                     query templates work unchanged.
 
-       Existing query templates work unchanged.
-
-       This feature is available in Postfix 3.12 and later.
+              This feature is available in Postfix 3.12 and later.
 
        <b>query</b>  The SQL query template used to search the database, where <b>%s</b>  is
               a  substitute for the address Postfix is trying to resolve, e.g.

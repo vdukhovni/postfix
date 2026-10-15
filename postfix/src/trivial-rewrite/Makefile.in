@@ -155,6 +155,7 @@ transport.o: ../../include/vstring.h
 transport.o: transport.c
 transport.o: transport.h
 trivial-rewrite.o: ../../include/argv.h
+trivial-rewrite.o: ../../include/asan_logger.h
 trivial-rewrite.o: ../../include/attr.h
 trivial-rewrite.o: ../../include/check_arg.h
 trivial-rewrite.o: ../../include/defs_for_main.h

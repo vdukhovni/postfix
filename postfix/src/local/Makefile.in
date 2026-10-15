@@ -394,6 +394,7 @@ indirect.o: ../../include/vstring.h
 indirect.o: indirect.c
 indirect.o: local.h
 local.o: ../../include/argv.h
+local.o: ../../include/asan_logger.h
 local.o: ../../include/attr.h
 local.o: ../../include/been_here.h
 local.o: ../../include/check_arg.h

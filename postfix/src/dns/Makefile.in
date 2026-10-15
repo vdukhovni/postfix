@@ -306,6 +306,7 @@ dns_lookup_types.o: ../../include/vstring.h
 dns_lookup_types.o: dns.h
 dns_lookup_types.o: dns_lookup_types.c
 dns_lookup_types_test.o: ../../include/argv.h
+dns_lookup_types_test.o: ../../include/asan_logger.h
 dns_lookup_types_test.o: ../../include/check_arg.h
 dns_lookup_types_test.o: ../../include/defs_for_main.h
 dns_lookup_types_test.o: ../../include/mock_dns.h
@@ -448,6 +449,7 @@ dns_strtype.o: ../../include/vstring.h
 dns_strtype.o: dns.h
 dns_strtype.o: dns_strtype.c
 test_dns_lookup.o: ../../include/argv.h
+test_dns_lookup.o: ../../include/asan_logger.h
 test_dns_lookup.o: ../../include/check_arg.h
 test_dns_lookup.o: ../../include/defs_for_main.h
 test_dns_lookup.o: ../../include/mail_params.h

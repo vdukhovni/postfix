@@ -158,12 +158,10 @@ otherwise interfere with server\-side prepared statements.
 Send the query and the lookup key to PostgreSQL separately,
 with the query stored once per connection. The lookup key
 cannot become part of the SQL, regardless of what it contains.
-This mode is faster than legacy or parameterized mode and does
-not rely on quoting to be safe.
+Prepared mode is faster than legacy mode and does not rely on
+quoting to be safe. Existing query templates work unchanged.
 .RE
-
-Existing query templates work unchanged.
-
+.IP
 This feature is available in Postfix 3.12 and later.
 .IP "\fBquery\fR"
 The SQL query template used to search the database, where \fB%s\fR

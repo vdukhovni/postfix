@@ -116,6 +116,7 @@ mailbox.o: ../../include/vstring.h
 mailbox.o: mailbox.c
 mailbox.o: virtual.h
 mailbox_test.o: ../../include/argv.h
+mailbox_test.o: ../../include/asan_logger.h
 mailbox_test.o: ../../include/attr.h
 mailbox_test.o: ../../include/bounce.h
 mailbox_test.o: ../../include/check_arg.h
@@ -238,6 +239,7 @@ unknown.o: ../../include/vstring.h
 unknown.o: unknown.c
 unknown.o: virtual.h
 virtual.o: ../../include/argv.h
+virtual.o: ../../include/asan_logger.h
 virtual.o: ../../include/attr.h
 virtual.o: ../../include/check_arg.h
 virtual.o: ../../include/defs_for_main.h
