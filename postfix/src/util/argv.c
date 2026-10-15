@@ -70,6 +70,8 @@
 /*	const char *arg2;
 /*
 /*	void	ARGV_FAKE_END
+/*
+/*	void	ARGV_WRAP(ARGV fake, int argc, char **argv)
 /* DESCRIPTION
 /*	The functions in this module manipulate arrays of string
 /*	pointers. An ARGV structure contains the following members:
@@ -141,6 +143,8 @@
 /*
 /*	ARGV_FAKE2_BEGIN/END provide the same functionality for a pair
 /*	of strings.
+/*
+/*	ARGV_WRAP() embeds an (argc, argv) pair inside an ARGV wrapper.
 /* SEE ALSO
 /*	msg(3) diagnostics interface
 /* DIAGNOSTICS

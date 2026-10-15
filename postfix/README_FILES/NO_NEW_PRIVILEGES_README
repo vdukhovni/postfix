@@ -1,0 +1,275 @@
+ PPoossttffiixx NNooNNeewwPPrriivviilleeggeess ssuuppppoorrtt
+
+-------------------------------------------------------------------------------
+
+IInnttrroodduuccttiioonn
+
+This document describes how Postfix uses set-gid privilege elevation to gate
+access from an unprivileged process to the Postfix queue and to core daemon
+processes. It then presents an alternative privilege elevation mechanism for
+systems that disable set-gid privilege elevation.
+
+This guide assumes that Postfix uses the default settings: "mail_owner =
+postfix" and "setgid_group = postdrop".
+
+  * Postfix user request architecture
+  * Architectural properties with set-gid privilege elevation
+  * Alternative privilege elevation with postlift(8)
+  * Architectural properties with postlift(8) privilege elevation
+  * Systemd integration
+  * Future work: spawn(8) integration
+  * Credits
+
+PPoossttffiixx uusseerr rreeqquueesstt aarrcchhiitteeccttuurree
+
+Historically, a user request travels through three security zones on its way to
+a Postfix core daemon process:
+
+           Zone 1            Zone 2             Zone 3
+          user UID          user UID         "postfix" UID
+          user GID     Set-gid "postdrop"    "postfix" GID
+
+          mail(1)                              pickup(8)
+         mailx(1)          postdrop(1)        postlogd(8)
+        sendmail(1) ->     postlog(1)     ->    qmgr(8)
+         mailq(1)          postqueue(1)        flush(8)
+                                               showq(8)
+
+  * Zone 1 contains Non-Postfix utilities such as mail(1) and mailx(1),
+    alongside Postfix helper programs such as sendmail(1) and mailq(1) that
+    operate without Postfix-specific user or group privileges. Because Zone 1
+    processes cannot directly access Postfix queues or other Postfix-internal
+    resources, they must request service through Zone 2.
+
+  * Zone 2 contains the maildrop queue and Postfix client processes including
+    postdrop(1), postlog(1) and postqueue(1). While the processes retain the
+    UID of the invoking user, they run with set-gid "postdrop" group
+    privileges. This allows them to access the maildrop queue and specific
+    Postfix core daemon processes.
+
+  * Zone 3 contains all other Postfix queues and all core daemon processes.
+    Following initialization, these processes run with "postfix" user and group
+    privileges. Some daemon processes (not shown in the figure) may temporarily
+    impersonate a specific user account when delivering mail or running non-
+    Postfix code.
+
+AArrcchhiitteeccttuurraall pprrooppeerrttiieess wwiitthh sseett--ggiidd pprriivviilleeggee eelleevvaattiioonn
+
+The setgid-based, three-zone, architecture has several key benefits. These will
+need to be preserved on systems that don't support set-gid privileges:
+
+  * Zone 2 can accept email submissions from Zone 1 even when the Postfix
+    system is down and no Zone 3 processes are running. This is possible
+    because the set-gid privilege allows the postdrop(1) command to deposit
+    messages into the protected maildrop queue.
+
+  * Zone 2 enforces a per-client-UID concurrency limit based on the host's per-
+    user process limit, as each service request requires a distinct Zone 2 set-
+    gid process. However, this may not be an effective deterrent against
+    overload, because per-user process limits vary wildly between UNIX-like
+    systems.
+
+  * Zone 2 enforces low-level input validation before a request reaches Zone 3.
+
+  * Zone 2 enforcement resists tampering by unprivileged users, because Zone 2
+    processes run with distinct UIDs and GIDs from Zone 1.
+
+AAlltteerrnnaattiivvee pprriivviilleeggee eelleevvaattiioonn wwiitthh ppoossttlliifftt((88))
+
+Some systems disable set-gid privilege elevation, for example using
+"NoNewPrivileges=yes" or the "nosuid" file system mount option. On these
+systems, Postfix may use an alternative privilege elevation method that is
+implemented with the postlift(8) service, changing the architecture as shown
+below. As of Postfix 3.12, this alternative method is supported only on Linux
+environments using systemd.
+
+                   Zone 1                       Zone 2               Zone 3
+                  user UID                  "postdrop" UID        "postfix" UID
+                  user GID                  "postdrop" GID        "postfix" GID
+
+      mail(1)                                                       pickup(8)
+     mailx(1)      postdrop(1)                    postdrop(1)      postlogd(8)
+    sendmail(1) ->  postlog(1)  -> postlift(8) ->  postlog(1)  ->    qmgr(8)
+     mailq(1)      postqueue(1)                   postqueue(1)      flush(8)
+                                                                    showq(8)
+
+When set-gid privileges are disabled, a postdrop(1), postlog(1), or postqueue
+(1) client process with Zone 1 privileges will connect to the Zone 2 postlift
+(8) service, requesting that postlift(8) runs the same command (postdrop(1)
+etc.) in a process with Zone 2 privileges. This allows the elevated process to
+add a message to the protected maildrop queue, or to interact with a Zone 3
+core daemon process. postlift(8) propagates the exit status from the elevated
+process back to the Zone 1 client process.
+
+The super-user ("root") is excluded from postlift(8) privilege elevation.
+Because root already has sufficient privileges, its Zone 1 postdrop(1), postlog
+(1), or postqueue(1) processes can directly access the maildrop queue or a Zone
+3 process. This eliminates a postlift(8) start-up dependency and avoids some
+implementation complexity.
+
+AArrcchhiitteeccttuurraall pprrooppeerrttiieess wwiitthh ppoossttlliifftt((88)) pprriivviilleeggee eelleevvaattiioonn
+
+The architecture above can provide most of the benefits from the architecture
+based on set-gid privilege elevation:
+
+  * (worse) Zone 2 can accept email submissions from Zone 1 while the Postfix
+    system is down, under two conditions:
+
+      o Root-privileged processes: accepted at any time.
+
+      o Non-root processes: accepted only after a system start-up target
+        activates the postlift(8) socket. Other submissions will be lost.
+
+    Note: some boot-time activity may generate email before a "network" or
+    "multi-user" start-up target activates the postlift(8) socket.
+
+  * (better) Zone 2 can enforce a per-client-UID concurrency limit before a
+    request reaches Zone 3, relying on systemd or similar infrastructure for
+    enforcement instead of host-based process limits.
+
+  * (same) Zone 2 enforces low-level input validation before a request reaches
+    Zone 3.
+
+  * (same) Zone 2 enforcement resists tampering by unprivileged users, because
+    Zone 2 processes run with distinct UIDs and GIDs from Zone 1.
+
+SSyysstteemmdd iinntteeggrraattiioonn
+
+To run postlift(8) under systemd, follow the steeps below:
+
+  * Verify that your system has a "postdrop" username with the same group ID as
+    the "postdrop" group, and with a different UID than the "postfix" account.
+    The table shows an example.
+
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |EEnnttiittyy          |FFiillee       |UUIIDD |GGIIDD |NNootteess                            |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _|_ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |                |           |    |    |Different UID and GID than the   |
+    |"postfix" user  |/etc/passwd|1001|1001|"postdrop" user.                 |
+    |                |           |    |    |DO NOT CHANGE an existing        |
+    |                |           |    |    |"postfix" user.                  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _|_ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |                |           |    |    |Different UID and GID than the   |
+    |"postdrop" user |/etc/passwd|1002|1002|"postfix" user.                  |
+    |                |           |    |    |Same GID as the "postdrop" group.|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _|_ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |                |           |    |    |Same GID as the "postdrop" user. |
+    |"postdrop" group|/etc/group |    |1002|DO NOT CHANGE an existing        |
+    |                |           |    |    |"postdrop" group.                |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _|_ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+
+    It is OK when your system is different, as long as the numbers are
+    different between the "postfix" and "postdrop" users, and as long as the
+    "postdrop" user's GID is the same as the "postdrop" group's GID (though
+    they don't have to be 1002).
+
+    Caution: DO NOT CHANGE an existing "postdrop" group.
+
+    Caution: DO NOT CHANGE an existing "postfix" user.
+
+  * Create a file /usr/lib/systemd/system/postlift.socket with the following
+    content:
+
+    [Unit]
+    Description=Postfix postlift Socket
+    Documentation=man:postlift(8)
+
+    [Socket]
+    Accept=yes
+    RemoveOnStop=yes
+    ListenStream=/var/run/postfix/postlift.socket
+    # MaxConnectionsPerSource must be less than MaxConnections (default 64)
+    MaxConnectionsPerSource=30
+
+    [Install]
+    WantedBy=sockets.target
+
+  * Create a file /usr/lib/systemd/system/postlift@.service with the following
+    content:
+
+    [Unit]
+    Description=Postfix postlift helper
+    Documentation=man:postlift(8)
+    Requires=postlift.socket
+
+    [Service]
+    # DO NOT run as "postfix" (i.e. core daemon privilege).
+    User=postdrop
+    Group=postdrop
+    ExecStart=/usr/libexec/postfix/postlift
+    Type=simple
+    StandardInput=socket
+    StandardOutput=socket
+    # Only stderr goes to journal for logging
+    StandardError=journal
+    SyslogFacility=mail
+
+  * Read the new configuration:
+
+    # systemctl daemon-reload
+
+  * Enable the postlift socket:
+
+    # systemctl enable --now postlift.socket
+
+  * Verify the socket status. The expected output looks like:
+
+    # systemctl status postlift.socket
+    ● postlift.socket - Postfix postlift Socket
+         Loaded: loaded (/usr/lib/systemd/system/postlift.socket; enabled;
+    preset: disabled)
+         Active: active (listening) since Mon 2026-09-28 15:50:21 EDT; 1 week 5
+    days ago
+     Invocation: 157533134c214bccaf5fa1fc6031e29c
+           Docs: man:postlift(8)
+         Listen: /var/run/postfix/postlift.socket (Stream)
+       Accepted: 158; Connected: 0;
+
+    Sep 28 15:50:21 mail.example.org systemd[1]: Listening on postlift.socket -
+    Postfix postlift Socket.
+
+  * In case of problems, first look for Postfix logging (in /var/log/maillog or
+    the like). If that does not reveal the problem cause, verify the socket
+    status as shown above and look for failed service instances. These have
+    names like postlift@xx-xx-xx.service. Examine each failed instance with a
+    command like:
+
+    # systemctl status postlift@xx-xx-xx.service
+
+    and review the error logging at the bottom of the output.
+
+FFuuttuurree wwoorrkk:: ssppaawwnn((88)) iinntteeggrraattiioonn
+
+On systems without systemd, partial functionality can be implemented using the
+Postfix spawn(8) service. This service accepts connections on a private or
+public (but still protected) socket, and executes a configured program with
+specific privileges. However, making this work with postlift(8) requires two
+additional Postfix features:
+
+  * A new master(5) listen socket type, distinct from the existing "private" or
+    "public" types. This socket must be world-writable, and hosted in directory
+    with world read+execute permission so that it is accessible to unprivileged
+    Zone 1 client commands like postdrop(1).
+
+  * spawn(8) integration with the existing anvil(8) service. This integration
+    limits the per-userID concurrency for requests originating from Zone 1.
+
+A down-side is that spawn(8) daemons remain unavailable until Postfix starts.
+Consequently, Zone 1 email submissions from non-root processes will fail to
+enter the queue before Postfix is running. Because Postfix typically launches
+with a "network" or "multi-user" start-up target, early boot-time email
+messages from non-root users may be dropped.
+
+CCrreeddiittss
+
+  * Thorsten Kukuk proposed a systemd integration for the postdrop(1) command
+    which inspired the postlift(8) design.
+
+  * Wietse generalized the approach in multiple dimensions:
+
+      o Multiple client support: one postlift(8) configuration can elevate
+        privileges for postdrop(1), postlog(1) and postqueue(1).
+
+      o Multiple instance support: one postlift(8) configuration serves
+        multiple Postfix instances that are managed with postmulti(1).
+

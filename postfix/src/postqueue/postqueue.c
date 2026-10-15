@@ -150,6 +150,10 @@
 /* .fi
 /*	This program is designed to run with set-group ID privileges, so
 /*	that it can connect to Postfix daemon processes.
+/*
+/*	On systems where set-group ID privilege elevation is unavailable,
+/*	this program will reach	out to the \fBpostlift\fR(8) service to
+/*	run the same program with elevated privilege.
 /* STANDARDS
 /*	RFC 7159 (JSON notation)
 /* DIAGNOSTICS
@@ -210,6 +214,12 @@
 /*	List of users who are authorized to flush the queue.
 /* .IP "\fBauthorized_mailq_users (static:anyone)\fR"
 /*	List of users who are authorized to view the queue.
+/* .PP
+/*	Available in Postfix version 3.12 and later:
+/* .IP "\fBpostlift_socket_path (/var/run/postfix/postlift.socket)\fR"
+/*	A UNIX-domain stream service endpoint for \fBpostdrop\fR(1), \fBpostlog\fR(1)
+/*	or \fBpostqueue\fR(1) client programs that run without set-gid postdrop
+/*	privileges.
 /* FILES
 /*	/var/spool/postfix, mail queue
 /* SEE ALSO
@@ -274,6 +284,7 @@
 #include <warn_stat.h>
 #include <events.h>
 #include <stringops.h>
+#include <ugid_from_string.h>
 
 /* Global library. */
 
@@ -292,6 +303,8 @@
 #include <mail_dict.h>
 #include <mail_parm_split.h>
 #include <maillog_client.h>
+#include <mypwd.h>
+#include <plift_clnt.h>
 
 /* Application-specific. */
 
@@ -371,12 +384,11 @@ static void showq_client(int mode, VSTREAM *showq)
 
 /* show_queue - show queue status */
 
-static void show_queue(int mode)
+static void show_queue(uid_t uid, int mode)
 {
     const char *errstr;
     VSTREAM *showq;
     int     n;
-    uid_t   uid = getuid();
 
     if (uid != 0 && uid != var_owner_uid
 	&& (errstr = check_user_acl_byuid(VAR_SHOWQ_ACL, var_showq_acl,
@@ -455,10 +467,9 @@ static void show_queue(int mode)
 
 /* flush_queue - force delivery */
 
-static void flush_queue(void)
+static void flush_queue(uid_t uid)
 {
     const char *errstr;
-    uid_t   uid = getuid();
 
     if (uid != 0 && uid != var_owner_uid
 	&& (errstr = check_user_acl_byuid(VAR_FLUSH_ACL, var_flush_acl,
@@ -481,11 +492,10 @@ static void flush_queue(void)
 
 /* flush_site - flush mail for site */
 
-static void flush_site(const char *site)
+static void flush_site(uid_t uid, const char *site)
 {
     int     status;
     const char *errstr;
-    uid_t   uid = getuid();
 
     if (uid != 0 && uid != var_owner_uid
 	&& (errstr = check_user_acl_byuid(VAR_FLUSH_ACL, var_flush_acl,
@@ -516,11 +526,10 @@ static void flush_site(const char *site)
 
 /* flush_file - flush mail with specific queue ID */
 
-static void flush_file(const char *queue_id)
+static void flush_file(uid_t uid, const char *queue_id)
 {
     int     status;
     const char *errstr;
-    uid_t   uid = getuid();
 
     if (uid != 0 && uid != var_owner_uid
 	&& (errstr = check_user_acl_byuid(VAR_FLUSH_ACL, var_flush_acl,
@@ -571,6 +580,8 @@ int     main(int argc, char **argv)
     char   *id_to_flush = 0;
     ARGV   *import_env;
     int     bad_site;
+    uid_t   uid = getuid();
+    struct mypasswd *postdrop_pwd;
 
 #if defined(CODE_FOR_MAIN)
     CODE_FOR_MAIN();
@@ -595,6 +606,14 @@ int     main(int argc, char **argv)
 	if (fstat(fd, &st) == -1
 	    && (close(fd), open("/dev/null", O_RDWR, 0)) != fd)
 	    msg_fatal_status(EX_UNAVAILABLE, "open /dev/null: %m");
+
+    /*
+     * Taint all inputs, if not run by root. In non-elevated mode this
+     * produces nicer error messages, but in elevated mode this is required
+     * to prevent privilege exploitation.
+     */
+    if (uid != 0)
+	set_unsafe();
 
     /*
      * Initialize. Set up logging. Read the global configuration file after
@@ -663,13 +682,43 @@ int     main(int argc, char **argv)
 	usage();
 
     /*
-     * Further initialization...
+     * Read the global configuration file and extract configuration
+     * information.
+     * 
+     * Note: this uses the MAIL_CONFIG environment variable before clean_env()
+     * uses safe_getenv() to effectively drop all inherited environment
+     * variables in a set-gid process (it keeps only environment variables
+     * with an explicit name=value in import_environment). Allowing
+     * MAIL_CONFIG this way is safe: in a set-gid process, the MAIL_CONFIG
+     * value must match a list of authorized pathnames.
      */
     mail_conf_read();
     /* Re-evaluate mail_task() after reading main.cf. */
     maillog_client_init(mail_task("postqueue"), MAILLOG_CLIENT_FLAG_NONE);
     mail_dict_init();				/* proxy, sql, ldap */
     get_mail_conf_str_table(str_table);
+
+    /*
+     * If running as a postlift(8) client, delegate everything.
+     */
+    if (uid != 0 && getegid() != var_sgid_gid)
+	exit(plift_clnt_request(var_plift_sock_path, "postqueue",
+				argc, argv, STDIN_FILENO, STDOUT_FILENO,
+				STDERR_FILENO, var_config_dir));
+
+    /*
+     * Import PEER_UID if running under postlift(8).
+     */
+    if (getgid() == var_sgid_gid
+	&& (postdrop_pwd = mypwnam(var_sgid_group)) != 0
+	&& uid == postdrop_pwd->pw_uid) {
+	const char *peer_uid_str;
+
+	if ((peer_uid_str = getenv(PLIST_ENV_PEER_UID)) == 0)
+	    msg_fatal("missing '%s' environment", PLIST_ENV_PEER_UID);
+	if (uid_from_string(peer_uid_str, &uid) < 0)
+	    msg_fatal("malformed '%s' environment", PLIST_ENV_PEER_UID);
+    }
 
     /*
      * This program is designed to be set-gid, which makes it a potential
@@ -718,19 +767,19 @@ int     main(int argc, char **argv)
 	/* NOTREACHED */
     case PQ_MODE_MAILQ_LIST:
     case PQ_MODE_JSON_LIST:
-	show_queue(mode);
+	show_queue(uid, mode);
 	exit(0);
 	break;
     case PQ_MODE_FLUSH_SITE:
-	flush_site(site_to_flush);
+	flush_site(uid, site_to_flush);
 	exit(0);
 	break;
     case PQ_MODE_FLUSH_FILE:
-	flush_file(id_to_flush);
+	flush_file(uid, id_to_flush);
 	exit(0);
 	break;
     case PQ_MODE_FLUSH_QUEUE:
-	flush_queue();
+	flush_queue(uid);
 	exit(0);
 	break;
     case PQ_MODE_DEFAULT:

@@ -51,6 +51,10 @@
 /*	\fBpostlogd\fR(8) daemon process (Postfix 3.7 and later;
 /*	earlier implementations of this command must not have
 /*	set-groupid or set-userid permissions).
+/*
+/*	On systems where set-group ID privilege elevation is unavailable,
+/*	this program will reach	out to the \fBpostlift\fR(8) service to
+/*	run the same program with elevated privilege.
 /* ENVIRONMENT
 /* .ad
 /* .fi
@@ -99,6 +103,12 @@
 /*	The file access permissions that will be set when the file
 /*	$maillog_file is created for the first time, or when the file is
 /*	created after an existing file is rotated.
+/* .PP
+/*	Available in Postfix version 3.12 and later:
+/* .IP "\fBpostlift_socket_path (/var/run/postfix/postlift.socket)\fR"
+/*	A UNIX-domain stream service endpoint for \fBpostdrop\fR(1), \fBpostlog\fR(1)
+/*	or \fBpostqueue\fR(1) client programs that run without set-gid postdrop
+/*	privileges.
 /* SEE ALSO
 /*	postconf(5), configuration parameters
 /*	postlogd(8), Postfix logging
@@ -147,6 +157,8 @@
 #include <warn_stat.h>
 #include <clean_env.h>
 #include <stringops.h>
+#include <safe.h>
+#include <ugid_from_string.h>
 
 /* Global library. */
 
@@ -156,6 +168,8 @@
 #include <mail_task.h>
 #include <mail_parm_split.h>
 #include <maillog_client.h>
+#include <mypwd.h>
+#include <plift_clnt.h>
 
 /* Application-specific. */
 
@@ -258,6 +272,8 @@ int     main(int argc, char **argv)
     char   *unsanitized_tag;
     int     level = MSG_INFO;
     ARGV   *import_env;
+    uid_t   uid = getuid();
+    struct mypasswd *postdrop_pwd;
 
 #if defined(CODE_FOR_MAIN)
     CODE_FOR_MAIN();
@@ -282,6 +298,14 @@ int     main(int argc, char **argv)
 	if (fstat(fd, &st) == -1
 	    && (close(fd), open("/dev/null", O_RDWR, 0)) != fd)
 	    msg_fatal("open /dev/null: %m");
+
+    /*
+     * Taint all inputs, if not run by root. In non-elevated mode this
+     * produces nicer error messages, but in elevated mode this is required
+     * to prevent privilege exploitation.
+     */
+    if (uid != 0)
+	set_unsafe();
 
     /*
      * Set up diagnostics. Censor the process name: it is provided by the
@@ -332,6 +356,13 @@ int     main(int argc, char **argv)
     /*
      * Process the main.cf file. This may change the syslog_name setting and
      * may require that mail_task() be re-evaluated.
+     * 
+     * Note: this uses the MAIL_CONFIG environment variable before clean_env()
+     * uses safe_getenv() to effectively drop all inherited environment
+     * variables in a set-gid process (it keeps only environment variables
+     * with an explicit name=value in import_environment). Allowing
+     * MAIL_CONFIG this way is safe: in a set-gid process, the MAIL_CONFIG
+     * value must match a list of authorized pathnames.
      */
     mail_conf_read();
     /* Re-evaluate mail_task() after reading main.cf. */
@@ -341,6 +372,28 @@ int     main(int argc, char **argv)
     mail_dict_init();				/* proxy, sql, ldap */
     get_mail_conf_str_table(str_table);
 #endif
+
+    /*
+     * If running as a postlift(8) client, delegate everything.
+     */
+    if (uid != 0 && getegid() != var_sgid_gid)
+	exit(plift_clnt_request(var_plift_sock_path, "postlog",
+				argc, argv, STDIN_FILENO, STDOUT_FILENO,
+				STDERR_FILENO, var_config_dir));
+
+    /*
+     * Import PEER_UID if running under postlift(8).
+     */
+    if (getgid() == var_sgid_gid
+	&& (postdrop_pwd = mypwnam(var_sgid_group)) != 0
+	&& uid == postdrop_pwd->pw_uid) {
+	const char *peer_uid_str;
+
+	if ((peer_uid_str = getenv(PLIST_ENV_PEER_UID)) == 0)
+	    msg_fatal("missing '%s' environment", PLIST_ENV_PEER_UID);
+	if (uid_from_string(peer_uid_str, &uid) < 0)
+	    msg_fatal("malformed '%s' environment", PLIST_ENV_PEER_UID);
+    }
 
     /*
      * This program is designed to be set-gid, which makes it a potential
@@ -384,6 +437,11 @@ int     main(int argc, char **argv)
     if (argc > optind) {
 	log_argv(level, argv + optind);
     } else {
+	/* Avoid confusion when running under postlift(8). */
+	if (isatty(vstream_fileno(VSTREAM_IN)))
+	    vstream_control(VSTREAM_IN, CA_VSTREAM_CTL_TIMEOUT(5),
+			    CA_VSTREAM_CTL_START_DEADLINE,
+			    CA_VSTREAM_CTL_END);
 	log_stream(level, VSTREAM_IN);
     }
 

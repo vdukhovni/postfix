@@ -80,6 +80,7 @@ pickup.o: ../../include/smtputf8.h
 pickup.o: ../../include/stringops.h
 pickup.o: ../../include/sys_defs.h
 pickup.o: ../../include/ubsan_logger.h
+pickup.o: ../../include/ugid_from_string.h
 pickup.o: ../../include/vbuf.h
 pickup.o: ../../include/vstream.h
 pickup.o: ../../include/vstring.h

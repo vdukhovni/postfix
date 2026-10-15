@@ -1,0 +1,108 @@
+.TH POSTLIFT 8 
+.ad
+.fi
+.SH NAME
+postlift
+\-
+Postfix client privilege elevator
+.SH "SYNOPSIS"
+.na
+.nf
+\fBpostlift\fR [\fB\-v\fR] [\fB\-c \fIconfig_dir\fR]
+.SH DESCRIPTION
+.ad
+.fi
+On systems that disable set\-gid privilege elevation, an
+unprivileged Postfix postdrop(1), postlog(1) and postqueue(1)
+client command will connect to the postlift(8) service, requesting
+that postlift(8) runs the same command (postdrop(1) etc.) in a
+child process with "postdrop" user and group privileges.
+
+This allows the elevated child process to add a message to
+the protected Postfix maildrop queue, or to interact with a
+Postfix core daemon process. postlift(8) propagates the exit
+status from the elevated child process back to the unprivileged
+client command.
+
+See the Postfix NO_NEW_PRIVILEGES_README documentation for
+background and for activating the postlift(8) service with
+systemd.
+
+Options:
+.IP "\fB\-c \fIconfig_dir\fR"
+The \fBmain.cf\fR configuration file is in the named directory
+instead of the default configuration directory.
+.IP \fB\-v\fR
+Enable verbose logging for debugging purposes. Multiple \fB\-v\fR
+options make the software increasingly verbose.
+.SH DIAGNOSTICS
+.ad
+.fi
+Problems are reported to the standard error stream.
+.SH BUGS
+.ad
+.fi
+Temporary limitation: When an unprivileged client command is
+waiting for an elevated child process, killing the unprivileged
+client will not terminate the elevated child. This can cause
+multiple processes to read from the same terminal simultaneously,
+making the terminal unusable. To minimize this risk, client
+commands that read from stdin will automatically time out after
+a few seconds if stdin is connected to a terminal.
+
+Email submissions from non\-root users will be lost before the
+postlift(8) socket is activated.
+
+There is no system\-independent API to request peer credentials
+for a UNIX\-domain socket. Consequently, this program is
+broken on some versions of some systems.
+.SH "ENVIRONMENT"
+.na
+.nf
+.ad
+.fi
+.IP \fBMAIL_CONFIG\fR
+Directory with Postfix configuration files.
+.SH "CONFIGURATION PARAMETERS"
+.na
+.nf
+.ad
+.fi
+The following \fBmain.cf\fR parameters are especially relevant
+to this program.
+
+The text below provides only a parameter summary. See
+\fBpostconf\fR(5) for more details including examples.
+.IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+The default location of the Postfix main.cf and master.cf
+configuration files.
+.IP "\fBmail_owner (postfix)\fR"
+The UNIX system account that owns the Postfix queue and most Postfix
+daemon processes.
+.IP "\fBfork_attempts (5)\fR"
+The maximal number of attempts to fork() a child process.
+.IP "\fBfork_delay (1s)\fR"
+The delay between attempts to fork() a child process.
+.IP "\fBsetgid_group (postdrop)\fR"
+The group ownership of set\-gid Postfix commands and of group\-writable
+Postfix directories.
+.SH "SEE ALSO"
+.na
+.nf
+NO_NEW_PRIVILEGES_README, configuration and architecture
+postconf(5), Postfix configuration
+.SH "LICENSE"
+.na
+.nf
+.ad
+.fi
+The Secure Mailer license must be distributed with this software.
+.SH HISTORY
+.ad
+.fi
+This service was introduced with Postfix version 3.12.
+.SH "AUTHOR(S)"
+.na
+.nf
+Wietse Venema
+porcupine.org

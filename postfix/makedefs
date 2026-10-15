@@ -529,6 +529,7 @@ EOF
 		: ${PLUGIN_LD="${CC-gcc} -shared"}
 		;;
     Linux.*)	SYSTYPE=LINUX$RELEASE_MAJOR
+		CCARGS="$CCARGS -DGRATUITOUS_SCM_CREDENTIALS"
 		case "$CCARGS" in
 		 *-DNO_DB*) ;;
 		 *-DHAS_DB*) case "$AUXLIBS_DB" in
@@ -887,7 +888,7 @@ CCARGS="$CCARGS -DSNAPSHOT"
 
 # Non-production: needs thorough testing, or major changes are still
 # needed before the code stabilizes.
-#CCARGS="$CCARGS -DNONPROD='\"featurename-nonprod\"'"
+CCARGS="$CCARGS -DNONPROD='\"nonprod-postlink\"'"
 
 # Workaround: prepend Postfix include files before other include files.
 CCARGS="-I. -I../../include $CCARGS"

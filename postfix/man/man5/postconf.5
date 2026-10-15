@@ -5313,6 +5313,17 @@ The numerical Postfix SMTP server response code when a request
 is rejected by the \fBreject_plaintext_session\fR restriction.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH postlift_socket_path (default: /var/run/postfix/postlift.socket)
+A UNIX\-domain stream service endpoint for \fBpostdrop\fR(1), \fBpostlog\fR(1)
+or \fBpostqueue\fR(1) client programs that run without set\-gid postdrop
+privileges. Instead, they contact the postlift service to run their
+code, with postdrop user and group privileges, inside a controlled
+environment.
+.PP
+This functionality was initially developed for Linux systems
+that enforce a "NoNewPrivileges" policy.
+.PP
+This feature is available in Postfix 3.12 and later.
 .SH postlog_service_name (default: postlog)
 The name of the \fBpostlogd\fR(8) service entry in master.cf.
 This service appends logfile records to the file specified

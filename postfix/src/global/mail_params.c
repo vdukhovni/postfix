@@ -174,6 +174,11 @@
 /*	char	*var_nbdb_service;
 /*	char	*var_nbdb_cust_map;
 /*	bool	var_nbdb_log_redirect;
+/*
+/*	char   *var_verify_sender;
+/*	int     var_verify_sender_ttl;
+/*
+/*	char   *var_plift_sock_path;
 /* DESCRIPTION
 /*	This module (actually the associated include file) defines
 /*	the names and defaults of all mail configuration parameters.
@@ -410,6 +415,7 @@ bool    var_nbdb_log_redirect;
 
 char   *var_verify_sender;
 int     var_verify_sender_ttl;
+char   *var_plift_sock_path;
 
 const char null_format_string[1] = "";
 
@@ -883,6 +889,7 @@ void    mail_params_init(void)
 	VAR_NBDB_SERVICE, DEF_NBDB_SERVICE, &var_nbdb_service, 0, 0,
 	VAR_NBDB_CUST_MAP, DEF_NBDB_CUST_MAP, &var_nbdb_cust_map, 0, 0,
 	VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender, 0, 0,
+	VAR_PLIST_SOCK_PATH, DEF_PLIST_SOCK_PATH, &var_plift_sock_path, 1, 0,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

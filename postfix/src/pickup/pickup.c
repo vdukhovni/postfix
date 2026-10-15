@@ -139,6 +139,7 @@
 #include <safe_open.h>
 #include <watchdog.h>
 #include <stringops.h>
+#include <ugid_from_string.h>
 
 /* Global library. */
 
@@ -173,7 +174,7 @@ char   *var_input_transp;
   */
 typedef struct {
     char   *id;				/* queue file basename */
-    struct stat st;			/* queue file status */
+    struct stat st;			/* client uid & queue file status */
     char   *path;			/* name for open/remove */
     char   *sender;			/* sender address */
 } PICKUP_INFO;
@@ -293,6 +294,10 @@ static int copy_segment(VSTREAM *qfile, VSTREAM *cleanup, PICKUP_INFO *info,
 		skip_attr = (split_nameval(saved_attr,
 					   &attr_name, &attr_value) == 0
 			     && rec_attr_map(attr_name) == 0);
+		if (strcmp(attr_name, MAIL_ATTR_PEER_UID) == 0
+		    && uid_from_string(attr_value, &info->st.st_uid) < 0)
+		    msg_warn("uid=%ld: malformed %.30s value %.30s",
+			     (long) info->st.st_uid, attr_name, attr_value);
 		myfree(saved_attr);
 		/* Discard other/header/body action after "postsuper -r". */
 		if (skip_attr)

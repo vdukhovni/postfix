@@ -14,6 +14,7 @@
  /* External interface. */
 
 extern int unsafe(void);
+extern void set_unsafe(void);
 extern char *safe_getenv(const char *);
 
 /* LICENSE

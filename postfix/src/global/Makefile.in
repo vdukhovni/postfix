@@ -39,7 +39,8 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	test_server_main.c compat_level.c config_known_tcp_ports.c \
 	hfrom_format.c rfc2047_code.c ascii_header_text.c sendopts.c \
 	pol_stats.c nbdb_clnt.c nbdb_util.c allowed_prefix.c \
-	nbdb_redirect.c nbdb_surrogate.c yana_policy.c cleanup_org_flag.c
+	nbdb_redirect.c nbdb_surrogate.c yana_policy.c cleanup_org_flag.c \
+	plift_clnt.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -80,7 +81,8 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	test_server_main.o compat_level.o config_known_tcp_ports.o \
 	hfrom_format.o rfc2047_code.o ascii_header_text.o sendopts.o \
 	pol_stats.o nbdb_clnt.o nbdb_util.o allowed_prefix.o \
-	nbdb_redirect.o nbdb_surrogate.o yana_policy.o cleanup_org_flag.o
+	nbdb_redirect.o nbdb_surrogate.o yana_policy.o cleanup_org_flag.o \
+	plift_clnt.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -118,7 +120,8 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	test_server_main.h compat_level.h config_known_tcp_ports.h \
 	hfrom_format.h rfc2047_code.h ascii_header_text.h sendopts.h \
 	pol_stats.h nbdb_clnt.h nbdb_util.h allowed_prefix.h \
-	nbdb_redirect.h nbdb_surrogate.h yana_policy.h
+	nbdb_redirect.h nbdb_surrogate.h yana_policy.h \
+	plift_clnt.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c dict_sqlite_test.c \
 	ehlo_mask_test.c haproxy_srvr_test.c sendopts_test.c pol_stats_test.c \
 	allowed_prefix_test.c nbdb_util_test.c nbdb_redirect_test.c \
@@ -2780,6 +2783,24 @@ pipe_command.o: mail_params.h
 pipe_command.o: pipe_command.c
 pipe_command.o: pipe_command.h
 pipe_command.o: sys_exits.h
+plift_clnt.o: ../../include/argv.h
+plift_clnt.o: ../../include/argv_attr.h
+plift_clnt.o: ../../include/attr.h
+plift_clnt.o: ../../include/check_arg.h
+plift_clnt.o: ../../include/connect.h
+plift_clnt.o: ../../include/htable.h
+plift_clnt.o: ../../include/iostuff.h
+plift_clnt.o: ../../include/msg.h
+plift_clnt.o: ../../include/mymalloc.h
+plift_clnt.o: ../../include/nvtable.h
+plift_clnt.o: ../../include/sys_defs.h
+plift_clnt.o: ../../include/vbuf.h
+plift_clnt.o: ../../include/vstream.h
+plift_clnt.o: ../../include/vstring.h
+plift_clnt.o: mail_conf.h
+plift_clnt.o: mail_proto.h
+plift_clnt.o: plift_clnt.c
+plift_clnt.o: plift_clnt.h
 pol_stats.o: ../../include/check_arg.h
 pol_stats.o: ../../include/msg.h
 pol_stats.o: ../../include/mymalloc.h

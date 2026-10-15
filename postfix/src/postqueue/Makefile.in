@@ -72,12 +72,15 @@ postqueue.o: ../../include/maillog_client.h
 postqueue.o: ../../include/msg.h
 postqueue.o: ../../include/msg_vstream.h
 postqueue.o: ../../include/mymalloc.h
+postqueue.o: ../../include/mypwd.h
 postqueue.o: ../../include/nvtable.h
+postqueue.o: ../../include/plift_clnt.h
 postqueue.o: ../../include/safe.h
 postqueue.o: ../../include/smtp_stream.h
 postqueue.o: ../../include/stringops.h
 postqueue.o: ../../include/sys_defs.h
 postqueue.o: ../../include/ubsan_logger.h
+postqueue.o: ../../include/ugid_from_string.h
 postqueue.o: ../../include/user_acl.h
 postqueue.o: ../../include/valid_hostname.h
 postqueue.o: ../../include/valid_mailhost_addr.h

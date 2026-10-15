@@ -59,6 +59,10 @@ set\-groupid privileges, so that it can connect to the
 \fBpostlogd\fR(8) daemon process (Postfix 3.7 and later;
 earlier implementations of this command must not have
 set\-groupid or set\-userid permissions).
+
+On systems where set\-group ID privilege elevation is unavailable,
+this program will reach out to the \fBpostlift\fR(8) service to
+run the same program with elevated privilege.
 .SH "ENVIRONMENT"
 .na
 .nf
@@ -111,6 +115,12 @@ Available in Postfix 3.9 and later:
 The file access permissions that will be set when the file
 $maillog_file is created for the first time, or when the file is
 created after an existing file is rotated.
+.PP
+Available in Postfix version 3.12 and later:
+.IP "\fBpostlift_socket_path (/var/run/postfix/postlift.socket)\fR"
+A UNIX\-domain stream service endpoint for \fBpostdrop\fR(1), \fBpostlog\fR(1)
+or \fBpostqueue\fR(1) client programs that run without set\-gid postdrop
+privileges.
 .SH "SEE ALSO"
 .na
 .nf

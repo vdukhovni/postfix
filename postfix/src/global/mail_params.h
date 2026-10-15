@@ -4808,6 +4808,13 @@ extern int var_psc_starttls_tmout;
 #define DEF_TLS_TRACE_ANVIL_RATE	1
 extern int var_tls_trace_anvil_rate;
 
+ /*
+  * postlift(8) support.
+  */
+#define VAR_PLIST_SOCK_PATH	"postlift_socket_path"
+#define DEF_PLIST_SOCK_PATH	"/var/run/postfix/postlift.socket"
+extern char *var_plift_sock_path;
+
 /* LICENSE
 /* .ad
 /* .fi

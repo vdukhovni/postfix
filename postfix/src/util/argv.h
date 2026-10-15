@@ -73,6 +73,11 @@ extern ARGV *argv_split_at_append(ARGV *, const char *, int);
 
 #define ARGV_FAKE_END	}
 
+#define ARGV_WRAP(a, ac, av) do { \
+	(a).argc = (a).len = (ac); \
+	(a).argv = (av); \
+    } while (0)
+
 #define ARGV_END	((char *) 0)
 
 /* LICENSE

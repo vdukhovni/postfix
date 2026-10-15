@@ -160,6 +160,10 @@ notification message that will be returned to the sender.
 .fi
 This program is designed to run with set\-group ID privileges, so
 that it can connect to Postfix daemon processes.
+
+On systems where set\-group ID privilege elevation is unavailable,
+this program will reach out to the \fBpostlift\fR(8) service to
+run the same program with elevated privilege.
 .SH "STANDARDS"
 .na
 .nf
@@ -228,6 +232,12 @@ Available in Postfix version 2.2 and later:
 List of users who are authorized to flush the queue.
 .IP "\fBauthorized_mailq_users (static:anyone)\fR"
 List of users who are authorized to view the queue.
+.PP
+Available in Postfix version 3.12 and later:
+.IP "\fBpostlift_socket_path (/var/run/postfix/postlift.socket)\fR"
+A UNIX\-domain stream service endpoint for \fBpostdrop\fR(1), \fBpostlog\fR(1)
+or \fBpostqueue\fR(1) client programs that run without set\-gid postdrop
+privileges.
 .SH "FILES"
 .na
 .nf

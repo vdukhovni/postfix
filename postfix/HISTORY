@@ -32192,9 +32192,57 @@ Apologies for any names omitted.
 
 	Minor manpage formatting fixes. Files: proto/*sql*.
 
+20260924
+
+	postlift(8) preparation: document pre-existing environment
+	handling in set-gid programs. Files: postdrop.c, postlog.c,
+	postqueue.c.
+
+20260929
+
+	Infrastructure: some Linux systems prepend gratuitous
+	SCM_CREDENTIALS to each SCM_RIGHTS message with a file
+	descriptor. As a workaround, increased the unix_recv_fd() receive
+	buffer size to avoid receiving no information at all, and updated
+	the code to ignore the SCM_CREDENTIALS. Files: unix_recv_fd.c,
+	makedefs.
+
+20260930
+
+	Cleanup: moved the ownership of the address_verify_sender and
+	address_verify_sender_ttl to the mail_params.c file.
+
+20261011
+
+	Infrastructure: add a "set_unsafe()" method to make an unsafe()
+	state sticky (once unsafe, always unsafe). Files: safe.h,
+	unsafe.c.
+
+	Infrastructure: another ARGV wrapper, to send (argc, argv)
+	command-line info as an IPC attribute without first having to
+	make a copy. Files: argv.[hc].
+
+20261014
+
+	Infrastructure: factor out the code for string to uid and gid
+	conversion so that it can be reused. Files: ugid_from_string.[hc],
+	virtual/mailbox.c.
+
 20261015
 
 	Re-ran "make depend" to pick up ASAN support dependencies.
+
+	Support for systems that disable set-gid support, for example with
+	Linux "NoNewPrivileges=yes" or with "nosuid" mount options. This
+	introduces a postlift(8) service that runs a postdrop(1),
+	postlog(1), or postqueue(1) command with elevated privilege,
+	so that it can access the protected maildrop queue or selected
+	core daemon processes. Based on a systemd integration for the
+	postdrop(1) command by Thorsten Kukuk. Files: postfix-files,
+	postlink, NO_NEW_PRIVILEGES_README.html, postconf.proto,
+	mail_params.c mail_params.h, mail_proto.h, plift_clnt.c,
+	plift_clnt.h, pickup.c postdrop.c, postlift.c, postlog.c,
+	postqueue.c.
 
 TODO
 

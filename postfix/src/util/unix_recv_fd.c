@@ -12,6 +12,11 @@
 /*	unix_recv_fd() receives a file descriptor via the specified
 /*	UNIX-domain socket. The result value is the received descriptor.
 /*
+/*	Some systems insist on prepending a gratuitous SCM_CREDENTIALS
+/*	message with each file descriptor. This implementation increases
+/*	the receive buffer size to avoid receiving no information at all,
+/*	and discards the SCM_CREDENTIALS.
+/*
 /*	Arguments:
 /* .IP fd
 /*	File descriptor that connects the sending and receiving processes.
@@ -26,13 +31,20 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
 
+#ifdef GRATUITOUS_SCM_CREDENTIALS
+#define _GNU_SOURCE			/* Must be first */
+#endif
 #include <sys_defs.h>			/* includes <sys/types.h> */
 #include <sys/socket.h>
 #include <sys/uio.h>
+#include <errno.h>
 #include <string.h>
 
 /* Utility library. */
@@ -68,9 +80,13 @@ int     unix_recv_fd(int fd)
 #if defined(CMSG_SPACE) && !defined(NO_MSGHDR_MSG_CONTROL)
     union {
 	struct cmsghdr just_for_alignment;
-	char    control[CMSG_SPACE(sizeof(newfd))];
+	char    control[CMSG_SPACE(sizeof(newfd))
+#ifdef GRATUITOUS_SCM_CREDENTIALS
+			+       CMSG_SPACE(sizeof(struct ucred))
+#endif
+	];
     }       control_un;
-    struct cmsghdr *cmptr;
+    struct cmsghdr *cmsg;
 
     memset((void *) &msg, 0, sizeof(msg));	/* Fix 200512 */
     msg.msg_control = control_un.control;
@@ -103,17 +119,11 @@ int     unix_recv_fd(int fd)
 	return (-1);
 
 #if defined(CMSG_SPACE) && !defined(NO_MSGHDR_MSG_CONTROL)
-    if ((cmptr = CMSG_FIRSTHDR(&msg)) != 0
-	&& cmptr->cmsg_len == CMSG_LEN(sizeof(newfd))) {
-	if (cmptr->cmsg_level != SOL_SOCKET)
-	    msg_fatal("%s: control level %d != SOL_SOCKET",
-		      myname, cmptr->cmsg_level);
-	if (cmptr->cmsg_type != SCM_RIGHTS)
-	    msg_fatal("%s: control type %d != SCM_RIGHTS",
-		      myname, cmptr->cmsg_type);
-	return (*(int *) CMSG_DATA(cmptr));
-    } else
-	return (-1);
+    for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != 0; cmsg = CMSG_NXTHDR(&msg, cmsg))
+	if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS)
+	    return (*(int *) CMSG_DATA(cmsg));
+    errno = ENOMSG;
+    return (-1);
 #else
     if (msg.msg_accrightslen == sizeof(newfd))
 	return (newfd);

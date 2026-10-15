@@ -8601,6 +8601,23 @@ is rejected by the <b><a href="postconf.5.html#reject_plaintext_session">reject_
 
 </DD>
 
+<DT><b><a name="postlift_socket_path">postlift_socket_path</a>
+(default: /var/run/postfix/postlift.socket)</b></DT><DD>
+
+<p> A UNIX-domain stream service endpoint for <a href="postdrop.1.html">postdrop(1)</a>, <a href="postlog.1.html">postlog(1)</a>
+or <a href="postqueue.1.html">postqueue(1)</a> client programs that run without set-gid postdrop
+privileges. Instead, they contact the postlift service to run their
+code, with postdrop user and group privileges, inside a controlled
+environment. </p>
+
+<p> This functionality was initially developed for Linux systems
+that enforce a "NoNewPrivileges" policy. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="postlog_service_name">postlog_service_name</a>
 (default: postlog)</b></DT><DD>
 

@@ -28,6 +28,10 @@
 /*	The command is designed to run with set-group ID privileges, so
 /*	that it can write to the \fBmaildrop\fR queue directory and so that
 /*	it can connect to Postfix daemon processes.
+/*
+/*	On systems where set-group ID privilege elevation is unavailable,
+/*	this program will reach out to the \fBpostlift\fR(8) service to
+/*	run the same program with elevated privilege.
 /* DIAGNOSTICS
 /*	Fatal errors: malformed input, I/O error, out of memory. Problems
 /*	are logged to \fBsyslogd\fR(8) or \fBpostlogd\fR(8) and to
@@ -95,6 +99,12 @@
 /* .IP "\fBrecipient_delimiter (empty)\fR"
 /*	The set of characters that can separate an email address
 /*	localpart, user name, or a .forward file name from its extension.
+/* .PP
+/*	Available in Postfix version 3.12 and later:
+/* .IP "\fBpostlift_socket_path (/var/run/postfix/postlift.socket)\fR"
+/*	A UNIX-domain stream service endpoint for \fBpostdrop\fR(1), \fBpostlog\fR(1)
+/*	or \fBpostqueue\fR(1) client programs that run without set-gid postdrop
+/*	privileges.
 /* FILES
 /*	/var/spool/postfix/maildrop, maildrop queue
 /* SEE ALSO
@@ -143,6 +153,8 @@
 #include <iostuff.h>
 #include <stringops.h>
 #include <mypwd.h>
+#include <safe.h>
+#include <ugid_from_string.h>
 
 /* Global library. */
 
@@ -164,6 +176,7 @@
 #include <mail_parm_split.h>
 #include <maillog_client.h>
 #include <login_sender_match.h>
+#include <plift_clnt.h>
 
 /* Application-specific. */
 
@@ -328,6 +341,7 @@ int     main(int argc, char **argv)
     };
     char  **expected;
     uid_t   uid = getuid();
+    struct mypasswd *postdrop_pwd;
     ARGV   *import_env;
     const char *error_text;
     char   *attr_name;
@@ -363,6 +377,14 @@ int     main(int argc, char **argv)
 	if (fstat(fd, &st) == -1
 	    && (close(fd), open("/dev/null", O_RDWR, 0)) != fd)
 	    msg_fatal("open /dev/null: %m");
+
+    /*
+     * Taint all inputs, if not run by root. In non-elevated mode this
+     * produces nicer error messages, but in elevated mode this is required
+     * to prevent privilege exploitation.
+     */
+    if (uid != 0)
+	set_unsafe();
 
     /*
      * Set up logging. Censor the process name: it is provided by the user.
@@ -403,11 +425,40 @@ int     main(int argc, char **argv)
     /*
      * Read the global configuration file and extract configuration
      * information.
+     * 
+     * Note: this uses the MAIL_CONFIG environment variable before clean_env()
+     * uses safe_getenv() to effectively drop all inherited environment
+     * variables in a set-gid process (it keeps only environment variables
+     * with an explicit name=value in import_environment). Allowing
+     * MAIL_CONFIG this way is safe: in a set-gid process, the MAIL_CONFIG
+     * value must match a list of authorized pathnames.
      */
     mail_conf_read();
     /* Re-evaluate mail_task() after reading main.cf. */
     maillog_client_init(mail_task("postdrop"), MAILLOG_CLIENT_FLAG_NONE);
     get_mail_conf_str_table(str_table);
+
+    /*
+     * If running as a postlift(8) client, delegate everything.
+     */
+    if (uid != 0 && getegid() != var_sgid_gid)
+	exit(plift_clnt_request(var_plift_sock_path, "postdrop",
+				argc, argv, STDIN_FILENO, STDOUT_FILENO,
+				STDERR_FILENO, var_config_dir));
+
+    /*
+     * Import PEER_UID if running under postlift(8).
+     */
+    if (getgid() == var_sgid_gid
+	&& (postdrop_pwd = mypwnam(var_sgid_group)) != 0
+	&& uid == postdrop_pwd->pw_uid) {
+	const char *peer_uid_str;
+
+	if ((peer_uid_str = getenv(PLIST_ENV_PEER_UID)) == 0)
+	    msg_fatal("missing '%s' environment", PLIST_ENV_PEER_UID);
+	if (uid_from_string(peer_uid_str, &uid) < 0)
+	    msg_fatal("malformed '%s' environment", PLIST_ENV_PEER_UID);
+    }
 
     /*
      * Stop run-away process accidents by limiting the queue file size. This
@@ -481,6 +532,12 @@ int     main(int argc, char **argv)
     vstream_fflush(VSTREAM_OUT);
     postdrop_path = mystrdup(VSTREAM_PATH(dst->stream));
 
+    /* Avoid confusion when running under postlift(8). */
+    if (isatty(vstream_fileno(VSTREAM_IN)))
+	vstream_control(VSTREAM_IN, CA_VSTREAM_CTL_TIMEOUT(5),
+			CA_VSTREAM_CTL_START_DEADLINE,
+			CA_VSTREAM_CTL_END);
+
     /*
      * Copy stdin to file. The format is checked so that we can recognize
      * incomplete input and cancel the operation. With the sanity checks
@@ -501,6 +558,9 @@ int     main(int argc, char **argv)
     /* Override time information from the untrusted caller. */
     rec_fprintf(dst->stream, REC_TYPE_TIME, REC_TYPE_TIME_FORMAT,
 		REC_TYPE_TIME_ARG(start));
+    /* Override peer UID info. */
+    rec_fprintf(dst->stream, REC_TYPE_ATTR, "%s=%lu",
+		MAIL_ATTR_PEER_UID, (unsigned long) uid);
     for (;;) {
 	/* Don't allow PTR records. */
 	rec_type = rec_get_raw(VSTREAM_IN, buf, var_line_limit, REC_FLAG_NONE);
