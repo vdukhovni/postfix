@@ -285,6 +285,7 @@ case "$SYSTEM.$RELEASE" in
 FreeBSD.[2-7].*) SYSTYPE=FREEBSD$RELEASE_MAJOR
 		;;
 FreeBSD.[89].*)	SYSTYPE=FREEBSD$RELEASE_MAJOR
+		CCARGS="$CCARGS -DUSE_GETPEEREID"
 		: ${SHLIB_SUFFIX=.so}
 		: ${SHLIB_CFLAGS=-fPIC}
 		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
@@ -293,6 +294,7 @@ FreeBSD.[89].*)	SYSTYPE=FREEBSD$RELEASE_MAJOR
 		: ${PLUGIN_LD="${CC-gcc} -shared"}
 		;;
   FreeBSD.*)	SYSTYPE=FREEBSD$RELEASE_MAJOR
+		CCARGS="$CCARGS -DUSE_GETPEEREID"
 		: ${CC=cc}
 		: ${SHLIB_SUFFIX=.so}
 		: ${SHLIB_CFLAGS=-fPIC}
@@ -306,6 +308,7 @@ FreeBSD.[89].*)	SYSTYPE=FREEBSD$RELEASE_MAJOR
 OpenBSD.[2-4].*) SYSTYPE=OPENBSD$RELEASE_MAJOR
 		;;
   OpenBSD.*)	SYSTYPE=OPENBSD$RELEASE_MAJOR
+		CCARGS="$CCARGS -DUSE_GETPEEREID"
 		: ${CC=cc}
 		: ${SHLIB_SUFFIX=.so.1.0}
 		: ${SHLIB_CFLAGS=-fPIC}
@@ -319,6 +322,7 @@ OpenBSD.[2-4].*) SYSTYPE=OPENBSD$RELEASE_MAJOR
 NetBSD.[1-5].*)	SYSTYPE=NETBSD$RELEASE_MAJOR
 		;;
    NetBSD.*)	SYSTYPE=NETBSD$RELEASE_MAJOR
+		CCARGS="$CCARGS -DUSE_GETPEEREID"
 		: ${SHLIB_SUFFIX=.so}
 		: ${SHLIB_CFLAGS=-fPIC}
 		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
@@ -529,7 +533,7 @@ EOF
 		: ${PLUGIN_LD="${CC-gcc} -shared"}
 		;;
     Linux.*)	SYSTYPE=LINUX$RELEASE_MAJOR
-		CCARGS="$CCARGS -DGRATUITOUS_SCM_CREDENTIALS"
+		CCARGS="$CCARGS -DGRATUITOUS_SCM_CREDENTIALS -DUSE_SO_PEERCRED"
 		case "$CCARGS" in
 		 *-DNO_DB*) ;;
 		 *-DHAS_DB*) case "$AUXLIBS_DB" in
@@ -663,8 +667,10 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		       *) CCARGS="$CCARGS -DBIND_8_COMPAT -DNO_NETINFO";;
 		esac
 		# Darwin 9.0 (MacOS X 10.5) adds POSIX getpwnam_r/getpwuid_r
+		# and getpeereid.
 		case $RELEASE in
 		 [1-8].*) CCARGS="$CCARGS -DNO_POSIX_GETPW_R";;
+		       *) CCARGS="$CCARGS -DUSE_GETPEEREID";;
 		esac
 		# Darwin 10.3.0 no longer has <nameser8_compat.h>.
 		case $RELEASE in
@@ -888,7 +894,7 @@ CCARGS="$CCARGS -DSNAPSHOT"
 
 # Non-production: needs thorough testing, or major changes are still
 # needed before the code stabilizes.
-CCARGS="$CCARGS -DNONPROD='\"nonprod-postlink\"'"
+CCARGS="$CCARGS -DNONPROD='\"nonprod-postlift\"'"
 
 # Workaround: prepend Postfix include files before other include files.
 CCARGS="-I. -I../../include $CCARGS"

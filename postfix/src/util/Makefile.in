@@ -49,7 +49,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	sane_sockaddr_to_hostaddr.c normalize_ws.c valid_uri_scheme.c \
 	clean_ascii_cntrl_space.c normalize_v4mapped_addr.c ossl_digest.c \
 	mac_midna.c wrap_stat.c dynamicmaps.c find_inet_service.c wrap_netdb.c \
-	wrap_fcntl.c ugid_from_string.c
+	wrap_fcntl.c ugid_from_string.c get_unix_peer_creds.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -100,7 +100,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	normalize_ws.o valid_uri_scheme.o clean_ascii_cntrl_space.o \
 	normalize_v4mapped_addr.o ossl_digest.o mac_midna.o wrap_stat.o \
 	dynamicmaps.o find_inet_service.o wrap_netdb.o wrap_fcntl.o \
-	ugid_from_string.o
+	ugid_from_string.o get_unix_peer_creds.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -137,7 +137,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	clean_ascii_cntrl_space.h normalize_v4mapped_addr.h ossl_digest.h \
 	mac_midna.h wrap_stat.h dynamicmaps.h find_inet_service.h wrap_netdb.h \
 	wrap_fcntl.h ubsan_logger.h defs_for_main.h asan_logger.h \
-	ugid_from_string.h
+	ugid_from_string.h get_unix_peer_creds.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	sunos5_stream_test.c dup2_pass_on_exec.c argv_test.c dict_pipe_test.c \
 	dict_stream_test.c dict_cli.c dict_union_test.c \
@@ -2284,6 +2284,10 @@ get_hostname.o: msg.h
 get_hostname.o: mymalloc.h
 get_hostname.o: sys_defs.h
 get_hostname.o: valid_hostname.h
+get_unix_peer_creds.o: get_unix_peer_creds.c
+get_unix_peer_creds.o: get_unix_peer_creds.h
+get_unix_peer_creds.o: msg.h
+get_unix_peer_creds.o: sys_defs.h
 hash_fnv.o: hash_fnv.c
 hash_fnv.o: hash_fnv.h
 hash_fnv.o: ldseed.h

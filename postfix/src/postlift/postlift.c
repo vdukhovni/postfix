@@ -32,20 +32,13 @@
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
 /* BUGS
-/*	Temporary limitation: When an unprivileged client command is
-/*	waiting for an elevated child process, killing the unprivileged
-/*	client will not terminate the elevated child. This can cause
-/*	multiple processes to read from the same terminal simultaneously,
-/*	making the terminal unusable. To minimize this risk, client
-/*	commands that read from stdin will automatically time out after
-/*	a few seconds if stdin is connected to a terminal.
-/*
 /*	Email submissions from non-root users will be lost before the
 /*	postlift(8) socket is activated.
 /*
-/*	There is no system-independent API to request peer credentials
-/*	for a UNIX-domain socket. Consequently, this program is
-/*	broken on some versions of some systems.
+/*	There is no standard API to request peer credentials for a
+/*	UNIX-domain socket. Consequently, this program will always fail
+/*	on ancient systems and on systems other than Linux, FreeBSD,
+/*	MacOS, NetBSD, OpenBSD, and Solaris.
 /* ENVIRONMENT
 /* .ad
 /* .fi
@@ -89,16 +82,14 @@
  /*
   * System library.
   */
-#define _GNU_SOURCE			/* Must be first */
 #include <sys_defs.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
-#include <sys/un.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <sysexits.h>
-#include <unistd.h>
 #include <defs_for_main.h>
 
  /*
@@ -108,6 +99,8 @@
 #include <argv_attr.h>
 #include <attr.h>
 #include <clean_env.h>
+#include <events.h>
+#include <get_unix_peer_creds.h>
 #include <msg.h>
 #include <msg_vstream.h>
 #include <stringops.h>
@@ -128,6 +121,11 @@
 #include <plift_clnt.h>
 
  /*
+  * Application-specific.
+  */
+#include <postlift_sig.h>
+
+ /*
   * The commands that we are willing to run with elevated privilege.
   */
 static const char *allowed_cmds[] = {
@@ -146,6 +144,20 @@ static const char *allowed_cmds[] = {
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
+
+/* client_event - handle client disconnect */
+
+static void client_event(int unused_event, void *context)
+{
+    pid_t   pid = *(pid_t *) context;
+
+    /*
+     * A legitimate client will quietly wait for the child to finish. If it
+     * doesn't, kill the child to prevent a resource exhaustion attack.
+     */
+    if (kill(pid, SIGHUP) < 0)
+	msg_warn("terminate child pid %lu: %m", (unsigned long) pid);
+}
 
 /* run_with_redirect - fork() and execve() command with I/O redirect */
 
@@ -177,7 +189,15 @@ static int run_with_redirect(const char *path, char **argv, char **envp,
 	    msg_fatal("execv %s: %m", path);
 	    /* NOTREACHED */
 	default:
+	    plift_sigsetup();
+	    event_enable_read(STDIN_FILENO, client_event, (void *) &pid);
 	    do {
+		event_loop(-1);
+		if (plift_gotsigchld) {
+		    if (msg_verbose)
+			msg_info("got sigchld");
+		    plift_gotsigchld = 0;
+		}
 		wpid = waitpid(pid, &status, 0);
 	    } while (wpid == -1 && errno == EINTR);
 	    return (wpid == -1 ? default_status :
@@ -207,8 +227,8 @@ int     main(int argc, char **argv)
     uid_t   my_uid;
     gid_t   my_gid;
     struct mypasswd *postdrop_pwd;
-    struct ucred peer_creds;
-    SOCKOPT_SIZE peer_cr_len = sizeof(peer_creds);
+uid_t peer_uid;
+gid_t peer_gid;
     ARGV   *import_env;
     int     rcvd_stdin_fd, rcvd_stdout_fd, rcvd_stderr_fd;
     VSTRING *rcvd_cmd;
@@ -366,8 +386,7 @@ int     main(int argc, char **argv)
      * a new socket location type (not /var/spool/postfix/public), and add
      * spawn(8) syntax to enforce an anvil(8) concurrency limit.
      */
-    if (getsockopt(STDIN_FILENO, SOL_SOCKET,
-		   SO_PEERCRED, &peer_creds, &peer_cr_len) != 0)
+    if (get_unix_peer_creds(STDIN_FILENO, &peer_uid, &peer_gid) != 0)
 	msg_fatal("receive peer credentials: %m");
 
     /*
@@ -463,7 +482,7 @@ int     main(int argc, char **argv)
      * Add the PEER_UID for postdrop(1) etc. admission control.
      */
     vstring_sprintf(env_entry, "%s=%lu", PLIST_ENV_PEER_UID,
-		    (unsigned long) peer_creds.uid);
+		    (unsigned long) peer_uid);
     argv_add(rcvd_envp, STR(env_entry), (char *) 0);
 
     /*

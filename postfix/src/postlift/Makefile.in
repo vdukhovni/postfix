@@ -1,6 +1,6 @@
 SHELL	= /bin/sh
-SRCS	= postlift.c
-OBJS	= postlift.o
+SRCS	= postlift.c postlift_sig.c
+OBJS	= postlift.o postlift_sig.o
 HDRS	= 
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -54,6 +54,8 @@ postlift.o: ../../include/attr.h
 postlift.o: ../../include/check_arg.h
 postlift.o: ../../include/clean_env.h
 postlift.o: ../../include/defs_for_main.h
+postlift.o: ../../include/events.h
+postlift.o: ../../include/get_unix_peer_creds.h
 postlift.o: ../../include/htable.h
 postlift.o: ../../include/iostuff.h
 postlift.o: ../../include/mail_conf.h
@@ -77,3 +79,12 @@ postlift.o: ../../include/vbuf.h
 postlift.o: ../../include/vstream.h
 postlift.o: ../../include/vstring.h
 postlift.o: postlift.c
+postlift.o: postlift_sig.h
+postlift_sig.o: ../../include/events.h
+postlift_sig.o: ../../include/iostuff.h
+postlift_sig.o: ../../include/killme_after.h
+postlift_sig.o: ../../include/msg.h
+postlift_sig.o: ../../include/posix_signals.h
+postlift_sig.o: ../../include/sys_defs.h
+postlift_sig.o: postlift_sig.c
+postlift_sig.o: postlift_sig.h

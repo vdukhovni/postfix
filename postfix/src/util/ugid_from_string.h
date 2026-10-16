@@ -25,6 +25,5 @@ extern int gid_from_string(const char *gid_str, gid_t *out);
 /*	Wietse Venema
 /*	porcupine.org
 /*--*/
-/**INDENT** Error@16: Unmatched #endif */
 
 #endif

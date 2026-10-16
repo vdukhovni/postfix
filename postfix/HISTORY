@@ -32244,6 +32244,13 @@ Apologies for any names omitted.
 	plift_clnt.h, pickup.c postdrop.c, postlift.c, postlog.c,
 	postqueue.c.
 
+	Non-Linux support to look up the peer UID for a UNIX-domain
+	connection. Files: makedefs, postlift.c, get_unix_peer_creds.[hc].
+
+	Tech debt: postlift(8) now actively terminates a child
+	process with SIGHUP when its client goes away. Files:
+	postlift.c, postlift_sig.[hc], postdrop.c, postlog.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

@@ -12,10 +12,13 @@
 /*	unix_recv_fd() receives a file descriptor via the specified
 /*	UNIX-domain socket. The result value is the received descriptor.
 /*
-/*	Some systems insist on prepending a gratuitous SCM_CREDENTIALS
-/*	message with each file descriptor. This implementation increases
-/*	the receive buffer size to avoid receiving no information at all,
-/*	and discards the SCM_CREDENTIALS.
+/*	Some systems insist on prepending a large and gratuitous
+/*	SCM_CREDENTIALS message when the client only sent a small file
+/*	descriptor message. The result was that the server received
+/*	neither the credentials nor the file descriptor. As a workaround
+/*	this implementation increases the receive buffer size to
+/*	accept the credentials and file descriptor, and discards the
+/*	SCM_CREDENTIALS.
 /*
 /*	Arguments:
 /* .IP fd

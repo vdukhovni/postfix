@@ -42,20 +42,13 @@ Problems are reported to the standard error stream.
 .SH BUGS
 .ad
 .fi
-Temporary limitation: When an unprivileged client command is
-waiting for an elevated child process, killing the unprivileged
-client will not terminate the elevated child. This can cause
-multiple processes to read from the same terminal simultaneously,
-making the terminal unusable. To minimize this risk, client
-commands that read from stdin will automatically time out after
-a few seconds if stdin is connected to a terminal.
-
 Email submissions from non\-root users will be lost before the
 postlift(8) socket is activated.
 
-There is no system\-independent API to request peer credentials
-for a UNIX\-domain socket. Consequently, this program is
-broken on some versions of some systems.
+There is no standard API to request peer credentials for a
+UNIX\-domain socket. Consequently, this program will always fail
+on ancient systems and on systems other than Linux, FreeBSD,
+MacOS, NetBSD, OpenBSD, and Solaris.
 .SH "ENVIRONMENT"
 .na
 .nf

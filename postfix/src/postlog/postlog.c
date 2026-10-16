@@ -437,11 +437,6 @@ int     main(int argc, char **argv)
     if (argc > optind) {
 	log_argv(level, argv + optind);
     } else {
-	/* Avoid confusion when running under postlift(8). */
-	if (isatty(vstream_fileno(VSTREAM_IN)))
-	    vstream_control(VSTREAM_IN, CA_VSTREAM_CTL_TIMEOUT(5),
-			    CA_VSTREAM_CTL_START_DEADLINE,
-			    CA_VSTREAM_CTL_END);
 	log_stream(level, VSTREAM_IN);
     }
 

@@ -132,7 +132,6 @@
 
 #include <sys_defs.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>			/* remove() */
 #include <string.h>
@@ -531,12 +530,6 @@ int     main(int argc, char **argv)
 	       ATTR_TYPE_END);
     vstream_fflush(VSTREAM_OUT);
     postdrop_path = mystrdup(VSTREAM_PATH(dst->stream));
-
-    /* Avoid confusion when running under postlift(8). */
-    if (isatty(vstream_fileno(VSTREAM_IN)))
-	vstream_control(VSTREAM_IN, CA_VSTREAM_CTL_TIMEOUT(5),
-			CA_VSTREAM_CTL_START_DEADLINE,
-			CA_VSTREAM_CTL_END);
 
     /*
      * Copy stdin to file. The format is checked so that we can recognize
