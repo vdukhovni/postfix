@@ -6,17 +6,20 @@
 /* SYNOPSIS
 /*	\fBpostlift\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR]
 /* DESCRIPTION
-/*	On systems that disable set-gid privilege elevation, an
-/*	unprivileged Postfix postdrop(1), postlog(1) and postqueue(1)
-/*	client command will connect to the postlift(8) service, requesting
-/*	that postlift(8) runs the same command (postdrop(1) etc.) in a
-/*	child process with "postdrop" user and group privileges.
+/*	This program implements an alternative privilege elevation
+/*	method for systems that disable set-gid support.
 /*
-/*	This allows the elevated child process to add a message to
-/*	the protected Postfix maildrop queue, or to interact with a
-/*	Postfix core daemon process. postlift(8) propagates the exit
-/*	status from the elevated child process back to the unprivileged
-/*	client command.
+/*	On these systems, postlift(8) replaces set-gid privilege
+/*	elevation with a client-server mechanism. An unprivileged Postfix
+/*	client command (postdrop(1), postlog(1) or postqueue(1)) connects
+/*	to the postlift(8) service, requesting that postlift(8) runs
+/*	the exact same command (postdrop(1) etc.) in a child process with
+/*	"postdrop" user and group privileges.
+/*
+/*	These elevated privileges allow the child process to add a
+/*	message to the protected Postfix maildrop queue, or to interact
+/*	with a Postfix core daemon process. postlift(8) propagates the
+/*	child process exit status back to the unprivileged client command.
 /*
 /*	See the Postfix NO_NEW_PRIVILEGES_README documentation for
 /*	background and for activating the postlift(8) service with
@@ -36,9 +39,10 @@
 /*	postlift(8) socket is activated.
 /*
 /*	There is no standard API to request peer credentials for a
-/*	UNIX-domain socket. Consequently, this program will always fail
-/*	on ancient systems and on systems other than Linux, FreeBSD,
-/*	MacOS, NetBSD, OpenBSD, and Solaris.
+/*	UNIX-domain connection. Consequently, this program works only
+/*	on FreeBSD, Linux, MacOS, NetBSD, OpenBSD, and Solaris systems
+/*	released after 2007 or so; on other systems all requests will
+/*	fail.
 /* ENVIRONMENT
 /* .ad
 /* .fi
@@ -52,16 +56,28 @@
 /*
 /*	The text below provides only a parameter summary. See
 /*	\fBpostconf\fR(5) for more details including examples.
+/* CONFIGURATION CONTROLS
+/* .ad
+/* .fi
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
-/* .IP "\fBmail_owner (postfix)\fR"
-/*	The UNIX system account that owns the Postfix queue and most Postfix
-/*	daemon processes.
+/* RESOURCE CONTROLS
+/* .ad
+/* .fi
 /* .IP "\fBfork_attempts (5)\fR"
 /*	The maximal number of attempts to fork() a child process.
 /* .IP "\fBfork_delay (1s)\fR"
 /*	The delay between attempts to fork() a child process.
+/* CREDENTIAL CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBdefault_privs (nobody)\fR"
+/*	The default rights used by the \fBlocal\fR(8) delivery agent for delivery
+/*	to an external file or command.
+/* .IP "\fBmail_owner (postfix)\fR"
+/*	The UNIX system account that owns the Postfix queue and most Postfix
+/*	daemon processes.
 /* .IP "\fBsetgid_group (postdrop)\fR"
 /*	The group ownership of set-gid Postfix commands and of group-writable
 /*	Postfix directories.
@@ -85,10 +101,8 @@
 #include <sys_defs.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
-#include <sys/wait.h>
 #include <string.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <sysexits.h>
 #include <defs_for_main.h>
 
@@ -96,10 +110,7 @@
   * Utility library.
   */
 #include <argv.h>
-#include <argv_attr.h>
-#include <attr.h>
 #include <clean_env.h>
-#include <events.h>
 #include <get_unix_peer_creds.h>
 #include <msg.h>
 #include <msg_vstream.h>
@@ -117,13 +128,14 @@
 #include <mail_proto.h>
 #include <mail_task.h>
 #include <mail_version.h>
-#include <mypwd.h>
 #include <plift_clnt.h>
 
  /*
   * Application-specific.
   */
-#include <postlift_sig.h>
+#include <postlift_creds.h>
+#include <postlift_run.h>
+#include <postlift_req.h>
 
  /*
   * The commands that we are willing to run with elevated privilege.
@@ -140,75 +152,6 @@ static const char *allowed_cmds[] = {
   */
 #define STR(x)	vstring_str(x)
 
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdio.h>
-
-/* client_event - handle client disconnect */
-
-static void client_event(int unused_event, void *context)
-{
-    pid_t   pid = *(pid_t *) context;
-
-    /*
-     * A legitimate client will quietly wait for the child to finish. If it
-     * doesn't, kill the child to prevent a resource exhaustion attack.
-     */
-    if (kill(pid, SIGHUP) < 0)
-	msg_warn("terminate child pid %lu: %m", (unsigned long) pid);
-}
-
-/* run_with_redirect - fork() and execve() command with I/O redirect */
-
-static int run_with_redirect(const char *path, char **argv, char **envp,
-			             int stdin_fd, int stdout_fd)
-{
-    int     count;
-
-    /*
-     * The exit status will be used by a Zone 1 client process. If no status
-     * is available, return something from <sysexits.h>.
-     */
-    int     default_status = EX_OSERR;
-
-    for (count = 0; count < var_fork_tries; count++) {
-	pid_t   pid, wpid;
-	int     status;
-
-	switch (pid = fork()) {
-	case -1:
-	    msg_warn("fork %s: %m", path);
-	    break;
-	case 0:
-	    /* STDERR_FILENO was already set up in the parent. */
-	    if (dup2(stdin_fd, STDIN_FILENO) < 0
-		|| dup2(stdout_fd, STDOUT_FILENO) < 0)
-		msg_fatal("dup2 stdin or stdout: %m");
-	    execve(path, argv, envp);
-	    msg_fatal("execv %s: %m", path);
-	    /* NOTREACHED */
-	default:
-	    plift_sigsetup();
-	    event_enable_read(STDIN_FILENO, client_event, (void *) &pid);
-	    do {
-		event_loop(-1);
-		if (plift_gotsigchld) {
-		    if (msg_verbose)
-			msg_info("got sigchld");
-		    plift_gotsigchld = 0;
-		}
-		wpid = waitpid(pid, &status, 0);
-	    } while (wpid == -1 && errno == EINTR);
-	    return (wpid == -1 ? default_status :
-		    WIFEXITED(status) ? WEXITSTATUS(status) :
-		    WIFSIGNALED(status) ? EX_SOFTWARE : default_status);
-	}
-	sleep(var_fork_delay);
-    }
-    return (default_status);
-}
-
 /* usage - explain */
 
 static NORETURN usage(char *myname)
@@ -224,27 +167,21 @@ int     main(int argc, char **argv)
     struct stat st;
     int     ch;
     char   *slash;
-    uid_t   my_uid;
-    gid_t   my_gid;
-    struct mypasswd *postdrop_pwd;
-uid_t peer_uid;
-gid_t peer_gid;
+    uid_t   peer_uid;
+    gid_t   peer_gid;
     ARGV   *import_env;
     int     rcvd_stdin_fd, rcvd_stdout_fd, rcvd_stderr_fd;
     VSTRING *rcvd_cmd;
-    VSTREAM *serialized_fp;
-    int     serialized_size;
-    VSTRING *serialized_buf;
     ARGV   *rcvd_argv;
     VSTRING *rcvd_config_dir;
     ARGV   *rcvd_envp;
     VSTRING *env_entry;
-    const char **cpp;
     char   *path;
+    pid_t   child_pid;
     int     status;
 
     /*
-     * Begin ~70 lines of boilerplate code for commands that run with
+     * Begin >70 lines of boilerplate code for commands that run with
      * effective (uid, gid) equal to real (uid, gid).
      */
 #if defined(CODE_FOR_MAIN)
@@ -322,60 +259,19 @@ gid_t peer_gid;
     mail_dict_init();
 
     /*
-     * End ~70 lines of boilerplate code for commands that run with effective
+     * End >70 lines of boilerplate code for commands that run with effective
      * (uid, gid) equal to real (uid, gid).
      */
-
-    /*
-     * Sanity checks: UID.
-     */
-    if ((my_uid = getuid()) != geteuid())
-	msg_fatal("This program MUST NOT run with set-uid privileges");
-    if ((postdrop_pwd = mypwnam(var_sgid_group)) == 0)
-	msg_fatal("No '%s' account in the passwd database", var_sgid_group);
-    if (my_uid != postdrop_pwd->pw_uid)
-	msg_fatal("This program MUST run with the '%s' user ID (%lu)",
-		  var_sgid_group, (unsigned long) postdrop_pwd->pw_uid);
-
-    /*
-     * Don't allow UID sharing with other accounts. Some of these checks may
-     * overlap with similar checks in mail_params.c.
-     */
-    if (my_uid == 0)
-	msg_fatal("This program MUST NOT run with the super-user ID (0)");
-    if (my_uid == var_owner_uid)
-	msg_fatal("This program MUST NOT run with the '%s' user ID (%lu)",
-		  var_mail_owner, (unsigned long) var_owner_uid);
-    if (my_uid == var_default_uid)
-	msg_fatal("This program MUST NOT run with the '%s' user ID (%lu)",
-		  var_default_privs, (unsigned long) var_default_uid);
-
-    /*
-     * Sanity checks: GID.
-     */
-    if ((my_gid = getgid()) != getegid())
-	msg_fatal("This program MUST NOT with set-gid privileges");
-    if (my_gid != var_sgid_gid)
-	msg_fatal("This program MUST run with the '%s' group ID (%lu)",
-		  var_sgid_group, (unsigned long) var_sgid_gid);
-
-    /*
-     * Don't allow GID sharing with other accounts. Some of these checks may
-     * overlap with similar checks in mail_params.c.
-     */
-    if (my_gid == 0)
-	msg_fatal("This program MUST NOT run with privileged group ID (0)");
-    if (my_gid == var_owner_gid)
-	msg_fatal("This program MUST NOT run with the '%s' group ID (%lu)",
-		  var_mail_owner, (unsigned long) var_owner_gid);
-    if (my_gid == var_default_uid)
-	msg_fatal("This program MUST NOT run with the '%s' user ID (%lu)",
-		  var_default_privs, (unsigned long) var_default_gid);
 
     /*
      * General policy: legitimate clients don't make mistakes. Terminate
      * ungracefully as soon as something is wrong.
      */
+
+    /*
+     * Enforce security zone hygiene.
+     */
+    plift_valid_creds_or_die(getuid(), getgid());
 
     /*
      * Get the peer UID. This is needed to enforce admission policy in the
@@ -391,47 +287,25 @@ gid_t peer_gid;
 
     /*
      * Before we exchange any information with the client, announce the
-     * application protocol.
+     * application protocol. All errors are fatal.
      */
-    attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,
-	       SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_POSTLIFT),
-	       SEND_ATTR_INT(MAIL_ATTR_STATUS, 0),
-	       ATTR_TYPE_END);
-    vstream_fflush(VSTREAM_OUT);
+    plift_req_greet(VSTREAM_OUT);
 
     /*
      * Receive caller-specified (stdin, stdout, stderr) file descriptors, and
      * override our stderr, so that error messages will reach the caller's
-     * user.
+     * user. All errors are fatal.
      */
-    if ((rcvd_stdin_fd = LOCAL_RECV_FD(STDIN_FILENO)) < 0)
-	msg_fatal("receive client stdin=%d: %m", rcvd_stdin_fd);
-    if ((rcvd_stdout_fd = LOCAL_RECV_FD(STDIN_FILENO)) < 0)
-	msg_fatal("receive client stdout: %m");
-    if ((rcvd_stderr_fd = LOCAL_RECV_FD(STDIN_FILENO)) < 0)
-	msg_fatal("receive client stderr: %m");
+    plift_req_fds(STDIN_FILENO, &rcvd_stdin_fd, &rcvd_stdout_fd,
+		  &rcvd_stderr_fd);
     if (dup2(rcvd_stderr_fd, STDERR_FILENO) < 0)
 	msg_fatal("dup2 received stderr to my stderr: %m");
 
     /*
      * Receive one size-limited blob with all other request data. This
      * implies an upper bound on the size of strings. argv_attr_scan()
-     * enforces its own bound on the number of array elements.
-     */
-    if (attr_scan(VSTREAM_IN, ATTR_FLAG_NONE,
-		  RECV_ATTR_INT(MAIL_ATTR_SIZE, &serialized_size),
-		  ATTR_TYPE_END) != 1)
-	msg_fatal("receive serialized size");
-    if (serialized_size < 1 || serialized_size > PLIST_REQ_MAXLEN)
-	msg_fatal("serialized request too large");
-    serialized_buf = vstring_alloc(serialized_size);
-    if (vstream_fread(VSTREAM_IN, STR(serialized_buf),
-		      serialized_size) != serialized_size)
-	msg_fatal("receive serialized request data: %m");
-    vstring_set_payload_size(serialized_buf, serialized_size);
-    serialized_fp = vstream_memopen(serialized_buf, O_RDONLY);
-
-    /*
+     * enforces its own bound on the number of elements in an array.
+     * 
      * Deserialize the received command name, command-line array, and
      * environment. The environment is limited to MAIL_CONFIG, which is the
      * only environment setting that set-gid postdrop etc. commands
@@ -440,31 +314,8 @@ gid_t peer_gid;
     rcvd_cmd = vstring_alloc(100);
     rcvd_argv = 0;
     rcvd_config_dir = vstring_alloc(100);
-    if (attr_scan(serialized_fp, ATTR_FLAG_NONE,
-		  RECV_ATTR_STR(MAIL_ATTR_ACTION, rcvd_cmd),
-		  RECV_ATTR_FUNC(argv_attr_scan, (void *) &rcvd_argv),
-		  RECV_ATTR_STR(CONF_ENV_PATH, rcvd_config_dir),
-		  ATTR_TYPE_END) != 3)
-	msg_fatal("receive request parameters: %m");
-    vstream_fclose(serialized_fp);
-    vstring_free(serialized_buf);
-
-    /*
-     * Input sanitization: Validate the received command name.
-     */
-    for (cpp = allowed_cmds; /* see below */ ; cpp++) {
-	if (*cpp == 0)
-	    msg_fatal_status(0, "invalid command name: '%s'", STR(rcvd_cmd));
-	if (strcmp(STR(rcvd_cmd), *cpp) == 0)
-	    break;
-    }
-
-    /*
-     * Input sanitization: Validate the received command array size. The
-     * child process is responsible for sanitizing its command line.
-     */
-    if (rcvd_argv == 0 || rcvd_argv->argc < 1)
-	msg_fatal_status(0, "empty command line array");
+    plift_req_data(VSTREAM_IN, allowed_cmds, rcvd_cmd, &rcvd_argv,
+		   rcvd_config_dir);
 
     /*
      * Add the received MAIL_CONFIG setting to the target environment. The
@@ -481,18 +332,21 @@ gid_t peer_gid;
     /*
      * Add the PEER_UID for postdrop(1) etc. admission control.
      */
-    vstring_sprintf(env_entry, "%s=%lu", PLIST_ENV_PEER_UID,
+    vstring_sprintf(env_entry, "%s=%lu", PLIFT_ENV_PEER_UID,
 		    (unsigned long) peer_uid);
     argv_add(rcvd_envp, STR(env_entry), (char *) 0);
 
     /*
-     * Run the received command in a child process. The parent process holds
-     * the peer connection open, and reports the command status back to the
-     * peer.
+     * Run the received command in a child process. The parent process waits
+     * for the child to terminate or for the client to disconnect, and
+     * reports the command exit status back to the peer.
      */
     path = concatenate(var_command_dir, "/", STR(rcvd_cmd), (char *) 0);
-    status = run_with_redirect(path, rcvd_argv->argv, rcvd_envp->argv,
-			       rcvd_stdin_fd, rcvd_stdout_fd);
+    if ((child_pid = plift_run(path, rcvd_argv->argv, rcvd_envp->argv,
+			       rcvd_stdin_fd, rcvd_stdout_fd)) <= 0)
+	status = EX_OSERR;
+    else
+	status = plift_wait(child_pid, STDIN_FILENO, EX_SOFTWARE);
     myfree(path);
 
     attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,

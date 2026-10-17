@@ -453,10 +453,10 @@ int     main(int argc, char **argv)
 	&& uid == postdrop_pwd->pw_uid) {
 	const char *peer_uid_str;
 
-	if ((peer_uid_str = getenv(PLIST_ENV_PEER_UID)) == 0)
-	    msg_fatal("missing '%s' environment", PLIST_ENV_PEER_UID);
+	if ((peer_uid_str = getenv(PLIFT_ENV_PEER_UID)) == 0)
+	    msg_fatal("missing '%s' environment", PLIFT_ENV_PEER_UID);
 	if (uid_from_string(peer_uid_str, &uid) < 0)
-	    msg_fatal("malformed '%s' environment", PLIST_ENV_PEER_UID);
+	    msg_fatal("malformed '%s' environment", PLIFT_ENV_PEER_UID);
     }
 
     /*

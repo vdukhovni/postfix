@@ -889,7 +889,7 @@ void    mail_params_init(void)
 	VAR_NBDB_SERVICE, DEF_NBDB_SERVICE, &var_nbdb_service, 0, 0,
 	VAR_NBDB_CUST_MAP, DEF_NBDB_CUST_MAP, &var_nbdb_cust_map, 0, 0,
 	VAR_VERIFY_SENDER, DEF_VERIFY_SENDER, &var_verify_sender, 0, 0,
-	VAR_PLIST_SOCK_PATH, DEF_PLIST_SOCK_PATH, &var_plift_sock_path, 1, 0,
+	VAR_PLIFT_SOCK_PATH, DEF_PLIFT_SOCK_PATH, &var_plift_sock_path, 1, 0,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

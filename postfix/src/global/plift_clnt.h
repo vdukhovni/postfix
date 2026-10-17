@@ -24,9 +24,9 @@
  /*
   * External interface.
   */
-#define PLIST_ENV_PEER_UID	"PEER_UID"
-#define PLIST_REQ_MAXLEN	1024
-#define PLIST_INIT_TIMEOUT	10
+#define PLIFT_ENV_PEER_UID	"PEER_UID"
+#define PLIFT_REQ_MAXLEN	1024
+#define PLIFT_INIT_TIMEOUT	10
 
 extern int plift_clnt_request(const char *, const char *, int, char **,
 				        int, int, int, const char *);

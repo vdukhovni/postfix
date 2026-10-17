@@ -4811,8 +4811,8 @@ extern int var_tls_trace_anvil_rate;
  /*
   * postlift(8) support.
   */
-#define VAR_PLIST_SOCK_PATH	"postlift_socket_path"
-#define DEF_PLIST_SOCK_PATH	"/var/run/postfix/postlift.socket"
+#define VAR_PLIFT_SOCK_PATH	"postlift_socket_path"
+#define DEF_PLIFT_SOCK_PATH	"/var/run/postfix/postlift.socket"
 extern char *var_plift_sock_path;
 
 /* LICENSE

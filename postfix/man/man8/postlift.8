@@ -12,17 +12,20 @@ Postfix client privilege elevator
 .SH DESCRIPTION
 .ad
 .fi
-On systems that disable set\-gid privilege elevation, an
-unprivileged Postfix postdrop(1), postlog(1) and postqueue(1)
-client command will connect to the postlift(8) service, requesting
-that postlift(8) runs the same command (postdrop(1) etc.) in a
-child process with "postdrop" user and group privileges.
+This program implements an alternative privilege elevation
+method for systems that disable set\-gid support.
 
-This allows the elevated child process to add a message to
-the protected Postfix maildrop queue, or to interact with a
-Postfix core daemon process. postlift(8) propagates the exit
-status from the elevated child process back to the unprivileged
-client command.
+On these systems, postlift(8) replaces set\-gid privilege
+elevation with a client\-server mechanism. An unprivileged Postfix
+client command (postdrop(1), postlog(1) or postqueue(1)) connects
+to the postlift(8) service, requesting that postlift(8) runs
+the exact same command (postdrop(1) etc.) in a child process with
+"postdrop" user and group privileges.
+
+These elevated privileges allow the child process to add a
+message to the protected Postfix maildrop queue, or to interact
+with a Postfix core daemon process. postlift(8) propagates the
+child process exit status back to the unprivileged client command.
 
 See the Postfix NO_NEW_PRIVILEGES_README documentation for
 background and for activating the postlift(8) service with
@@ -46,9 +49,10 @@ Email submissions from non\-root users will be lost before the
 postlift(8) socket is activated.
 
 There is no standard API to request peer credentials for a
-UNIX\-domain socket. Consequently, this program will always fail
-on ancient systems and on systems other than Linux, FreeBSD,
-MacOS, NetBSD, OpenBSD, and Solaris.
+UNIX\-domain connection. Consequently, this program works only
+on FreeBSD, Linux, MacOS, NetBSD, OpenBSD, and Solaris systems
+released after 2007 or so; on other systems all requests will
+fail.
 .SH "ENVIRONMENT"
 .na
 .nf
@@ -66,16 +70,34 @@ to this program.
 
 The text below provides only a parameter summary. See
 \fBpostconf\fR(5) for more details including examples.
+.SH "CONFIGURATION CONTROLS"
+.na
+.nf
+.ad
+.fi
 .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 The default location of the Postfix main.cf and master.cf
 configuration files.
-.IP "\fBmail_owner (postfix)\fR"
-The UNIX system account that owns the Postfix queue and most Postfix
-daemon processes.
+.SH "RESOURCE CONTROLS"
+.na
+.nf
+.ad
+.fi
 .IP "\fBfork_attempts (5)\fR"
 The maximal number of attempts to fork() a child process.
 .IP "\fBfork_delay (1s)\fR"
 The delay between attempts to fork() a child process.
+.SH "CREDENTIAL CONTROLS"
+.na
+.nf
+.ad
+.fi
+.IP "\fBdefault_privs (nobody)\fR"
+The default rights used by the \fBlocal\fR(8) delivery agent for delivery
+to an external file or command.
+.IP "\fBmail_owner (postfix)\fR"
+The UNIX system account that owns the Postfix queue and most Postfix
+daemon processes.
 .IP "\fBsetgid_group (postdrop)\fR"
 The group ownership of set\-gid Postfix commands and of group\-writable
 Postfix directories.

@@ -108,7 +108,7 @@ int     plift_clnt_request(const char *service, const char *target_cmd,
     /*
      * Connect to the postlift service and validate the initial response.
      */
-    if ((plift_fd = LOCAL_CONNECT(service, BLOCKING, PLIST_INIT_TIMEOUT)) < 0) {
+    if ((plift_fd = LOCAL_CONNECT(service, BLOCKING, PLIFT_INIT_TIMEOUT)) < 0) {
 	msg_warn("connect to %s service: %m", service);
 	return (EX_UNAVAILABLE);
     }
@@ -148,7 +148,7 @@ int     plift_clnt_request(const char *service, const char *target_cmd,
      * From here on, all returns must use this macro. serialized_fp is
      * excluded here, because it is always closed before returning.
      */
-#define PLIST_CLNT_RETURN(st) do { \
+#define PLIFT_CLNT_RETURN(st) do { \
 	int __st = (st); \
 	if (plift_fp) \
 	    vstream_fclose(plift_fp); \
@@ -170,7 +170,7 @@ int     plift_clnt_request(const char *service, const char *target_cmd,
 	       ATTR_TYPE_END);
     if (vstream_fclose(serialized_fp) != 0) {
 	msg_warn("cannot serialize %s service request: %m", service);
-	PLIST_CLNT_RETURN(EX_IOERR);
+	PLIFT_CLNT_RETURN(EX_IOERR);
     }
 
     /*
@@ -183,7 +183,7 @@ int     plift_clnt_request(const char *service, const char *target_cmd,
 			  LEN(serialized_req)) != LEN(serialized_req)
 	|| vstream_fflush(plift_fp) != 0) {
 	msg_warn("cannot send serialized request to %s service: %m", service);
-	PLIST_CLNT_RETURN(EX_IOERR);
+	PLIFT_CLNT_RETURN(EX_IOERR);
     }
 
     /*
@@ -197,5 +197,5 @@ int     plift_clnt_request(const char *service, const char *target_cmd,
 		  ATTR_TYPE_END) != 1)
 	msg_warn("receive command status from %s service: %m",
 		 VSTREAM_PATH(plift_fp));
-    PLIST_CLNT_RETURN(status);
+    PLIFT_CLNT_RETURN(status);
 }

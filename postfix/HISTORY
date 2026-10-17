@@ -32251,6 +32251,12 @@ Apologies for any names omitted.
 	process with SIGHUP when its client goes away. Files:
 	postlift.c, postlift_sig.[hc], postdrop.c, postlog.c.
 
+20261016
+
+	Cleanup: broke out lower-level postlift(8) code to facilitate
+	future low-level unit tests, and added per-module documentation.
+	Files: postlift_creds.[hc], postlift_run.[hc], postlift_req.[hc].
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.
