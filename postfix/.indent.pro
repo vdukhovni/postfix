@@ -456,6 +456,7 @@
 -Tdict_lookup_verify_data
 -Tfilter_ctx
 -Tgeneral_name_stack_t
+-Tgid_t
 -Tiana_digest
 -Toff_t
 -Tpem_load_state_t
@@ -474,6 +475,7 @@
 -Tssl_comp_stack_t
 -Ttime_t
 -Ttlsa_filter
+-Tuid_t
 -Tuint16_t
 -Tuint32_t
 -Tuint8_t

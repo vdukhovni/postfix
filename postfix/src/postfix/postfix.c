@@ -347,6 +347,7 @@
 /*	oqmgr(8), old Postfix queue manager
 /*	pickup(8), Postfix local mail pickup
 /*	pipe(8), deliver mail to non-Postfix command
+/*	postlift(8), Postfix client privilege elevator
 /*	postlogd(8), Postfix internal logging service
 /*	postscreen(8), Postfix zombie blocker
 /*	proxymap(8), Postfix lookup table proxy server

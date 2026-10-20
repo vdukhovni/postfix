@@ -55,6 +55,10 @@ POSTLOG(1)                                                          POSTLOG(1)
        and  later;  earlier  implementations  of  this  command  must not have
        set-groupid or set-userid permissions).
 
+       On systems where set-group ID privilege elevation is unavailable,  this
+       program  will reach out to the <a href="postlift.8.html"><b>postlift</b>(8)</a> service to run the same pro-
+       gram with elevated privilege.
+
 <b><a name="environment">ENVIRONMENT</a></b>
        MAIL_CONFIG
               Directory with the <a href="postconf.5.html"><b>main.cf</b></a> file. In order to avoid  exploitation
@@ -105,6 +109,13 @@ POSTLOG(1)                                                          POSTLOG(1)
               The  file  access  permissions  that  will  be set when the file
               $<a href="postconf.5.html#maillog_file">maillog_file</a> is created for the first time, or when the file is
               created after an existing file is rotated.
+
+       Available in Postfix version 3.12 and later:
+
+       <b>postlift_socket_path (/var/run/postfix/postlift.socket)</b>
+              A  UNIX-domain  stream  service  endpoint for <a href="postdrop.1.html"><b>postdrop</b>(1)</a>, <b>post-</b>
+              <b>log</b>(1) or <a href="postqueue.1.html"><b>postqueue</b>(1)</a> client programs that run without  set-gid
+              postdrop privileges.
 
 <b><a name="see_also">SEE ALSO</a></b>
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters

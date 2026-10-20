@@ -7,14 +7,20 @@
 /*	#include <safe.h>
 /*
 /*	int	unsafe()
+/*
+/*	void	set_unsafe(void)
 /* DESCRIPTION
 /*	The \fBunsafe()\fR routine attempts to determine if the process
 /*	(runs with privileges or has access to information) that the
 /*	controlling user has no access to. The purpose is to prevent
 /*	misuse of privileges, including access to protected information.
 /*
-/*	The result is always false when both of the following conditions
-/*	are true:
+/*	The unsafe() result is true after set_unsafe() is called, or
+/*	after a previous unsafe() call returns true (once unsafe,
+/*	always unsafe).
+/*
+/*	Otherwise, the result is false when both of the following
+/*	conditions are true:
 /* .IP \(bu
 /*	The real UID is zero.
 /* .IP \(bu
@@ -43,6 +49,9 @@
 /*	Google, Inc.
 /*	111 8th Avenue
 /*	New York, NY 10011, USA
+/*
+/*	Wietse Venema
+/*	porcupine.org
 /*--*/
 
 /* System library. */
@@ -54,10 +63,25 @@
 
 #include "safe.h"
 
+static int cached_unsafe;
+
+/* set_unsafe - permanently declare as unsafe */
+
+void    set_unsafe(void)
+{
+    cached_unsafe = 1;
+}
+
 /* unsafe - can we trust user-provided environment, working directory, etc. */
 
 int     unsafe(void)
 {
+
+    /*
+     * Once unsafe, always unsafe.
+     */
+    if (cached_unsafe)
+	return (cached_unsafe);
 
     /*
      * The super-user is trusted.
@@ -69,9 +93,12 @@ int     unsafe(void)
      * Danger: don't trust inherited process attributes, and don't leak
      * privileged info that the parent has no access to.
      */
-    return (geteuid() != getuid()
+    if (geteuid() != getuid()
 #ifdef HAS_ISSETUGID
-	    || issetugid()
+	|| issetugid()
 #endif
-	    || getgid() != getegid());
+	|| getgid() != getegid())
+	return (cached_unsafe = 1);
+
+    return (0);
 }

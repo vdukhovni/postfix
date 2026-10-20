@@ -77,13 +77,16 @@ postdrop.o: ../../include/myflock.h
 postdrop.o: ../../include/mymalloc.h
 postdrop.o: ../../include/mypwd.h
 postdrop.o: ../../include/nvtable.h
+postdrop.o: ../../include/plift_clnt.h
 postdrop.o: ../../include/rec_attr_map.h
 postdrop.o: ../../include/rec_type.h
 postdrop.o: ../../include/recipient_list.h
 postdrop.o: ../../include/record.h
+postdrop.o: ../../include/safe.h
 postdrop.o: ../../include/stringops.h
 postdrop.o: ../../include/sys_defs.h
 postdrop.o: ../../include/ubsan_logger.h
+postdrop.o: ../../include/ugid_from_string.h
 postdrop.o: ../../include/user_acl.h
 postdrop.o: ../../include/vbuf.h
 postdrop.o: ../../include/vstream.h

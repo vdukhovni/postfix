@@ -21037,3 +21037,16 @@ all Postfix daemons combined will create. Specify a value &le;0 to
 disable the limit. </p>
 
 <p> This feature is available in Postfix 3.12 and later. </p>
+
+%PARAM postlift_socket_path /var/run/postfix/postlift.socket
+
+<p> A UNIX-domain stream service endpoint for postdrop(1), postlog(1)
+or postqueue(1) client programs that run without set-gid postdrop
+privileges. Instead, they contact the postlift service to run their
+code, with postdrop user and group privileges, inside a controlled
+environment. </p>
+
+<p> This functionality was initially developed for Linux systems
+that enforce a "NoNewPrivileges" policy. </p>
+
+<p> This feature is available in Postfix 3.12 and later. </p>

@@ -367,3 +367,5 @@ void  void defer_ctx
 charset  charset 
 nbdb_safe_for_uid  nbdb_safe_for_uid owned by the user or root not group or other writable 
  Qualys Mythos 202606 int unsigned unsigned is non transitive 
+ the requested command command line array and MAIL_CONFIG
+unsafe  unsafe can we trust user provided environment working directory etc 

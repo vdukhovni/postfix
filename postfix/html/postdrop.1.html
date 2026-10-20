@@ -37,6 +37,10 @@ POSTDROP(1)                                                        POSTDROP(1)
        can write to the <b>maildrop</b> queue directory and so that it can connect to
        Postfix daemon processes.
 
+       On systems where set-group ID privilege elevation is unavailable,  this
+       program  will reach out to the <a href="postlift.8.html"><b>postlift</b>(8)</a> service to run the same pro-
+       gram with elevated privilege.
+
 <b><a name="diagnostics">DIAGNOSTICS</a></b>
        Fatal errors: malformed input, I/O error, out of memory.  Problems  are
        logged  to  <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a> and to the standard error stream.
@@ -110,6 +114,13 @@ POSTDROP(1)                                                        POSTDROP(1)
        <b><a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> (empty)</b>
               The set of characters that can separate an email address  local-
               part, user name, or a .forward file name from its extension.
+
+       Available in Postfix version 3.12 and later:
+
+       <b>postlift_socket_path (/var/run/postfix/postlift.socket)</b>
+              A  UNIX-domain  stream  service  endpoint for <a href="postdrop.1.html"><b>postdrop</b>(1)</a>, <b>post-</b>
+              <b>log</b>(1) or <a href="postqueue.1.html"><b>postqueue</b>(1)</a> client programs that run without  set-gid
+              postdrop privileges.
 
 <b><a name="files">FILES</a></b>
        /var/spool/postfix/<a href="QSHAPE_README.html#maildrop_queue">maildrop</a>, <a href="QSHAPE_README.html#maildrop_queue">maildrop queue</a>

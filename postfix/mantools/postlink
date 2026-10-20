@@ -886,6 +886,7 @@ while (<>) {
     s/[<bB>]*nbdb_reindexd[<\/bB>]*\(8\)/<a href="nbdb_reindexd.8.html">$&<\/a>/g;
     s/[<bB>]*pickup[<\/bB>]*\(8\)/<a href="pickup.8.html">$&<\/a>/g;
     s/[<bB>]*pipe[<\/bB>]*\(8\)/<a href="pipe.8.html">$&<\/a>/g;
+    s/[<bB>]*postlift[<\/bB>]*\(8\)/<a href="postlift.8.html">$&<\/a>/g;
     s/[<bB>]*postlogd[<\/bB>]*\(8\)/<a href="postlogd.8.html">$&<\/a>/g;
     s/[<bB>]*postscreen[<\/bB>]*\(8\)/<a href="postscreen.8.html">$&<\/a>/g;
     s/[<bB>]*oqmgr[<\/bB>]*\(8\)/<a href="qmgr.8.html">$&<\/a>/g;
@@ -905,7 +906,7 @@ while (<>) {
     s/[<bB>]*postal[-<\/bB>]*\n* *[<bB>]*ias[<\/bB>]*\(1\)/<a href="postalias.1.html">$&<\/a>/g;
     s/[<bB>]*postcat[<\/bB>]*\(1\)/<a href="postcat.1.html">$&<\/a>/g;
     s/[<bB>]*post[-<\/bB>]*\n*[ <bB>]*conf[<\/bB>]*\(1\)/<a href="postconf.1.html">$&<\/a>/g;
-    s/[<bB>]*postdrop[<\/bB>]*\(1\)/<a href="postdrop.1.html">$&<\/a>/g;
+    s/[<bB>]*post[-<\/bB>]*\n* *[<bB>]*drop[<\/bB>]*\(1\)/<a href="postdrop.1.html">$&<\/a>/g;
     s/[<bB>]*post[-<\/bB>]*\n* *[<bB>]*fix[<\/bB>]*\(1\)/<a href="postfix.1.html">$&<\/a>/g;
     s/[<bB>]*post[-<\/bB>]*\n* *[<bB>]*fix-tls[<\/bB>]*\(1\)/<a href="postfix-tls.1.html">$&<\/a>/g;
     s/[<bB>]*postfix-non-bdb[<\/bB>]*\(1\)/<a href="postfix-non-bdb.1.html">$&<\/a>/g;

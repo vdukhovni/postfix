@@ -105,6 +105,7 @@ $daemon_directory/nbdb_reindexd:f:root:-:755
 $daemon_directory/oqmgr:f:root:-:755
 $daemon_directory/pickup:f:root:-:755
 $daemon_directory/pipe:f:root:-:755
+$daemon_directory/postlift:f:root:-:755
 $daemon_directory/post-install:f:root:-:755
 # In case meta_directory == daemon_directory.
 #$daemon_directory/postfix-files:f:root:-:644:o
@@ -230,6 +231,7 @@ $manpage_directory/man8/nqmgr.8:f:root:-:644:o
 $manpage_directory/man8/oqmgr.8:f:root:-:644:
 $manpage_directory/man8/pickup.8:f:root:-:644
 $manpage_directory/man8/pipe.8:f:root:-:644
+$manpage_directory/man8/postlift.8:f:root:-:644
 $manpage_directory/man8/postlogd.8:f:root:-:644
 $manpage_directory/man8/postscreen.8:f:root:-:644
 $manpage_directory/man8/proxymap.8:f:root:-:644
@@ -453,6 +455,7 @@ $html_directory/postalias.1.html:f:root:-:644
 $html_directory/postcat.1.html:f:root:-:644
 $html_directory/postconf.1.html:f:root:-:644
 $html_directory/postconf.5.html:f:root:-:644
+$html_directory/postlift.8.html:f:root:-:644
 $html_directory/postdrop.1.html:f:root:-:644
 $html_directory/postfix-logo.jpg:f:root:-:644
 $html_directory/postfix-manuals.html:f:root:-:644

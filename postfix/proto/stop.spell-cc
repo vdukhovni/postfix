@@ -2022,3 +2022,17 @@ mer
 preflight
 stdbool
 ven
+ENOTSUP
+MaxConnectionsPerSource
+OSERR
+PEERCRED
+SCM
+creds
+envp
+execve
+getpeereid
+getpeerucred
+plift
+postlift
+rcvd
+systemd

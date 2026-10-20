@@ -57,7 +57,7 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <set_eugid.h>
-#include <sane_strtol.h>
+#include <ugid_from_string.h>
 
 /* Global library. */
 
@@ -177,8 +177,6 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     const char *uid_res;
     const char *gid_res;
     DSN_BUF *why = state.msg_attr.why;
-    char   *end;
-    unsigned long n;
 
     /*
      * Make verbose logging easier to understand.
@@ -239,8 +237,7 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 				BOUNCE_ATTR(state.msg_attr));
 	RETURN(YES);
     }
-    usr_attr.uid = (uid_t) (n = sane_strtoul(uid_res, &end, 10));
-    if (*end != 0 || errno != 0 || usr_attr.uid != n
+    if (uid_from_string(uid_res, &usr_attr.uid) < 0
 	|| usr_attr.uid == (uid_t) - 1		/* Special for safe_open()) */
 	|| usr_attr.uid < var_virt_minimum_uid) {
 	msg_warn("recipient %s: bad uid %s in %s",
@@ -264,8 +261,7 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
 				BOUNCE_ATTR(state.msg_attr));
 	RETURN(YES);
     }
-    usr_attr.gid = (gid_t) (n = sane_strtoul(gid_res, &end, 10));
-    if (*end != 0 || errno != 0 || usr_attr.gid !=n
+    if (gid_from_string(gid_res, &usr_attr.gid) < 0
 	|| usr_attr.gid == 0			/* Backwards compatibility */
 	|| usr_attr.gid == (gid_t) - 1) {	/* Special for safe_open()) */
 	msg_warn("recipient %s: bad gid %s in %s",

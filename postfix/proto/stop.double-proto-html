@@ -393,3 +393,7 @@ mynetworks mynetworks lmdb etc postfix network_table
  rsasig rsasig rsa_pss_pss_sha256 rsa_pss_pss_sha384 rsa_pss_pss_sha512 
  rsasig rsasig rsa_pkcs1_sha256 rsa_pkcs1_sha384 rsa_pkcs1_sha512 
 be in compressed form text text Do not enclose any of these
+ postdrop user etc passwd 1002 1002 Different UID and GID than the postfix user 
+ postfix user etc passwd 1001 1001 Different UID and GID than the postdrop user 
+ postlift xx xx xx service Examine each failed instance with a command like 
+ systemctl status postlift xx xx xx service

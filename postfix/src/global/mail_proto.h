@@ -148,6 +148,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_PROTO_TLSPROXY "tlsproxy_protocol"
 #define MAIL_ATTR_PROTO_TRIVIAL	"trivial_rewrite_protocol"
 #define MAIL_ATTR_PROTO_VERIFY	"address_verification_prrotocol"
+#define MAIL_ATTR_PROTO_POSTLIFT "postlift_protocol"
 
  /*
   * Attribute names in internal and policy delegation protocols.
@@ -328,6 +329,11 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_PROTO_NBDB_REINDEX	"nbdb_reindex"	/* Re-index protocol */
 #define MAIL_ATTR_NBDB_TYPE		"nbdb_type"	/* maptype */
 #define MAIL_ATTR_NBDB_PATH		"nbdb_path"	/* mapname */
+
+ /*
+  * postlift(8) provenance.
+  */
+#define MAIL_ATTR_PEER_UID		"peer_uid"
 
 /* LICENSE
 /* .ad
