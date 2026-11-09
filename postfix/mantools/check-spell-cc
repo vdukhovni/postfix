@@ -6,3 +6,6 @@
 LANG=C; export LANG
 
 find . -name *.[hc] | xargs cat | comment | mantools/deroff | spell | grep -F -vxf proto/stop | grep -F -vxf proto/stop.spell-cc
+
+#Not useful because of identifiers in debug strings.
+#find . -name *.[hc] | xargs cat | cstring | spell | grep -F -vxf proto/stop | grep -F -vxf proto/stop.spell-cc

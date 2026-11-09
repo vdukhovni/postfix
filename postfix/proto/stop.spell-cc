@@ -2036,3 +2036,10 @@ plift
 postlift
 rcvd
 systemd
+coredump
+fname
+otype
+schar
+ushort
+atoi
+cstring

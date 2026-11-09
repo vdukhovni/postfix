@@ -523,7 +523,7 @@ static const char *trw_failure_type_to_string(tlsrpt_failure_t failure_type)
 	"tlsa_invalid", TLSRPT_TLSA_INVALID,
 	"dnssec_invalid", TLSRPT_DNSSEC_INVALID,
 	"dane_required", TLSRPT_DANE_REQUIRED,
-	"unfinished_policY", TLSRPT_UNFINISHED_POLICY,
+	"unfinished_policy", TLSRPT_UNFINISHED_POLICY,
 	0, -1
     };
     const char *cp;

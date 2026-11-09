@@ -128,6 +128,8 @@
 #include "mbox_open.h"
 #include "dsn_buf.h"
 #include "sys_exits.h"
+#include "valid_mailhost_addr.h"
+#include "valid_hostname.h"
 
 /* mail_copy - copy message with extreme prejudice */
 
@@ -181,9 +183,19 @@ int     mail_copy(const char *sender,
      * Prepend a bunch of headers to the message.
      */
     if (flags & (MAIL_COPY_FROM | MAIL_COPY_RETURN_PATH)) {
+	char   *at;
+
 	if (sender == 0)
 	    msg_panic("%s: null sender", myname);
 	quote_822_local(buf, sender);
+	/* coredump.ws + Claude Opus 5.5: bad domain corrupts mailbox. */
+	if ((at = strrchr(vstring_str(buf), '@')) != 0
+	    && !valid_mailhost_literal(at + 1, DONT_GRIPE)
+	    && !valid_hostname(at + 1, DONT_GRIPE)) {
+	    msg_warn("replacing bad sender domain in: '%s'", vstring_str(buf));
+	    vstring_truncate(buf, at +1 - vstring_str(buf));
+	    vstring_strcat(buf, "domain.invalid");
+	}
 	if (flags & MAIL_COPY_FROM) {
 	    time(&now);
 	    vstream_fprintf(dst, "From %s  %.24s%s", *sender == 0 ?

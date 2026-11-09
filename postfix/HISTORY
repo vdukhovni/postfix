@@ -32248,6 +32248,94 @@ Apologies for any names omitted.
 	postlift_req.[hc], postlog.c, postqueue.c. Other postlift_*_test.c
 	unit tests to be added.
 
+20261022
+
+	Typos in C strings. Routine detection is tricky because
+	identifier names often appear in warning or debug messages.
+	Files: mantools/cstring.c. mantools/check-spell-cc,
+	mail_proto.h, yana_policy_test.c, milter8.c, nbdb_safe_test.c,
+	tlsrpt_wrapper.c, mac_midna.c, spawn_command.c, unescape_test.c.
+
+20261030
+
+	Bugfix (defect introduced: Postfix 1.0 and various later):
+	a nested "MAIL FROM" command could reset ESMTP parameters
+	for the still active "MAIL FROM" transaction, and ESMTP
+	parameters specified in a rejected "MAIL FROM" command could
+	leak into the next "MAIL FROM" transaction. Fixed by resetting
+	"MAIL FROM" ESMTP parameters after the check for nested
+	"MAIL FROM" commands, and by adding missing SIZE and AUTH
+	initializations. Problem and fix by coredump.ws with Claude
+	Opus 5.5. File: smtpd.c.
+
+	Bugfix (defect introduced: Postfix 3.11, date: 20251104):
+	With Milter support enabled, the "non_empty_end_of_header_action
+	= add_header" setting wrote the "MIME-Error:" header AFTER
+	the dummy "header append" PTR record. This caused the Milter
+	client to treat this header as body content instead of
+	header content. Problem and fix by coredump.ws, assisted
+	by Claude Opus 5.5. File: cleanup_message.c.
+
+20261101
+
+	Bugfix (defect introduced: Postfix 3.6, date: 20200725):
+	when parsing TLS protocol bounds, Postfix treated a bare
+	"<=" or ">=" (i.e. not attached to a protocol name) as
+	"<=0x0" or ">=0x0" (i.e. no upper or lower bound). These
+	forms are now treated as a syntax error. Except, to avoid
+	breaking existing configurations, Postfix will treat ">=
+	protocol-name" as ">=protocol-name, and "<= protocol-name"
+	as "<=protocol-name". Problem reported by coredump.ws,
+	assisted by Claude Opus 5.5. Fix by Wietse. File: tls_misc.c.
+
+	Bugfix (defect introduced: Postfix alpha, date: 19980804):
+	null pointer read error in "sendmail -bs" stand-alone mode
+	when a large MAIL FROM SIZE parameter was specified. Problem
+	report and fix by coredump.ws assisted by Claude Opus 5.5.
+	File: smtpd.c.
+
+20261105
+
+	Whitespace in an envelope address domain portion caused
+	corruption of the mailbox From_ line that separates messages.
+	Problem reported by coredump.ws with assistance from Claude
+	Code. Fix by Wietse: replace the domain portion with
+	"domain.invalid". File: global/mailbox.c. File: mailbox.c.
+
+20261106
+
+	Avoid integer overflow while parsing (root-owned!)
+	configurations. coredump.ws assisted by Claude Opus 5.5.
+	Fixes by Wietse: replace raw atoi() and strtol() calls with
+	strtol() wrappers that handle truncation. Files: ip_match.c,
+	dict_regexp.c, dict_pcre.c, cidr_match.c, num_from_string.[hc].
+
+20261108
+
+	Bugfix (defect introduced: Postfix 2.3, date: 20051114):
+	setting the "-V" (upper case) daemon command-line option
+	could result in a dangling pointer in code that logs to
+	stderr or syslogd. Problem report and fix by coredump.ws
+	assisted by Claude Opus 5.5. Files: master/*server.c.
+
+	Code health: copy program name inputs, to avoid dangling
+	pointers in logging infrastructure. Files: msg_vstream.c,
+	msg_syslog.c.
+
+	Bugfix (defect introduced: Postfix 2.5, date: 20071123):
+	when negotiating a new Milter connection, and the Milter
+	sent a list with macro names, the Postfix side replaced a
+	list received earlier from the same Milter, without freeing
+	the existing list, resulting in a small memory leak. If the
+	Milter did not send a per-milter macro name list over a new
+	connection, the Postfix side reused the stale one that was
+	received over an earlier connection with that same Milter.
+	Report and fix by coredump.ws assisted by Claude Opus 5.5.
+	File: milter8.c.
+
+	Availability: increased the systemd connection limits for
+	the postlift(8) service. File: proto/postconf.proto.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

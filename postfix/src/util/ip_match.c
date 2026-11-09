@@ -384,6 +384,9 @@ static int ip_match_next_token(char **pstart, char **psaved_start, int *poval)
 	oval = *cp - '0';
 	type = IP_MATCH_CODE_OVAL;
 	for (cp += 1; ISDIGIT(*cp); cp++) {
+	    /* 202611 coredump.ws + Claude Opus 5.5: avoid integer overflow. */
+	    if (type == IP_MATCH_CODE_ERR)
+		continue;
 	    oval *= 10;
 	    oval += *cp - '0';
 	    if (oval > 255)

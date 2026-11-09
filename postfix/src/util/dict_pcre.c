@@ -75,6 +75,7 @@
 #include "mac_parse.h"
 #include "warn_stat.h"
 #include "mvect.h"
+#include "num_from_string.h"
 
  /*
   * Backwards compatibility.
@@ -669,8 +670,8 @@ static int dict_pcre_prescan(int type, VSTRING *buf, void *context)
 		     ctxt->mapname, ctxt->lineno, vstring_str(buf));
 	    return (MAC_PARSE_ERROR);
 	}
-	n = atoi(vstring_str(buf));
-	if (n < 1) {
+	/* 202611 coredump.ws + Claude Opus 5.5: avoid integer overflow. */
+	if (size_from_string(vstring_str(buf), &n) < 0 || n < 1) {
 	    msg_warn("pcre map %s, line %d: out of range replacement index \"%s\"",
 		     ctxt->mapname, ctxt->lineno, vstring_str(buf));
 	    return (MAC_PARSE_ERROR);

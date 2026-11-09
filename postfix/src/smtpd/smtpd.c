@@ -2632,10 +2632,6 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     int     rate;
     int     dsn_envid = 0;
 
-    state->flags &= ~SMTPD_FLAGS_PER_MESSAGE;
-    state->encoding = 0;
-    state->dsn_ret = 0;
-
     /*
      * Sanity checks.
      * 
@@ -2666,6 +2662,25 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 5.5.4 Syntax: MAIL FROM:<address>");
 	return (-1);
     }
+
+    /*
+     * The following are set during MAIL FROM command parsing, and are not
+     * reset after syntax error.
+     * 
+     * 202610 Credit: coredump.ws with Claude Opus 5.5: move these resets after
+     * the nested MAIL FROM checks.
+     * 
+     * 202610 Credit: coredump.ws with Claude Opus 5.5: add missing resets for
+     * state->msg_size and state->sasl_sender.
+     */
+    state->flags &= ~SMTPD_FLAGS_PER_MESSAGE;
+    state->encoding = 0;
+    state->dsn_ret = 0;
+    state->msg_size = 0;
+#ifdef USE_SASL_AUTH
+    if (state->sasl_sender)
+	smtpd_sasl_mail_reset(state);
+#endif
 
     /*
      * XXX The client event count/rate control must be consistent in its use
@@ -2804,10 +2819,21 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    return (-1);
 	}
     }
-    /* Fix 20161205: show the envelope sender in reject logging. */
-    PUSH_STRING(saved_sender, state->sender, STR(state->addr_buf));
-    err = smtpd_check_size(state, state->msg_size);
-    POP_STRING(saved_sender, state->sender);
+
+    /*
+     * 202610 Don't call smtpd_check_xxx() in stand-alone mode. Credit:
+     * coredump.ws with Claude Opus 5.5.
+     */
+    if (SMTPD_STAND_ALONE(state)) {
+	err = (ENFORCING_SIZE_LIMIT(var_message_limit)
+	       && state->msg_size > var_message_limit) ?
+	    "552 5.3.4 Message size exceeds fixed limit" : 0;
+    } else {
+	/* Fix 20161205: show the envelope sender in reject logging. */
+	PUSH_STRING(saved_sender, state->sender, STR(state->addr_buf));
+	err = smtpd_check_size(state, state->msg_size);
+	POP_STRING(saved_sender, state->sender);
+    }
     if (err != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);

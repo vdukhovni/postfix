@@ -68,6 +68,7 @@
 #include "mac_parse.h"
 #include "warn_stat.h"
 #include "mvect.h"
+#include "num_from_string.h"
 
  /*
   * Support for IF/ENDIF based on an idea by Bert Driehuis.
@@ -169,8 +170,9 @@ static int dict_regexp_expand(int type, VSTRING *buf, void *ptr)
      * range $number means that something impossible has happened.
      */
     if (type == MAC_PARSE_VARNAME) {
-	n = atoi(vstring_str(buf));
-	if (n < 1 || n > match_rule->max_sub)
+        /* 202611 coredump.ws + Claude Opus 5.5: avoid integer overflow. */
+	if (size_from_string(vstring_str(buf), &n) < 0
+	    || n < 1 || n > match_rule->max_sub)
 	    msg_panic("regexp map %s, line %d: out of range replacement index \"%s\"",
 		      dict_regexp->dict.name, match_rule->rule.lineno,
 		      vstring_str(buf));
@@ -495,8 +497,8 @@ static int dict_regexp_prescan(int type, VSTRING *buf, void *context)
 		     ctxt->mapname, ctxt->lineno, vstring_str(buf));
 	    return (MAC_PARSE_ERROR);
 	}
-	n = atoi(vstring_str(buf));
-	if (n < 1) {
+	/* 202611 coredump.ws + Claude Opus 5.5: avoid integer overflow. */
+	if (size_from_string(vstring_str(buf), &n) < 0 || n < 1) {
 	    msg_warn("regexp map %s, line %d: out-of-range replacement index \"%s\"",
 		     ctxt->mapname, ctxt->lineno, vstring_str(buf));
 	    return (MAC_PARSE_ERROR);

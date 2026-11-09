@@ -763,9 +763,15 @@ static int parse_tls_version(const char *tok, int *version)
 	*version = code;
 	return (0);
     }
+
+    /*
+     * 202610 coredump.ws with Claude Opus 5.5: Don't parse an empty string
+     * as numerical zero.
+     */
     errno = 0;
     ulval = strtoul(tok, &_end, 16);
     if (*_end != 0
+	|| _end == tok
 	|| (ulval == ULONG_MAX && errno == ERANGE)
 	|| ulval > INT_MAX)
 	return TLS_PROTOCOL_INVALID;
@@ -792,12 +798,19 @@ int     tls_proto_mask_lims(const char *plist, int *floor, int *ceiling)
 
     *floor = *ceiling = 0;
 
+    /* Human factors: merge ">=" or "<=" token with the next token. */
     save = cp = mystrdup(plist);
     while ((tok = mystrtok(&cp, CHARS_COMMA_SP ":")) != 0) {
 	if (strncmp(tok, ">=", 2) == 0)
-	    code = parse_tls_version(tok + 2, floor);
+	    if (*(tok += 2) || (tok = mystrtok(&cp, CHARS_COMMA_SP ":")) != 0)
+		code = parse_tls_version(tok, floor);
+	    else
+		code = TLS_PROTOCOL_INVALID;
 	else if (strncmp(tok, "<=", 2) == 0)
-	    code = parse_tls_version(tok + 2, ceiling);
+	    if (*(tok += 2) || (tok = mystrtok(&cp, CHARS_COMMA_SP ":")) != 0)
+		code = parse_tls_version(tok, ceiling);
+	    else
+		code = TLS_PROTOCOL_INVALID;
 	else if (*tok == '!')
 	    exclude |= code =
 		name_code(protocol_table, NAME_CODE_FLAG_NONE, ++tok);

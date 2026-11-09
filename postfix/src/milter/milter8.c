@@ -581,6 +581,11 @@ static void milter8_close_stream(MILTER8 *milter)
 	(void) vstream_fclose(milter->fp);
 	milter->fp = 0;
     }
+    /* 202611 coredump.ws + Claude Opus 5.5: avoid stale or leaked data. */
+    if (milter->m.macros) {
+        milter_macros_free(milter->m.macros);
+        milter->m.macros = 0;
+    }
     milter->state = MILTER8_STAT_CLOSED;
 }
 
@@ -710,7 +715,7 @@ static int vmilter8_read_data(MILTER8 *milter, ssize_t *data_len, va_list ap)
 		    break;
 		VSTRING_ADDCH(buf, ch);
 		if (*data_len <= 0) {
-		    msg_warn("%s: milter %s: missing string null termimator",
+		    msg_warn("%s: milter %s: missing string null terminator",
 			     myname, milter->m.name);
 		    return (milter8_comm_error(milter));
 		}
@@ -1756,6 +1761,7 @@ static void milter8_connect(MILTER8 *milter)
 	    msg_warn("milter %s: bad protocol information: %s",
 		     milter->m.name, name);
 	    milter8_conf_error(milter);
+	    myfree(saved_version);
 	    return;
 	}
 	if (vers != 0)
@@ -1949,7 +1955,12 @@ static void milter8_connect(MILTER8 *milter)
 
     /*
      * Secondary negotiations: override lists of macro names.
+     *
+     * 202611 coredump.ws + Claude Opus 5.5: avoid stale data or memory leak.
      */
+    if (milter->m.macros)
+	msg_panic("%s: milter %s: macros exist",
+		  myname, milter->m.name);
     if (data_len > 0) {
 	VSTRING *buf = vstring_alloc(100);
 	UINT32_TYPE mac_type;

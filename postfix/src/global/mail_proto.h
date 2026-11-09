@@ -147,7 +147,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_PROTO_TLSMGR	"tlsmgr_protocol"
 #define MAIL_ATTR_PROTO_TLSPROXY "tlsproxy_protocol"
 #define MAIL_ATTR_PROTO_TRIVIAL	"trivial_rewrite_protocol"
-#define MAIL_ATTR_PROTO_VERIFY	"address_verification_prrotocol"
+#define MAIL_ATTR_PROTO_VERIFY	"address_verification_protocol"
 #define MAIL_ATTR_PROTO_POSTLIFT "postlift_protocol"
 
  /*

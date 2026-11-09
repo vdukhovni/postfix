@@ -65,7 +65,7 @@ static void test_unescape(PTEST_CTX *t, const PTEST_CASE *tp)
 
 static const PTEST_CASE ptestcases[] = {
     {
-	 /* name */ "escape lowecase a-z",
+	 /* name */ "escape lowercase a-z",
 	 /* action */ test_unescape,
 	 /* input */ "\\a\\b\\c\\d\\e\\f\\g\\h\\i\\j\\k\\l\\m\\n\\o\\p\\q\\r\\s\\t\\u\\v\\w\\x\\y\\z",
 	 /* want */ "\a\bcde\fghijklm\nopq\rs\tu\vwxyz",

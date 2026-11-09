@@ -24,6 +24,7 @@
 /*	This function may also be called to update msg_syslog
 /*	settings. If the program name appears to contain a process ID
 /*	then msg_syslog_init will attempt to suppress its own PID.
+/*	The progname argument is copied.
 /*
 /*	msg_syslog_set_facility() is a helper routine that overrides the
 /*	logging facility that is specified with msg_syslog_init().
@@ -186,7 +187,9 @@ static void msg_syslog_print(int level, const char *text, void *unused)
 void    msg_syslog_init(const char *name, int logopt, int facility)
 {
     static int first_call = 1;
+    static char *log_name = 0;
     extern char **environ;
+    char   *saved_name;
 
     /*
      * XXX If this program is set-gid, then TZ must not be trusted. This
@@ -201,10 +204,14 @@ void    msg_syslog_init(const char *name, int logopt, int facility)
 		}
 	tzset();
     }
+    saved_name = mystrdup(name);
+    if (log_name)
+	myfree(log_name);
+    log_name = saved_name;
     /* Hack for internal logging forwarding after config change. */
-    if (strchr(name, '[') != 0)
+    if (strchr(log_name, '[') != 0)
 	logopt &= ~LOG_PID;
-    openlog(name, LOG_NDELAY | logopt, facility);
+    openlog(log_name, LOG_NDELAY | logopt, facility);
     if (first_call) {
 	first_call = 0;
 	msg_output_push(msg_syslog_print, (void *) 0);

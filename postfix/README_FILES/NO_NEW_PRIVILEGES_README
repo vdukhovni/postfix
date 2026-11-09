@@ -182,8 +182,11 @@ To run postlift(8) under systemd, follow the steeps below:
     Accept=yes
     RemoveOnStop=yes
     ListenStream=/var/run/postfix/postlift.socket
-    # MaxConnectionsPerSource must be less than MaxConnections (default 64)
-    MaxConnectionsPerSource=30
+    # MaxConnectionsPerSource limits the number of concurrent requests with
+    # the same UID, for all Postfix instances. This limit must be less than
+    # MaxConnections (default 64).
+    MaxConnectionsPerSource=100
+    MaxConnections=200
 
     [Install]
     WantedBy=sockets.target
@@ -204,7 +207,7 @@ To run postlift(8) under systemd, follow the steeps below:
     Type=simple
     StandardInput=socket
     StandardOutput=socket
-    # Only stderr goes to journal for logging
+    # Early postlog(8) stderr output goes to journal for logging
     StandardError=journal
     SyslogFacility=mail
 

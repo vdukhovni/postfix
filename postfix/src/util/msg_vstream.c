@@ -18,7 +18,7 @@
 /*
 /*	msg_vstream_init() sets the program name that appears in each output
 /*	record, and directs diagnostics (see msg(3)) to the specified
-/*	VSTREAM. The \fIprogname\fR argument is not copied.
+/*	VSTREAM. The \fIprogname\fR argument is copied.
 /*
 /*	msg_vstream_enable() enables or disables msg_vstream logging,
 /*	depending on the argument value.
@@ -51,11 +51,12 @@
 #include "msg.h"
 #include "msg_output.h"
 #include "msg_vstream.h"
+#include "mymalloc.h"
 
  /*
   * Private state.
   */
-static const char *msg_tag;
+static char *msg_tag;
 static VSTREAM *msg_stream;
 static int msg_vstream_enabled;
 
@@ -86,7 +87,12 @@ static void msg_vstream_print(int level, const char *text, void *unused)
 
 void    msg_vstream_init(const char *name, VSTREAM *vp)
 {
-    msg_tag = name;
+    char   *saved_name;
+
+    saved_name = mystrdup(name);
+    if (msg_tag)
+	myfree(msg_tag);
+    msg_tag = saved_name;
     msg_stream = vp;
     vstream_no_debug(vp);
     msg_output_push(msg_vstream_print, (void *) 0);

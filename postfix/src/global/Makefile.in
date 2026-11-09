@@ -2082,6 +2082,7 @@ mail_copy.o: ../../include/msg.h
 mail_copy.o: ../../include/safe_open.h
 mail_copy.o: ../../include/stringops.h
 mail_copy.o: ../../include/sys_defs.h
+mail_copy.o: ../../include/valid_hostname.h
 mail_copy.o: ../../include/vbuf.h
 mail_copy.o: ../../include/vstream.h
 mail_copy.o: ../../include/vstring.h
@@ -2101,6 +2102,7 @@ mail_copy.o: quote_flags.h
 mail_copy.o: rec_type.h
 mail_copy.o: record.h
 mail_copy.o: sys_exits.h
+mail_copy.o: valid_mailhost_addr.h
 mail_date.o: ../../include/check_arg.h
 mail_date.o: ../../include/msg.h
 mail_date.o: ../../include/sys_defs.h

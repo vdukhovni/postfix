@@ -567,8 +567,13 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     /*
      * Initialize generic parameters and re-initialize logging in case of a
      * non-default program name or logging destination.
+     * 
+     * 202611 coredump.ws + Claude Opus 5.5: re-run msg_vstream_init() to avoid
+     * a dangling pointer error.
      */
     mail_params_init();
+    if (msg_vstream_needed)
+	msg_vstream_init(mail_task(var_procname), VSTREAM_ERR);
     maillog_client_init(mail_task(var_procname), MAILLOG_CLIENT_FLAG_NONE);
 
     /*

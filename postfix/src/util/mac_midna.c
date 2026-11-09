@@ -71,7 +71,7 @@ static int mac_midna_to_u_label_eval(VSTRING *out, const char *name)
 	    return (MAC_PARSE_ERROR);
 	}
 	if (msg_verbose)
-	    msg_info("%s: %s internationalzied to %s", __func__, name, uname);
+	    msg_info("%s: %s internationalized to %s", __func__, name, uname);
     } else
 #endif
 	uname = name;

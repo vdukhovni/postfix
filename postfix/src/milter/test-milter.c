@@ -450,7 +450,7 @@ static struct smfiDesc smfilter =
 {
     "test-milter",
     SMFI_VERSION,
-    SMFIF_ADDRCPT | SMFIF_DELRCPT | SMFIF_ADDHDRS | SMFIF_CHGHDRS | SMFIF_CHGBODY | SMFIF_CHGFROM | SMFIF_QUARANTINE,
+    SMFIF_ADDRCPT | SMFIF_DELRCPT | SMFIF_ADDHDRS | SMFIF_CHGHDRS | SMFIF_CHGBODY | SMFIF_CHGFROM | SMFIF_QUARANTINE | SMFIF_SETSYMLIST,
     test_connect,
     test_helo,
     test_mail,
@@ -529,7 +529,8 @@ static sfsistat test_negotiate(SMFICTX *ctx,
 	if (verbose)
 	    printf("set symbol list %s to \"%s\"\n",
 		   macro_states[set_macro_state], set_macro_list);
-	smfi_setsymlist(ctx, set_macro_state, set_macro_list);
+	if (smfi_setsymlist(ctx, set_macro_state, set_macro_list) != MI_SUCCESS)
+	    fprintf(stderr, "smfi_setsymlist failed\n");
     }
     if (verbose)
 	printf("negotiate f0=%lx *pf0 = %lx f1=%lx *pf1=%lx nosend=%lx noreply=%lx misc=%lx\n",

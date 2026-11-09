@@ -78,10 +78,10 @@ typedef struct TEST_CASE {
     struct stat source_st;
     const char *leg_idx_path;
     struct stat leg_idx_st;
-    const char *parent_dir;	/* "/etc/postfix" */
+    const char *parent_dir;		/* "/etc/postfix" */
     struct stat parent_dir_st;
     MOCK_STAT_REQ slash_etc_dir;	/* "/etc" */
-    MOCK_STAT_REQ slash_dir;	/* "/" */
+    MOCK_STAT_REQ slash_dir;		/* "/" */
     struct stat slash_dir_st;
     const char *allow_root_pfxs;
     const char *allow_user_pfxs;
@@ -260,7 +260,7 @@ static const TEST_CASE test_cases[] = {
 	.parent_dir_st = {.st_uid = 0,.st_mode = S_IRWXU,},
 	.slash_etc_dir = {"/etc", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
 	.slash_dir = {"/", {.st_uid = 0,.st_mode = S_IRWXU,}, 0,},
-	.allow_root_pfxs = "/etc/posttfix",
+	.allow_root_pfxs = "/etc/posttfix",	/* intentional typo */
 	.allow_user_pfxs = "",
 	.want_bool = false,
 	.want_why = "table /etc/postfix/access has an unexpected pathname",
