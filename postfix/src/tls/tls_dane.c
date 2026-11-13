@@ -445,7 +445,8 @@ void    tls_dane_add_fpt_digests(TLS_DANE *dane, int pkey_only,
 		     values->argv[i]);
 	    continue;
 	}
-	raw = vstring_alloc(ilen / 2);
+	/* 202611 coredump.ws + Claude Opus 5.5: avoid vstring_alloc(0). */
+	raw = vstring_alloc(ilen / 2 + 1);
 	if (hex_decode_opt(raw, cp, ilen, HEX_DECODE_FLAG_ALLOW_COLON) == 0) {
 	    /* 202606 Qualys+Mythos: vstring_free(), not myfree(). */
 	    vstring_free(raw);

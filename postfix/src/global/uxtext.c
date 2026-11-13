@@ -60,6 +60,8 @@
 /*
 /*	uxtext_unquote_append() is like uxtext_unquote(), but appends
 /*	the conversion result to the result buffer.
+/* DIAGNOSTICS
+/*	These functions return NULL on error.
 /* BUGS
 /*	This module cannot process null characters in data.
 /* LICENSE
@@ -207,8 +209,7 @@ VSTRING *uxtext_quote_opt(VSTRING *quoted, const char *unquoted,
 			          const char *special, int opt)
 {
     VSTRING_RESET(quoted);
-    uxtext_quote_opt_append(quoted, unquoted, special, opt);
-    return (quoted);
+    return (uxtext_quote_opt_append(quoted, unquoted, special, opt));
 }
 
 /* uxtext_unquote_append - quoted data to unquoted */

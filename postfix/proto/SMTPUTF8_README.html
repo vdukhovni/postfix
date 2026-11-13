@@ -41,6 +41,8 @@ header values. </p>
 
 <li><a href="#detecting">SMTPUTF8 autodetection</a>
 
+<li><a href="#dovecot"> Missing Dovecot LMTP support </a>
+
 <li><a href="#limitations">Limitations of the current implementation</a>
 
 <li><a href="#compatibility">Compatibility with pre-SMTPUTF8 environments</a>
@@ -217,11 +219,9 @@ server ONLY if: </p>
     <li> <p>  The envelope sender address contains no UTF-8, </p>
 
     <li> <p>  No envelope recipient address for that specific
-    SMTP/LMTP delivery transaction contains UTF-8. </p>
-
-	<blockquote> <p> NOTE: Recipients in other email delivery
-	transactions for that same message may still contain UTF-8.
-	</p> </blockquote>
+    SMTP/LMTP delivery transaction contains UTF-8 (recipients in
+    OTHER email delivery transactions for that same message may
+    still contain UTF-8). </p>
 
    </ul>
 
@@ -279,6 +279,59 @@ SMTPUTF8 request, but that contains UTF-8 in a sender address
 localpart, receiver address localpart, or message header value.
 Such email was not standards-compliant, but Postfix would have
 delivered it if SMTPUTF8 support was disabled. </p>
+
+<h2> <a name="dovecot"> Missing Dovecot LMTP support </a> </h2>
+
+<p> When the Postfix LMTP client attempts to deliver a message that
+requires SMTPUTF8, but Dovecot does not announce SMTPUTF8 support,
+Postfix returns the message as undeliverable ("SMTPUTF8 is required,
+but was not offered by host"). As of 2026, there are one experimental
+solution and two workarounds. </p>
+
+<ul>
+
+<li> <p> Solution: enable the experimental SMTPUTF8 support (Dovecot
+2.4.x) by setting "<tt>mail_utf8_extensions = yes</tt>" in Dovecot
+configuration. </p>
+
+<li> <p> Workaround 1: receive SMTPUTF8 messages, but disable
+SMTPUTF8 support in the Postfix LMTP client. Edit the LMTP client
+definition in master.cf, and append "<tt>-o smtputf8_enable=no</tt>"
+as shown below: </p>
+
+<pre>
+/etc/postfix/master.cf:
+    lmtp      unix  -       -       n       -       -       lmtp
+	-o { smtputf8_enable = no }
+</pre>
+
+<p> With this, the Postfix LMTP client will not require SMTPUTF8
+support. </p>
+
+<p> DOWNSIDE: Dovecot may reject a message that contains UTF8 text
+in a sender or recipient address. </p>
+
+<p> Use the command "postfix reload" after editing master.cf. </p>
+
+<li> <p> Workaround 2: do not send or receive SMTPUTF8 messages.
+Edit main.cf and specify: </p>
+
+<pre>
+/etc/postfix/main.cf:
+    smtputf8_enable = no
+</pre>
+
+<p> With this, the Postfix SMTP server will not announce SMTPUTF8
+support when receiving mail, and the Postfix LMTP client will not
+require SMTPUTF8 support when delivering mail to Dovecot. </p>
+
+<p> DOWNSIDE: Remote MTAs will no longer send SMTPUTF8 messages to
+your Postfix system, and will return such messages as undeliverable.
+</p>
+
+<p> Use the command "postfix reload" after editing master.cf. </p>
+
+</ul>
 
 <h2> <a name="limitations">Limitations of the current implementation</a>
 </h2>

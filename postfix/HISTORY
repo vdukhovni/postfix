@@ -32336,6 +32336,39 @@ Apologies for any names omitted.
 	Availability: increased the systemd connection limits for
 	the postlift(8) service. File: proto/postconf.proto.
 
+20261111
+
+	Bugfix (defect introduced: Postfix 3.6, date: 20200718):
+	panic() when parsing a TLS policy with a 1-character match=
+	fingerprint. Report and fix by coredump.ws assisted by
+	Claude Opus 5.5. File: tls_dane.c.
+
+	Bugfix (defect introduced: Postfix 3.0, date: 20140715):
+	With "smtputf8_enable = yes" (default setting) the Postfix
+	SMTP client could send unencoded content in the ORCPT
+	parameter while sending RCPT TO, because the internal
+	uxtext_quote() function failed to propagate an error
+	condition. This bug is unlikely in practice, because the
+	Postfix SMTP server accepts non-UTF8 content in the ORCPT
+	parameter of an RCPT TO command only with "smtputf8_enable
+	= no" (not a default setting).  Reported by coredump.ws,
+	found with fuzzing. File: uxtext.c.
+
+	Robustness: a hostile DNS operator could force a Postfix
+	SMTP client to make IP address queries for up to 100 MX
+	hosts, and force each address lookup request to time out.
+	Problem reported by coredump.ws assisted by pf-outbound.
+	Fix by Wietse: stop making queries after their combined
+	elapsed time exceeds a limit (100s). File: smtp_addr.c.
+
+	Documentation: solutions and workarounds for missing SMTPUTF8
+	support in Dovecot. File: SMTPUTF8_README.html.
+
+2026113
+
+	Safety: don't panic when vstring_alloc() is called with a
+	zero-length argument. File: vstring.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

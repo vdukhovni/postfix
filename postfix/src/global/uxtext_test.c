@@ -61,18 +61,21 @@ static void test_uxtext_quote(PTEST_CTX *t, const PTEST_CASE *tp)
     want_as_hex = vstring_alloc(100);
     got_u = vstring_alloc(100);
 
-    if (uxtext_quote(got_q, tp->input, tp->special) == 0)
-	ptest_fatal(t, "uxtext_quote failed");
-    if (strcmp(STR(got_q), tp->want) != 0)
-	ptest_error(t, "uxtext_quote got '%s' want '%s'",
-		    to_hex_string(got_as_hex, STR(got_q)),
-		    to_hex_string(want_as_hex, tp->want));
-    if (uxtext_unquote(got_u, STR(got_q)) == 0)
-	ptest_fatal(t, "uxtext_unquote failed");
-    if (strcmp(STR(got_u), tp->input) != 0)
-	ptest_error(t, "uxtext_unquote got '%s', want '%s'",
-		    to_hex_string(got_as_hex, STR(got_u)),
-		    to_hex_string(want_as_hex, tp->input));
+    if (uxtext_quote(got_q, tp->input, tp->special) == 0) {
+	if (tp->want)
+	    ptest_fatal(t, "uxtext_quote failed");
+    } else {
+	if (strcmp(STR(got_q), tp->want) != 0)
+	    ptest_error(t, "uxtext_quote got '%s' want '%s'",
+			to_hex_string(got_as_hex, STR(got_q)),
+			to_hex_string(want_as_hex, tp->want));
+	if (uxtext_unquote(got_u, STR(got_q)) == 0)
+	    ptest_fatal(t, "uxtext_unquote failed");
+	if (strcmp(STR(got_u), tp->input) != 0)
+	    ptest_error(t, "uxtext_unquote got '%s', want '%s'",
+			to_hex_string(got_as_hex, STR(got_u)),
+			to_hex_string(want_as_hex, tp->input));
+    }
     vstring_free(got_q);
     vstring_free(got_u);
     vstring_free(got_as_hex);
@@ -89,7 +92,8 @@ static void test_uxtext_quote_append(PTEST_CTX *t, const PTEST_CASE *tp)
     want_as_hex = vstring_alloc(100);
 
     vstring_strcpy(got_q, "foo");
-    uxtext_quote_append(got_q, "bar", "");
+    if (uxtext_quote_append(got_q, "bar", "") == 0)
+	ptest_fatal(t, "uxtext_quote_append failed");
     if (strcmp(STR(got_q), want) != 0)
 	ptest_error(t, "uxtext_quote got '%s' want '%s'",
 		    to_hex_string(got_as_hex, STR(got_q)),
@@ -108,18 +112,21 @@ static void test_unitext_quote(PTEST_CTX *t, const PTEST_CASE *tp)
     want_as_hex = vstring_alloc(100);
     got_u = vstring_alloc(100);
 
-    if (unitext_quote(got_q, tp->input, tp->special) == 0)
-	ptest_fatal(t, "unitext_quote failed");
-    if (strcmp(STR(got_q), tp->want) != 0)
-	ptest_error(t, "unitext_quote got '%s' want '%s'",
-		    to_hex_string(got_as_hex, STR(got_q)),
-		    to_hex_string(want_as_hex, tp->want));
-    if (uxtext_unquote(got_u, STR(got_q)) == 0)
-	ptest_error(t, "uxtext_unquote failed");
-    if (strcmp(STR(got_u), tp->input) != 0)
-	ptest_error(t, "unitext_quote got '%s' want '%s'",
-		    to_hex_string(got_as_hex, STR(got_q)),
-		    to_hex_string(want_as_hex, tp->input));
+    if (unitext_quote(got_q, tp->input, tp->special) == 0) {
+	if (tp->want)
+	    ptest_fatal(t, "unitext_quote failed");
+    } else {
+	if (strcmp(STR(got_q), tp->want) != 0)
+	    ptest_error(t, "unitext_quote got '%s' want '%s'",
+			to_hex_string(got_as_hex, STR(got_q)),
+			to_hex_string(want_as_hex, tp->want));
+	if (uxtext_unquote(got_u, STR(got_q)) == 0)
+	    ptest_error(t, "uxtext_unquote failed");
+	if (strcmp(STR(got_u), tp->input) != 0)
+	    ptest_error(t, "unitext_quote got '%s' want '%s'",
+			to_hex_string(got_as_hex, STR(got_q)),
+			to_hex_string(want_as_hex, tp->input));
+    }
     vstring_free(got_q);
     vstring_free(got_u);
     vstring_free(got_as_hex);
@@ -136,7 +143,8 @@ static void test_unitext_quote_append(PTEST_CTX *t, const PTEST_CASE *tp)
     want_as_hex = vstring_alloc(100);
 
     vstring_strcpy(got_q, "foo");
-    uxtext_quote_append(got_q, "bar", "");
+    if (uxtext_quote_append(got_q, "bar", "") == 0)
+	ptest_fatal(t, "uxtext_quote_append failed");
     if (strcmp(STR(got_q), want) != 0)
 	ptest_error(t, "uxtext_quote got '%s' want '%s'",
 		    to_hex_string(got_as_hex, STR(got_q)),
@@ -159,6 +167,12 @@ static const PTEST_CASE ptestcases[] = {
 	"0123456789:;<=>?@"
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\x{5C}]^_`"
 	"abcdefghijklmnopqrstuvwxyz{|}~",
+    }, {
+	.testname = "uxtext_quote error propagation",
+	.action = test_uxtext_quote,
+	.input = "\x80\x80\x80\x80",
+	.special = "",
+	.want = 0,
     }, {
 	.testname = "uxtext_quote ascii non-control, special=\"+=\"",
 	.action = test_uxtext_quote,
@@ -205,6 +219,12 @@ static const PTEST_CASE ptestcases[] = {
 	"0123456789:;<=>?@"
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\x{5C}]^_`"
 	"abcdefghijklmnopqrstuvwxyz{|}~",
+    }, {
+	.testname = "unitext_quote error propagation",
+	.action = test_unitext_quote,
+	.input = "\x80\x80\x80\x80",
+	.special = "",
+	.want = 0,
     }, {
 	.testname = "unitext_quote ascii non-control, special=\"+=\"",
 	.action = test_unitext_quote,
