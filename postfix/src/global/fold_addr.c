@@ -66,7 +66,7 @@
 
 char   *fold_addr(VSTRING *result, const char *addr, int flags)
 {
-    char   *cp;
+    const char *cp;
 
     /*
      * Fold the address as appropriate.

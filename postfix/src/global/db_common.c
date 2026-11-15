@@ -526,7 +526,7 @@ int     db_common_expand(void *ctxArg, const char *format, const char *value,
 int     db_common_check_domain(void *ctxPtr, const char *addr)
 {
     DB_COMMON_CTX *ctx = (DB_COMMON_CTX *) ctxPtr;
-    char   *domain;
+    const char *domain;
 
     if (ctx->domain) {
 	if ((domain = strrchr(addr, '@')) != NULL)

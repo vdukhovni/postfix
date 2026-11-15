@@ -32369,6 +32369,21 @@ Apologies for any names omitted.
 	Safety: don't panic when vstring_alloc() is called with a
 	zero-length argument. File: vstring.c.
 
+20261115
+
+	Bug (defect introduced: Postfix before alpha, date: 19971211):
+	The Postfix SMTP client did not count an empty reply line
+	towards the reply size limit, but still added an empty line
+	entry to the in-memory session history. An SMTP server that
+	replies with a stream of empty lines could run an SMTP
+	client process out of memory. Problem report by macintog,
+	fix by Wietse. File: smtp_chat.c.
+
+	Bit rot: shut up warnings from C23 const-preserving strchr(),
+	memchr() etc. functions. Files: db_common.c, fold_addr.c,
+	mail_addr_map.c, remove.c, verify_sender_addr.c, postsuper.c,
+	qmgr_message.c, transport.c, mymalloc.c.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

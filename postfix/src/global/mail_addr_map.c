@@ -111,7 +111,7 @@ ARGV   *mail_addr_map_opt(MAPS *path, const char *address, int propagate,
     VSTRING *buffer = 0;
     const char *myname = "mail_addr_map";
     const char *string;
-    char   *ratsign;
+    const char *ratsign;
     char   *extension = 0;
     ARGV   *argv = 0;
     int     i;

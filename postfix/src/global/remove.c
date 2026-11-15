@@ -52,7 +52,7 @@
 int     REMOVE(const char *path)
 {
     static VSTRING *dest;
-    char   *slash;
+    const char *slash;
     struct stat st;
 
     if (var_dont_remove == 0) {

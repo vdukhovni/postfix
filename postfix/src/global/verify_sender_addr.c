@@ -195,7 +195,7 @@ const char *valid_verify_sender_addr(const char *their_addr)
     unsigned long my_epoch;
     unsigned long their_epoch;
     char   *my_at_domain;
-    char   *their_at_domain;
+    const char *their_at_domain;
     char   *cp;
 
     /*

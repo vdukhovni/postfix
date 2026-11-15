@@ -907,8 +907,8 @@ static int qmgr_message_sort_compare(const void *p1, const void *p2)
     RECIPIENT *rcpt2 = (RECIPIENT *) p2;
     QMGR_QUEUE *queue1;
     QMGR_QUEUE *queue2;
-    char   *at1;
-    char   *at2;
+    const char *at1;
+    const char *at2;
     int     result;
 
     /*
@@ -1061,10 +1061,10 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	 * future proofing.
 	 */
 #define FILTER_WITHOUT_NEXTHOP(filter, next) \
-	(((next) = split_at((filter), ':')) == 0 || *(next) == 0)
+	(((next) = (char *) split_at((filter), ':')) == 0 || *(next) == 0)
 
 #define RCPT_WITHOUT_DOMAIN(rcpt, next) \
-	((next = strrchr(rcpt, '@')) == 0 || *++(next) == 0)
+	((next = (char *) strrchr(rcpt, '@')) == 0 || *++(next) == 0)
 
 	else if (message->filter_xport
 		 && (message->tflags & DEL_REQ_TRACE_ONLY_MASK) == 0) {

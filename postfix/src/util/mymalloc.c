@@ -263,7 +263,7 @@ char   *mystrdup(const char *str)
 char   *mystrndup(const char *str, ssize_t len)
 {
     char   *result;
-    char   *cp;
+    const char *cp;
 
     if (str == 0)
 	msg_panic("mystrndup: null pointer argument");

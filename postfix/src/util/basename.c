@@ -39,7 +39,7 @@ char   *basename(const char *path)
 {
     char   *result;
 
-    if ((result = strrchr(path, '/')) == 0)
+    if ((result = (char *) strrchr(path, '/')) == 0)
 	result = (char *) path;
     else
 	result += 1;

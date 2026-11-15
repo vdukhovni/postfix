@@ -843,7 +843,7 @@ static int fix_queue_id(const char *actual_path, const char *actual_queue,
     VSTRING *new_path = vstring_alloc(10);
     VSTRING *new_id = vstring_alloc(10);
     const char **log_qpp;
-    char   *cp;
+    const char *cp;
     int     ret;
 
     /*

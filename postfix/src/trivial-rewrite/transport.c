@@ -246,7 +246,7 @@ int     transport_lookup(TRANSPORT_INFO *tp, const char *addr,
 			         const char *rcpt_domain,
 			         VSTRING *channel, VSTRING *nexthop)
 {
-    char   *ratsign = 0;
+    const char *ratsign = 0;
     const char *value;
 
 #define STREQ(x,y)	(strcmp((x), (y)) == 0)
