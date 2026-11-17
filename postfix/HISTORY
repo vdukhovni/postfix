@@ -32384,6 +32384,21 @@ Apologies for any names omitted.
 	mail_addr_map.c, remove.c, verify_sender_addr.c, postsuper.c,
 	qmgr_message.c, transport.c, mymalloc.c.
 
+20261116
+
+	Followup: improved 20261115 Postfix SMTP client fix. Fix
+	by macintog. File: smtp_chat.c.
+
+	Bugfix (defect introduced: Postfix beta, date: 19981104):
+	a compromised mailing list manager could replace a local(8)
+	:include: file with a hardlink or symlink to a protected
+	file (not world readable), and reveal its content in bounce
+	messages. Anton Klingspor assisted with AI. File:
+	local/include.c.
+
+	Code health: replaced some fragile macros ``{ ... }'' with
+	the more robust form ``do { ... } while (0)''. File: local.h.
+
 TODO
 
 	Reorganize PTEST_LIB, PMOCK_LIB, TESTLIB, TESTLIBS, etc.

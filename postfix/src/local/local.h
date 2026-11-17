@@ -43,21 +43,21 @@ typedef struct USER_ATTR {
  /*
   * Critical macros. Not for obscurity, but to ensure consistency.
   */
-#define RESET_USER_ATTR(usr_attr, level) { \
+#define RESET_USER_ATTR(usr_attr, level) do { \
 	usr_attr.uid = 0; usr_attr.gid = 0; usr_attr.home = 0; \
 	usr_attr.logname = 0; usr_attr.shell = 0; \
 	if (msg_verbose) \
 	    msg_info("%s[%d]: reset user_attr", myname, level); \
-    }
+    } while (0)
 
-#define SET_USER_ATTR(usr_attr, pwd, level) { \
+#define SET_USER_ATTR(usr_attr, pwd, level) do { \
 	usr_attr.uid = pwd->pw_uid; usr_attr.gid = pwd->pw_gid; \
 	usr_attr.home = pwd->pw_dir; usr_attr.logname = pwd->pw_name; \
 	usr_attr.shell = pwd->pw_shell; \
 	if (msg_verbose) \
 	    msg_info("%s[%d]: set user_attr: %s", \
 		myname, level, pwd->pw_name); \
-    }
+    } while (0)
 
  /*
   * The delivery attributes are inherited from files, from aliases, and from
@@ -114,18 +114,18 @@ typedef struct LOCAL_STATE {
     VSTRING *alias_key;			/* external-form search key */
 } LOCAL_STATE;
 
-#define RESET_OWNER_ATTR(msg_attr, level) { \
+#define RESET_OWNER_ATTR(msg_attr, level) do { \
 	msg_attr.owner = 0; \
 	if (msg_verbose) \
 	    msg_info("%s[%d]: reset owner attr", myname, level); \
-    }
+    } while (0)
 
-#define SET_OWNER_ATTR(msg_attr, who, level) { \
+#define SET_OWNER_ATTR(msg_attr, who, level) do { \
 	msg_attr.sender = msg_attr.owner = who; \
 	if (msg_verbose) \
 	    msg_info("%s[%d]: set owner attr: %s", \
 		    myname, level, who); \
-    }
+    } while (0)
 
  /*
   * Bundle up some often-user attributes.
