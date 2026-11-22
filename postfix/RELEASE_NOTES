@@ -26,6 +26,35 @@ now also distributed with the more recent Eclipse Public License
 license of their choice. Those who are more comfortable with the
 IPL can continue with that license.
 
+Incompatible changes due to bugfixes
+------------------------------------
+
+Postfix 3.11.8, 3.10.15, 3.9.16, 3.8.22, 3.7.24, 3.6.22, 3.5.29:
+
+[TLS protocol syntax change] Relevant if your configuration contains
+">=" or "<=" followed by SPACE. To avoid breaking configurations,
+Postfix will now treat ">= SPACE protocol-name" as ">=protocol-name, and
+"<= SPACE protocol-name" as "<=protocol-name". The forms "<=" or ">="
+(i.e.  not attached to a protocol name) were treated as "<=0x0" or
+">=0x0" (i.e. no upper or lower bound) and are now treated as syntax
+errors. Solution: look for "<=" or ">=" followed by SPACE and correct
+the syntax.
+
+[SMTP client DNS total time limit] Relevant if you are sending mail
+over very slow network connections to domains with a huge number
+of SMTP server IP addresses. The Postfix SMTP client now enforces
+a 100-second time limit on SMTP server IP address lookups per
+delivery request. This reduces the impact from denial of service
+attacks in which a hostile DNS operator returns up to 100 MX host
+names and deliberately lets each address lookup request time out.
+
+[:include: /path/to/file read permission] Relevant if your root-owned
+aliases file contains ":include:/path/to/file", where "/path/to/file" is a
+symlink or hardlink to a file with a different owner than the "/path/to"
+directory. The Postfix local delivery agent will now defer delivery if
+the "/path/to" owner has no permission to read "/path/to/file".
+Workaround: make /path/to/file world-readable.
+
 Topics in this document
 -----------------------
 - changes that are less visible
