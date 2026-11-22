@@ -143,8 +143,7 @@ VSTRING *uxtext_quote_append(VSTRING *quoted, const char *unquoted,
 VSTRING *uxtext_quote(VSTRING *quoted, const char *unquoted, const char *special)
 {
     VSTRING_RESET(quoted);
-    uxtext_quote_append(quoted, unquoted, special);
-    return (quoted);
+    return (uxtext_quote_append(quoted, unquoted, special));
 }
 
 /* uxtext_unquote_append - quoted data to unquoted */

@@ -295,6 +295,7 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, DSN_BUF *why)
     DNS_RR *addr_list = 0;
     DNS_RR *rr;
     int     res_opt = 0;
+    time_t  start, elapsed;
 
     if (mx_names->dnssec_valid)
 	res_opt = RES_USE_DNSSEC;
@@ -324,7 +325,22 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, DSN_BUF *why)
      * getaddrinfo() may invoke a resolver that runs in a different process
      * (NIS server, nscd), so we can't even reliably turn this off by
      * tweaking the in-process resolver flags.
+     * 
+     * This code may look up more MX addresses than it will use. To avoid a
+     * mailer loop if this MTA is MX for the destination, we MUST exclude all
+     * MX addresses that have the same or worse MX preference as this MTA.
+     * Therefore, we MUST NOT stop looking up MX addresses in the middle of a
+     * preference level (at least, don't stop before we know whether this MTA
+     * is listed with that preference level). This logic assumes that the
+     * address record for this MTA is always available, and that the address
+     * is never excluded by dns_rr_append().
+     * 
+     * These loop detection considerations to not apply when the DNS is
+     * compromised; we give up immediately after address lookup has taken too
+     * long. That leaves the normal path for loop detection intact, and
+     * breaks rules only when DNS is compromised.
      */
+    start = time((time_t *) 0);
     for (rr = mx_names; rr; rr = rr->next) {
 	if (rr->type != T_MX && rr->type != T_SRV)
 	    msg_panic("smtp_addr_list: bad resource type: %d", rr->type);
@@ -332,6 +348,12 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, DSN_BUF *why)
 				  rr->pref, rr->port, why);
 	if (addr_list && DNS_RR_IS_TRUNCATED(addr_list))
 	    break;
+	if (var_dns_rr_list_limit > 0 
+	    && (elapsed = time((time_t *) 0) - start) > var_dns_rr_list_limit) {
+	    msg_info("%s: skipping further MX address lookup after %d seconds",
+		     rr->qname, (int) elapsed);
+	    break;
+	}
     }
     return (addr_list);
 }
