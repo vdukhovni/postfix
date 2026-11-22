@@ -318,7 +318,9 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 	if (chat_append_flag) {
 	    if (LEN(rdata.str_buf))
 		VSTRING_ADDCH(rdata.str_buf, '\n');
-	    vstring_strcat(rdata.str_buf, STR(session->buffer));
+	    /* 202611 macintog: count empty line towards reply size limit. */
+	    vstring_strcat(rdata.str_buf, *STR(session->buffer) != 0 ?
+			   STR(session->buffer) : "(empty line received)");
 	}
 
 	/*
