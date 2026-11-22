@@ -26607,3 +26607,122 @@ Apologies for any names omitted.
 	command and crash the Postfix SMTP server with a null pointer
 	read error. Reported by Wonyoung Jung (정원영). File:
 	smtpd/smtpd.c.
+
+20261030
+
+	Bugfix (defect introduced: Postfix 1.0 and various later):
+	a nested "MAIL FROM" command could reset ESMTP parameters
+	for the still active "MAIL FROM" transaction; ESMTP parameters
+	specified in a rejected "MAIL FROM" command could leak into
+	the next "MAIL FROM" transaction. Fixed by resetting "MAIL
+	FROM" ESMTP parameters after the check for nested "MAIL
+	FROM" commands, and by adding missing SIZE and AUTH
+	initializations. Problem and fix by coredump.ws with Claude
+	Opus 5.5. File: smtpd.c.
+
+20261101
+
+	Bugfix (defect introduced: Postfix alpha, date: 19980804):
+	null pointer read error in "sendmail -bs" stand-alone mode
+	while rejecting a large SIZE parameter value in a MAIL FROM
+	command. Problem report and fix by coredump.ws assisted
+	by Claude Opus 5.5. File: smtpd.c.
+
+	Bugfix (defect introduced: Postfix 3.6, date: 20200725):
+	when parsing TLS protocol bounds, Postfix treated a bare
+	"<=" or ">=" (i.e. not attached to a protocol name) as
+	"<=0x0" or ">=0x0" (i.e. no upper or lower bound). These
+	forms are now treated as a syntax error. Except, to avoid
+	breaking existing configurations, Postfix will treat ">=
+	SPACE protocol-name" as ">=protocol-name, and "<= SPACE
+	protocol-name" as "<=protocol-name". Problem reported by
+	coredump.ws, assisted by Claude Opus 5.5. Fix by Wietse.
+	File: tls_misc.c.
+
+20261102
+
+	Bugfix (defect introduced: Postfix 2.3, date: 20060511):
+	When "milter_default_action = accept", and a Milter connection
+	was lost or aborted while a "replace body" request was in
+	progress, the Postfix cleanup daemon committed the queue
+	file in an undefined state (with pre-replacement body content
+	which would still be consistent with the 'default accept'
+	policy, or with partial new content which caused the message
+	to end up in the "corrupt" queue). Reported by OpenAI
+	Security and other parties. Fix by Wietse (don't accept).
+	File: milter8.c.
+
+20261105
+
+	Bugfix (defect introduced: before Postfix alpha, date:
+	19970514): Whitespace in an envelope address domain portion
+	caused corruption of the mailbox From_ line that separates
+	messages. Problem reported by coredump.ws with assistance
+	from Claude Opus 5.5. Fix by Wietse: replace the domain
+	portion with "domain.invalid". File: global/mailbox.c. File:
+	mailbox.c.
+
+20261108
+
+	Bugfix (defect introduced: Postfix 2.5, date: 20071123):
+	When Postfix negotiated a new non_smtpd_milters connection
+	and the Milter sent a list of macro names, Postfix replaced
+	a previously received list from that Milter without freeing
+	the old list's memory, resulting in a small memory leak.
+	If the Milter did not send a per-milter macro name list
+	over a new connection, Postfix reused the list that was
+	received over an earlier connection with that same Milter.
+	Report and fix by coredump.ws assisted by Claude Opus 5.5.
+	File: milter8.c.
+
+20261111
+
+	Bugfix (defect introduced: Postfix 3.6, date: 20200718):
+	panic() while parsing a TLS policy with a 1-character
+	"match=" fingerprint. Report and fix by coredump.ws assisted
+	by Claude Opus 5.5. File: tls_dane.c.
+
+	Bugfix (defect introduced: Postfix 3.0, date: 20140715):
+	With "smtputf8_enable = yes" (default setting) the Postfix
+	SMTP client could send unencoded content in the ORCPT
+	parameter while sending RCPT TO, because the internal
+	uxtext_quote() function failed to propagate an error
+	condition. This bug is unlikely in practice, because the
+	Postfix SMTP server accepts non-UTF8 content in an ORCPT
+	parameter only with "smtputf8_enable = no" (not a default
+	setting). Reported by coredump.ws, found with fuzzing. File:
+	uxtext.c.
+
+	Robustness (defect introduced: Postfix 2.3, date: 20060511):
+	a hostile DNS operator could return up to 100 MX hostnames
+	to the Postfix SMTP client, and deliberately let each SMTP
+	server IP address lookup request time out. Problem reported
+	by coredump.ws assisted by pf-outbound. Fix by Wietse: stop
+	making queries after their combined elapsed time exceeds
+	100s per delivery request. File: smtp_addr.c.
+
+2026113
+
+	Safety: don't panic when vstring_alloc() is called with a
+	zero-length argument. File: vstring.c.
+
+20261115
+
+	Bug (defect introduced: Postfix before alpha, date: 19971211):
+	The Postfix SMTP client did not count an empty reply line
+	towards the reply size limit, but still added an empty line
+	entry to the in-memory session history. An SMTP server that
+	replies with a stream of empty lines could run an SMTP
+	client process out of memory and degrade performance of
+	concurrent deliveries. Problem report by macintog, fix by
+	Wietse and macintog. File: smtp_chat.c.
+
+20261116
+
+	Bugfix (defect introduced: Postfix beta, date: 19981104):
+	a compromised mailing list manager could replace a local(8)
+	:include: file, referenced in a root-owned alias database,
+	with a hardlink or symlink to a restricted file (not world
+	readable), and reveal that file's content in bounce messages.
+	Reported by Anton Klingspor assisted with AI, fixed by
+	Wietse. File: local/include.c.

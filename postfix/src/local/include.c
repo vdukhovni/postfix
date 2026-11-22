@@ -61,6 +61,7 @@
 #include <stat_as.h>
 #include <iostuff.h>
 #include <mypwd.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -144,6 +145,8 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 	return (bounce_append(BOUNCE_FLAGS(state.request),
 			      BOUNCE_ATTR(state.msg_attr)));
     }
+    if (st.st_mode & S_IWGRP)
+	msg_warn(":include: file %s is group writable", path);
 
     /*
      * DELIVERY POLICY
@@ -156,16 +159,43 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     /*
      * DELIVERY RIGHTS
      * 
-     * When a non-root include file is listed in a root-owned alias, use the
-     * rights of the include file owner.  We do not want to give the include
-     * file owner control of the default account.
+     * When an include file is listed in a root-owned alias: (1) use the rights
+     * of the parent directory owner if that is a non-root user, else (2) use
+     * the rights of the include file owner. Branch (1) defends against an
+     * attack reported by Anton Klingspor where a compromised mailing list
+     * manager could replace an include file with a hardlink or symlink to a
+     * protected file, and reveal its content in bounce messages.
      * 
      * When an include file is listed in a user-owned alias or .forward file,
      * leave the delivery rights alone. Users should not be able to make
      * things happen with someone else's rights just by including some file
      * that is owned by their victim.
+     * 
+     * In all cases, delivery to command or file will reduce root privilege to
+     * default user privilege.
      */
     if (usr_attr.uid == 0) {
+	VSTRING *parent_buf = vstring_alloc(100);
+	const char *parent_path = sane_dirname(parent_buf, path);
+	struct stat parent_st;
+	int     stat_res;
+
+	stat_res = stat(parent_path, &parent_st);	/* not lstat */
+	if (stat_res == 0 && (parent_st.st_mode & (S_IWGRP | S_IWOTH)))
+	    /* Warn not reject, to avoid breaking existing deployments. */
+	    msg_warn(":include: file %s has group or world writable "
+		     "parent %s", path, parent_path);
+	vstring_free(parent_buf);
+	if (stat_res < 0) {
+	    msg_warn("%s: cannot find :include: file parent", path);
+	    dsb_simple(state.msg_attr.why, "4.3.5",
+		       "mail system configuration error");
+	    return (defer_append(BOUNCE_FLAGS(state.request),
+				 BOUNCE_ATTR(state.msg_attr)));
+	}
+	/* Non-root parent owner rights override file owner rights. */
+	if (parent_st.st_uid != 0)
+	    st = parent_st;
 	if ((errno = mypwuid_err(st.st_uid, &file_pwd)) != 0 || file_pwd == 0) {
 	    msg_warn(errno ? "cannot find username for uid %ld: %m" :
 		     "cannot find username for uid %ld", (long) st.st_uid);
@@ -207,9 +237,14 @@ int     deliver_include(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
 #define FOPEN_AS(p,u,g) ((fd = open_as(p,O_RDONLY,0,u,g)) >= 0 ? \
 				vstream_fdopen(fd,O_RDONLY) : 0)
 
+    if (msg_verbose)
+	msg_info("%s: open_as(path=%s, uid=%lu, gid=%lu)", __func__, path,
+		 (unsigned long) usr_attr.uid, (unsigned long) usr_attr.gid);
     if ((fp = FOPEN_AS(path, usr_attr.uid, usr_attr.gid)) == 0) {
-	msg_warn("cannot open include file %s: %m", path);
-	dsb_simple(state.msg_attr.why, "5.3.5",
+	msg_warn("cannot open :include: file %s as uid=%lu gid=%lu: %m", path,
+		 (unsigned long) usr_attr.uid, (unsigned long) usr_attr.gid);
+	/* 4.x.x Because this may be triggered by new Klingspor defense. */
+	dsb_simple(state.msg_attr.why, "4.3.5",
 		   "mail system configuration error");
 	status = bounce_append(BOUNCE_FLAGS(state.request),
 			       BOUNCE_ATTR(state.msg_attr));
