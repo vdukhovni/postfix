@@ -343,6 +343,7 @@ include.o: ../../include/recipient_list.h
 include.o: ../../include/resolve_clnt.h
 include.o: ../../include/sent.h
 include.o: ../../include/stat_as.h
+include.o: ../../include/stringops.h
 include.o: ../../include/sys_defs.h
 include.o: ../../include/tok822.h
 include.o: ../../include/vbuf.h
