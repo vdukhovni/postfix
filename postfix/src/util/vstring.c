@@ -373,9 +373,9 @@ VSTRING *vstring_alloc(ssize_t len)
 
     /*
      * Safety net: add a gratuitous null terminator so that C-style string
-     * operations won't scribble past the end.
+     * operations won't scribble past the end. 20261113 Allow zero length.
      */
-    if (len < 1 || len > SSIZE_T_MAX - 1)
+    if (len < 0 || len > SSIZE_T_MAX - 1)
 	msg_panic("vstring_alloc: bad length %ld", (long) len);
     vp = (VSTRING *) mymalloc(sizeof(*vp));
     vp->vbuf.flags = 0;

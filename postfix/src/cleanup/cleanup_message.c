@@ -911,6 +911,21 @@ static void cleanup_header_done_callback(void *context)
 	cleanup_out_format(state, REC_TYPE_NORM, "Require-TLS-ESMTP: yes");
 
     /*
+     * Get the current error state before mime_state_update() can return it.
+     * 
+     * 202610 Credit: coredump.ws with Claude Opus 5.5. Moved this code before
+     * the dummy "header append" PTR record below. Otherwise the cleanup
+     * server would treat this header as the start of the message body: the
+     * Milter header editing code would not find it, and a Milter body
+     * replacement would overwrite it.
+     */
+    mime_errs = mime_state_status(state->mime_state);
+    if ((mime_errs & MIME_ERR_NON_EMPTY_EOH)
+	&& cleanup_non_empty_eoh_action == NON_EMPTY_EOH_CODE_ADD_HDR)
+	cleanup_out_string(state, REC_TYPE_NORM,
+	     "MIME-Error: message header was not terminated by empty line");
+
+    /*
      * Place a dummy PTR record right after the last header so that we can
      * append headers without having to worry about clobbering the
      * end-of-content marker.
@@ -923,15 +938,6 @@ static void cleanup_header_done_callback(void *context)
 	    msg_fatal("%s: vstream_ftell %s: %m", myname, cleanup_path);
 	state->body_offset = state->append_hdr_pt_target;
     }
-
-    /*
-     * Get the current error state before mime_state_update() can return it.
-     */
-    mime_errs = mime_state_status(state->mime_state);
-    if ((mime_errs & MIME_ERR_NON_EMPTY_EOH)
-	&& cleanup_non_empty_eoh_action == NON_EMPTY_EOH_CODE_ADD_HDR)
-	cleanup_out_string(state, REC_TYPE_NORM,
-	     "MIME-Error: message header was not terminated by empty line");
 }
 
 /* cleanup_body_callback - output one body record */

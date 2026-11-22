@@ -581,6 +581,11 @@ static void milter8_close_stream(MILTER8 *milter)
 	(void) vstream_fclose(milter->fp);
 	milter->fp = 0;
     }
+    /* 202611 coredump.ws + Claude Opus 5.5: avoid stale or leaked data. */
+    if (milter->m.macros) {
+        milter_macros_free(milter->m.macros);
+        milter->m.macros = 0;
+    }
     milter->state = MILTER8_STAT_CLOSED;
 }
 
@@ -1679,8 +1684,11 @@ static const char *milter8_event(MILTER8 *milter, int event,
     /*
      * Clean up after aborted message body replacement.
      */
-    if (body_line_buf)
+    if (body_line_buf) {
+	 if (edit_resp == 0 && (retval == 0 || strchr("DS45", retval[0]) == 0))
+	    retval = "421 4.7.0 Service unavailable";
 	vstring_free(body_line_buf);
+    }
 
     /*
      * XXX Some cleanup clients ask the cleanup server to bounce mail for
@@ -1753,6 +1761,7 @@ static void milter8_connect(MILTER8 *milter)
 	    msg_warn("milter %s: bad protocol information: %s",
 		     milter->m.name, name);
 	    milter8_conf_error(milter);
+	    myfree(saved_version);
 	    return;
 	}
 	if (vers != 0)
@@ -1946,7 +1955,12 @@ static void milter8_connect(MILTER8 *milter)
 
     /*
      * Secondary negotiations: override lists of macro names.
+     *
+     * 202611 coredump.ws + Claude Opus 5.5: avoid stale data or memory leak.
      */
+    if (milter->m.macros)
+	msg_panic("%s: milter %s: macros exist",
+		  myname, milter->m.name);
     if (data_len > 0) {
 	VSTRING *buf = vstring_alloc(100);
 	UINT32_TYPE mac_type;
